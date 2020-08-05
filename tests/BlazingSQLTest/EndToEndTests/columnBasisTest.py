@@ -102,7 +102,8 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
 
             bc.create_table("temp2", temp_gdf)
 
-            sql = "select * from main.temp2"
+            #sql = "select * from main.temp2"
+            sql = "select * from customer"
             token = bc.sql(sql)
             result_gdf = get_results(nRals, token)
 
