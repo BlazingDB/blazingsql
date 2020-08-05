@@ -9,6 +9,7 @@ from distributed.protocol.serialize import to_serialize
 import concurrent.futures
 
 from dask.distributed import default_client
+import time
 
 serde = ("cuda", "dask", "pickle", "error")
 
@@ -209,7 +210,10 @@ class UCX:
                 print("An error occurred in serialization")
 
             try:
+                star_time = time.time()
                 await ep.write(msg=to_ser, serializers=serde)
+                end_time = time.time()
+                logging.info("comms::send::write: " +  str(end_time - star_time))
             except:
                 print("Error occurred during write")
             self.sent += 1
