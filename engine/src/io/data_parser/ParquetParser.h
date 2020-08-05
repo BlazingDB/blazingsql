@@ -13,6 +13,8 @@
 #include <memory>
 #include <vector>
 
+#include <cudf/io/datasource.hpp>
+
 namespace ral {
 namespace io {
 

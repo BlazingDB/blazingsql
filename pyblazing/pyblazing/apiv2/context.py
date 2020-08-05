@@ -1070,6 +1070,9 @@ class BlazingContext(object):
             MEMORY_MONITOR_PERIOD : How often the memory monitor checks memory
                     consumption. The value is in milliseconds.
                     default: 50  (milliseconds)
+            MAX_KERNEL_RUN_THREADS : The number of threads available to run
+                    kernels simultaneously.
+                    default: 16
 
         Examples
         --------
@@ -1787,7 +1790,7 @@ class BlazingContext(object):
                 for group_id in grouped.groups:
                     row_indices = grouped.groups[group_id].values.tolist()
                     row_meta_ids = metadata_ids["row_group_index"]
-                    row_groups_col = row_meta_ids.values.tolist()
+                    row_groups_col = row_meta_ids.tolist()
                     row_group_ids = [row_groups_col[i] for i in row_indices]
                     row_groups_ids.append(row_group_ids)
                 table.row_groups_ids = row_groups_ids
@@ -1962,7 +1965,7 @@ class BlazingContext(object):
                         uri_values.append(current_table.uri_values[group_id])
                     row_groups_col = file_and_rowgroup_indices[
                         "row_group_index"
-                    ].values.tolist()
+                    ].tolist()
                     row_group_ids = [row_groups_col[i] for i in row_indices]
                     row_groups_ids.append(row_group_ids)
 

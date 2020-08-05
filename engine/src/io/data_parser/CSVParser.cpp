@@ -38,7 +38,8 @@ cudf_io::table_with_metadata read_csv_arg_arrow(cudf_io::read_csv_args new_csv_a
 		new_csv_args.skipfooter = 0;
 	}
 
-	new_csv_args.source = cudf_io::source_info(arrow_file_handle);
+	auto arrow_source = cudf_io::arrow_io_source{arrow_file_handle};
+	new_csv_args.source = cudf_io::source_info{&arrow_source};
 
 	if(new_csv_args.nrows != -1)
 		new_csv_args.skipfooter = 0;

@@ -19,8 +19,15 @@
 - #877 round robing dask workers on single gpu queries
 - #880 reraising query errors in context.py
 - #883 add rand() and running unary operations on literals
-- #887 concatenating cache improvement and replacing PartwiseJoin::load_set with a concatenating cache
 - #894 added exhale to generate doxygen for sphinx docs
+- #887 concatenating cache improvement and replacing PartwiseJoin::load_set with a concatenating cache
+- #904 Added doxygen comments to CacheMachine.h
+- #901 Added more documentation about memory management 
+- #910 updated readme 
+- #915 Adding max kernel num threads pool
+- #921 Make AWS and GCS optional
+- #925 Replace random_generator with cudf::sample
+
 
 ## Bug Fixes
 - #774 fixed build issues with latest cudf 0.15 including updating from_cudf
@@ -47,6 +54,10 @@
 - #879 Fixed issue with log directory creation in a distributed environment
 - #890 Fixed issue where we were including testing hpp in our code
 - #891 Fixed issue caused by replacing join load_set with concatenating cache
+- #902 Fixed optimization regression on the select count(*) case
+- #909 Fixed issue caused by using now arrow_io_source
+- #913 Fixed issues caused by cudf adding DECIMAL data type
+- #916 Fix e2e string comparison
 
 
 # BlazingSQL 0.14.0 (June 9, 2020)
@@ -93,3 +104,4 @@
 - #809 Fix conda build issues
 - #828 Fix gpuci issues and improve tooling to debug gpuci related issues
 - #867 Fix boost dependencie issues
+- #785 Add script for Manual Testing Artifacts.

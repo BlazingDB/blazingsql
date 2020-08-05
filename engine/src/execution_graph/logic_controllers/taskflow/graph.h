@@ -2,6 +2,7 @@
 
 #include "kernel.h"
 #include "kpair.h"
+#include "utilities/ctpl_stl.h"
 
 namespace ral {
 namespace cache {
@@ -58,7 +59,7 @@ public:
 
 	void check_and_complete_work_flow();
 
-	void execute();
+	void execute(const std::size_t max_kernel_run_threads);
 
 	void show();
 
@@ -97,6 +98,7 @@ private:
 	std::map<std::int32_t, std::set<Edge>> reverse_edges_;
 
 	std::shared_ptr<spdlog::logger> kernels_edges_logger;
+	std::shared_ptr<Context> context;
 };
 
 

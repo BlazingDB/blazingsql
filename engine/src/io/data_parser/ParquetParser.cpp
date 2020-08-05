@@ -36,7 +36,8 @@ std::unique_ptr<ral::frame::BlazingTable> parquet_parser::parse_batch(
 	}
 	if(column_indices.size() > 0) {
 		// Fill data to pq_args
-		cudf_io::read_parquet_args pq_args{cudf_io::source_info{file}};
+		auto arrow_source = cudf_io::arrow_io_source{file};
+		cudf_io::read_parquet_args pq_args{cudf_io::source_info{&arrow_source}};
 
 		pq_args.strings_to_categorical = false;
 		pq_args.columns.resize(column_indices.size());
@@ -71,7 +72,9 @@ void parquet_parser::parse_schema(
 		return; // if the file has no rows, we dont want cudf_io to try to read it
 	}
 
-	cudf_io::read_parquet_args pq_args{cudf_io::source_info{file}};
+	auto arrow_source = cudf_io::arrow_io_source{file};
+	cudf_io::read_parquet_args pq_args{cudf_io::source_info{&arrow_source}};
+
 	pq_args.strings_to_categorical = false;
 	pq_args.row_groups = std::vector<std::vector<cudf::size_type>>(1, std::vector<cudf::size_type>(1, 0));
 	pq_args.num_rows = 1;

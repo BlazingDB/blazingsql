@@ -335,18 +335,33 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                     and l_discount between 0.06 - 0.01 and 0.06 + 0.01
                     and l_quantity < 24
             """
-            runTest.run_query(
-                bc,
-                spark,
-                query,
-                queryId,
-                queryType,
-                worder,
-                "",
-                acceptable_difference,
-                use_percentage,
-                fileSchemaType,
-            )
+            
+            if fileSchemaType == DataType.ORC:
+                runTest.run_query(
+                    bc,
+                    spark,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
+            else:
+                runTest.run_query(
+                    bc,
+                    drill,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
 
             queryId = "TEST_07"
 
@@ -545,7 +560,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                     worder,
                     "",
                     acceptable_difference,
-                    use_percentage,
+                    True,
                     fileSchemaType,
                 )
             else:
@@ -558,7 +573,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                     worder,
                     "",
                     acceptable_difference,
-                    use_percentage,
+                    True,
                     fileSchemaType,
                 )
 

@@ -2,6 +2,7 @@
 
 #include <arrow/io/interfaces.h>
 #include <cudf/io/functions.hpp>
+#include <cudf/io/datasource.hpp>
 #include <memory>
 #include <vector>
 
