@@ -26,6 +26,7 @@
 - #910 updated readme 
 - #915 Adding max kernel num threads pool
 - #921 Make AWS and GCS optional
+- #925 Replace random_generator with cudf::sample
 
 
 ## Bug Fixes

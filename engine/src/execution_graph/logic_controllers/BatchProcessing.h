@@ -11,9 +11,6 @@
 #include <src/communication/network/Client.h>
 #include "parser/expression_utils.hpp"
 
-
-#include "utilities/random_generator.cuh"
-//#include <cudf/cudf.h>
 #include <cudf/io/functions.hpp>
 #include <cudf/types.hpp>
 #include "execution_graph/logic_controllers/LogicalProject.h"
