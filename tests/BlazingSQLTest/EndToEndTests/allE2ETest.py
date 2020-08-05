@@ -289,7 +289,7 @@ if __name__ == "__main__":
         if result is False:
             for error_msg in error_msgs:
                 print(error_msg)
-            # import sys
+            import sys
 
             end = time.time()  # in seconds
             elapsed = end - start  # in seconds
