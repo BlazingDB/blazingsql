@@ -9,12 +9,10 @@
 #include <cudf/search.hpp>
 #include <cudf/sorting.hpp>
 #include <cudf/merge.hpp>
+#include <cudf/utilities/traits.hpp>
 
 #include "utilities/CommonOperations.h"
-#include "utilities/random_generator.cuh"
 #include "error.hpp"
-
-#include "cudf/utilities/traits.hpp"
 
 #include <spdlog/spdlog.h>
 using namespace fmt::literals;
@@ -35,7 +33,6 @@ typedef ral::communication::messages::ReceivedDeviceMessage ReceivedDeviceMessag
 typedef ral::communication::CommunicationData CommunicationData;
 typedef ral::communication::network::Server Server;
 typedef ral::communication::network::Client Client;
-
 
 void sendSamplesToMaster(Context * context, const BlazingTableView & samples, std::size_t table_total_rows) {
   // Get master node
@@ -79,7 +76,7 @@ std::pair<std::vector<NodeColumn>, std::vector<std::size_t> > collectSamples(Con
 							"step"_a=context->getQueryStep(),
 							"substep"_a=context->getQuerySubstep(),
 							"info"_a="Already received collectSamples from node " + std::to_string(node_idx),
-							"duration"_a="");			
+							"duration"_a="");
 		}
 		auto concreteMessage = std::static_pointer_cast<ReceivedDeviceMessage>(message);
 		table_total_rows.push_back(concreteMessage->getTotalRowSize());
@@ -411,7 +408,7 @@ std::vector<int64_t> collectNumRows(Context * context) {
 							"step"_a=context->getQueryStep(),
 							"substep"_a=context->getQuerySubstep(),
 							"info"_a="Already received collectNumRows from node " + std::to_string(node_idx),
-							"duration"_a="");			
+							"duration"_a="");
 		}
 		node_num_rows[node_idx] = concrete_message->getTotalRowSize();
 		received[node_idx] = true;
@@ -472,7 +469,7 @@ void collectLeftRightTableSizeBytes(Context * context,	std::vector<int64_t> & no
 							"step"_a=context->getQueryStep(),
 							"substep"_a=context->getQuerySubstep(),
 							"info"_a="Already received collectLeftRightTableSizeBytes from node " + std::to_string(node_idx),
-							"duration"_a="");				
+							"duration"_a="");
 		}
 		node_num_bytes_left[node_idx] = host_data[0];
 		node_num_bytes_right[node_idx] = host_data[1];
@@ -480,26 +477,5 @@ void collectLeftRightTableSizeBytes(Context * context,	std::vector<int64_t> & no
 	}
 }
 
-}  // namespace distribution
-}  // namespace ral
-
-
-
-namespace ral {
-namespace distribution {
-namespace sampling {
-
-std::unique_ptr<ral::frame::BlazingTable> generateSamplesFromRatio(
-	const ral::frame::BlazingTableView & table, const double ratio) {
-	return generateSamples(table, std::ceil(table.view().num_rows() * ratio));
-}
-
-std::unique_ptr<ral::frame::BlazingTable> generateSamples(
-	const ral::frame::BlazingTableView & table, const size_t quantile) {
-
-	return ral::generator::generate_sample(table, quantile);
-}
-
-}  // namespace sampling
 }  // namespace distribution
 }  // namespace ral
