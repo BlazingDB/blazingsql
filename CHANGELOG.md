@@ -58,6 +58,7 @@
 - #909 Fixed issue caused by using now arrow_io_source
 - #913 Fixed issues caused by cudf adding DECIMAL data type
 - #916 Fix e2e string comparison
+- #927 Fixed random segfault issue in parser
 
 
 # BlazingSQL 0.14.0 (June 9, 2020)
