@@ -3,6 +3,7 @@
 #include "kernel.h"
 #include "kpair.h"
 #include "execution_graph/logic_controllers/CacheMachine.h"
+#include "utilities/ctpl_stl.h"
 
 namespace ral {
 namespace cache {
@@ -59,7 +60,7 @@ public:
 
 	void check_and_complete_work_flow();
 
-	void execute();
+	void execute(const std::size_t max_kernel_run_threads);
 
 	void show();
 
@@ -106,6 +107,7 @@ private:
 	std::shared_ptr<ral::cache::CacheMachine> output_cache_;
 
 	std::shared_ptr<spdlog::logger> kernels_edges_logger;
+	std::shared_ptr<Context> context;
 };
 
 

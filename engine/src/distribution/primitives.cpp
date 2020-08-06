@@ -9,12 +9,10 @@
 #include <cudf/search.hpp>
 #include <cudf/sorting.hpp>
 #include <cudf/merge.hpp>
+#include <cudf/utilities/traits.hpp>
 
 #include "utilities/CommonOperations.h"
-#include "utilities/random_generator.cuh"
 #include "error.hpp"
-
-#include "cudf/utilities/traits.hpp"
 
 #include <spdlog/spdlog.h>
 using namespace fmt::literals;
@@ -35,7 +33,6 @@ typedef ral::communication::messages::ReceivedDeviceMessage ReceivedDeviceMessag
 typedef ral::communication::CommunicationData CommunicationData;
 typedef ral::communication::network::Server Server;
 typedef ral::communication::network::Client Client;
-
 
 void sendSamplesToMaster(Context * context, const BlazingTableView & samples, std::size_t table_total_rows) {
   // Get master node
@@ -423,7 +420,6 @@ std::vector<int64_t> collectNumRows(Context * context) {
 	// }
 
 	// return node_num_rows;
-
 	return {};
 }
 
@@ -485,28 +481,8 @@ void collectLeftRightTableSizeBytes(Context * context,	std::vector<int64_t> & no
 	// 	node_num_bytes_right[node_idx] = host_data[1];
 	// 	received[node_idx] = true;
 	// }
+
 }
 
-}  // namespace distribution
-}  // namespace ral
-
-
-
-namespace ral {
-namespace distribution {
-namespace sampling {
-
-std::unique_ptr<ral::frame::BlazingTable> generateSamplesFromRatio(
-	const ral::frame::BlazingTableView & table, const double ratio) {
-	return generateSamples(table, std::ceil(table.view().num_rows() * ratio));
-}
-
-std::unique_ptr<ral::frame::BlazingTable> generateSamples(
-	const ral::frame::BlazingTableView & table, const size_t quantile) {
-
-	return ral::generator::generate_sample(table, quantile);
-}
-
-}  // namespace sampling
 }  // namespace distribution
 }  // namespace ral

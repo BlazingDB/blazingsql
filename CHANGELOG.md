@@ -25,6 +25,10 @@
 - #901 Added more documentation about memory management 
 - #910 updated readme 
 - #912 Added UCX support to how the engine runs
+- #915 Adding max kernel num threads pool
+- #921 Make AWS and GCS optional
+- #925 Replace random_generator with cudf::sample
+
 
 ## Bug Fixes
 - #774 fixed build issues with latest cudf 0.15 including updating from_cudf
