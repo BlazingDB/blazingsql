@@ -129,9 +129,9 @@ cdef cio.TableScanInfo getTableScanInfoPython(string logicalPlan) nogil:
         temp = cio.getTableScanInfo(logicalPlan)
     return temp
 
-cdef pair[shared_ptr[cio.CacheMachine], shared_ptr[cio.CacheMachine] ] initializePython(int ralId, string worker_id, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options) except +:
+cdef pair[shared_ptr[cio.CacheMachine], shared_ptr[cio.CacheMachine] ] initializePython(int ralId, string worker_id, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, map[string, uintptr_t] dask_addr_to_ucp_handle, bool singleNode, map[string,string] config_options) except +:
     with nogil:
-        return cio.initialize( ralId, worker_id, gpuId, network_iface_name,  ralHost,  ralCommunicationPort, singleNode, config_options)
+        return cio.initialize( ralId, worker_id, gpuId, network_iface_name,  ralHost,  ralCommunicationPort, dask_addr_to_ucp_handle, singleNode, config_options)
 
 cdef void finalizePython() nogil except +:
     with nogil:
@@ -257,8 +257,8 @@ cdef class PyBlazingCache:
         df._rename_columns(decoded_names)
         return df, metadata_py
 
-cpdef initializeCaller(int ralId, string worker_id, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options):
-    caches = initializePython( ralId, worker_id, gpuId, network_iface_name,  ralHost,  ralCommunicationPort, singleNode, config_options)
+cpdef initializeCaller(int ralId, string worker_id, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, map[string, uintptr_t] dask_addr_to_ucp_handle, bool singleNode, map[string,string] config_options):
+    caches = initializePython( ralId, worker_id, gpuId, network_iface_name,  ralHost,  ralCommunicationPort, dask_addr_to_ucp_handle, singleNode, config_options)
     transport_out = PyBlazingCache()
     transport_out.c_cache = caches.first
     transport_in = PyBlazingCache()

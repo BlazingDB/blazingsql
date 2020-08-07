@@ -6,6 +6,8 @@
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 
+#include <ucp/api/ucp.h>
+
 #include <spdlog/spdlog.h>
 #include <spdlog/async.h>
 #include <spdlog/sinks/basic_file_sink.h>
@@ -16,6 +18,8 @@
 #include <memory>
 #include <chrono>
 #include <fstream>
+#include <utility>
+#include <memory>
 
 #include <blazingdb/transport/io/reader_writer.h>
 
@@ -33,13 +37,12 @@
 #include <bmr/initializer.h>
 
 #include "execution_graph/logic_controllers/CacheMachine.h"
-#include <utility>
-#include <memory>
+
+#include "engine/initialize.h"
+#include "engine/static.h" // this contains function call for getProductDetails
 
 using namespace fmt::literals;
 using namespace ral::cache;
-
-#include <engine/static.h> // this contains function call for getProductDetails
 
 std::string get_ip(const std::string & iface_name = "eth0") {
 	int fd;
@@ -97,6 +100,7 @@ std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> > initiali
 	std::string network_iface_name,
 	std::string ralHost,
 	int ralCommunicationPort,
+	std::map<std::string, std::uintptr_t> dask_addr_to_ucp_handle,
 	bool singleNode,
 	std::map<std::string, std::string> config_options) {
   // ---------------------------------------------------------------------------
@@ -129,7 +133,13 @@ std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> > initiali
 	blazing_host_memory_resource::getInstance().initialize(host_memory_quota);
 
 	auto & communicationData = ral::communication::CommunicationData::getInstance();
-	communicationData.initialize(worker_id, ralHost, ralCommunicationPort);
+
+	std::map<std::string, ucp_ep_h> worker_id_to_ucp_ep;
+	for (auto &&i : dask_addr_to_ucp_handle) {
+		worker_id_to_ucp_ep.emplace(i.first, reinterpret_cast<ucp_ep_h>(i.second));
+	}
+
+	communicationData.initialize(worker_id, ralHost, ralCommunicationPort, worker_id_to_ucp_ep);
 
 	ral::communication::network::Server::start(ralCommunicationPort, true);
 

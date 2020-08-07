@@ -1,4 +1,4 @@
-#include "../../include/engine/engine.h"
+#include "engine/engine.h"
 #include "../CalciteInterpreter.h"
 #include "../io/data_parser/ArgsUtil.h"
 #include "../io/data_parser/CSVParser.h"
@@ -143,6 +143,8 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(int32_t masterIndex,
 	using blazingdb::manager::Context;
 	using blazingdb::transport::Node;
 
+	auto& communicationData = ral::communication::CommunicationData::getInstance();
+
 	std::vector<Node> contextNodes;
 	for(auto currentMetadata : tcpMetadata) {
 		auto address =
@@ -155,7 +157,7 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(int32_t masterIndex,
 
 	CodeTimer eventTimer(true);
 	logger->info("{ral_id}|{query_id}|{start_time}|{plan}",
-									"ral_id"_a=queryContext.getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+									"ral_id"_a=queryContext.getNodeIndex(communicationData.getSelfNode()),
 									"query_id"_a=queryContext.getContextToken(),
 									"start_time"_a=eventTimer.start_time(),
 									"plan"_a=query);

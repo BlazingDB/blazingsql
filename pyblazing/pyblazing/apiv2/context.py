@@ -18,7 +18,7 @@ from pyblazing.apiv2 import DataType
 import asyncio
 
 from distributed.comm import listen
-from pyblazing.apiv2.comms import PollingPlugin, listen
+from pyblazing.apiv2.comms import PollingPlugin, listen, UCX
 
 import json
 import collections
@@ -167,6 +167,15 @@ def initializeBlazing(
 
     cio.blazingSetAllocatorCaller(allocator.encode(), initial_pool_size, config_options)
 
+    worker = dask.distributed.get_worker()
+
+    dask_addr_to_ucp_handle = {}
+    if singleNode is False:
+        for dask_addr in worker.ucx_addresses:
+            addr = worker.ucx_addresses[dask_addr]
+            ucp_handle = UCX.get()._endpoints[addr].ep.get_ucp_endpoint().handle
+            dask_addr_to_ucp_handle[dask_addr] = ucp_handle
+
     output_cache, input_cache = cio.initializeCaller(
         ralId,
         worker_id.encode(),
@@ -174,12 +183,12 @@ def initializeBlazing(
         networkInterface.encode(),
         workerIp.encode(),
         ralCommunicationPort,
+        dask_addr_to_ucp_handle,
         singleNode,
         config_options,
     )
 
     if singleNode is False:
-        worker = dask.distributed.get_worker()
         worker.output_cache = output_cache
         worker.input_cache = input_cache
 
@@ -1186,12 +1195,24 @@ class BlazingContext(object):
             # split between the workers, here we are assuming that there are
             # the same number of GPUs/workers per server.
             workers_info = self.dask_client.scheduler_info()["workers"]
+            if len(workers_info) == 0:
+                raise Exception("No workers registered on the scheduler")
+
             host_list = [value["host"] for key, value in workers_info.items()]
             self.config_options["BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD".encode()] = str(
                 host_memory_quota * len(set(host_list)) / len(workers_info)
             ).encode()
 
-            for worker in list(self.dask_client.scheduler_info()["workers"]):
+
+            # Register and start polling plugin on each Dask worker
+            self.polling_plugin = PollingPlugin()
+            self.dask_client.register_worker_plugin(self.polling_plugin)
+
+            # Start listener on each worker to send received messages to router
+            listen(client=self.dask_client)
+
+            workers = list(self.dask_client.scheduler_info()["workers"])
+            for worker in workers:
                 dask_futures.append(
                     self.dask_client.submit(
                         initializeBlazing,
@@ -1219,16 +1240,6 @@ class BlazingContext(object):
                 self.nodes.append(node)
                 self.node_log_paths.append(log_path)
                 i = i + 1
-
-
-
-            # Register and start polling plugin on each Dask worker
-            self.polling_plugin = PollingPlugin()
-            self.dask_client.register_worker_plugin(self.polling_plugin)
-
-            # Start listener on each worker to send received messages to router
-            
-            listen(client=self.dask_client)
 
 
             # need to initialize this logging independently, in case its set as a relative path
@@ -2223,7 +2234,6 @@ class BlazingContext(object):
         Docs: https://docs.blazingdb.com/docs/single-gpu
         """
 
-        
         # TODO: remove hardcoding
         masterIndex = 0
         nodeTableList = [[] for _ in range(len(self.nodes))]
