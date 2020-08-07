@@ -173,7 +173,7 @@ def initializeBlazing(
     if singleNode is False:
         for dask_addr in worker.ucx_addresses:
             addr = worker.ucx_addresses[dask_addr]
-            ucp_handle = UCX.get()._endpoints[addr].ep.get_ucp_endpoint().handle
+            ucp_handle = UCX.get()._endpoints[addr].ep.get_ucp_endpoint()
             dask_addr_to_ucp_handle[dask_addr] = ucp_handle
 
     output_cache, input_cache = cio.initializeCaller(
