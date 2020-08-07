@@ -59,6 +59,7 @@
 - #913 Fixed issues caused by cudf adding DECIMAL data type
 - #916 Fix e2e string comparison
 - #927 Fixed random segfault issue in parser
+- #929 Update the GPUManager functions
 
 
 # BlazingSQL 0.14.0 (June 9, 2020)
