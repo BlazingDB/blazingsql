@@ -81,7 +81,7 @@ RelConversionExceptionClass = jpype.JClass(
     "org.apache.calcite.tools.RelConversionException"
 )
 
-def checkSocket(socketNum):
+def checkSocket(socketNum):    
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     socket_free = False
@@ -1419,11 +1419,12 @@ class BlazingContext(object):
         try:
             algebra = self.generator.getRelationalAlgebraString(sql)
 
-        except  SqlValidationExceptionClass as exception: #jpype.JException as exception:
+        except SqlValidationExceptionClass as exception: 
+            # jpype.JException as exception:
             raise Exception(exception.message()) 
             # algebra = ""
             # print("SQL Parsing Error")
-            #print(exception.message())
+            # print(exception.message())
         except SqlSyntaxExceptionClass as exception:
             raise Exception(exception.message()) 
         except RelConversionExceptionClass as exception:
