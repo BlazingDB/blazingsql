@@ -24,6 +24,10 @@
 - #904 Added doxygen comments to CacheMachine.h
 - #901 Added more documentation about memory management 
 - #910 updated readme 
+- #915 Adding max kernel num threads pool
+- #921 Make AWS and GCS optional
+- #925 Replace random_generator with cudf::sample
+
 
 ## Bug Fixes
 - #774 fixed build issues with latest cudf 0.15 including updating from_cudf
@@ -52,7 +56,10 @@
 - #891 Fixed issue caused by replacing join load_set with concatenating cache
 - #902 Fixed optimization regression on the select count(*) case
 - #909 Fixed issue caused by using now arrow_io_source
-- #913 Fixed issues caused by cudf adding DECIMAL data type 
+- #913 Fixed issues caused by cudf adding DECIMAL data type
+- #916 Fix e2e string comparison
+- #927 Fixed random segfault issue in parser
+- #929 Update the GPUManager functions
 
 
 # BlazingSQL 0.14.0 (June 9, 2020)
@@ -101,3 +108,4 @@
 - #867 Fix boost dependencie issues
 - #785 Add script for Manual Testing Artifacts.
 - #931 Add script for error messages validation.
+

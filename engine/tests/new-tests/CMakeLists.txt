@@ -28,9 +28,3 @@ set(filter_test_SRCS
 )
 
 configure_test(filter_test "${filter_test_SRCS}")
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-set(sample-generator_SRCS sample-generator.cpp)
-
-configure_test(sample-generator "${sample-generator_SRCS}")
