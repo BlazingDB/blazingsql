@@ -281,10 +281,10 @@ def get_codTest(test_name):
         "Where clause": "WHERE",
         "Wild Card": "WILDCARD",
         "Simple String": "SSTRING",
+        "Message Validation": "MESSAGEVAL"
     }
 
     return switcher.get(test_name)
-
 
 def print_fixed_log(
     logger,
@@ -410,15 +410,18 @@ def print_query_results(
         total_time,
     )
 
-
-def print_query_results2(sql, queryId, queryType, error_message):
+def print_query_results2(sql, queryId, input_type, queryType, error_message):
     print(queryId)
     print("#QUERY:")
     print(sql)
     print("RESULT:")
-    print("Crash")
+    result = validate_messages(error_message)
+    print(result)
     print("ERROR:")
-    print(error_message)
+    if result=="Fail":
+        print(error_message)
+    else:
+        error_message=""
     print("CALCITE TIME: ")
     print("-")
     print("RAL TIME: ")
@@ -429,10 +432,10 @@ def print_query_results2(sql, queryId, queryType, error_message):
     print("===================================================")
 
     logger = logginghelper(name)
-    print_fixed_log(
-        logger, queryType, queryId, sql, "Crash", error_message, None, None, None
-    )
 
+    print_fixed_log(
+        logger, queryType, input_type, queryId, sql, result, error_message, None, None, None
+    )
 
 def print_query_results_performance(sql, queryId, queryType, resultgdf):
     print(queryId)
@@ -992,6 +995,22 @@ def saveLogInFile(df):
     filepath = getFileName(dir_log)
     df.to_excel(filepath, index=False)
 
+def validate_messages(error_message):
+    list_messages = ["^Column [a-zA-Z_'\d]* not found in any table$",
+                     "^Object [a-zA-Z_'\d]* not found$",
+                     "^No match found for function signature [a-zA-Z()<>]*$",
+                     "^SqlSyntaxException"
+                    ]
+    import re
+    for message in list_messages:
+        x = re.search(message, error_message)
+        if x:
+            result = "Success"
+            break
+        else:
+            result = "Fail"
+
+    return result
 
 class bcolors:
     HEADER = "\033[95m"
@@ -1343,48 +1362,55 @@ def run_query(
     if nested_query is None:
         nested_query = False
 
+    error_message = ""
+
     if not nested_query:
         # if int(nRals) == 1:  # Single Node
         query_blz = query  # get_blazingsql_query('main', query)
         if algebra == "":
             start_time = time.time()
-            result_gdf = bc.sql(query_blz)
-            end_time = time.time()
-            total_time = (end_time - start_time) * 1000
-            # SUM(CASE WHEN info = 'evaluate_split_query load_data' THEN
-            # duration ELSE 0 END) AS load_time,
-            # MAX(load_time) AS load_time,
-            log_result = bc.log(
-                """SELECT
-                    MAX(end_time) as end_time, query_id,
-                    MAX(total_time) AS total_time
-                FROM (
-                    SELECT
-                        query_id, node_id,
-                        SUM(CASE WHEN info = 'Query Execution Done' THEN
-                        duration ELSE 0 END) AS total_time,
-                        MAX(log_time) AS end_time
-                    FROM
-                        bsql_logs
-                    WHERE
-                        info = 'evaluate_split_query load_data'
-                        OR info = 'Query Execution Done'
+            try:
+                result_gdf = bc.sql(query_blz)
+            except Exception as e:
+                error_message=str(e)
+                #print(str(e))
+            if error_message=="":
+                end_time = time.time()
+                total_time = (end_time - start_time) * 1000
+                # SUM(CASE WHEN info = 'evaluate_split_query load_data' THEN
+                # duration ELSE 0 END) AS load_time,
+                # MAX(load_time) AS load_time,
+                log_result = bc.log(
+                    """SELECT
+                        MAX(end_time) as end_time, query_id,
+                        MAX(total_time) AS total_time
+                    FROM (
+                        SELECT
+                            query_id, node_id,
+                            SUM(CASE WHEN info = 'Query Execution Done' THEN
+                            duration ELSE 0 END) AS total_time,
+                            MAX(log_time) AS end_time
+                        FROM
+                            bsql_logs
+                        WHERE
+                            info = 'evaluate_split_query load_data'
+                            OR info = 'Query Execution Done'
+                        GROUP BY
+                            node_id, query_id
+                        )
                     GROUP BY
-                        node_id, query_id
-                    )
-                GROUP BY
-                    query_id
-                ORDER BY
-                    end_time DESC limit 1"""
-            )
+                        query_id
+                    ORDER BY
+                        end_time DESC limit 1"""
+                )
 
-            if int(nRals) == 1:  # Single Node
-                n_log = log_result
-            else:  # Simple Distribution
-                n_log = log_result.compute()
+                if int(nRals) == 1:  # Single Node
+                    n_log = log_result
+                else:  # Simple Distribution
+                    n_log = log_result.compute()
 
-            load_time = 0  # n_log['load_time'][0]
-            engine_time = n_log["total_time"][0]
+                load_time = 0  # n_log['load_time'][0]
+                engine_time = n_log["total_time"][0]
         else:
             result_gdf = bc.sql(query_blz, algebra=algebra)
 
@@ -1511,7 +1537,7 @@ def run_query(
                 print_query_results2(
                     query_spark, queryId, queryType, result_gdf.error_message
                 )
-    else:  # GPUCI
+    elif error_message=="":  # GPUCI
 
         compareResults = True
         if "compare_results" in Settings.data["RunSettings"]:
@@ -1596,7 +1622,14 @@ def run_query(
                 print_query_results2(
                     query, queryId, queryType, result_gdf.error_message
                 )
-
+    else:
+        print_query_results2(
+                        query,
+                        queryId,
+                        input_type,
+                        queryType,
+                        error_message 
+                )                           
 
 def run_query_performance(
     bc,

@@ -71,7 +71,15 @@ BlazingSchemaClass = jpype.JClass("com.blazingdb.calcite.schema.BlazingSchema")
 RelationalAlgebraGeneratorClass = jpype.JClass(
     "com.blazingdb.calcite.application.RelationalAlgebraGenerator"
 )
-
+SqlValidationExceptionClass = jpype.JClass(
+    "com.blazingdb.calcite.application.SqlValidationException"
+)
+SqlSyntaxExceptionClass = jpype.JClass(
+    "com.blazingdb.calcite.application.SqlSyntaxException"
+)
+RelConversionExceptionClass = jpype.JClass(
+    "org.apache.calcite.tools.RelConversionException"
+)
 
 def checkSocket(socketNum):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
@@ -1409,17 +1417,23 @@ class BlazingContext(object):
         Docs: https://docs.blazingdb.com/docs/explain
         """
         try:
-            algebra = str(self.generator.getRelationalAlgebraString(sql))
-        except jpype.JException as exception:
-            algebra = ""
-            print("SQL Parsing Error")
-            print(exception.message())
-        if algebra.startswith("fail:"):
-            print("Error found")
-            print(algebra)
-            algebra = ""
+            algebra = self.generator.getRelationalAlgebraString(sql)
 
-        return algebra
+        except  SqlValidationExceptionClass as exception: #jpype.JException as exception:
+            raise Exception(exception.message()) 
+            # algebra = ""
+            # print("SQL Parsing Error")
+            #print(exception.message())
+        except SqlSyntaxExceptionClass as exception:
+            raise Exception(exception.message()) 
+        except RelConversionExceptionClass as exception:
+            raise Exception(exception.message()) 
+        # if algebra.startswith("fail:"):
+        #     print("Error found")
+        #     print(algebra)
+        #     algebra = ""
+
+        return str(algebra)
 
     def add_remove_table(self, tableName, addTable, table=None):
         self.lock.acquire()
