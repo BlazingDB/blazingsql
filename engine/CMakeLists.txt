@@ -116,6 +116,9 @@ option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 option(BUILD_TESTS "Configure CMake to build tests" ON)
 option(BUILD_BENCHMARKS "Configure CMake to build (google) benchmarks" OFF)
 
+option(GCS_SUPPORT "Enables support for GCS fileSystem" ON)
+option(S3_SUPPORT "Enables support for S3 fileSystem" ON)
+
 ###################################################################################################
 # - cudart options --------------------------------------------------------------------------------
 # cudart can be statically linked or dynamically linked. The python ecosystem wants dynamic linking
@@ -179,7 +182,6 @@ include(CheckLibraryExists)
 include(CTest)
 
 find_package(CURL REQUIRED)
-find_package(storage_client REQUIRED)
 
 find_package(Threads)
 find_package(PythonLibs)
@@ -276,7 +278,6 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingH
               ${CMAKE_SOURCE_DIR}/src/utilities/StringUtils.cpp
               ${CMAKE_SOURCE_DIR}/src/utilities/scalar_timestamp_parser.cpp
               ${CMAKE_SOURCE_DIR}/src/utilities/DebuggingUtils.cpp
-              ${CMAKE_SOURCE_DIR}/src/utilities/random_generator.cu
               ${CMAKE_SOURCE_DIR}/src/utilities/transform.cu
               ${CMAKE_SOURCE_DIR}/src/CalciteExpressionParsing.cpp
               ${CMAKE_SOURCE_DIR}/src/io/DataLoader.cpp
@@ -301,6 +302,15 @@ link_directories(${BSQL_BLD_PREFIX}/lib)
 
 add_library(blazingsql-engine SHARED ${SRC_FILES})
 
+if(GCS_SUPPORT)
+    find_package(storage_client REQUIRED)
+    set(GCS_LIBRARY storage_client google_cloud_cpp_common crc32c)
+endif()
+
+if(S3_SUPPORT)
+    set(S3_LIBRARY aws-cpp-sdk-s3 aws-cpp-sdk-s3-encryption)
+endif()
+
 set_target_properties(blazingsql-engine PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_link_libraries(blazingsql-engine
     blazingdb-io
@@ -324,12 +334,9 @@ target_link_libraries(blazingsql-engine
     zstd
     lz4
 
-    aws-cpp-sdk-s3
-    aws-cpp-sdk-s3-encryption
+    ${S3_LIBRARY}
 
-    storage_client
-    google_cloud_cpp_common
-    crc32c
+    ${GCS_LIBRARY}
 
     libboost_filesystem.so
     libboost_system.so
