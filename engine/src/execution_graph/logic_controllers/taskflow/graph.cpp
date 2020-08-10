@@ -32,10 +32,10 @@ namespace cache {
 		}
 	}
 
-	void graph::execute() {
+	void graph::execute(const std::size_t max_kernel_run_threads) {
 		check_and_complete_work_flow();
 
-		std::vector<BlazingThread> threads;
+		ctpl::thread_pool<BlazingThread> pool(max_kernel_run_threads);
 		std::set<std::pair<size_t, size_t>> visited;
 		std::deque<size_t> Q;
 		for(auto start_node : get_neighbours(head_id_)) {
@@ -59,7 +59,7 @@ namespace cache {
 						if(visited.find(edge_id) == visited.end()) {
 							visited.insert(edge_id);
 							Q.push_back(target_id);
-							BlazingThread t([this, source, source_id, edge] {
+							pool.push([this, source, source_id, edge] (int thread_id) {
 								auto state = source->run();
 								if(state == kstatus::proceed) {
 									source->output_.finish();
@@ -67,7 +67,6 @@ namespace cache {
 									std::cout<<"ERROR kernel "<<source_id<<" did not finished successfully"<<std::endl;
 								}
 							});
-							threads.push_back(std::move(t));
 						} else {
 							// TODO: and circular graph is defined here. Report and error
 						}
@@ -77,15 +76,15 @@ namespace cache {
 				Q.push_back(source_id);
 			}
 		}
-		for(auto & thread : threads) {
-			try{
-				thread.join();
-			}catch(const std::exception& e){
+		// for(auto & thread : threads) {
+		// 	try{
+		// 		thread.join();
+		// 	}catch(const std::exception& e){
 				
-				throw;
-			}
+		// 		throw;
+		// 	}
 
-		}
+		// }
 	}
 
 	void graph::show() {

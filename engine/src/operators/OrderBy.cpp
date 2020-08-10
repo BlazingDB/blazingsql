@@ -4,9 +4,11 @@
 #include "communication/CommunicationData.h"
 #include "distribution/primitives.h"
 #include <blazingdb/io/Library/Logging/Logger.h>
+#include <cudf/copying.hpp>
 #include <cudf/sorting.hpp>
 #include <cudf/search.hpp>
 #include <cudf/strings/copying.hpp>
+#include <random>
 #include "parser/expression_utils.hpp"
 #include "utilities/CommonOperations.h"
 
@@ -168,10 +170,10 @@ std::unique_ptr<ral::frame::BlazingTable> sample(const ral::frame::BlazingTableV
 	std::vector<std::string> sortColNames(sortColIndices.size());
   std::transform(sortColIndices.begin(), sortColIndices.end(), sortColNames.begin(), [&](auto index) { return tableNames[index]; });
 
-	ral::frame::BlazingTableView sortColumns(table.view().select(sortColIndices), sortColNames);
+	std::random_device rd;
+	auto samples = cudf::sample(table.view().select(sortColIndices), std::ceil(table.num_rows() * 0.1), cudf::sample_with_replacement::FALSE, rd());
 
-	std::unique_ptr<ral::frame::BlazingTable> selfSamples = ral::distribution::sampling::generateSamplesFromRatio(sortColumns, 0.1);
-	return selfSamples;
+	return std::make_unique<ral::frame::BlazingTable>(std::move(samples), tableNames);
 }
 
 
@@ -236,7 +238,6 @@ std::unique_ptr<ral::frame::BlazingTable> generate_partition_plan(const std::vec
 								"substep"_a=context->getQuerySubstep(),
 								"info"_a="Determining Number of Order By Partitions " + info);
 
-	
 	if( ral::utilities::checkIfConcatenatingStringsWillOverflow(samples)) {
 		logger->warn("{query_id}|{step}|{substep}|{info}",
 						"query_id"_a=(context ? std::to_string(context->getContextToken()) : ""),
@@ -247,7 +248,6 @@ std::unique_ptr<ral::frame::BlazingTable> generate_partition_plan(const std::vec
 
 	partitionPlan = generatePartitionPlans(total_num_partitions, samples, sortOrderTypes);
 	context->incrementQuerySubstep();
-
 	return partitionPlan;
 }
 

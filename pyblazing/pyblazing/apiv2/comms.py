@@ -9,11 +9,12 @@ from distributed.protocol.serialize import to_serialize
 import concurrent.futures
 
 from dask.distributed import default_client
+import time
 
 serde = ("cuda", "dask", "pickle", "error")
 
 async def route_message(msg):
-    
+
     worker = get_worker()
     if msg.metadata["add_to_specific_cache"] == "true":
         graph = worker.query_graphs[int(msg.metadata["query_id"])]
@@ -48,12 +49,12 @@ class PollingPlugin:
         if worker.polling == True:
             return
         worker.polling = True
-        
-        while self._worker.output_cache.has_next_now():            
-            df, metadata = self._worker.output_cache.pull_from_cache()
-            if metadata["add_to_specific_cache"] == "false" and len(df) == 0:
-                df = None
-            await UCX.get().send(BlazingMessage(metadata, df))
+
+        # while self._worker.output_cache.has_next_now():
+        #     df, metadata = self._worker.output_cache.pull_from_cache()
+        #     if metadata["add_to_specific_cache"] == "false" and len(df) == 0:
+        #         df = None
+        #     await UCX.get().send(BlazingMessage(metadata, df))
         worker.polling = False
 
 
@@ -209,7 +210,10 @@ class UCX:
                 print("An error occurred in serialization")
 
             try:
+                star_time = time.time()
                 await ep.write(msg=to_ser, serializers=serde)
+                end_time = time.time()
+                logging.info("comms::send::write: " +  str(end_time - star_time))
             except:
                 print("Error occurred during write")
             self.sent += 1
@@ -237,4 +241,3 @@ class UCX:
     def __del__(self):
         self.abort_endpoints()
         self.stop_listener()
-
