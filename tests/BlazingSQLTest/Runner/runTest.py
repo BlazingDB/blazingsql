@@ -14,14 +14,17 @@ import gspread
 import numpy as np
 import pandas as pd
 from oauth2client.service_account import ServiceAccountCredentials
-from pydrill.client import PyDrill
-from pyspark.sql.session import SparkSession
 
 from BlazingLogging import loggingHandler as lhandler
 from Configuration import ExecutionMode
 from Configuration import Settings as Settings
 from DataBase import createSchema as cs
 
+if ((Settings.execution_mode == ExecutionMode.FULL and
+         compareResults == "true") or
+            Settings.execution_mode == ExecutionMode.GENERATOR):
+    from pydrill.client import PyDrill
+    from pyspark.sql.session import SparkSession
 
 class Result:
     def __init__(self, columns, resultSet, resultBlz):
