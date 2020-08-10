@@ -108,7 +108,6 @@ public:
 	bool wait_for_next() {
 		if (kernel) {
 			std::string message_id = std::to_string((int)kernel->get_type_id()) + "_" + std::to_string(kernel->get_id());
-			// std::cout<<">>>>> WAIT_FOR_NEXT id : " <<  message_id <<std::endl;
 		}
 
 		return cache->wait_for_next();
@@ -118,9 +117,9 @@ public:
 		return cache->has_next_now();
 	}
 private:
-	std::shared_ptr<ral::cache::CacheMachine> cache;
-	const ral::cache::kernel * kernel;
-	bool ordered;
+	std::shared_ptr<ral::cache::CacheMachine> cache; /**< Cache machine from which the data will be pulled. */
+	const ral::cache::kernel * kernel; /**< Pointer to the kernel that will receive the cache data. */
+	bool ordered; /**< Indicates whether the order should be kept when pulling data from the cache. */
 };
 
 /**
@@ -171,8 +170,8 @@ public:
 		return cache->has_next_now();
 	}
 private:
-	std::shared_ptr<ral::cache::CacheMachine> cache;
-	const ral::cache::kernel * kernel;
+	std::shared_ptr<ral::cache::CacheMachine> cache; /**< Cache machine from which the data will be pulled. */
+	const ral::cache::kernel * kernel; /**< Pointer to the kernel that will receive the cache data. */
 };
 
 using ral::communication::network::Server;
@@ -249,10 +248,10 @@ public:
 		return output;
 	}
 private:
-	std::shared_ptr<Context> context;
-	std::shared_ptr<ral::cache::HostCacheMachine> host_cache;
-	const ral::cache::kernel * kernel;
-	int last_message_counter;
+	std::shared_ptr<Context> context; /**< Pointer to the shared query context. */
+	std::shared_ptr<ral::cache::HostCacheMachine> host_cache; /**< Host cache machine from which the data will be pulled. */
+	const ral::cache::kernel * kernel; /**< Pointer to the kernel that will receive the cache data. */
+	int last_message_counter;	/**< Allows to stop waiting for messages keeping track of the last message received from each other node. */
 };
 
 /**
@@ -339,20 +338,20 @@ private:
 	std::shared_ptr<ral::io::data_provider> provider;
 	std::shared_ptr<ral::io::data_parser> parser;
 
-	std::shared_ptr<Context> context;
-	std::vector<size_t> projections;
-	ral::io::data_loader loader;
-	ral::io::Schema  schema;
-	size_t cur_file_index;
-	size_t cur_row_group_index;
+	std::shared_ptr<Context> context; /**< Pointer to the shared query context. */
+	std::vector<size_t> projections; /**< List of columns that will be selected if they were previously settled. */
+	ral::io::data_loader loader; /**< Data loader responsible for executing the batching load. */
+	ral::io::Schema  schema; /**< Table schema associated to the data to be loaded. */
+	size_t cur_file_index; /**< Current file index. */
+	size_t cur_row_group_index; /**< Current rowgroup index. */
 	std::vector<std::vector<int>> all_row_groups;
-	std::atomic<size_t> batch_index;
-	size_t n_batches;
-	size_t n_files;
-	bool is_empty_data_source;
-	bool is_gdf_parser;
+	std::atomic<size_t> batch_index; /**< Current batch index. */
+	size_t n_batches; /**< Number of batches. */
+	size_t n_files; /**< Number of files. */
+	bool is_empty_data_source; /**< Indicates whether the data source is empty. */
+	bool is_gdf_parser; /**< Indicates whether the parser is a gdf one. */
 
-	std::mutex mutex_;
+	std::mutex mutex_; /**< Mutex for making the loading batch thread-safe. */
 };
 
 /**
@@ -449,7 +448,7 @@ public:
 	}
 
 private:
-	DataSourceSequence input;
+	DataSourceSequence input; /**< Input data source sequence. */
 };
 
 /**
@@ -595,7 +594,7 @@ public:
 	}
 
 private:
-	DataSourceSequence input;
+	DataSourceSequence input; /**< Input data source sequence. */
 };
 
 /**
@@ -847,7 +846,7 @@ public:
 	}
 
 protected:
-	frame_type output;
+	frame_type output; /**< Table with the final output. */
 };
 
 } // namespace batch
