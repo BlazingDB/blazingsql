@@ -32,6 +32,8 @@
 #include "communication/network/Server.h"
 #include <bmr/initializer.h>
 
+#include "error.hpp"
+
 using namespace fmt::literals;
 
 #include <engine/static.h> // this contains function call for getProductDetails
@@ -81,7 +83,7 @@ void create_logger(std::string fileName, std::string loggingName, int ralId, boo
 	spdlog::flush_every(std::chrono::seconds(1));
 }
 
-void initialize(int ralId,
+error_code_t initialize(int ralId,
 	int gpuId,
 	std::string network_iface_name,
 	std::string ralHost,
@@ -95,150 +97,166 @@ void initialize(int ralId,
     std::setlocale(LC_NUMERIC, "en_US.UTF-8");
   // ---------------------------------------------------------------------------
 
-	ralHost = get_ip(network_iface_name);
+	try {
+		ralHost = get_ip(network_iface_name);
 
-	std::string initLogMsg = "INITIALIZING RAL. RAL ID: " + std::to_string(ralId)  + ", ";
-	initLogMsg = initLogMsg + "RAL Host: " + ralHost + ":" + std::to_string(ralCommunicationPort) + ", ";
-	initLogMsg = initLogMsg + "Network Interface: " + network_iface_name + ", ";
-	initLogMsg = initLogMsg + (singleNode ? ", Is Single Node, " : ", Is Not Single Node, ");
+		std::string initLogMsg = "INITIALIZING RAL. RAL ID: " + std::to_string(ralId)  + ", ";
+		initLogMsg = initLogMsg + "RAL Host: " + ralHost + ":" + std::to_string(ralCommunicationPort) + ", ";
+		initLogMsg = initLogMsg + "Network Interface: " + network_iface_name + ", ";
+		initLogMsg = initLogMsg + (singleNode ? ", Is Single Node, " : ", Is Not Single Node, ");
 
-	const char * env_cuda_device = std::getenv("CUDA_VISIBLE_DEVICES");
-	std::string env_cuda_device_str = env_cuda_device == nullptr ? "" : std::string(env_cuda_device);
-	initLogMsg = initLogMsg + "CUDA_VISIBLE_DEVICES is set to: " + env_cuda_device_str + ", ";
+		const char * env_cuda_device = std::getenv("CUDA_VISIBLE_DEVICES");
+		std::string env_cuda_device_str = env_cuda_device == nullptr ? "" : std::string(env_cuda_device);
+		initLogMsg = initLogMsg + "CUDA_VISIBLE_DEVICES is set to: " + env_cuda_device_str + ", ";
 
-	size_t total_gpu_mem_size = ral::config::gpuTotalMemory();
-	assert(total_gpu_mem_size > 0);
-	auto nthread = 4;
-	blazingdb::transport::io::setPinnedBufferProvider(0.1 * total_gpu_mem_size, nthread);
+		size_t total_gpu_mem_size = ral::config::gpuTotalMemory();
+		assert(total_gpu_mem_size > 0);
+		auto nthread = 4;
+		blazingdb::transport::io::setPinnedBufferProvider(0.1 * total_gpu_mem_size, nthread);
 
- 	//to avoid redundancy the default value or user defined value for this parameter is placed on the pyblazing side
-	assert( config_options.find("BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD") != config_options.end() );
-	float host_memory_quota = std::stof(config_options["BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD"]);
+		//to avoid redundancy the default value or user defined value for this parameter is placed on the pyblazing side
+		assert( config_options.find("BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD") != config_options.end() );
+		float host_memory_quota = std::stof(config_options["BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD"]);
 
-	blazing_host_memory_resource::getInstance().initialize(host_memory_quota);
+		blazing_host_memory_resource::getInstance().initialize(host_memory_quota);
 
-	auto & communicationData = ral::communication::CommunicationData::getInstance();
-	communicationData.initialize(ralId, "1.1.1.1", 0, ralHost, ralCommunicationPort, 0);
+		auto & communicationData = ral::communication::CommunicationData::getInstance();
+		communicationData.initialize(ralId, "1.1.1.1", 0, ralHost, ralCommunicationPort, 0);
 
-	ral::communication::network::Server::start(ralCommunicationPort, true);
+		ral::communication::network::Server::start(ralCommunicationPort, true);
 
-	if(singleNode == true) {
-		ral::communication::network::Server::getInstance().close();
+		if(singleNode == true) {
+			ral::communication::network::Server::getInstance().close();
+		}
+
+		// Init AWS S3 ... TODO see if we need to call shutdown and avoid leaks from s3 percy
+		BlazingContext::getInstance()->initExternalSystems();
+
+		// spdlog batch logger
+		spdlog::shutdown();
+
+		spdlog::init_thread_pool(8192, 1);
+
+		spdlog::flush_on(spdlog::level::warn);
+		spdlog::flush_every(std::chrono::seconds(1));
+
+		std::string logging_dir = "blazing_log";
+		auto config_it = config_options.find("BLAZING_LOGGING_DIRECTORY");
+		if (config_it != config_options.end()){
+			logging_dir = config_options["BLAZING_LOGGING_DIRECTORY"];
+		}
+		bool logging_directory_missing = false;
+		struct stat sb;
+		if (!(stat(logging_dir.c_str(), &sb) == 0 && S_ISDIR(sb.st_mode))){ // logging_dir does not exist
+		// we are assuming that this logging directory was created by the python layer, because only the python layer can only target on directory creation per server
+		// having all RALs independently trying to create a directory simulatenously can cause problems
+			logging_directory_missing = true;
+			logging_dir = "";
+		}
+
+
+		std::string batchLoggerFileName = logging_dir + "/RAL." + std::to_string(ralId) + ".log";
+		create_logger(batchLoggerFileName, "batch_logger", ralId, false);
+
+		std::string queriesFileName = logging_dir + "/bsql_queries." + std::to_string(ralId) + ".log";
+		bool existsQueriesFileName = std::ifstream(queriesFileName).good();
+		create_logger(queriesFileName, "queries_logger", ralId);
+
+		std::string kernelsFileName = logging_dir + "/bsql_kernels." + std::to_string(ralId) + ".log";
+		bool existsKernelsFileName = std::ifstream(kernelsFileName).good();
+		create_logger(kernelsFileName, "kernels_logger", ralId);
+
+		std::string kernelsEdgesFileName = logging_dir + "/bsql_kernels_edges." + std::to_string(ralId) + ".log";
+		bool existsKernelsEdgesFileName = std::ifstream(kernelsEdgesFileName).good();
+		create_logger(kernelsEdgesFileName, "kernels_edges_logger", ralId);
+
+		std::string kernelEventsFileName = logging_dir + "/bsql_kernel_events." + std::to_string(ralId) + ".log";
+		bool existsKernelEventsFileName = std::ifstream(kernelEventsFileName).good();
+		create_logger(kernelEventsFileName, "events_logger", ralId);
+
+		std::string cacheEventsFileName = logging_dir + "/bsql_cache_events." + std::to_string(ralId) + ".log";
+		bool existsCacheEventsFileName = std::ifstream(cacheEventsFileName).good();
+		create_logger(cacheEventsFileName, "cache_events_logger", ralId);
+
+		//Logger Headers
+		if(!existsQueriesFileName) {
+			std::shared_ptr<spdlog::logger> queries_logger = spdlog::get("queries_logger");
+			queries_logger->info("ral_id|query_id|start_time|plan");
+		}
+
+		if(!existsKernelsFileName) {
+			std::shared_ptr<spdlog::logger> kernels_logger = spdlog::get("kernels_logger");
+			kernels_logger->info("ral_id|query_id|kernel_id|is_kernel|kernel_type");
+		}
+
+		if(!existsKernelsEdgesFileName) {
+			std::shared_ptr<spdlog::logger> kernels_edges_logger = spdlog::get("kernels_edges_logger");
+			kernels_edges_logger->info("ral_id|query_id|source|sink");
+		}
+
+		if(!existsKernelEventsFileName) {
+			std::shared_ptr<spdlog::logger> events_logger = spdlog::get("events_logger");
+			events_logger->info("ral_id|query_id|kernel_id|input_num_rows|input_num_bytes|output_num_rows|output_num_bytes|event_type|timestamp_begin|timestamp_end");
+		}
+
+		if(!existsCacheEventsFileName) {
+			std::shared_ptr<spdlog::logger> cache_events_logger = spdlog::get("cache_events_logger");
+			cache_events_logger->info("ral_id|query_id|source|sink|num_rows|num_bytes|event_type|timestamp_begin|timestamp_end");
+		}
+
+		std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
+
+		if (logging_directory_missing){
+			logger->error("|||{info}|||||","info"_a="BLAZING_LOGGING_DIRECTORY not found. It was not created.");
+		}
+
+		logger->debug("|||{info}|||||","info"_a=initLogMsg);
+
+		std::map<std::string, std::string> product_details = getProductDetails();
+		std::string product_details_str = "Product Details: ";
+		std::map<std::string, std::string>::iterator it = product_details.begin();
+		while (it != product_details.end())	{
+			product_details_str += it->first + ": " + it->second + "; ";
+			it++;
+		}
+		logger->debug("|||{info}|||||","info"_a=product_details_str);
+
+		return E_SUCCESS;
+	} catch (std::exception& e) {
+		return E_EXCEPTION;
 	}
-
-	// Init AWS S3 ... TODO see if we need to call shutdown and avoid leaks from s3 percy
-	BlazingContext::getInstance()->initExternalSystems();
-
-	// spdlog batch logger
-	spdlog::shutdown();
-
-	spdlog::init_thread_pool(8192, 1);
-
-	spdlog::flush_on(spdlog::level::warn);
-	spdlog::flush_every(std::chrono::seconds(1));
-
-	std::string logging_dir = "blazing_log";
-	auto config_it = config_options.find("BLAZING_LOGGING_DIRECTORY");
-	if (config_it != config_options.end()){
-		logging_dir = config_options["BLAZING_LOGGING_DIRECTORY"];
-	}
-	bool logging_directory_missing = false;
-	struct stat sb;
-	if (!(stat(logging_dir.c_str(), &sb) == 0 && S_ISDIR(sb.st_mode))){ // logging_dir does not exist
-	// we are assuming that this logging directory was created by the python layer, because only the python layer can only target on directory creation per server
-	// having all RALs independently trying to create a directory simulatenously can cause problems
-		logging_directory_missing = true;
-		logging_dir = "";		
-	}
-
-
-	std::string batchLoggerFileName = logging_dir + "/RAL." + std::to_string(ralId) + ".log";
-	create_logger(batchLoggerFileName, "batch_logger", ralId, false);
-
-	std::string queriesFileName = logging_dir + "/bsql_queries." + std::to_string(ralId) + ".log";
-	bool existsQueriesFileName = std::ifstream(queriesFileName).good();
-	create_logger(queriesFileName, "queries_logger", ralId);
-
-	std::string kernelsFileName = logging_dir + "/bsql_kernels." + std::to_string(ralId) + ".log";
-	bool existsKernelsFileName = std::ifstream(kernelsFileName).good();
-	create_logger(kernelsFileName, "kernels_logger", ralId);
-
-	std::string kernelsEdgesFileName = logging_dir + "/bsql_kernels_edges." + std::to_string(ralId) + ".log";
-	bool existsKernelsEdgesFileName = std::ifstream(kernelsEdgesFileName).good();
-	create_logger(kernelsEdgesFileName, "kernels_edges_logger", ralId);
-
-	std::string kernelEventsFileName = logging_dir + "/bsql_kernel_events." + std::to_string(ralId) + ".log";
-	bool existsKernelEventsFileName = std::ifstream(kernelEventsFileName).good();
-	create_logger(kernelEventsFileName, "events_logger", ralId);
-
-	std::string cacheEventsFileName = logging_dir + "/bsql_cache_events." + std::to_string(ralId) + ".log";
-	bool existsCacheEventsFileName = std::ifstream(cacheEventsFileName).good();
-	create_logger(cacheEventsFileName, "cache_events_logger", ralId);
-
-	//Logger Headers
-	if(!existsQueriesFileName) {
-		std::shared_ptr<spdlog::logger> queries_logger = spdlog::get("queries_logger");
-		queries_logger->info("ral_id|query_id|start_time|plan");
-	}
-
-	if(!existsKernelsFileName) {
-		std::shared_ptr<spdlog::logger> kernels_logger = spdlog::get("kernels_logger");
-		kernels_logger->info("ral_id|query_id|kernel_id|is_kernel|kernel_type");
-	}
-
-	if(!existsKernelsEdgesFileName) {
-		std::shared_ptr<spdlog::logger> kernels_edges_logger = spdlog::get("kernels_edges_logger");
-		kernels_edges_logger->info("ral_id|query_id|source|sink");
-	}
-
-	if(!existsKernelEventsFileName) {
-		std::shared_ptr<spdlog::logger> events_logger = spdlog::get("events_logger");
-		events_logger->info("ral_id|query_id|kernel_id|input_num_rows|input_num_bytes|output_num_rows|output_num_bytes|event_type|timestamp_begin|timestamp_end");
-	}
-
-	if(!existsCacheEventsFileName) {
-		std::shared_ptr<spdlog::logger> cache_events_logger = spdlog::get("cache_events_logger");
-		cache_events_logger->info("ral_id|query_id|source|sink|num_rows|num_bytes|event_type|timestamp_begin|timestamp_end");
-	}
-
-	std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
-
-	if (logging_directory_missing){
-		logger->error("|||{info}|||||","info"_a="BLAZING_LOGGING_DIRECTORY not found. It was not created.");
-	}
-
-	logger->debug("|||{info}|||||","info"_a=initLogMsg);
-
-	std::map<std::string, std::string> product_details = getProductDetails();
-	std::string product_details_str = "Product Details: ";
-	std::map<std::string, std::string>::iterator it = product_details.begin();
-	while (it != product_details.end())	{
-		product_details_str += it->first + ": " + it->second + "; ";
-		it++;
-	}
-	logger->debug("|||{info}|||||","info"_a=product_details_str);
 }
 
 void finalize() {
-	ral::communication::network::Client::closeConnections();
-	ral::communication::network::Server::getInstance().close();
-	BlazingRMMFinalize();
-	spdlog::shutdown();
-	cudaDeviceReset();
-	exit(0);
+	try {
+		ral::communication::network::Client::closeConnections();
+		ral::communication::network::Server::getInstance().close();
+		BlazingRMMFinalize();
+		spdlog::shutdown();
+		cudaDeviceReset();
+		exit(0);
+	} catch (std::exception& e) {
+		exit(1);
+	}
 }
 
 
-void blazingSetAllocator(
+error_code_t blazingSetAllocator(
 	std::string allocation_mode,
 	std::size_t initial_pool_size,
 	std::map<std::string, std::string> config_options) {
 
-	float device_mem_resouce_consumption_thresh = 0.95;
-	auto it = config_options.find("BLAZING_DEVICE_MEM_CONSUMPTION_THRESHOLD");
-	if (it != config_options.end()){
-		device_mem_resouce_consumption_thresh = std::stof(config_options["BLAZING_DEVICE_MEM_CONSUMPTION_THRESHOLD"]);
-	}
+	try {
+		float device_mem_resouce_consumption_thresh = 0.95;
+		auto it = config_options.find("BLAZING_DEVICE_MEM_CONSUMPTION_THRESHOLD");
+		if (it != config_options.end()){
+			device_mem_resouce_consumption_thresh = std::stof(config_options["BLAZING_DEVICE_MEM_CONSUMPTION_THRESHOLD"]);
+		}
 
-	BlazingRMMInitialize(allocation_mode, initial_pool_size, device_mem_resouce_consumption_thresh);
+		BlazingRMMInitialize(allocation_mode, initial_pool_size, device_mem_resouce_consumption_thresh);
+
+		return E_SUCCESS;
+	} catch (std::exception& e) {
+		return E_EXCEPTION;
+	}
 }
