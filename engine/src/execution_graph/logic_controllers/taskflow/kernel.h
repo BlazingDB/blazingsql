@@ -19,6 +19,13 @@ using kernel_pair = std::pair<kernel *, std::string>;
  */
 class kernel {
 public:
+	/**
+	 * Constructor for the kernel
+	 * @param kernel_id Current kernel identifier.
+	 * @param expr Original logical expression that the kernel will execute.
+	 * @param context Shared context associated to the running query.
+	 * @param kernel_type_id Identifier representing the kernel type.
+	 */
 	kernel(std::size_t kernel_id, std::string expr, std::shared_ptr<Context> context, kernel_type kernel_type_id) : expression{expr}, kernel_id(kernel_id), context{context}, kernel_type_id{kernel_type_id} {
 
 		parent_id_ = -1;
@@ -41,7 +48,7 @@ public:
 	}
 
 	/**
-	 * @brief Set its parent kernel.
+	 * @brief Sets its parent kernel.
 	 *
 	 * @param id The identifier of its parent.
 	 */
@@ -75,12 +82,18 @@ public:
 	kernel_type get_type_id() const { return kernel_type_id; }
 
 	/**
-	 * @brief Set the kernel type identifier.
+	 * @brief Sets the kernel type identifier.
 	 *
 	 * @param kernel_type The new kernel type identifier.
 	 */
 	void set_type_id(kernel_type kernel_type_id_) { kernel_type_id = kernel_type_id_; }
 
+	/**
+	 * @brief Indicates whether the cache load can be throttling according to an external parameter.
+	 *
+	 * @return true If the pace of cache loading may be throttled.
+	 * @return false If cache should be loaded according to the default pace.
+	 */
 	virtual bool can_you_throttle_my_input() = 0;
 
 	/**
@@ -268,19 +281,18 @@ protected:
 
 
 public:
-	std::string expression;
-	port input_{this};
-	port output_{this};
-	const std::size_t kernel_id;
-	std::int32_t parent_id_;
-	bool execution_done = false;
-	kernel_type kernel_type_id;
+	std::string expression; /**< Stores the logical expression being processed. */
+	port input_{this}; /**< Represents the input cache machines and their names. */
+	port output_{this}; /**< Represents the output cache machine and their name. */
+	const std::size_t kernel_id; /**< Stores the current kernel identifier. */
+	std::int32_t parent_id_; /**< Stores the parent kernel identifier if any. */
+	bool execution_done = false; /**< Indicates whether the execution is complete. */
+	kernel_type kernel_type_id; /**< Stores the id of the kernel type. */
 	std::shared_ptr<graph> query_graph;
-	std::shared_ptr<Context> context;
+	std::shared_ptr<Context> context; /**< Shared context of the running query. */
 
-	bool has_limit_;		///< Indicates if the Logical plan only contains
-							///< a LogicalTableScan (or BindableTableScan) and LogicalLimit.
-	int64_t limit_rows_;	///< Specifies the maximum number of rows to return.
+	bool has_limit_; /**< Indicates if the Logical plan only contains a LogicalTableScan (or BindableTableScan) and LogicalLimit. */
+	int64_t limit_rows_; /**< Specifies the maximum number of rows to return. */
 
 	std::shared_ptr<spdlog::logger> logger;
 	std::shared_ptr<spdlog::logger> events_logger;
