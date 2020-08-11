@@ -33,13 +33,10 @@ struct BlazingMissingMetadataException : public std::exception
     std::string key;
 };
 
-/*enum _error
+enum _error
 {
   E_SUCCESS = 0,
-  E_EXCEPTION = -1
+  E_EXCEPTION
 };
 
-typedef enum _error error_code_t;*/
-#define E_SUCCESS true
-#define E_EXCEPTION false
-typedef bool error_code_t;
+typedef int error_code_t;
