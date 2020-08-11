@@ -65,12 +65,29 @@ using Context = blazingdb::manager::Context;
  */
 class BatchSequence {
 public:
+	/**
+	 * Constructor for the BatchSequence
+	 * @param cache The input cache from where the data will be pulled.
+	 * @param kernel The kernel that will actually receive the pulled data.
+	 * @param ordered Indicates whether the order should be kept at data pulling.
+	 */
 	BatchSequence(std::shared_ptr<ral::cache::CacheMachine> cache = nullptr, const ral::cache::kernel * kernel = nullptr, bool ordered = true)
 	: cache{cache}, kernel{kernel}, ordered{ordered}
 	{}
+
+	/**
+	 * Updates the input cache machine.
+	 * @param cache The pointer to the new input cache.
+	 */
 	void set_source(std::shared_ptr<ral::cache::CacheMachine> cache) {
 		this->cache = cache;
 	}
+
+	/**
+	 * Get the next message as a unique pointer to a BlazingTable.
+	 * If there are no more messages on the queue we get a nullptr.
+	 * @return Unique pointer to a BlazingTable containing the next decached message.
+	 */
 	RecordBatch next() {
 		std::shared_ptr<spdlog::logger> cache_events_logger;
 		cache_events_logger = spdlog::get("cache_events_logger");
@@ -105,6 +122,11 @@ public:
 		return output;
 	}
 
+	/**
+	 * Blocks executing thread until a new message is ready or when the message queue is empty.
+	 * @return true A new message is ready.
+	 * @return false There are no more messages on the cache.
+	 */
 	bool wait_for_next() {
 		if (kernel) {
 			std::string message_id = std::to_string((int)kernel->get_type_id()) + "_" + std::to_string(kernel->get_id());
@@ -113,6 +135,11 @@ public:
 		return cache->wait_for_next();
 	}
 
+	/**
+	 * Indicates if the message queue is not empty at this point on time.
+	 * @return true There is at least one message in the queue.
+	 * @return false Message queue is empty.
+	 */
 	bool has_next_now() {
 		return cache->has_next_now();
 	}
@@ -127,12 +154,27 @@ private:
  */
 class BatchSequenceBypass {
 public:
+	/**
+	 * Constructor for the BatchSequenceBypass
+	 * @param cache The input cache from where the data will be pulled.
+	 * @param kernel The kernel that will actually receive the pulled data.
+	 */
 	BatchSequenceBypass(std::shared_ptr<ral::cache::CacheMachine> cache = nullptr, const ral::cache::kernel * kernel = nullptr)
 	: cache{cache}, kernel{kernel}
 	{}
+
+	/**
+	 * Updates the input cache machine.
+	 * @param cache The pointer to the new input cache.
+	 */
 	void set_source(std::shared_ptr<ral::cache::CacheMachine> cache) {
 		this->cache = cache;
 	}
+
+	/**
+	 * Get the next message as a CacheData object.
+	 * @return CacheData containing the next message without decacheing.
+	 */
 	std::unique_ptr<ral::cache::CacheData> next() {
 		std::shared_ptr<spdlog::logger> cache_events_logger;
 		cache_events_logger = spdlog::get("cache_events_logger");
@@ -161,11 +203,21 @@ public:
 
 		return output;
 	}
-	// cache->addToRawCache(cache->pullFromRawCache())
+
+	/**
+	 * Blocks executing thread until a new message is ready or when the message queue is empty.
+	 * @return true A new message is ready.
+	 * @return false There are no more messages on the cache.
+	 */
 	bool wait_for_next() {
 		return cache->wait_for_next();
 	}
 
+	/**
+	 * Indicates if the message queue is not empty at this point on time.
+	 * @return true There is at least one message in the queue.
+	 * @return false Message queue is empty.
+	 */
 	bool has_next_now() {
 		return cache->has_next_now();
 	}
@@ -186,6 +238,12 @@ using ral::communication::messages::ReceivedHostMessage;
 template<class MessageType>
 class ExternalBatchColumnDataSequence {
 public:
+	/**
+	 * Constructor for the ExternalBatchColumnDataSequence
+	 * @param context Shared context associated to the running query.
+	 * @param message_id Message identifier which will be associated with the underlying cache.
+	 * @param kernel The kernel that will actually receive the pulled data.
+	 */
 	ExternalBatchColumnDataSequence(std::shared_ptr<Context> context, const std::string & message_id, const ral::cache::kernel * kernel = nullptr)
 		: context{context}, last_message_counter{context->getTotalNodes() - 1}, kernel{kernel}
 	{
@@ -215,10 +273,19 @@ public:
 		t.detach();
 	}
 
+	/**
+	 * Blocks executing thread until a new message is ready or when the message queue is empty.
+	 * @return true A new message is ready.
+	 * @return false There are no more messages on the host cache.
+	 */
 	bool wait_for_next() {
 		return host_cache->wait_for_next();
 	}
 
+	/**
+	 * Get the next message as a BlazingHostTable.
+	 * @return BlazingHostTable containing the next released message.
+	 */
 	std::unique_ptr<ral::frame::BlazingHostTable> next() {
 		std::shared_ptr<spdlog::logger> cache_events_logger;
 		cache_events_logger = spdlog::get("cache_events_logger");
@@ -251,7 +318,7 @@ private:
 	std::shared_ptr<Context> context; /**< Pointer to the shared query context. */
 	std::shared_ptr<ral::cache::HostCacheMachine> host_cache; /**< Host cache machine from which the data will be pulled. */
 	const ral::cache::kernel * kernel; /**< Pointer to the kernel that will receive the cache data. */
-	int last_message_counter;	/**< Allows to stop waiting for messages keeping track of the last message received from each other node. */
+	int last_message_counter; /**< Allows to stop waiting for messages keeping track of the last message received from each other node. */
 };
 
 /**
@@ -260,6 +327,12 @@ private:
  */
 class DataSourceSequence {
 public:
+	/**
+	 * Constructor for the DataSourceSequence
+	 * @param loader Data loader responsible for executing the batching load.
+	 * @param schema Table schema associated to the data to be loaded.
+	 * @param context Shared context associated to the running query.
+	 */
 	DataSourceSequence(ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context)
 		: context(context), loader(loader), schema(schema), batch_index{0}, cur_file_index{0}, cur_row_group_index{0}, n_batches{0}
 	{
@@ -281,6 +354,11 @@ public:
 		}
 	}
 
+	/**
+	 * Get the next batch as a unique pointer to a BlazingTable.
+	 * If there are no more batches we get a nullptr.
+	 * @return Unique pointer to a BlazingTable containing the next batch read.
+	 */
 	RecordBatch next() {
 		std::unique_lock<std::mutex> lock(mutex_);
 
@@ -317,19 +395,36 @@ public:
 		return std::move(ret);
 	}
 
+	/**
+	 * Indicates if there are more batches to process.
+	 * @return true There is at least one batch to be processed.
+	 * @return false The data source is empty or all batches have already been processed.
+	 */
 	bool has_next() {
 		return (is_empty_data_source && batch_index < 1) || (is_gdf_parser && batch_index.load() < n_batches) || (cur_file_index < n_files);
 	}
 
+	/**
+	 * Updates the set of columns to be projected at the time of reading the data source.
+	 * @param projections The set of column ids to be selected.
+	 */
 	void set_projections(std::vector<size_t> projections) {
 		this->projections = projections;
 	}
 
-	// this function can be called from a parallel thread, so we want it to be thread safe
+	/**
+	 * Get the batch index.
+	 * @note This function can be called from a parallel thread, so we want it to be thread safe.
+	 * @return The current batch index.
+	 */
 	size_t get_batch_index() {
 		return batch_index.load();
 	}
 
+	/**
+	 * Get the number of batches identified on the data source.
+	 * @return The number of batches.
+	 */
 	size_t get_num_batches() {
 		return n_batches;
 	}
