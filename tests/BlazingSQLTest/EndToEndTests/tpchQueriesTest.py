@@ -1,4 +1,3 @@
-from pydrill.client import PyDrill
 from DataBase import createSchema as cs
 from Configuration import Settings as Settings
 from Runner import runTest
@@ -1326,6 +1325,7 @@ if __name__ == "__main__":
     ) or Settings.execution_mode == ExecutionMode.GENERATOR:
         # Create Table Drill -----------------------------------------
         print("starting drill")
+        from pydrill.client import PyDrill
 
         drill = PyDrill(host="localhost", port=8047)
         cs.init_drill_schema(

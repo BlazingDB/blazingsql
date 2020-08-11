@@ -8,7 +8,7 @@ dateNow = None
 
 execution_mode = "full"
 
-compare_res = "true"
+compare_res = "false"
 
 def initialize():
     global data

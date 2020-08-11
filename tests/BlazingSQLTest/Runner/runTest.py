@@ -23,6 +23,8 @@ from DataBase import createSchema as cs
 if ((Settings.execution_mode == ExecutionMode.FULL and
      Settings.compare_res == "true") or
             Settings.execution_mode == ExecutionMode.GENERATOR):
+    print(Settings.execution_mode)
+    print(Settings.compare_res)
     from pydrill.client import PyDrill
     from pyspark.sql.session import SparkSession
 
