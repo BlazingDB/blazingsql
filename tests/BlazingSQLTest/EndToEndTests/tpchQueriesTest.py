@@ -7,7 +7,6 @@ from Utils import gpuMemory, skip_test, init_context
 from pynvml import nvmlInit
 from blazingsql import DataType
 from Configuration import ExecutionMode
-from pyspark.sql import SparkSession
 
 
 def main(dask_client, drill, spark, dir_data_file, bc, nRals):
@@ -1335,6 +1334,8 @@ if __name__ == "__main__":
         )
 
         # Create Table Spark -------------------------------------------------
+        from pyspark.sql import SparkSession
+
         spark = SparkSession.builder.appName("timestampTest").getOrCreate()
         cs.init_spark_schema(
                             spark,
