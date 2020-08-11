@@ -90,22 +90,22 @@ BlazingSQL can be installed with conda ([miniconda](https://conda.io/miniconda.h
 
 ## Stable Version
 ```bash
-conda install -c blazingsql/label/cuda$CUDA_VERSION -c blazingsql -c rapidsai -c nvidia -c conda-forge -c defaults blazingsql python=$PYTHON_VERSION
+conda install -c blazingsql/label/cuda$CUDA_VERSION -c rapidsai -c nvidia -c conda-forge -c defaults blazingsql python=$PYTHON_VERSION
 ```
 Where $CUDA_VERSION is 10.1 or 10.2 and $PYTHON_VERSION is 3.7 or 3.8
 *For example for CUDA 10.1 and Python 3.7:*
 ```bash
-conda install -c blazingsql/label/cuda10.1 -c blazingsql -c rapidsai -c nvidia -c conda-forge -c defaults blazingsql python=3.7
+conda install -c blazingsql/label/cuda10.1 -c rapidsai -c nvidia -c conda-forge -c defaults blazingsql python=3.7
 ``` 
 
 ## Nightly Version
 ```bash
-conda install -c blazingsql-nightly/label/cuda$CUDA_VERSION -c blazingsql-nightly -c rapidsai-nightly -c nvidia -c conda-forge -c defaults blazingsql python=$PYTHON_VERSION
+conda install -c blazingsql-nightly/label/cuda$CUDA_VERSION -c rapidsai-nightly -c nvidia -c conda-forge -c defaults blazingsql python=$PYTHON_VERSION
 ```
 Where $CUDA_VERSION is 10.1 or 10.2 and $PYTHON_VERSION is 3.7 or 3.8
 *For example for CUDA 10.1 and Python 3.7:*
 ```bash
-conda install -c blazingsql-nightly/label/cuda10.1 -c blazingsql-nightly -c rapidsai-nightly -c nvidia -c conda-forge -c defaults blazingsql python=3.7
+conda install -c blazingsql-nightly/label/cuda10.1 -c rapidsai-nightly -c nvidia -c conda-forge -c defaults blazingsql python=3.7
 ```
 
 # Build/Install from Source (Conda Environment)
@@ -118,16 +118,14 @@ This is the recommended way of building all of the BlazingSQL components and dep
 conda create -n bsql python=$PYTHON_VERSION
 conda activate bsql
 conda install --yes -c conda-forge openjdk=8.0 maven cmake gtest gmock rapidjson cppzmq cython=0.29 jpype1 netifaces pyhive
-conda install --yes -c conda-forge -c blazingsql bsql-toolchain
 conda install --yes -c rapidsai -c nvidia -c conda-forge -c defaults cudf=0.14 dask-cudf=0.14 dask-cuda=0.14 cudatoolkit=$CUDA_VERSION
 ```
-Where $CUDA_VERSION is 10.0, 10.1 or 10.2 and $PYTHON_VERSION is 3.6 or 3.7
+Where $CUDA_VERSION is 10.0, 10.1 or 10.2 and $PYTHON_VERSION is 3.7 or 3.8
 *For example for CUDA 10.0 and Python 3.7:*
 ```bash
 conda create -n bsql python=3.7
 conda activate bsql
 conda install --yes -c conda-forge openjdk=8.0 maven cmake gtest gmock rapidjson cppzmq cython=0.29 jpype1 netifaces pyhive
-conda install --yes -c conda-forge -c blazingsql bsql-toolchain
 conda install --yes -c rapidsai -c nvidia -c conda-forge -c defaults cudf=0.14 dask-cudf=0.14 dask-cuda=0.14 cudatoolkit=10.0
 ```
 
