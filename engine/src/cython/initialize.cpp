@@ -106,7 +106,7 @@ void initialize(int ralId,
 	std::string env_cuda_device_str = env_cuda_device == nullptr ? "" : std::string(env_cuda_device);
 	initLogMsg = initLogMsg + "CUDA_VISIBLE_DEVICES is set to: " + env_cuda_device_str + ", ";
 
-	size_t total_gpu_mem_size = ral::config::gpuMemorySize();
+	size_t total_gpu_mem_size = ral::config::gpuTotalMemory();
 	assert(total_gpu_mem_size > 0);
 	auto nthread = 4;
 	blazingdb::transport::io::setPinnedBufferProvider(0.1 * total_gpu_mem_size, nthread);

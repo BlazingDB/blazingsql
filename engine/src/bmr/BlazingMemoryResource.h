@@ -43,7 +43,7 @@ public:
                                             std::size_t initial_pool_size,
                                             float custom_threshold = 0.95)
     {
-		total_memory_size = ral::config::gpuMemorySize();
+		total_memory_size = ral::config::gpuTotalMemory();
 		used_memory = 0;
 
         if (total_memory_size <= initial_pool_size) {

@@ -49,12 +49,9 @@ function(configure_test TEST_NAME Tests_SRCS)
         zstd
         lz4
 
-        aws-cpp-sdk-s3
-        aws-cpp-sdk-s3-encryption
+        ${S3_LIBRARY}
 
-        storage_client
-        google_cloud_cpp_common
-        crc32c
+        ${GCS_LIBRARY}
 
         libboost_filesystem.so
         libboost_system.so
@@ -68,7 +65,7 @@ function(configure_test TEST_NAME Tests_SRCS)
         # TODO jp c.gonzales make use of standard cmake find_package here (see above)
         #spdlog::spdlog
         libspdlog.a
-        
+
         cudftestutil
     )
 
