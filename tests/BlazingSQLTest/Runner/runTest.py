@@ -1342,6 +1342,10 @@ def run_query(
     if print_result is None:
         print_result = False
 
+    message_validation = kwargs.get("message_validation")
+    if message_validation is None:
+        message_validation = False    
+
     data_type = cs.get_extension(input_type)
 
     if Settings.execution_mode != "Generator":
@@ -1372,8 +1376,8 @@ def run_query(
                 result_gdf = bc.sql(query_blz)
             except Exception as e:
                 error_message=str(e)
-                #print(str(e))
-            if error_message=="":
+
+            if not message_validation:
                 end_time = time.time()
                 total_time = (end_time - start_time) * 1000
                 # SUM(CASE WHEN info = 'evaluate_split_query load_data' THEN
@@ -1424,7 +1428,16 @@ def run_query(
     result_dir = Settings.data["TestSettings"]["fileResultsDirectory"]
     file_results_dir = str(result_dir)
 
-    if not isinstance(engine, str):
+
+    if message_validation:
+        print_query_results2(
+                        query,
+                        queryId,
+                        input_type,
+                        queryType,
+                        error_message 
+                )   
+    elif not isinstance(engine, str):
         if isinstance(engine, PyDrill):
             # Drill
             query_drill = get_drill_query(query)
@@ -1536,7 +1549,7 @@ def run_query(
                 print_query_results2(
                     query_spark, queryId, queryType, result_gdf.error_message
                 )
-    elif error_message=="":  # GPUCI
+    else:  # GPUCI
 
         compareResults = True
         if "compare_results" in Settings.data["RunSettings"]:
@@ -1621,14 +1634,7 @@ def run_query(
                 print_query_results2(
                     query, queryId, queryType, result_gdf.error_message
                 )
-    else:
-        print_query_results2(
-                        query,
-                        queryId,
-                        input_type,
-                        queryType,
-                        error_message 
-                )                           
+                                
 
 def run_query_performance(
     bc,

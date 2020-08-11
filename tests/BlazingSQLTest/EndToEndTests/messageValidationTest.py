@@ -55,6 +55,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
+                message_validation=True,
             )
 
             queryId = "TEST_02"
@@ -72,6 +73,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
+                message_validation=True,
             )
 
             queryId = "TEST_03"
@@ -88,9 +90,10 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
+                message_validation=True,
             )
 
-            queryId = "TEST_03"
+            queryId = "TEST_04"
             query = """select max(c_custkey) c_nationkey as nkey 
                     from customer where c_custkey < 0"""
             runTest.run_query(
@@ -104,6 +107,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
+                message_validation=True,
             )
 
             if Settings.execution_mode == ExecutionMode.GENERATOR:
