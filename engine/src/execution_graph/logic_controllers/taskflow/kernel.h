@@ -61,8 +61,17 @@ public:
 	 */
 	bool has_parent() const { return parent_id_ != -1; }
 
+	/**
+	 * Destructor
+	 */
 	virtual ~kernel() = default;
 
+	/**
+	 * @brief Executes the batch processing.
+	 * Loads the data from their input port, and after processing it,
+	 * the results are stored in their output port.
+	 * @return kstatus 'stop' to halt processing, or 'proceed' to continue processing.
+	 */
 	virtual kstatus run() = 0;
 
 	kernel_pair operator[](const std::string & portname) { return std::make_pair(this, portname); }
@@ -288,7 +297,7 @@ public:
 	std::int32_t parent_id_; /**< Stores the parent kernel identifier if any. */
 	bool execution_done = false; /**< Indicates whether the execution is complete. */
 	kernel_type kernel_type_id; /**< Stores the id of the kernel type. */
-	std::shared_ptr<graph> query_graph;
+	std::shared_ptr<graph> query_graph; /**< Stores a pointer to the current execution graph. */
 	std::shared_ptr<Context> context; /**< Shared context of the running query. */
 
 	bool has_limit_; /**< Indicates if the Logical plan only contains a LogicalTableScan (or BindableTableScan) and LogicalLimit. */

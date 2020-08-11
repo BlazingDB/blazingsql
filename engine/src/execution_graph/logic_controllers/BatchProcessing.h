@@ -430,8 +430,8 @@ public:
 	}
 
 private:
-	std::shared_ptr<ral::io::data_provider> provider;
-	std::shared_ptr<ral::io::data_parser> parser;
+	std::shared_ptr<ral::io::data_provider> provider; /**< Data provider associated to the data loader. */
+	std::shared_ptr<ral::io::data_parser> parser; /**< Data parser associated to the data loader. */
 
 	std::shared_ptr<Context> context; /**< Pointer to the shared query context. */
 	std::vector<size_t> projections; /**< List of columns that will be selected if they were previously settled. */
@@ -454,16 +454,36 @@ private:
  */
 class TableScan : public kernel {
 public:
+	/**
+	 * Constructor for TableScan
+	 * @param kernel_id Kernel identifier.
+	 * @param queryString Original logical expression that the kernel will execute.
+	 * @param loader Data loader responsible for executing the batching load.
+	 * @param schema Table schema associated to the data to be loaded.
+	 * @param context Shared context associated to the running query.
+	 * @param query_graph Shared pointer of the current execution graph.
+	 */
 	TableScan(std::size_t kernel_id, const std::string & queryString, ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
 	: kernel(kernel_id, queryString, context, kernel_type::TableScanKernel), input(loader, schema, context)
 	{
 		this->query_graph = query_graph;
 	}
 
+	/**
+	 * Indicates whether the cache load can be throttling.
+	 * @return true If the pace of cache loading may be throttled.
+	 * @return false If cache should be loaded according to the default pace.
+	 */
 	bool can_you_throttle_my_input() {
 		return false;
 	}
 
+	/**
+	 * Executes the batch processing.
+	 * Loads the data from their input port, and after processing it,
+	 * the results are stored in their output port.
+	 * @return kstatus 'stop' to halt processing, or 'proceed' to continue processing.
+	 */
 	virtual kstatus run() {
 		CodeTimer timer;
 
@@ -531,12 +551,16 @@ public:
 		return kstatus::proceed;
 	}
 
+	/**
+	 * Returns the estimated num_rows for the output at one point.
+	 * @return A pair representing that there is no data to be processed, or the estimated number of output rows.
+	 */
 	virtual std::pair<bool, uint64_t> get_estimated_output_num_rows(){
 		double rows_so_far = (double)this->output_.total_rows_added();
 		double num_batches = (double)this->input.get_num_batches();
 		double current_batch = (double)this->input.get_batch_index();
 		if (current_batch == 0 || num_batches == 0){
-			return std::make_pair(false,0);
+			return std::make_pair(false, 0);
 		} else {
 			return std::make_pair(true, (uint64_t)(rows_so_far/(current_batch/num_batches)));
 		}
@@ -553,6 +577,15 @@ private:
  */
 class BindableTableScan : public kernel {
 public:
+	/**
+	 * Constructor for BindableTableScan
+	 * @param kernel_id Kernel identifier.
+	 * @param queryString Original logical expression that the kernel will execute.
+	 * @param loader Data loader responsible for executing the batching load.
+	 * @param schema Table schema associated to the data to be loaded.
+	 * @param context Shared context associated to the running query.
+	 * @param query_graph Shared pointer of the current execution graph.
+	 */
 	BindableTableScan(std::size_t kernel_id, const std::string & queryString, ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context,
 		std::shared_ptr<ral::cache::graph> query_graph)
 	: kernel(kernel_id, queryString, context, kernel_type::BindableTableScanKernel), input(loader, schema, context)
@@ -560,10 +593,21 @@ public:
 		this->query_graph = query_graph;
 	}
 
+	/**
+	 * Indicates whether the cache load can be throttling.
+	 * @return true If the pace of cache loading may be throttled.
+	 * @return false If cache should be loaded according to the default pace.
+	 */
 	bool can_you_throttle_my_input() {
 		return false;
 	}
 
+	/**
+	 * Executes the batch processing.
+	 * Loads the data from their input port, and after processing it,
+	 * the results are stored in their output port.
+	 * @return kstatus 'stop' to halt processing, or 'proceed' to continue processing.
+	 */
 	virtual kstatus run() {
 		CodeTimer timer;
 
@@ -677,12 +721,16 @@ public:
 		return kstatus::proceed;
 	}
 
+	/**
+	 * Returns the estimated num_rows for the output at one point.
+	 * @return A pair representing that there is no data to be processed, or the estimated number of output rows.
+	 */
 	virtual std::pair<bool, uint64_t> get_estimated_output_num_rows(){
 		double rows_so_far = (double)this->output_.total_rows_added();
 		double num_batches = (double)this->input.get_num_batches();
 		double current_batch = (double)this->input.get_batch_index();
 		if (current_batch == 0 || num_batches == 0){
-			return std::make_pair(false,0);
+			return std::make_pair(false, 0);
 		} else {
 			return std::make_pair(true, (uint64_t)(rows_so_far/(current_batch/num_batches)));
 		}
@@ -697,16 +745,34 @@ private:
  */
 class Projection : public kernel {
 public:
+	/**
+	 * Constructor for Projection
+	 * @param kernel_id Kernel identifier.
+	 * @param queryString Original logical expression that the kernel will execute.
+	 * @param context Shared context associated to the running query.
+	 * @param query_graph Shared pointer of the current execution graph.
+	 */
 	Projection(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
 	: kernel(kernel_id, queryString, context, kernel_type::ProjectKernel)
 	{
 		this->query_graph = query_graph;
 	}
 
+	/**
+	 * Indicates whether the cache load can be throttling.
+	 * @return true If the pace of cache loading may be throttled.
+	 * @return false If cache should be loaded according to the default pace.
+	 */
 	bool can_you_throttle_my_input() {
 		return true;
 	}
 
+	/**
+	 * Executes the batch processing.
+	 * Loads the data from their input port, and after processing it,
+	 * the results are stored in their output port.
+	 * @return kstatus 'stop' to halt processing, or 'proceed' to continue processing.
+	 */
 	virtual kstatus run() {
 		CodeTimer timer;
 		CodeTimer eventTimer(false);
@@ -777,16 +843,34 @@ private:
  */
 class Filter : public kernel {
 public:
+	/**
+	 * Constructor for TableScan
+	 * @param kernel_id Kernel identifier.
+	 * @param queryString Original logical expression that the kernel will execute.
+	 * @param context Shared context associated to the running query.
+	 * @param query_graph Shared pointer of the current execution graph.
+	 */
 	Filter(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
 	: kernel(kernel_id, queryString, context, kernel_type::FilterKernel)
 	{
 		this->query_graph = query_graph;
 	}
 
+	/**
+	 * Indicates whether the cache load can be throttling.
+	 * @return true If the pace of cache loading may be throttled.
+	 * @return false If cache should be loaded according to the default pace.
+	 */
 	bool can_you_throttle_my_input() {
 		return true;
 	}
 
+	/**
+	 * Executes the batch processing.
+	 * Loads the data from their input port, and after processing it,
+	 * the results are stored in their output port.
+	 * @return kstatus 'stop' to halt processing, or 'proceed' to continue processing.
+	 */
 	virtual kstatus run() {
 		CodeTimer timer;
 		CodeTimer eventTimer(false);
@@ -846,6 +930,10 @@ public:
 		return kstatus::proceed;
 	}
 
+	/**
+	 * Returns the estimated num_rows for the output at one point.
+	 * @return A pair representing that there is no data to be processed, or the estimated number of output rows.
+	 */
 	std::pair<bool, uint64_t> get_estimated_output_num_rows(){
 		std::pair<bool, uint64_t> total_in = this->query_graph->get_estimated_input_rows_to_kernel(this->kernel_id);
 		if (total_in.first){
@@ -870,13 +958,27 @@ private:
  */
 class Print : public kernel {
 public:
+	/**
+	 * Constructor
+	 */
 	Print() : kernel(0,"Print", nullptr, kernel_type::PrintKernel) { ofs = &(std::cout); }
 	Print(std::ostream & stream) : kernel(0,"Print", nullptr, kernel_type::PrintKernel) { ofs = &stream; }
 
+	/**
+	 * Indicates whether the cache load can be throttling.
+	 * @return true If the pace of cache loading may be throttled.
+	 * @return false If cache should be loaded according to the default pace.
+	 */
 	bool can_you_throttle_my_input() {
 		return false;
 	}
 
+	/**
+	 * Executes the batch processing.
+	 * Loads the data from their input port, and after processing it,
+	 * the results are stored in their output port.
+	 * @return kstatus 'stop' to halt processing, or 'proceed' to continue processing.
+	 */
 	virtual kstatus run() {
 		std::lock_guard<std::mutex> lg(print_lock);
 		BatchSequence input(this->input_cache(), this);
@@ -888,8 +990,8 @@ public:
 	}
 
 protected:
-	std::ostream * ofs = nullptr;
-	std::mutex print_lock;
+	std::ostream * ofs = nullptr; /**< Target output stream object. */
+	std::mutex print_lock; /**< Mutex for making the printing thread-safe. */
 };
 
 
@@ -900,8 +1002,19 @@ protected:
  */
 class OutputKernel : public kernel {
 public:
+	/**
+	 * Constructor for OutputKernel
+	 * @param kernel_id Kernel identifier.
+	 * @param context Shared context associated to the running query.
+	 */
 	OutputKernel(std::size_t kernel_id, std::shared_ptr<Context> context) : kernel(kernel_id,"OutputKernel", context, kernel_type::OutputKernel) { }
 
+	/**
+	 * Executes the batch processing.
+	 * Loads the data from their input port, and after processing it,
+	 * the results are stored in their output port.
+	 * @return kstatus 'stop' to halt processing, or 'proceed' to continue processing.
+	 */
 	virtual kstatus run() {
 		while (this->input_.get_cache()->wait_for_next()) {
 			CodeTimer cacheEventTimer(false);
@@ -932,16 +1045,25 @@ public:
 		return kstatus::stop;
 	}
 
+	/**
+	 * Indicates whether the cache load can be throttling.
+	 * @return true If the pace of cache loading may be throttled.
+	 * @return false If cache should be loaded according to the default pace.
+	 */
 	bool can_you_throttle_my_input() {
 		return false;
 	}
 
-	frame_type	release() {
+	/**
+	 * Returns the vector containing the final processed output.
+	 * @return frame_type A vector of unique_ptr of BlazingTables.
+	 */
+	frame_type release() {
 		return std::move(output);
 	}
 
 protected:
-	frame_type output; /**< Table with the final output. */
+	frame_type output; /**< Vector of tables with the final output. */
 };
 
 } // namespace batch
