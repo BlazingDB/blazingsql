@@ -32,3 +32,11 @@ struct BlazingMissingMetadataException : public std::exception
   private:
     std::string key;
 };
+
+enum _error
+{
+  E_SUCCESS = 0,
+  E_EXCEPTION
+};
+
+typedef int error_code_t;

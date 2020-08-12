@@ -32,6 +32,8 @@
 #include "communication/network/Server.h"
 #include <bmr/initializer.h>
 
+#include "error.hpp"
+
 using namespace fmt::literals;
 
 #include <engine/static.h> // this contains function call for getProductDetails
@@ -107,12 +109,12 @@ void initialize(int ralId,
 	int ralCommunicationPort,
 	bool singleNode,
 	std::map<std::string, std::string> config_options) {
-  // ---------------------------------------------------------------------------
-  // DISCLAIMER
-  // TODO: Support proper locale support for non-US cases (percy)
-    std::setlocale(LC_ALL, "en_US.UTF-8");
-    std::setlocale(LC_NUMERIC, "en_US.UTF-8");
-  // ---------------------------------------------------------------------------
+	// ---------------------------------------------------------------------------
+	// DISCLAIMER
+	// TODO: Support proper locale support for non-US cases (percy)
+	std::setlocale(LC_ALL, "en_US.UTF-8");
+	std::setlocale(LC_NUMERIC, "en_US.UTF-8");
+	// ---------------------------------------------------------------------------
 
 	ralHost = get_ip(network_iface_name);
 
@@ -130,7 +132,7 @@ void initialize(int ralId,
 	auto nthread = 4;
 	blazingdb::transport::io::setPinnedBufferProvider(0.1 * total_gpu_mem_size, nthread);
 
- 	//to avoid redundancy the default value or user defined value for this parameter is placed on the pyblazing side
+	//to avoid redundancy the default value or user defined value for this parameter is placed on the pyblazing side
 	assert( config_options.find("BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD") != config_options.end() );
 	float host_memory_quota = std::stof(config_options["BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD"]);
 
@@ -189,7 +191,7 @@ void initialize(int ralId,
 	// we are assuming that this logging directory was created by the python layer, because only the python layer can only target on directory creation per server
 	// having all RALs independently trying to create a directory simulatenously can cause problems
 		logging_directory_missing = true;
-		logging_dir = "";		
+		logging_dir = "";
 	}
 
 
@@ -269,7 +271,6 @@ void finalize() {
 	exit(0);
 }
 
-
 void blazingSetAllocator(
 	std::string allocation_mode,
 	std::size_t initial_pool_size,
@@ -282,4 +283,50 @@ void blazingSetAllocator(
 	}
 
 	BlazingRMMInitialize(allocation_mode, initial_pool_size, device_mem_resouce_consumption_thresh);
+}
+
+error_code_t initialize_C(int ralId,
+	int gpuId,
+	std::string network_iface_name,
+	std::string ralHost,
+	int ralCommunicationPort,
+	bool singleNode,
+	std::map<std::string, std::string> config_options) {
+
+	try {
+		initialize(ralId,
+			gpuId,
+			network_iface_name,
+			ralHost,
+			ralCommunicationPort,
+			singleNode,
+			config_options);
+		return E_SUCCESS;
+	} catch (std::exception& e) {
+		return E_EXCEPTION;
+	}
+}
+
+error_code_t finalize_C() {
+	try {
+		finalize();
+		return E_SUCCESS;
+	} catch (std::exception& e) {
+		return E_EXCEPTION;
+	}
+}
+
+error_code_t blazingSetAllocator_C(
+	std::string allocation_mode,
+	std::size_t initial_pool_size,
+	std::map<std::string, std::string> config_options) {
+
+	try {
+		blazingSetAllocator(allocation_mode,
+			initial_pool_size,
+			config_options);
+		return E_SUCCESS;
+	} catch (std::exception& e) {
+		return E_EXCEPTION;
+	}
 }
