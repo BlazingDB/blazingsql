@@ -1075,7 +1075,7 @@ class BlazingContext(object):
                     default: 16
             LOGGING_LEVEL : Set the level (as string) of the current tool for
                     logging. Log levels have order of priority:
-                    {trace, debug, info, warn, critical}
+                    {trace, debug, info, warn, error, critical}
                     NOTE: This parameter only works when used in the
                     BlazingContext
                     default: 'warn'
