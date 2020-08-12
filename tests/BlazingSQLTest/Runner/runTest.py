@@ -344,11 +344,17 @@ def print_query_results(
     if print_result:
         print("#BLZ:")
         print(pdf1)
-        if isinstance(engine, PyDrill):
-            print("#DRILL:")
-        else:
-            print("#PYSPARK:")
-        print(pdf2)
+        if not isinstance(engine, str):
+            if isinstance(engine, PyDrill):
+                print("#DRILL:")
+            else:
+                print("#PYSPARK:")
+            print(pdf2)
+        else: 
+            if engine=="drill":
+                print("#DRILL:")
+            else:
+                print("#PYSPARK:")
     data_type = cs.get_extension(input_type)
     print(str(queryId) + " Test " + queryType + " - " + data_type)
     print("#QUERY:")
