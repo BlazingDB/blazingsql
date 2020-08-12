@@ -146,3 +146,5 @@ if __name__ == '__main__':
     if Settings.execution_mode != ExecutionMode.GENERATOR:
         runTest.save_log()
         gpuMemory.print_log_gpu_memory()
+
+        
