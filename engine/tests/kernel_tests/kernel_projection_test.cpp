@@ -101,11 +101,11 @@ void add_data_to_cache_with_delay(
 
 TYPED_TEST_CASE(ProjectionTest, cudf::test::NumericTypes);
 
-TYPED_TEST(ProjectionTest, MultipleColumnsMultipleRowsOneBatchWithoutDelays) {
+TYPED_TEST(ProjectionTest, OneBatchFullWithoutDelay) {
 	
 	using T = TypeParam;
 
-	// Data
+	// Batch
     cudf::test::fixed_width_column_wrapper<T> col1{{4, 5, 3, 5, 8, 5, 6}, {1, 1, 1, 1, 1, 1, 1}};
     cudf::test::strings_column_wrapper col2({"b", "d", "a", "d", "l", "d", "k"}, {1, 1, 1, 1, 1, 1, 1});
     cudf::test::fixed_width_column_wrapper<T> col3{{10, 40, 70, 5, 2, 10, 11}, {1, 1, 1, 1, 1, 1, 1}};
@@ -137,17 +137,17 @@ TYPED_TEST(ProjectionTest, MultipleColumnsMultipleRowsOneBatchWithoutDelays) {
 	EXPECT_EQ(kstatus::proceed, process);
 
 	// Assert output
-	std::unique_ptr<BlazingTable> pulled_table = outputCacheMachine->pullFromCache();
-	EXPECT_EQ(pulled_table->num_rows(), 7);
-	ASSERT_EQ(pulled_table->num_columns(), 1);
+	std::unique_ptr<BlazingTable> batch_pulled = outputCacheMachine->pullFromCache();
+	EXPECT_EQ(batch_pulled->num_rows(), 7);
+	ASSERT_EQ(batch_pulled->num_columns(), 1);
 }
 
 
-TYPED_TEST(ProjectionTest, MultipleColumnsSingleRowOneBatchWithoutDelays) {
+TYPED_TEST(ProjectionTest, OneBatchOneRowWithoutDelay) {
 	
 	using T = TypeParam;
 
-	// Data
+	// Batch
     cudf::test::fixed_width_column_wrapper<T> col1{{4}, {1}};
     cudf::test::strings_column_wrapper col2({"b"}, {1});
 
@@ -178,22 +178,20 @@ TYPED_TEST(ProjectionTest, MultipleColumnsSingleRowOneBatchWithoutDelays) {
 	EXPECT_EQ(kstatus::proceed, process);
 
 	// Assert output
-	std::unique_ptr<BlazingTable> pulled_table = outputCacheMachine->pullFromCache();
-	EXPECT_EQ(pulled_table->num_rows(), 1);
-	ASSERT_EQ(pulled_table->num_columns(), 1);
+	std::unique_ptr<BlazingTable> batch_pulled = outputCacheMachine->pullFromCache();
+	EXPECT_EQ(batch_pulled->num_rows(), 1);
+	ASSERT_EQ(batch_pulled->num_columns(), 1);
 }
 
 
-TYPED_TEST(ProjectionTest, MultipleColumnsNoRowsOneBatchWithoutDelays) {
-
-	using T = TypeParam;
+TYPED_TEST(ProjectionTest, OneBatchEmptyWithoutDelay) {
 
 	// Empty Data
 	std::vector<std::string> names{"A", "B", "C"};
 	std::vector<cudf::data_type> types { cudf::data_type{cudf::type_id::INT32}, 
 										 cudf::data_type{cudf::type_id::STRING},
 										 cudf::data_type{cudf::type_id::FLOAT64} };
-	std::unique_ptr<BlazingTable> empty_batch = ral::frame::createEmptyBlazingTable(types, names);
+	std::unique_ptr<BlazingTable> batch_empty = ral::frame::createEmptyBlazingTable(types, names);
 
 	// Context
 	std::shared_ptr<Context> context = make_context();
@@ -208,7 +206,7 @@ TYPED_TEST(ProjectionTest, MultipleColumnsNoRowsOneBatchWithoutDelays) {
 	// Add data to the inputCacheMachine without delay
 	std::vector<int> delays_in_ms {0};
 	std::vector<std::unique_ptr<BlazingTable>> batches;
-	batches.push_back(std::move(empty_batch));
+	batches.push_back(std::move(batch_empty));
 	add_data_to_cache_with_delay(inputCacheMachine, std::move(batches), delays_in_ms);
 
 	// main function
@@ -216,37 +214,33 @@ TYPED_TEST(ProjectionTest, MultipleColumnsNoRowsOneBatchWithoutDelays) {
 	EXPECT_EQ(kstatus::proceed, process);
 
 	// Assert output
-	std::unique_ptr<BlazingTable> pulled_table = outputCacheMachine->pullFromCache();
-	EXPECT_EQ(pulled_table->num_rows(), 0);
-	ASSERT_EQ(pulled_table->num_columns(), 2);
+	std::unique_ptr<BlazingTable> batch_pulled = outputCacheMachine->pullFromCache();
+	EXPECT_EQ(batch_pulled->num_rows(), 0);
+	ASSERT_EQ(batch_pulled->num_columns(), 2);
 }
 
 
-TYPED_TEST(ProjectionTest, MultipleColumnsMultipleRowsTwoBatchsWithoutDelays) {
+TYPED_TEST(ProjectionTest, TwoBatchsFullsWithoutDelay) {
 
 	using T = TypeParam;
+
+	std::vector<std::string> names({"A", "B", "C"});
 
 	// Batch 1
     cudf::test::fixed_width_column_wrapper<T> col1_a{{14, 25, 3, 5}, {1, 1, 1, 1}};
     cudf::test::strings_column_wrapper col2_a({"b", "d", "a", "d"}, {1, 1, 1, 1});
     cudf::test::fixed_width_column_wrapper<T> col3_a{{10, 40, 70, 5}, {1, 1, 1, 1}};
-
     CudfTableView cudf_table_in_view_a {{col1_a, col2_a, col3_a}};
     std::unique_ptr<CudfTable> cudf_table_a = std::make_unique<CudfTable>(cudf_table_in_view_a);
-
-    std::vector<std::string> names_a({"A", "B", "C"});
-    std::unique_ptr<BlazingTable> batch_1 = std::make_unique<BlazingTable>(std::move(cudf_table_a), names_a);
+    std::unique_ptr<BlazingTable> batch_1 = std::make_unique<BlazingTable>(std::move(cudf_table_a), names);
 
 	// Batch 2
     cudf::test::fixed_width_column_wrapper<T> col1_b{{28, 5, 6}, {1, 1, 1}};
     cudf::test::strings_column_wrapper col2_b({"l", "d", "k"}, {1, 1, 1});
     cudf::test::fixed_width_column_wrapper<T> col3_b{{2, 10, 11}, {1, 1, 1}};
-
     CudfTableView cudf_table_in_view_b {{col1_b, col2_b, col3_b}};
     std::unique_ptr<CudfTable> cudf_table_b = std::make_unique<CudfTable>(cudf_table_in_view_b);
-
-    std::vector<std::string> names_b({"A", "B", "C"});
-    std::unique_ptr<BlazingTable> batch_2 = std::make_unique<BlazingTable>(std::move(cudf_table_b), names_b);
+    std::unique_ptr<BlazingTable> batch_2 = std::make_unique<BlazingTable>(std::move(cudf_table_b), names);
 
 	// Context
 	std::shared_ptr<Context> context = make_context();
@@ -270,21 +264,72 @@ TYPED_TEST(ProjectionTest, MultipleColumnsMultipleRowsTwoBatchsWithoutDelays) {
 	EXPECT_EQ(kstatus::proceed, process);
 
 	// Assert output
-	std::vector<std::unique_ptr<BlazingTable>> pulled_batches;
-	pulled_batches.push_back(outputCacheMachine->pullFromCache());
-	pulled_batches.push_back(outputCacheMachine->pullFromCache());
+	std::vector<std::unique_ptr<BlazingTable>> batches_pulled;
+	batches_pulled.push_back(outputCacheMachine->pullFromCache());
+	batches_pulled.push_back(outputCacheMachine->pullFromCache());
 	
-	EXPECT_EQ(pulled_batches.size(), 2);
-	ASSERT_EQ(pulled_batches[0]->num_columns(), 2);
-	ASSERT_EQ(pulled_batches[1]->num_columns(), 2);
+	EXPECT_EQ(batches_pulled.size(), 2);
+	EXPECT_EQ(batches_pulled[0]->num_rows(), 4);
+	EXPECT_EQ(batches_pulled[1]->num_rows(), 3);
+
+	ASSERT_EQ(batches_pulled[0]->num_columns(), 2);
+	ASSERT_EQ(batches_pulled[1]->num_columns(), 2);
 }
 
 
-TYPED_TEST(ProjectionTest, MultipleColumnsMultipleRowsOneBatchWithDelays) {
+// The second batch should not be added to the InputCacheMachine because
+// already another batch was added.
+TYPED_TEST(ProjectionTest, TwoBatchsFirstFullSecondEmptyWithoutDelays) {
+
+	using T = TypeParam;
+
+	std::vector<std::string> names({"A", "B"});
+
+	// Batch 1
+    cudf::test::fixed_width_column_wrapper<T> col1_a{{14, 25, 3, 5}, {1, 1, 1, 1}};
+    cudf::test::strings_column_wrapper col2_a({"b", "d", "a", "d"}, {1, 1, 1, 1});
+    CudfTableView cudf_table_in_view_1 {{col1_a, col2_a}};
+    std::unique_ptr<CudfTable> cudf_table_1 = std::make_unique<CudfTable>(cudf_table_in_view_1);
+    std::unique_ptr<BlazingTable> batch_full = std::make_unique<BlazingTable>(std::move(cudf_table_1), names);
+
+	// Batch 2
+    std::vector<cudf::data_type> types { cudf::data_type{cudf::type_id::INT32}, 
+										 cudf::data_type{cudf::type_id::STRING} };
+	std::unique_ptr<BlazingTable> batch_empty = ral::frame::createEmptyBlazingTable(types, names);
+
+	// Context
+	std::shared_ptr<Context> context = make_context();
+
+	// Projection kernel
+	std::shared_ptr<kernel> project_kernel = make_project_kernel("LogicalProject(B=[$1])", context);
+
+	// register cache machines with the `project_kernel`
+	std::shared_ptr<CacheMachine> inputCacheMachine, outputCacheMachine;
+	std::tie(inputCacheMachine, outputCacheMachine) = register_kernel_with_cache_machines(project_kernel, context);
+
+	// Add data to the inputCacheMachine without delays
+	std::vector<int> delays_in_ms {0, 0};
+	std::vector<std::unique_ptr<BlazingTable>> batches;
+	batches.push_back(std::move(batch_full));
+	batches.push_back(std::move(batch_empty)); // will not be added to the inputCacheMachine
+	add_data_to_cache_with_delay(inputCacheMachine, std::move(batches), delays_in_ms);
+
+	// main function
+	kstatus process = project_kernel->run();
+	EXPECT_EQ(kstatus::proceed, process);
+
+	// Assert output
+	std::unique_ptr<BlazingTable> batch_pulled = outputCacheMachine->pullFromCache();
+	EXPECT_EQ(batch_pulled->num_rows(), 4);
+	ASSERT_EQ(batch_pulled->num_columns(), 1);
+}
+
+
+TYPED_TEST(ProjectionTest, OneBatchFullWithDelay) {
 	
 	using T = TypeParam;
 
-	// Data
+	// Batch
     cudf::test::strings_column_wrapper col2({"b", "d", "a", "d", "l", "d", "k"}, {1, 1, 1, 1, 1, 1, 1});
     cudf::test::fixed_width_column_wrapper<T> col3{{10, 40, 70, 5, 2, 10, 11}, {1, 1, 1, 1, 1, 1, 1}};
 
@@ -315,20 +360,20 @@ TYPED_TEST(ProjectionTest, MultipleColumnsMultipleRowsOneBatchWithDelays) {
 	EXPECT_EQ(kstatus::proceed, process);
 	
 	// Assert output
-	std::unique_ptr<BlazingTable> pulled_table = outputCacheMachine->pullFromCache();
-	EXPECT_EQ(pulled_table->num_rows(), 7);
-	ASSERT_EQ(pulled_table->num_columns(), 1);
+	std::unique_ptr<BlazingTable> batch_pulled = outputCacheMachine->pullFromCache();
+	EXPECT_EQ(batch_pulled->num_rows(), 7);
+	ASSERT_EQ(batch_pulled->num_columns(), 1);
 }
 
 
-TYPED_TEST(ProjectionTest, MultipleColumnsNoRowsOneBatchWithDelays) {
+TYPED_TEST(ProjectionTest, OneBatchEmptyWithDelay) {
 
 	// Empty Data
 	std::vector<std::string> names{"A", "B", "C"};
 	std::vector<cudf::data_type> types { cudf::data_type{cudf::type_id::INT32}, 
 										 cudf::data_type{cudf::type_id::STRING},
 										 cudf::data_type{cudf::type_id::FLOAT64} };
-	std::unique_ptr<BlazingTable> empty_batch = ral::frame::createEmptyBlazingTable(types, names);
+	std::unique_ptr<BlazingTable> batch_empty = ral::frame::createEmptyBlazingTable(types, names);
 
 	// Context
 	std::shared_ptr<Context> context = make_context();
@@ -343,7 +388,7 @@ TYPED_TEST(ProjectionTest, MultipleColumnsNoRowsOneBatchWithDelays) {
 	// Add empty data to the inputCacheMachine with delay
 	std::vector<int> delays_in_ms {30};
 	std::vector<std::unique_ptr<BlazingTable>> batches;
-	batches.push_back(std::move(empty_batch));
+	batches.push_back(std::move(batch_empty));
 	add_data_to_cache_with_delay(inputCacheMachine, std::move(batches), delays_in_ms);
 
 	// main function
@@ -351,15 +396,17 @@ TYPED_TEST(ProjectionTest, MultipleColumnsNoRowsOneBatchWithDelays) {
 	EXPECT_EQ(kstatus::proceed, process);
 
 	// Assert output
-	std::unique_ptr<BlazingTable> pulled_table = outputCacheMachine->pullFromCache();
-	EXPECT_EQ(pulled_table->num_rows(), 0);
-	ASSERT_EQ(pulled_table->num_columns(), 2);
+	std::unique_ptr<BlazingTable> batch_pulled = outputCacheMachine->pullFromCache();
+	EXPECT_EQ(batch_pulled->num_rows(), 0);
+	ASSERT_EQ(batch_pulled->num_columns(), 2);
 }
 
 
-TYPED_TEST(ProjectionTest, MultipleColumnsMultipleRowsTwoBatchsWithDelays) {
+TYPED_TEST(ProjectionTest, TwoBatchsFullsWithDelays) {
 
 	using T = TypeParam;
+
+	std::vector<std::string> names({"A", "B", "C"});
 
 	// Batch 1
     cudf::test::fixed_width_column_wrapper<T> col1_a{{14, 25, 3, 5}, {1, 1, 1, 1}};
@@ -367,10 +414,8 @@ TYPED_TEST(ProjectionTest, MultipleColumnsMultipleRowsTwoBatchsWithDelays) {
     cudf::test::fixed_width_column_wrapper<T> col3_a{{10, 40, 70, 5}, {1, 1, 1, 1}};
 
     CudfTableView cudf_table_in_view_a {{col1_a, col2_a, col3_a}};
-    std::unique_ptr<CudfTable> cudf_table_a = std::make_unique<CudfTable>(cudf_table_in_view_a);
-
-    std::vector<std::string> names_a({"A", "B", "C"});
-    std::unique_ptr<BlazingTable> batch_1 = std::make_unique<BlazingTable>(std::move(cudf_table_a), names_a);
+    std::unique_ptr<CudfTable> cudf_table_1 = std::make_unique<CudfTable>(cudf_table_in_view_a);
+    std::unique_ptr<BlazingTable> batch_1 = std::make_unique<BlazingTable>(std::move(cudf_table_1), names);
 
 	// Batch 2
     cudf::test::fixed_width_column_wrapper<T> col1_b{{28, 5, 6}, {1, 1, 1}};
@@ -378,10 +423,8 @@ TYPED_TEST(ProjectionTest, MultipleColumnsMultipleRowsTwoBatchsWithDelays) {
     cudf::test::fixed_width_column_wrapper<T> col3_b{{2, 10, 11}, {1, 1, 1}};
 
     CudfTableView cudf_table_in_view_b {{col1_b, col2_b, col3_b}};
-    std::unique_ptr<CudfTable> cudf_table_b = std::make_unique<CudfTable>(cudf_table_in_view_b);
-
-    std::vector<std::string> names_b({"A", "B", "C"});
-    std::unique_ptr<BlazingTable> batch_2 = std::make_unique<BlazingTable>(std::move(cudf_table_b), names_b);
+    std::unique_ptr<CudfTable> cudf_table_2 = std::make_unique<CudfTable>(cudf_table_in_view_b);
+    std::unique_ptr<BlazingTable> batch_2 = std::make_unique<BlazingTable>(std::move(cudf_table_2), names);
 
 	// Context
 	std::shared_ptr<Context> context = make_context();
@@ -405,11 +448,52 @@ TYPED_TEST(ProjectionTest, MultipleColumnsMultipleRowsTwoBatchsWithDelays) {
 	EXPECT_EQ(kstatus::proceed, process);
 
 	// Assert output
-	std::vector<std::unique_ptr<BlazingTable>> pulled_batches;
-	pulled_batches.push_back(outputCacheMachine->pullFromCache());
-	pulled_batches.push_back(outputCacheMachine->pullFromCache());
+	std::vector<std::unique_ptr<BlazingTable>> batches_pulled;
+	batches_pulled.push_back(outputCacheMachine->pullFromCache());
+	batches_pulled.push_back(outputCacheMachine->pullFromCache());
 	
-	EXPECT_EQ(pulled_batches.size(), 2);
-	ASSERT_EQ(pulled_batches[0]->num_columns(), 1);
-	ASSERT_EQ(pulled_batches[1]->num_columns(), 1);
+	EXPECT_EQ(batches_pulled.size(), 2);
+	ASSERT_EQ(batches_pulled[0]->num_columns(), 1);
+	ASSERT_EQ(batches_pulled[1]->num_columns(), 1);
+}
+
+
+// In this case only the first empty batch will be added
+// The second empty batch will be ignored
+TYPED_TEST(ProjectionTest, TwoBatchEmptiesWithDelays) {
+
+	// Empty Data
+	std::vector<std::string> names{"A", "B", "C", "D"};
+	std::vector<cudf::data_type> types { cudf::data_type{cudf::type_id::INT32}, 
+										 cudf::data_type{cudf::type_id::STRING},
+										 cudf::data_type{cudf::type_id::FLOAT64},
+										 cudf::data_type{cudf::type_id::STRING} };
+	std::unique_ptr<BlazingTable> batch_empty_1 = ral::frame::createEmptyBlazingTable(types, names);
+	std::unique_ptr<BlazingTable> batch_empty_2 = ral::frame::createEmptyBlazingTable(types, names);
+
+	// Context
+	std::shared_ptr<Context> context = make_context();
+
+	// Projection kernel
+	std::shared_ptr<kernel> project_kernel = make_project_kernel("LogicalProject(B=[$0],C=[$1],D=[$2])", context);
+
+	// register cache machines with the `project_kernel`
+	std::shared_ptr<CacheMachine> inputCacheMachine, outputCacheMachine;
+	std::tie(inputCacheMachine, outputCacheMachine) = register_kernel_with_cache_machines(project_kernel, context);
+
+	// Add empty data to the inputCacheMachine with delay
+	std::vector<int> delays_in_ms {10, 35};
+	std::vector<std::unique_ptr<BlazingTable>> batches;
+	batches.push_back(std::move(batch_empty_1));
+	batches.push_back(std::move(batch_empty_2)); // will not be added to the inputCacheMachine
+	add_data_to_cache_with_delay(inputCacheMachine, std::move(batches), delays_in_ms);
+
+	// main function
+	kstatus process = project_kernel->run();
+	EXPECT_EQ(kstatus::proceed, process);
+
+	// Assert output
+	std::unique_ptr<BlazingTable> batch_pulled = outputCacheMachine->pullFromCache();
+	EXPECT_EQ(batch_pulled->num_rows(), 0);
+	ASSERT_EQ(batch_pulled->num_columns(), 3);
 }
