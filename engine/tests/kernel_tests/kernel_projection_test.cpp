@@ -16,7 +16,6 @@ using ral::cache::CacheMachine;
 using ral::frame::BlazingTable;
 using ral::cache::kernel;
 
-
 /**
  * Unit Tests for Projection Kernel
  * pipeline:
@@ -28,8 +27,8 @@ using ral::cache::kernel;
  *                              |                                |
  *                              | ProjectKernel                  |
  *                         ---> | plan:                          |--->
- * 						  /	    |  LogicalProject(A=[$0],C=[$1]) |    \
- * 						 /	    |________________________________|     \
+ *                        /	    |  LogicalProject(A=[$0],C=[$1]) |    \
+ *                       /	    |________________________________|     \
  *    _________________ /                                               \_______________
  *   |   ___________   |                                                |    _______    |
  *   |  | A | B | C |  |                                                |   | A | C |   |
@@ -41,7 +40,6 @@ using ral::cache::kernel;
  *    InputCacheMachine                                                 OutputCacheMachine
  * 
  */
-
 template <typename T>
 struct ProjectionTest : public BlazingUnitTest {};
 
