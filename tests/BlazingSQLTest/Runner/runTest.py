@@ -119,13 +119,13 @@ def compare_results(pdf1, pdf2, acceptable_difference, use_percentage, engine):
     msg = ""
     if not isinstance(engine, str):
         if isinstance(engine, PyDrill):
-                msg = "PyDrill"
-            else:
-                msg = "PySpark"
-        elif engine=="drill":
-            msg = "PyDrill" 
-        else: 
-            msg = "PySpark" 
+            msg = "PyDrill"
+        else:
+            msg = "PySpark"
+    elif engine=="drill":
+        msg = "PyDrill" 
+    else: 
+        msg = "PySpark" 
 
     if pdf1.shape[0] == pdf2.shape[0]:
         if pdf1.shape[1] == pdf2.shape[1]:
