@@ -118,9 +118,9 @@ def compare_results(pdf1, pdf2, acceptable_difference, use_percentage, engine):
     
     msg = ""
     if not isinstance(engine, str):
-        if isinstance(engine, PyDrill) 
+        if isinstance(engine, PyDrill):
                 msg = "PyDrill"
-            else 
+            else:
                 msg = "PySpark"
         elif engine=="drill":
             msg = "PyDrill" 
