@@ -85,6 +85,8 @@ CacheMachine::CacheMachine(std::shared_ptr<Context> context): ctx(context), cach
 	logger = spdlog::get("batch_logger");
 	cache_events_logger = spdlog::get("cache_events_logger");
 
+	something_added = false;
+
 	std::shared_ptr<spdlog::logger> kernels_logger;
 	kernels_logger = spdlog::get("kernels_logger");
 
@@ -260,7 +262,7 @@ void CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_dat
 
 void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, const std::string & message_id, bool always_add) {
 	// we dont want to add empty tables to a cache, unless we have never added anything
-	if (!this->something_added || table->num_rows() > 0|| always_add){
+	if (!this->something_added || table->num_rows() > 0 || always_add){
 		for (auto col_ind = 0; col_ind < table->num_columns(); col_ind++){
 			if (table->view().column(col_ind).offset() > 0){
 				table->ensureOwnership();

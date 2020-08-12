@@ -26,16 +26,16 @@ using ral::cache::kernel;
  *                               ________________________________
  *                              |                                |
  *                              | ProjectKernel                  |
- *                         ---> | plan:                          |--->
- *                        /	    |  LogicalProject(A=[$0],C=[$1]) |    \
- *                       /	    |________________________________|     \
- *    _________________ /                                               \_______________
- *   |   ___________   |                                                |    _______    |
- *   |  | A | B | C |  |                                                |   | A | C |   |
- *   |  |   |   |   |  |                                                |   |   |   |   |
- *   |  |   |   |   |  |                                                |   |   |   |   |
- *   |  |___|___|___|  |                                                |   |___|___|   |
- *   |_________________|                                                |_______________|
+ *                         ---> | plan:                          | --->
+ *                        /     |  LogicalProject(A=[$0],C=[$1]) |     \
+ *                       /      |________________________________|      \
+ *    _________________ /                                                \_______________
+ *   |   ___________   |                                                 |    _______    |
+ *   |  | A | B | C |  |                                                 |   | A | C |   |
+ *   |  |   |   |   |  |                                                 |   |   |   |   |
+ *   |  |   |   |   |  |                                                 |   |   |   |   |
+ *   |  |___|___|___|  |                                                 |   |___|___|   |
+ *   |_________________|                                                 |_______________|
  * 
  *    InputCacheMachine                                                 OutputCacheMachine
  * 
@@ -93,7 +93,7 @@ void add_data_to_cache_with_delay(
 	}
 
 	// default last delay
-	std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
 	cache_machine->finish();
 }
@@ -321,7 +321,7 @@ TYPED_TEST(ProjectionTest, MultipleColumnsMultipleRowsOneBatchWithDelays) {
 }
 
 
-/*
+
 TYPED_TEST(ProjectionTest, MultipleColumnsNoRowsOneBatchWithDelays) {
 
 	// Empty Data
@@ -342,7 +342,7 @@ TYPED_TEST(ProjectionTest, MultipleColumnsNoRowsOneBatchWithDelays) {
 	std::tie(inputCacheMachine, outputCacheMachine) = register_kernel_with_cache_machines(project_kernel, context);
 
 	// Add empty data to the inputCacheMachine with delay
-	std::vector<int> delays_in_ms {0};
+	std::vector<int> delays_in_ms {30};
 	std::vector<std::unique_ptr<BlazingTable>> batches;
 	batches.push_back(std::move(empty_batch));
 	add_data_to_cache_with_delay(inputCacheMachine, std::move(batches), delays_in_ms);
@@ -356,7 +356,7 @@ TYPED_TEST(ProjectionTest, MultipleColumnsNoRowsOneBatchWithDelays) {
 	EXPECT_EQ(pulled_table->num_rows(), 0);
 	ASSERT_EQ(pulled_table->num_columns(), 2);
 }
-*/
+
 
 TYPED_TEST(ProjectionTest, MultipleColumnsMultipleRowsTwoBatchsWithDelays) {
 
