@@ -115,6 +115,17 @@ def compare_results(pdf1, pdf2, acceptable_difference, use_percentage, engine):
 
     if pdf1.size == 0 and pdf2.size == 0:
         return "Success"
+    
+    msg = ""
+    if not isinstance(engine, str):
+        if isinstance(engine, PyDrill) 
+                msg = "PyDrill"
+            else 
+                msg = "PySpark"
+        elif engine=="drill":
+            msg = "PyDrill" 
+        else: 
+            msg = "PySpark" 
 
     if pdf1.shape[0] == pdf2.shape[0]:
         if pdf1.shape[1] == pdf2.shape[1]:
@@ -166,19 +177,20 @@ def compare_results(pdf1, pdf2, acceptable_difference, use_percentage, engine):
                 return "Fail: Different values"
         else:
             return (
-                "Fail: Different number of columns blzSQLresult: "
-                + str(pdf1.shape[1])
-                + " "
-                + ("PyDrill" if isinstance(engine, PyDrill) else "PySpark")
-                + " result: "
-                + str(pdf2.shape[1])
-            )
+                    "Fail: Different number of columns blzSQLresult: "
+                    + str(pdf1.shape[1])
+                    + " "
+                    + msg 
+                    + " result: "
+                    + str(pdf2.shape[1])
+                )
+            elif engine=="drill":
     else:
         return (
             "Fail: Different number of rows blzSQLresult: "
             + str(pdf1.shape[0])
             + " "
-            + ("PyDrill" if isinstance(engine, PyDrill) else "PySpark")
+            + msg
             + " result: "
             + str(pdf2.shape[0])
         )
