@@ -90,6 +90,7 @@ add_subdirectory(new-tests)
 add_subdirectory(parser)
 add_subdirectory(skipdata)
 add_subdirectory(sort)
+add_subdirectory(communication)
 
 
 message(STATUS "******** Tests are ready ********")

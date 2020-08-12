@@ -245,10 +245,6 @@ include_directories(
     ${CUDF_TEST_INCLUDE}
     )
 
-## communication primitives
-add_subdirectory(${CMAKE_SOURCE_DIR}/src/communication)
-get_directory_property(communication_source_files DIRECTORY ${CMAKE_SOURCE_DIR}/src/communication DEFINITION source_files)
-
 ## Target source files
 set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingHostTable.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/CacheMachine.cpp
@@ -292,10 +288,16 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingH
               ${CMAKE_SOURCE_DIR}/src/cython/io.cpp
               ${CMAKE_SOURCE_DIR}/src/cython/errors.cpp
               ${CMAKE_SOURCE_DIR}/src/cython/engine.cpp
-              ${CMAKE_SOURCE_DIR}/src/communication/messages/GPUComponentMessage.cpp
               ${CMAKE_SOURCE_DIR}/src/distribution/primitives.cpp
               ${CMAKE_SOURCE_DIR}/src/bmr/MemoryMonitor.cpp
-              ${communication_source_files}
+              ${CMAKE_SOURCE_DIR}/src/communication/factory/MessageFactory.cpp
+              ${CMAKE_SOURCE_DIR}/src/communication/network/Client.cpp
+              ${CMAKE_SOURCE_DIR}/src/communication/network/Server.cpp
+              ${CMAKE_SOURCE_DIR}/src/communication/CommunicationData.cpp
+              ${CMAKE_SOURCE_DIR}/src/communication/messages/MessageUtil.cu
+              ${CMAKE_SOURCE_DIR}/src/communication/messages/GPUComponentMessage.cpp
+              ${CMAKE_SOURCE_DIR}/src/communication/CommunicationInterface/serializer.cpp
+              ${CMAKE_SOURCE_DIR}/src/communication/CommunicationInterface/messageReceiver.cpp
         )
 
 link_directories(${BSQL_BLD_PREFIX}/lib)
