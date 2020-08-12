@@ -184,7 +184,6 @@ def compare_results(pdf1, pdf2, acceptable_difference, use_percentage, engine):
                     + " result: "
                     + str(pdf2.shape[1])
                 )
-            elif engine=="drill":
     else:
         return (
             "Fail: Different number of rows blzSQLresult: "
