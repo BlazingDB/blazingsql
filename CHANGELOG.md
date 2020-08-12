@@ -22,8 +22,11 @@
 - #894 added exhale to generate doxygen for sphinx docs
 - #887 concatenating cache improvement and replacing PartwiseJoin::load_set with a concatenating cache
 - #904 Added doxygen comments to CacheMachine.h
-- #901 Added more documentation about memory management
-- #910 updated readme
+- #901 Added more documentation about memory management 
+- #910 updated readme 
+- #915 Adding max kernel num threads pool
+- #921 Make AWS and GCS optional
+- #925 Replace random_generator with cudf::sample
 - #939 Add unit test for Project kernel
 
 ## Bug Fixes
@@ -55,6 +58,8 @@
 - #909 Fixed issue caused by using now arrow_io_source
 - #913 Fixed issues caused by cudf adding DECIMAL data type
 - #916 Fix e2e string comparison
+- #927 Fixed random segfault issue in parser
+- #929 Update the GPUManager functions
 
 
 # BlazingSQL 0.14.0 (June 9, 2020)

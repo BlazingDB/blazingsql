@@ -321,7 +321,6 @@ TYPED_TEST(ProjectionTest, MultipleColumnsMultipleRowsOneBatchWithDelays) {
 }
 
 
-
 TYPED_TEST(ProjectionTest, MultipleColumnsNoRowsOneBatchWithDelays) {
 
 	// Empty Data

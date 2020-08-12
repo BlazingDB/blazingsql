@@ -1070,6 +1070,9 @@ class BlazingContext(object):
             MEMORY_MONITOR_PERIOD : How often the memory monitor checks memory
                     consumption. The value is in milliseconds.
                     default: 50  (milliseconds)
+            MAX_KERNEL_RUN_THREADS : The number of threads available to run
+                    kernels simultaneously.
+                    default: 16
 
         Examples
         --------
