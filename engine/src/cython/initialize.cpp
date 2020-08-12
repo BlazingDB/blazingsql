@@ -81,6 +81,9 @@ void create_logger(std::string fileName, std::string loggingName, int ralId, std
 	if (flush_level == "critical") {
 		spdlog::flush_on(spdlog::level::critical);
 	}
+	else if (flush_level == "error") {
+		spdlog::flush_on(spdlog::level::err);
+	}
 	else if (flush_level == "info") {
 		spdlog::flush_on(spdlog::level::info);
 	}
@@ -156,6 +159,9 @@ void initialize(int ralId,
 	// type of flush
 	if (flush_level == "critical") {
 		spdlog::flush_on(spdlog::level::critical);
+	}
+	else if (flush_level == "error") {
+		spdlog::flush_on(spdlog::level::err);
 	}
 	else if (flush_level == "info") {
 		spdlog::flush_on(spdlog::level::info);

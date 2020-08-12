@@ -27,6 +27,7 @@
 - #915 Adding max kernel num threads pool
 - #921 Make AWS and GCS optional
 - #925 Replace random_generator with cudf::sample
+- #941 Logging level (flush_on) can be configurable
 
 
 ## Bug Fixes
