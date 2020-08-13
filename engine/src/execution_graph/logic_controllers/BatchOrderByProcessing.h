@@ -304,6 +304,10 @@ private:
 
 };
 
+/**
+ * This kernel has a loop over all its different input caches.
+ * It then pulls all the inputs from one cache and merges them.
+ */
 class MergeStreamKernel : public kernel {
 public:
 	MergeStreamKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
@@ -401,7 +405,9 @@ private:
 
 };
 
-
+/**
+ * @brief This kernel only returns a specified number of rows given by their corresponding logical limit expression.
+ */
 class LimitKernel : public kernel {
 public:
 	LimitKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)

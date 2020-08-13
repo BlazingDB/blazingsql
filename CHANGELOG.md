@@ -27,6 +27,7 @@
 - #915 Adding max kernel num threads pool
 - #921 Make AWS and GCS optional
 - #925 Replace random_generator with cudf::sample
+- #900 Added doxygen comments to some kernels and the batch processing
 - #936 Adding extern C for include files
 - #941 Logging level (flush_on) can be configurable
 
