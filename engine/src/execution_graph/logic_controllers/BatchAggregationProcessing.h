@@ -137,14 +137,13 @@ private:
 class DistributeAggregateKernel : public kernel {
 public:
 	DistributeAggregateKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: kernel{kernel_id, queryString, context, kernel_type::DistributeAggregateKernel} {
+		: kernel{kernel_id, queryString, context, kernel_type::DistributeAggregateKernel},
+		  message_manager{kernel_id, context, ral::communication::CommunicationData::getInstance().getSelfNode().id(),
+		    query_graph->get_output_message_cache()} {
         this->query_graph = query_graph;
-        // message_manager instantiation
-        // this->context, this->get_id(), self_node.id()
-
 	}
 
-    bool can_you_throttle_my_input() {
+	bool can_you_throttle_my_input() {
 		return true;
 	}
 
