@@ -497,7 +497,7 @@ public:
 	/**
 	* Constructor
 	*/
-	WaitingQueue() : finished{false} {}
+	WaitingQueue(int timeout = 60000) : finished{false}, timeout(timeout) {}
 
 	/**
 	* Destructor
@@ -582,7 +582,7 @@ public:
 
 		CodeTimer blazing_timer;
 		std::unique_lock<std::mutex> lock(mutex_);
-		while(!condition_variable_.wait_for(lock, 60000ms, [&, this] {
+		while(!condition_variable_.wait_for(lock, timeout*1ms, [&, this] {
 				bool done_waiting = this->finished.load(std::memory_order_seq_cst) or !this->empty();
 				if (!done_waiting && blazing_timer.elapsed_time() > 59000){
 					auto logger = spdlog::get("batch_logger");
@@ -610,7 +610,7 @@ public:
 	bool wait_for_next() {
 		CodeTimer blazing_timer;
 		std::unique_lock<std::mutex> lock(mutex_);
-		while(!condition_variable_.wait_for(lock, 60000ms, [&, this] {
+		while(!condition_variable_.wait_for(lock, timeout*1ms, [&, this] {
 				bool done_waiting = this->finished.load(std::memory_order_seq_cst) or !this->empty();
 				if (!done_waiting && blazing_timer.elapsed_time() > 59000){
 					auto logger = spdlog::get("batch_logger");
@@ -646,7 +646,7 @@ public:
 	void wait_until_finished() {
 		CodeTimer blazing_timer;
 		std::unique_lock<std::mutex> lock(mutex_);
-		while(!condition_variable_.wait_for(lock, 60000ms, [&blazing_timer, this] {
+		while(!condition_variable_.wait_for(lock, timeout*1ms, [&blazing_timer, this] {
 				bool done_waiting = this->finished.load(std::memory_order_seq_cst);
 				if (!done_waiting && blazing_timer.elapsed_time() > 59000){
 					auto logger = spdlog::get("batch_logger");
@@ -671,7 +671,7 @@ public:
 	void wait_until_num_bytes(size_t num_bytes) {
 		CodeTimer blazing_timer;
 		std::unique_lock<std::mutex> lock(mutex_);
-		while(!condition_variable_.wait_for(lock, 60000ms, [&blazing_timer, num_bytes, this] {
+		while(!condition_variable_.wait_for(lock, timeout*1ms, [&blazing_timer, num_bytes, this] {
 				bool done_waiting = this->finished.load(std::memory_order_seq_cst);
 				if (!done_waiting) {
 					size_t total_bytes = 0;
@@ -722,7 +722,7 @@ public:
 	message_ptr get_or_wait(std::string message_id) {
 		CodeTimer blazing_timer;
 		std::unique_lock<std::mutex> lock(mutex_);
-		while(!condition_variable_.wait_for(lock, 60000ms, [message_id, &blazing_timer, this] {
+		while(!condition_variable_.wait_for(lock, timeout*1ms, [message_id, &blazing_timer, this] {
 				auto result = std::any_of(this->message_queue_.cbegin(),
 							this->message_queue_.cend(), [&](auto &e) {
 								return e->get_message_id() == message_id;
@@ -777,7 +777,7 @@ public:
 	std::vector<message_ptr> get_all_or_wait() {
 		CodeTimer blazing_timer;
 		std::unique_lock<std::mutex> lock(mutex_);
-		while(!condition_variable_.wait_for(lock, 60000ms,  [&blazing_timer, this] {
+		while(!condition_variable_.wait_for(lock, timeout*1ms,  [&blazing_timer, this] {
 				bool done_waiting = this->finished.load(std::memory_order_seq_cst);
 				if (!done_waiting && blazing_timer.elapsed_time() > 59000){
 					auto logger = spdlog::get("batch_logger");
@@ -848,6 +848,8 @@ private:
 	std::condition_variable condition_variable_; /**< Used to notify waiting
 																								functions*/
 	int processed = 0; /**< Count of messages added to the WaitingQueue. */
+
+	int timeout; /**< timeout period in ms used by the wait_for to log that the condition_variable has been waiting for a long time. */
 };
 
 
