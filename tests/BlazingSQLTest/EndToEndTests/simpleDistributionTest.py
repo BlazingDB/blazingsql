@@ -4,7 +4,6 @@ from Configuration import Settings as Settings
 from DataBase import createSchema as cs
 from pynvml import nvmlInit
 from Runner import runTest
-from pyspark.sql import SparkSession
 from Utils import Execution, gpuMemory, init_context, skip_test
 
 queryType = "Simple Distribution From Local"
@@ -1139,6 +1138,8 @@ if __name__ == "__main__":
                              Settings.data["TestSettings"]["dataDirectory"])
 
         # Create Table Spark -------------------------------------------------
+        from pyspark.sql import SparkSession
+
         spark = SparkSession.builder.appName("timestampTest").getOrCreate()
         cs.init_spark_schema(spark,
                              Settings.data["TestSettings"]["dataDirectory"])

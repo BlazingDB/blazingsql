@@ -28,6 +28,7 @@
 - #921 Make AWS and GCS optional
 - #925 Replace random_generator with cudf::sample
 - #900 Added doxygen comments to some kernels and the batch processing
+- #936 Adding extern C for include files
 
 
 ## Bug Fixes
@@ -108,3 +109,4 @@
 - #828 Fix gpuci issues and improve tooling to debug gpuci related issues
 - #867 Fix boost dependencie issues
 - #785 Add script for Manual Testing Artifacts.
+- #932 Import pydrill and pyspark only when its generator or full mode.
