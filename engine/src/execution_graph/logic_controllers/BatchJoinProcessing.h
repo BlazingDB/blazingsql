@@ -540,6 +540,7 @@ public:
 					}
 				}
 
+				//scatter()
 				ral::cache::MetadataDictionary metadata;
 				metadata.add_value(ral::cache::KERNEL_ID_METADATA_LABEL, kernel_id);
 				metadata.add_value(ral::cache::QUERY_ID_METADATA_LABEL, std::to_string(local_context->getContextToken()));
@@ -580,6 +581,7 @@ public:
 			}
 		}
 
+		//send_total_partition_counts()
 		auto nodes = local_context->getAllNodes();
 		for(std::size_t i = 0; i < nodes.size(); ++i) {
 
@@ -839,6 +841,7 @@ public:
 		// });
 
 		distribute_left_thread.join();
+		// get_total_partition_counts()
 		int total_count_left = node_count_left[self_node.id()];
 		for (auto message : messages_to_wait_for_left){
 			auto meta_message = this->query_graph->get_input_message_cache()->pullCacheData(message);
@@ -868,6 +871,7 @@ public:
 		// 	}
 		// });
 		distribute_right_thread.join();
+		// get_total_partition_counts()
 		int total_count_right = node_count_right[self_node.id()];
 		for (auto message : messages_to_wait_for_right){
 			auto meta_message = this->query_graph->get_input_message_cache()->pullCacheData(message);

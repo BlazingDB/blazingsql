@@ -9,6 +9,7 @@
 #include "communication/CommunicationData.h"
 #include "operators/GroupBy.h"
 #include "distribution/primitives.h"
+#include "distribution/MessageManager.h"
 #include <cudf/partitioning.hpp>
 #include "CodeTimer.h"
 
@@ -138,6 +139,9 @@ public:
 	DistributeAggregateKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
 		: kernel{kernel_id, queryString, context, kernel_type::DistributeAggregateKernel} {
         this->query_graph = query_graph;
+        // message_manager instantiation
+        // this->context, this->get_id(), self_node.id()
+
 	}
 
     bool can_you_throttle_my_input() {
@@ -237,6 +241,9 @@ public:
                         // }
                         // ral::distribution::distributeTablePartitions(this->context.get(), partitions_to_send);
 
+                        //assuming 1:1 a table for each node
+                        //message_manager.scatter(partitioned);
+
                         ral::cache::MetadataDictionary metadata;
                         metadata.add_value(ral::cache::KERNEL_ID_METADATA_LABEL, std::to_string(this->get_id()));
                         metadata.add_value(ral::cache::QUERY_ID_METADATA_LABEL, std::to_string(this->context->getContextToken()));
@@ -279,7 +286,7 @@ public:
             auto nodes = context->getAllNodes();
             std::string worker_ids = "";
 
-
+            //replaced by send_total_partition_counts
             for(std::size_t i = 0; i < nodes.size(); ++i) {
                 if(!(nodes[i] == self_node)) {
 
@@ -307,12 +314,14 @@ public:
         //TODO: remove producer thread we don't really need it anymore
         producer_thread.join();
 
+        //int total_count = get_total_partition_counts();
         auto self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
         int total_count = node_count[self_node.id()];
         for (auto message : messages_to_wait_for){
             auto meta_message = this->query_graph->get_input_message_cache()->pullCacheData(message);
             total_count += std::stoi(static_cast<ral::cache::GPUCacheDataMetaData *>(meta_message.get())->getMetadata().get_values()[ral::cache::PARTITION_COUNT]);
 	    }
+        //
         this->output_cache()->wait_for_count(total_count);
 
         logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
@@ -327,7 +336,7 @@ public:
 	}
 
 private:
-
+    ral::distribution::MessageManager message_manager;
 };
 
 

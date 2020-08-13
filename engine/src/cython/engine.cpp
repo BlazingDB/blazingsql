@@ -276,7 +276,7 @@ TableScanInfo getTableScanInfo(std::string logicalPlan){
 	return TableScanInfo{relational_algebra_steps, table_names, table_columns};
 }
 
-std::pair<std::unique_ptr<PartitionedResultSet>, error_code_t> runQuery_C(int32_t masterIndex,
+std::pair<std::shared_ptr<ral::cache::graph>, error_code_t> runGenerateGraph_C(int32_t masterIndex,
 	std::vector<NodeMetaDataTCP> tcpMetadata,
 	std::vector<std::string> tableNames,
 	std::vector<std::string> tableScans,
@@ -291,10 +291,10 @@ std::pair<std::unique_ptr<PartitionedResultSet>, error_code_t> runQuery_C(int32_
 	std::vector<std::vector<std::map<std::string, std::string>>> uri_values,
 	std::map<std::string, std::string> config_options) {
 
-	std::unique_ptr<PartitionedResultSet> result = nullptr;
+	std::shared_ptr<ral::cache::graph> result = nullptr;
 
 	try {
-		result = std::move(runQuery(masterIndex,
+		result = runGenerateGraph(masterIndex,
 			tcpMetadata,
 			tableNames,
 			tableScans,
@@ -307,10 +307,10 @@ std::pair<std::unique_ptr<PartitionedResultSet>, error_code_t> runQuery_C(int32_
 			query,
 			accessToken,
 			uri_values,
-			config_options));
-		return std::make_pair(std::move(result), E_SUCCESS);
+			config_options);
+		return std::make_pair(result, E_SUCCESS);
 	} catch (std::exception& e) {
-		return std::make_pair(std::move(result), E_EXCEPTION);
+		return std::make_pair(result, E_EXCEPTION);
 	}
 }
 

@@ -302,6 +302,7 @@ void blazingSetAllocator(
 }
 
 error_code_t initialize_C(int ralId,
+	std::string worker_id,
 	int gpuId,
 	std::string network_iface_name,
 	std::string ralHost,
@@ -311,6 +312,7 @@ error_code_t initialize_C(int ralId,
 
 	try {
 		initialize(ralId,
+			worker_id,
 			gpuId,
 			network_iface_name,
 			ralHost,

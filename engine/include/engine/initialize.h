@@ -25,6 +25,7 @@ void blazingSetAllocator(
 extern "C" {
 
 error_code_t initialize_C(int ralId,
+	std::string worker_id,
 	int gpuId,
 	std::string network_iface_name,
 	std::string ralHost,

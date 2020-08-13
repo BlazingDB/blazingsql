@@ -57,7 +57,7 @@ std::unique_ptr<ResultSet> performPartition(
 	std::vector<std::string> column_names);
 
 extern "C" {
-std::pair<std::unique_ptr<PartitionedResultSet>, error_code_t> runQuery_C(int32_t masterIndex,
+std::pair<std::shared_ptr<ral::cache::graph>, error_code_t> runGenerateGraph_C(int32_t masterIndex,
 	std::vector<NodeMetaDataTCP> tcpMetadata,
 	std::vector<std::string> tableNames,
 	std::vector<std::string> tableScans,
