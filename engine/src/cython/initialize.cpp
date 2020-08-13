@@ -62,7 +62,7 @@ std::string get_ip(const std::string & iface_name = "eth0") {
 }
 
 // simple_log: true (no timestamp or log level)
-void create_logger(std::string fileName, std::string loggingName, int ralId, bool simple_log=true){
+void create_logger(std::string fileName, std::string loggingName, int ralId, std::string flush_level, bool simple_log=true){
 	auto stdout_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
 	stdout_sink->set_pattern("[%T.%e] [%^%l%$] %v");
 	stdout_sink->set_level(spdlog::level::err);
@@ -79,7 +79,26 @@ void create_logger(std::string fileName, std::string loggingName, int ralId, boo
 	logger->set_level(spdlog::level::trace);
 	spdlog::register_logger(logger);
 
-	spdlog::flush_on(spdlog::level::warn);
+	// type of flush
+	if (flush_level == "critical") {
+		spdlog::flush_on(spdlog::level::critical);
+	}
+	else if (flush_level == "error") {
+		spdlog::flush_on(spdlog::level::err);
+	}
+	else if (flush_level == "info") {
+		spdlog::flush_on(spdlog::level::info);
+	}
+	else if (flush_level == "debug") {
+		spdlog::flush_on(spdlog::level::debug);
+	}
+	else if (flush_level == "trace") {
+		spdlog::flush_on(spdlog::level::trace);		
+	}
+	else {
+		spdlog::flush_on(spdlog::level::warn);
+	}
+
 	spdlog::flush_every(std::chrono::seconds(1));
 }
 
@@ -136,7 +155,32 @@ void initialize(int ralId,
 
 	spdlog::init_thread_pool(8192, 1);
 
-	spdlog::flush_on(spdlog::level::warn);
+	std::string flush_level = "warn";
+	auto log_it = config_options.find("LOGGING_LEVEL");
+	if (log_it != config_options.end()){
+		flush_level = config_options["LOGGING_LEVEL"];
+	}
+
+	// type of flush
+	if (flush_level == "critical") {
+		spdlog::flush_on(spdlog::level::critical);
+	}
+	else if (flush_level == "error") {
+		spdlog::flush_on(spdlog::level::err);
+	}
+	else if (flush_level == "info") {
+		spdlog::flush_on(spdlog::level::info);
+	}
+	else if (flush_level == "debug") {
+		spdlog::flush_on(spdlog::level::debug);
+	}
+	else if (flush_level == "trace") {
+		spdlog::flush_on(spdlog::level::trace);		
+	}
+	else {
+		spdlog::flush_on(spdlog::level::warn);
+	}
+
 	spdlog::flush_every(std::chrono::seconds(1));
 
 	std::string logging_dir = "blazing_log";
@@ -155,27 +199,27 @@ void initialize(int ralId,
 
 
 	std::string batchLoggerFileName = logging_dir + "/RAL." + std::to_string(ralId) + ".log";
-	create_logger(batchLoggerFileName, "batch_logger", ralId, false);
+	create_logger(batchLoggerFileName, "batch_logger", ralId, flush_level, false);
 
 	std::string queriesFileName = logging_dir + "/bsql_queries." + std::to_string(ralId) + ".log";
 	bool existsQueriesFileName = std::ifstream(queriesFileName).good();
-	create_logger(queriesFileName, "queries_logger", ralId);
+	create_logger(queriesFileName, "queries_logger", ralId, flush_level);
 
 	std::string kernelsFileName = logging_dir + "/bsql_kernels." + std::to_string(ralId) + ".log";
 	bool existsKernelsFileName = std::ifstream(kernelsFileName).good();
-	create_logger(kernelsFileName, "kernels_logger", ralId);
+	create_logger(kernelsFileName, "kernels_logger", ralId, flush_level);
 
 	std::string kernelsEdgesFileName = logging_dir + "/bsql_kernels_edges." + std::to_string(ralId) + ".log";
 	bool existsKernelsEdgesFileName = std::ifstream(kernelsEdgesFileName).good();
-	create_logger(kernelsEdgesFileName, "kernels_edges_logger", ralId);
+	create_logger(kernelsEdgesFileName, "kernels_edges_logger", ralId, flush_level);
 
 	std::string kernelEventsFileName = logging_dir + "/bsql_kernel_events." + std::to_string(ralId) + ".log";
 	bool existsKernelEventsFileName = std::ifstream(kernelEventsFileName).good();
-	create_logger(kernelEventsFileName, "events_logger", ralId);
+	create_logger(kernelEventsFileName, "events_logger", ralId, flush_level);
 
 	std::string cacheEventsFileName = logging_dir + "/bsql_cache_events." + std::to_string(ralId) + ".log";
 	bool existsCacheEventsFileName = std::ifstream(cacheEventsFileName).good();
-	create_logger(cacheEventsFileName, "cache_events_logger", ralId);
+	create_logger(cacheEventsFileName, "cache_events_logger", ralId, flush_level);
 
 	//Logger Headers
 	if(!existsQueriesFileName) {

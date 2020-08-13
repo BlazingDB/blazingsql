@@ -28,6 +28,7 @@
 - #921 Make AWS and GCS optional
 - #925 Replace random_generator with cudf::sample
 - #936 Adding extern C for include files
+- #941 Logging level (flush_on) can be configurable
 
 
 ## Bug Fixes
