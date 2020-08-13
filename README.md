@@ -144,20 +144,6 @@ NOTE: You can do `./build.sh -h` to see more build options.
 
 $CONDA_PREFIX now has a folder for the blazingsql repository.
 
-#### Storage plugins
-To build without the storage plugins (AWS S3, Google Cloud Storage) use the next arguments:
-```bash
-# Disable all storage plugins
-./build.sh disable-aws-s3 disable-google-gs
-
-# Disable AWS S3 storage plugin
-./build.sh disable-aws-s3
-
-# Disable Google Cloud Storage plugin
-./build.sh disable-google-gs
-```
-NOTE: By disabling the storage plugins you don't need to install previously AWS SDK C++ or Google Cloud Storage (neither any of its dependencies).
-
 ## Nightly Version
 
 ### Install build dependencies
@@ -192,6 +178,20 @@ export CUDACXX=/usr/local/cuda/bin/nvcc
 NOTE: You can do `./build.sh -h` to see more build options.
 
 $CONDA_PREFIX now has a folder for the blazingsql repository.
+
+#### Storage plugins
+To build without the storage plugins (AWS S3, Google Cloud Storage) use the next arguments:
+```bash
+# Disable all storage plugins
+./build.sh disable-aws-s3 disable-google-gs
+
+# Disable AWS S3 storage plugin
+./build.sh disable-aws-s3
+
+# Disable Google Cloud Storage plugin
+./build.sh disable-google-gs
+```
+NOTE: By disabling the storage plugins you don't need to install previously AWS SDK C++ or Google Cloud Storage (neither any of its dependencies).
 
 # Documentation
 User guides and public APIs documentation can be found at [here](https://docs.blazingdb.com/docs)
