@@ -1,7 +1,6 @@
 # from blazingsql import DataType
 from Configuration import Settings as Settings
 from DataBase import createSchema as cs
-from pydrill.client import PyDrill
 from Runner import runTest
 from Utils import Execution, init_context
 
@@ -9,6 +8,8 @@ from Utils import Execution, init_context
 def main(dask_client, bc):
 
     # Create Table Drill ------------------------------------------------
+
+    from pydrill.client import PyDrill
 
     drill = PyDrill(host="localhost", port=8047)
 

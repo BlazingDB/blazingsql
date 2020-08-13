@@ -17,6 +17,7 @@
 #include "communication/CommunicationData.h"
 #include <spdlog/spdlog.h>
 #include "CodeTimer.h"
+#include "error.hpp"
 
 using namespace fmt::literals;
 
@@ -281,4 +282,92 @@ TableScanInfo getTableScanInfo(std::string logicalPlan){
 	std::vector<std::vector<int>> table_columns;
 	getTableScanInfo(logicalPlan, relational_algebra_steps, table_names, table_columns);
 	return TableScanInfo{relational_algebra_steps, table_names, table_columns};
+}
+
+std::pair<std::unique_ptr<PartitionedResultSet>, error_code_t> runQuery_C(int32_t masterIndex,
+	std::vector<NodeMetaDataTCP> tcpMetadata,
+	std::vector<std::string> tableNames,
+	std::vector<std::string> tableScans,
+	std::vector<TableSchema> tableSchemas,
+	std::vector<std::vector<std::string>> tableSchemaCppArgKeys,
+	std::vector<std::vector<std::string>> tableSchemaCppArgValues,
+	std::vector<std::vector<std::string>> filesAll,
+	std::vector<int> fileTypes,
+	int32_t ctxToken,
+	std::string query,
+	uint64_t accessToken,
+	std::vector<std::vector<std::map<std::string, std::string>>> uri_values,
+	std::map<std::string, std::string> config_options) {
+
+	std::unique_ptr<PartitionedResultSet> result = nullptr;
+
+	try {
+		result = std::move(runQuery(masterIndex,
+			tcpMetadata,
+			tableNames,
+			tableScans,
+			tableSchemas,
+			tableSchemaCppArgKeys,
+			tableSchemaCppArgValues,
+			filesAll,
+			fileTypes,
+			ctxToken,
+			query,
+			accessToken,
+			uri_values,
+			config_options));
+		return std::make_pair(std::move(result), E_SUCCESS);
+	} catch (std::exception& e) {
+		return std::make_pair(std::move(result), E_EXCEPTION);
+	}
+}
+
+std::pair<TableScanInfo, error_code_t> getTableScanInfo_C(std::string logicalPlan) {
+
+	TableScanInfo result;
+
+	try {
+		result = getTableScanInfo(logicalPlan);
+		return std::make_pair(result, E_SUCCESS);
+	} catch (std::exception& e) {
+		return std::make_pair(result, E_EXCEPTION);
+	}
+}
+
+std::pair<std::unique_ptr<ResultSet>, error_code_t> runSkipData_C(
+	ral::frame::BlazingTableView metadata,
+	std::vector<std::string> all_column_names,
+	std::string query) {
+
+	std::unique_ptr<ResultSet> result = nullptr;
+
+	try {
+		result = std::move(runSkipData(metadata,
+					all_column_names,
+					query));
+		return std::make_pair(std::move(result), E_SUCCESS);
+	} catch (std::exception& e) {
+		return std::make_pair(std::move(result), E_EXCEPTION);
+	}
+}
+
+std::pair<std::unique_ptr<ResultSet>, error_code_t> performPartition_C(
+	int32_t masterIndex,
+	std::vector<NodeMetaDataTCP> tcpMetadata,
+	int32_t ctxToken,
+	const ral::frame::BlazingTableView & table,
+	std::vector<std::string> column_names) {
+
+	std::unique_ptr<ResultSet> result = nullptr;
+
+	try {
+		result = std::move(performPartition(masterIndex,
+					tcpMetadata,
+					ctxToken,
+					table,
+					column_names));
+		return std::make_pair(std::move(result), E_SUCCESS);
+	} catch (std::exception& e) {
+		return std::make_pair(std::move(result), E_EXCEPTION);
+	}
 }

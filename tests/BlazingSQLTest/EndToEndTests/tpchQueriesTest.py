@@ -1,4 +1,3 @@
-from pydrill.client import PyDrill
 from DataBase import createSchema as cs
 from Configuration import Settings as Settings
 from Runner import runTest
@@ -7,7 +6,6 @@ from Utils import gpuMemory, skip_test, init_context
 from pynvml import nvmlInit
 from blazingsql import DataType
 from Configuration import ExecutionMode
-from pyspark.sql import SparkSession
 
 
 def main(dask_client, drill, spark, dir_data_file, bc, nRals):
@@ -335,18 +333,33 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                     and l_discount between 0.06 - 0.01 and 0.06 + 0.01
                     and l_quantity < 24
             """
-            runTest.run_query(
-                bc,
-                spark,
-                query,
-                queryId,
-                queryType,
-                worder,
-                "",
-                acceptable_difference,
-                use_percentage,
-                fileSchemaType,
-            )
+            
+            if fileSchemaType == DataType.ORC:
+                runTest.run_query(
+                    bc,
+                    spark,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
+            else:
+                runTest.run_query(
+                    bc,
+                    drill,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
 
             queryId = "TEST_07"
 
@@ -545,7 +558,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                     worder,
                     "",
                     acceptable_difference,
-                    use_percentage,
+                    True,
                     fileSchemaType,
                 )
             else:
@@ -558,7 +571,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                     worder,
                     "",
                     acceptable_difference,
-                    use_percentage,
+                    True,
                     fileSchemaType,
                 )
 
@@ -1312,6 +1325,7 @@ if __name__ == "__main__":
     ) or Settings.execution_mode == ExecutionMode.GENERATOR:
         # Create Table Drill -----------------------------------------
         print("starting drill")
+        from pydrill.client import PyDrill
 
         drill = PyDrill(host="localhost", port=8047)
         cs.init_drill_schema(
@@ -1320,6 +1334,8 @@ if __name__ == "__main__":
         )
 
         # Create Table Spark -------------------------------------------------
+        from pyspark.sql import SparkSession
+
         spark = SparkSession.builder.appName("timestampTest").getOrCreate()
         cs.init_spark_schema(
                             spark,
