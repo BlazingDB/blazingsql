@@ -409,12 +409,12 @@ def print_query_results(
         total_time,
     )
 
-def print_query_results2(sql, queryId, input_type, queryType, error_message):
+def print_query_results2(sql, queryId, input_type, queryType, error_message, message_validation):
     print(queryId)
     print("#QUERY:")
     print(sql)
     print("RESULT:")
-    result = validate_messages(error_message)
+    result = validate_messages(error_message, message_validation)
     print(result)
     print("ERROR:")
     if result=="Fail":
@@ -994,20 +994,11 @@ def saveLogInFile(df):
     filepath = getFileName(dir_log)
     df.to_excel(filepath, index=False)
 
-def validate_messages(error_message):
-    list_messages = ["^Column [a-zA-Z_'\d]* not found in any table$",
-                     "^Object [a-zA-Z_'\d]* not found$",
-                     "^No match found for function signature [a-zA-Z()<>]*$",
-                     "^SqlSyntaxException"
-                    ]
-    import re
-    for message in list_messages:
-        x = re.search(message, error_message)
-        if x:
-            result = "Success"
-            break
-        else:
-            result = "Fail"
+def validate_messages(error_message, message_validation):
+    if list(set(error_message).intersection(message_validation)): 
+        result = "Success"
+    else:
+        result = "Fail"
 
     return result
 
@@ -1342,7 +1333,7 @@ def run_query(
     if print_result is None:
         print_result = False
 
-    message_validation = kwargs.get("message_validation")
+    message_validation = kwargs.get("message_validation", "")
     if message_validation is None:
         message_validation = False    
 
@@ -1429,13 +1420,14 @@ def run_query(
     file_results_dir = str(result_dir)
 
 
-    if message_validation:
+    if not message_validation== "":
         print_query_results2(
                         query,
                         queryId,
                         input_type,
                         queryType,
-                        error_message 
+                        error_message,
+                        message_validation
                 )   
     elif not isinstance(engine, str):
         if isinstance(engine, PyDrill):

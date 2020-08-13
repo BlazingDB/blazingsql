@@ -55,7 +55,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                message_validation=True,
+                message_validation="Column 'c_custkeynew' not found in any table",
             )
 
             queryId = "TEST_02"
@@ -73,7 +73,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                message_validation=True,
+                message_validation="Object 'customer1' not found",
             )
 
             queryId = "TEST_03"
@@ -90,7 +90,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                message_validation=True,
+                message_validation="No match found for function signature maxi(<NUMERIC>)",
             )
 
             queryId = "TEST_04"
@@ -107,7 +107,25 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                message_validation=True,
+                message_validation="""SqlSyntaxException
+
+                select max(c_custkey) c_nationkey as nkey 
+                                                ^^
+                                    from customer where c_custkey < 0
+
+                Encountered "as" at line 1, column 35.
+                Was expecting one of:
+                    <EOF> 
+                    "EXCEPT" ...
+                    "FETCH" ...
+                    "FROM" ...
+                    "INTERSECT" ...
+                    "LIMIT" ...
+                    "OFFSET" ...
+                    "ORDER" ...
+                    "MINUS" ...
+                    "UNION" ...
+                    "," ...""",
             )
 
             if Settings.execution_mode == ExecutionMode.GENERATOR:
