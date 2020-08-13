@@ -46,8 +46,6 @@ public:
 
 	virtual kstatus run() = 0;
 
-	kernel_pair operator[](const std::string & portname) { return std::make_pair(this, portname); }
-
 	std::int32_t get_id() const { return (kernel_id); }
 
 	kernel_type get_type_id() const { return kernel_type_id; }

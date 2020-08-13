@@ -31,7 +31,7 @@
 #include "execution_graph/logic_controllers/BlazingColumnView.h"
 #include <bmr/BlazingMemoryResource.h>
 #include "communication/CommunicationData.h"
-
+#include <exception>
 
 
 using namespace std::chrono_literals;
@@ -196,6 +196,7 @@ public:
 	* Gets the map storing the metadata.
 	* @return the map storing all of the metadata.
 	*/
+
 	std::map<std::string,std::string> get_values(){
 		return this->values;
 	}
@@ -206,7 +207,6 @@ public:
 	*/
 	void set_values(std::map<std::string,std::string> new_values){
 		this->values= new_values;
-		print();
 	}
 private:
 	std::map<std::string,std::string> values; /**< Stores the mapping of metdata label to metadata value */
@@ -563,7 +563,7 @@ public:
 
 		std::unique_lock<std::mutex> lock(mutex_);
 		condition_variable_.wait(lock, [&, this] () {
-			if (count > this->processed){
+			if (count < this->processed){
 				throw std::runtime_error("WaitingQueue::wait_for_count encountered " + std::to_string(this->processed) + " when expecting " + std::to_string(count));
 			}
 			return count == this->processed;
@@ -714,7 +714,7 @@ public:
 	message_ptr get_or_wait(std::string message_id) {
 		CodeTimer blazing_timer;
 		std::unique_lock<std::mutex> lock(mutex_);
-		while(!condition_variable_.wait_for(lock, 60000ms, [message_id, &blazing_timer, this] {
+		condition_variable_.wait(lock, [message_id, &blazing_timer, this] {
 				auto result = std::any_of(this->message_queue_.cbegin(),
 							this->message_queue_.cend(), [&](auto &e) {
 								return e->get_message_id() == message_id;
@@ -728,7 +728,7 @@ public:
 										"message_id"_a=message_id);
 				}
 				return done_waiting;
-			})){}
+			});
 		if(this->message_queue_.size() == 0) {
 			return nullptr;
 		}

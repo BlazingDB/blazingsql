@@ -61,6 +61,14 @@ Node Context::getNode(int node_index) const{
   return taskNodes_[node_index];
 }
 
+Node Context::getNode(const std::string & id) const {
+  auto it = std::find_if(taskNodes_.begin(), taskNodes_.end(), [id](auto& n) { return n.id() == id; });
+  if(it == taskNodes_.end()){
+    throw std::runtime_error("Invalid node id");
+  }
+  return *it;
+}
+
 const Node &Context::getMasterNode() const { return masterNode_; }
 
 std::string Context::getLogicalPlan() const { return logicalPlan_; }
@@ -68,7 +76,7 @@ std::string Context::getLogicalPlan() const { return logicalPlan_; }
 uint32_t Context::getContextToken() const { return token_; }
 
 std::string Context::getContextCommunicationToken() const {
-  return std::to_string(kernel_id_) + "_"  + std::to_string(query_substep) ;   
+  return std::to_string(kernel_id_) + "_"  + std::to_string(query_substep) ;
 }
 
 void Context::incrementQueryStep() {
@@ -78,9 +86,9 @@ void Context::incrementQueryStep() {
   query_substep++;
 }
 
-void Context::incrementQuerySubstep() { 
+void Context::incrementQuerySubstep() {
   std::unique_lock<std::mutex> lock(increment_step_mutex);
-  query_substep++; 
+  query_substep++;
 }
 
 int Context::getNodeIndex(const Node &node) const {

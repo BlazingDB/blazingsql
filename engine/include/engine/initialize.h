@@ -2,8 +2,12 @@
 #include <vector>
 #include <map>
 #include "../../src/error.hpp"
+#include <memory>
 
-void initialize(int ralId,
+#include "execution_graph/logic_controllers/CacheMachine.h"
+
+std::pair<std::shared_ptr<ral::cache::CacheMachine>,std::shared_ptr<ral::cache::CacheMachine> > initialize(int ralId,
+	std::string worker_id,
 	int gpuId,
 	std::string network_iface_name,
 	std::string ralHost,

@@ -1,4 +1,4 @@
-#pragma once 
+#pragma once
 
 #include <blazingdb/transport/Node.h>
 #include <memory>
@@ -11,17 +11,11 @@ class CommunicationData {
 public:
 	static CommunicationData & getInstance();
 
-	void initialize(int unixSocketId,
-		const std::string & orchIp,
-		int16_t orchCommunicationPort,
+	void initialize(const std::string & worker_id,
 		const std::string & selfRalIp,
-		int16_t selfRalCommunicationPort,
-		int16_t selfRalProtocolPort);
+		int16_t selfRalCommunicationPort);
 
 	const blazingdb::transport::Node & getSelfNode();
-
-	std::string getOrchestratorIp();
-	int16_t getOrchestratorPort();
 
 	CommunicationData(CommunicationData &&) = delete;
 	CommunicationData(const CommunicationData &) = delete;
@@ -31,8 +25,6 @@ public:
 private:
 	CommunicationData();
 
-	std::string orchestratorIp;
-	int16_t orchestratorPort;
 	blazingdb::transport::Node selfNode;
 };
 

@@ -152,7 +152,7 @@ conda create -n bsql python=$PYTHON_VERSION
 conda activate bsql
 
 conda install --yes -c conda-forge google-cloud-cpp ninja
-conda install --yes -c rapidsai-nightly -c nvidia -c conda-forge -c defaults dask-cuda=0.15 dask-cudf=0.15 cudf=0.15 python=3.7 cudatoolkit=$CUDA_VERSION
+conda install --yes -c rapidsai-nightly -c nvidia -c conda-forge -c defaults dask-cuda=0.15 dask-cudf=0.15 ucx-py=0.15 ucx-proc=*=gpu cudf=0.15 python=3.7 cudatoolkit=$CUDA_VERSION
 conda install --yes -c conda-forge cmake gtest gmock cppzmq cython=0.29 openjdk=8.0 maven thrift=0.13.0 jpype1 netifaces pyhive
 ```
 Where $CUDA_VERSION is 10.1 or 10.2 and $PYTHON_VERSION is 3.7 or 3.8
@@ -161,7 +161,9 @@ Where $CUDA_VERSION is 10.1 or 10.2 and $PYTHON_VERSION is 3.7 or 3.8
 conda create -n bsql python=3.7
 conda activate bsql
 conda install --yes -c conda-forge google-cloud-cpp ninja
-conda install --yes -c rapidsai-nightly -c nvidia -c conda-forge -c defaults dask-cuda=0.15 dask-cudf=0.15 cudf=0.15 python=3.7 cudatoolkit=10.1
+
+conda install --yes -c rapidsai-nightly -c nvidia -c conda-forge -c defaults dask-cuda=0.15 dask-cudf=0.15 ucx-py=0.15 ucx-proc=*=gpu cudf=0.15 python=3.7 cudatoolkit=10.0
+
 conda install --yes -c conda-forge cmake gtest gmock cppzmq cython=0.29 openjdk=8.0 maven thrift=0.13.0 jpype1 netifaces pyhive
 ```
 

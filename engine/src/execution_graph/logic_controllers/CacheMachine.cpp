@@ -1,7 +1,8 @@
 #include "CacheMachine.h"
 #include <sys/stat.h>
 #include <random>
-#include <src/utilities/CommonOperations.h>
+#include <utilities/CommonOperations.h>
+#include <utilities/DebuggingUtils.h>
 #include "communication/CommunicationData.h"
 #include <stdio.h>
 
@@ -187,6 +188,7 @@ void CacheMachine::put(size_t message_id, std::unique_ptr<ral::frame::BlazingTab
 }
 
 void CacheMachine::clear() {
+
 	std::unique_ptr<message> message_data;
 	while(message_data = waitingCache->pop_or_wait()) {
 		printf("...cleaning cache\n");
@@ -205,54 +207,54 @@ void CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_dat
 		num_rows_added += cache_data->num_rows();
 		num_bytes_added += cache_data->sizeInBytes();
 		int cacheIndex = 0;
-		while(cacheIndex < this->memory_resources.size()) {
-			auto memory_to_use = (this->memory_resources[cacheIndex]->get_memory_used() + cache_data->sizeInBytes());
-			if( memory_to_use < this->memory_resources[cacheIndex]->get_memory_limit()) {
-				if(cacheIndex == 0) {
-					logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
-						"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
-						"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
-						"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-						"info"_a="Add to CacheMachine general CacheData object into GPU cache ",
-						"duration"_a="",
-						"kernel_id"_a=message_id,
-						"rows"_a=cache_data->num_rows());
+		ral::cache::CacheDataType type = cache_data->get_type();
+		if (type == ral::cache::CacheDataType::GPU || type == ral::cache::CacheDataType::GPU_METADATA){
+			cacheIndex = 0;
+		} else if (type == ral::cache::CacheDataType::GPU){
+			cacheIndex = 1;
+		} else {
+			cacheIndex = 2;
+		}
 
-					auto item = std::make_unique<message>(std::move(cache_data), message_id);
-					this->waitingCache->put(std::move(item));
-				} else {
-					if(cacheIndex == 1) {
-						logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
-							"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
-							"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
-							"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-							"info"_a="Add to CacheMachine general CacheData object into CPU cache ",
-							"duration"_a="",
-							"kernel_id"_a=message_id,
-							"rows"_a=cache_data->num_rows());
+		if(cacheIndex == 0) {
+			logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+				"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+				"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+				"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+				"info"_a="Add to CacheMachine general CacheData object into GPU cache ",
+				"duration"_a="",
+				"kernel_id"_a=message_id,
+				"rows"_a=cache_data->num_rows());
 
-						auto item = std::make_unique<message>(std::move(cache_data), message_id);
-						this->waitingCache->put(std::move(item));
-					} else if(cacheIndex == 2) {
-						logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
-							"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
-							"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
-							"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-							"info"_a="Add to CacheMachine general CacheData object into Disk cache ",
-							"duration"_a="",
-							"kernel_id"_a=message_id,
-							"rows"_a=cache_data->num_rows());
+			auto item = std::make_unique<message>(std::move(cache_data), message_id);
+			this->waitingCache->put(std::move(item));
+		} else if(cacheIndex == 1) {
+				logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+					"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+					"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+					"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+					"info"_a="Add to CacheMachine general CacheData object into CPU cache ",
+					"duration"_a="",
+					"kernel_id"_a=message_id,
+					"rows"_a=cache_data->num_rows());
 
-						// BlazingMutableThread t([cache_data = std::move(cache_data), this, cacheIndex, message_id]() mutable {
-						auto item = std::make_unique<message>(std::move(cache_data), message_id);
-						this->waitingCache->put(std::move(item));
-						// NOTE: Wait don't kill the main process until the last thread is finished!
-						// }); t.detach();
-					}
-				}
-				break;
-			}
-			cacheIndex++;
+				auto item = std::make_unique<message>(std::move(cache_data), message_id);
+				this->waitingCache->put(std::move(item));
+		} else if(cacheIndex == 2) {
+				logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+					"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+					"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+					"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+					"info"_a="Add to CacheMachine general CacheData object into Disk cache ",
+					"duration"_a="",
+					"kernel_id"_a=message_id,
+					"rows"_a=cache_data->num_rows());
+
+				// BlazingMutableThread t([cache_data = std::move(cache_data), this, cacheIndex, message_id]() mutable {
+				auto item = std::make_unique<message>(std::move(cache_data), message_id);
+				this->waitingCache->put(std::move(item));
+				// NOTE: Wait don't kill the main process until the last thread is finished!
+				// }); t.detach();
 		}
 		this->something_added = true;
 	}
@@ -266,6 +268,7 @@ void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, c
 				table->ensureOwnership();
 				break;
 			}
+
 		}
 		std::unique_lock<std::mutex> lock(flow_control_mutex);
 		flow_control_bytes_count += table->sizeInBytes();
@@ -293,6 +296,7 @@ void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, c
 					auto cache_data = std::make_unique<GPUCacheData>(std::move(table));
 					auto item =	std::make_unique<message>(std::move(cache_data), message_id);
 					this->waitingCache->put(std::move(item));
+
 				} else {
 					if(cacheIndex == 1) {
 						logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
@@ -401,7 +405,6 @@ std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData(std::string m
 	flow_control_condition_variable.notify_all();
 	return std::move(output);
 }
-
 
 std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullUnorderedFromCache() {
 

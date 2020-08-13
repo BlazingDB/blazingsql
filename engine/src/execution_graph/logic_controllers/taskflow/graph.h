@@ -2,6 +2,7 @@
 
 #include "kernel.h"
 #include "kpair.h"
+#include "execution_graph/logic_controllers/CacheMachine.h"
 #include "utilities/ctpl_stl.h"
 
 namespace ral {
@@ -55,7 +56,7 @@ public:
 	graph(const graph &) = default;
 	graph & operator=(const graph &) = default;
 
-	kpair operator+=(kpair p);
+	void addPair(kpair p);
 
 	void check_and_complete_work_flow();
 
@@ -69,19 +70,24 @@ public:
 
 	std::pair<bool, uint64_t> get_estimated_input_rows_to_cache(int32_t id, const std::string & port_name);
 
-	kernel & get_last_kernel();
+	std::shared_ptr<kernel> get_last_kernel();
 
 	size_t num_nodes() const;
 
-	size_t add_node(kernel * k);
+	size_t add_node(std::shared_ptr<kernel> k);
 
-	void add_edge(kernel * source,
-		kernel * target,
+	void add_edge(std::shared_ptr<kernel> source,
+		std::shared_ptr<kernel> target,
 		std::string source_port,
 		std::string target_port,
 		const cache_settings & config);
 
 	kernel * get_node(size_t id);
+	std::shared_ptr<ral::cache::CacheMachine>  get_kernel_output_cache(size_t kernel_id, std::string cache_id = "");
+
+	void set_input_and_output_caches(std::shared_ptr<ral::cache::CacheMachine> input_cache, std::shared_ptr<ral::cache::CacheMachine> output_cache);
+	ral::cache::CacheMachine* get_input_message_cache();
+	ral::cache::CacheMachine* get_output_message_cache();
 
 	std::set<Edge> get_neighbours(kernel * from);
 	std::set<Edge> get_neighbours(int32_t id);
@@ -93,9 +99,12 @@ public:
 private:
 	const std::int32_t head_id_{-1};
 	std::vector<kernel *> kernels_;
-	std::map<std::int32_t, kernel *> container_;
+	std::map<std::int32_t, std::shared_ptr<kernel>> container_;
 	std::map<std::int32_t, std::set<Edge>> edges_;
 	std::map<std::int32_t, std::set<Edge>> reverse_edges_;
+
+	std::shared_ptr<ral::cache::CacheMachine> input_cache_;
+	std::shared_ptr<ral::cache::CacheMachine> output_cache_;
 
 	std::shared_ptr<spdlog::logger> kernels_edges_logger;
 	std::shared_ptr<Context> context;
