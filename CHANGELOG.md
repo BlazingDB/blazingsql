@@ -27,6 +27,8 @@
 - #915 Adding max kernel num threads pool
 - #921 Make AWS and GCS optional
 - #925 Replace random_generator with cudf::sample
+- #936 Adding extern C for include files
+- #941 Logging level (flush_on) can be configurable
 
 
 ## Bug Fixes
@@ -60,6 +62,7 @@
 - #916 Fix e2e string comparison
 - #927 Fixed random segfault issue in parser
 - #929 Update the GPUManager functions
+- #942 Fix column names on sample function
 
 
 # BlazingSQL 0.14.0 (June 9, 2020)
@@ -108,4 +111,4 @@
 - #867 Fix boost dependencie issues
 - #785 Add script for Manual Testing Artifacts.
 - #931 Add script for error messages validation.
-
+- #932 Import pydrill and pyspark only when its generator or full mode.
