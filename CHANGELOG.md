@@ -62,6 +62,7 @@
 - #916 Fix e2e string comparison
 - #927 Fixed random segfault issue in parser
 - #929 Update the GPUManager functions
+- #942 Fix column names on sample function
 
 
 # BlazingSQL 0.14.0 (June 9, 2020)
