@@ -155,9 +155,12 @@ void initialize(int ralId,
 
 	spdlog::init_thread_pool(8192, 1);
 
-	assert( config_options.find("LOGGING_LEVEL") != config_options.end() );
-	std::string flush_level = config_options["LOGGING_LEVEL"];
-	
+	std::string flush_level = "warn";
+	auto log_it = config_options.find("LOGGING_LEVEL");
+	if (log_it != config_options.end()){
+		flush_level = config_options["LOGGING_LEVEL"];
+	}
+
 	// type of flush
 	if (flush_level == "critical") {
 		spdlog::flush_on(spdlog::level::critical);
