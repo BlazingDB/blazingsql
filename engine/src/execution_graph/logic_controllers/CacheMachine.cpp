@@ -553,8 +553,14 @@ size_t CacheMachine::downgradeCacheData() {
 ConcatenatingCacheMachine::ConcatenatingCacheMachine(std::shared_ptr<Context> context)
 	: CacheMachine(context) {}
 
-ConcatenatingCacheMachine::ConcatenatingCacheMachine(std::shared_ptr<Context> context, std::size_t flow_control_bytes_threshold, bool concat_all)
-	: CacheMachine(context, flow_control_bytes_threshold), concat_all(concat_all) {}
+ConcatenatingCacheMachine::ConcatenatingCacheMachine(std::shared_ptr<Context> context, std::size_t flow_control_bytes_threshold, 
+			std::size_t concat_cache_num_bytes, bool concat_all)
+	: CacheMachine(context, flow_control_bytes_threshold), concat_cache_num_bytes(concat_cache_num_bytes), concat_all(concat_all) {
+
+		if (this->concat_cache_num_bytes > this->flow_control_bytes_threshold){
+			this->concat_cache_num_bytes = this->flow_control_bytes_threshold; // if concat_cache_num_bytes is bigger than flow_control_bytes_threshold you can deadlock
+		}
+	}
 
 // This method does not guarantee the relative order of the messages to be preserved
 std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCache() {
@@ -562,7 +568,7 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 	if (concat_all){
 		waitingCache->wait_until_finished();
 	} else {
-		waitingCache->wait_until_num_bytes(this->flow_control_bytes_threshold);
+		waitingCache->wait_until_num_bytes(this->concat_cache_num_bytes);
 	}
 
 	size_t total_bytes = 0;
@@ -585,7 +591,7 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 		flow_control_bytes_count -= cache_data.sizeInBytes();
 		flow_control_condition_variable.notify_all();
 
-	} while (!thresholds_are_met(total_bytes + waitingCache->get_next_size_in_bytes()));
+	} while ((total_bytes + waitingCache->get_next_size_in_bytes()) <= this->concat_cache_num_bytes);
 
 	std::unique_ptr<ral::frame::BlazingTable> output;
 	size_t num_rows = 0;
