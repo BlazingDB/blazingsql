@@ -10,6 +10,7 @@
 #include "bufferTransport.hpp"
 #include "execution_graph/logic_controllers/CacheMachine.h"
 #include "utilities/ctpl_stl.h"
+#include "serializer.hpp"
 
 namespace comm {
 
@@ -37,8 +38,8 @@ private:
 
 			pool.push([table{move(data_and_metadata.first)},
 						  metadata{data_and_metadata.second},
-						  node_address_map,
-						  output_cache](int thread_id) {
+						  node_address_map = node_address_map,
+						  output_cache = output_cache](int thread_id) {
 				std::vector<std::size_t> buffer_sizes;
 				std::vector<const char *> raw_buffers;
 				std::vector<blazingdb::transport::ColumnTransport> column_transports;
@@ -63,7 +64,7 @@ private:
 					}
 					transport.wait_until_complete();  // ensures that the message has been sent before returning the thread
 												   // to the pool
-				} catch(auto & e) {
+				} catch(const std::exception&) {
 				}
 			});
 		}

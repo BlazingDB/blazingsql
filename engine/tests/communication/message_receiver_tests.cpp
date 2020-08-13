@@ -33,21 +33,19 @@ TEST_F(MessageReceiverTest, receive_test) {
   std::vector<std::unique_ptr<rmm::device_buffer>> temp_scope_holder;
   std::tie(buffer_sizes, raw_buffers, column_transports, temp_scope_holder) = comm::serialize_gpu_message_to_gpu_containers(ral::frame::BlazingTableView{orig_table, columnNames});
 
-  std::map<std::string, size_t> buffer_id_to_position;
   std::vector<std::unique_ptr<rmm::device_buffer>> gpu_buffers(raw_buffers.size());
   for (size_t i = 0; i < raw_buffers.size(); i++) {
     gpu_buffers[i] = std::make_unique<rmm::device_buffer>(raw_buffers[i], buffer_sizes[i]);
-    buffer_id_to_position["buffer_" + std::to_string(i)] = i;
   }
 
   ral::cache::MetadataDictionary metadata;
   bool include_metadata = false;
   auto output_cache = std::make_shared<ral::cache::CacheMachine>(nullptr);
 
-  comm::message_receiver msg_rcv(column_transports, buffer_id_to_position, metadata, include_metadata, output_cache);
+  comm::message_receiver msg_rcv(column_transports, metadata, include_metadata, output_cache);
 
   for (size_t i = 0; i < gpu_buffers.size(); i++) {
-    msg_rcv.add_buffer(std::move(*(gpu_buffers[i])), "buffer_" + std::to_string(i));
+    msg_rcv.add_buffer(std::move(*(gpu_buffers[i])), i);
   }
 
   auto pulled_table = output_cache->pullFromCache();

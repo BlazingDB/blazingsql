@@ -298,6 +298,8 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingH
               ${CMAKE_SOURCE_DIR}/src/communication/messages/GPUComponentMessage.cpp
               ${CMAKE_SOURCE_DIR}/src/communication/CommunicationInterface/serializer.cpp
               ${CMAKE_SOURCE_DIR}/src/communication/CommunicationInterface/messageReceiver.cpp
+              ${CMAKE_SOURCE_DIR}/src/communication/CommunicationInterface/bufferTransport.cpp
+              ${CMAKE_SOURCE_DIR}/src/communication/CommunicationInterface/messageSender.cpp
         )
 
 link_directories(${BSQL_BLD_PREFIX}/lib)

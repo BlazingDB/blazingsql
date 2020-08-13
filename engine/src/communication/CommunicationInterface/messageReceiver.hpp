@@ -30,12 +30,10 @@ public:
   * @param include_metadata Indicates if we should add the metadata along with the payload to the cache or if we should not.
   */
   message_receiver(const std::vector<ColumnTransport> & column_transports,
-                  const std::map<std::string, size_t> & buffer_id_to_position,
                   const ral::cache::MetadataDictionary & metadata,
                   bool include_metadata,
                   std::shared_ptr<ral::cache::CacheMachine> output_cache) :
     _column_transports{column_transports},
-    _buffer_id_to_position{buffer_id_to_position},
     _output_cache{output_cache},
     _metadata{metadata},
     _include_metadata{include_metadata}
@@ -47,8 +45,12 @@ public:
     // }
   }
 
-  void add_buffer(rmm::device_buffer buffer, std::string id) {
-    _raw_buffers[_buffer_id_to_position.at(id)] = std::move(buffer);
+  void add_buffer(rmm::device_buffer buffer, uint16_t index) {
+    if (index >= _raw_buffers.size()) {
+      throw std::runtime_error("Invalid access to raw buffer");
+    }
+
+    _raw_buffers[index] = std::move(buffer);
 
     ++_buffer_counter;
     if (_buffer_counter == _raw_buffers.size()) {
@@ -68,7 +70,6 @@ private:
   }
 
   std::vector<ColumnTransport> _column_transports;
-  std::map<std::string,size_t> _buffer_id_to_position;
   std::shared_ptr<ral::cache::CacheMachine> _output_cache;
   ral::cache::MetadataDictionary _metadata;
   bool _include_metadata;
