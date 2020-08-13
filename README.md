@@ -144,6 +144,20 @@ NOTE: You can do `./build.sh -h` to see more build options.
 
 $CONDA_PREFIX now has a folder for the blazingsql repository.
 
+#### Storage plugins
+To build without the storage plugins (AWS S3, Google Cloud Storage) use the next arguments:
+```bash
+# Disable all storage plugins
+./build.sh disable-aws-s3 disable-google-gs
+
+# Disable AWS S3 storage plugin
+./build.sh disable-aws-s3
+
+# Disable Google Cloud Storage plugin
+./build.sh disable-google-gs
+```
+NOTE: By disabling the storage plugins you don't need to have install AWS SDK for C++ and Google Cloud Storage and any of its dependencies before.
+
 ## Nightly Version
 
 ### Install build dependencies
