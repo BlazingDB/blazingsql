@@ -21,6 +21,7 @@
 - #883 add rand() and running unary operations on literals
 - #894 added exhale to generate doxygen for sphinx docs
 - #887 concatenating cache improvement and replacing PartwiseJoin::load_set with a concatenating cache
+- #885 Added initial set of unit tests for `WaitingQueue` and nullptr checks around spdlog calls
 - #904 Added doxygen comments to CacheMachine.h
 - #901 Added more documentation about memory management 
 - #910 updated readme 
@@ -30,6 +31,7 @@
 - #900 Added doxygen comments to some kernels and the batch processing
 - #936 Adding extern C for include files
 - #941 Logging level (flush_on) can be configurable
+
 
 
 ## Bug Fixes
