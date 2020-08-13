@@ -156,7 +156,7 @@ To build without the storage plugins (AWS S3, Google Cloud Storage) use the next
 # Disable Google Cloud Storage plugin
 ./build.sh disable-google-gs
 ```
-NOTE: By disabling the storage plugins you don't need to have install AWS SDK for C++ and Google Cloud Storage and any of its dependencies before.
+NOTE: By disabling the storage plugins you don't need to install previously AWS SDK C++ or Google Cloud Storage (neither any of its dependencies).
 
 ## Nightly Version
 
