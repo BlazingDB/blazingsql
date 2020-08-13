@@ -140,7 +140,7 @@ public:
 		: kernel{kernel_id, queryString, context, kernel_type::DistributeAggregateKernel},
 		  message_manager{kernel_id, context, ral::communication::CommunicationData::getInstance().getSelfNode().id(),
 		    query_graph->get_output_message_cache()} {
-        this->query_graph = query_graph;
+		this->query_graph = query_graph;
 	}
 
 	bool can_you_throttle_my_input() {
@@ -313,14 +313,7 @@ public:
         //TODO: remove producer thread we don't really need it anymore
         producer_thread.join();
 
-        //int total_count = get_total_partition_counts();
-        auto self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
-        int total_count = node_count[self_node.id()];
-        for (auto message : messages_to_wait_for){
-            auto meta_message = this->query_graph->get_input_message_cache()->pullCacheData(message);
-            total_count += std::stoi(static_cast<ral::cache::GPUCacheDataMetaData *>(meta_message.get())->getMetadata().get_values()[ral::cache::PARTITION_COUNT]);
-	    }
-        //
+        int total_count = message_manager.get_total_partition_counts();
         this->output_cache()->wait_for_count(total_count);
 
         logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",

@@ -1,6 +1,12 @@
+#include <vector>
+#include <map>
+#include "execution_graph/logic_controllers/CacheMachine.h"
+#include <blazingdb/manager/Context.h>
 
 namespace ral {
 namespace distribution {
+
+using Context = blazingdb::manager::Context;
 
 class MessageManager {
 
