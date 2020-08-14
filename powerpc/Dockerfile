@@ -48,3 +48,5 @@ RUN update-alternatives --install /usr/bin/python3 python3 /usr/local/bin/python
 
 WORKDIR /app
 
+# TODO percy mario install more utils
+RUN yum install git nano -y

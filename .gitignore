@@ -84,3 +84,7 @@ core
 .cupy/
 .jitify-cache/
 .nv/
+
+# powerpc
+powerpc/tmp/
+powerpc/blazingsql.tar.gz
