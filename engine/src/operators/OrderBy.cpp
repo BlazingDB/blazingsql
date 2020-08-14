@@ -71,7 +71,7 @@ std::unique_ptr<cudf::table> logicalLimit(const cudf::table_view& table, cudf::s
 			cudf::mutable_column_view out_column_mutable_view = out_column->mutable_view();
 			cudf::copy_range_in_place(column, out_column_mutable_view, 0, limitRows, 0);
 		} else {
-			out_column = cudf::strings::detail::slice(column, 0, limitRows);
+			out_column = cudf::strings::detail::copy_slice(column, 0, limitRows);
 		}
 		output_cols.push_back(std::move(out_column));
 	}
