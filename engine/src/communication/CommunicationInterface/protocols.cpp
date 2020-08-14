@@ -170,4 +170,49 @@ void ucx_buffer_transport::send_impl(const char * buffer, size_t buffer_size,uin
     //TODO: call ucp_worker_progress here
 }
 
+
+ucx_message_listener::ucx_message_listener(ucp_worker_h worker) :
+    worker(worker) {
+
+}
+std::pair<ral::cache::MetadataDictionary, std::vector<ColumnTransport> > get_metadata_and_transports_from_bytes(std::vector<char> data){
+    
+}
+
+std::map<int, std::shared_ptr<message_receiver> > 
+void ucx_message_listener::poll_begin_message_tag(ucp_tag_t tag, ucp_tag_t mask){
+    for(;;;){
+        ucp_tag_recv_info_t info_tag;
+        auto message_tag = ucp_tag_probe_nb(
+            ucp_worker, tag, mask, 1, &info_tag);
+        if(message != NULL){
+            //we have a msg to process
+            std::vector<char> message_metadata(info_tag.length);
+            auto request = ucp_tag_msg_recv_nb(ucp_worker, message_metadata.data(), info_tag.length,
+                                  ucp_dt_make_contig(1), message_tag,
+                                  recv_handler);
+            
+            message_receiver(const std::vector<ColumnTransport> & column_transports,
+                  const ral::cache::MetadataDictionary & metadata,
+                  bool include_metadata,
+                  std::shared_ptr<ral::cache::CacheMachine> output_cache)
+            continue;
+        }else(ucp_worker_progress(ucp_worker)) {
+            continue; //messages came in we can check again
+        }
+
+        if(message == NULL){
+            //waits until a message event occurs
+            auto status = ucp_worker_wait(ucp_worker);
+            if (status != UCS_OK){
+                throw ::std::exception()
+            }
+        }        
+
+    }
+
+}
+
 } // namespace comm
+
+
