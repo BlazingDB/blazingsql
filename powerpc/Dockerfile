@@ -37,3 +37,5 @@ RUN wget -q https://www.python.org/ftp/python/3.7.7/Python-3.7.7.tgz
 RUN tar -xf Python-3.7.7.tgz
 RUN cd Python-3.7.7/ && ./configure --enable-optimizations
 RUN make altinstall
+RUN ln -sf /usr/local/bin/python3.7 /usr/bin/python
+
