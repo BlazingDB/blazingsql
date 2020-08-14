@@ -1,4 +1,5 @@
-FROM centos:7.6.1810
+# WARINING nvidia-docker doesn't have powerpc support so this image is only for debugging
+FROM nvidia/cuda:10.1-devel-centos7
 
 #COPY install-dependencies.sh /tmp/
 
