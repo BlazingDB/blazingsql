@@ -4,7 +4,7 @@ FROM nvidia/cuda:10.1-devel-centos7
 #COPY install-dependencies.sh /tmp/
 
 ENV CMAKE_ROOT=/usr/share/cmake
-RUN yum install wget gcc gcc-c++ bzip2 make libtool openssh-devel -y
+RUN yum install wget gcc gcc-c++ bzip2 make libtool openssh-devel zlib-devel -y
 
 #RUN tmp/install-dependencies.sh
 #RUN cd /tmp
@@ -33,4 +33,7 @@ RUN make install
 #RUN rm -rf /tmp/cmake
 
 #### Python ######
-
+RUN wget -q https://www.python.org/ftp/python/3.7.7/Python-3.7.7.tgz
+RUN tar -xf Python-3.7.7.tgz
+RUN cd Python-3.7.7/ && ./configure --enable-optimizations
+RUN make altinstall
