@@ -89,16 +89,55 @@ std::pair<std::vector<NodeColumn>, std::vector<std::size_t> > collectSamples(Con
 
 
 std::unique_ptr<BlazingTable> generatePartitionPlans(
-				cudf::size_type number_partitions, const std::vector<BlazingTableView> & samples,
-				const std::vector<cudf::order> & sortOrderTypes) {
+	cudf::size_type number_partitions,
+	const std::vector<BlazingTableView> & samples,
+	const std::vector<cudf::order> & sortOrderTypes,
+	Context * context) {
 
 	std::unique_ptr<BlazingTable> concatSamples = ral::utilities::concatTables(samples);
-
+	
+	//  setting just for experiments on RAPLAB
+	const uint32_t context_token = context->getContextToken();
+	std::string context_comm_token = context->getContextCommunicationToken();
+	const std::string message_id = ColumnDataMessage::MessageID() + "_" + context_comm_token;
+	auto message = Server::getInstance().getMessage(context_token, message_id);
+	auto node = message->getSenderNode();
+	auto logger = spdlog::get("batch_logger");
+	int node_idx = context->getNodeIndex(node);
+	logger->info("{query_id}|{step}|{substep}|{info}|{duration}||||",
+					"query_id"_a=context->getContextToken(),
+					"step"_a=context->getQueryStep(),
+					"substep"_a=context->getQuerySubstep(),
+					"info"_a="concatTables() finished ok - from primitives.cpp->generatePartitionPlans() " + std::to_string(node_idx),
+					"duration"_a="");
+	
 	std::vector<cudf::null_order> null_orders(sortOrderTypes.size(), cudf::null_order::AFTER);
+
+	logger->info("{query_id}|{step}|{substep}|{info}|{duration}||||",
+					"query_id"_a=context->getContextToken(),
+					"step"_a=context->getQueryStep(),
+					"substep"_a=context->getQuerySubstep(),
+					"info"_a="null_orders() finished ok - from primitives.cpp->generatePartitionPlans() " + std::to_string(node_idx),
+					"duration"_a="");
+
 	// TODO this is just a default setting. Will want to be able to properly set null_order
 	std::unique_ptr<cudf::column> sort_indices = cudf::sorted_order( concatSamples->view(), sortOrderTypes, null_orders);
 
+	logger->info("{query_id}|{step}|{substep}|{info}|{duration}||||",
+					"query_id"_a=context->getContextToken(),
+					"step"_a=context->getQueryStep(),
+					"substep"_a=context->getQuerySubstep(),
+					"info"_a="cudf::sorted_order() finished ok - from primitives.cpp->generatePartitionPlans() " + std::to_string(node_idx),
+					"duration"_a="");
+
 	std::unique_ptr<CudfTable> sortedSamples = cudf::gather( concatSamples->view(), sort_indices->view() );
+
+	logger->info("{query_id}|{step}|{substep}|{info}|{duration}||||",
+					"query_id"_a=context->getContextToken(),
+					"step"_a=context->getQueryStep(),
+					"substep"_a=context->getQuerySubstep(),
+					"info"_a="cudf::gather() finished ok - from primitives.cpp->generatePartitionPlans() " + std::to_string(node_idx),
+					"duration"_a="");
 
 	// lets get names from a non-empty table
 	std::vector<std::string> names;
@@ -108,15 +147,33 @@ std::unique_ptr<BlazingTable> generatePartitionPlans(
 			break;
 		}
 	}
+	std::unique_ptr<BlazingTable> output = getPivotPointsTable(number_partitions, BlazingTableView(sortedSamples->view(), names));
 
-	return getPivotPointsTable(number_partitions, BlazingTableView(sortedSamples->view(), names));
+	logger->info("{query_id}|{step}|{substep}|{info}|{duration}||||",
+					"query_id"_a=context->getContextToken(),
+					"step"_a=context->getQueryStep(),
+					"substep"_a=context->getQuerySubstep(),
+					"info"_a="getPivotPointsTable() finished ok - from primitives.cpp->generatePartitionPlans() " + std::to_string(node_idx),
+					"duration"_a="");
+
+	return output;
 }
 
 void distributePartitionPlan(Context * context, const BlazingTableView & pivots) {
 
 	std::string context_comm_token = context->getContextCommunicationToken();
 	const uint32_t context_token = context->getContextToken();
-	const std::string message_id = PartitionPivotsMessage::MessageID() + "_" + context_comm_token;
+	const std::string message_id = ColumnDataMessage::MessageID() + "_" + context_comm_token;
+	auto message_ = Server::getInstance().getMessage(context_token, message_id);
+	auto node_ = message_->getSenderNode();
+	auto logger = spdlog::get("batch_logger");
+	int node_idx = context->getNodeIndex(node_);
+	logger->info("{query_id}|{step}|{substep}|{info}|{duration}||||",
+					"query_id"_a=context->getContextToken(),
+					"step"_a=context->getQueryStep(),
+					"substep"_a=context->getQuerySubstep(),
+					"info"_a="getContextCommunicationToken() finished ok - from primitives.cpp->distributePartitionPlan() " + std::to_string(node_idx) + " -- " + context_comm_token,
+					"duration"_a="");
 
 	auto node = CommunicationData::getInstance().getSelfNode();
 	auto message = Factory::createPartitionPivotsMessage(message_id, context_token, node, pivots);
@@ -127,6 +184,18 @@ std::unique_ptr<BlazingTable> getPartitionPlan(Context * context) {
 
 	std::string context_comm_token = context->getContextCommunicationToken();
 	const uint32_t context_token = context->getContextToken();
+	const std::string message_id_ = ColumnDataMessage::MessageID() + "_" + context_comm_token;
+	auto message_ = Server::getInstance().getMessage(context_token, message_id_);
+	auto node = message_->getSenderNode();
+	auto logger = spdlog::get("batch_logger");
+	int node_idx = context->getNodeIndex(node);
+	logger->info("{query_id}|{step}|{substep}|{info}|{duration}||||",
+					"query_id"_a=context->getContextToken(),
+					"step"_a=context->getQueryStep(),
+					"substep"_a=context->getQuerySubstep(),
+					"info"_a="getContextCommunicationToken() finished ok - from primitives.cpp->getPartitionPlan() " + std::to_string(node_idx) + " -- " + context_comm_token,
+					"duration"_a="");
+
 	const std::string message_id = PartitionPivotsMessage::MessageID() + "_" + context_comm_token;
 
 	auto message = Server::getInstance().getMessage(context_token, message_id);
@@ -244,21 +313,21 @@ void distributePartitions(Context * context, std::vector<NodeColumnView> & parti
 	const std::string message_id = ColumnDataMessage::MessageID() + "_" + context_comm_token;
 
 	auto self_node = CommunicationData::getInstance().getSelfNode();
-	std::vector<BlazingThread> threads;
+	ctpl::thread_pool<BlazingThread> threads; //  setting just for experiments on RAPLAB
 	for(auto & nodeColumn : partitions) {
 		if(nodeColumn.first == self_node) {
 			continue;
 		}
 		BlazingTableView columns = nodeColumn.second;
 		auto destination_node = nodeColumn.first;
-		threads.push_back(BlazingThread([message_id, context_token, self_node, destination_node, columns]() mutable {
+		threads.push([message_id, context_token, self_node, destination_node, columns](int thread_id) mutable {
 			auto message = Factory::createColumnDataMessage(message_id, context_token, self_node, columns);
 			Client::send(destination_node, *message);
-		}));
+		});
 	}
-	for(size_t i = 0; i < threads.size(); i++) {
-		threads[i].join();
-	}
+	//or(size_t i = 0; i < threads.size(); i++) {
+	//	threads[i].join();
+	//}
 }
 
 std::vector<NodeColumn> collectPartitions(Context * context) {
@@ -359,16 +428,16 @@ std::unique_ptr<BlazingTable> getPivotPointsTable(cudf::size_type number_partiti
 
 void broadcastMessage(std::vector<Node> nodes,
 			std::shared_ptr<communication::messages::Message> message) {
-	std::vector<BlazingThread> threads(nodes.size());
+	ctpl::thread_pool<BlazingThread> threads(20); //  setting just for experiments on RAPLAB
 	for(size_t i = 0; i < nodes.size(); i++) {
 		Node node = nodes[i];
-		threads[i] = BlazingThread([node, message]() {
+		threads.push([node, message](int thread_id) {
 			Client::send(node, *message);
 		});
 	}
-	for(size_t i = 0; i < threads.size(); i++) {
-		threads[i].join();
-	}
+	//for(size_t i = 0; i < threads.size(); i++) {
+	//	threads[i].join();
+	//}
 }
 
 void distributeNumRows(Context * context, int64_t num_rows) {

@@ -5,6 +5,8 @@
 #include <vector>
 #include "execution_graph/logic_controllers/LogicPrimitives.h"
 
+#include "utilities/ctpl_stl.h"
+
 namespace ral {
 namespace distribution {
 
@@ -21,8 +23,10 @@ namespace distribution {
 	std::pair<std::vector<NodeColumn>, std::vector<std::size_t> > collectSamples(Context * context);
 
 	std::unique_ptr<BlazingTable> generatePartitionPlans(
-				cudf::size_type number_partitions, const std::vector<BlazingTableView> & samples,
-				const std::vector<cudf::order> & sortOrderTypes);
+		cudf::size_type number_partitions,
+		const std::vector<BlazingTableView> & samples,
+		const std::vector<cudf::order> & sortOrderTypes,
+		Context * context);
 
 	void distributePartitionPlan(Context * context, const BlazingTableView & pivots);
 
