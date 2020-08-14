@@ -2,6 +2,7 @@ FROM centos:7.6.1810
 
 #COPY install-dependencies.sh /tmp/
 
+ENV CMAKE_ROOT=/usr/share/cmake
 RUN yum install wget gcc gcc-c++ bzip2 make libtool python3 openssh-devel -y
 
 #RUN tmp/install-dependencies.sh
