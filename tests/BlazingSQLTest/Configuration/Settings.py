@@ -8,12 +8,14 @@ dateNow = None
 
 execution_mode = "full"
 
+compare_res = "false"
 
 def initialize():
     global data
     global memory_list
     global dateNow
     global execution_mode
+    global compare_res
 
     memory_list = []
 
@@ -25,6 +27,7 @@ def initialize():
     create_json()
 
     execution_mode = data["RunSettings"]["executionMode"]
+    compare_res = data["RunSettings"]["compare_results"]
 
 
 def create_json():

@@ -58,7 +58,6 @@ from EndToEndTests import whereClauseTest as whereClauseTest
 from EndToEndTests import wildCardTest
 from EndToEndTests import messageValidationTest
 from pynvml import nvmlInit
-from pyspark.sql import SparkSession
 from Runner import runTest
 from Utils import Execution, init_context
 
@@ -89,6 +88,8 @@ def main():
         )
 
         # Create Table Spark -------------------------------------------------
+        from pyspark.sql import SparkSession
+
         spark = SparkSession.builder.appName("allE2ETest").getOrCreate()
         createSchema.init_spark_schema(
             spark, Settings.data["TestSettings"]["dataDirectory"]

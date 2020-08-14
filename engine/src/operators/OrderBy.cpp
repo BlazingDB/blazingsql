@@ -181,7 +181,7 @@ std::unique_ptr<ral::frame::BlazingTable> sample(const ral::frame::BlazingTableV
 	std::random_device rd;
 	auto samples = cudf::sample(table.view().select(sortColIndices), std::ceil(table.num_rows() * 0.1), cudf::sample_with_replacement::FALSE, rd());
 
-	return std::make_unique<ral::frame::BlazingTable>(std::move(samples), tableNames);
+	return std::make_unique<ral::frame::BlazingTable>(std::move(samples), sortColNames);
 }
 
 
