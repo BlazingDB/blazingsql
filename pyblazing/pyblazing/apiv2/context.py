@@ -1112,7 +1112,6 @@ class BlazingContext(object):
         self.single_gpu_idx = 0
         self.lock = Lock()
         self.finalizeCaller = ref(cio.finalizeCaller)
-        self.dask_client = dask_client
         self.nodes = []
         self.node_log_paths = []
         self.finalizeCaller = lambda: NotImplemented
@@ -1136,6 +1135,14 @@ class BlazingContext(object):
             "BLAZING_CACHE_DIRECTORY".encode()
         ] = cache_dir_path.encode()
 
+        if dask_client is None:
+            try:
+                dask_client = dask.distributed.default_client()
+            except ValueError:
+                pass
+
+        self.dask_client = dask_client
+
         # remove if exists older orc tmp files
         remove_orc_files_from_disk(cache_dir_path)
 
@@ -1150,7 +1157,17 @@ class BlazingContext(object):
             distributed_initialize_server_directory(self.dask_client, cache_dir_path)
 
             if network_interface is None:
-                network_interface = "eth0"
+                addr = dask_client.scheduler_comm.comm._local_addr
+                local = addr.split("://")[-1].split(":")[0]
+                for name, addrs in psutil.net_if_addrs().items():
+                    for addr in addrs:
+                        if addr == local:
+                            network_interface = name
+                            break
+                    if network_interface:
+                        break
+                else:
+                    network_interface = "eth0"
 
             worker_list = []
             dask_futures = []
