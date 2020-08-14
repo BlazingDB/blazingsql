@@ -35,18 +35,13 @@ T from_byte_vector(std::vector<char> input) {
 class buffer_transport
 {
 public:
-	buffer_transport(std::map<std::string, blazingdb::transport::Node> node_address_map,
+	buffer_transport(
 		ral::cache::MetadataDictionary metadata,
 		std::vector<size_t> buffer_sizes,
 		std::vector<blazingdb::transport::ColumnTransport> column_transports)
 		: column_transports{column_transports}, buffer_sizes{buffer_sizes}, metadata{metadata} {
 		// iterate for workers this is destined for
-		for(auto worker_id : StringUtil::split(metadata.get_values()[ral::cache::WORKER_IDS_METADATA_LABEL], ",")) {
-			if(node_address_map.find(worker_id) == node_address_map.end()) {
-				throw std::exception();	 // TODO: make a real exception here
-			}
-			destinations.push_back(node_address_map[worker_id]);
-		}
+		
 	}
 
   virtual void send_begin_transmission() = 0;
@@ -84,43 +79,11 @@ protected:
 		return buffer;
 	}
 
-  std::vector<blazingdb::transport::Node> destinations; /**< The nodes that will be receiving these buffers */
 	std::vector<blazingdb::transport::ColumnTransport> column_transports;
 	ral::cache::MetadataDictionary metadata;
 	std::vector<size_t> buffer_sizes;
 	size_t buffer_sent = 0;
 };
 
-class buffer_tcp_transport : public buffer_transport {
-public:
-	void send_begin_transmission() override {
-
-  }
-
-	void send_implementation(const char * buffer, size_t buffer_size) override {
-		// impl
-	}
-
-	void wait_until_complete() override {
-
-  }
-
-};
-
-class buffer_ucx_transport : public buffer_transport {
-public:
-	void send_begin_transmission() override {
-
-  }
-
-	void send_implementation(const char * buffer, size_t buffer_size) override {
-		// impl
-	}
-
-	void wait_until_complete() override {
-
-  }
-
-};
 
 }  // namespace comm

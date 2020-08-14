@@ -141,11 +141,6 @@ std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> > initiali
 
 	communicationData.initialize(worker_id, ralHost, ralCommunicationPort, worker_id_to_ucp_ep);
 
-	ral::communication::network::Server::start(ralCommunicationPort, true);
-
-	if(singleNode == true) {
-		ral::communication::network::Server::getInstance().close();
-	}
 
 	// Init AWS S3 ... TODO see if we need to call shutdown and avoid leaks from s3 percy
 	BlazingContext::getInstance()->initExternalSystems();
