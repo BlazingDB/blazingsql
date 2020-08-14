@@ -1,3 +1,5 @@
+#pragma once
+
 #include <vector>
 #include <map>
 #include "execution_graph/logic_controllers/CacheMachine.h"

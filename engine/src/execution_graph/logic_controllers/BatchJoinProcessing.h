@@ -11,6 +11,7 @@
 #include "communication/CommunicationData.h"
 #include "execution_graph/logic_controllers/LogicalFilter.h"
 #include "distribution/primitives.h"
+#include "distribution/MessageManager.h"
 #include "error.hpp"
 #include "blazingdb/concurrency/BlazingThread.h"
 #include "CodeTimer.h"
@@ -445,7 +446,11 @@ private:
 class JoinPartitionKernel : public kernel {
 public:
 	JoinPartitionKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: kernel{kernel_id, queryString, context, kernel_type::JoinPartitionKernel} {
+		: kernel{kernel_id, queryString, context, kernel_type::JoinPartitionKernel},
+		  message_manager_left{kernel_id, context, ral::communication::CommunicationData::getInstance().getSelfNode().id(),
+		    query_graph->get_output_message_cache()},
+		  message_manager_right{kernel_id, context, ral::communication::CommunicationData::getInstance().getSelfNode().id(),
+		    query_graph->get_output_message_cache()} {
 		this->query_graph = query_graph;
 		this->input_.add_port("input_a", "input_b");
 		this->output_.add_port("output_a", "output_b");
@@ -841,12 +846,7 @@ public:
 		// });
 
 		distribute_left_thread.join();
-		// get_total_partition_counts()
-		int total_count_left = node_count_left[self_node.id()];
-		for (auto message : messages_to_wait_for_left){
-			auto meta_message = this->query_graph->get_input_message_cache()->pullCacheData(message);
-			total_count_left += std::stoi(static_cast<ral::cache::GPUCacheDataMetaData *>(meta_message.get())->getMetadata().get_values()[ral::cache::PARTITION_COUNT]);
-		}
+		int total_count_left = message_manager_left.get_total_partition_counts();
 		this->output_.get_cache("output_a")->wait_for_count(total_count_left);
 
 		std::map<std::string, int> node_count_right;
@@ -871,12 +871,7 @@ public:
 		// 	}
 		// });
 		distribute_right_thread.join();
-		// get_total_partition_counts()
-		int total_count_right = node_count_right[self_node.id()];
-		for (auto message : messages_to_wait_for_right){
-			auto meta_message = this->query_graph->get_input_message_cache()->pullCacheData(message);
-			total_count_right += std::stoi(static_cast<ral::cache::GPUCacheDataMetaData *>(meta_message.get())->getMetadata().get_values()[ral::cache::PARTITION_COUNT]);
-		}
+		int total_count_right = message_manager_right.get_total_partition_counts();
 		this->output_.get_cache("output_b")->wait_for_count(total_count_right);
 	}
 
@@ -1098,6 +1093,8 @@ private:
 	std::vector<cudf::size_type> left_column_indices, right_column_indices;
 	std::vector<cudf::data_type> join_column_common_types;
 	bool normalize_left, normalize_right;
+	ral::distribution::MessageManager message_manager_left;
+	ral::distribution::MessageManager message_manager_right;
 };
 
 
