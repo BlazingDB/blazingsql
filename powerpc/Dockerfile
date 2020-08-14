@@ -41,6 +41,7 @@ RUN make install
 ENV CMAKE_ROOT=/usr/share/cmake
 
 #### Python ######
+RUN yum install -y libffi-devel zlib zlib-devel
 RUN wget -q https://www.python.org/ftp/python/3.7.7/Python-3.7.7.tgz
 RUN tar -xf Python-3.7.7.tgz
 RUN cd Python-3.7.7/ && ./configure --enable-optimizations && make altinstall
