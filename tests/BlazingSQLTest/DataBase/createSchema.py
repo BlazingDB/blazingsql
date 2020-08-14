@@ -10,8 +10,6 @@ import dask_cudf
 import numpy as np
 import pandas as pd
 import pyblazing
-# from pyblazing import get_dtype_values
-import pyspark.sql.types as st
 from blazingsql import DataType
 from pyhive import hive
 
@@ -259,7 +257,7 @@ def init_drill_schema(drill, tpch_dir, **kwargs):
 
     for name in tableNames:
         drill.query(
-            "DROP TABLE IF EXISTS" + "dfs.tmp.`%(table)s`"
+            "DROP TABLE IF EXISTS " + "dfs.tmp.`%(table)s`"
             % {"table": name}, timeout
         )
 

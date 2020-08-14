@@ -10,6 +10,7 @@
 #include <rmm/mr/device/managed_memory_resource.hpp>
 #include <rmm/mr/device/cnmem_managed_memory_resource.hpp>
 #include <rmm/mr/device/cnmem_memory_resource.hpp>
+#include <rmm/mr/device/default_memory_resource.hpp>
 
 #include "config/GPUManager.cuh"
 
@@ -42,7 +43,7 @@ public:
                                             std::size_t initial_pool_size,
                                             float custom_threshold = 0.95)
     {
-		total_memory_size = ral::config::gpuMemorySize();
+		total_memory_size = ral::config::gpuTotalMemory();
 		used_memory = 0;
 
         if (total_memory_size <= initial_pool_size) {

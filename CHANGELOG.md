@@ -2,6 +2,7 @@
 
 ## New Features
 - #835 Added a memory monitor for better memory management and added pull ordered from cache
+- #889 Added Sphinx based code architecture documentation
 
 ## Improvements
 - #777 Update Calcite to the most recent version 1.23
@@ -14,6 +15,25 @@
 - #829 Python/Cython check code style
 - #826 Support cross join
 - #866 Added nogil statements for pure C functions in Cython
+- #784 Updated set of TPCH queries on the E2E tests
+- #877 round robing dask workers on single gpu queries
+- #880 reraising query errors in context.py
+- #883 add rand() and running unary operations on literals
+- #894 added exhale to generate doxygen for sphinx docs
+- #887 concatenating cache improvement and replacing PartwiseJoin::load_set with a concatenating cache
+- #885 Added initial set of unit tests for `WaitingQueue` and nullptr checks around spdlog calls
+- #904 Added doxygen comments to CacheMachine.h
+- #901 Added more documentation about memory management 
+- #910 updated readme 
+- #915 Adding max kernel num threads pool
+- #921 Make AWS and GCS optional
+- #925 Replace random_generator with cudf::sample
+- #900 Added doxygen comments to some kernels and the batch processing
+- #936 Adding extern C for include files
+- #941 Logging level (flush_on) can be configurable
+- #945 Added new separate thresh for concat cache 
+
+
 
 ## Bug Fixes
 - #774 fixed build issues with latest cudf 0.15 including updating from_cudf
@@ -36,6 +56,17 @@
 - #850 Fixed issue with getTableScanInfoCaller
 - #851 Fix row_groups issue in ParquetParser.cpp
 - #847 Fixed issue with some constant expressions not evaluated by calcite
+- #875 Recovered some old unit tests and deleted obsolete unit tests
+- #879 Fixed issue with log directory creation in a distributed environment
+- #890 Fixed issue where we were including testing hpp in our code
+- #891 Fixed issue caused by replacing join load_set with concatenating cache
+- #902 Fixed optimization regression on the select count(*) case
+- #909 Fixed issue caused by using now arrow_io_source
+- #913 Fixed issues caused by cudf adding DECIMAL data type
+- #916 Fix e2e string comparison
+- #927 Fixed random segfault issue in parser
+- #929 Update the GPUManager functions
+- #942 Fix column names on sample function
 
 
 # BlazingSQL 0.14.0 (June 9, 2020)
@@ -82,3 +113,5 @@
 - #809 Fix conda build issues
 - #828 Fix gpuci issues and improve tooling to debug gpuci related issues
 - #867 Fix boost dependencie issues
+- #785 Add script for Manual Testing Artifacts.
+- #932 Import pydrill and pyspark only when its generator or full mode.

@@ -7,6 +7,7 @@
 #include <vector>
 
 #include <cudf/io/functions.hpp>
+#include <cudf/io/datasource.hpp>
 
 namespace ral {
 namespace io {
