@@ -16,21 +16,26 @@ WORKDIR gcc-7.4.0
 RUN ./contrib/download_prerequisites
 RUN ./configure --disable-multilib --enable-languages=c,c++ && make -j`nproc` && make install
 #RUN rm -rf /tmp/gcc*
-RUN mv /usr/bin/gcc /usr/bin/gcc-4
-RUN mv /usr/bin/g++ /usr/bin/g++-4
-RUN ln -s /usr/local/bin/gcc /usr/bin/
-RUN ln -s /usr/local/bin/g++ /usr/bin/
+RUN update-alternatives --install /usr/bin/cc cc /usr/local/bin/gcc 999
+RUN rm -f /usr/bin/gcc
+RUN update-alternatives --install /usr/bin/gcc gcc /usr/local/bin/gcc 999
+RUN rm -f /usr/bin/g++
+RUN update-alternatives --install /usr/bin/g++ g++ /usr/local/bin/g++ 999
+RUN echo '/usr/local/lib' > /etc/ld.so.conf.d/local-lib.conf
+RUN echo '/usr/local/lib64' > /etc/ld.so.conf.d/local-lib64.conf
+ENV LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64:/usr/local/nvidia/lib:/usr/local/nvidia/lib64
 ENV CC=/usr/local/bin/gcc
 ENV CXX=/usr/local/bin/g++
 ENV CUDACXX=/usr/local/cuda/bin/nvcc
 
 #### CMAKE ####
+RUN yum install openssl-devel -y
 RUN wget -q https://github.com/Kitware/CMake/releases/download/v3.17.3/cmake-3.17.3.tar.gz
 RUN tar -xf cmake-3.17.3.tar.gz
 #RUN cd cmake-3.17.3/
 WORKDIR cmake-3.17.3/
 RUN ./bootstrap
-RUN make
+RUN make -j`nproc`
 RUN make install
 #RUN rm -rf /tmp/cmake
 ENV CMAKE_ROOT=/usr/share/cmake
@@ -40,5 +45,5 @@ RUN wget -q https://www.python.org/ftp/python/3.7.7/Python-3.7.7.tgz
 RUN tar -xf Python-3.7.7.tgz
 RUN cd Python-3.7.7/ && ./configure --enable-optimizations
 RUN make altinstall
-RUN ln -sf /usr/local/bin/python3.7 /usr/bin/python
+RUN update-alternatives --install /usr/bin/python3 python3 /usr/local/bin/python3.7 999
 
