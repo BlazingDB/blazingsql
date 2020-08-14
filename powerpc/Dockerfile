@@ -43,7 +43,8 @@ ENV CMAKE_ROOT=/usr/share/cmake
 #### Python ######
 RUN wget -q https://www.python.org/ftp/python/3.7.7/Python-3.7.7.tgz
 RUN tar -xf Python-3.7.7.tgz
-RUN cd Python-3.7.7/ && ./configure --enable-optimizations
-RUN make altinstall
+RUN cd Python-3.7.7/ && ./configure --enable-optimizations && make altinstall
 RUN update-alternatives --install /usr/bin/python3 python3 /usr/local/bin/python3.7 999
+
+WORKDIR /app
 
