@@ -995,7 +995,12 @@ def saveLogInFile(df):
     df.to_excel(filepath, index=False)
 
 def validate_messages(error_message, message_validation):
-    if list(set(error_message).intersection(message_validation)): 
+    error_message = error_message.replace('\n', ' ').replace('\r', ' ')
+    message_validation = message_validation.replace('\n', ' ').replace('\r', ' ')
+    error_message = error_message.replace(' ', '')
+    message_validation = message_validation.replace(' ', '')
+
+    if error_message == message_validation:
         result = "Success"
     else:
         result = "Fail"
