@@ -90,6 +90,7 @@ add_subdirectory(new-tests)
 add_subdirectory(parser)
 add_subdirectory(skipdata)
 add_subdirectory(sort)
+add_subdirectory(waiting_queue)
 add_subdirectory(kernel_tests)
 
 message(STATUS "******** Tests are ready ********")

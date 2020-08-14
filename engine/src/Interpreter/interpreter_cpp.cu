@@ -59,6 +59,12 @@ struct allocate_device_scalar {
 		RAL_FAIL("List not yet supported");
 		return rmm::device_buffer{};
 	}
+
+	template <typename T, std::enable_if_t<std::is_same<T, cudf::struct_view>::value> * = nullptr>
+	rmm::device_buffer operator()(cudf::scalar & s, cudaStream_t stream = 0) {
+		RAL_FAIL("Struct not yet supported");
+		return rmm::device_buffer{};
+	}
 };
 
 template <int SIZE, int REGISTER_SIZE>
