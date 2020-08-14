@@ -4,40 +4,46 @@
 #include <memory>
 #include <rmm/device_buffer.hpp>
 #include <utility>
+#include <Util/StringUtil.h>
 
 #include "blazingdb/concurrency/BlazingThread.h"
-#include "blazingdb/transport/Node.h"
-#include "bufferTransport.hpp"
+#include "node.hpp"
+#include "serializer.hpp"
 #include "execution_graph/logic_controllers/CacheMachine.h"
 #include "utilities/ctpl_stl.h"
-#include "serializer.hpp"
+#include "protocols.hpp"
 
 namespace comm {
 
 /**
- * A Class that can be used to poll messages and then send them off.
- * Creating this class serves the purpose of allowing us to specify different combinations of serializers, conversion
- * from buffer to frame combined with different methods for sending and addressing.
+ * @brief A Class that can be used to poll messages and then send them off.
  */
-template <typename buffer_transport>
 class message_sender {
 public:
+
+	/**
+	 * @brief Constructs a message_sender
+	 *
+	 * @param output_cache The cache machine from where to obtain the data to send
+	 * @param node_address_map A map from node id to Node
+	 * @param num_threads Number of threads the message_sender will use to send data concurrently
+	 */
 	message_sender(std::shared_ptr<ral::cache::CacheMachine> output_cache,
-		std::map<std::string, blazingdb::transport::Node> node_address_map,
-		size_t num_threads)
+		std::map<std::string, node> node_address_map,
+		int num_threads)
 		: output_cache{output_cache}, pool{num_threads} {}
 
 private:
 	/**
-	 * A polling function that listens on a cache for data to exist and then sends it off via some protocol
+	 * @brief A polling function that listens on a cache for data and send it off via some protocol
 	 */
 	void run_polling() {
 		while(true) {
-			auto * gpu_cache_data = static_cast<ral::cache::GPUCacheDataMetaData *>(output_cache->pullCacheData());
+			std::unique_ptr<ral::cache::CacheData> cache_data = output_cache->pullCacheData();
+			auto * gpu_cache_data = static_cast<ral::cache::GPUCacheDataMetaData *>(cache_data.get());
 			auto data_and_metadata = gpu_cache_data->decacheWithMetaData();
 
-			pool.push([self_worker_id,
-						  table{move(data_and_metadata.first)},
+			pool.push([table{move(data_and_metadata.first)},
 						  metadata{data_and_metadata.second},
 						  node_address_map = node_address_map,
 						  output_cache = output_cache](int thread_id) {
@@ -57,7 +63,20 @@ private:
 					// }
 
 					// tcp / ucp
-					buffer_transport transport( metadata, buffer_sizes, column_transports, self_worker_id);
+
+					auto metadata_map = metadata.get_values();
+
+					node origin = node_address_map.at(metadata_map.at(ral::cache::SENDER_WORKER_ID_METADATA_LABEL));
+
+					std::vector<node> destinations;
+					for(auto worker_id : StringUtil::split(metadata_map.at(ral::cache::WORKER_IDS_METADATA_LABEL), ",")) {
+						if(node_address_map.find(worker_id) == node_address_map.end()) {
+							throw std::exception();	 // TODO: make a real exception here
+						}
+						destinations.push_back(node_address_map.at(worker_id));
+					}
+
+					ucx_buffer_transport transport(origin, destinations, metadata, buffer_sizes, column_transports);
 					for(size_t i = 0; i < raw_buffers.size(); i++) {
 						transport.send(raw_buffers[i], buffer_sizes[i]);
 						// temp_scope_holder[buffer_index] = nullptr;	// TODO: allow the device_vector to go out of
@@ -73,7 +92,7 @@ private:
 
 	ctpl::thread_pool<BlazingThread> pool;
 	std::shared_ptr<ral::cache::CacheMachine> output_cache;
-	std::map<std::string, blazingdb::transport::Node> node_address_map;
+	std::map<std::string, node> node_address_map;
 };
 
 }  // namespace comm

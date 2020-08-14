@@ -169,12 +169,16 @@ def initializeBlazing(
 
     worker = dask.distributed.get_worker()
 
-    dask_addr_to_ucp_handle = {}
+    workers_ucp_info = []
     if singleNode is False:
         for dask_addr in worker.ucx_addresses:
             addr = worker.ucx_addresses[dask_addr]
-            ucp_handle = UCX.get()._endpoints[addr].ep.get_ucp_endpoint()
-            dask_addr_to_ucp_handle[dask_addr] = ucp_handle
+            ep = UCX.get()._endpoints[addr].ep
+            workers_ucp_info.append({
+                'worker_id': dask_addr,
+                'ep_handle' : ep.get_ucp_endpoint(),
+                'worker_handle': ep.get_ucp_worker()
+            })
 
     output_cache, input_cache = cio.initializeCaller(
         ralId,
@@ -183,7 +187,7 @@ def initializeBlazing(
         networkInterface.encode(),
         workerIp.encode(),
         ralCommunicationPort,
-        dask_addr_to_ucp_handle,
+        workers_ucp_info,
         singleNode,
         config_options,
     )

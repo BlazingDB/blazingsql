@@ -36,6 +36,8 @@
 #include "communication/network/Server.h"
 #include <bmr/initializer.h>
 
+#include "communication/CommunicationInterface/node.hpp"
+
 #include "execution_graph/logic_controllers/CacheMachine.h"
 
 #include "engine/initialize.h"
@@ -100,7 +102,7 @@ std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> > initiali
 	std::string network_iface_name,
 	std::string ralHost,
 	int ralCommunicationPort,
-	std::map<std::string, std::uintptr_t> dask_addr_to_ucp_handle,
+	std::vector<NodeMetaDataUCP> workers_ucp_info,
 	bool singleNode,
 	std::map<std::string, std::string> config_options) {
   // ---------------------------------------------------------------------------
@@ -134,13 +136,15 @@ std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> > initiali
 
 	auto & communicationData = ral::communication::CommunicationData::getInstance();
 
-	std::map<std::string, ucp_ep_h> worker_id_to_ucp_ep;
-	for (auto &&i : dask_addr_to_ucp_handle) {
-		worker_id_to_ucp_ep.emplace(i.first, reinterpret_cast<ucp_ep_h>(i.second));
+	std::vector<comm::node> nodes_info;
+	nodes_info.reserve(workers_ucp_info.size());
+	for (auto &&node_data : workers_ucp_info) {
+		nodes_info.emplace_back(ralId, node_data.worker_id, reinterpret_cast<ucp_ep_h>(node_data.ep_handle), reinterpret_cast<ucp_worker_h>(node_data.worker_handle));
 	}
 
-	communicationData.initialize(worker_id, ralHost, ralCommunicationPort, worker_id_to_ucp_ep);
+	// start ucp server?
 
+	communicationData.initialize(worker_id, ralHost, ralCommunicationPort);
 
 	// Init AWS S3 ... TODO see if we need to call shutdown and avoid leaks from s3 percy
 	BlazingContext::getInstance()->initExternalSystems();
