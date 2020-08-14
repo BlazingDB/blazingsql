@@ -7,12 +7,39 @@
 
 ### Run a container
 ```
-docker run -ti -v $PWD:/app blazingdb/build:powerpc bash
+docker run -ti --rm blazingdb/build:powerpc bash
+```
+
+### Run a container with volume
+```
+docker run -ti -v $PWD:/app --rm blazingdb/build:powerpc bash
 ```
 
 ### Run a container with gpu
 ```
-docker run -ti -v $PWD:/app --gpus=all blazingdb/build:powerpc bash
+docker run -ti -v $PWD:/app --gpus=all --rm blazingdb/build:powerpc bash
+```
+
+### Run a container with gpu and same user
+```
+docker run -u $(id -u):$(id -g) -ti -v $PWD:/app --gpus=all --rm blazingdb/build:powerpc bash
+```
+
+### Python Virtualenv
+Create:
+```
+python3 -m venv demo
+```
+
+Activate:
+```
+source demo/bin/activate
+pip list
+```
+
+Deactivate:
+```
+deactivate
 ```
 
 ### Dockerfile
