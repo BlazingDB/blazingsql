@@ -23,16 +23,15 @@
 - #887 concatenating cache improvement and replacing PartwiseJoin::load_set with a concatenating cache
 - #885 Added initial set of unit tests for `WaitingQueue` and nullptr checks around spdlog calls
 - #904 Added doxygen comments to CacheMachine.h
-- #901 Added more documentation about memory management 
-- #910 updated readme 
+- #901 Added more documentation about memory management
+- #910 updated readme
 - #915 Adding max kernel num threads pool
 - #921 Make AWS and GCS optional
 - #925 Replace random_generator with cudf::sample
 - #900 Added doxygen comments to some kernels and the batch processing
 - #936 Adding extern C for include files
 - #941 Logging level (flush_on) can be configurable
-
-
+- #947 Use default client and network interface from Dask
 
 ## Bug Fixes
 - #774 fixed build issues with latest cudf 0.15 including updating from_cudf
