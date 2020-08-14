@@ -7,7 +7,12 @@
 
 ### Run a container
 ```
-docker run -ti blazingsql bash
+docker run -ti -v $PWD:/app blazingdb/build:powerpc bash
+```
+
+### Run a container with gpu
+```
+docker run -ti -v $PWD:/app --gpus=all blazingdb/build:powerpc bash
 ```
 
 ### Dockerfile
