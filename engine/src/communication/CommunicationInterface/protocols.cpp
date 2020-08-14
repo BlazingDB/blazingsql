@@ -19,6 +19,9 @@ std::map<int,ucx_buffer_transport * > uid_to_buffer_transport;
  * A struct that lets us access the request that the end points ucx-py generates.
  */ 
 struct ucx_request {
+    //!!!!!!!!!!! do not modify this struct this has to match what is found in
+    // https://github.com/rapidsai/ucx-py/blob/branch-0.15/ucp/_libs/ucx_api.pyx
+    // Make sure to check on the latest branch !!!!!!!!!!!!!!!!!!!!!!!!!!!
     int completed; /**< Completion flag that we do not use. */
     int uid; /**< We store a map of request uid ==> buffer_transport to manage completion of send */
 };
@@ -95,7 +98,7 @@ void ucx_buffer_transport::send_begin_transmission(){
             //TODO: decide how to do cleanup i think we just throw an initialization exception
         } else if (UCS_PTR_STATUS(request) == UCS_OK) {    
             ucp_request_release(request);
-            transmitted_begin_frames++;
+            increment_begin_transmission();
         }else{
             //Message was not completed we set the uid for the callback
             auto blazing_request = reinterpret_cast<ucx_request *>(&request);
@@ -143,7 +146,7 @@ void ucx_buffer_transport::wait_until_complete(){
 void ucx_buffer_transport::send_impl(const char * buffer, size_t buffer_size,uint16_t buffer_sent){
     std::vector<ucs_status_ptr_t> requests;
     blazing_ucp_tag blazing_tag = *reinterpret_cast<blazing_ucp_tag *>(&tag);
-    blazing_tag.frame_id = buffer_sent + 1; //0th position is for the being_message
+    blazing_tag.frame_id = buffer_sent + 1; //0th position is for the begin_message
     for( auto const& address : destinations )
     {
         requests.push_back(ucp_tag_send_nb(address, buffer, buffer_size,

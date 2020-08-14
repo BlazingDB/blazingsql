@@ -190,6 +190,10 @@ find_package(PythonLibs)
 
 find_package(GTest REQUIRED)
 
+set(UCX_INSTALL_DIR $ENV{CONDA_PREFIX})
+set(UCX_INCLUDE_DIR $ENV{CONDA_PREFIX}/include)
+find_package(UCX REQUIRED)
+
 # BEGIN MAIN #
 
 # TODO percy move this to tool-chain and add support for cuda def and more than 1 defs
@@ -330,6 +334,8 @@ target_link_libraries(blazingsql-engine
     ${CUDA_CUDA_LIBRARY}
     ${CUDA_NVRTC_LIBRARY}
     ${CUDA_NVTX_LIBRARY}
+
+    ${UCX_LIBRARIES}
 
     parquet
     arrow

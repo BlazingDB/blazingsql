@@ -56,6 +56,9 @@ public:
 protected:
 	virtual void send_implementation(const char * buffer, size_t buffer_size) = 0;
 
+	/**
+	 * 
+	 */ 
 	std::vector<char> make_begin_transmission() {
 		// builds the cpu host buffer that we are going to send
 		// first lets serialize and send metadata

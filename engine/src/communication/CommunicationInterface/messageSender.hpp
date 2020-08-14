@@ -36,7 +36,8 @@ private:
 			auto * gpu_cache_data = static_cast<ral::cache::GPUCacheDataMetaData *>(output_cache->pullCacheData());
 			auto data_and_metadata = gpu_cache_data->decacheWithMetaData();
 
-			pool.push([table{move(data_and_metadata.first)},
+			pool.push([self_worker_id,
+						  table{move(data_and_metadata.first)},
 						  metadata{data_and_metadata.second},
 						  node_address_map = node_address_map,
 						  output_cache = output_cache](int thread_id) {
@@ -56,7 +57,7 @@ private:
 					// }
 
 					// tcp / ucp
-					buffer_transport transport(node_address_map, metadata, buffer_sizes, column_transports);
+					buffer_transport transport( metadata, buffer_sizes, column_transports, self_worker_id);
 					for(size_t i = 0; i < raw_buffers.size(); i++) {
 						transport.send(raw_buffers[i], buffer_sizes[i]);
 						// temp_scope_holder[buffer_index] = nullptr;	// TODO: allow the device_vector to go out of
