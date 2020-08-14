@@ -138,7 +138,7 @@ class DistributeAggregateKernel : public kernel {
 public:
 	DistributeAggregateKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
 		: kernel{kernel_id, queryString, context, kernel_type::DistributeAggregateKernel},
-		  message_manager{kernel_id, context, ral::communication::CommunicationData::getInstance().getSelfNode().id(),
+		  message_manager{kernel_id, context, ral::communication::CommunicationData::getInstance().getSelfNode().id(), ral::communication::CommunicationData::getInstance().getSelfNode(),
 		    query_graph->get_output_message_cache()} {
 		this->query_graph = query_graph;
 	}
@@ -313,7 +313,7 @@ public:
         //TODO: remove producer thread we don't really need it anymore
         producer_thread.join();
 
-        int total_count = message_manager.get_total_partition_counts();
+        int total_count = message_manager.get_total_partition_counts(node_count);
         this->output_cache()->wait_for_count(total_count);
 
         logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",

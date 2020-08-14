@@ -447,10 +447,10 @@ class JoinPartitionKernel : public kernel {
 public:
 	JoinPartitionKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
 		: kernel{kernel_id, queryString, context, kernel_type::JoinPartitionKernel},
-		  message_manager_left{kernel_id, context, ral::communication::CommunicationData::getInstance().getSelfNode().id(),
-		    query_graph->get_output_message_cache()},
-		  message_manager_right{kernel_id, context, ral::communication::CommunicationData::getInstance().getSelfNode().id(),
-		    query_graph->get_output_message_cache()} {
+		  message_manager_left{kernel_id, context, ral::communication::CommunicationData::getInstance().getSelfNode().id(), ral::communication::CommunicationData::getInstance().getSelfNode(),
+			query_graph->get_output_message_cache()},
+		  message_manager_right{kernel_id, context, ral::communication::CommunicationData::getInstance().getSelfNode().id(), ral::communication::CommunicationData::getInstance().getSelfNode(),
+			query_graph->get_output_message_cache()} {
 		this->query_graph = query_graph;
 		this->input_.add_port("input_a", "input_b");
 		this->output_.add_port("output_a", "output_b");
@@ -545,7 +545,8 @@ public:
 					}
 				}
 
-				//scatter()
+				//message_manager.scatter(partitions_to_send);
+
 				ral::cache::MetadataDictionary metadata;
 				metadata.add_value(ral::cache::KERNEL_ID_METADATA_LABEL, kernel_id);
 				metadata.add_value(ral::cache::QUERY_ID_METADATA_LABEL, std::to_string(local_context->getContextToken()));
@@ -586,6 +587,8 @@ public:
 			}
 		}
 
+		message_manager.send_total_partition_counts(graph_output, "partition_", "false", cache_id, table_idx, node_count);
+		
 		//send_total_partition_counts()
 		auto nodes = local_context->getAllNodes();
 		for(std::size_t i = 0; i < nodes.size(); ++i) {
@@ -846,7 +849,7 @@ public:
 		// });
 
 		distribute_left_thread.join();
-		int total_count_left = message_manager_left.get_total_partition_counts();
+		int total_count_left = message_manager_left.get_total_partition_counts(node_count_left);
 		this->output_.get_cache("output_a")->wait_for_count(total_count_left);
 
 		std::map<std::string, int> node_count_right;
@@ -871,7 +874,7 @@ public:
 		// 	}
 		// });
 		distribute_right_thread.join();
-		int total_count_right = message_manager_right.get_total_partition_counts();
+		int total_count_right = message_manager_right.get_total_partition_counts(node_count_right);
 		this->output_.get_cache("output_b")->wait_for_count(total_count_right);
 	}
 
@@ -1095,6 +1098,7 @@ private:
 	bool normalize_left, normalize_right;
 	ral::distribution::MessageManager message_manager_left;
 	ral::distribution::MessageManager message_manager_right;
+	static ral::distribution::MessageManager message_manager;
 };
 
 
