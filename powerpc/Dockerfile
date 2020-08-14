@@ -3,6 +3,7 @@ FROM nvidia/cuda:10.1-devel-centos7
 
 #COPY install-dependencies.sh /tmp/
 
+ENV CMAKE_ROOT=/usr/share/cmake
 RUN yum install wget gcc gcc-c++ bzip2 make libtool python3 openssh-devel -y
 
 #RUN tmp/install-dependencies.sh
