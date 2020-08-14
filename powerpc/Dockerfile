@@ -3,7 +3,6 @@ FROM nvidia/cuda:10.1-devel-centos7
 
 #COPY install-dependencies.sh /tmp/
 
-ENV CMAKE_ROOT=/usr/share/cmake
 RUN yum install wget gcc gcc-c++ bzip2 make libtool openssh-devel zlib-devel -y
 
 #RUN tmp/install-dependencies.sh
@@ -21,16 +20,20 @@ RUN mv /usr/bin/gcc /usr/bin/gcc-4
 RUN mv /usr/bin/g++ /usr/bin/g++-4
 RUN ln -s /usr/local/bin/gcc /usr/bin/
 RUN ln -s /usr/local/bin/g++ /usr/bin/
+ENV CC=/usr/local/bin/gcc
+ENV CXX=/usr/local/bin/g++
+ENV CUDACXX=/usr/local/cuda/bin/nvcc
 
 #### CMAKE ####
 RUN wget -q https://github.com/Kitware/CMake/releases/download/v3.17.3/cmake-3.17.3.tar.gz
-RUN tar -xf /tmp/cmake-3.17.3.tar.gz
+RUN tar -xf cmake-3.17.3.tar.gz
 #RUN cd cmake-3.17.3/
 WORKDIR cmake-3.17.3/
 RUN ./bootstrap
 RUN make
 RUN make install
 #RUN rm -rf /tmp/cmake
+ENV CMAKE_ROOT=/usr/share/cmake
 
 #### Python ######
 RUN wget -q https://www.python.org/ftp/python/3.7.7/Python-3.7.7.tgz
