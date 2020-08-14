@@ -4,6 +4,7 @@
 #include <memory>
 #include <cstdint>
 
+#include "common.h"
 #include "execution_graph/logic_controllers/CacheMachine.h"
 
 std::pair<std::shared_ptr<ral::cache::CacheMachine>,std::shared_ptr<ral::cache::CacheMachine> > initialize(int ralId,
@@ -12,7 +13,7 @@ std::pair<std::shared_ptr<ral::cache::CacheMachine>,std::shared_ptr<ral::cache::
 	std::string network_iface_name,
 	std::string ralHost,
 	int ralCommunicationPort,
-	std::map<std::string, std::uintptr_t> dask_addr_to_ucp_handle,
+	std::vector<NodeMetaDataUCP> workers_ucp_info,
 	bool singleNode,
 	std::map<std::string, std::string> config_options);
 

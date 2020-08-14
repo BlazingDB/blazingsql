@@ -186,6 +186,11 @@ cdef extern from "../include/engine/common.h" nogil:
         string ip
         int communication_port
 
+    cdef struct NodeMetaDataUCP:
+        string worker_id
+        uintptr_t ep_handle
+        uintptr_t worker_handle
+
     cdef struct TableScanInfo:
         vector[string] relational_algebra_steps
         vector[string] table_names
@@ -202,7 +207,7 @@ cdef extern from "../include/engine/engine.h" nogil:
         TableScanInfo getTableScanInfo(string logicalPlan)
 
 cdef extern from "../include/engine/initialize.h":
-    cdef pair[shared_ptr[CacheMachine], shared_ptr[CacheMachine] ] initialize(int ralId, string worker_id, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, map[string, uintptr_t] dask_addr_to_ucp_handle, bool singleNode, map[string,string] config_options) nogil except +raiseInitializeError
+    cdef pair[shared_ptr[CacheMachine], shared_ptr[CacheMachine] ] initialize(int ralId, string worker_id, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, vector[NodeMetaDataUCP] workers_ucp_info, bool singleNode, map[string,string] config_options) nogil except +raiseInitializeError
     cdef void finalize() nogil except +raiseFinalizeError
     cdef void blazingSetAllocator(string allocation_mode, size_t initial_pool_size, map[string,string] config_options) nogil except +raiseBlazingSetAllocatorError
 

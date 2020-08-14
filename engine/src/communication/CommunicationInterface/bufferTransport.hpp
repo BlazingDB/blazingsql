@@ -4,8 +4,8 @@
 #include <vector>
 #include <exception>
 #include <blazingdb/io/Util/StringUtil.h>
-#include <blazingdb/transport/Node.h>
 
+#include "node.hpp"
 #include "execution_graph/logic_controllers/CacheMachine.h"
 
 namespace comm {
@@ -32,33 +32,55 @@ T from_byte_vector(std::vector<char> input) {
 
 } // namespace detail
 
+
+/**
+ * @brief Base class used to send a chunk of bytes throught a transport protocol
+ * e.g. TCP, UCP, etc
+ *
+ */
 class buffer_transport
 {
 public:
-	buffer_transport(
-		ral::cache::MetadataDictionary metadata,
+	/**
+	 * @brief Constructs a buffer_transport
+	 *
+	 * @param metadata This is information about how the message was routed and payloads that are used in
+   * execution, planning, or physical optimizations. E.G. num rows in table, num partitions to be processed
+	 * @param buffer_sizes A vector containing the sizes of the buffer
+	 * @param column_transports A vector of ColumnTransport representing column metadata
+	 */
+	buffer_transport(ral::cache::MetadataDictionary metadata,
 		std::vector<size_t> buffer_sizes,
 		std::vector<blazingdb::transport::ColumnTransport> column_transports)
 		: column_transports{column_transports}, buffer_sizes{buffer_sizes}, metadata{metadata} {
 		// iterate for workers this is destined for
-		
+
 	}
 
   virtual void send_begin_transmission() = 0;
 
+	/**
+	 * @brief Sends a chunk of bytes throught a transport protocol
+	 *
+	 * @param buffer Pointer to the byte buffer that will be send
+	 * @param buffer_size The buffer size
+	 */
   void send(const char * buffer, size_t buffer_size){
-		send_implementation(buffer, buffer_size);
+		send_impl(buffer, buffer_size);
 		buffer_sent++;
 	}
 
+	/**
+	 * @brief Waits until all the data is send
+	 */
   virtual void wait_until_complete() = 0;
 
 protected:
-	virtual void send_implementation(const char * buffer, size_t buffer_size) = 0;
+	virtual void send_impl(const char * buffer, size_t buffer_size) = 0;
 
 	/**
-	 * 
-	 */ 
+	 *
+	 */
 	std::vector<char> make_begin_transmission() {
 		// builds the cpu host buffer that we are going to send
 		// first lets serialize and send metadata
@@ -81,7 +103,6 @@ protected:
 
 		return buffer;
 	}
-
 	std::vector<blazingdb::transport::ColumnTransport> column_transports;
 	ral::cache::MetadataDictionary metadata;
 	std::vector<size_t> buffer_sizes;

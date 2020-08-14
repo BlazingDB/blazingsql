@@ -197,7 +197,7 @@ public:
 	* @return the map storing all of the metadata.
 	*/
 
-	std::map<std::string,std::string> get_values(){
+	std::map<std::string,std::string> get_values() const {
 		return this->values;
 	}
 
