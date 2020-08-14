@@ -1,5 +1,7 @@
 FROM centos:7
-RUN yum install wget gcc gcc-c++ bzip2 make libtool python3 -y && \
+
+COPY install-dependencies.sh /tmp/
+RUN /tmp/install-dependencies.sh && \
     cd /tmp && \
     wget http://ftp.mirrorservice.org/sites/sourceware.org/pub/gcc/releases/gcc-7.4.0/gcc-7.4.0.tar.gz &&\
     tar -xf gcc-7.4.0.tar.gz &&\
