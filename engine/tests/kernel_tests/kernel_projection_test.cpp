@@ -1,10 +1,13 @@
+#include <spdlog/spdlog.h>
+#include "tests/utilities/BlazingUnitTest.h"
+
 #include <chrono>
 #include <thread>
+//#include <gtest/gtest.h>
 
 #include "tests/utilities/column_wrapper.hpp"
 #include "tests/utilities/type_lists.hpp"	 // cudf::test::NumericTypes
 
-#include "tests/utilities/BlazingUnitTest.h"
 #include "execution_graph/logic_controllers/taskflow/kernel.h"
 #include "execution_graph/logic_controllers/taskflow/graph.h"
 #include "execution_graph/logic_controllers/taskflow/port.h"
