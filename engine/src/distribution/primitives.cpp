@@ -64,6 +64,7 @@ std::pair<std::vector<NodeColumn>, std::vector<std::size_t> > collectSamples(Con
 
 	size_t size = context->getWorkerNodes().size();
 	std::vector<bool> received(context->getTotalNodes(), false);
+	auto logger = spdlog::get("batch_logger");
 	for(int k = 0; k < size; ++k) {
 		auto message = Server::getInstance().getMessage(context_token, message_id);
 		logger->warn("|||{info}|{duration}||||",
@@ -325,11 +326,11 @@ std::vector<NodeColumn> collectSomePartitions(Context * context, int num_partiti
 	std::string context_comm_token = context->getContextCommunicationToken();
 	const uint32_t context_token = context->getContextToken();
 	const std::string message_id = ColumnDataMessage::MessageID() + "_" + context_comm_token;
-
+	auto logger = spdlog::get("batch_logger");
 	while(0 < num_partitions) {
 		auto message = Server::getInstance().getMessage(context_token, message_id);
 		logger->warn("|||{info}|{duration}||||",
-				"info"_a="Server::getInstance().getMessage() finished ok - from primitives.cpp->collectSomePartitions() - worker node: " + std::to_string(i),
+				"info"_a="Server::getInstance().getMessage() finished ok - from primitives.cpp->collectSomePartitions() - num_partitions " + std::to_string(num_partitions),
 				"duration"_a="");
 		num_partitions--;
 
