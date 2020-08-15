@@ -10,6 +10,7 @@
 #include <random>
 #include "parser/expression_utils.hpp"
 #include "utilities/CommonOperations.h"
+#include "communication/network/Server.h"
 
 using namespace fmt::literals;
 
@@ -20,6 +21,8 @@ using blazingdb::manager::Context;
 using blazingdb::transport::Node;
 using ral::communication::CommunicationData;
 using namespace ral::distribution;
+typedef ral::communication::network::Server Server;
+typedef ral::communication::messages::ColumnDataMessage ColumnDataMessage;
 
 const std::string ASCENDING_ORDER_SORT_TEXT = "ASC";
 const std::string DESCENDING_ORDER_SORT_TEXT = "DESC";
