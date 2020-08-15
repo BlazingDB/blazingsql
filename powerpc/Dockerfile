@@ -51,3 +51,6 @@ WORKDIR /app
 
 # TODO percy mario install more utils
 RUN yum install git nano -y
+
+# Dependency for boost
+RUN yum install which -y
