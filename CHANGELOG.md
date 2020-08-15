@@ -114,4 +114,5 @@
 - #828 Fix gpuci issues and improve tooling to debug gpuci related issues
 - #867 Fix boost dependencie issues
 - #785 Add script for Manual Testing Artifacts.
+- #931 Add script for error messages validation.
 - #932 Import pydrill and pyspark only when its generator or full mode.
