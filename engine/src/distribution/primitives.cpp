@@ -66,6 +66,9 @@ std::pair<std::vector<NodeColumn>, std::vector<std::size_t> > collectSamples(Con
 	std::vector<bool> received(context->getTotalNodes(), false);
 	for(int k = 0; k < size; ++k) {
 		auto message = Server::getInstance().getMessage(context_token, message_id);
+		logger->warn("|||{info}|{duration}||||",
+				"info"_a="Server::getInstance().getMessage() finished ok - from primitives.cpp->collectSamples() - worker node: " + std::to_string(k),
+				"duration"_a="");
 
 		auto node = message->getSenderNode();
 		int node_idx = context->getNodeIndex(node);
@@ -100,7 +103,7 @@ std::unique_ptr<BlazingTable> generatePartitionPlans(
 	//const uint32_t context_token = context->getContextToken();
 	//std::string context_comm_token = context->getContextCommunicationToken();
 	//const std::string message_id = ColumnDataMessage::MessageID() + "_" + context_comm_token;
-	//auto message = Server::getInstance().getMessage(context_token, message_id); /// HANG 
+	//auto message = Server::getInstance().getMessage(context_token, message_id); /// WHEN ADD THIS LINE ... HANG 
 	auto logger = spdlog::get("batch_logger");
 	//int node_idx = context->getNodeIndex(node);
 	logger->warn("|||{info}|{duration}||||",
@@ -170,6 +173,9 @@ std::unique_ptr<BlazingTable> getPartitionPlan(Context * context) {
 	const std::string message_id = PartitionPivotsMessage::MessageID() + "_" + context_comm_token;
 
 	auto message = Server::getInstance().getMessage(context_token, message_id);
+	logger->warn("|||{info}|{duration}||||",
+				"info"_a="Server::getInstance().getMessage() finished ok - from primitives.cpp->getPartitionPlan()",
+				"duration"_a="");
 
 	auto concreteMessage = std::static_pointer_cast<ReceivedDeviceMessage>(message);
 	return concreteMessage->releaseBlazingTable();
@@ -322,6 +328,9 @@ std::vector<NodeColumn> collectSomePartitions(Context * context, int num_partiti
 
 	while(0 < num_partitions) {
 		auto message = Server::getInstance().getMessage(context_token, message_id);
+		logger->warn("|||{info}|{duration}||||",
+				"info"_a="Server::getInstance().getMessage() finished ok - from primitives.cpp->collectSomePartitions() - worker node: " + std::to_string(i),
+				"duration"_a="");
 		num_partitions--;
 
 		auto node = message->getSenderNode();
@@ -435,8 +444,13 @@ std::vector<int64_t> collectNumRows(Context * context) {
 	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + context_comm_token;
 
 	int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
+	auto logger = spdlog::get("batch_logger");
 	for(cudf::size_type i = 0; i < num_nodes - 1; ++i) {
 		auto message = Server::getInstance().getMessage(context_token, message_id);
+		logger->warn("|||{info}|{duration}||||",
+				"info"_a="Server::getInstance().getMessage() finished ok - from primitives.cpp->collectNumRows() - worker node: " + std::to_string(i),
+				"duration"_a="");
+
 		auto concrete_message = std::static_pointer_cast<ReceivedDeviceMessage>(message);
 		auto node = concrete_message->getSenderNode();
 		int node_idx = context->getNodeIndex(node);
@@ -489,8 +503,13 @@ void collectLeftRightTableSizeBytes(Context * context,	std::vector<int64_t> & no
 	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + context_comm_token;
 
 	int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
+	auto logger = spdlog::get("batch_logger");
 	for(cudf::size_type i = 0; i < num_nodes - 1; ++i) {
 		auto message = Server::getInstance().getMessage(context_token, message_id);
+		logger->warn("|||{info}|{duration}||||",
+				"info"_a="Server::getInstance().getMessage() finished ok - from primitives.cpp->collectLeftRightTableSizeBytes() - worker node: " + std::to_string(i),
+				"duration"_a="");
+
 		auto concrete_message = std::static_pointer_cast<ReceivedDeviceMessage>(message);
 		auto node = concrete_message->getSenderNode();
 		std::unique_ptr<BlazingTable> num_bytes_data = concrete_message->releaseBlazingTable();
