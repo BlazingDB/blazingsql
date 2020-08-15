@@ -32,7 +32,7 @@
 - #936 Adding extern C for include files
 - #941 Logging level (flush_on) can be configurable
 - #945 Added new separate thresh for concat cache 
-
+- #939 Add unit test for Project kernel
 
 
 ## Bug Fixes
