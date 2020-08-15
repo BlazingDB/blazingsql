@@ -239,7 +239,10 @@ std::unique_ptr<ral::frame::BlazingTable> generate_partition_plan(const std::vec
 						"substep"_a=(context ? std::to_string(context->getQuerySubstep()) : ""),
 						"info"_a="In generatePartitionPlans Concatenating Strings will overflow strings length");
 	}
-	partitionPlan = generatePartitionPlans(total_num_partitions, samples, sortOrderTypes);
+	partitionPlan = generatePartitionPlans(total_num_partitions, samples, sortOrderTypes, context);
+	logger->warn("|||{info}|{duration}||||",
+				"info"_a="generatePartitionPlans() finished ok - from OrderBy.cpp->generate_partition_plan() ",
+				"duration"_a="");
 	context->incrementQuerySubstep();
 
 	return partitionPlan;
@@ -252,10 +255,22 @@ std::unique_ptr<ral::frame::BlazingTable> generate_distributed_partition_plan(co
 	cudf::size_type limitRows;
 	std::tie(sortColIndices, sortOrderTypes, limitRows) = get_sort_vars(query_part);
 
+	//  setting just for experiments on RAPLAB
+	auto logger = spdlog::get("batch_logger");
+	logger->warn("|||{info}|{duration}||||",
+				"info"_a="get_sort_vars() finished ok - from OrderBy.cpp->generate_distributed_partition_plan() ",
+				"duration"_a="");
+
 	std::unique_ptr<ral::frame::BlazingTable> partitionPlan;
 	if(context->isMasterNode(CommunicationData::getInstance().getSelfNode())) {
 		context->incrementQuerySubstep();
 		std::pair<std::vector<NodeColumn>, std::vector<std::size_t> > samples_pair = collectSamples(context);
+
+		//  setting just for experiments on RAPLAB
+		logger->warn("|||{info}|{duration}||||",
+				"info"_a="collectSamples() finished ok - from OrderBy.cpp->generate_distributed_partition_plan() ",
+				"duration"_a="");
+
 		std::vector<ral::frame::BlazingTableView> samples;
 		for (int i = 0; i < samples_pair.first.size(); i++){
 		samples.push_back(samples_pair.first[i].second->toBlazingTableView());
@@ -266,12 +281,33 @@ std::unique_ptr<ral::frame::BlazingTable> generate_distributed_partition_plan(co
 		std::size_t totalNumRows = std::accumulate(total_rows_tables.begin(), total_rows_tables.end(), std::size_t(0));
 
 		partitionPlan = generate_partition_plan(samples, totalNumRows, avg_bytes_per_row, query_part, context);
+
+		//  setting just for experiments on RAPLAB
+		logger->warn("|||{info}|{duration}||||",
+				"info"_a="generate_partition_plan() finished ok - from OrderBy.cpp->generate_distributed_partition_plan()",
+				"duration"_a="");
+
 		distributePartitionPlan(context, partitionPlan->toBlazingTableView());
+		//  setting just for experiments on RAPLAB
+		logger->warn("|||{info}|{duration}||||",
+				"info"_a="distributePartitionPlan() finished ok - from OrderBy.cpp->generate_distributed_partition_plan()",
+				"duration"_a="");
+
 	} else {
 		context->incrementQuerySubstep();
 		sendSamplesToMaster(context, selfSamples, table_num_rows);
+
+		//  setting just for experiments on RAPLAB
+		logger->warn("|||{info}|{duration}||||",
+				"info"_a="sendSamplesToMaster() finished ok - from OrderBy.cpp->generate_distributed_partition_plan() ",
+				"duration"_a="");
+
 		context->incrementQuerySubstep();
 		partitionPlan = getPartitionPlan(context);
+		//  setting just for experiments on RAPLAB
+		logger->warn("|||{info}|{duration}||||",
+				"info"_a="getPartitionPlan() finished ok - from OrderBy.cpp->generate_distributed_partition_plan() ",
+				"duration"_a="");
 	}
 	return partitionPlan;
 }
@@ -286,7 +322,16 @@ distribute_table_partitions(const ral::frame::BlazingTableView & partitionPlan,
 	cudf::size_type limitRows;
 	std::tie(sortColIndices, sortOrderTypes, limitRows) = get_sort_vars(query_part);
 
+	auto logger = spdlog::get("batch_logger");
+	logger->warn("|||{info}|{duration}||||",
+				"info"_a="get_sort_vars() finished ok - from OrderBy.cpp->distribute_table_partitions() " + std::to_string(limitRows),
+				"duration"_a="");
+
 	std::vector<NodeColumnView> partitions = partitionData(context, sortedTable, partitionPlan, sortColIndices, sortOrderTypes);
+
+	logger->warn("|||{info}|{duration}||||",
+				"info"_a="partitionData() finished ok - from OrderBy.cpp->distribute_table_partitions() " + std::to_string(partitions.size()),
+				"duration"_a="");
 
 	int num_nodes = context->getTotalNodes();
 	int num_partitions = partitions.size();
@@ -295,6 +340,10 @@ distribute_table_partitions(const ral::frame::BlazingTableView & partitionPlan,
 	std::generate(part_ids.begin(), part_ids.end(), [count, num_partitions_per_node=num_partitions/num_nodes] () mutable { return (count++)%(num_partitions_per_node); });
 
 	distributeTablePartitions(context, partitions, part_ids);
+
+	logger->warn("|||{info}|{duration}||||",
+				"info"_a="distributeTablePartitions() finished ok - from OrderBy.cpp->distribute_table_partitions() ",
+				"duration"_a="");
 
 	std::vector<std::pair<int, std::unique_ptr<ral::frame::BlazingTable>>> self_partitions;
 	for (size_t i = 0; i < partitions.size(); i++) {
