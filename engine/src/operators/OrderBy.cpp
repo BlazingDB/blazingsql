@@ -324,14 +324,14 @@ distribute_table_partitions(const ral::frame::BlazingTableView & partitionPlan,
 	std::vector<int> sortColIndices;
 	cudf::size_type limitRows;
 	std::tie(sortColIndices, sortOrderTypes, limitRows) = get_sort_vars(query_part);
-
+	//  setting just for experiments on RAPLAB
 	auto logger = spdlog::get("batch_logger");
 	logger->warn("|||{info}|{duration}||||",
 				"info"_a="get_sort_vars() finished ok - from OrderBy.cpp->distribute_table_partitions() " + std::to_string(limitRows),
 				"duration"_a="");
 
 	std::vector<NodeColumnView> partitions = partitionData(context, sortedTable, partitionPlan, sortColIndices, sortOrderTypes);
-
+	//  setting just for experiments on RAPLAB
 	logger->warn("|||{info}|{duration}||||",
 				"info"_a="partitionData() finished ok - from OrderBy.cpp->distribute_table_partitions() " + std::to_string(partitions.size()),
 				"duration"_a="");
@@ -341,9 +341,13 @@ distribute_table_partitions(const ral::frame::BlazingTableView & partitionPlan,
 	std::vector<int32_t> part_ids(num_partitions);
     int32_t count = 0;
 	std::generate(part_ids.begin(), part_ids.end(), [count, num_partitions_per_node=num_partitions/num_nodes] () mutable { return (count++)%(num_partitions_per_node); });
+	//  setting just for experiments on RAPLAB
+	logger->warn("|||{info}|{duration}||||",
+				"info"_a="std::generate() finished ok - from OrderBy.cpp->distribute_table_partitions() ",
+				"duration"_a="");
 
 	distributeTablePartitions(context, partitions, part_ids);
-
+	//  setting just for experiments on RAPLAB
 	logger->warn("|||{info}|{duration}||||",
 				"info"_a="distributeTablePartitions() finished ok - from OrderBy.cpp->distribute_table_partitions() ",
 				"duration"_a="");

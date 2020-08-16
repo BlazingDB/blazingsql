@@ -244,7 +244,7 @@ void distributeTablePartitions(Context * context, std::vector<NodeColumnView> & 
 	const std::string message_id = ColumnDataPartitionMessage::MessageID() + "_" + context_comm_token;
 
 	auto self_node = CommunicationData::getInstance().getSelfNode();
-	std::vector<BlazingThread> threads;
+	ctpl::thread_pool<BlazingThread> threads(20);  // ADD here pool thread as the other cases
 	for (auto i = 0; i < partitions.size(); i++){
 		auto & nodeColumn = partitions[i];
 		if(nodeColumn.first == self_node) {
@@ -256,15 +256,15 @@ void distributeTablePartitions(Context * context, std::vector<NodeColumnView> & 
 			auto destination_node = nodeColumn.first;
 			int partition_id = part_ids.size() > i ? part_ids[i] : 0; // if part_ids is not set, then it does not matter and we can just use 0 as the partition_id
 
-			threads.push_back(BlazingThread([message_id, context_token, self_node, destination_node, columns, partition_id]() mutable {
+			threads.push(([message_id, context_token, self_node, destination_node, columns, partition_id](int thread_id) mutable {
 				auto message = Factory::createColumnDataPartitionMessage(message_id, context_token, self_node, partition_id, columns);
 				Client::send(destination_node, *message);
 			}));
 		}
 	}
-	for(size_t i = 0; i < threads.size(); i++) {
-		threads[i].join();
-	}
+	//for(size_t i = 0; i < threads.size(); i++) {
+	//	threads[i].join();
+	//}
 }
 
 void notifyLastTablePartitions(Context * context, std::string message_id) {
@@ -291,7 +291,7 @@ void distributePartitions(Context * context, std::vector<NodeColumnView> & parti
 	const std::string message_id = ColumnDataMessage::MessageID() + "_" + context_comm_token;
 
 	auto self_node = CommunicationData::getInstance().getSelfNode();
-	ctpl::thread_pool<BlazingThread> threads; //  setting just for experiments on RAPLAB
+	ctpl::thread_pool<BlazingThread> threads(20); //  setting just for experiments on RAPLAB
 	for(auto & nodeColumn : partitions) {
 		if(nodeColumn.first == self_node) {
 			continue;
