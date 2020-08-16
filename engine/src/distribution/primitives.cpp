@@ -289,9 +289,11 @@ void distributePartitions(Context * context, std::vector<NodeColumnView> & parti
 	std::string context_comm_token = context->getContextCommunicationToken();
 	const uint32_t context_token = context->getContextToken();
 	const std::string message_id = ColumnDataMessage::MessageID() + "_" + context_comm_token;
+	auto logger = spdlog::get("batch_logger");
 
 	auto self_node = CommunicationData::getInstance().getSelfNode();
 	ctpl::thread_pool<BlazingThread> threads(20); //  setting just for experiments on RAPLAB
+	int i = 0;
 	for(auto & nodeColumn : partitions) {
 		if(nodeColumn.first == self_node) {
 			continue;
@@ -302,8 +304,14 @@ void distributePartitions(Context * context, std::vector<NodeColumnView> & parti
 			auto message = Factory::createColumnDataMessage(message_id, context_token, self_node, columns);
 			Client::send(destination_node, *message);
 		});
+		logger->warn("|||{info}|{duration}||||",
+				"info"_a="distributePartitions - from primitives.cpp->distributePartitions() - " + std::to_string(i++),
+				"duration"_a="");
 	}
-	//or(size_t i = 0; i < threads.size(); i++) {
+	//for(size_t i = 0; i < threads.size(); i++) {
+
+
+		
 	//	threads[i].join();
 	//}
 }
