@@ -2,11 +2,18 @@
 
 #include <string>
 #include <vector>
+#include <cstdint>
 
 struct NodeMetaDataTCP {
 	std::string worker_id;
 	std::string ip;
 	std::int32_t communication_port;
+};
+
+struct NodeMetaDataUCP {
+	std::string worker_id;
+	std::uintptr_t ep_handle;
+	std::uintptr_t worker_handle;
 };
 
 struct TableScanInfo {
