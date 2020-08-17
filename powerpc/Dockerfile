@@ -54,3 +54,8 @@ RUN yum install git nano -y
 
 # Dependency for boost
 RUN yum install which -y
+
+# NodeJs
+RUN curl -sL https://rpm.nodesource.com/setup_12.x|bash &&\
+    yum install -y nodejs
+
