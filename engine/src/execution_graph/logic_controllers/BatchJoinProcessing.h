@@ -73,7 +73,7 @@ public:
 		this->leftArrayCache = 	ral::cache::create_cache_machine(cache_machine_config);
 		this->rightArrayCache = ral::cache::create_cache_machine(cache_machine_config);
 
-		std::tie(this->expression, this->condition, this->filter_statement, this->join_type) = parseExpressionToGetTypeAndCondition(this->expression);		
+		std::tie(this->expression, this->condition, this->filter_statement, this->join_type) = parseExpressionToGetTypeAndCondition(this->expression);
 	}
 
 	bool can_you_throttle_my_input() {
@@ -201,14 +201,14 @@ public:
 				if(has_nulls_right){
 					table_right_dropna = cudf::drop_nulls(table_right.view(), right_column_indices);
 				}
-				
+
 				result_table = cudf::inner_join(
 					has_nulls_left ? table_left_dropna->view() : table_left.view(),
 					has_nulls_right ? table_right_dropna->view() : table_right.view(),
 					this->left_column_indices,
 					this->right_column_indices,
 					columns_in_common);
-				
+
 			} else if(this->join_type == LEFT_JOIN) {
 				//Removing nulls on right key columns before joining
 				std::unique_ptr<CudfTable> table_right_dropna;
@@ -234,14 +234,14 @@ public:
 				RAL_FAIL("Unsupported join operator");
 			}
 		}
-		
+
 		return std::make_unique<ral::frame::BlazingTable>(std::move(result_table), this->result_names);
 	}
 
     virtual kstatus run() {
 		CodeTimer timer;
 
-		bool ordered = false; 
+		bool ordered = false;
         this->left_sequence = BatchSequence(this->input_.get_cache("input_a"), this, ordered);
 		this->right_sequence = BatchSequence(this->input_.get_cache("input_b"), this, ordered);
 
@@ -256,11 +256,11 @@ public:
 			try {
 
 				if (left_batch == nullptr && right_batch == nullptr){ // first load
-					
+
 					// before we load anything, lets make sure each side has data to process
 					this->left_sequence.wait_for_next();
 					this->right_sequence.wait_for_next();
-					
+
 					left_batch = load_left_set();
 					right_batch = load_right_set();
 					this->max_left_ind = 0; // we have loaded just once. This is the highest index for now
@@ -430,7 +430,7 @@ private:
 	std::vector<std::vector<bool>> completion_matrix;
 	std::shared_ptr<ral::cache::CacheMachine> leftArrayCache;
 	std::shared_ptr<ral::cache::CacheMachine> rightArrayCache;
-	
+
 	// parsed expression related parameters
 	std::string join_type;
 	std::string condition;
@@ -689,7 +689,7 @@ public:
 		metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, worker_ids_metadata);
 		metadata.add_value(ral::cache::JOIN_LEFT_BYTES_METADATA_LABEL, std::to_string(left_bytes_estimate));
 		metadata.add_value(ral::cache::JOIN_RIGHT_BYTES_METADATA_LABEL, std::to_string(right_bytes_estimate));
-		ral::cache::CacheMachine* output_cache = this->query_graph->get_output_message_cache();
+		auto output_cache = this->query_graph->get_output_message_cache();
 		output_cache->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(ral::utilities::create_empty_table({}, {}), metadata),"",true);
 
 		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
@@ -822,7 +822,7 @@ public:
 		BlazingMutableThread distribute_left_thread(&JoinPartitionKernel::partition_table, std::to_string(this->get_id()), this->context.get(),
 			this->left_column_indices, std::move(left_batch), std::ref(left_sequence), this->normalize_left, this->join_column_common_types,
 			this->output_.get_cache("output_a").get(),
-			this->query_graph->get_output_message_cache(),
+			this->query_graph->get_output_message_cache().get(),
 			"output_a",
 			std::ref(node_count_left),
 			std::ref(messages_to_wait_for_left),
@@ -851,7 +851,7 @@ public:
 		BlazingMutableThread distribute_right_thread(&JoinPartitionKernel::partition_table, std::to_string(this->get_id()), this->context.get(),
 			this->right_column_indices, std::move(right_batch), std::ref(right_sequence), this->normalize_right, this->join_column_common_types,
 			this->output_.get_cache("output_b").get(),
-			this->query_graph->get_output_message_cache(),
+			this->query_graph->get_output_message_cache().get(),
 			"output_b",
 			std::ref(node_count_right),
 			std::ref(messages_to_wait_for_right),
@@ -924,7 +924,7 @@ public:
 						metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, small_output_cache_name);
 						metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, self_node.id());
 						metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, worker_ids_metadata);
-						ral::cache::CacheMachine* output_cache = this->query_graph->get_output_message_cache();
+						auto output_cache = this->query_graph->get_output_message_cache();
 						output_cache->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(small_table_batch->toBlazingTableView().clone(), metadata),"",true);
 						this->output_.get_cache(small_output_cache_name).get()->addToCache(std::move(small_table_batch),"",true);
 					}

@@ -4,9 +4,11 @@
 #include <vector>
 #include <exception>
 #include <blazingdb/io/Util/StringUtil.h>
+#include <blazingdb/transport/ColumnTransport.h>
 
 #include "node.hpp"
 #include "execution_graph/logic_controllers/CacheMachine.h"
+
 
 namespace comm {
 
@@ -26,17 +28,17 @@ std::vector<char> vector_to_byte_vector(std::vector<T> input) {
 
 template <typename T>
 T from_byte_vector(const char * input) {
-	T * byte_pointer = reinterpret_cast<T *>(input);
+	const T * byte_pointer = reinterpret_cast<const T *>(input);
 	return *byte_pointer;
 }
 
 template <typename T>
-T vector_from_byte_vector(const char * input, size_t length) {
-	T * byte_pointer = reinterpret_cast<T *>(input);
+std::vector<T> vector_from_byte_vector(const char * input, size_t length) {
+	const T * byte_pointer = reinterpret_cast<const T *>(input);
 	return std::vector<T>(byte_pointer,byte_pointer + length);
 }
 
-std::pair<ral::cache::MetadataDictionary, std::vector<ColumnTransport> > get_metadata_and_transports_from_bytes(std::vector<char> data){
+std::pair<ral::cache::MetadataDictionary, std::vector<blazingdb::transport::ColumnTransport>>get_metadata_and_transports_from_bytes(std::vector<char> data){
     size_t ptr_offset = 0;
 	size_t metadata_buffer_size = from_byte_vector<size_t>(data.data());
 	ptr_offset += sizeof(size_t);
@@ -46,15 +48,15 @@ std::pair<ral::cache::MetadataDictionary, std::vector<ColumnTransport> > get_met
 		data.data() + ptr_offset + metadata_buffer_size);
 	ptr_offset += metadata_buffer_size;
 	ral::cache::MetadataDictionary dictionary;
-	for(auto metadata_item : StringUtill::split(metadata_buffer,"\n")){
-		std::vector<std::string> key_value = StringUtill::split(metadata_buffer,":");
+	for(auto metadata_item : StringUtil::split(metadata_buffer,"\n")){
+		std::vector<std::string> key_value = StringUtil::split(metadata_buffer,":");
 		dictionary.add_value(key_value[0],key_value[1]);
 	}
 
 	size_t column_transports_size = from_byte_vector<size_t>(
 		data.data() + ptr_offset);
 	ptr_offset += sizeof(size_t);
-	auto column_transports = vector_from_byte_vector<ColumnTransport>(
+	auto column_transports = vector_from_byte_vector<blazingdb::transport::ColumnTransport>(
 		data.data() + ptr_offset, column_transports_size);
 	return std::make_pair(dictionary,column_transports);
 }

@@ -5,6 +5,7 @@
 
 #include "bufferTransport.hpp"
 #include "node.hpp"
+#include "utilities/ctpl_stl.h"
 
 namespace comm {
 

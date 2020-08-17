@@ -139,7 +139,7 @@ std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> > initiali
 
 	std::map<std::string, comm::node> nodes_info_map;
 	for (auto &&node_data : workers_ucp_info) {
-		nodes_info_map[node_data.worker_id] = comm::node(ralId, node_data.worker_id, reinterpret_cast<ucp_ep_h>(node_data.ep_handle), reinterpret_cast<ucp_worker_h>(node_data.worker_handle));
+		nodes_info_map.emplace(node_data.worker_id, comm::node(ralId, node_data.worker_id, reinterpret_cast<ucp_ep_h>(node_data.ep_handle), reinterpret_cast<ucp_worker_h>(node_data.worker_handle)));
 	}
 
 	comm::ucp_nodes_info::getInstance().init(nodes_info_map);

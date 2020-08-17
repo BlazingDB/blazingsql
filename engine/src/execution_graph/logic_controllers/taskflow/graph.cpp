@@ -80,7 +80,7 @@ namespace cache {
 		// 	try{
 		// 		thread.join();
 		// 	}catch(const std::exception& e){
-				
+
 		// 		throw;
 		// 	}
 
@@ -276,9 +276,9 @@ namespace cache {
 		this->output_cache_ = output_cache;
 	}
 
-	ral::cache::CacheMachine* graph::get_input_message_cache() { return input_cache_.get(); }
+	std::shared_ptr<ral::cache::CacheMachine> graph::get_input_message_cache() { return input_cache_; }
 
-	ral::cache::CacheMachine* graph::get_output_message_cache() {return output_cache_.get(); }
+	std::shared_ptr<ral::cache::CacheMachine> graph::get_output_message_cache() {return output_cache_; }
 
 	std::set<graph::Edge> graph::get_neighbours(kernel * from) { return edges_[from->get_id()]; }
 	std::set<graph::Edge> graph::get_neighbours(int32_t id) { return edges_[id]; }

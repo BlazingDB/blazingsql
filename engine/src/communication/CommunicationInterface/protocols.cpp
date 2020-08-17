@@ -1,11 +1,14 @@
 
+#include <map>
+#include <vector>
+
 #include "protocols.hpp"
+#include "messageReceiver.hpp"
 
 #include <ucp/api/ucp.h>
 #include <ucp/api/ucp_def.h>
 
-#include <map>
-#include <vector>
+#include "execution_graph/logic_controllers/CacheMachine.h"
 
 namespace comm {
 
@@ -47,7 +50,7 @@ std::map<void *, std::shared_ptr<status_code>> recv_begin_ack_status_map;
 
 void send_begin_callback_c(void * request, ucs_status_t status) {
 	auto blazing_request = reinterpret_cast<ucx_request *>(request);
-	auto transport = uid_to_buffer_transport[blazing_request->uid];
+	auto transport = message_uid_to_buffer_transport[blazing_request->uid];
 	transport->recv_begin_transmission_ack();
 	ucp_request_release(request);
 }
@@ -55,6 +58,8 @@ void send_begin_callback_c(void * request, ucs_status_t status) {
 void recv_begin_ack_callback_c(void * request, ucs_status_t status, ucp_tag_recv_info_t * info) {
 	std::shared_ptr<status_code> status_begin_ack = recv_begin_ack_status_map[request];
 	if (*status_begin_ack == status_code::OK) {
+		auto blazing_request = reinterpret_cast<ucx_request *>(request);
+		auto transport = message_uid_to_buffer_transport[blazing_request->uid];
 		transport->increment_begin_transmission();
 	}
 
@@ -65,7 +70,7 @@ void recv_begin_ack_callback_c(void * request, ucs_status_t status, ucp_tag_recv
 
 void send_callback_c(void * request, ucs_status_t status) {
 	auto blazing_request = reinterpret_cast<ucx_request *>(request);
-	auto transport = uid_to_buffer_transport[blazing_request->uid];
+	auto transport = message_uid_to_buffer_transport[blazing_request->uid];
 	transport->increment_frame_transmission();
 	ucp_request_release(request);
 }
@@ -81,7 +86,7 @@ ucx_buffer_transport::ucx_buffer_transport(node origin_node,
 	tag = generate_message_tag();
 }
 
-~ucx_buffer_transport::ucx_buffer_transport() {
+ucx_buffer_transport::~ucx_buffer_transport() {
 	message_uid_to_buffer_transport.erase(this->message_id);
 }
 
@@ -151,7 +156,7 @@ void ucx_buffer_transport::wait_for_begin_transmission() {
 }
 
 void ucx_buffer_transport::recv_begin_transmission_ack() {
-	status_code recv_begin_status = std::make_shared<status_code>(status_code::INVALID);
+	auto recv_begin_status = std::make_shared<status_code>(status_code::INVALID);
 	std::shared_ptr<ucp_tag_recv_info_t> info_tag = std::make_shared<ucp_tag_recv_info_t>();
 	blazing_ucp_tag acknowledge_tag = *reinterpret_cast<blazing_ucp_tag *>(&tag);
 	acknowledge_tag.frame_id = 0xFFFF;
@@ -227,27 +232,27 @@ ucx_message_listener::ucx_message_listener(ucp_worker_h worker) :
 
 }
 
+std::map<void *,std::shared_ptr<status_code> > status_scope_holder;
+
 void send_aknowledge_callback_c(void * request, ucs_status_t status){
 	status_scope_holder.erase(request);
 	ucp_request_release(request);
 }
 
-std::map<void *,std::shared_ptr<status_code> > status_scope_holder;
-
 void recv_begin_callback_c(void * request, ucs_status_t status,
 							ucp_tag_recv_info_t *info) {
 	auto blazing_request = reinterpret_cast<ucx_request *>(request);
 	auto buffer = tag_to_begin_buffer_and_info.at(info->sender_tag).first;
-	auto metadata_and_transports = get_metadata_and_transports_from_bytes(buffer);
+	auto metadata_and_transports = detail::get_metadata_and_transports_from_bytes(buffer);
 	auto metadata = metadata_and_transports.first;
 
 	auto receiver = std::make_shared<message_receiver>(
 		metadata_and_transports.second,
-		metdata,
-		metdata[ADD_TO_SPECIFIC_CACHE_METADATA_LABEL] == "true" ? nullptr : nullptr);
+		metadata,
+		metadata[ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL] == "true" ? nullptr : nullptr);
 	//TODO: if its a specific cache get that cache adn put it here else put the general iput cache from the graph
-	auto node = ucp_nodes_info::getInstance().get_node(metadata[SENDER_WORKER_ID_METADATA_LABEL]);
-	auto acknowledge_tag = reinterpret_cast<blazing_tag *>(&info->sender_tag);
+	auto node = ucp_nodes_info::getInstance().get_node(metadata[ral::cache::SENDER_WORKER_ID_METADATA_LABEL]);
+	auto acknowledge_tag = reinterpret_cast<blazing_ucp_tag *>(&info->sender_tag);
 	acknowledge_tag->frame_id = 0xFFFF;
 	auto acknowledge_tag_ucp = *reinterpret_cast<ucp_tag_t *>(&acknowledge_tag);
 
@@ -269,7 +274,7 @@ void recv_begin_callback_c(void * request, ucs_status_t status,
 	tag_to_begin_buffer_and_info.erase(info->sender_tag);
 }
 
-std::map<ucp_tag_t, std::pair( std::vector<char>, std::shared_ptr<ucp_tag_recv_info_t>  > tag_to_begin_buffer_and_info;
+std::map<ucp_tag_t, std::pair<std::vector<char>, std::shared_ptr<ucp_tag_recv_info_t>>> tag_to_begin_buffer_and_info;
 
 
 void ucx_message_listener::poll_begin_message_tag(ucp_tag_t tag){
