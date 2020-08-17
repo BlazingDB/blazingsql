@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 working_directory=$PWD
 
 output_dir=$working_directory
@@ -119,6 +121,219 @@ if [ ! -d $thrift_build_dir ]; then
 fi
 
 #END thrift
+
+#BEGIN flatbuffers
+flatbuffers_install_dir=$tmp_dir
+flatbuffers_build_dir=$build_dir/flatbuffers
+if [ ! -d $flatbuffers_build_dir ]; then
+    echo "### Flatbufferts - Start ###"
+    mkdir -p $flatbuffers_build_dir
+    cd $flatbuffers_build_dir
+
+    git clone https://github.com/google/flatbuffers.git
+    cd flatbuffers/
+    git checkout 02a7807dd8d26f5668ffbbec0360dc107bbfabd5
+
+    echo "### Flatbufferts - cmake ###"
+    cmake -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_INSTALL_PREFIX:PATH=$flatbuffers_install_dir \
+          -DCMAKE_C_FLAGS=-D_GLIBCXX_USE_CXX11_ABI=0 \
+          -DCMAKE_CXX_FLAGS=-D_GLIBCXX_USE_CXX11_ABI=0 \
+          -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+          .
+    if [ $? != 0 ]; then
+      exit 1
+    fi
+
+    echo "### Flatbufferts - make install ###"
+    make -j4 install
+    if [ $? != 0 ]; then
+      exit 1
+    fi
+
+    echo "### Flatbufferts - End ###"
+fi
+#END flatbuffers
+
+#BEGIN lz4
+lz4_install_dir=$tmp_dir
+lz4_build_dir=$build_dir/lz4
+if [ ! -d $lz4_build_dir ]; then
+    echo "### Lz4 - Start ###"
+    mkdir -p $lz4_build_dir
+    cd $lz4_build_dir
+    git clone https://github.com/lz4/lz4.git
+    cd lz4/
+    git checkout v1.7.5
+
+    # NOTE build Boost with old C++ ABI _GLIBCXX_USE_CXX11_ABI=0 and with -fPIC
+    echo "### Lz4 - make install ###"
+    CFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0 -O3 -fPIC" CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0 -O3 -fPIC" PREFIX=$lz4_install_dir make -j4 install
+    if [ $? != 0 ]; then
+      exit 1
+    fi
+
+    echo "### Lz4 - End ###"
+fi
+
+#END lz4
+
+#BEGIN zstd
+zstd_install_dir=$tmp_dir
+zstd_build_dir=$build_dir/zstd
+if [ ! -d $zstd_build_dir ]; then
+    echo "### Zstd - Start ###"
+    mkdir -p $zstd_build_dir
+    cd $zstd_build_dir
+    git clone https://github.com/facebook/zstd.git
+    cd zstd/
+    git checkout v1.2.0
+    echo "### Zstd - cmake ###"
+    cd $zstd_build_dir/zstd/build/cmake/
+    cmake -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_INSTALL_PREFIX:PATH=$zstd_install_dir \
+          -DCMAKE_C_FLAGS=-D_GLIBCXX_USE_CXX11_ABI=0 \
+          -DCMAKE_CXX_FLAGS=-D_GLIBCXX_USE_CXX11_ABI=0 \
+          -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+          -DZSTD_BUILD_STATIC=ON \
+          .
+    if [ $? != 0 ]; then
+      exit 1
+    fi
+
+    echo "### Zstd - make install ###"
+    make -j4 install
+    if [ $? != 0 ]; then
+      exit 1
+    fi
+
+    echo "### Zstd - End ###"
+fi
+#END zstd
+
+#BEGIN brotli
+brotli_install_dir=$tmp_dir
+brotli_build_dir=$build_dir/brotli
+if [ ! -d $brotli_build_dir ]; then
+    echo "### Brotli - Start ###"
+    mkdir -p $brotli_build_dir
+    cd $brotli_build_dir
+    git clone https://github.com/google/brotli.git
+    cd brotli/
+    git checkout v0.6.0
+
+    echo "### Brotli - cmake ###"
+    cmake -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_INSTALL_PREFIX:PATH=$brotli_install_dir \
+          -DCMAKE_C_FLAGS=-D_GLIBCXX_USE_CXX11_ABI=0 \
+          -DCMAKE_CXX_FLAGS=-D_GLIBCXX_USE_CXX11_ABI=0 \
+          -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+          -DBUILD_SHARED_LIBS=OFF \
+          .
+    if [ $? != 0 ]; then
+      exit 1
+    fi
+
+    echo "### Brotli - make install ###"
+    make -j4 install
+    if [ $? != 0 ]; then
+      exit 1
+    fi
+
+    echo "### Brotli - End ###"
+fi
+#END brotli
+
+#BEGIN snappy
+snappy_install_dir=$tmp_dir
+snappy_build_dir=$build_dir/snappy
+if [ ! -d $snappy_build_dir ]; then
+    echo "### Snappy - Start ###"
+    mkdir -p $snappy_build_dir
+    cd $snappy_build_dir
+    git clone https://github.com/google/snappy.git
+    cd snappy/
+    git checkout 1.1.3
+
+    # NOTE build Boost with old C++ ABI _GLIBCXX_USE_CXX11_ABI=0 and with -fPIC
+    CFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0 -O3 -fPIC -O2" CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0 -O3 -fPIC -O2" ./autogen.sh
+
+    echo "### Snappy - Configure ###"
+    CFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0 -O3 -fPIC -O2" CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0 -O3 -fPIC -O2" ./configure --prefix=$snappy_install_dir
+
+    echo "### Snappy - make install ###"
+    CFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0 -O3 -fPIC -O2" CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0 -O3 -fPIC -O2" make -j4 install
+    if [ $? != 0 ]; then
+      exit 1
+    fi
+
+    echo "### Snappy - End ###"
+fi
+#END snappy
+
+#BEGIN arrow
+arrow_install_dir=$tmp_dir
+arrow_build_dir=$build_dir/arrow
+echo "arrow_install_dir: "$arrow_install_dir
+echo "arrow_build_dir: "$arrow_build_dir
+if [ ! -d $arrow_build_dir ]; then
+    echo "### Arrow - start ###"
+    mkdir -p $arrow_build_dir
+    cd $arrow_build_dir
+    git clone https://github.com/apache/arrow.git
+    cd arrow/
+    git checkout apache-arrow-0.17.1
+
+    echo "### Arrow - cmake ###"
+    # NOTE for the arrow cmake arguments:
+    # -DARROW_IPC=ON \ # need ipc for blazingdb-ral (because cudf)
+    # -DARROW_HDFS=ON \ # blazingdb-io use arrow for hdfs
+    # -DARROW_TENSORFLOW=ON \ # enable old ABI for C/C++
+    
+    BOOST_ROOT=$boost_install_dir \
+    FLATBUFFERS_HOME=$flatbuffers_install_dir \
+    LZ4_HOME=$lz4_install_dir \
+    ZSTD_HOME=$zstd_install_dir \
+    BROTLI_HOME=$brotli_install_dir \
+    SNAPPY_HOME=$snappy_install_dir \
+    THRIFT_HOME=$thrift_install_dir \
+    cd cpp/
+    cmake -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX:PATH=$arrow_install_dir \
+        -DARROW_WITH_LZ4=ON \
+        -DARROW_WITH_ZSTD=ON \
+        -DARROW_WITH_BROTLI=ON \
+        -DARROW_WITH_SNAPPY=ON \
+        -DARROW_WITH_ZLIB=ON \
+        -DARROW_BUILD_STATIC=ON \
+        -DARROW_BUILD_SHARED=ON \
+        -DARROW_BOOST_USE_SHARED=OFF \
+        -DARROW_BUILD_TESTS=OFF \
+        -DARROW_TEST_MEMCHECK=OFF \
+        -DARROW_BUILD_BENCHMARKS=OFF \
+        -DARROW_IPC=ON \
+        -DARROW_COMPUTE=ON \
+        -DARROW_GPU=OFF \
+        -DARROW_JEMALLOC=OFF \
+        -DARROW_BOOST_VENDORED=OFF \
+        -DARROW_PYTHON=OFF \
+        -DARROW_HDFS=ON \
+        -DARROW_TENSORFLOW=ON \
+        -DARROW_PARQUET=ON \
+        .
+    if [ $? != 0 ]; then
+      exit 1
+    fi
+
+    echo "### Arrow - make install ###"
+    make -j4 install
+    if [ $? != 0 ]; then
+      exit 1
+    fi
+
+    echo "### Arrow - end ###"
+fi
+#END arrow
 
 echo "end before"
 
