@@ -23,7 +23,7 @@ docker run -ti -v $PWD:/app --gpus=all --rm blazingdb/build:powerpc bash
 
 Run a container with gpu and same user
 ```
-docker run -u $(id -u):$(id -g) -ti -v $PWD:/app --gpus=all --rm blazingdb/build:powerpc bash
+docker run -u $(id -u):$(id -g) -ti -v /etc/passwd:/etc/passwd -v $PWD:/app --gpus=all --rm blazingdb/build:powerpc bash
 ```
 
 Execute a command as root:

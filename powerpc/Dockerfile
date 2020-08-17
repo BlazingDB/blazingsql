@@ -59,3 +59,5 @@ RUN yum install which -y
 RUN curl -sL https://rpm.nodesource.com/setup_12.x|bash &&\
     yum install -y nodejs
 
+# Dependency for thrift
+RUN yum install -y flex bison byacc

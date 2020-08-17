@@ -23,10 +23,19 @@ blazingsql_build_dir=$build_dir/blazingsql
 #rm -rf $tmp_dir
 #mkdir -p $blazingsql_build_dir
 
+echo "### Vars ###"
+echo "output_dir: "$output_dir
+echo "blazingsql_project_dir: "$blazingsql_project_dir
+echo "tmp_dir: "$tmp_dir
+echo "build_dir: "$build_dir
+echo "blazingsql_build_dir: "$blazingsql_build_dir
+
 #BEGIN boost
 
 boost_install_dir=$tmp_dir
 boost_build_dir=$build_dir/boost/
+echo "boost_install_dir: "$boost_install_dir
+echo "boost_build_dir: "$boost_build_dir
 
 # TODO percy mario manage version labels (1.66.0 and 1_66_0)
 if [ ! -f $boost_install_dir/include/boost/version.hpp ]; then
@@ -36,7 +45,7 @@ if [ ! -f $boost_install_dir/include/boost/version.hpp ]; then
 
     # TODO percy mario manbage boost version
     if [ ! -f $boost_build_dir/boost_1_66_0.tar.gz ]; then
-        wget https://dl.bintray.com/boostorg/release/1.66.0/source/boost_1_66_0.tar.gz
+        wget -q https://dl.bintray.com/boostorg/release/1.66.0/source/boost_1_66_0.tar.gz
     fi
 
     if [ ! -d $boost_build_dir/boost_1_66_0 ]; then
@@ -50,13 +59,66 @@ if [ ! -f $boost_install_dir/include/boost/version.hpp ]; then
     ./bootstrap.sh --with-libraries=system,filesystem,regex,atomic,chrono,container,context,thread --with-icu --prefix=$boost_install_dir
     ./b2 install variant=release define=_GLIBCXX_USE_CXX11_ABI=0 stage cxxflags=-fPIC cflags=-fPIC link=static runtime-link=static threading=multi --exec-prefix=$boost_install_dir --prefix=$boost_install_dir -a
     if [ $? != 0 ]; then
+      echo "Error during b2 install"
       exit 1
     fi
     echo "### Boost - end ###"
 fi
-
 #END boost
 
+#BEGIN thrift
+thrift_install_dir=$tmp_dir
+thrift_build_dir=$build_dir/thrift/
+echo "thrift_install_dir: "$thrift_install_dir
+echo "thrift_build_dir: "$thrift_build_dir
+
+if [ ! -d $thrift_build_dir ]; then
+    echo "### Thrift - start ###"
+    mkdir -p $thrift_build_dir
+    cd $thrift_build_dir
+
+    git clone https://github.com/apache/thrift.git
+    cd thrift/
+    git checkout 0.13.0
+
+    echo "### Thrift - cmake ###"
+    export PY_PREFIX=$thrift_install_dir
+    #./bootstrap.sh
+    #./configure --prefix=$thrift_install_dir --enable-libs --with-cpp=yes --with-haskell=no --with-nodejs=no --with-nodets=no
+    cmake -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_INSTALL_PREFIX:PATH=$thrift_install_dir \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DBUILD_SHARED_LIBS=OFF \
+          -DBUILD_TESTING=OFF \
+          -DBUILD_EXAMPLES=OFF \
+          -DBUILD_TUTORIALS=OFF \
+          -DWITH_QT4=OFF \
+          -DWITH_C_GLIB=OFF \
+          -DWITH_JAVA=OFF \
+          -DWITH_PYTHON=OFF \
+          -DWITH_HASKELL=OFF \
+          -DWITH_CPP=ON \
+          -DWITH_STATIC_LIB=ON \
+          -DWITH_LIBEVENT=OFF \
+          -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+          -DCMAKE_C_FLAGS=-D_GLIBCXX_USE_CXX11_ABI=0 \
+          -DCMAKE_CXX_FLAGS=-D_GLIBCXX_USE_CXX11_ABI=0 \
+          -DBOOST_ROOT=$boost_install_dir \
+          .
+    if [ $? != 0 ]; then
+      exit 1
+    fi
+
+    echo "### Thrift - make install ###"
+    make -j4 install
+    if [ $? != 0 ]; then
+      exit 1
+    fi
+
+    echo "### Thrift - end ###"
+fi
+
+#END thrift
 
 echo "end before"
 
@@ -1898,57 +1960,6 @@ fi
 
 #END snappy
 
-#BEGIN thrift
-
-thrift_install_dir=$workspace_dir/dependencies/thrift_install_dir
-
-if [ ! -d $thrift_install_dir ]; then
-    echo "### Thrift - start ###"
-    cd $workspace_dir/dependencies/
-    git clone https://github.com/apache/thrift.git
-    cd $workspace_dir/dependencies/thrift
-    git checkout 0.11.0
-
-    thrift_build_dir=$workspace_dir/dependencies/thrift/build/
-
-    mkdir -p $thrift_build_dir
-
-    echo "### Thrift - cmake ###"
-    cd $thrift_build_dir
-    cmake -DCMAKE_BUILD_TYPE=Release \
-          -DCMAKE_INSTALL_PREFIX:PATH=$thrift_install_dir \
-          -DCMAKE_BUILD_TYPE=Release \
-          -DBUILD_SHARED_LIBS=OFF \
-          -DBUILD_TESTING=OFF \
-          -DBUILD_EXAMPLES=OFF \
-          -DBUILD_TUTORIALS=OFF \
-          -DWITH_QT4=OFF \
-          -DWITH_C_GLIB=OFF \
-          -DWITH_JAVA=OFF \
-          -DWITH_PYTHON=OFF \
-          -DWITH_HASKELL=OFF \
-          -DWITH_CPP=ON \
-          -DWITH_STATIC_LIB=ON \
-          -DWITH_LIBEVENT=OFF \
-          -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
-          -DCMAKE_C_FLAGS=-D_GLIBCXX_USE_CXX11_ABI=0 \
-          -DCMAKE_CXX_FLAGS=-D_GLIBCXX_USE_CXX11_ABI=0 \
-          -DBOOST_ROOT=$boost_install_dir \
-          ..
-    if [ $? != 0 ]; then
-      exit 1
-    fi
-
-    echo "### Thrift - make install ###"
-    make -j4 install
-    if [ $? != 0 ]; then
-      exit 1
-    fi
-
-    echo "### Thrift - end ###"
-fi
-
-#END thrift
 
 #BEGIN arrow
 
