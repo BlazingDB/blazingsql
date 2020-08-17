@@ -22,7 +22,13 @@ class MessageManager {
               output_message_cache{output_message_cache} {
         }
 
-    void scatter(std::vector<ral::frame::BlazingTableView> partitions);
+    void scatter(std::vector<ral::frame::BlazingTableView> partitions,
+        ral::cache::CacheMachine* output,
+        ral::cache::CacheMachine* graph_output,
+        std::string message_id,
+        std::string metadata_label,
+        std::string cache_id,
+        std::map<std::string, int>& node_count);
 
     void send_total_partition_counts(ral::cache::CacheMachine* graph_output,
         std::string message_prefix,

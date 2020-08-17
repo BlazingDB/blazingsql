@@ -528,6 +528,9 @@ public:
 						partitioned.push_back(batch_view);
 					}
 				}
+
+				//message_manager.scatter(partitions_to_send);
+
 				std::vector<ral::distribution::NodeColumnView > partitions_to_send;
 				for(int nodeIndex = 0; nodeIndex < local_context->getTotalNodes(); nodeIndex++ ){
 					ral::frame::BlazingTableView partition_table_view = ral::frame::BlazingTableView(partitioned[nodeIndex], batch->names());
@@ -544,8 +547,6 @@ public:
 							std::make_pair(local_context->getNode(nodeIndex), partition_table_view));
 					}
 				}
-
-				//message_manager.scatter(partitions_to_send);
 
 				ral::cache::MetadataDictionary metadata;
 				metadata.add_value(ral::cache::KERNEL_ID_METADATA_LABEL, kernel_id);
