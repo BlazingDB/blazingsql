@@ -11,7 +11,7 @@ namespace comm {
 
 // TODO: remove this hack when we can modify the ucx_request
 // object so we cna send in our c++ callback via the request
-std::map<int, ucx_buffer_transport *> uid_to_buffer_transport;
+std::map<int, ucx_buffer_transport *> message_uid_to_buffer_transport;
 
 /**
  * A struct that lets us access the request that the end points ucx-py generates.
@@ -62,7 +62,10 @@ struct blazing_ucp_tag {
 std::atomic<int> message_id(0);
 
 ucp_tag_t ucx_buffer_transport::generate_message_tag() {
+
 	blazing_ucp_tag blazing_tag = {message_id.fetch_add(1), origin_node.index(), 0u};
+	message_uid_to_buffer_transport[blazing_tag.message_id] = this;
+	this->message_id = blazing_tag.message_id;
 	return *reinterpret_cast<ucp_tag_t *>(&blazing_tag);
 }
 
