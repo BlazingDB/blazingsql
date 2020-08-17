@@ -279,36 +279,11 @@ public:
                 }
             }
 
-
-
-            auto self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
-            auto nodes = context->getAllNodes();
-            std::string worker_ids = "";
-
-            //replaced by send_total_partition_counts
-            for(std::size_t i = 0; i < nodes.size(); ++i) {
-                if(!(nodes[i] == self_node)) {
-
-                    ral::cache::MetadataDictionary metadata;
-                    metadata.add_value(ral::cache::KERNEL_ID_METADATA_LABEL, std::to_string(this->get_id()));
-                    metadata.add_value(ral::cache::QUERY_ID_METADATA_LABEL, std::to_string(this->context->getContextToken()));
-                    metadata.add_value(ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL, "false");
-                    metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, "");
-                    metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, self_node.id());
-                    metadata.add_value(ral::cache::MESSAGE_ID, metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL] + "_" +
-                                                                metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL] +	"_" +
-                                                                metadata.get_values()[ral::cache::SENDER_WORKER_ID_METADATA_LABEL] 	);
-                    metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, nodes[i].id());
-                    metadata.add_value(ral::cache::PARTITION_COUNT, node_count[nodes[i].id()]);
-                    messages_to_wait_for.push_back(metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL] + "_" +
-                                            metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL] +	"_" +
-                                            metadata.get_values()[ral::cache::WORKER_IDS_METADATA_LABEL]);
-
-                    this->query_graph->get_output_message_cache()->addCacheData(
-                        std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(ral::utilities::create_empty_table({}, {}), metadata)),"",true);
-                }
-            }
-
+            message_manager.send_total_partition_counts(this->query_graph->get_output_message_cache(),
+                "",
+                "false",
+                "",
+                node_count);
         });
         //TODO: remove producer thread we don't really need it anymore
         producer_thread.join();

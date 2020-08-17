@@ -28,7 +28,6 @@ class MessageManager {
         std::string message_prefix,
         std::string metadata_label,
         std::string cache_id,
-        int table_idx,
         std::map<std::string, int>& node_count);
 
     int get_total_partition_counts(std::map<std::string, int>& node_count);
