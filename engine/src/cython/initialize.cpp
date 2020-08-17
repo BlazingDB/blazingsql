@@ -37,6 +37,7 @@
 #include <bmr/initializer.h>
 
 #include "communication/CommunicationInterface/node.hpp"
+#include "communication/CommunicationInterface/protocols.hpp"
 
 #include "execution_graph/logic_controllers/CacheMachine.h"
 
@@ -136,13 +137,13 @@ std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> > initiali
 
 	auto & communicationData = ral::communication::CommunicationData::getInstance();
 
-	std::vector<comm::node> nodes_info;
-	nodes_info.reserve(workers_ucp_info.size());
+	std::map<std::string, comm::node> nodes_info_map;
 	for (auto &&node_data : workers_ucp_info) {
-		nodes_info.emplace_back(ralId, node_data.worker_id, reinterpret_cast<ucp_ep_h>(node_data.ep_handle), reinterpret_cast<ucp_worker_h>(node_data.worker_handle));
+		nodes_info_map[node_data.worker_id] = comm::node(ralId, node_data.worker_id, reinterpret_cast<ucp_ep_h>(node_data.ep_handle), reinterpret_cast<ucp_worker_h>(node_data.worker_handle));
 	}
 
-	// start ucp server?
+	comm::ucp_nodes_info::getInstance().init(nodes_info_map);
+	// start ucp servers
 
 	communicationData.initialize(worker_id, ralHost, ralCommunicationPort);
 

@@ -85,6 +85,7 @@ public:
 		// iterate for workers this is destined for
 
 	}
+	virtual ~buffer_transport();
 
   virtual void send_begin_transmission() = 0;
 
