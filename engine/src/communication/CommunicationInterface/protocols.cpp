@@ -79,8 +79,7 @@ void ucx_buffer_transport::send_begin_transmission() {
 		if(UCS_PTR_IS_ERR(request)) {
 			// TODO: decide how to do cleanup i think we just throw an initialization exception
 		} else if(UCS_PTR_STATUS(request) == UCS_OK) {
-			ucp_request_release(request);
-			increment_begin_transmission();
+			send_begin_callback_c(request,UCS_OK);
 		} else {
 			// Message was not completed we set the uid for the callback
 			auto blazing_request = reinterpret_cast<ucx_request *>(&request);
@@ -140,8 +139,7 @@ void ucx_buffer_transport::send_impl(const char * buffer, size_t buffer_size) {
 		if(UCS_PTR_IS_ERR(request)) {
 			// TODO: decide how to do cleanup i think we just throw an initialization exception
 		} else if(UCS_PTR_STATUS(request) == UCS_OK) {
-			ucp_request_release(request);
-			transmitted_begin_frames++;
+			send_callback_c(request,UCS_OK);
 		} else {
 			// Message was not completed we set the uid for the callback
 			auto blazing_request = reinterpret_cast<ucx_request *>(&request);
@@ -160,13 +158,13 @@ ucx_message_listener::ucx_message_listener(ucp_worker_h worker) :
 void recv_begin_callback_c(void * request, ucs_status_t status,
 							ucp_tag_recv_info_t *info) {
 	auto blazing_request = reinterpret_cast<ucx_request *>(request);
-	auto buffer = tag_to_message_receiver_buffer.at(info->sender_tag);
+	auto buffer = tag_to_begin_buffer_and_info.at(info->sender_tag).first;
 	auto metadata_and_transports = get_metadata_and_transports_from_bytes(buffer);
 	            message_receiver(metadata_and_transports.second,
                   metadata_and_transports.first,
                  nullptr);
 				 // std::shared_ptr<ral::cache::CacheMachine> output_cache);
-
+	tag_to_begin_buffer_and_info.erase(info->sender_tag);
 	ucp_request_release(request);
 
 }
@@ -178,7 +176,7 @@ void ucx_message_listener::poll_begin_message_tag(ucp_tag_t tag){
     for(;;;){
         std::shared_ptr<ucp_tag_recv_info_t> info_tag = std::make_shared<ucp_tag_recv_info_t>(); 
         auto message_tag = ucp_tag_probe_nb(
-            ucp_worker, tag, begin_tag_mask, 1, info_tag.get());
+            ucp_worker, 0ull, begin_tag_mask, 1, info_tag.get());
         if(message != NULL){
             //we have a msg to process
 			tag_to_begin_buffer_and_info[message_tag] = std::make_pair(
@@ -189,6 +187,7 @@ void ucx_message_listener::poll_begin_message_tag(ucp_tag_t tag){
 				ucp_dt_make_contig(1), message_tag,
 				recv_begin_callback_c);
 
+			
 
 			if(UCS_PTR_IS_ERR(request)) {
 				// TODO: decide how to do cleanup i think we just throw an initialization exception
