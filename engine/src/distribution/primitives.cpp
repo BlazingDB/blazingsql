@@ -5,7 +5,7 @@
 #include "communication/network/Server.h"
 #include "utilities/StringUtils.h"
 #include <cmath>
-
+#include <src/utilities/DebuggingUtils.h>
 #include <cudf/search.hpp>
 #include <cudf/sorting.hpp>
 #include <cudf/merge.hpp>
@@ -118,6 +118,37 @@ std::unique_ptr<BlazingTable> generatePartitionPlans(
 				"duration"_a="");
 
 	// TODO this is just a default setting. Will want to be able to properly set null_order
+	// TODO: print needed info about this params
+	std::string strin = ral::utilities::blazing_table_view_schema_to_string(concatSamples->toBlazingTableView(), "concatSamples");
+	logger->warn("|||{info}|{duration}||||",
+				"info"_a=  "concatSamples: " + strin ,
+				"duration"_a="");
+
+	
+
+	std::string sortedinfo = "sortOrderTypes.size(): " + std::to_string(sortOrderTypes.size());
+	/*
+	for (int i =0; i < sortOrderTypes.size(); ++i) {
+		sortedinfo += static_cast<std::string>(sortOrderTypes[i]);
+		sortedinfo  += " | ";
+	}*/
+	logger->warn("|||{info}|{duration}||||",
+				"info"_a= "sortOrderTypes.size(): " + sortedinfo ,
+				"duration"_a="");
+
+
+
+	std::string null_ordersinfo = "null_orders.size(): " + std::to_string(sortOrderTypes.size());
+	/*
+	for (int i =0; i < null_orders.size(); ++i) {
+		null_ordersinfo += static_cast<std::string>(null_orders[i]);
+		null_ordersinfo += " | ";
+	}*/
+	logger->warn("|||{info}|{duration}||||",
+				"info"_a= " null_orders.size(): " +  null_ordersinfo ,
+				"duration"_a="");
+
+
 	std::unique_ptr<cudf::column> sort_indices = cudf::sorted_order( concatSamples->view(), sortOrderTypes, null_orders);
 
 	logger->warn("|||{info}|{duration}||||",
