@@ -4,7 +4,7 @@
 namespace ral {
 namespace distribution {
 
-int MessageManager::get_total_partition_counts(std::map<std::string, int>& node_count) {
+int MessageManager::get_total_partition_counts() {
     int total_count = node_count[node_id];
     for (auto message : messages_to_wait_for){
         auto meta_message = input_message_cache->pullCacheData(message);
@@ -16,8 +16,7 @@ int MessageManager::get_total_partition_counts(std::map<std::string, int>& node_
 void MessageManager::send_total_partition_counts(ral::cache::CacheMachine* graph_output,
         std::string message_prefix,
         std::string metadata_label,
-        std::string cache_id,
-        std::map<std::string, int>& node_count) {
+        std::string cache_id) {
     auto nodes = context->getAllNodes();
 
     for(std::size_t i = 0; i < nodes.size(); ++i) {
@@ -49,8 +48,7 @@ void MessageManager::scatter(std::vector<ral::frame::BlazingTableView> partition
         ral::cache::CacheMachine* graph_output,
         std::string message_id,
         std::string metadata_label,
-        std::string cache_id,
-        std::map<std::string, int>& node_count) {
+        std::string cache_id) {
     auto nodes = context->getAllNodes();
 
     ral::cache::MetadataDictionary metadata;
@@ -74,6 +72,10 @@ void MessageManager::scatter(std::vector<ral::frame::BlazingTableView> partition
             graph_output->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(partitions[i].clone(), metadata), "", true);
         }
     }
+}
+
+void MessageManager::increment_node_count(std::string node_id) {
+    node_count[node_id]++;
 }
 
 }  // namespace distribution

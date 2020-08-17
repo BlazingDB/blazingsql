@@ -27,16 +27,16 @@ class MessageManager {
         ral::cache::CacheMachine* graph_output,
         std::string message_id,
         std::string metadata_label,
-        std::string cache_id,
-        std::map<std::string, int>& node_count);
+        std::string cache_id);
 
     void send_total_partition_counts(ral::cache::CacheMachine* graph_output,
         std::string message_prefix,
         std::string metadata_label,
-        std::string cache_id,
-        std::map<std::string, int>& node_count);
+        std::string cache_id);
 
-    int get_total_partition_counts(std::map<std::string, int>& node_count);
+    int get_total_partition_counts();
+
+    void increment_node_count(std::string node_id);
 
     private:
         int32_t kernel_id;
@@ -45,7 +45,7 @@ class MessageManager {
         const blazingdb::transport::Node& node;
         ral::cache::CacheMachine* input_message_cache;
         ral::cache::CacheMachine* output_message_cache;
-        //std::map<std::string, int> node_count; //must be thread-safe
+        std::map<std::string, int> node_count; //must be thread-safe
         std::vector<std::string> messages_to_wait_for; //must be thread-safe
 };
 
