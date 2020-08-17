@@ -155,39 +155,57 @@ ucx_message_listener::ucx_message_listener(ucp_worker_h worker) :
     worker(worker) {
 
 }
-std::pair<ral::cache::MetadataDictionary, std::vector<ColumnTransport> > get_metadata_and_transports_from_bytes(std::vector<char> data){
-    
+
+
+void recv_begin_callback_c(void * request, ucs_status_t status,
+							ucp_tag_recv_info_t *info) {
+	auto blazing_request = reinterpret_cast<ucx_request *>(request);
+	auto buffer = tag_to_message_receiver_buffer.at(info->sender_tag);
+	auto metadata_and_transports = get_metadata_and_transports_from_bytes(buffer);
+	            message_receiver(metadata_and_transports.second,
+                  metadata_and_transports.first,
+                 nullptr);
+				 // std::shared_ptr<ral::cache::CacheMachine> output_cache);
+
+	ucp_request_release(request);
+
 }
 
-std::map<int, std::shared_ptr<message_receiver> > 
-void ucx_message_listener::poll_begin_message_tag(ucp_tag_t tag, ucp_tag_t mask){
+std::map<ucp_tag_t, std::pair( std::vector<char>, std::shared_ptr<ucp_tag_recv_info_t>  > tag_to_begin_buffer_and_info;
+
+
+void ucx_message_listener::poll_begin_message_tag(ucp_tag_t tag){
     for(;;;){
-        ucp_tag_recv_info_t info_tag;
+        std::shared_ptr<ucp_tag_recv_info_t> info_tag = std::make_shared<ucp_tag_recv_info_t>(); 
         auto message_tag = ucp_tag_probe_nb(
-            ucp_worker, tag, mask, 1, &info_tag);
+            ucp_worker, tag, begin_tag_mask, 1, info_tag.get());
         if(message != NULL){
             //we have a msg to process
-            std::vector<char> message_metadata(info_tag.length);
-            auto request = ucp_tag_msg_recv_nb(ucp_worker, message_metadata.data(), info_tag.length,
-                                  ucp_dt_make_contig(1), message_tag,
-                                  recv_handler);
-            
-            message_receiver(const std::vector<ColumnTransport> & column_transports,
-                  const ral::cache::MetadataDictionary & metadata,
-                  bool include_metadata,
-                  std::shared_ptr<ral::cache::CacheMachine> output_cache)
-            continue;
-        }else(ucp_worker_progress(ucp_worker)) {
-            continue; //messages came in we can check again
-        }
+			tag_to_begin_buffer_and_info[message_tag] = std::make_pair(
+				std::vector<char>(info_tag->length), info_tag);
+            auto request = ucp_tag_msg_recv_nb(ucp_worker, 
+				tag_to_begin_buffer_and_info[message_tag].first.data(),
+				info_tag->length,
+				ucp_dt_make_contig(1), message_tag,
+				recv_begin_callback_c);
 
-        if(message == NULL){
+
+			if(UCS_PTR_IS_ERR(request)) {
+				// TODO: decide how to do cleanup i think we just throw an initialization exception
+			} else if(UCS_PTR_STATUS(request) == UCS_OK) {
+				recv_begin_callback_c(request, UCS_OK, info_tag.get());
+			} 
+
+        }else(ucp_worker_progress(ucp_worker)) {
             //waits until a message event occurs
             auto status = ucp_worker_wait(ucp_worker);
             if (status != UCS_OK){
                 throw ::std::exception()
             }
-        }        
+
+        }
+
+    
 
     }
 

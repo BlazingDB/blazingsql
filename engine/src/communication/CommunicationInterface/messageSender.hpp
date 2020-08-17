@@ -31,7 +31,7 @@ public:
 	message_sender(std::shared_ptr<ral::cache::CacheMachine> output_cache,
 		std::map<std::string, node> node_address_map,
 		int num_threads)
-		: output_cache{output_cache}, pool{num_threads} {}
+		: output_cache{output_cache}, pool{num_threads}, protocol{blazing_protocol::ucx} {}
 
 private:
 	/**
@@ -76,15 +76,25 @@ private:
 						destinations.push_back(node_address_map.at(worker_id));
 					}
 
-					ucx_buffer_transport transport(origin, destinations, metadata, buffer_sizes, column_transports);
+					std::shared_ptr<buffer_transport> transport;
+					if(blazing_protocol::ucx == protocol){
+						transport = std::make_shared<ucx_buffer_transport>(
+							origin, destinations, metadata,
+							buffer_sizes, column_transports);s
+					}else{
+						throw std::exception();
+					}
+
+					transport->send_begin_transmission()
 					for(size_t i = 0; i < raw_buffers.size(); i++) {
-						transport.send(raw_buffers[i], buffer_sizes[i]);
+						transport->send(raw_buffers[i], buffer_sizes[i]);
 						// temp_scope_holder[buffer_index] = nullptr;	// TODO: allow the device_vector to go out of
 						// scope
 					}
-					transport.wait_until_complete();  // ensures that the message has been sent before returning the thread
+					transport->wait_until_complete();  // ensures that the message has been sent before returning the thread
 												   // to the pool
 				} catch(const std::exception&) {
+					throw;
 				}
 			});
 		}
@@ -93,6 +103,7 @@ private:
 	ctpl::thread_pool<BlazingThread> pool;
 	std::shared_ptr<ral::cache::CacheMachine> output_cache;
 	std::map<std::string, node> node_address_map;
+	blazing_protocol protocol;
 };
 
 }  // namespace comm

@@ -8,6 +8,12 @@
 
 namespace comm {
 
+enum blazing_protocol
+{
+    ucx,
+    tcp
+};
+
 /**
  * A class that can send a buffer via  ucx protocol
  */
@@ -46,6 +52,25 @@ private:
     ucp_tag_t generate_message_tag();
     ucp_tag_t tag;  /**< The first 6 bytes are the actual tag the last two
                          indicate which frame this is. */
+};
+
+
+
+
+static const ucp_tag_t begin_tag_mask = 0x000000000000FFFF;
+static const ucp_tag_t message_tag_mask = 0xFFFFFFFFFFFF0000;
+
+
+class ucx_message_listener {
+public:
+    ucx_message_listener(ucp_worker_h worker);
+
+    void poll_begin_messages();
+
+private:
+	ctpl::thread_pool<BlazingThread> pool;
+    void poll_message_tag(ucp_tag_t tag, ucp_tag_t mask);
+    ucp_worker_h worker;
 };
 
 } // namespace comm

@@ -14,20 +14,49 @@ namespace detail {
 
 template <typename T>
 std::vector<char> to_byte_vector(T input) {
-	char * bytePointer = reinterpret_cast<char *>(&input);
-	return std::vector<char>(bytePointer, bytePointer + sizeof(T));
+	char * byte_pointer = reinterpret_cast<char *>(&input);
+	return std::vector<char>(byte_pointer, byte_pointer + sizeof(T));
 }
 
 template <typename T>
 std::vector<char> vector_to_byte_vector(std::vector<T> input) {
-	char * bytePointer = reinterpret_cast<char *>(input.data());
-	return std::vector<char>(bytePointer, bytePointer + (sizeof(T) * input.size()));
+	char * byte_pointer = reinterpret_cast<char *>(input.data());
+	return std::vector<char>(byte_pointer, byte_pointer + (sizeof(T) * input.size()));
 }
 
 template <typename T>
-T from_byte_vector(std::vector<char> input) {
-	T * bytePointer = reinterpret_cast<T *>(input.data());
-	return *bytePointer;
+T from_byte_vector(const char * input) {
+	T * byte_pointer = reinterpret_cast<T *>(input);
+	return *byte_pointer;
+}
+
+template <typename T>
+T vector_from_byte_vector(const char * input, size_t length) {
+	T * byte_pointer = reinterpret_cast<T *>(input);
+	return std::vector<T>(byte_pointer,byte_pointer + length);
+}
+
+std::pair<ral::cache::MetadataDictionary, std::vector<ColumnTransport> > get_metadata_and_transports_from_bytes(std::vector<char> data){
+    size_t ptr_offset = 0;
+	size_t metadata_buffer_size = from_byte_vector<size_t>(data.data());
+	ptr_offset += sizeof(size_t);
+
+	std::string metadata_buffer(
+		data.data() + ptr_offset,
+		data.data() + ptr_offset + metadata_buffer_size);
+	ptr_offset += metadata_buffer_size;
+	ral::cache::MetadataDictionary dictionary;
+	for(auto metadata_item : StringUtill::split(metadata_buffer,"\n")){
+		std::vector<std::string> key_value = StringUtill::split(metadata_buffer,":");
+		dictionary.add_value(key_value[0],key_value[1]);
+	}
+
+	size_t column_transports_size = from_byte_vector<size_t>(
+		data.data() + ptr_offset);
+	ptr_offset += sizeof(size_t);
+	auto column_transports = vector_from_byte_vector<ColumnTransport>(
+		data.data() + ptr_offset, column_transports_size);
+	return std::make_pair(dictionary,column_transports);
 }
 
 } // namespace detail
