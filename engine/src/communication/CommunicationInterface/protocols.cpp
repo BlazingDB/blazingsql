@@ -157,26 +157,53 @@ ucx_message_listener::ucx_message_listener(ucp_worker_h worker) :
 
 }
 
+void send_aknowledge_callback_c(void * request, ucs_status_t status){
+	status_scope_holder.erase(request);
+	ucp_request_release(request);
+}
+
+std::map<void *,std::shared_ptr<status_code> > status_scope_holder;
 
 void recv_begin_callback_c(void * request, ucs_status_t status,
 							ucp_tag_recv_info_t *info) {
 	auto blazing_request = reinterpret_cast<ucx_request *>(request);
 	auto buffer = tag_to_begin_buffer_and_info.at(info->sender_tag).first;
 	auto metadata_and_transports = get_metadata_and_transports_from_bytes(buffer);
-	            message_receiver(metadata_and_transports.second,
-                  metadata_and_transports.first,
-                 nullptr);
-				 // std::shared_ptr<ral::cache::CacheMachine> output_cache);
+	auto metadata = metadata_and_transports.first;
+	
+	auto receiver = std::make_shared<message_receiver>(
+		metadata_and_transports.second,
+		metdata,
+		metdata[ADD_TO_SPECIFIC_CACHE_METADATA_LABEL] == "true" ? nullptr : nullptr);
+	//TODO: if its a specific cache get that cache adn put it here else put the general iput cache from the graph
+	auto node = ucp_nodes_info::getInstance().get_node(metadata[SENDER_WORKER_ID_METADATA_LABEL]);
+	auto acknowledge_tag = reinterpret_cast<blazing_tag *>(&info->sender_tag);
+	acknowledge_tag->frame_id = 0xFFFF;
+	auto acknowledge_tag_ucp = *reinterpret_cast<ucp_tag_t *>(&acknowledge_tag);
+	
+	auto status_acknowledge = std::make_shared<status_code>(1);
+	auto request_acknowledge = ucp_tag_send_nb(
+		node.get_ucp_endpoint(),
+		status_acknowledge.get(), 
+		sizeof(status_code), 
+		ucp_dt_make_contig(1), 
+		acknowledge_tag_ucp,
+		send_aknowledge_callback_c);
+	
+	if(UCS_PTR_IS_ERR(request_acknowledge)) {
+		// TODO: decide how to do cleanup i think we just throw an initialization exception
+	} else if(UCS_PTR_STATUS(request_acknowledge) == UCS_OK) {
+		send_aknowledge_callback_c(request_acknowledge, UCS_OK);
+	} 
+	status_scope_holder[request_acknowledge] = status_acknowledge;
 	tag_to_begin_buffer_and_info.erase(info->sender_tag);
-	ucp_request_release(request);
-
 }
 
 std::map<ucp_tag_t, std::pair( std::vector<char>, std::shared_ptr<ucp_tag_recv_info_t>  > tag_to_begin_buffer_and_info;
 
 
 void ucx_message_listener::poll_begin_message_tag(ucp_tag_t tag){
-    for(;;;){
+    for(;;){
         std::shared_ptr<ucp_tag_recv_info_t> info_tag = std::make_shared<ucp_tag_recv_info_t>(); 
         auto message_tag = ucp_tag_probe_nb(
             ucp_worker, 0ull, begin_tag_mask, 1, info_tag.get());
