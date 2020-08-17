@@ -80,7 +80,7 @@ private:
 					if(blazing_protocol::ucx == protocol){
 						transport = std::make_shared<ucx_buffer_transport>(
 							origin, destinations, metadata,
-							buffer_sizes, column_transports);s
+							buffer_sizes, column_transports);
 					}else{
 						throw std::exception();
 					}
