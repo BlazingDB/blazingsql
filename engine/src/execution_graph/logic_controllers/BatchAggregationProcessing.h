@@ -12,11 +12,13 @@
 #include "distribution/MessageManager.h"
 #include <cudf/partitioning.hpp>
 #include "CodeTimer.h"
+#include "taskflow/distributing_kernel.h"
 
 namespace ral {
 namespace batch {
 using ral::cache::kstatus;
 using ral::cache::kernel;
+using ral::cache::distributing_kernel;
 using ral::cache::kernel_type;
 using RecordBatch = std::unique_ptr<ral::frame::BlazingTable>;
 using namespace fmt::literals;
@@ -134,11 +136,10 @@ private:
     std::vector<int> group_column_indices;
 };
 
-class DistributeAggregateKernel : public kernel {
+class DistributeAggregateKernel : public distributing_kernel {
 public:
 	DistributeAggregateKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: kernel{kernel_id, queryString, context, kernel_type::DistributeAggregateKernel},
-		  message_manager{kernel_id, context, ral::communication::CommunicationData::getInstance().getSelfNode().id(), ral::communication::CommunicationData::getInstance().getSelfNode(),
+		: distributing_kernel{kernel_id, queryString, context, kernel_type::DistributeAggregateKernel, ral::communication::CommunicationData::getInstance().getSelfNode().id(), ral::communication::CommunicationData::getInstance().getSelfNode(),
 		    query_graph->get_output_message_cache()} {
 		this->query_graph = query_graph;
 	}
@@ -181,14 +182,14 @@ public:
                     if (group_column_indices.size() == 0) {
                         if(this->context->isMasterNode(self_node)) {
                             this->output_.get_cache()->addToCache(std::move(batch),"",true);
-                            message_manager.increment_node_count(self_node.id());
+                            increment_node_count(self_node.id());
                         } else {
                             if (!set_empty_part_for_non_master_node){ // we want to keep in the non-master nodes something, so that the cache is not empty
                                 std::unique_ptr<ral::frame::BlazingTable> empty =
                                     ral::utilities::create_empty_table(batch->toBlazingTableView());
                                 this->add_to_output_cache(std::move(empty));
                                 set_empty_part_for_non_master_node = true;
-                                message_manager.increment_node_count(self_node.id());
+                                increment_node_count(self_node.id());
                             }
                             // std::vector<ral::distribution::NodeColumnView> selfPartition;
                             // selfPartition.emplace_back(this->context->getMasterNode(), batch->toBlazingTableView());
@@ -203,7 +204,8 @@ public:
                             metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, this->context->getMasterNode().id());
                             ral::cache::CacheMachine* output_cache = this->query_graph->get_output_message_cache();
                             output_cache->addCacheData(std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(std::move(batch), metadata)));
-                            message_manager.increment_node_count(this->context->getMasterNode().id());
+
+                            increment_node_count(this->context->getMasterNode().id());
                         }
                     } else {
                         CudfTableView batch_view = batch->view();
@@ -228,7 +230,7 @@ public:
                             partitions.push_back(ral::frame::BlazingTableView(partition, batch->names()));
                         }
 
-                        message_manager.scatter(partitions,
+                        scatter(partitions,
                             this->output_.get_cache().get(),
                             this->query_graph->get_output_message_cache(),
                             "", //message_id
@@ -249,7 +251,7 @@ public:
                 }
             }
 
-            message_manager.send_total_partition_counts(this->query_graph->get_output_message_cache(),
+            send_total_partition_counts(this->query_graph->get_output_message_cache(),
                 "",
                 "false",
                 ""
@@ -258,7 +260,7 @@ public:
         //TODO: remove producer thread we don't really need it anymore
         producer_thread.join();
 
-        int total_count = message_manager.get_total_partition_counts();
+        int total_count = get_total_partition_counts();
         this->output_cache()->wait_for_count(total_count);
 
         logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
@@ -273,7 +275,6 @@ public:
 	}
 
 private:
-    ral::distribution::MessageManager message_manager;
 };
 
 

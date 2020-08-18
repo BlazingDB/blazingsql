@@ -908,6 +908,7 @@ public:
 						metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, worker_ids_metadata);
 						ral::cache::CacheMachine* output_cache = this->query_graph->get_output_message_cache();
 						output_cache->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(small_table_batch->toBlazingTableView().clone(), metadata),"",true);
+
 						this->output_.get_cache(small_output_cache_name).get()->addToCache(std::move(small_table_batch),"",true);
 					}
 					if (small_table_sequence.wait_for_next()){
