@@ -305,6 +305,7 @@ void recv_begin_callback_c(void * request, ucs_status_t status,
 	auto metadata_and_transports = detail::get_metadata_and_transports_from_bytes(buffer);
 	auto metadata = metadata_and_transports.first;
 
+	auto message_listener = ucx_message_listener::get_instance();
 	auto receiver = std::make_shared<message_receiver>(
 		metadata_and_transports.second,
 		metadata,
