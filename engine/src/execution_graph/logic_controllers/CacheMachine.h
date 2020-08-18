@@ -739,7 +739,9 @@ public:
 					}
 				}
 				return done_waiting;
-			});
+			})){
+				
+			}
 		if(this->message_queue_.size() == 0) {
 			return nullptr;
 		}

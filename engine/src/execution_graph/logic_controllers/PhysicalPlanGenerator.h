@@ -306,10 +306,9 @@ struct tree_processor {
 					bool right_concat_all = join_type == ral::batch::LEFT_JOIN || join_type == ral::batch::OUTER_JOIN || join_type == ral::batch::CROSS_JOIN;
 					bool concat_all = index == 0 ? left_concat_all : right_concat_all;
 					cache_settings join_cache_machine_config = cache_settings{.type = CacheType::CONCATENATING, .num_partitions = 1, .context = context->clone(),
-
 						.flow_control_bytes_threshold = flow_control_bytes_threshold, .concat_cache_num_bytes = join_partition_size_thresh, .concat_all = concat_all};
-						
-					query_graph += link(*child->kernel_unit, (*parent->kernel_unit)[port_name], join_cache_machine_config);
+					query_graph.addPair(ral::cache::kpair(child->kernel_unit, parent->kernel_unit, port_name, join_cache_machine_config));					
+
 
 				} else if (parent->kernel_unit->can_you_throttle_my_input()){
 					query_graph.addPair(ral::cache::kpair(child->kernel_unit, parent->kernel_unit, port_name, default_throttled_cache_machine_config));					
@@ -385,8 +384,7 @@ struct tree_processor {
 					
 					cache_settings cache_machine_config = cache_settings{.type = CacheType::CONCATENATING, .num_partitions = 1, .context = context->clone(),
 						.flow_control_bytes_threshold = flow_control_bytes_threshold, .concat_cache_num_bytes = concat_cache_num_bytes, .concat_all = false};
-					query_graph += link(*child->kernel_unit, *parent->kernel_unit, cache_machine_config);
-
+					query_graph.addPair(ral::cache::kpair(child->kernel_unit, parent->kernel_unit, cache_machine_config));
 				} else {
 					cache_settings cache_machine_config;
 					cache_machine_config.context = context->clone();

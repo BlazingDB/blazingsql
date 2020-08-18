@@ -225,49 +225,6 @@ void CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_dat
 		} else {
 			cacheIndex = 2;
 		}
-		while(cacheIndex < this->memory_resources.size()) {
-			auto memory_to_use = (this->memory_resources[cacheIndex]->get_memory_used() + cache_data->sizeInBytes());
-			if( memory_to_use < this->memory_resources[cacheIndex]->get_memory_limit()) {
-				if(cacheIndex == 0) {
-					if(logger != nullptr) {
-						logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
-							"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
-							"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
-							"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-							"info"_a="Add to CacheMachine general CacheData object into GPU cache ",
-							"duration"_a="",
-							"kernel_id"_a=message_id,
-							"rows"_a=cache_data->num_rows());
-					}
-
-					auto item = std::make_unique<message>(std::move(cache_data), message_id);
-					this->waitingCache->put(std::move(item));
-				} else {
-					if(cacheIndex == 1) {
-						if(logger != nullptr) {
-							logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
-								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
-								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
-								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-								"info"_a="Add to CacheMachine general CacheData object into CPU cache ",
-								"duration"_a="",
-								"kernel_id"_a=message_id,
-								"rows"_a=cache_data->num_rows());
-						}
-
-						auto item = std::make_unique<message>(std::move(cache_data), message_id);
-						this->waitingCache->put(std::move(item));
-					} else if(cacheIndex == 2) {
-						if(logger != nullptr) {
-							logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
-								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
-								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
-								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-								"info"_a="Add to CacheMachine general CacheData object into Disk cache ",
-								"duration"_a="",
-								"kernel_id"_a=message_id,
-								"rows"_a=cache_data->num_rows());
-						}
 
 		if(cacheIndex == 0) {
 			logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",

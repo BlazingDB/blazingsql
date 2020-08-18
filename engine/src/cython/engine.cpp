@@ -282,7 +282,7 @@ TableScanInfo getTableScanInfo(std::string logicalPlan){
 	getTableScanInfo(logicalPlan, relational_algebra_steps, table_names, table_columns);
 	return TableScanInfo{relational_algebra_steps, table_names, table_columns};
 }
-
+/*
 std::pair<std::unique_ptr<PartitionedResultSet>, error_code_t> runQuery_C(int32_t masterIndex,
 	std::vector<NodeMetaDataTCP> tcpMetadata,
 	std::vector<std::string> tableNames,
@@ -320,7 +320,7 @@ std::pair<std::unique_ptr<PartitionedResultSet>, error_code_t> runQuery_C(int32_
 		return std::make_pair(std::move(result), E_EXCEPTION);
 	}
 }
-
+*/
 std::pair<TableScanInfo, error_code_t> getTableScanInfo_C(std::string logicalPlan) {
 
 	TableScanInfo result;
