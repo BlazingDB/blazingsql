@@ -930,30 +930,11 @@ public:
 			}
 			// ral::distribution::notifyLastTablePartitions(this->context.get(), ColumnDataMessage::MessageID());
 
-			auto nodes = context->getAllNodes();
-			for(std::size_t i = 0; i < nodes.size(); ++i) {
-				if(!(nodes[i] == self_node)) {
-					ral::cache::MetadataDictionary metadata;
-					metadata.add_value(ral::cache::KERNEL_ID_METADATA_LABEL, std::to_string(this->get_id()));
-					metadata.add_value(ral::cache::QUERY_ID_METADATA_LABEL, std::to_string(this->context->getContextToken()));
-					metadata.add_value(ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL, "false");
-					metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, "");
-					metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, self_node.id());
-					metadata.add_value(ral::cache::MESSAGE_ID,"part_count_" +
-																										metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL] + "_" +
-																										metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL] +	"_" +
-																										metadata.get_values()[ral::cache::SENDER_WORKER_ID_METADATA_LABEL]);
-					metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, nodes[i].id());
-					//TODO metadata.add_value(ral::cache::PARTITION_COUNT, std::to_string(node_count[nodes[i].id()]));
-					messages_to_wait_for.push_back("part_count_" +
-																				metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL] + "_" +
-																				metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL] +	"_" +
-																				metadata.get_values()[ral::cache::WORKER_IDS_METADATA_LABEL]);
-
-					this->query_graph->get_output_message_cache()->addCacheData(
-							std::make_unique<ral::cache::GPUCacheDataMetaData>(ral::utilities::create_empty_table({}, {}), metadata),"",true);
-				}
-			}
+			message_manager.send_total_partition_counts(this->query_graph->get_output_message_cache(),
+				"part_count_",
+				"false",
+				""
+			);
 		});
 
 		// BlazingThread collect_small_table_thread([this, small_output_cache_name](){

@@ -36,9 +36,9 @@ void MessageManager::send_total_partition_counts(ral::cache::CacheMachine* graph
             messages_to_wait_for.push_back(message_prefix +
                                             metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL] + "_" +
                                             metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL] +	"_" +
-                                            nodes[i].id());
+                                            metadata.get_values()[ral::cache::WORKER_IDS_METADATA_LABEL]);
             graph_output->addCacheData(
-                    std::make_unique<ral::cache::GPUCacheDataMetaData>(ral::utilities::create_empty_table({}, {}), metadata),"",true);
+                    std::make_unique<ral::cache::GPUCacheDataMetaData>(ral::utilities::create_empty_table({}, {}), metadata), "", true);
         }
     }
 }
