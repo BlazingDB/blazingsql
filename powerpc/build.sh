@@ -26,6 +26,13 @@ blazingsql_build_dir=$build_dir/blazingsql
 #mkdir -p $blazingsql_build_dir
 
 echo "### Vars ###"
+echo "PATH: "$PATH
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/app/tmp/:/app/tmp/include/:/app/tmp/lib
+echo "LD_LIBRARY_PATH: "$LD_LIBRARY_PATH
+C_INCLUDE_PATH=/app/tmp/include/
+CPLUS_INCLUDE_PATH=/app/tmp/include/
+echo "CPLUS_INCLUDE_PATH: "$CPLUS_INCLUDE_PATH
+
 echo "output_dir: "$output_dir
 echo "blazingsql_project_dir: "$blazingsql_project_dir
 echo "tmp_dir: "$tmp_dir
@@ -334,6 +341,30 @@ if [ ! -d $arrow_build_dir ]; then
     echo "### Arrow - end ###"
 fi
 #END arrow
+
+#BEGIN spdlog
+spdlog_build_dir=$build_dir/spdlog
+echo "spdlog_build_dir: "$spdlog_build_dir
+if [ ! -d $spdlog_build_dir ]; then
+    mkdir -p $spdlog_build_dir
+    cd $spdlog_build_dir
+    git clone https://github.com/gabime/spdlog.git
+    cd spdlog/
+
+    echo "### Spdlog - cmake ###"
+    cmake -DCMAKE_INSTALL_PREFIX=$tmp_dir .
+    if [ $? != 0 ]; then
+      exit 1
+    fi
+
+    echo "### Spdlog - make install ###"
+    make -j4 install
+    if [ $? != 0 ]; then
+      exit 1
+    fi
+fi
+#END spdlog
+
 
 cudf_version=0.15
 
