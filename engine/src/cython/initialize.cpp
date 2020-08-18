@@ -168,24 +168,28 @@ std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> > initiali
 		nodes_info_map.emplace(node_data.worker_id, comm::node(ralId, node_data.worker_id, reinterpret_cast<ucp_ep_h>(node_data.ep_handle), reinterpret_cast<ucp_worker_h>(node_data.worker_handle)));
 	}
 
+	auto output_input_caches = std::make_pair(std::make_shared<CacheMachine>(nullptr),std::make_shared<CacheMachine>(nullptr));
+
+
 	comm::ucp_nodes_info::getInstance().init(nodes_info_map);
 	// start ucp servers
 
 	communicationData.initialize(worker_id, ralHost, ralCommunicationPort);
 
 	
+	if(! singleNode){
+		comm::ucx_message_listener::initialize_message_listener(
+			comm::ucp_nodes_info::getInstance().get_node(worker_id).get_ucp_worker(),20);
+		comm::ucx_message_listener::get_instance()->poll_begin_message_tag();
 
-	comm::ucx_message_listener::initialize_message_listener(
-		comm::ucp_nodes_info::getInstance().get_node(worker_id).get_ucp_worker(),20);
-	comm::ucx_message_listener::get_instance()->poll_begin_message_tag();
 
-	auto output_input_caches = std::make_pair(std::make_shared<CacheMachine>(nullptr),std::make_shared<CacheMachine>(nullptr));
+		comm::message_sender::initialize_instance(output_input_caches.first,
+			nodes_info_map,
+			20);
 
-	comm::message_sender::initialize_instance(output_input_caches.first,
-		nodes_info_map,
-		20);
+		comm::message_sender::get_instance()->run_polling();
 
-	comm::message_sender::get_instance()->run_polling();
+	}
 	
 	//TODO: make this number configurable in options
 
