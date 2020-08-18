@@ -17,8 +17,7 @@ public class SqlValidationException extends SqlException {
 
 	private static String
 	description(final String queryString, final String message) {
-
-		return message;
-
+		String[] a = message.split("(\\d+): ");
+		return a[a.length-1]; //TODO William, Felipe, Rommel, Percy  use a better regular expression / approach
 	}
 }

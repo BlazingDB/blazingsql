@@ -32,6 +32,9 @@
 - #936 Adding extern C for include files
 - #941 Logging level (flush_on) can be configurable
 - #947 Use default client and network interface from Dask
+- #945 Added new separate thresh for concat cache 
+- #939 Add unit test for Project kernel
+
 
 ## Bug Fixes
 - #774 fixed build issues with latest cudf 0.15 including updating from_cudf
@@ -112,4 +115,5 @@
 - #828 Fix gpuci issues and improve tooling to debug gpuci related issues
 - #867 Fix boost dependencie issues
 - #785 Add script for Manual Testing Artifacts.
+- #931 Add script for error messages validation.
 - #932 Import pydrill and pyspark only when its generator or full mode.
