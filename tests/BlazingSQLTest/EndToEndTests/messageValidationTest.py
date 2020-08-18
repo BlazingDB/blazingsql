@@ -6,26 +6,28 @@ from pynvml import nvmlInit
 from Runner import runTest
 from Utils import Execution, gpuMemory, init_context, skip_test
 
-queryType = "Timestampdiff"
+queryType = "Message Validation"
 
 
-def main(dask_client, spark, dir_data_file, bc, nRals):
+def main(dask_client, drill, dir_data_file, bc, nRals):
 
     start_mem = gpuMemory.capture_gpu_memory_usage()
 
     def executionTest():
-        tables = ["lineitem", "orders"]
-        data_types = [DataType.CSV, DataType.PARQUET]  # TODO json
 
-        # Create Tables -----------------------------------------------------
+        tables = ["customer", "orders", "nation"]
+        data_types = [
+            DataType.DASK_CUDF,
+            DataType.CUDF,
+            DataType.CSV,
+            DataType.ORC,
+            DataType.PARQUET,
+        ]  # TODO json
+
         for fileSchemaType in data_types:
             if skip_test(dask_client, nRals, fileSchemaType, queryType):
                 continue
-            cs.init_spark_schema(
-                spark,
-                Settings.data["TestSettings"]["dataDirectory"],
-                fileSchemaType=fileSchemaType,
-            )
+            print(fileSchemaType)
             cs.create_tables(bc, dir_data_file, fileSchemaType, tables=tables)
 
             # Run Query ------------------------------------------------------
@@ -40,65 +42,90 @@ def main(dask_client, spark, dir_data_file, bc, nRals):
             print("==============================")
 
             queryId = "TEST_01"
-            query = """select l_shipdate, l_commitdate,
-                        timestampdiff(DAY, l_commitdate, l_shipdate) as diff
-                    from lineitem  limit 20"""
-            query_spark = """select l_shipdate, l_commitdate,
-                    datediff(l_shipdate, l_commitdate) as diff
-                    from lineitem  limit 20"""
+            query = """select c_custkeynew, c_nationkey, c_acctbal 
+                    from customer where c_custkey < 15"""
             runTest.run_query(
                 bc,
-                spark,
+                drill,
                 query,
                 queryId,
                 queryType,
                 worder,
-                "",
+                "c_custkey",
                 acceptable_difference,
                 use_percentage,
-                query_spark=query_spark,
-                print_result=True,
+                fileSchemaType,
+                message_validation="Column 'c_custkeynew' not found in any table",
             )
 
             queryId = "TEST_02"
-            query = """select l_shipdate, timestampdiff(DAY,
-                         date '1970-01-01', l_shipdate) as diff
-                    from lineitem  limit 20"""
-            query_spark = """select l_shipdate, datediff(l_shipdate,
-                            date '1970-01-01') as diff
-                        from lineitem  limit 20"""
+            query = """select c_custkey, c_nationkey, c_acctbal 
+                    from customer1 where c_custkey < 150 
+                    and c_nationkey = 5"""
             runTest.run_query(
                 bc,
-                spark,
+                drill,
                 query,
                 queryId,
                 queryType,
                 worder,
-                "",
+                "c_custkey",
                 acceptable_difference,
                 use_percentage,
-                query_spark=query_spark,
-                print_result=True,
+                fileSchemaType,
+                message_validation="Object 'customer1' not found",
             )
 
             queryId = "TEST_03"
-            query = """select * from orders
-                    where timestampdiff(DAY,  date '1995-02-04',
-                        o_orderdate) < 25"""
-            query_spark = """select * from orders where
-                    datediff(o_orderdate, date '1995-02-04') < 25"""
+            query = """select maxi(c_custkey), c_nationkey as nkey 
+                    from customer where c_custkey < 0"""
             runTest.run_query(
                 bc,
-                spark,
+                drill,
                 query,
                 queryId,
                 queryType,
                 worder,
-                "",
+                "c_custkey",
                 acceptable_difference,
                 use_percentage,
-                query_spark=query_spark,
-                print_result=True,
+                fileSchemaType,
+                message_validation="No match found for function signature maxi(<NUMERIC>)",
+            )
+
+            queryId = "TEST_04"
+            query = """select max(c_custkey) c_nationkey as nkey 
+                    from customer where c_custkey < 0"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "c_custkey",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+                message_validation="""SqlSyntaxException
+
+                select max(c_custkey) c_nationkey as nkey 
+                                                ^^
+                                    from customer where c_custkey < 0
+
+                Encountered "as" at line 1, column 35.
+                Was expecting one of:
+                    <EOF> 
+                    "EXCEPT" ...
+                    "FETCH" ...
+                    "FROM" ...
+                    "INTERSECT" ...
+                    "LIMIT" ...
+                    "OFFSET" ...
+                    "ORDER" ...
+                    "MINUS" ...
+                    "UNION" ...
+                    "," ...""",
             )
 
             if Settings.execution_mode == ExecutionMode.GENERATOR:
@@ -118,22 +145,7 @@ if __name__ == "__main__":
 
     nvmlInit()
 
-    drill = "drill"  # None
-
-    compareResults = True
-    if "compare_results" in Settings.data["RunSettings"]:
-        compareResults = Settings.data["RunSettings"]["compare_results"]
-
-    if ((Settings.execution_mode == ExecutionMode.FULL and
-         compareResults == "true") or
-            Settings.execution_mode == ExecutionMode.GENERATOR):
-        # Create Table Drill ------------------------------------------------
-        print("starting drill")
-        from pydrill.client import PyDrill
-
-        drill = PyDrill(host="localhost", port=8047)
-        cs.init_drill_schema(drill,
-                             Settings.data["TestSettings"]["dataDirectory"])
+    drill = "drill"
 
     # Create Context For BlazingSQL
 

@@ -13,6 +13,7 @@
 
 #include "utilities/CommonOperations.h"
 #include "error.hpp"
+#include "utilities/ctpl_stl.h"
 
 #include <spdlog/spdlog.h>
 using namespace fmt::literals;
@@ -124,7 +125,7 @@ void distributePartitionPlan(Context * context, const BlazingTableView & pivots)
 
 	auto node = CommunicationData::getInstance().getSelfNode();
 	auto message = Factory::createPartitionPivotsMessage(message_id, context_token, node, pivots);
-	broadcastMessage(context->getWorkerNodes(), message);
+	broadcastMessage(context, context->getWorkerNodes(), message);
 }
 
 std::unique_ptr<BlazingTable> getPartitionPlan(Context * context) {
@@ -202,7 +203,14 @@ void distributeTablePartitions(Context * context, std::vector<NodeColumnView> & 
 	const std::string message_id = ColumnDataPartitionMessage::MessageID() + "_" + context_comm_token;
 
 	auto self_node = CommunicationData::getInstance().getSelfNode();
-	std::vector<BlazingThread> threads;
+
+	int max_message_threads = 20;
+	std::map<std::string, std::string> config_options = context->getConfigOptions();
+	auto it = config_options.find("MAX_SEND_MESSAGE_THREADS");
+	if (it != config_options.end()){
+		max_message_threads = std::stoi(config_options["MAX_SEND_MESSAGE_THREADS"]);
+	}
+	ctpl::thread_pool<BlazingThread> threads(max_message_threads);
 	for (auto i = 0; i < partitions.size(); i++){
 		auto & nodeColumn = partitions[i];
 		if(nodeColumn.first == self_node) {
@@ -214,15 +222,12 @@ void distributeTablePartitions(Context * context, std::vector<NodeColumnView> & 
 			auto destination_node = nodeColumn.first;
 			int partition_id = part_ids.size() > i ? part_ids[i] : 0; // if part_ids is not set, then it does not matter and we can just use 0 as the partition_id
 
-			threads.push_back(BlazingThread([message_id, context_token, self_node, destination_node, columns, partition_id]() mutable {
+			threads.push(([message_id, context_token, self_node, destination_node, columns, partition_id](int thread_id) mutable {
 				auto message = Factory::createColumnDataPartitionMessage(message_id, context_token, self_node, partition_id, columns);
 				Client::send(destination_node, *message);
 			}));
 		}
-	}
-	for(size_t i = 0; i < threads.size(); i++) {
-		threads[i].join();
-	}
+	}	
 }
 
 void notifyLastTablePartitions(Context * context, std::string message_id) {
@@ -249,20 +254,24 @@ void distributePartitions(Context * context, std::vector<NodeColumnView> & parti
 	const std::string message_id = ColumnDataMessage::MessageID() + "_" + context_comm_token;
 
 	auto self_node = CommunicationData::getInstance().getSelfNode();
-	std::vector<BlazingThread> threads;
+	
+	int max_message_threads = 20;
+	std::map<std::string, std::string> config_options = context->getConfigOptions();
+	auto it = config_options.find("MAX_SEND_MESSAGE_THREADS");
+	if (it != config_options.end()){
+		max_message_threads = std::stoi(config_options["MAX_SEND_MESSAGE_THREADS"]);
+	}
+	ctpl::thread_pool<BlazingThread> threads(max_message_threads);
 	for(auto & nodeColumn : partitions) {
 		if(nodeColumn.first == self_node) {
 			continue;
 		}
 		BlazingTableView columns = nodeColumn.second;
 		auto destination_node = nodeColumn.first;
-		threads.push_back(BlazingThread([message_id, context_token, self_node, destination_node, columns]() mutable {
+		threads.push(([message_id, context_token, self_node, destination_node, columns](int thread_id) mutable {
 			auto message = Factory::createColumnDataMessage(message_id, context_token, self_node, columns);
 			Client::send(destination_node, *message);
 		}));
-	}
-	for(size_t i = 0; i < threads.size(); i++) {
-		threads[i].join();
 	}
 }
 
@@ -362,18 +371,22 @@ std::unique_ptr<BlazingTable> getPivotPointsTable(cudf::size_type number_partiti
 	return std::make_unique<BlazingTable>(std::move(pivots), sortedSamples.names());
 }
 
-void broadcastMessage(std::vector<Node> nodes,
+void broadcastMessage(Context * context, std::vector<Node> nodes,
 			std::shared_ptr<communication::messages::Message> message) {
-	std::vector<BlazingThread> threads(nodes.size());
+	
+	int max_message_threads = 20;
+	std::map<std::string, std::string> config_options = context->getConfigOptions();
+	auto it = config_options.find("MAX_SEND_MESSAGE_THREADS");
+	if (it != config_options.end()){
+		max_message_threads = std::stoi(config_options["MAX_SEND_MESSAGE_THREADS"]);
+	}
+	ctpl::thread_pool<BlazingThread> threads(max_message_threads);
 	for(size_t i = 0; i < nodes.size(); i++) {
 		Node node = nodes[i];
-		threads[i] = BlazingThread([node, message]() {
+		threads.push([node, message](int thread_id) {
 			Client::send(node, *message);
 		});
-	}
-	for(size_t i = 0; i < threads.size(); i++) {
-		threads[i].join();
-	}
+	}	
 }
 
 void distributeNumRows(Context * context, int64_t num_rows) {
@@ -386,7 +399,7 @@ void distributeNumRows(Context * context, int64_t num_rows) {
 	auto message = Factory::createSampleToNodeMaster(message_id, context_token, self_node, num_rows, {});
 
 	int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
-	broadcastMessage(context->getAllOtherNodes(self_node_idx), message);
+	broadcastMessage(context, context->getAllOtherNodes(self_node_idx), message);
 }
 
 std::vector<int64_t> collectNumRows(Context * context) {
@@ -438,8 +451,8 @@ void distributeLeftRightTableSizeBytes(Context * context, int64_t bytes_left, in
 	// BlazingTableView num_bytes_blz_table(num_bytes_table, names);
 	// auto message = Factory::createSampleToNodeMaster(message_id, context_token, self_node, 0, num_bytes_blz_table);
 
-	// int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
-	// broadcastMessage(context->getAllOtherNodes(self_node_idx), message);
+	//int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
+	//broadcastMessage(context, context->getAllOtherNodes(self_node_idx), message);
 }
 
 void collectLeftRightTableSizeBytes(Context * context,	std::vector<int64_t> & node_num_bytes_left,

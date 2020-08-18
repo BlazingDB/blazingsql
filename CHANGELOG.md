@@ -21,6 +21,7 @@
 - #883 add rand() and running unary operations on literals
 - #894 added exhale to generate doxygen for sphinx docs
 - #887 concatenating cache improvement and replacing PartwiseJoin::load_set with a concatenating cache
+- #885 Added initial set of unit tests for `WaitingQueue` and nullptr checks around spdlog calls
 - #904 Added doxygen comments to CacheMachine.h
 - #901 Added more documentation about memory management 
 - #910 updated readme 
@@ -28,6 +29,13 @@
 - #915 Adding max kernel num threads pool
 - #921 Make AWS and GCS optional
 - #925 Replace random_generator with cudf::sample
+- #900 Added doxygen comments to some kernels and the batch processing
+- #936 Adding extern C for include files
+- #941 Logging level (flush_on) can be configurable
+- #947 Use default client and network interface from Dask
+- #945 Added new separate thresh for concat cache 
+- #939 Add unit test for Project kernel
+- #949 implemented using threadpool for outgoing messages 
 
 
 ## Bug Fixes
@@ -59,6 +67,10 @@
 - #909 Fixed issue caused by using now arrow_io_source
 - #913 Fixed issues caused by cudf adding DECIMAL data type
 - #916 Fix e2e string comparison
+- #927 Fixed random segfault issue in parser
+- #929 Update the GPUManager functions
+- #942 Fix column names on sample function
+- #950 introducing config param for max orderby samples and fixing oversampling 
 
 
 # BlazingSQL 0.14.0 (June 9, 2020)
@@ -106,3 +118,5 @@
 - #828 Fix gpuci issues and improve tooling to debug gpuci related issues
 - #867 Fix boost dependencie issues
 - #785 Add script for Manual Testing Artifacts.
+- #931 Add script for error messages validation.
+- #932 Import pydrill and pyspark only when its generator or full mode.

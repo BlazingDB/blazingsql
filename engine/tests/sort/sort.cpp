@@ -45,7 +45,7 @@ TYPED_TEST(SortTest, withoutNull) {
     cudf::test::fixed_width_column_wrapper<T> expect_col3{{70, 10, 40, 5, 10, 11, 2}, {1, 1, 1, 1, 1, 1, 1}};
     CudfTableView expect_cudf_table_view {{expect_col1, expect_col2, expect_col3}};
 
-    cudf::test::expect_tables_equal(expect_cudf_table_view, table_out->view());
+    cudf::test::expect_tables_equivalent(expect_cudf_table_view, table_out->view());
 }
 
 template <typename T>
@@ -70,5 +70,5 @@ TYPED_TEST(LimitTest, withoutNull) {
     cudf::test::fixed_width_column_wrapper<T> expect_col2{{10, 40, 70, 5, 2}};
     CudfTableView expect_cudf_table_view {{expect_col1, expect_col2}};
 
-    cudf::test::expect_tables_equal(expect_cudf_table_view, table_out->view());
+    cudf::test::expect_tables_equivalent(expect_cudf_table_view, table_out->view());
 }
