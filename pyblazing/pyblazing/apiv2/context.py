@@ -982,7 +982,7 @@ class BlazingContext(object):
 
     def __init__(
         self,
-        dask_client=None,
+        dask_client="autocheck",
         network_interface=None,
         allocator="managed",
         pool=False,
@@ -997,6 +997,8 @@ class BlazingContext(object):
 
         dask_client (optional) : dask.distributed.Client instance.
                     only necessary for distributed query execution.
+                    Set to None if you explicitly dont want it to
+                    connect to any Dask client running, which it will by default.
         network_interface (optional) : for communicating with the
                     dask-scheduler. see note below.
         allocator (optional) :  "managed" or "default" or "existing", where
@@ -1144,10 +1146,11 @@ class BlazingContext(object):
             "BLAZING_CACHE_DIRECTORY".encode()
         ] = cache_dir_path.encode()
 
-        if dask_client is None:
+        if dask_client == "autocheck":
             try:
                 dask_client = dask.distributed.default_client()
             except ValueError:
+                dask_client = None
                 pass
 
         self.dask_client = dask_client
@@ -1166,16 +1169,17 @@ class BlazingContext(object):
             distributed_initialize_server_directory(self.dask_client, cache_dir_path)
 
             if network_interface is None:
-                addr = dask_client.scheduler_comm.comm._local_addr
-                local = addr.split("://")[-1].split(":")[0]
+                import psutil
+                local_addr = dask_client.scheduler_comm.comm._local_addr
+                local = local_addr.split("://")[-1].split(":")[0]
                 for name, addrs in psutil.net_if_addrs().items():
                     for addr in addrs:
-                        if addr == local:
+                        if addr.address == local:
                             network_interface = name
                             break
                     if network_interface:
                         break
-                else:
+                if network_interface is None:
                     network_interface = "eth0"
 
             worker_list = []
