@@ -4,6 +4,7 @@
 #include <atomic>
 
 #include "bufferTransport.hpp"
+#include "messageReceiver.hpp"
 #include "node.hpp"
 
 namespace comm {
@@ -66,11 +67,15 @@ public:
     ucx_message_listener(ucp_worker_h worker);
 
     void poll_begin_messages();
-
+    void add_receiver(ucp_tag_t tag,std::shared_ptr<message_receiver> receiver);
+    void remove_receiver(ucp_tag_t tag);
+    ucp_worker_h get_worker();
 private:
 	ctpl::thread_pool<BlazingThread> pool;
     void poll_message_tag(ucp_tag_t tag, ucp_tag_t mask);
     ucp_worker_h worker;
+    std::map<ucp_tag_t,std::shared_ptr<message_receiver> > tag_to_receiver;
+
 };
 
 } // namespace comm

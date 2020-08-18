@@ -162,6 +162,46 @@ void send_aknowledge_callback_c(void * request, ucs_status_t status){
 	ucp_request_release(request);
 }
 
+
+
+
+void poll_for_frames(std::shared_ptr<message_receiver> receiver,
+						ucp_tag_t tag, ucp_worker_h ucp_worker){
+	while(! receiver.is_finished()){
+		std::shared_ptr<ucp_tag_recv_info_t> info_tag = std::make_shared<ucp_tag_recv_info_t>(); 
+        auto message_tag = ucp_tag_probe_nb(
+            ucp_worker, tag, message_tag_mask, 1, info_tag.get());
+        if(message != NULL){
+			auto converted_tag = reinterpret_cast<blazing_tag *>(&message_tag);
+			auto position = converted_tag->frame_id - 1;
+			receiver.set_buffer_size(position,info_tag->length);
+
+            auto request = ucp_tag_msg_recv_nb(ucp_worker, 
+				receiver.get_buffer(position),
+				info_tag->length,
+				ucp_dt_make_contig(1), message_tag,
+				recv_frame_callback_c);
+
+			
+
+			if(UCS_PTR_IS_ERR(request)) {
+				// TODO: decide how to do cleanup i think we just throw an initialization exception
+			} else if(UCS_PTR_STATUS(request) == UCS_OK) {
+				recv_frame_callback_c(request, UCS_OK, info_tag.get());
+			} 
+
+        }else(ucp_worker_progress(ucp_worker)) {
+            //waits until a message event occurs
+            auto status = ucp_worker_wait(ucp_worker);
+            if (status != UCS_OK){
+                throw ::std::exception()
+            }
+
+        }
+
+	}	
+}
+
 std::map<void *,std::shared_ptr<status_code> > status_scope_holder;
 
 void recv_begin_callback_c(void * request, ucs_status_t status,
@@ -205,7 +245,8 @@ std::map<ucp_tag_t, std::pair( std::vector<char>, std::shared_ptr<ucp_tag_recv_i
 void ucx_message_listener::poll_begin_message_tag(ucp_tag_t tag){
     for(;;){
         std::shared_ptr<ucp_tag_recv_info_t> info_tag = std::make_shared<ucp_tag_recv_info_t>(); 
-        auto message_tag = ucp_tag_probe_nb(
+        auto ucp_worker = reciver
+		auto message_tag = ucp_tag_probe_nb(
             ucp_worker, 0ull, begin_tag_mask, 1, info_tag.get());
         if(message != NULL){
             //we have a msg to process
@@ -238,6 +279,18 @@ void ucx_message_listener::poll_begin_message_tag(ucp_tag_t tag){
 
     }
 
+}
+
+
+void ucx_message_listener::add_receiver(ucp_tag_t tag,std::shared_ptr<message_receiver> receiver){
+	receiver[tag] = receiver;
+}
+void ucx_message_listener::remove_receiver(ucp_tag_t tag){
+	tag_to_receiver.erase(tag);
+}
+
+ucp_worker_h ucx_message_listener::get_worker(){
+	return worker;
 }
 
 }  // namespace comm

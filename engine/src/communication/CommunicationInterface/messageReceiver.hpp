@@ -44,11 +44,29 @@ public:
   {
     _raw_buffers.resize(column_transports.size());
 
-    // if (_raw_buffers.size() == 0) {
-    //   finish();
-    // }
+     if (_raw_buffers.size() == 0) {
+       finish();
+     }
   }
 
+  void set_buffer_size(uint16_t index,size_t size){
+    if (index >= _raw_buffers.size()) {
+      throw std::runtime_error("Invalid access to raw buffer");
+    }
+    _raw_buffers[index].resize(size);
+  
+  }
+
+  void confirm_transmission(){
+    ++_buffer_counter;
+    if (_buffer_counter == _raw_buffers.size()) {
+      finish();
+    }
+  }
+
+  void * get_buffer(uint16_t index){
+    return _raw_buffers[index].data();
+  }
   /**
   * @brief Adds a device_buffer to a specific position used for the reconstruction
   * of a BlazingTable
@@ -56,10 +74,7 @@ public:
   * @param buffer A device_buffer containing part of the data of a BlazingTable
   * @param index The position of the buffer
   */
-  void add_buffer(rmm::device_buffer buffer, uint16_t index) {
-    if (index >= _raw_buffers.size()) {
-      throw std::runtime_error("Invalid access to raw buffer");
-    }
+  void add_buffer(rmm::device_buffer & buffer, uint16_t index) {
 
     _raw_buffers[index] = std::move(buffer);
 
@@ -69,6 +84,9 @@ public:
     }
   }
 
+  bool is_finished(){
+    return finished;
+  }
 private:
   void finish() {
     std::unique_ptr<ral::frame::BlazingTable> table = deserialize_from_gpu_raw_buffers(_column_transports, _raw_buffers);
@@ -78,6 +96,7 @@ private:
     } else {
       _output_cache->addToCache(std::move(table), "", true);
     }
+    finished = true;
   }
 
   std::vector<ColumnTransport> _column_transports;
@@ -87,6 +106,7 @@ private:
 
   std::vector<rmm::device_buffer> _raw_buffers;
   int _buffer_counter = 0;
+  bool finished = false;
 };
 
 } // namespace comm
