@@ -179,7 +179,7 @@ public:
                     if (group_column_indices.size() == 0) {
                         if(this->context->isMasterNode(self_node)) {
                             this->output_.get_cache()->addToCache(std::move(batch),"",true);
-							
+
 							node_count[self_node.id()]++;
                         } else {
                             if (!set_empty_part_for_non_master_node){ // we want to keep in the non-master nodes something, so that the cache is not empty
@@ -200,7 +200,7 @@ public:
                             metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, "");
                             metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, self_node.id());
                             metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, this->context->getMasterNode().id());
-                            ral::cache::CacheMachine* output_cache = this->query_graph->get_output_message_cache();
+                            auto output_cache = this->query_graph->get_output_message_cache();
                             output_cache->addCacheData(std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(std::move(batch), metadata)));
 							node_count[this->context->getMasterNode().id()]++;
 						}
@@ -243,7 +243,7 @@ public:
                         metadata.add_value(ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL, "true");
                         metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, "");
                         metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, self_node.id());
-                        ral::cache::CacheMachine* output_cache = this->query_graph->get_output_message_cache();
+                        auto output_cache = this->query_graph->get_output_message_cache();
                         for(int i = 0; i < this->context->getTotalNodes(); i++ ){
                             auto partition = std::make_unique<ral::frame::BlazingTable>(partitioned[i], batch->names());
 							partition->ensureOwnership();

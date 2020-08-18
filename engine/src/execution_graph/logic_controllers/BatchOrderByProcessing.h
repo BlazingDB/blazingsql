@@ -161,9 +161,9 @@ public:
 				metadata.add_value(ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL, std::to_string(local_total_num_rows));
 
 
-				ral::cache::CacheMachine* output_cache = this->query_graph->get_output_message_cache();
+				auto output_cache = this->query_graph->get_output_message_cache();
 				output_cache->addCacheData(std::unique_ptr<ral::cache::GPUCacheDataMetaData>(new ral::cache::GPUCacheDataMetaData(std::move(partitionPlan->toBlazingTableView().clone()), metadata)),"",true);
-						
+
 				this->add_to_output_cache(std::move(partitionPlan), "output_b");
 			} else {
 				context->incrementQuerySubstep();
@@ -181,7 +181,7 @@ public:
 				std::string message_id = std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + self_node.id();
 				metadata.add_value(ral::cache::MESSAGE_ID, message_id);
 
-				ral::cache::CacheMachine* output_cache = this->query_graph->get_output_message_cache();
+				auto output_cache = this->query_graph->get_output_message_cache();
 				concatSamples->ensureOwnership();
 				output_cache->addCacheData(std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(std::move(concatSamples), metadata)),"",true);
 
@@ -233,7 +233,7 @@ public:
 
 				auto sortedTable = ral::operators::sort(batch->toBlazingTableView(), this->expression);
 				auto sampledTable = ral::operators::sample(batch->toBlazingTableView(), this->expression);
-		
+
 				sampledTableViews.push_back(sampledTable->toBlazingTableView());
 				sampledTables.push_back(std::move(sampledTable));
 				localTotalNumRows += batch->view().num_rows();
@@ -247,7 +247,7 @@ public:
 				}
 				population_sampled += batch->num_rows();
 				if (estimate_samples && population_to_sample > 0 && population_sampled > population_to_sample)	{
-					
+
 					size_t avg_bytes_per_row = localTotalNumRows == 0 ? 1 : localTotalBytes/localTotalNumRows;
 					partition_plan_thread = BlazingThread(&SortAndSampleKernel::compute_partition_plan, this, sampledTableViews, avg_bytes_per_row, num_rows_estimate);
 					estimate_samples = false;
@@ -360,7 +360,7 @@ public:
 					metadata.add_value(ral::cache::QUERY_ID_METADATA_LABEL, std::to_string(this->context->getContextToken()));
 					metadata.add_value(ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL, "true");
 					metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, self_node.id());
-					ral::cache::CacheMachine* output_cache = this->query_graph->get_output_message_cache();
+					auto output_cache = this->query_graph->get_output_message_cache();
 					for (auto i = 0; i < partitions.size(); i++) {
 						blazingdb::transport::Node dest_node;
 						ral::frame::BlazingTableView table_view;
@@ -371,7 +371,7 @@ public:
 
 						metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, dest_node.id());
 						metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, "output_" + std::to_string(part_ids[i]) );
-						
+
 						node_count[dest_node.id()]++;
 						output_cache->addCacheData(std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(table_view.clone(), metadata)),"",true);
 					}
@@ -610,7 +610,7 @@ public:
 																								metadata.get_values()[ral::cache::SENDER_WORKER_ID_METADATA_LABEL]);
 			metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, worker_ids_metadata);
 			metadata.add_value(ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL, std::to_string(total_batch_rows));
-			ral::cache::CacheMachine* output_cache = this->query_graph->get_output_message_cache();
+			auto output_cache = this->query_graph->get_output_message_cache();
 			output_cache->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(ral::utilities::create_empty_table({}, {}), metadata),"",true);
 
 			// std::vector<int64_t> nodesRowSize = ral::distribution::collectNumRows(context.get());

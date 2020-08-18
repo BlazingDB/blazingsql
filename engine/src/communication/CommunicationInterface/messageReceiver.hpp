@@ -35,12 +35,10 @@ public:
   */
   message_receiver(const std::vector<ColumnTransport> & column_transports,
                   const ral::cache::MetadataDictionary & metadata,
-                  bool include_metadata,
                   std::shared_ptr<ral::cache::CacheMachine> output_cache) :
     _column_transports{column_transports},
     _output_cache{output_cache},
-    _metadata{metadata},
-    _include_metadata{include_metadata}
+    _metadata{metadata}
   {
     _raw_buffers.resize(column_transports.size());
 
