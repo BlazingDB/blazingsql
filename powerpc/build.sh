@@ -26,18 +26,18 @@ blazingsql_build_dir=$build_dir/blazingsql
 #mkdir -p $blazingsql_build_dir
 
 echo "### Vars ###"
-echo "PATH: "$PATH
+echo "PATH="$PATH
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/app/tmp/:/app/tmp/include/:/app/tmp/lib
-echo "LD_LIBRARY_PATH: "$LD_LIBRARY_PATH
+echo "LD_LIBRARY_PATH="$LD_LIBRARY_PATH
 C_INCLUDE_PATH=/app/tmp/include/
 CPLUS_INCLUDE_PATH=/app/tmp/include/
-echo "CPLUS_INCLUDE_PATH: "$CPLUS_INCLUDE_PATH
+echo "CPLUS_INCLUDE_PATH="$CPLUS_INCLUDE_PATH
 
-echo "output_dir: "$output_dir
-echo "blazingsql_project_dir: "$blazingsql_project_dir
-echo "tmp_dir: "$tmp_dir
-echo "build_dir: "$build_dir
-echo "blazingsql_build_dir: "$blazingsql_build_dir
+echo "output_dir="$output_dir
+echo "blazingsql_project_dir="$blazingsql_project_dir
+echo "tmp_dir="$tmp_dir
+echo "build_dir="$build_dir
+echo "blazingsql_build_dir="$blazingsql_build_dir
 
 #BEGIN boost
 
@@ -305,29 +305,40 @@ if [ ! -d $arrow_build_dir ]; then
     SNAPPY_HOME=$snappy_install_dir \
     THRIFT_HOME=$thrift_install_dir \
     cd cpp/
-    cmake -DCMAKE_BUILD_TYPE=Release \
-        -DCMAKE_INSTALL_PREFIX:PATH=$arrow_install_dir \
-        -DARROW_WITH_LZ4=ON \
-        -DARROW_WITH_ZSTD=ON \
+    cmake \
+        -DARROW_BOOST_USE_SHARED=OFF \
+        -DARROW_BUILD_BENCHMARKS=OFF \
+        -DARROW_BUILD_STATIC=OFF \
+        -DARROW_BUILD_SHARED=ON \
+        -DARROW_BUILD_TESTS=OFF \
+        -DARROW_BUILD_UTILITIES=OFF \
+        -DARROW_DATASET=ON \
+        -DARROW_FLIGHT=OFF \
+        -DARROW_GANDIVA=OFF \
+        -DARROW_HDFS=OFF \
+        -DARROW_JEMALLOC=ON \
+        -DARROW_MIMALLOC=ON \
+        -DARROW_ORC=ON \
+        -DCMAKE_PACKAGE_PREFIX:PATH=$tmp_dir \
+        -DARROW_PARQUET=ON \
+        -DARROW_PLASMA=ON \
+        -DARROW_PYTHON=ON \
+        -DARROW_S3=OFF \
+        -DARROW_SIMD_LEVEL=NONE \
         -DARROW_WITH_BROTLI=ON \
+        -DARROW_WITH_BZ2=ON \
+        -DARROW_WITH_LZ4=ON \
         -DARROW_WITH_SNAPPY=ON \
         -DARROW_WITH_ZLIB=ON \
-        -DARROW_BUILD_STATIC=ON \
-        -DARROW_BUILD_SHARED=ON \
-        -DARROW_BOOST_USE_SHARED=OFF \
-        -DARROW_BUILD_TESTS=OFF \
-        -DARROW_TEST_MEMCHECK=OFF \
-        -DARROW_BUILD_BENCHMARKS=OFF \
-        -DARROW_IPC=ON \
-        -DARROW_COMPUTE=ON \
-        -DARROW_GPU=OFF \
-        -DARROW_JEMALLOC=OFF \
-        -DARROW_BOOST_VENDORED=OFF \
-        -DARROW_PYTHON=OFF \
-        -DARROW_HDFS=ON \
-        -DARROW_TENSORFLOW=ON \
-        -DARROW_PARQUET=ON \
+        -DARROW_WITH_ZSTD=ON \
+        -DARROW_USE_LD_GOLD=ON \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_LIBDIR=$tmp_dir/lib \
+        -DCMAKE_INSTALL_PREFIX:PATH=$tmp_dir \
         .
+        # TODO Percy check llvm
+        #-DLLVM_TOOLS_BINARY_DIR=$PREFIX/bin \
+        #-DARROW_DEPENDENCY_SOURCE=SYSTEM \
     if [ $? != 0 ]; then
       exit 1
     fi
@@ -376,9 +387,19 @@ if [ ! -d rmm ]; then
     git checkout branch-$cudf_version
     export CUDA_HOME=/usr/local/cuda/
     alias python=python3
-    INSTALL_PREFIX=$tmp_dir CUDACXX=$CUDA_HOME/bin/nvcc ./build.sh librmm rmm
+    INSTALL_PREFIX=$tmp_dir CUDACXX=$CUDA_HOME/bin/nvcc ./build.sh  -v clean librmm rmm
 fi
 # END RMM
+
+# BEGIN DLPACK
+cd $build_dir
+if [ ! -d dlpack ]; then
+    git clone https://github.com/rapidsai/dlpack.git
+    cd dlpack
+    cmake -DCMAKE_INSTALL_PREFIX=$tmp_dir .
+    make -j16 install
+fi
+# END DLPACK
 
 # BEGIN CUDF
 cd $build_dir
@@ -391,12 +412,17 @@ fi
 echo "==================> CUDF PAR BUILD: $build_mode"
 
 if [ ! -d cudf ]; then
+    echo "### Cudf ###"
     git clone https://github.com/rapidsai/cudf.git
     cd cudf
     git checkout branch-$cudf_version
+    git submodule update --init --remote --recursive
     export CUDA_HOME=/usr/local/cuda/
     export PARALLEL_LEVEL=$build_mode
     CUDACXX=/usr/local/cuda/bin/nvcc ./build.sh
+    #cmake -D GPU_ARCHS=70 -DBUILD_TESTS=ON -DCMAKE_INSTALL_PREFIX=$tmp_dir -DCMAKE_CXX11_ABI=ON ./cpp
+    #echo "make"
+    #make -j4 install
 fi
 
 # END CUDF
