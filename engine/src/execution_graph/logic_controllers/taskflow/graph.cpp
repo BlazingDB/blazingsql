@@ -4,6 +4,8 @@
 namespace ral {
 namespace cache {
 
+	int32_t graph::get_context_token() { return context->getContextToken();	}
+
 	void graph::addPair(kpair p) {
 		std::string source_port_name = std::to_string(p.src->get_id());
 		std::string target_port_name = std::to_string(p.dst->get_id());

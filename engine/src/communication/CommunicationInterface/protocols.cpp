@@ -12,10 +12,6 @@
 
 namespace comm {
 
-
-std::map<ucp_tag_t, std::pair<std::vector<char>, std::shared_ptr<ucp_tag_recv_info_t> > > tag_to_begin_buffer_and_info;
-
-
 ucp_nodes_info & ucp_nodes_info::getInstance() {
 	static ucp_nodes_info instance;
 	return instance;
@@ -27,6 +23,22 @@ void ucp_nodes_info::init(const std::map<std::string, node> & nodes_map) {
 
 node ucp_nodes_info::get_node(const std::string& id) { return _id_to_node_info_map.at(id); }
 
+
+graphs_info & graphs_info::getInstance() {
+	static graphs_info instance;
+	return instance;
+}
+
+void graphs_info::register_graph(int32_t ctx_token, std::shared_ptr<ral::cache::graph> graph){
+	_ctx_token_to_graph_map.insert({ctx_token, graph});
+}
+
+void graphs_info::deregister_graph(int32_t ctx_token){ _ctx_token_to_graph_map.erase(ctx_token); }
+
+std::shared_ptr<ral::cache::graph> graphs_info::get_graph(int32_t ctx_token) { return _ctx_token_to_graph_map.at(ctx_token); }
+
+
+std::map<ucp_tag_t, std::pair<std::vector<char>, std::shared_ptr<ucp_tag_recv_info_t> > > tag_to_begin_buffer_and_info;
 
 /**
  * A struct that lets us access the request that the end points ucx-py generates.
@@ -167,8 +179,8 @@ void ucx_buffer_transport::recv_begin_transmission_ack() {
 	ucp_worker_h ucp_worker = origin_node.get_ucp_worker();
 
 	for(;;) {
-		auto message_tag = ucp_tag_probe_nb(ucp_worker, 
-			*reinterpret_cast<ucp_tag_t *>(&acknowledge_tag), 
+		auto message_tag = ucp_tag_probe_nb(ucp_worker,
+			*reinterpret_cast<ucp_tag_t *>(&acknowledge_tag),
 			acknownledge_tag_mask, 1, info_tag.get());
 
 		if(message_tag != NULL){
@@ -186,7 +198,7 @@ void ucx_buffer_transport::recv_begin_transmission_ack() {
 			} else if(UCS_PTR_STATUS(request) == UCS_OK) {
 				recv_begin_ack_callback_c(request, UCS_OK, info_tag.get());
 				break;
-			} 
+			}
 		}else {
 			ucp_worker_progress(ucp_worker);
 			//waits until a message event occurs
@@ -259,11 +271,11 @@ void recv_frame_callback_c(void * request, ucs_status_t status,
 	ucp_request_release(request);
 }
 
- 
+
 void poll_for_frames(std::shared_ptr<message_receiver> receiver,
 						ucp_tag_t tag, ucp_worker_h ucp_worker){
 	while(! receiver->is_finished()){
-		std::shared_ptr<ucp_tag_recv_info_t> info_tag = std::make_shared<ucp_tag_recv_info_t>(); 
+		std::shared_ptr<ucp_tag_recv_info_t> info_tag = std::make_shared<ucp_tag_recv_info_t>();
         auto message_tag = ucp_tag_probe_nb(
             ucp_worker, tag, message_tag_mask, 1, info_tag.get());
         if(message_tag != NULL){
@@ -271,19 +283,19 @@ void poll_for_frames(std::shared_ptr<message_receiver> receiver,
 			auto position = converted_tag->frame_id - 1;
 			receiver->set_buffer_size(position,info_tag->length);
 
-            auto request = ucp_tag_msg_recv_nb(ucp_worker, 
+            auto request = ucp_tag_msg_recv_nb(ucp_worker,
 				receiver->get_buffer(position),
 				info_tag->length,
 				ucp_dt_make_contig(1), message_tag,
 				recv_frame_callback_c);
 
-			
+
 
 			if(UCS_PTR_IS_ERR(request)) {
 				// TODO: decide how to do cleanup i think we just throw an initialization exception
 			} else if(UCS_PTR_STATUS(request) == UCS_OK) {
 				recv_frame_callback_c(request, UCS_OK, info_tag.get());
-			} 
+			}
 
         }else {
             ucp_worker_progress(ucp_worker);
@@ -295,7 +307,7 @@ void poll_for_frames(std::shared_ptr<message_receiver> receiver,
 
         }
 
-	}	
+	}
 }
 
 void recv_begin_callback_c(void * request, ucs_status_t status,
@@ -305,10 +317,19 @@ void recv_begin_callback_c(void * request, ucs_status_t status,
 	auto metadata_and_transports = detail::get_metadata_and_transports_from_bytes(buffer);
 	auto metadata = metadata_and_transports.first;
 
+	int32_t ctx_token = std::stoi(metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL]);
+	auto graph = graphs_info::getInstance().get_graph(ctx_token);
+
+	size_t kernel_id = std::stoull(metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL]);
+	std::string cache_id = metadata.get_values()[ral::cache::CACHE_ID_METADATA_LABEL];
+
+	auto out_cache = metadata.get_values()[ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL] == "true" ?
+			graph->get_kernel_output_cache(kernel_id, cache_id) : graph->get_output_message_cache();
+
 	auto receiver = std::make_shared<message_receiver>(
 		metadata_and_transports.second,
 		metadata,
-		metadata.get_values()[ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL] == "true" ? nullptr : nullptr);
+		out_cache);
 	//TODO: if its a specific cache get that cache adn put it here else put the general iput cache from the graph
 	auto node = ucp_nodes_info::getInstance().get_node(metadata.get_values()[ral::cache::SENDER_WORKER_ID_METADATA_LABEL]);
 	auto acknowledge_tag = reinterpret_cast<blazing_ucp_tag *>(&info->sender_tag);

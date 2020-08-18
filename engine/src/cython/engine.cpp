@@ -17,6 +17,7 @@
 #include "communication/CommunicationData.h"
 #include <spdlog/spdlog.h>
 #include "CodeTimer.h"
+#include "communication/CommunicationInterface/protocols.hpp"
 
 using namespace fmt::literals;
 
@@ -164,6 +165,8 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(int32_t masterIndex,
 
 	auto graph = generate_graph(input_loaders, schemas, tableNames, tableScans, query, accessToken, queryContext);
 
+	comm::graphs_info::getInstance().register_graph(ctxToken, graph);
+
 	return graph;
 }
 
@@ -180,8 +183,10 @@ std::unique_ptr<PartitionedResultSet> runExecuteGraph(std::shared_ptr<ral::cache
 	for(auto& cudfTable : frames){
 		result->cudfTables.emplace_back(std::move(cudfTable->releaseCudfTable()));
 	}
-
 	result->skipdata_analysis_fail = false;
+
+	comm::graphs_info::getInstance().deregister_graph(graph->get_context_token());
+
 	return result;
 }
 

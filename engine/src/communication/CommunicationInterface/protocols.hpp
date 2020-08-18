@@ -8,6 +8,8 @@
 #include "node.hpp"
 #include "utilities/ctpl_stl.h"
 
+#include "execution_graph/logic_controllers/taskflow/graph.h"
+
 namespace comm {
 
 enum blazing_protocol
@@ -34,6 +36,25 @@ private:
     std::map<std::string, node> _id_to_node_info_map;
 };
 
+class graphs_info
+{
+public:
+	static graphs_info & getInstance();
+
+	void register_graph(int32_t ctx_token, std::shared_ptr<ral::cache::graph> graph);
+    void deregister_graph(int32_t ctx_token);
+
+    std::shared_ptr<ral::cache::graph> get_graph(int32_t ctx_token);
+
+private:
+    graphs_info() = default;
+	graphs_info(graphs_info &&) = delete;
+	graphs_info(const graphs_info &) = delete;
+	graphs_info & operator=(graphs_info &&) = delete;
+	graphs_info & operator=(const graphs_info &) = delete;
+
+    std::map<int32_t, std::shared_ptr<ral::cache::graph>> _ctx_token_to_graph_map;
+};
 
 /**
  * A class that can send a buffer via  ucx protocol

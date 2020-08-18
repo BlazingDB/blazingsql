@@ -56,6 +56,8 @@ public:
 	graph(const graph &) = default;
 	graph & operator=(const graph &) = default;
 
+	int32_t get_context_token();
+
 	void addPair(kpair p);
 
 	void check_and_complete_work_flow();
