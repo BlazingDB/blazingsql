@@ -52,7 +52,7 @@ public:
       throw std::runtime_error("Invalid access to raw buffer");
     }
     _raw_buffers[index].resize(size);
-  
+
   }
 
   void confirm_transmission(){
@@ -72,7 +72,7 @@ public:
   * @param buffer A device_buffer containing part of the data of a BlazingTable
   * @param index The position of the buffer
   */
-  void add_buffer(rmm::device_buffer & buffer, uint16_t index) {
+  void add_buffer(rmm::device_buffer buffer, uint16_t index) {
 
     _raw_buffers[index] = std::move(buffer);
 

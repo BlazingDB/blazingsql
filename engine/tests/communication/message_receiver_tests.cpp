@@ -39,10 +39,9 @@ TEST_F(MessageReceiverTest, receive_test) {
   }
 
   ral::cache::MetadataDictionary metadata;
-  bool include_metadata = false;
   auto output_cache = std::make_shared<ral::cache::CacheMachine>(nullptr);
 
-  comm::message_receiver msg_rcv(column_transports, metadata, include_metadata, output_cache);
+  comm::message_receiver msg_rcv(column_transports, metadata, output_cache);
 
   for (size_t i = 0; i < gpu_buffers.size(); i++) {
     msg_rcv.add_buffer(std::move(*(gpu_buffers[i])), i);
