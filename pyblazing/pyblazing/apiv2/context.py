@@ -1051,6 +1051,9 @@ class BlazingContext(object):
                     number of rows in the SortAndSampleKernel to calculate
                     the number of samples
                     default: 0.1
+            MAX_ORDER_BY_SAMPLES_PER_NODE : The max number order by samples
+                    to capture per node
+                    default: 10000
             BLAZING_DEVICE_MEM_CONSUMPTION_THRESHOLD : The percent
                     (as a decimal) of total GPU memory that the memory
                     resource will consider to be full
