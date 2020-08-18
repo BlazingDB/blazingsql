@@ -1084,7 +1084,7 @@ class BlazingContext(object):
                     default: 16
             MAX_SEND_MESSAGE_THREADS : The number of threads available to send
                     outgoing messages.
-                    default: 20            
+                    default: 20
             LOGGING_LEVEL : Set the level (as string) of the current tool for
                     logging. Log levels have order of priority:
                     {trace, debug, info, warn, error, critical}
