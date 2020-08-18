@@ -67,6 +67,7 @@
 - #927 Fixed random segfault issue in parser
 - #929 Update the GPUManager functions
 - #942 Fix column names on sample function
+- #950 introducing config param for max orderby samples and fixing oversampling 
 
 
 # BlazingSQL 0.14.0 (June 9, 2020)
