@@ -251,22 +251,28 @@ void send_aknowledge_callback_c(void * request, ucs_status_t status){
 }
 
 
+void recv_frame_callback_c(void * request, ucs_status_t status,
+							ucp_tag_recv_info_t *info) {
+	auto message_listener = ucx_message_listener::get_instance();
+	message_listener->increment_frame_receiver(
+		info->sender_tag & message_tag_mask); //and with message_tag_mask to set frame_id to 00 to match tag
+	ucp_request_release(request);
+}
 
-
-/*
+ 
 void poll_for_frames(std::shared_ptr<message_receiver> receiver,
 						ucp_tag_t tag, ucp_worker_h ucp_worker){
-	while(! receiver.is_finished()){
+	while(! receiver->is_finished()){
 		std::shared_ptr<ucp_tag_recv_info_t> info_tag = std::make_shared<ucp_tag_recv_info_t>(); 
         auto message_tag = ucp_tag_probe_nb(
             ucp_worker, tag, message_tag_mask, 1, info_tag.get());
-        if(message != NULL){
-			auto converted_tag = reinterpret_cast<blazing_tag *>(&message_tag);
+        if(message_tag != NULL){
+			auto converted_tag = reinterpret_cast<blazing_ucp_tag *>(&message_tag);
 			auto position = converted_tag->frame_id - 1;
-			receiver.set_buffer_size(position,info_tag->length);
+			receiver->set_buffer_size(position,info_tag->length);
 
             auto request = ucp_tag_msg_recv_nb(ucp_worker, 
-				receiver.get_buffer(position),
+				receiver->get_buffer(position),
 				info_tag->length,
 				ucp_dt_make_contig(1), message_tag,
 				recv_frame_callback_c);
@@ -279,17 +285,18 @@ void poll_for_frames(std::shared_ptr<message_receiver> receiver,
 				recv_frame_callback_c(request, UCS_OK, info_tag.get());
 			} 
 
-        }else(ucp_worker_progress(ucp_worker)) {
-            //waits until a message event occurs
+        }else {
+            ucp_worker_progress(ucp_worker);
+			//waits until a message event occurs
             auto status = ucp_worker_wait(ucp_worker);
             if (status != UCS_OK){
-                throw ::std::exception()
+                throw ::std::exception();
             }
 
         }
 
 	}	
-}*/
+}
 
 void recv_begin_callback_c(void * request, ucs_status_t status,
 							ucp_tag_recv_info_t *info) {
@@ -378,6 +385,26 @@ void ucx_message_listener::remove_receiver(ucp_tag_t tag){
 
 ucp_worker_h ucx_message_listener::get_worker(){
 	return ucp_worker;
+}
+
+void ucx_message_listener::increment_frame_receiver(ucp_tag_t tag){
+	tag_to_receiver[tag]->confirm_transmission();
+	if(tag_to_receiver[tag]->is_finished()){
+		remove_receiver(tag);
+	}
+}
+ucx_message_listener * ucx_message_listener::instance = nullptr;
+
+void ucx_message_listener::initialize_message_listener(ucp_worker_h worker){
+	if(instance == NULL) {
+		instance = new ucx_message_listener(worker);
+	}
+}
+ucx_message_listener * ucx_message_listener::get_instance() {
+	if(instance == NULL) {
+		throw::std::exception();
+	}
+	return instance;
 }
 
 }  // namespace comm
