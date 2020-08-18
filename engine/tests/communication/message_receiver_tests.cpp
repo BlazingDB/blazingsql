@@ -42,10 +42,12 @@ TEST_F(MessageReceiverTest, receive_test) {
   auto output_cache = std::make_shared<ral::cache::CacheMachine>(nullptr);
 
   comm::message_receiver msg_rcv(column_transports, metadata, output_cache);
-
-  for (size_t i = 0; i < gpu_buffers.size(); i++) {
-    msg_rcv.add_buffer(std::move(*(gpu_buffers[i])), i);
+  for (size_t i = 0; i < raw_buffers.size(); i++) {
+    msg_rcv.set_buffer_size(i,buffer_sizes[i]);
+    cudaMemcpy(msg_rcv.get_buffer(i),gpu_buffers[i]->data(),buffer_sizes[i],cudaMemcpyDeviceToDevice);
   }
+
+  msg_rcv.finish();
 
   auto pulled_table = output_cache->pullFromCache();
 
