@@ -126,7 +126,7 @@ private:
 	ctpl::thread_pool<BlazingThread> pool;
     void poll_message_tag(ucp_tag_t tag, ucp_tag_t mask);
     ucp_worker_h ucp_worker;
-
+    std::map<ucp_tag_t,std::shared_ptr<message_receiver> > tag_to_receiver;
 	static ucx_message_listener * instance;
 };
 

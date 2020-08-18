@@ -67,7 +67,7 @@ public:
   bool is_finished(){
     return (_buffer_counter == _raw_buffers.size());
   }
-private:
+
   void finish() {
     std::unique_ptr<ral::frame::BlazingTable> table = deserialize_from_gpu_raw_buffers(_column_transports, _raw_buffers);
     if(_include_metadata){
@@ -78,6 +78,8 @@ private:
     }
 
   }
+private:
+  
 
   std::vector<ColumnTransport> _column_transports;
   std::shared_ptr<ral::cache::CacheMachine> _output_cache;
