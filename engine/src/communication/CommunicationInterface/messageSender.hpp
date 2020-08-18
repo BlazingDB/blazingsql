@@ -46,7 +46,8 @@ private:
 			pool.push([table{move(data_and_metadata.first)},
 						  metadata{data_and_metadata.second},
 						  node_address_map = node_address_map,
-						  output_cache = output_cache](int thread_id) {
+						  output_cache = output_cache,
+							protocol=this->protocol](int thread_id) {
 				std::vector<std::size_t> buffer_sizes;
 				std::vector<const char *> raw_buffers;
 				std::vector<blazingdb::transport::ColumnTransport> column_transports;
@@ -85,7 +86,7 @@ private:
 						throw std::exception();
 					}
 
-					transport->send_begin_transmission()
+					transport->send_begin_transmission();
 					for(size_t i = 0; i < raw_buffers.size(); i++) {
 						transport->send(raw_buffers[i], buffer_sizes[i]);
 						// temp_scope_holder[buffer_index] = nullptr;	// TODO: allow the device_vector to go out of
