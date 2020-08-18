@@ -335,6 +335,41 @@ if [ ! -d $arrow_build_dir ]; then
 fi
 #END arrow
 
+cudf_version=0.15
+
+# BEGIN RMM
+cd $build_dir
+if [ ! -d rmm ]; then
+    git clone https://github.com/rapidsai/rmm.git
+    cd rmm
+    git checkout branch-$cudf_version
+    export CUDA_HOME=/usr/local/cuda/
+    alias python=python3
+    INSTALL_PREFIX=$tmp_dir CUDACXX=$CUDA_HOME/bin/nvcc ./build.sh librmm rmm
+fi
+# END RMM
+
+# BEGIN CUDF
+cd $build_dir
+par_build=4
+
+if [ -z $par_build ]; then
+    build_mode=4
+fi
+
+echo "==================> CUDF PAR BUILD: $build_mode"
+
+if [ ! -d cudf ]; then
+    git clone https://github.com/rapidsai/cudf.git
+    cd cudf
+    git checkout branch-$cudf_version
+    export CUDA_HOME=/usr/local/cuda/
+    export PARALLEL_LEVEL=$build_mode
+    CUDACXX=/usr/local/cuda/bin/nvcc ./build.sh
+fi
+
+# END CUDF
+
 echo "end before"
 
 exit 1
