@@ -34,11 +34,14 @@
 #include "communication/CommunicationData.h"
 #include "communication/network/Client.h"
 #include "communication/network/Server.h"
+
 #include <bmr/initializer.h>
 
 
 #include "communication/CommunicationInterface/node.hpp"
 #include "communication/CommunicationInterface/protocols.hpp"
+#include "communication/CommunicationInterface/messageSender.hpp"
+
 #include "error.hpp"
 
 using namespace fmt::literals;
@@ -170,6 +173,22 @@ std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> > initiali
 
 	communicationData.initialize(worker_id, ralHost, ralCommunicationPort);
 
+	
+
+	comm::ucx_message_listener::initialize_message_listener(
+		comm::ucp_nodes_info::getInstance().get_node(worker_id).get_ucp_worker(),20);
+	comm::ucx_message_listener::get_instance()->poll_begin_message_tag();
+
+	auto output_input_caches = std::make_pair(std::make_shared<CacheMachine>(nullptr),std::make_shared<CacheMachine>(nullptr));
+
+	comm::message_sender::initialize_instance(output_input_caches.first,
+		nodes_info_map,
+		20);
+
+	comm::message_sender::get_instance()->run_polling();
+	
+	//TODO: make this number configurable in options
+
 	// Init AWS S3 ... TODO see if we need to call shutdown and avoid leaks from s3 percy
 	BlazingContext::getInstance()->initExternalSystems();
 
@@ -287,7 +306,7 @@ std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> > initiali
 	}
 	logger->debug("|||{info}|||||","info"_a=product_details_str);
 
-	return std::make_pair(std::make_shared<CacheMachine>(nullptr),std::make_shared<CacheMachine>(nullptr));
+	return output_input_caches;
 
 }
 

@@ -36,8 +36,6 @@ public:
 	static void initialize_instance(std::shared_ptr<ral::cache::CacheMachine> output_cache,
 		std::map<std::string, node> node_address_map,
 		int num_threads);
-private:
-	static message_sender * instance;
 	/**
 	 * @brief A polling function that listens on a cache for data and send it off via some protocol
 	 */
@@ -104,6 +102,9 @@ private:
 			});
 		}
 	}
+private:
+	static message_sender * instance;
+	
 
 	ctpl::thread_pool<BlazingThread> pool;
 	std::shared_ptr<ral::cache::CacheMachine> output_cache;

@@ -112,9 +112,8 @@ static const ucp_tag_t acknownledge_tag_mask = 0xFFFFFFFFFFFFFFFF;
 class ucx_message_listener {
 public:
 
-    static void initialize_message_listener(ucp_worker_h worker);
+    static void initialize_message_listener(ucp_worker_h worker, int num_threads);
     static ucx_message_listener * get_instance();
-    void poll_begin_messages();
     void poll_begin_message_tag();
     void add_receiver(ucp_tag_t tag,std::shared_ptr<message_receiver> receiver);
     void remove_receiver(ucp_tag_t tag);
@@ -122,7 +121,7 @@ public:
     ucp_worker_h get_worker();
     ctpl::thread_pool<BlazingThread> & get_pool();
 private:
-    ucx_message_listener(ucp_worker_h worker);
+    ucx_message_listener(ucp_worker_h worker, int num_threads);
 	ctpl::thread_pool<BlazingThread> pool;
     void poll_message_tag(ucp_tag_t tag, ucp_tag_t mask);
     ucp_worker_h ucp_worker;

@@ -7,6 +7,7 @@
 
 #include <ucp/api/ucp.h>
 #include <ucp/api/ucp_def.h>
+#include <thread>
 
 #include "execution_graph/logic_controllers/CacheMachine.h"
 
@@ -250,8 +251,8 @@ void ucx_buffer_transport::send_impl(const char * buffer, size_t buffer_size) {
 	// TODO: call ucp_worker_progress here
 }
 
-ucx_message_listener::ucx_message_listener(ucp_worker_h worker) :
-    ucp_worker(worker) {
+ucx_message_listener::ucx_message_listener(ucp_worker_h worker, int num_threads) :
+    ucp_worker(worker), pool{num_threads} {
 
 }
 
@@ -377,42 +378,43 @@ void recv_begin_callback_c(void * request, ucs_status_t status,
 
 
 void ucx_message_listener::poll_begin_message_tag(){
-    for(;;){
+	auto thread = std::thread([this]{
+		for(;;){
 
-        std::shared_ptr<ucp_tag_recv_info_t> info_tag = std::make_shared<ucp_tag_recv_info_t>();
-        auto message_tag = ucp_tag_probe_nb(
-            ucp_worker, 0ull, begin_tag_mask, 1, info_tag.get());
-        if(message_tag != NULL){
-            //we have a msg to process
-			tag_to_begin_buffer_and_info[info_tag->sender_tag] = std::make_pair(
-				std::vector<char>(info_tag->length), info_tag);
-            auto request = ucp_tag_msg_recv_nb(ucp_worker,
-				tag_to_begin_buffer_and_info[info_tag->sender_tag].first.data(),
-				info_tag->length,
-				ucp_dt_make_contig(1), message_tag,
-				recv_begin_callback_c);
+			std::shared_ptr<ucp_tag_recv_info_t> info_tag = std::make_shared<ucp_tag_recv_info_t>();
+			auto message_tag = ucp_tag_probe_nb(
+				ucp_worker, 0ull, begin_tag_mask, 1, info_tag.get());
+			if(message_tag != NULL){
+				//we have a msg to process
+				tag_to_begin_buffer_and_info[info_tag->sender_tag] = std::make_pair(
+					std::vector<char>(info_tag->length), info_tag);
+				auto request = ucp_tag_msg_recv_nb(ucp_worker,
+					tag_to_begin_buffer_and_info[info_tag->sender_tag].first.data(),
+					info_tag->length,
+					ucp_dt_make_contig(1), message_tag,
+					recv_begin_callback_c);
 
 
 
-			if(UCS_PTR_IS_ERR(request)) {
-				// TODO: decide how to do cleanup i think we just throw an initialization exception
-			} else if(UCS_PTR_STATUS(request) == UCS_OK) {
-				recv_begin_callback_c(request, UCS_OK, info_tag.get());
+				if(UCS_PTR_IS_ERR(request)) {
+					// TODO: decide how to do cleanup i think we just throw an initialization exception
+				} else if(UCS_PTR_STATUS(request) == UCS_OK) {
+					recv_begin_callback_c(request, UCS_OK, info_tag.get());
+				}
+
+			}else {
+				ucp_worker_progress(ucp_worker);
+				//waits until a message event occurs
+				auto status = ucp_worker_wait(ucp_worker);
+				if (status != UCS_OK){
+					throw ::std::exception();
+				}
+
 			}
 
-        }else {
-			ucp_worker_progress(ucp_worker);
-            //waits until a message event occurs
-            auto status = ucp_worker_wait(ucp_worker);
-            if (status != UCS_OK){
-                throw ::std::exception();
-            }
-
-        }
-
-
-
-    }
+    	}
+	});
+	thread.detach();
 
 }
 
@@ -433,9 +435,9 @@ void ucx_message_listener::increment_frame_receiver(ucp_tag_t tag){
 }
 ucx_message_listener * ucx_message_listener::instance = nullptr;
 
-void ucx_message_listener::initialize_message_listener(ucp_worker_h worker){
+void ucx_message_listener::initialize_message_listener(ucp_worker_h worker, int num_threads){
 	if(instance == NULL) {
-		instance = new ucx_message_listener(worker);
+		instance = new ucx_message_listener(worker,num_threads);
 	}
 }
 ucx_message_listener * ucx_message_listener::get_instance() {
