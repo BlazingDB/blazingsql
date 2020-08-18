@@ -998,7 +998,8 @@ class BlazingContext(object):
         dask_client (optional) : dask.distributed.Client instance.
                     only necessary for distributed query execution.
                     Set to None if you explicitly dont want it to
-                    connect to any Dask client running, which it will by default.
+                    connect to any Dask client running, which it will by
+                    default.
         network_interface (optional) : for communicating with the
                     dask-scheduler. see note below.
         allocator (optional) :  "managed" or "default" or "existing", where
@@ -1170,6 +1171,7 @@ class BlazingContext(object):
 
             if network_interface is None:
                 import psutil
+
                 local_addr = dask_client.scheduler_comm.comm._local_addr
                 local = local_addr.split("://")[-1].split(":")[0]
                 for name, addrs in psutil.net_if_addrs().items():
