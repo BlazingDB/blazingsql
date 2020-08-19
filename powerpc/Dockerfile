@@ -63,7 +63,3 @@ COPY requirements.txt /opt/requirements.txt
 RUN mkdir -p /opt/blazingsql-powerpc-prefix
 RUN python3 -m venv /opt/blazingsql-powerpc-prefix
 RUN source /opt/blazingsql-powerpc-prefix/bin/activate && pip3.7 install -r /opt/requirements.txt
-RUN chmod 777 /opt/blazingsql-powerpc-prefix
-RUN chmod 777 /opt/blazingsql-powerpc-prefix/lib
-RUN chmod 777 /opt/blazingsql-powerpc-prefix/include
-RUN chmod 777 /opt/blazingsql-powerpc-prefix/bin
