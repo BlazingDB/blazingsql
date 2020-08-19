@@ -16,7 +16,9 @@ output_dir=$(readlink -f $output_dir)
 blazingsql_project_dir=$(readlink -f $blazingsql_project_dir)
 
 # NOTE tmp_dir is the prefix (bin, lib, include, build)
-tmp_dir=$working_directory/tmp
+#tmp_dir=$working_directory/tmp
+# TODO mario
+tmp_dir=/opt/blazingsql-powerpc-prefix
 
 build_dir=$tmp_dir/build
 blazingsql_build_dir=$build_dir/blazingsql
