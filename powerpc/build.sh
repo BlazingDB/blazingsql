@@ -278,6 +278,9 @@ if [ ! -d $snappy_build_dir ]; then
 fi
 #END snappy
 
+export CUDA_HOME=/usr/local/cuda/
+export CUDACXX=$CUDA_HOME/bin/nvcc
+
 #BEGIN arrow
 arrow_install_dir=$tmp_dir
 arrow_build_dir=$build_dir/arrow
@@ -297,14 +300,17 @@ if [ ! -d $arrow_build_dir ]; then
     # -DARROW_HDFS=ON \ # blazingdb-io use arrow for hdfs
     # -DARROW_TENSORFLOW=ON \ # enable old ABI for C/C++
     
-    BOOST_ROOT=$boost_install_dir \
-    FLATBUFFERS_HOME=$flatbuffers_install_dir \
-    LZ4_HOME=$lz4_install_dir \
-    ZSTD_HOME=$zstd_install_dir \
-    BROTLI_HOME=$brotli_install_dir \
-    SNAPPY_HOME=$snappy_install_dir \
-    THRIFT_HOME=$thrift_install_dir \
+    export BOOST_ROOT=$boost_install_dir
+    export FLATBUFFERS_HOME=$flatbuffers_install_dir
+    export LZ4_HOME=$lz4_install_dir
+    export ZSTD_HOME=$zstd_install_dir
+    export BROTLI_HOME=$brotli_install_dir
+    export SNAPPY_HOME=$snappy_install_dir
+    export THRIFT_HOME=$thrift_install_dir
+
     cd cpp/
+    mkdir -p build
+    cd build
     cmake \
         -DARROW_BOOST_USE_SHARED=OFF \
         -DARROW_BUILD_BENCHMARKS=OFF \
@@ -318,12 +324,13 @@ if [ ! -d $arrow_build_dir ]; then
         -DARROW_HDFS=OFF \
         -DARROW_JEMALLOC=ON \
         -DARROW_MIMALLOC=ON \
-        -DARROW_ORC=ON \
+        -DARROW_ORC=OFF \
         -DCMAKE_PACKAGE_PREFIX:PATH=$tmp_dir \
         -DARROW_PARQUET=ON \
         -DARROW_PLASMA=ON \
-        -DARROW_PYTHON=ON \
+        -DARROW_PYTHON=OFF \
         -DARROW_S3=OFF \
+        -DARROW_CUDA=ON \
         -DARROW_SIMD_LEVEL=NONE \
         -DARROW_WITH_BROTLI=ON \
         -DARROW_WITH_BZ2=ON \
@@ -335,7 +342,7 @@ if [ ! -d $arrow_build_dir ]; then
         -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_INSTALL_LIBDIR=$tmp_dir/lib \
         -DCMAKE_INSTALL_PREFIX:PATH=$tmp_dir \
-        .
+        ..
         # TODO Percy check llvm
         #-DLLVM_TOOLS_BINARY_DIR=$PREFIX/bin \
         #-DARROW_DEPENDENCY_SOURCE=SYSTEM \
@@ -416,13 +423,36 @@ if [ ! -d cudf ]; then
     git clone https://github.com/rapidsai/cudf.git
     cd cudf
     git checkout branch-$cudf_version
-    git submodule update --init --remote --recursive
-    export CUDA_HOME=/usr/local/cuda/
-    export PARALLEL_LEVEL=$build_mode
-    CUDACXX=/usr/local/cuda/bin/nvcc ./build.sh
+
+    #git submodule update --init --remote --recursive
+    #export CUDA_HOME=/usr/local/cuda/
+    #export PARALLEL_LEVEL=$build_mode
+    #CUDACXX=/usr/local/cuda/bin/nvcc ./build.sh
     #cmake -D GPU_ARCHS=70 -DBUILD_TESTS=ON -DCMAKE_INSTALL_PREFIX=$tmp_dir -DCMAKE_CXX11_ABI=ON ./cpp
     #echo "make"
     #make -j4 install
+
+    export GPU_ARCH="-DGPU_ARCHS=ALL"
+    export BUILD_NVTX=ON
+    export BUILD_BENCHMARKS=OFF
+    export BUILD_DISABLE_DEPRECATION_WARNING=ON
+    export BUILD_PER_THREAD_DEFAULT_STREAM=OFF
+    export ARROW_ROOT=$tmp_dir
+
+    cd cpp
+    mkdir -p build
+    cd build
+    cmake -DCMAKE_INSTALL_PREFIX=$tmp_dir \
+          -DCMAKE_CXX11_ABI=ON \
+          ${GPU_ARCH} \
+          -DUSE_NVTX=${BUILD_NVTX} \
+          -DBUILD_BENCHMARKS=${BUILD_BENCHMARKS} \
+          -DDISABLE_DEPRECATION_WARNING=${BUILD_DISABLE_DEPRECATION_WARNING} \
+          -DPER_THREAD_DEFAULT_STREAM=${BUILD_PER_THREAD_DEFAULT_STREAM} \
+          -DBOOST_ROOT=$tmp_dir \
+          -DBoost_NO_SYSTEM_PATHS=ON \
+          -DCMAKE_BUILD_TYPE=Release ..
+    make -j4
 fi
 
 # END CUDF
