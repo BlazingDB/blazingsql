@@ -9,16 +9,15 @@
 #include "communication/CommunicationData.h"
 #include "operators/GroupBy.h"
 #include "distribution/primitives.h"
-#include "distribution/MessageManager.h"
 #include <cudf/partitioning.hpp>
 #include "CodeTimer.h"
 #include "taskflow/distributing_kernel.h"
 
 namespace ral {
 namespace batch {
+using ral::cache::distributing_kernel;
 using ral::cache::kstatus;
 using ral::cache::kernel;
-using ral::cache::distributing_kernel;
 using ral::cache::kernel_type;
 using RecordBatch = std::unique_ptr<ral::frame::BlazingTable>;
 using namespace fmt::literals;
@@ -139,9 +138,9 @@ private:
 class DistributeAggregateKernel : public distributing_kernel {
 public:
 	DistributeAggregateKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: distributing_kernel{kernel_id, queryString, context, kernel_type::DistributeAggregateKernel, ral::communication::CommunicationData::getInstance().getSelfNode().id(), ral::communication::CommunicationData::getInstance().getSelfNode(),
-		    query_graph->get_output_message_cache()} {
+		: distributing_kernel{kernel_id, queryString, context, kernel_type::DistributeAggregateKernel} {
 		this->query_graph = query_graph;
+        set_number_of_message_trackers(1); //default
 	}
 
 	bool can_you_throttle_my_input() {
@@ -195,15 +194,10 @@ public:
                             // selfPartition.emplace_back(this->context->getMasterNode(), batch->toBlazingTableView());
                             // ral::distribution::distributeTablePartitions(this->context.get(), selfPartition);
 
-                            ral::cache::MetadataDictionary metadata;
-                            metadata.add_value(ral::cache::KERNEL_ID_METADATA_LABEL, std::to_string(this->get_id()));
-                            metadata.add_value(ral::cache::QUERY_ID_METADATA_LABEL, std::to_string(this->context->getContextToken()));
-                            metadata.add_value(ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL, "true");
-                            metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, "");
-                            metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, self_node.id());
-                            metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, this->context->getMasterNode().id());
-                            ral::cache::CacheMachine* output_cache = this->query_graph->get_output_message_cache();
-                            output_cache->addCacheData(std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(std::move(batch), metadata)));
+                            send_message(std::move(batch),
+                                "true", //metadata_label
+                                "", //cache_id
+                                this->context->getMasterNode().id());
 
                             increment_node_count(this->context->getMasterNode().id());
                         }
@@ -234,7 +228,6 @@ public:
                             this->output_.get_cache().get(),
                             this->query_graph->get_output_message_cache(),
                             "", //message_id
-                            "true",
                             "" //cache_id
                         );
                     }
@@ -253,7 +246,6 @@ public:
 
             send_total_partition_counts(this->query_graph->get_output_message_cache(),
                 "",
-                "false",
                 ""
             );
         });
