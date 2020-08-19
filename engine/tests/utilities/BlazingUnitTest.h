@@ -8,11 +8,11 @@ struct BlazingUnitTest : public ::testing::Test {
 	static void SetUpTestSuite();
 	static void TearDownTestSuite();
 
-	void SetUp() {
-		BlazingRMMInitialize();
+	virtual void SetUp() override {
+		BlazingRMMInitialize("default");
 	}
 
-	void TearDown() { 
+	virtual void TearDown() override {
 		BlazingRMMFinalize();
 	}
 };
