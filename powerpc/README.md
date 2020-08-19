@@ -3,26 +3,31 @@
 ### Docker
 Building docker image for build:
 ```
+cd blazingsql/powerpc
 ./docker-build.sh
 ```
 
 Run a container
 ```
+cd blazingsql/powerpc
 docker run -ti --rm blazingdb/build:powerpc bash
 ```
 
 Run a container with volume
 ```
+cd blazingsql/powerpc
 docker run -ti -v $PWD:/app --rm blazingdb/build:powerpc bash
 ```
 
 Run a container with gpu
 ```
+cd blazingsql/powerpc
 docker run -ti -v $PWD:/app --gpus=all --rm blazingdb/build:powerpc bash
 ```
 
 Run a container with gpu and same user
 ```
+cd blazingsql/powerpc
 docker run -u $(id -u):$(id -g) -ti -v /etc/passwd:/etc/passwd -v $PWD:/app --gpus=all --rm blazingdb/build:powerpc bash
 ```
 
@@ -31,7 +36,10 @@ Execute a command as root:
 docker exec -u 0:0 -ti <container_id> bash
 ```
 
+The docker has a pip env in /opt/blazingsql-powerpc-prefix as 777 with all the requirements.txt installed
+
 ### Python Virtualenv
+Most of these steps are already in the docker.
 Create:
 ```
 python3 -m venv demo
