@@ -75,27 +75,31 @@ class BlazingMessage:
                 len(self.metadata["worker_ids"]) > 0 and
                 self.data is not None)
 
+
 def set_id_mappings_on_worker(mapping):
-    get_worker().ucx_addresses = mapping
+    get_worker().ucx_addresses = {}
+    for worker_address in mapping:
+        if worker_address != get_worker().address:
+            get_worker().ucx_addresses[worker_address] = mapping[worker_address]
 
 
 async def init_endpoints():
     for addr in get_worker().ucx_addresses.values():
         await UCX.get().get_endpoint(addr)
 
+
 async def listen_async(callback=route_message, client=None):
     client = client if client is not None else default_client()
-    worker_id_maps = await client.run(UCX.start_listener_on_worker, callback, wait=True)
+    worker_id_maps = await client.run(UCX.start_listener_on_worker, wait=True)
     await client.run(set_id_mappings_on_worker, worker_id_maps, wait=True)
     return worker_id_maps
 
 
-
 def listen(callback=route_message, client=None):
     client = client if client is not None else default_client()
-    worker_id_maps = client.run(UCX.start_listener_on_worker, callback, wait=True)
+    worker_id_maps = client.run(UCX.start_listener_on_worker, wait=True)
     client.run(set_id_mappings_on_worker, worker_id_maps, wait=True)
-    client.run(UCX.init_handlers,wait=True)
+    client.run(UCX.init_handlers, wait=True)
     return worker_id_maps
 
 
@@ -137,14 +141,12 @@ class UCX:
 
 
     @staticmethod
-    async def start_listener_on_worker(callback):
-        UCX.get().callback = callback
+    async def start_listener_on_worker():
         return await UCX.get().start_listener()
 
     @staticmethod
     async def init_handlers():
         addresses = get_worker().ucx_addresses
-        eps = []
         for address in addresses.values():
             ep = await UCX.get().get_endpoint(address)
 
@@ -153,26 +155,8 @@ class UCX:
         return ucp.get_ucp_worker()
 
     async def start_listener(self):
-
-        async def handle_comm(comm):
-            should_stop = False
-            while not comm.closed() and not should_stop:
-                msg = await comm.read()
-                if msg == CTRL_STOP:
-                    should_stop = True
-                else:
-                    msg = BlazingMessage(**{k: v.deserialize()
-                                            for k, v in msg.items()})
-                    self.received += 1
-                    await self.callback(msg)
-
         ip, port = parse_host_port(get_worker().address)
-
-        self._listener = await UCXListener(ip, handle_comm)
-
-        await self._listener.start()
-
-        return "ucx://%s:%s" % (ip, self.listener_port())
+        return "ucx://%s:%s" % (ip, port)
 
     def listener_port(self):
         return self._listener.port

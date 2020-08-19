@@ -184,7 +184,7 @@ def initializeBlazing(
             addr = worker.ucx_addresses[dask_addr]
             ep = UCX.get()._endpoints[addr].ep
             workers_ucp_info.append({
-                'worker_id': dask_addr,
+                'worker_id': dask_addr.encode(),
                 'ep_handle' : ep.get_ucp_endpoint(),
                 'worker_handle': ep.get_ucp_worker()
             })
@@ -1250,11 +1250,6 @@ class BlazingContext(object):
             self.config_options["BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD".encode()] = str(
                 host_memory_quota * len(set(host_list)) / len(workers_info)
             ).encode()
-
-
-            # Register and start polling plugin on each Dask worker
-            self.polling_plugin = PollingPlugin()
-            self.dask_client.register_worker_plugin(self.polling_plugin)
 
             # Start listener on each worker to send received messages to router
             listen(client=self.dask_client)

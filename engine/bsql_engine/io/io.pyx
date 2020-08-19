@@ -130,6 +130,7 @@ cdef cio.TableScanInfo getTableScanInfoPython(string logicalPlan) nogil:
     return temp
 
 cdef pair[shared_ptr[cio.CacheMachine], shared_ptr[cio.CacheMachine] ] initializePython(int ralId, string worker_id, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, vector[NodeMetaDataUCP] workers_ucp_info, bool singleNode, map[string,string] config_options) except +:
+    print("and i am here")
     with nogil:
         return cio.initialize( ralId, worker_id, gpuId, network_iface_name,  ralHost,  ralCommunicationPort, workers_ucp_info, singleNode, config_options)
 
@@ -258,11 +259,16 @@ cdef class PyBlazingCache:
         return df, metadata_py
 
 cpdef initializeCaller(int ralId, string worker_id, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, vector[NodeMetaDataUCP] workers_ucp_info, bool singleNode, map[string,string] config_options):
+    print("i am here")
     caches = initializePython( ralId, worker_id, gpuId, network_iface_name,  ralHost,  ralCommunicationPort, workers_ucp_info, singleNode, config_options)
+    print("initialized woohoo!")
     transport_out = PyBlazingCache()
+    print("made cache out!")
     transport_out.c_cache = caches.first
     transport_in = PyBlazingCache()
+    print("made cache in!")
     transport_in.c_cache = caches.second
+    print("made caches!")
     return (transport_out,transport_in)
 
 
