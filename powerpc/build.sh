@@ -16,7 +16,10 @@ output_dir=$(readlink -f $output_dir)
 blazingsql_project_dir=$(readlink -f $blazingsql_project_dir)
 
 # NOTE tmp_dir is the prefix (bin, lib, include, build)
-tmp_dir=$working_directory/tmp
+#tmp_dir=$working_directory/tmp
+# TODO mario
+tmp_dir=/opt/blazingsql-powerpc-prefix
+
 build_dir=$tmp_dir/build
 blazingsql_build_dir=$build_dir/blazingsql
 
@@ -385,6 +388,8 @@ fi
 
 
 cudf_version=0.15
+export CUDA_HOME=/usr/local/cuda/
+alias python=python3
 
 # BEGIN RMM
 cd $build_dir
@@ -392,8 +397,6 @@ if [ ! -d rmm ]; then
     git clone https://github.com/rapidsai/rmm.git
     cd rmm
     git checkout branch-$cudf_version
-    export CUDA_HOME=/usr/local/cuda/
-    alias python=python3
     INSTALL_PREFIX=$tmp_dir CUDACXX=$CUDA_HOME/bin/nvcc ./build.sh  -v clean librmm rmm
 fi
 # END RMM
