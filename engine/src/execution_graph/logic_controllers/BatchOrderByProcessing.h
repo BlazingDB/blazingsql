@@ -345,12 +345,6 @@ public:
 
 					// ral::distribution::distributeTablePartitions(context, partitions, part_ids);
 
-					ral::cache::MetadataDictionary metadata;
-					metadata.add_value(ral::cache::KERNEL_ID_METADATA_LABEL, std::to_string(this->get_id()));
-					metadata.add_value(ral::cache::QUERY_ID_METADATA_LABEL, std::to_string(this->context->getContextToken()));
-					metadata.add_value(ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL, "true");
-					metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, self_node.id());
-					ral::cache::CacheMachine* output_cache = this->query_graph->get_output_message_cache();
 					for (auto i = 0; i < partitions.size(); i++) {
 						blazingdb::transport::Node dest_node;
 						ral::frame::BlazingTableView table_view;
@@ -359,11 +353,15 @@ public:
 							continue;
 						}
 
-						metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, dest_node.id());
-						metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, "output_" + std::to_string(part_ids[i]) );
-						
-						node_count[dest_node.id()]++;
-						output_cache->addCacheData(std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(table_view.clone(), metadata)),"",true);
+						send_message(std::move(table_view.clone()),
+							"true", //specific_cache
+							"output_" + std::to_string(part_ids[i]), //cache_id
+							dest_node.id(), //target_id
+							"", //total_rows
+							"", //message_id
+							true); //always_add
+
+						increment_node_count(dest_node.id(), 0);
 					}
 
 					for (auto i = 0; i < partitions.size(); i++) {
@@ -371,7 +369,7 @@ public:
 						if(partition.first == self_node) {
 							std::string cache_id = "output_" + std::to_string(part_ids[i]);
 							this->add_to_output_cache(partition.second.clone(), cache_id);
-							node_count[self_node.id()]++;
+							increment_node_count(self_node.id(), 0);
 						}
 					}
 
