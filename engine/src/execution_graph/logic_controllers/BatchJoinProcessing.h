@@ -558,11 +558,6 @@ public:
 					}
 				}
 
-				ral::cache::MetadataDictionary metadata;
-				metadata.add_value(ral::cache::KERNEL_ID_METADATA_LABEL, kernel_id);
-				metadata.add_value(ral::cache::QUERY_ID_METADATA_LABEL, std::to_string(local_context->getContextToken()));
-				metadata.add_value(ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL, "true");
-				metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, self_node.id());
 				for (auto i = 0; i < partitions_to_send.size(); i++) {
 					blazingdb::transport::Node dest_node;
 					ral::frame::BlazingTableView table_view;
@@ -571,11 +566,15 @@ public:
 						continue;
 					}
 
-					metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, dest_node.id());
-					metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, cache_id);
+					// send_message(std::move(table_view.clone()),
+					// 	"true", //specific_cache
+					// 	cache_id, //cache_id
+					// 	dest_node.id(), //target_id
+					// 	"", //total_rows
+					// 	"", //message_id
+					// 	true); //always_add
 
 					//increment_node_count(dest_node.id(), 0);
-					graph_output->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(table_view.clone(), metadata),"",true);
 				}
 
 				if (sequence.wait_for_next()){
@@ -897,15 +896,13 @@ public:
 						}
 						increment_node_count(self_node.id(), 0);
 
-						ral::cache::MetadataDictionary metadata;
-						metadata.add_value(ral::cache::KERNEL_ID_METADATA_LABEL, std::to_string(this->get_id()));
-						metadata.add_value(ral::cache::QUERY_ID_METADATA_LABEL, std::to_string(this->context->getContextToken()));
-						metadata.add_value(ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL, "true");
-						metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, small_output_cache_name);
-						metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, self_node.id());
-						metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, worker_ids_metadata);
-						ral::cache::CacheMachine* output_cache = this->query_graph->get_output_message_cache();
-						output_cache->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(small_table_batch->toBlazingTableView().clone(), metadata),"",true);
+						send_message(std::move(small_table_batch->toBlazingTableView().clone()),
+							"true", //specific_cache
+							small_output_cache_name, //cache_id
+							worker_ids_metadata, //target_id
+							"", //total_rows
+							"", //message_id
+							true); //always_add
 
 						this->output_.get_cache(small_output_cache_name).get()->addToCache(std::move(small_table_batch),"",true);
 					}
@@ -1054,8 +1051,6 @@ private:
 	std::vector<cudf::data_type> join_column_common_types;
 	bool normalize_left, normalize_right;
 };
-
-
 
 } // namespace batch
 } // namespace ral
