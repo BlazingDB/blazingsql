@@ -34,7 +34,7 @@
 - #947 Use default client and network interface from Dask
 - #945 Added new separate thresh for concat cache 
 - #939 Add unit test for Project kernel
-- #949 implemented using threadpool for outgoing messages 
+- #949 Implemented using threadpool for outgoing messages 
 
 
 ## Bug Fixes
@@ -69,7 +69,8 @@
 - #927 Fixed random segfault issue in parser
 - #929 Update the GPUManager functions
 - #942 Fix column names on sample function
-- #950 introducing config param for max orderby samples and fixing oversampling 
+- #950 Introducing config param for max orderby samples and fixing oversampling 
+- #951 Dummy PR
 
 
 # BlazingSQL 0.14.0 (June 9, 2020)
