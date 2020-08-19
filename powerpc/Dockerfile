@@ -66,3 +66,4 @@ RUN source /opt/blazingsql-powerpc-prefix/bin/activate && pip3.7 install -r /opt
 RUN chmod 777 /opt/blazingsql-powerpc-prefix
 RUN chmod 777 /opt/blazingsql-powerpc-prefix/lib
 RUN chmod 777 /opt/blazingsql-powerpc-prefix/include
+RUN chmod 777 /opt/blazingsql-powerpc-prefix/bin
