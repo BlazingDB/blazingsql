@@ -70,7 +70,7 @@
 - #929 Update the GPUManager functions
 - #942 Fix column names on sample function
 - #950 Introducing config param for max orderby samples and fixing oversampling 
-- #951 Dummy PR
+- #952 Dummy PR
 
 
 # BlazingSQL 0.14.0 (June 9, 2020)
