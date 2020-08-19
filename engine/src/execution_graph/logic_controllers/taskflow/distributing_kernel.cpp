@@ -19,19 +19,30 @@ void distributing_kernel::set_number_of_message_trackers(std::size_t num_message
 }
 
 void distributing_kernel::send_message(std::unique_ptr<ral::frame::BlazingTable> table,
-        std::string metadata_label,
+        std::string specific_cache,
         std::string cache_id,
-        std::string target_id) {
+        std::string target_id,
+        std::string total_rows,
+        std::string message_id,
+        bool always_add) {
     ral::cache::MetadataDictionary metadata;
     metadata.add_value(ral::cache::KERNEL_ID_METADATA_LABEL, std::to_string(kernel_id));
     metadata.add_value(ral::cache::QUERY_ID_METADATA_LABEL, std::to_string(context->getContextToken()));
-    metadata.add_value(ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL, metadata_label);
+    metadata.add_value(ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL, specific_cache);
     metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, cache_id);
     metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, node.id());
     metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, target_id);
 
+    if (total_rows!="") {
+        metadata.add_value(ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL, total_rows);
+    }
+
+    if (message_id!="") {
+        metadata.add_value(ral::cache::MESSAGE_ID, message_id);
+    }
+
     ral::cache::CacheMachine* output_cache = query_graph->get_output_message_cache();
-    output_cache->addCacheData(std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(std::move(table), metadata)));
+    output_cache->addCacheData(std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(std::move(table), metadata)), "", always_add);
 }
 
 int distributing_kernel::get_total_partition_counts(std::size_t message_tracker_id) {

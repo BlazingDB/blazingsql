@@ -140,7 +140,7 @@ public:
 	DistributeAggregateKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
 		: distributing_kernel{kernel_id, queryString, context, kernel_type::DistributeAggregateKernel} {
 		this->query_graph = query_graph;
-        set_number_of_message_trackers(1); //default
+		set_number_of_message_trackers(1); //default
 	}
 
 	bool can_you_throttle_my_input() {
@@ -195,9 +195,9 @@ public:
                             // ral::distribution::distributeTablePartitions(this->context.get(), selfPartition);
 
                             send_message(std::move(batch),
-                                "true", //metadata_label
+                                "true", //specific_cache
                                 "", //cache_id
-                                this->context->getMasterNode().id());
+                                this->context->getMasterNode().id()); //target_id
 
                             increment_node_count(this->context->getMasterNode().id());
                         }
@@ -245,8 +245,8 @@ public:
             }
 
             send_total_partition_counts(this->query_graph->get_output_message_cache(),
-                "",
-                ""
+                "", //message_prefix
+                "" //cache_id
             );
         });
         //TODO: remove producer thread we don't really need it anymore

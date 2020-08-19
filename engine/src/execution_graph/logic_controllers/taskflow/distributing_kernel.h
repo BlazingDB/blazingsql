@@ -21,9 +21,12 @@ class distributing_kernel : public kernel {
     void set_number_of_message_trackers(std::size_t num_message_trackers);
 
     void send_message(std::unique_ptr<ral::frame::BlazingTable> table,
-        std::string metadata_label,
+        std::string specific_cache,
         std::string cache_id,
-        std::string target_id);
+        std::string target_id,
+        std::string total_rows = "",
+        std::string message_id = "",
+        bool always_add = false);
 
     void scatter(std::vector<ral::frame::BlazingTableView> partitions,
         ral::cache::CacheMachine* output,
@@ -44,8 +47,6 @@ class distributing_kernel : public kernel {
     private:
         std::string node_id;
         const blazingdb::transport::Node& node;
-        //ral::cache::CacheMachine* input_message_cache;
-        //ral::cache::CacheMachine* output_message_cache;
         std::vector<std::map<std::string, int>> node_count; //must be thread-safe
         std::vector<std::vector<std::string>> messages_to_wait_for; //must be thread-safe
 };
