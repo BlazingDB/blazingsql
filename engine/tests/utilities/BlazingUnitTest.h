@@ -9,7 +9,7 @@ struct BlazingUnitTest : public ::testing::Test {
 	static void TearDownTestSuite();
 
 	virtual void SetUp() override {
-		BlazingRMMInitialize("default");
+		BlazingRMMInitialize("cuda_memory_resource");
 	}
 
 	virtual void TearDown() override {
