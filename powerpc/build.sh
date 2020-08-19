@@ -122,7 +122,7 @@ if [ ! -d $thrift_build_dir ]; then
     fi
 
     echo "### Thrift - make install ###"
-    make -j4 install
+    make -j`nproc` install
     if [ $? != 0 ]; then
       exit 1
     fi
@@ -156,7 +156,7 @@ if [ ! -d $flatbuffers_build_dir ]; then
     fi
 
     echo "### Flatbufferts - make install ###"
-    make -j4 install
+    make -j`nproc` install
     if [ $? != 0 ]; then
       exit 1
     fi
@@ -178,7 +178,7 @@ if [ ! -d $lz4_build_dir ]; then
 
     # NOTE build Boost with old C++ ABI _GLIBCXX_USE_CXX11_ABI=0 and with -fPIC
     echo "### Lz4 - make install ###"
-    CFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0 -O3 -fPIC" CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0 -O3 -fPIC" PREFIX=$lz4_install_dir make -j4 install
+    CFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0 -O3 -fPIC" CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0 -O3 -fPIC" PREFIX=$lz4_install_dir make -j`nproc` install
     if [ $? != 0 ]; then
       exit 1
     fi
@@ -212,7 +212,7 @@ if [ ! -d $zstd_build_dir ]; then
     fi
 
     echo "### Zstd - make install ###"
-    make -j4 install
+    make -j`nproc` install
     if [ $? != 0 ]; then
       exit 1
     fi
@@ -245,7 +245,7 @@ if [ ! -d $brotli_build_dir ]; then
     fi
 
     echo "### Brotli - make install ###"
-    make -j4 install
+    make -j`nproc` install
     if [ $? != 0 ]; then
       exit 1
     fi
@@ -272,7 +272,7 @@ if [ ! -d $snappy_build_dir ]; then
     CFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0 -O3 -fPIC -O2" CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0 -O3 -fPIC -O2" ./configure --prefix=$snappy_install_dir
 
     echo "### Snappy - make install ###"
-    CFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0 -O3 -fPIC -O2" CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0 -O3 -fPIC -O2" make -j4 install
+    CFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0 -O3 -fPIC -O2" CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0 -O3 -fPIC -O2" make -j`nproc` install
     if [ $? != 0 ]; then
       exit 1
     fi
@@ -354,7 +354,7 @@ if [ ! -d $arrow_build_dir ]; then
     fi
 
     echo "### Arrow - make install ###"
-    make -j4 install
+    make -j`nproc` install
     if [ $? != 0 ]; then
       exit 1
     fi
@@ -379,7 +379,7 @@ if [ ! -d $spdlog_build_dir ]; then
     fi
 
     echo "### Spdlog - make install ###"
-    make -j4 install
+    make -j`nproc` install
     if [ $? != 0 ]; then
       exit 1
     fi
@@ -407,7 +407,7 @@ if [ ! -d dlpack ]; then
     git clone https://github.com/rapidsai/dlpack.git
     cd dlpack
     cmake -DCMAKE_INSTALL_PREFIX=$tmp_dir .
-    make -j16 install
+    make -j`nproc` install
 fi
 # END DLPACK
 
@@ -454,8 +454,10 @@ if [ ! -d cudf ]; then
           -DPER_THREAD_DEFAULT_STREAM=${BUILD_PER_THREAD_DEFAULT_STREAM} \
           -DBOOST_ROOT=$tmp_dir \
           -DBoost_NO_SYSTEM_PATHS=ON \
-          -DCMAKE_BUILD_TYPE=Release ..
-    make -j4
+          -DCMAKE_BUILD_TYPE=Release \
+          -DBUILD_TESTS=OFF \
+          ..
+    make -j`nproc`
 fi
 
 # END CUDF
