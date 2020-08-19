@@ -38,11 +38,25 @@ void distributing_kernel::send_message(std::unique_ptr<ral::frame::BlazingTable>
     }
 
     if (message_id!="") {
-        metadata.add_value(ral::cache::MESSAGE_ID, message_id);
+        metadata.add_value(
+            ral::cache::MESSAGE_ID, message_id +
+            metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL] + "_" +
+            metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL] + "_" +
+            metadata.get_values()[ral::cache::SENDER_WORKER_ID_METADATA_LABEL]);
+    } else {
+        metadata.add_value(
+            ral::cache::MESSAGE_ID, metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL] + "_" +
+            metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL] + "_" +
+            metadata.get_values()[ral::cache::SENDER_WORKER_ID_METADATA_LABEL]);
     }
 
     ral::cache::CacheMachine* output_cache = query_graph->get_output_message_cache();
-    output_cache->addCacheData(std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(std::move(table), metadata)), "", always_add);
+
+    if(table==nullptr) {
+        output_cache->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(ral::utilities::create_empty_table({}, {}), metadata), "", always_add);
+    } else {
+        output_cache->addCacheData(std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(std::move(table), metadata)), "", always_add);
+    }
 }
 
 int distributing_kernel::get_total_partition_counts(std::size_t message_tracker_id) {
@@ -74,12 +88,14 @@ void distributing_kernel::send_total_partition_counts(ral::cache::CacheMachine* 
                                             metadata.get_values()[ral::cache::SENDER_WORKER_ID_METADATA_LABEL]);
             metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, nodes[i].id());
             metadata.add_value(ral::cache::PARTITION_COUNT, std::to_string(node_count[message_tracker_id][nodes[i].id()]));
+
+            graph_output->addCacheData(
+                    std::make_unique<ral::cache::GPUCacheDataMetaData>(ral::utilities::create_empty_table({}, {}), metadata), "", true);
+
             messages_to_wait_for[message_tracker_id].push_back(message_prefix +
                                             metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL] + "_" +
                                             metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL] +	"_" +
                                             metadata.get_values()[ral::cache::WORKER_IDS_METADATA_LABEL]);
-            graph_output->addCacheData(
-                    std::make_unique<ral::cache::GPUCacheDataMetaData>(ral::utilities::create_empty_table({}, {}), metadata), "", true);
         }
     }
 }

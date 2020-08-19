@@ -87,12 +87,13 @@ private:
 
 };
 
-class SortAndSampleKernel : public kernel {
+class SortAndSampleKernel : public distributing_kernel {
 public:
 	SortAndSampleKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: kernel{kernel_id,queryString, context, kernel_type::SortAndSampleKernel}
+		: distributing_kernel{kernel_id,queryString, context, kernel_type::SortAndSampleKernel}
 	{
 		this->query_graph = query_graph;
+		set_number_of_message_trackers(1); //default
 		this->output_.add_port("output_a", "output_b");
 	}
 
@@ -165,23 +166,16 @@ public:
 
 				// ral::distribution::sendSamplesToMaster(context, selfSamples, local_total_num_rows);
 
-				ral::cache::MetadataDictionary metadata;
-				metadata.add_value(ral::cache::KERNEL_ID_METADATA_LABEL, std::to_string(this->get_id()));
-				metadata.add_value(ral::cache::QUERY_ID_METADATA_LABEL, std::to_string(this->context->getContextToken()));
-				metadata.add_value(ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL, "false");
-				metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, "");
-				metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, self_node.id());
-				metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, this->context->getMasterNode().id());
-				metadata.add_value(ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL, std::to_string(local_total_num_rows));
-				std::string message_id = std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + self_node.id();
-				metadata.add_value(ral::cache::MESSAGE_ID, message_id);
-
-				ral::cache::CacheMachine* output_cache = this->query_graph->get_output_message_cache();
 				concatSamples->ensureOwnership();
-				output_cache->addCacheData(std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(std::move(concatSamples), metadata)),"",true);
+				send_message(std::move(concatSamples),
+					"false", //specific_cache
+					"", //cache_id
+					this->context->getMasterNode().id(), //target_id
+					std::to_string(local_total_num_rows), //total_rows
+					"", //message_id
+					true); //always_add
 
 				context->incrementQuerySubstep();
-
 			}
 
 			this->output_cache("output_b")->wait_for_count(1);
@@ -522,11 +516,12 @@ private:
 };
 
 
-class LimitKernel : public kernel {
+class LimitKernel : public distributing_kernel {
 public:
 	LimitKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: kernel{kernel_id,queryString, context, kernel_type::LimitKernel}  {
+		: distributing_kernel{kernel_id,queryString, context, kernel_type::LimitKernel}  {
 		this->query_graph = query_graph;
+		set_number_of_message_trackers(1); //default
 	}
 
 	bool can_you_throttle_my_input() {
@@ -569,19 +564,13 @@ public:
 				}
 			}
 
-			ral::cache::MetadataDictionary metadata;
-			metadata.add_value(ral::cache::KERNEL_ID_METADATA_LABEL, std::to_string(this->get_id()));
-			metadata.add_value(ral::cache::QUERY_ID_METADATA_LABEL, std::to_string(this->context->getContextToken()));
-			metadata.add_value(ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL, "false");
-			metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, "");
-			metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, self_node.id() );
-			metadata.add_value(ral::cache::MESSAGE_ID, metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL] + "_" +
-																								metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL] +	"_" +
-																								metadata.get_values()[ral::cache::SENDER_WORKER_ID_METADATA_LABEL]);
-			metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, worker_ids_metadata);
-			metadata.add_value(ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL, std::to_string(total_batch_rows));
-			ral::cache::CacheMachine* output_cache = this->query_graph->get_output_message_cache();
-			output_cache->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(ral::utilities::create_empty_table({}, {}), metadata),"",true);
+			send_message(nullptr, //empty table
+				"false", //specific_cache
+				"", //cache_id
+				worker_ids_metadata, //target_id
+				std::to_string(total_batch_rows), //total_rows
+				"", //message_id
+				true); //always_add
 
 			// std::vector<int64_t> nodesRowSize = ral::distribution::collectNumRows(context.get());
 
