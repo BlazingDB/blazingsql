@@ -36,10 +36,20 @@ Execute a command as root:
 docker exec -u 0:0 -ti <container_id> bash
 ```
 
-The docker has a pip env in /opt/blazingsql-powerpc-prefix as 777 with all the requirements.txt installed
+The docker has a pip env in /opt/blazingsql-powerpc-prefix with all the requirements.txt installed
 
 ### Python Virtualenv
-Most of these steps are already in the docker.
+
+#### Using the docker pyenv
+
+Activate:
+```
+source /opt/blazingsql-powerpc-prefix/bin/activate
+pip list
+```
+
+#### Create new pyenvs
+
 Create:
 ```
 python3 -m venv demo
