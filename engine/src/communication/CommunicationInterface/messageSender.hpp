@@ -30,9 +30,10 @@ public:
 	 * @param num_threads Number of threads the message_sender will use to send data concurrently
 	 */
 	message_sender(std::shared_ptr<ral::cache::CacheMachine> output_cache,
-		std::map<std::string, node> node_address_map,
+		const std::map<std::string, node> & node_address_map,
 		int num_threads)
-		: output_cache{output_cache}, pool{num_threads}, protocol{blazing_protocol::ucx} {}
+		: output_cache{output_cache}, node_address_map{node_address_map}, pool{num_threads}, protocol{blazing_protocol::ucx} {}
+
 	static void initialize_instance(std::shared_ptr<ral::cache::CacheMachine> output_cache,
 		std::map<std::string, node> node_address_map,
 		int num_threads);
@@ -107,7 +108,7 @@ public:
 	}
 private:
 	static message_sender * instance;
-	
+
 
 	ctpl::thread_pool<BlazingThread> pool;
 	std::shared_ptr<ral::cache::CacheMachine> output_cache;

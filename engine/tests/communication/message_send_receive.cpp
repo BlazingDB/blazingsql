@@ -160,7 +160,7 @@ err:
   return -1;
 }
 
-static char *client_target_name = "10.0.0.23";
+static char *client_target_name = "127.0.0.1";
 static uint16_t server_port = 13337;
 static ucs_status_t client_status = UCS_OK;
 
@@ -198,9 +198,9 @@ int create_ucp_worker_and_ep(bool is_client) {
                             UCP_PARAM_FIELD_REQUEST_SIZE |
                             UCP_PARAM_FIELD_REQUEST_INIT;
   ucp_params.features     = UCP_FEATURE_TAG;
-  if (ucp_test_mode == TEST_MODE_WAIT || ucp_test_mode == TEST_MODE_EVENTFD) {
+  // if (ucp_test_mode == TEST_MODE_WAIT || ucp_test_mode == TEST_MODE_EVENTFD) {
       ucp_params.features |= UCP_FEATURE_WAKEUP;
-  }
+  // }
   ucp_params.request_size    = sizeof(struct ucx_request);
   ucp_params.request_init    = request_init;
   status = ucp_init(&ucp_params, config, &ucp_context);
@@ -325,17 +325,19 @@ std::shared_ptr<blazingdb::manager::Context> make_context() {
 std::shared_ptr<ral::cache::graph> create_graph(){
   auto graph = std::make_shared<ral::cache::graph>();
   auto context = make_context();
-  auto kernel_filter = std::make_shared<ral::batch::Filter>(1, "", context, graph);
-  auto kernel_project = std::make_shared<ral::batch::Projection>(2, "", context, graph);
+  auto kernel_filter = std::make_shared<ral::batch::Filter>(0, "", context, graph);
+  auto kernel_project = std::make_shared<ral::batch::Projection>(1, "", context, graph);
 
   ral::cache::cache_settings cache_machine_config;
   cache_machine_config.context = context->clone();
-  graph->add_edge(kernel_filter, kernel_project, "1", "1", cache_machine_config);
+  graph->add_edge(kernel_filter, kernel_project, "0", "1", cache_machine_config);
 
   // auto inputCacheMachine = std::make_shared<ral::cache::CacheMachine>(context);
 	// auto outputCacheMachine = std::make_shared<ral::cache::CacheMachine>(context);
 	// kernel->input_.register_cache("1", inputCacheMachine);
 	// kernel->output_.register_cache("1", outputCacheMachine);
+
+  return graph;
 }
 
 struct MessageSendReceiveTest : public BlazingUnitTest {
@@ -348,9 +350,9 @@ TEST_F(MessageSendReceiveTest, send_receive_test) {
   auto thread = std::thread([]{
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
         ASSERT_TRUE(create_ucp_worker_and_ep(true) == 0);
-        
+
         std::map<std::string, comm::node> nodes_info_map;
-        // nodes_info_map.emplace("client", comm::node(0, "client", nullptr, ucp_worker));
+        nodes_info_map.emplace("client", comm::node(0, "client", nullptr, ucp_worker));
         nodes_info_map.emplace("server", comm::node(1, "server", ucp_conn_ep, ucp_worker));
         comm::ucp_nodes_info::getInstance().init(nodes_info_map);
 
@@ -361,11 +363,12 @@ TEST_F(MessageSendReceiveTest, send_receive_test) {
         auto output_cache = std::make_shared<ral::cache::CacheMachine>(nullptr);
 
         ral::cache::MetadataDictionary metadata;
-        metadata.add_value(ral::cache::KERNEL_ID_METADATA_LABEL, 2);
+        metadata.add_value(ral::cache::KERNEL_ID_METADATA_LABEL, 0);
         metadata.add_value(ral::cache::QUERY_ID_METADATA_LABEL, query_id);
         metadata.add_value(ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL, "false");
         metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, "");
         metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, "client");
+        metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, "server");
         metadata.add_value(ral::cache::MESSAGE_ID, "");
 
         output_cache->addCacheData(
@@ -378,9 +381,9 @@ TEST_F(MessageSendReceiveTest, send_receive_test) {
 
         cleanup();
 
-        exit(testing::Test::HasFailure());
+        // exit(testing::Test::HasFailure());
   });
-  
+
   auto thread_2 = std::thread([]{
      ASSERT_TRUE(create_ucp_worker_and_ep(false) == 0);
 
@@ -392,10 +395,10 @@ TEST_F(MessageSendReceiveTest, send_receive_test) {
         auto output_cache = std::make_shared<ral::cache::CacheMachine>(nullptr);
 
         auto graph = create_graph();
-        comm::graphs_info::getInstance().register_graph(1, graph);
+        comm::graphs_info::getInstance().register_graph(query_id, graph);
 
-        auto kernel_project = graph->get_node(2);
-        auto out_cache = kernel_project->output_cache();
+        auto kernel_filter = graph->get_node(0);
+        auto out_cache = kernel_filter->output_cache();
 
         comm::ucx_message_listener::initialize_message_listener(ucp_worker, 1);
         comm::ucx_message_listener::get_instance()->poll_begin_message_tag();
@@ -404,7 +407,7 @@ TEST_F(MessageSendReceiveTest, send_receive_test) {
         //check data
 
         cleanup();
-  });  
+  });
   thread.join();
   thread_2.join();
 
@@ -439,4 +442,3 @@ TEST_F(MessageSendReceiveTest, send_receive_test) {
 
   // cudf::test::expect_tables_equal(orig_table, pulled_table->view());
 }
-
