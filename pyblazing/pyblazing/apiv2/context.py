@@ -3,7 +3,6 @@ import cudf
 
 
 from cudf.core.column.column import build_column
-
 from dask.distributed import get_worker
 
 
@@ -17,8 +16,7 @@ from pyblazing.apiv2.filesystem import FileSystem
 from pyblazing.apiv2 import DataType
 import asyncio
 
-from distributed.comm import listen
-from pyblazing.apiv2.comms import PollingPlugin, listen, UCX
+from pyblazing.apiv2.comms import listen
 
 import json
 import collections
@@ -182,7 +180,7 @@ def initializeBlazing(
     if singleNode is False:
         for dask_addr in worker.ucx_addresses:
             addr = worker.ucx_addresses[dask_addr]
-            ep = UCX.get()._endpoints[addr].ep
+            ep = worker.ucp_endpoints[addr].handle.ep
             workers_ucp_info.append({
                 'worker_id': dask_addr.encode(),
                 'ep_handle' : ep.get_ucp_endpoint(),
@@ -200,7 +198,7 @@ def initializeBlazing(
         singleNode,
         config_options,
     )
-
+    print("everything initialized")
     if singleNode is False:
         worker.output_cache = output_cache
         worker.input_cache = input_cache
@@ -209,7 +207,7 @@ def initializeBlazing(
         log_path = logging_dir_path
     else:
         log_path = os.path.join(os.getcwd(), logging_dir_path)
-
+    
     return ralCommunicationPort, workerIp, log_path
 
 
@@ -1274,6 +1272,7 @@ class BlazingContext(object):
                 worker_list.append(worker)
                 i = i + 1
             i = 0
+            print("collecting dask futures of initialize")
             for connection in dask_futures:
                 ralPort, ralIp, log_path = connection.result()
                 node = {}
@@ -1288,7 +1287,7 @@ class BlazingContext(object):
             # need to initialize this logging independently, in case its set as a relative path
             # and the location from where the python script is running is different
             # than the local dask workers
-
+            print("collected dask futures")    
 
             initialize_server_directory(logging_dir_path)
             # this one is for the non dask side
