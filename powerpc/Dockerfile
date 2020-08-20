@@ -23,6 +23,7 @@ RUN rm -f /usr/bin/g++
 RUN update-alternatives --install /usr/bin/g++ g++ /usr/local/bin/g++ 999
 RUN echo '/usr/local/lib' > /etc/ld.so.conf.d/local-lib.conf
 RUN echo '/usr/local/lib64' > /etc/ld.so.conf.d/local-lib64.conf
+ENV PATH=${PATH}:/opt/blazingsql-powerpc-prefix/bin/
 ENV LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64:/usr/local/nvidia/lib:/usr/local/nvidia/lib64
 ENV CC=/usr/local/bin/gcc
 ENV CXX=/usr/local/bin/g++
@@ -42,9 +43,10 @@ ENV CMAKE_ROOT=/usr/share/cmake
 
 #### Python ######
 RUN yum install -y libffi-devel zlib zlib-devel
+RUN yum install -y bzip2-devel
 RUN wget -q https://www.python.org/ftp/python/3.7.7/Python-3.7.7.tgz
 RUN tar -xf Python-3.7.7.tgz
-RUN cd Python-3.7.7/ && ./configure --enable-optimizations --with-libs='bzip' && make altinstall
+RUN cd Python-3.7.7/ && ./configure --enable-optimizations --with-libs='bzip' --disable-ipv6 && make altinstall
 RUN update-alternatives --install /usr/bin/python3 python3 /usr/local/bin/python3.7 999
 
 WORKDIR /app
@@ -59,11 +61,22 @@ RUN yum install which -y
 RUN yum install -y flex bison byacc
 # Dependency for scikit-learn
 RUN yum install epel-release
-RUN yum install -y openblas-devel bzip2-devel
+RUN yum install -y openblas-devel
 
-COPY requirements.txt /opt/requirements.txt
-
+# LLVM
 RUN mkdir -p /opt/blazingsql-powerpc-prefix
+RUN WORKDIR /tmp
+RUN git clone --single-branch --depth=1 -b release/10.x https://github.com/llvm/llvm-project.git
+RUN mkdir llvm-project/build
+RUN cd llvm-project/build && \
+    cmake ../llvm/ -DCMAKE_INSTALL_PREFIX:PATH=/opt/blazingsql-powerpc-prefix/ && \
+    make -j4 &&\
+    make install
+ENV LLVM_CONFIG=/opt/blazingsql-powerpc-prefix/bin/
+
+# Python packages
+COPY requirements.txt /opt/requirements.txt
 RUN python3 -m venv /opt/blazingsql-powerpc-prefix
 RUN source /opt/blazingsql-powerpc-prefix/bin/activate && pip3.7 install -r /opt/requirements.txt
 
+WORKDIR /app
