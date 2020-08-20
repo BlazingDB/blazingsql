@@ -26,7 +26,10 @@ class distributing_kernel : public kernel {
         std::string target_id,
         std::string total_rows = "",
         std::string message_id = "",
-        bool always_add = false);
+        bool always_add = false,
+        bool wait_for = false,
+        std::size_t message_tracker_id = 0,
+        ral::cache::MetadataDictionary extra_metadata = {});
 
     void scatter(std::vector<ral::frame::BlazingTableView> partitions,
         ral::cache::CacheMachine* output,

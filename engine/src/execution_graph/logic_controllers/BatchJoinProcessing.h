@@ -676,9 +676,9 @@ public:
 		metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, "");
 		metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, self_node.id() );
 		metadata.add_value(ral::cache::MESSAGE_ID, "determine_if_we_are_scattering_a_small_table_" +
-																							metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL] + "_" +
-																							metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL] +	"_" +
-																							metadata.get_values()[ral::cache::SENDER_WORKER_ID_METADATA_LABEL]);
+												metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL] + "_" +
+												metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL] +	"_" +
+												metadata.get_values()[ral::cache::SENDER_WORKER_ID_METADATA_LABEL]);
 		metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, worker_ids_metadata);
 		metadata.add_value(ral::cache::JOIN_LEFT_BYTES_METADATA_LABEL, std::to_string(left_bytes_estimate));
 		metadata.add_value(ral::cache::JOIN_RIGHT_BYTES_METADATA_LABEL, std::to_string(right_bytes_estimate));
@@ -926,12 +926,11 @@ public:
 			}
 			// ral::distribution::notifyLastTablePartitions(this->context.get(), ColumnDataMessage::MessageID());
 
-			/*send_total_partition_counts(this->query_graph->get_output_message_cache(),
-				"part_count_",
-				"false",
-				"",
-				0
-			);*/
+			send_total_partition_counts(this->query_graph->get_output_message_cache(),
+				"part_count_", //message_prefix
+				"", //cache_id
+				0 //message_tracker_id
+			);
 		});
 
 		// BlazingThread collect_small_table_thread([this, small_output_cache_name](){

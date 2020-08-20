@@ -24,7 +24,10 @@ void distributing_kernel::send_message(std::unique_ptr<ral::frame::BlazingTable>
         std::string target_id,
         std::string total_rows,
         std::string message_id,
-        bool always_add) {
+        bool always_add,
+        bool wait_for,
+        std::size_t message_tracker_id,
+        ral::cache::MetadataDictionary extra_metadata) {
     ral::cache::MetadataDictionary metadata;
     metadata.add_value(ral::cache::KERNEL_ID_METADATA_LABEL, std::to_string(kernel_id));
     metadata.add_value(ral::cache::QUERY_ID_METADATA_LABEL, std::to_string(context->getContextToken()));
@@ -50,12 +53,23 @@ void distributing_kernel::send_message(std::unique_ptr<ral::frame::BlazingTable>
             metadata.get_values()[ral::cache::SENDER_WORKER_ID_METADATA_LABEL]);
     }
 
+    for(auto meta_value : extra_metadata.get_values()) {
+        metadata.add_value(meta_value.first, meta_value.second);
+    }
+
     ral::cache::CacheMachine* output_cache = query_graph->get_output_message_cache();
 
     if(table==nullptr) {
         output_cache->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(ral::utilities::create_empty_table({}, {}), metadata), "", always_add);
     } else {
         output_cache->addCacheData(std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(std::move(table), metadata)), "", always_add);
+    }
+
+    if(wait_for) {
+        messages_to_wait_for[message_tracker_id].push_back(message_id +
+            metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL] + "_" +
+            metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL] + "_" +
+            metadata.get_values()[ral::cache::WORKER_IDS_METADATA_LABEL]);
     }
 }
 
@@ -76,26 +90,19 @@ void distributing_kernel::send_total_partition_counts(ral::cache::CacheMachine* 
 
     for(std::size_t i = 0; i < nodes.size(); ++i) {
         if(!(nodes[i] == node)) {
-            ral::cache::MetadataDictionary metadata;
-            metadata.add_value(ral::cache::KERNEL_ID_METADATA_LABEL, kernel_id);
-            metadata.add_value(ral::cache::QUERY_ID_METADATA_LABEL, std::to_string(context->getContextToken()));
-            metadata.add_value(ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL, "false");
-            metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, cache_id);
-            metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, node.id());
-            metadata.add_value(ral::cache::MESSAGE_ID, message_prefix +
-                                            metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL] + "_" +
-                                            metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL] +	"_" +
-                                            metadata.get_values()[ral::cache::SENDER_WORKER_ID_METADATA_LABEL]);
-            metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, nodes[i].id());
-            metadata.add_value(ral::cache::PARTITION_COUNT, std::to_string(node_count[message_tracker_id][nodes[i].id()]));
+            ral::cache::MetadataDictionary extra_metadata;
+            extra_metadata.add_value(ral::cache::PARTITION_COUNT, std::to_string(node_count[message_tracker_id][nodes[i].id()]));
 
-            graph_output->addCacheData(
-                    std::make_unique<ral::cache::GPUCacheDataMetaData>(ral::utilities::create_empty_table({}, {}), metadata), "", true);
-
-            messages_to_wait_for[message_tracker_id].push_back(message_prefix +
-                                            metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL] + "_" +
-                                            metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL] +	"_" +
-                                            metadata.get_values()[ral::cache::WORKER_IDS_METADATA_LABEL]);
+            send_message(nullptr,
+                "false", //specific_cache
+                cache_id, //cache_id
+                nodes[i].id(), //target_id
+                "", //total_rows
+                message_prefix, //message_id
+                true, //always_add
+                true, //wait_for
+                message_tracker_id,
+                extra_metadata);
         }
     }
 }
@@ -109,12 +116,6 @@ void distributing_kernel::scatter(std::vector<ral::frame::BlazingTableView> part
     auto nodes = context->getAllNodes();
     assert(nodes.size() == partitions.size());
 
-    ral::cache::MetadataDictionary metadata;
-    metadata.add_value(ral::cache::KERNEL_ID_METADATA_LABEL, kernel_id);
-    metadata.add_value(ral::cache::QUERY_ID_METADATA_LABEL, std::to_string(context->getContextToken()));
-    metadata.add_value(ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL, "true");
-    metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, node.id());
-
     for(std::size_t i = 0; i < nodes.size(); ++i) {
         if (nodes[i] == node) {
             // hash_partition followed by split does not create a partition that we can own, so we need to clone it.
@@ -123,11 +124,16 @@ void distributing_kernel::scatter(std::vector<ral::frame::BlazingTableView> part
             output->addToCache(std::move(partitions[i].clone()), message_id, true);
             node_count[message_tracker_id][node.id()]++;
         } else {
-            metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, nodes[i].id());
-            metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, cache_id);
+            send_message(std::move(partitions[i].clone()),
+                "true", //specific_cache
+                cache_id, //cache_id
+                nodes[i].id(), //target_id
+                "", //total_rows
+                "", //message_id
+                true //always_add
+            );
 
             node_count[message_tracker_id][nodes[i].id()]++;
-            graph_output->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(partitions[i].clone(), metadata), "", true);
         }
     }
 }
