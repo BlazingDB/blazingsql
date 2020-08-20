@@ -25,7 +25,7 @@ class distributing_kernel : public kernel {
         std::string cache_id,
         std::string target_id,
         std::string total_rows = "",
-        std::string message_id = "",
+        std::string message_id_prefix = "",
         bool always_add = false,
         bool wait_for = false,
         std::size_t message_tracker_id = 0,
@@ -34,12 +34,12 @@ class distributing_kernel : public kernel {
     void scatter(std::vector<ral::frame::BlazingTableView> partitions,
         ral::cache::CacheMachine* output,
         ral::cache::CacheMachine* graph_output,
-        std::string message_id,
+        std::string message_id_prefix,
         std::string cache_id,
         std::size_t message_tracker_id = 0);
 
     void send_total_partition_counts(ral::cache::CacheMachine* graph_output,
-        std::string message_prefix,
+        std::string message_id_prefix,
         std::string cache_id,
         std::size_t message_tracker_id = 0);
 

@@ -536,7 +536,7 @@ public:
 				/*message_manager.scatter(partitions,
 					this->output_.get_cache().get(),
 					this->query_graph->get_output_message_cache(),
-					"", //message_id
+					"", //message_id_prefix
 					"true",
 					"" //cache_id
 				);*/
@@ -571,7 +571,7 @@ public:
 					// 	cache_id, //cache_id
 					// 	dest_node.id(), //target_id
 					// 	"", //total_rows
-					// 	"", //message_id
+					// 	"", //message_id_prefix
 					// 	true); //always_add
 
 					//increment_node_count(dest_node.id(), 0);
@@ -678,7 +678,7 @@ public:
 			"", //cache_id
 			worker_ids_metadata, //target_id
 			"", //total_rows
-			"determine_if_we_are_scattering_a_small_table_", //message_id
+			"determine_if_we_are_scattering_a_small_table_", //message_id_prefix
 			true, //always_add
 			false, //wait_for
 			0, //message_tracker_id
@@ -900,7 +900,7 @@ public:
 							small_output_cache_name, //cache_id
 							worker_ids_metadata, //target_id
 							"", //total_rows
-							"", //message_id
+							"", //message_id_prefix
 							true); //always_add
 
 						this->output_.get_cache(small_output_cache_name).get()->addToCache(std::move(small_table_batch),"",true);

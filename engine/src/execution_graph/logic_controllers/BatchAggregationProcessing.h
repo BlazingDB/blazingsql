@@ -227,7 +227,7 @@ public:
                         scatter(partitions,
                             this->output_.get_cache().get(),
                             this->query_graph->get_output_message_cache(),
-                            "", //message_id
+                            "", //message_id_prefix
                             "" //cache_id
                         );
                     }

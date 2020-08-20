@@ -157,7 +157,7 @@ public:
 					"output_b", //cache_id
 					worker_ids_metadata, //target_id
 					std::to_string(local_total_num_rows), //total_rows
-					"", //message_id
+					"", //message_id_prefix
 					true); //always_add
 
 				this->add_to_output_cache(std::move(partitionPlan), "output_b");
@@ -172,7 +172,7 @@ public:
 					"", //cache_id
 					this->context->getMasterNode().id(), //target_id
 					std::to_string(local_total_num_rows), //total_rows
-					"", //message_id
+					"", //message_id_prefix
 					true); //always_add
 
 				context->incrementQuerySubstep();
@@ -358,7 +358,7 @@ public:
 							"output_" + std::to_string(part_ids[i]), //cache_id
 							dest_node.id(), //target_id
 							"", //total_rows
-							"", //message_id
+							"", //message_id_prefix
 							true); //always_add
 
 						increment_node_count(dest_node.id(), 0);
@@ -567,7 +567,7 @@ public:
 				"", //cache_id
 				worker_ids_metadata, //target_id
 				std::to_string(total_batch_rows), //total_rows
-				"", //message_id
+				"", //message_id_prefix
 				true); //always_add
 
 			// std::vector<int64_t> nodesRowSize = ral::distribution::collectNumRows(context.get());
