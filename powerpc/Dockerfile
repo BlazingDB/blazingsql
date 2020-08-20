@@ -68,6 +68,7 @@ RUN yum install -y llvm7.0 llvm7.0-devel
 ENV LLVM_CONFIG=/usr/bin/llvm-config-7.0-64
 
 # Python packages
+RUN yum install -y libjpeg-devel freetype-devel
 RUN mkdir -p /opt/blazingsql-powerpc-prefix
 COPY requirements.txt /opt/requirements.txt
 RUN python3 -m venv /opt/blazingsql-powerpc-prefix
