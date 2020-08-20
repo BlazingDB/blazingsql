@@ -412,6 +412,8 @@ if [ ! -d $spdlog_build_dir ]; then
 fi
 #END spdlog
 
+# NOTE percy mario this var is used by rmm build.sh and by pycudf setup.py
+export PARALLEL_LEVEL=$MAKEJ
 
 cudf_version=0.15
 export CUDA_HOME=/usr/local/cuda/
@@ -483,7 +485,7 @@ if [ ! -d cudf ]; then
           -DCMAKE_BUILD_TYPE=Release \
           -DBUILD_TESTS=OFF \
           ..
-    make -j$MAKEJ_CUDF
+    make -j$MAKEJ_CUDF install
 fi
 
 # END CUDF
