@@ -72,7 +72,7 @@ RUN cd llvm-project/build && \
     cmake ../llvm/ -DCMAKE_INSTALL_PREFIX:PATH=/opt/blazingsql-powerpc-prefix/ && \
     make -j4 &&\
     make install
-ENV LLVM_CONFIG=/opt/blazingsql-powerpc-prefix/bin/
+ENV LLVM_CONFIG=/opt/blazingsql-powerpc-prefix/bin/llvm-config
 
 # Python packages
 COPY requirements.txt /opt/requirements.txt
