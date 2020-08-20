@@ -26,6 +26,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <pthread.h> /* pthread_self */
+#include <thread>
 
 using namespace ral::frame;
 
@@ -159,22 +160,22 @@ err:
   return -1;
 }
 
-static char *client_target_name = "127.0.0.1";
+static char *client_target_name = "10.0.0.23";
 static uint16_t server_port = 13337;
 static ucs_status_t client_status = UCS_OK;
 
-static ucp_address_t *local_addr;
-static ucp_address_t *peer_addr;
+static thread_local ucp_address_t *local_addr;
+static thread_local ucp_address_t *peer_addr;
 
-static size_t local_addr_len;
-static size_t peer_addr_len;
+static thread_local size_t local_addr_len;
+static thread_local size_t peer_addr_len;
 
-static int oob_sock = -1;
+static thread_local int oob_sock = -1;
 
 /* UCP handler objects */
-static ucp_context_h ucp_context;
-static ucp_worker_h ucp_worker;
-static ucp_ep_h ucp_conn_ep;
+static thread_local ucp_context_h ucp_context;
+static thread_local ucp_worker_h ucp_worker;
+static thread_local ucp_ep_h ucp_conn_ep;
 
 int create_ucp_worker_and_ep(bool is_client) {
   ucp_test_mode_t ucp_test_mode = TEST_MODE_PROBE;
@@ -344,65 +345,67 @@ struct MessageSendReceiveTest : public BlazingUnitTest {
 };
 
 TEST_F(MessageSendReceiveTest, send_receive_test) {
-  int pid = fork();
-  if (pid == 0) {
-    ASSERT_TRUE(create_ucp_worker_and_ep(true) == 0);
+  auto thread = std::thread([]{
+        ASSERT_TRUE(create_ucp_worker_and_ep(true) == 0);
 
-    std::map<std::string, comm::node> nodes_info_map;
-    // nodes_info_map.emplace("client", comm::node(0, "client", nullptr, ucp_worker));
-    nodes_info_map.emplace("server", comm::node(1, "server", ucp_conn_ep, ucp_worker));
-    comm::ucp_nodes_info::getInstance().init(nodes_info_map);
+        std::map<std::string, comm::node> nodes_info_map;
+        // nodes_info_map.emplace("client", comm::node(0, "client", nullptr, ucp_worker));
+        nodes_info_map.emplace("server", comm::node(1, "server", ucp_conn_ep, ucp_worker));
+        comm::ucp_nodes_info::getInstance().init(nodes_info_map);
 
-    cudf::test::fixed_width_column_wrapper<int> col1{{4, 5, 3, 5, 8, 5, 6}};
-    cudf::table_view orig_table{{col1}};
-    std::vector<std::string> columnNames = {"column_1"};
+        cudf::test::fixed_width_column_wrapper<int> col1{{4, 5, 3, 5, 8, 5, 6}};
+        cudf::table_view orig_table{{col1}};
+        std::vector<std::string> columnNames = {"column_1"};
 
-    auto output_cache = std::make_shared<ral::cache::CacheMachine>(nullptr);
+        auto output_cache = std::make_shared<ral::cache::CacheMachine>(nullptr);
 
-    ral::cache::MetadataDictionary metadata;
-    metadata.add_value(ral::cache::KERNEL_ID_METADATA_LABEL, 2);
-    metadata.add_value(ral::cache::QUERY_ID_METADATA_LABEL, query_id);
-    metadata.add_value(ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL, "false");
-    metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, "");
-    metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, "client");
-    metadata.add_value(ral::cache::MESSAGE_ID, "");
+        ral::cache::MetadataDictionary metadata;
+        metadata.add_value(ral::cache::KERNEL_ID_METADATA_LABEL, 2);
+        metadata.add_value(ral::cache::QUERY_ID_METADATA_LABEL, query_id);
+        metadata.add_value(ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL, "false");
+        metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, "");
+        metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, "client");
+        metadata.add_value(ral::cache::MESSAGE_ID, "");
 
-    output_cache->addCacheData(
-						std::make_unique<ral::cache::GPUCacheDataMetaData>(std::make_unique<ral::frame::BlazingTable>(orig_table, columnNames), metadata),"",true);
+        output_cache->addCacheData(
+                std::make_unique<ral::cache::GPUCacheDataMetaData>(std::make_unique<ral::frame::BlazingTable>(orig_table, columnNames), metadata),"",true);
 
-    comm::message_sender::initialize_instance(output_cache, nodes_info_map, 1);
-    comm::message_sender::get_instance()->run_polling();
+        comm::message_sender::initialize_instance(output_cache, nodes_info_map, 1);
+        comm::message_sender::get_instance()->run_polling();
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(1500));
+        std::this_thread::sleep_for(std::chrono::milliseconds(15000));
 
-    cleanup();
+        cleanup();
 
-    exit(testing::Test::HasFailure());
-  } else {
-    ASSERT_TRUE(create_ucp_worker_and_ep(false) == 0);
+        exit(testing::Test::HasFailure());
+  });
+  
+  auto thread_2 = std::thread([]{
+     ASSERT_TRUE(create_ucp_worker_and_ep(false) == 0);
 
-	  std::map<std::string, comm::node> nodes_info_map;
-    nodes_info_map.emplace("client", comm::node(0, "client", ucp_conn_ep, ucp_worker));
-    // nodes_info_map.emplace("server", comm::node(1, "server", nullptr, ucp_worker));
-    comm::ucp_nodes_info::getInstance().init(nodes_info_map);
+        std::map<std::string, comm::node> nodes_info_map;
+        nodes_info_map.emplace("client", comm::node(0, "client", ucp_conn_ep, ucp_worker));
+        // nodes_info_map.emplace("server", comm::node(1, "server", nullptr, ucp_worker));
+        comm::ucp_nodes_info::getInstance().init(nodes_info_map);
 
-    auto output_cache = std::make_shared<ral::cache::CacheMachine>(nullptr);
+        auto output_cache = std::make_shared<ral::cache::CacheMachine>(nullptr);
 
-    auto graph = create_graph();
-	  comm::graphs_info::getInstance().register_graph(1, graph);
+        auto graph = create_graph();
+        comm::graphs_info::getInstance().register_graph(1, graph);
 
-    auto kernel_project = graph->get_node(2);
-    auto out_cache = kernel_project->output_cache();
+        auto kernel_project = graph->get_node(2);
+        auto out_cache = kernel_project->output_cache();
 
-    comm::ucx_message_listener::initialize_message_listener(ucp_worker, 1);
-    comm::ucx_message_listener::get_instance()->poll_begin_message_tag();
+        comm::ucx_message_listener::initialize_message_listener(ucp_worker, 1);
+        comm::ucx_message_listener::get_instance()->poll_begin_message_tag();
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(1500));
-    //check data
+        std::this_thread::sleep_for(std::chrono::milliseconds(1500));
+        //check data
 
-    cleanup();
-  }
-
+        cleanup();
+  });  
+  thread.join();
+  thread_2.join();
 
 
 
@@ -435,3 +438,4 @@ TEST_F(MessageSendReceiveTest, send_receive_test) {
 
   // cudf::test::expect_tables_equal(orig_table, pulled_table->view());
 }
+
