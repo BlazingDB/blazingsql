@@ -283,13 +283,16 @@ struct parse_datetime
 
   T parse( std::string const& str)
   {
+    T epoch_time{typename T::duration{0}};
     if( str.empty() )
-      return 0;
+      return epoch_time;
 
     int32_t timeparts[TP_ARRAYSIZE] = {0,1,1}; // month and day are 1-based
     parse_into_parts(str, timeparts);
 
-    return static_cast<T>(timestamp_from_parts(timeparts,units));
+    int64_t timestamp = timestamp_from_parts(timeparts,units);
+    T timestamp_duration{typename T::duration{timestamp}};
+    return timestamp_duration;
   }
 };
 
