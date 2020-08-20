@@ -71,6 +71,7 @@
 - #942 Fix column names on sample function
 - #950 Introducing config param for max orderby samples and fixing oversampling 
 - #952 Dummy PR
+- #963 Set log_level when using LOGGING_LEVEL param
 
 
 # BlazingSQL 0.14.0 (June 9, 2020)
