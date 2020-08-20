@@ -1876,6 +1876,57 @@ class BlazingContext(object):
         """
         self.add_remove_table(table_name, False)
 
+    def list_tables(self):
+        """
+        Returns a list with the names of all created tables.
+
+        Example
+        --------
+
+        >>> from blazingsql import BlazingContext
+        >>> bc = BlazingContext()
+        >>> bc.create_table('product_reviews', "product_reviews/*.parquet")
+        >>> bc.create_table('store_sales', "store_sales/*.parquet")
+        >>> bc.create_table('nation', "nation/*.parquet")
+        >>> tables = bc.list_tables()
+        >>> print(tables)
+                  ['product_reviews', 'store_sales', 'nation']
+        """
+        return list(self.tables.keys())
+
+    def describe_table(self, table_name):
+        """
+        Returns a dictionary with the names of all the columns and their types
+        for the specified table. An ValueError is throw if not found table.
+
+        Parameters
+        ----------
+
+        table_name : string of the table name to describe
+
+        Example
+        --------
+
+        >>> from blazingsql import BlazingContext
+        >>> bc = BlazingContext()
+        >>> bc.create_table('nation', "nation/*.parquet")
+        >>> info_table = bc.describe_table("nation")
+        >>> print(info_table)
+                  {'n_nationkey': 'int32', 'n_name': 'object',
+                   'n_regionkey': 'int32', 'n_comment': 'object'}
+        """
+        all_table_names = self.list_tables()
+        if table_name in all_table_names:
+            column_names_bytes = self.tables[table_name].column_names
+            column_names = [x.decode('utf-8') for x in column_names_bytes]
+            column_types_int = self.tables[table_name].column_types
+            column_types_np = [cio.cudf_type_int_to_np_types(t) for t in column_types_int]
+            column_types = [t.name for t in column_types_np]
+            name_type_dictionary = dict(zip(column_names, column_types))
+            return name_type_dictionary
+        else:
+            raise ValueError("ERROR: Not found table: " + str(table_name))
+
     def _parseSchema(
         self, input, file_format_hint, kwargs, extra_columns, ignore_missing_paths
     ):
