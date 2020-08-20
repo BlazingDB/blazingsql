@@ -669,21 +669,20 @@ public:
 			}
 		}
 
-		ral::cache::MetadataDictionary metadata;
-		metadata.add_value(ral::cache::KERNEL_ID_METADATA_LABEL, std::to_string(this->get_id()));
-		metadata.add_value(ral::cache::QUERY_ID_METADATA_LABEL, std::to_string(this->context->getContextToken()));
-		metadata.add_value(ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL, "false");
-		metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, "");
-		metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, self_node.id() );
-		metadata.add_value(ral::cache::MESSAGE_ID, "determine_if_we_are_scattering_a_small_table_" +
-												metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL] + "_" +
-												metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL] +	"_" +
-												metadata.get_values()[ral::cache::SENDER_WORKER_ID_METADATA_LABEL]);
-		metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, worker_ids_metadata);
-		metadata.add_value(ral::cache::JOIN_LEFT_BYTES_METADATA_LABEL, std::to_string(left_bytes_estimate));
-		metadata.add_value(ral::cache::JOIN_RIGHT_BYTES_METADATA_LABEL, std::to_string(right_bytes_estimate));
-		ral::cache::CacheMachine* output_cache = this->query_graph->get_output_message_cache();
-		output_cache->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(ral::utilities::create_empty_table({}, {}), metadata),"",true);
+		ral::cache::MetadataDictionary extra_metadata;
+		extra_metadata.add_value(ral::cache::JOIN_LEFT_BYTES_METADATA_LABEL, std::to_string(left_bytes_estimate));
+		extra_metadata.add_value(ral::cache::JOIN_RIGHT_BYTES_METADATA_LABEL, std::to_string(right_bytes_estimate));
+
+		send_message(nullptr,
+			"false", //specific_cache
+			"", //cache_id
+			worker_ids_metadata, //target_id
+			"", //total_rows
+			"determine_if_we_are_scattering_a_small_table_", //message_id
+			true, //always_add
+			false, //wait_for
+			0, //message_tracker_id
+			extra_metadata);
 
 		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
 									"query_id"_a=context->getContextToken(),
