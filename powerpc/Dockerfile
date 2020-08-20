@@ -64,17 +64,11 @@ RUN yum install epel-release
 RUN yum install -y openblas-devel
 
 # LLVM
-RUN mkdir -p /opt/blazingsql-powerpc-prefix
-RUN WORKDIR /tmp
-RUN git clone --single-branch --depth=1 -b release/10.x https://github.com/llvm/llvm-project.git
-RUN mkdir llvm-project/build
-RUN cd llvm-project/build && \
-    cmake ../llvm/ -DCMAKE_INSTALL_PREFIX:PATH=/opt/blazingsql-powerpc-prefix/ && \
-    make -j4 &&\
-    make install
-ENV LLVM_CONFIG=/opt/blazingsql-powerpc-prefix/bin/llvm-config
+RUN yum install -y llvm7.0 llvm7.0-devel
+ENV LLVM_CONFIG=/usr/bin/llvm-config-7.0-64
 
 # Python packages
+RUN mkdir -p /opt/blazingsql-powerpc-prefix
 COPY requirements.txt /opt/requirements.txt
 RUN python3 -m venv /opt/blazingsql-powerpc-prefix
 RUN source /opt/blazingsql-powerpc-prefix/bin/activate && pip3.7 install -r /opt/requirements.txt
