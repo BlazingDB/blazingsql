@@ -44,7 +44,7 @@ ENV CMAKE_ROOT=/usr/share/cmake
 RUN yum install -y libffi-devel zlib zlib-devel
 RUN wget -q https://www.python.org/ftp/python/3.7.7/Python-3.7.7.tgz
 RUN tar -xf Python-3.7.7.tgz
-RUN cd Python-3.7.7/ && ./configure --enable-optimizations && make altinstall
+RUN cd Python-3.7.7/ && ./configure --enable-optimizations --with-libs='bzip' && make altinstall
 RUN update-alternatives --install /usr/bin/python3 python3 /usr/local/bin/python3.7 999
 
 WORKDIR /app
@@ -59,7 +59,7 @@ RUN yum install which -y
 RUN yum install -y flex bison byacc
 # Dependency for scikit-learn
 RUN yum install epel-release
-RUN yum install -y openblas-devel
+RUN yum install -y openblas-devel bzip2-devel
 
 COPY requirements.txt /opt/requirements.txt
 
