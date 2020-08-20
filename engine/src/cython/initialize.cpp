@@ -62,7 +62,12 @@ std::string get_ip(const std::string & iface_name = "eth0") {
 }
 
 // simple_log: true (no timestamp or log level)
-void create_logger(std::string fileName, std::string loggingName, int ralId, std::string flush_level, bool simple_log=true){
+void create_logger(std::string fileName,
+	std::string loggingName,
+	int ralId, std::string flush_level,
+	std::map<std::string, std::string> config_options,
+	bool simple_log=true) {
+
 	auto stdout_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
 	stdout_sink->set_pattern("[%T.%e] [%^%l%$] %v");
 	stdout_sink->set_level(spdlog::level::err);
@@ -73,17 +78,48 @@ void create_logger(std::string fileName, std::string loggingName, int ralId, std
 		file_sink->set_pattern(fmt::format("%Y-%m-%d %T.%e|{}|%^%l%$|%v", ralId));
 	}
 
+	// We want ALL levels of info to be registered. So using by default `trace` level
 	file_sink->set_level(spdlog::level::trace);
 	spdlog::sinks_init_list sink_list = { stdout_sink, file_sink };
 	auto logger = std::make_shared<spdlog::async_logger>(loggingName, sink_list, spdlog::thread_pool(), spdlog::async_overflow_policy::block);
-	logger->set_level(spdlog::level::trace);
+	
+	// By default, will contains all sort of logs (more logs detail)
+	std::string logger_level_wanted = "trace";
+	auto log_level_it = config_options.find("LOGGING_LEVEL");
+	if (log_level_it != config_options.end()){
+		logger_level_wanted = config_options["LOGGING_LEVEL"];
+	}
+
+	// level of logs
+	if (logger_level_wanted == "off") {
+		logger->set_level(spdlog::level::off);
+	}
+	else if (logger_level_wanted == "critical") {
+		logger->set_level(spdlog::level::critical);
+	}
+	else if (logger_level_wanted == "err") {
+		logger->set_level(spdlog::level::err);
+	}
+	else if (logger_level_wanted == "warn") {
+		logger->set_level(spdlog::level::warn);
+	}
+	else if (logger_level_wanted == "info") {
+		logger->set_level(spdlog::level::info);
+	}
+	else if (logger_level_wanted == "debug") {
+		logger->set_level(spdlog::level::debug);
+	}
+	else {
+		logger->set_level(spdlog::level::trace);
+	}
+
 	spdlog::register_logger(logger);
 
 	// type of flush
 	if (flush_level == "critical") {
 		spdlog::flush_on(spdlog::level::critical);
 	}
-	else if (flush_level == "error") {
+	else if (flush_level == "err") {
 		spdlog::flush_on(spdlog::level::err);
 	}
 	else if (flush_level == "info") {
@@ -156,16 +192,16 @@ void initialize(int ralId,
 	spdlog::init_thread_pool(8192, 1);
 
 	std::string flush_level = "warn";
-	auto log_it = config_options.find("LOGGING_LEVEL");
+	auto log_it = config_options.find("LOGGING_FLUSH_LEVEL");
 	if (log_it != config_options.end()){
-		flush_level = config_options["LOGGING_LEVEL"];
+		flush_level = config_options["LOGGING_FLUSH_LEVEL"];
 	}
 
 	// type of flush
 	if (flush_level == "critical") {
 		spdlog::flush_on(spdlog::level::critical);
 	}
-	else if (flush_level == "error") {
+	else if (flush_level == "err") {
 		spdlog::flush_on(spdlog::level::err);
 	}
 	else if (flush_level == "info") {
@@ -199,27 +235,27 @@ void initialize(int ralId,
 
 
 	std::string batchLoggerFileName = logging_dir + "/RAL." + std::to_string(ralId) + ".log";
-	create_logger(batchLoggerFileName, "batch_logger", ralId, flush_level, false);
+	create_logger(batchLoggerFileName, "batch_logger", ralId, flush_level, config_options, false);
 
 	std::string queriesFileName = logging_dir + "/bsql_queries." + std::to_string(ralId) + ".log";
 	bool existsQueriesFileName = std::ifstream(queriesFileName).good();
-	create_logger(queriesFileName, "queries_logger", ralId, flush_level);
+	create_logger(queriesFileName, "queries_logger", ralId, flush_level, config_options);
 
 	std::string kernelsFileName = logging_dir + "/bsql_kernels." + std::to_string(ralId) + ".log";
 	bool existsKernelsFileName = std::ifstream(kernelsFileName).good();
-	create_logger(kernelsFileName, "kernels_logger", ralId, flush_level);
+	create_logger(kernelsFileName, "kernels_logger", ralId, flush_level, config_options);
 
 	std::string kernelsEdgesFileName = logging_dir + "/bsql_kernels_edges." + std::to_string(ralId) + ".log";
 	bool existsKernelsEdgesFileName = std::ifstream(kernelsEdgesFileName).good();
-	create_logger(kernelsEdgesFileName, "kernels_edges_logger", ralId, flush_level);
+	create_logger(kernelsEdgesFileName, "kernels_edges_logger", ralId, flush_level, config_options);
 
 	std::string kernelEventsFileName = logging_dir + "/bsql_kernel_events." + std::to_string(ralId) + ".log";
 	bool existsKernelEventsFileName = std::ifstream(kernelEventsFileName).good();
-	create_logger(kernelEventsFileName, "events_logger", ralId, flush_level);
+	create_logger(kernelEventsFileName, "events_logger", ralId, flush_level, config_options);
 
 	std::string cacheEventsFileName = logging_dir + "/bsql_cache_events." + std::to_string(ralId) + ".log";
 	bool existsCacheEventsFileName = std::ifstream(cacheEventsFileName).good();
-	create_logger(cacheEventsFileName, "cache_events_logger", ralId, flush_level);
+	create_logger(cacheEventsFileName, "cache_events_logger", ralId, flush_level, config_options);
 
 	//Logger Headers
 	if(!existsQueriesFileName) {
