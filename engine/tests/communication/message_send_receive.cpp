@@ -346,8 +346,9 @@ struct MessageSendReceiveTest : public BlazingUnitTest {
 
 TEST_F(MessageSendReceiveTest, send_receive_test) {
   auto thread = std::thread([]{
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
         ASSERT_TRUE(create_ucp_worker_and_ep(true) == 0);
-
+        
         std::map<std::string, comm::node> nodes_info_map;
         // nodes_info_map.emplace("client", comm::node(0, "client", nullptr, ucp_worker));
         nodes_info_map.emplace("server", comm::node(1, "server", ucp_conn_ep, ucp_worker));
