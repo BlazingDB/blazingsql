@@ -57,9 +57,13 @@ RUN yum install which -y
 
 # Dependency for thrift
 RUN yum install -y flex bison byacc
+# Dependency for scikit-learn
+RUN yum install epel-release
+RUN yum install -y openblas-devel
 
 COPY requirements.txt /opt/requirements.txt
 
 RUN mkdir -p /opt/blazingsql-powerpc-prefix
 RUN python3 -m venv /opt/blazingsql-powerpc-prefix
 RUN source /opt/blazingsql-powerpc-prefix/bin/activate && pip3.7 install -r /opt/requirements.txt
+
