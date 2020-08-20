@@ -495,8 +495,12 @@ export CUDF_ROOT=$tmp_dir/build/cudf/cpp/build
 # TODO Mario percy the user will need to do this ... for now
 # add arrow libs to the lib path for arrow and pycudf
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$tmp_dir/lib
+
 # add g++ libs to the lib path for arrow and pycudf
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib64/
+
+# add python libs
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/
 
 
 # BEGIN cudf python
