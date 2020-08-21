@@ -1,7 +1,7 @@
-from pyblazing.apiv2 import DataType
-
 import collections
 import json
+
+from pyblazing.apiv2 import DataType
 
 # Util functions related to the Algebra
 
