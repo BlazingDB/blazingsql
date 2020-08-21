@@ -484,6 +484,38 @@ cp binutils/ar $tmp_dir/bin/ar
 cp binutils/nm-new $tmp_dir/bin/nm
 # END GOLD
 
+# BEGIN LLVM 9
+cd $build_dir
+git clone --single-branch --depth=1 -b release/9.x https://github.com/llvm/llvm-project.git
+wget https://raw.githubusercontent.com/numba/llvmlite/master/conda-recipes/0001-Revert-Limit-size-of-non-GlobalValue-name.patch
+cd llvm-project/llvm/
+patch -p1 < ../../0001-Revert-Limit-size-of-non-GlobalValue-name.patch
+cmake -D CMAKE_INSTALL_PREFIX=$tmp_dir -DLLVM_ENABLE_PROJECTS=clang -DCMAKE_BUILD_TYPE=Release  -DLLVM_TARGETS_TO_BUILD="PowerPC" -D LLVM_BINUTILS_INCDIR=$build_dir/binutils/include/ ../
+make -j`nproc` install
+
+# install LLVMgold.so as plugin to 'ar'
+mkdir -p $tmp_dir/lib/bfd-plugins
+cp $tmp_dir/lib/LLVMgold.so $tmp_dir/lib/bfd-plugins
+pip uninstall -y llvmlite
+cd $build_dir
+git clone https://github.com/numba/llvmlite.git
+cd llvmlite/
+export LLVM_CONFIG=$tmp_dir/bin/llvm-config
+python setup.py install
+# test
+python -c "import numba"
+
+# restore default linker
+cd $tmp_dir/bin
+mv ar ar-new
+mv nm nm-new
+mv ld ld.gold
+# END LLVM
+
+# FSSPEC
+pip install --no-binary fsspec fsspec
+
+
 # BEGIN CUPY
 cd $build_dir
 if [ ! -d cupy ]; then
