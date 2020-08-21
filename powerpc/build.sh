@@ -477,6 +477,7 @@ fi
 echo "==================> CUDF PAR BUILD: $build_mode"
 
 if [ ! -d cudf ]; then
+    cd $build_dir
     echo "### Cudf ###"
     git clone https://github.com/rapidsai/cudf.git
     cd cudf
@@ -544,6 +545,53 @@ cd $tmp_dir/build/cudf/python/dask_cudf
 python setup.py install --single-version-externally-managed --record=record.txt
 
 # END dask-cudf
+
+# BEGIN zmq
+
+# zmq
+cd $build_dir
+if [ ! -d libzmq ]; then
+  git clone https://github.com/zeromq/libzmq.git
+  cd libzmq
+  export ZMQ_SRC=$PWD
+  mkdir -p /tmp/$USER/zmq-build
+  cd /tmp/$USER/zmq-build
+  cmake -D CMAKE_INSTALL_PREFIX=$tmp_dir -D ZMQ_BUILD_TESTS=OFF $ZMQ_SRC
+  make -j16 install
+fi
+
+# cppzmq
+cd $build_dir
+if [ ! -d cppzmq ]; then
+  git clone https://github.com/zeromq/cppzmq
+  cd cppzmq
+  export CPPZMQ_SRC=$PWD
+  mkdir -p /tmp/$USER/cppzmq-build
+  cd /tmp/$USER/cppzmq-build
+  cmake -D CMAKE_INSTALL_PREFIX=$tmp_dir $CPPZMQ_SRC
+  make -j 8 install
+fi
+
+# ENDzmq
+
+# BEGIN blazingsql
+cd $build_dir
+if [ ! -d blazingsql ]; then
+    cd $build_dir
+    git clone https://github.com/BlazingDB/blazingsql.git
+    cd blazingsql
+    git checkout branch-$cudf_version
+    git checkout feature/powerpc
+    export INSTALL_PREFIX=$tmp_dir
+    export BOOST_ROOT=$boost_install_dir
+    export ARROW_ROOT=$tmp_dir
+    export RMM_ROOT=$tmp_dir
+    export DLPACK_ROOT=$tmp_dir
+    export CONDA_PREFIX=$tmp_dir
+    ./build.sh -t disable-aws-s3 disable-google-gs
+fi
+
+# END blazingsql
 
 echo "end before"
 
