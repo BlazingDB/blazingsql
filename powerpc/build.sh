@@ -517,7 +517,7 @@ if [ ! -d cudf ]; then
           -DBOOST_ROOT=$tmp_dir \
           -DBoost_NO_SYSTEM_PATHS=ON \
           -DCMAKE_BUILD_TYPE=Release \
-          -DBUILD_TESTS=OFF \
+          -DBUILD_TESTS=ON \
           ..
     make -j$MAKEJ_CUDF install
 fi
@@ -552,6 +552,21 @@ python setup.py install --single-version-externally-managed --record=record.txt
 
 # END dask-cudf
 
+# BEGIN gtest
+# google test
+cd $build_dir
+if [ ! -d googletest ]; then
+  git clone https://github.com/google/googletest.git
+  cd googletest
+  git checkout release-1.8.0 # for compatibility with internal gtest in cudf and Apache ORC
+  export GTEST_SRC=$PWD
+  mkdir -p /tmp/$USER/gtest-build
+  cd /tmp/$USER/gtest-build
+  cmake -DBUILD_SHARED_LIBS=ON -D CMAKE_INSTALL_PREFIX=$tmp_dir $GTEST_SRC
+  make -j 8 install
+fi
+# END gtest
+
 # BEGIN zmq
 
 # zmq
@@ -584,59 +599,22 @@ fi
 cd $build_dir
 if [ ! -d blazingsql ]; then
     cd $build_dir
-    git clone https://github.com/BlazingDB/blazingsql.git
+    git clone https://github.com/aucahuasi/blazingsql.git
     cd blazingsql
-    git checkout branch-$cudf_version
+    #git checkout branch-$cudf_version
     git checkout feature/powerpc
+    git pull
     export INSTALL_PREFIX=$tmp_dir
     export BOOST_ROOT=$boost_install_dir
     export ARROW_ROOT=$tmp_dir
     export RMM_ROOT=$tmp_dir
     export DLPACK_ROOT=$tmp_dir
     export CONDA_PREFIX=$tmp_dir
+    export CUDF_HOME=$tmp_dir/build/blazingsql/thirdparty/cudf/
+    export CUDF_ROOT=$tmp_dir
     ./build.sh -t disable-aws-s3 disable-google-gs
 fi
 
 # END blazingsql
 
 echo "end before"
-
-exit 1
-
-# TODO percy mario we need to think better about this
-cp -rf $blazingsql_project_dir/algebra $blazingsql_build_dir
-cp -rf $blazingsql_project_dir/build.sh $blazingsql_build_dir
-cp -rf $blazingsql_project_dir/CHANGELOG.md $blazingsql_build_dir
-cp -rf $blazingsql_project_dir/ci $blazingsql_build_dir
-cp -rf $blazingsql_project_dir/comms $blazingsql_build_dir
-cp -rf $blazingsql_project_dir/conda $blazingsql_build_dir
-cp -rf $blazingsql_project_dir/conda-build-docker.sh $blazingsql_build_dir
-cp -rf $blazingsql_project_dir/conda_build.jenkinsfile $blazingsql_build_dir
-cp -rf $blazingsql_project_dir/CONTRIBUTING.md $blazingsql_build_dir
-cp -rf $blazingsql_project_dir/docs $blazingsql_build_dir
-cp -rf $blazingsql_project_dir/engine $blazingsql_build_dir
-cp -rf $blazingsql_project_dir/io $blazingsql_build_dir
-cp -rf $blazingsql_project_dir/LICENSE $blazingsql_build_dir
-cp -rf $blazingsql_project_dir/print_env.sh $blazingsql_build_dir
-cp -rf $blazingsql_project_dir/pyblazing $blazingsql_build_dir
-cp -rf $blazingsql_project_dir/README.md $blazingsql_build_dir
-cp -rf $blazingsql_project_dir/scripts $blazingsql_build_dir
-cp -rf $blazingsql_project_dir/tests $blazingsql_build_dir
-cp -rf $blazingsql_project_dir/test.sh $blazingsql_build_dir
-cp -rf $blazingsql_project_dir/thirdparty $blazingsql_build_dir
-cp -rf $blazingsql_project_dir/.clang-format $blazingsql_build_dir
-cp -rf $blazingsql_project_dir/.git $blazingsql_build_dir
-cp -rf $blazingsql_project_dir/.github $blazingsql_build_dir
-cp -rf $blazingsql_project_dir/.gitignore $blazingsql_build_dir
-
-#cd $blazingsql_build_dir
-#./build.sh disable-aws-s3 disable-google-gs
-
-echo "ENNNNNNNDD"
-
-
-
-
-#$
-
-exit 1
