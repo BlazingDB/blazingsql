@@ -60,7 +60,7 @@ RUN yum install which -y
 # Dependency for thrift
 RUN yum install -y flex bison byacc
 # Dependency for scikit-learn
-RUN yum install epel-release
+RUN yum install epel-release -y
 RUN yum install -y openblas-devel
 
 # LLVM
