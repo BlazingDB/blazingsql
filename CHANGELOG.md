@@ -35,6 +35,7 @@
 - #945 Added new separate thresh for concat cache 
 - #939 Add unit test for Project kernel
 - #949 Implemented using threadpool for outgoing messages 
+- #964 Add new pyblazing files to avoid context.py continues growing
 
 
 ## Bug Fixes
