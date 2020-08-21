@@ -160,9 +160,8 @@ public:
 
         std::vector<cudf::size_type> columns_to_hash;
         std::transform(group_column_indices.begin(), group_column_indices.end(), std::back_inserter(columns_to_hash), [](int index) { return (cudf::size_type)index; });
-        std::vector<std::string> messages_to_wait_for;
 
-        BlazingThread producer_thread([this, group_column_indices, columns_to_hash, &messages_to_wait_for](){
+        BlazingThread producer_thread([this, group_column_indices, columns_to_hash](){
             // num_partitions = context->getTotalNodes() will do for now, but may want a function to determine this in the future.
             // If we do partition into something other than the number of nodes, then we have to use part_ids and change up more of the logic
             int num_partitions = this->context->getTotalNodes();

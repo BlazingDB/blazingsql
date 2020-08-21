@@ -9,7 +9,6 @@ distributing_kernel::distributing_kernel(std::size_t kernel_id,
         std::shared_ptr<Context> context,
         kernel_type kernel_type_id)
         : kernel{kernel_id, expr, context, kernel_type::DistributeAggregateKernel},
-          node_id{ral::communication::CommunicationData::getInstance().getSelfNode().id()},
           node{ral::communication::CommunicationData::getInstance().getSelfNode()} {
 }
 
@@ -26,7 +25,7 @@ void distributing_kernel::send_message(std::unique_ptr<ral::frame::BlazingTable>
         std::string message_id_prefix,
         bool always_add,
         bool wait_for,
-        std::size_t message_tracker_id,
+        std::size_t message_tracker_idx,
         ral::cache::MetadataDictionary extra_metadata) {
     ral::cache::MetadataDictionary metadata;
     metadata.add_value(ral::cache::KERNEL_ID_METADATA_LABEL, std::to_string(kernel_id));
@@ -65,13 +64,13 @@ void distributing_kernel::send_message(std::unique_ptr<ral::frame::BlazingTable>
     }
 
     if(wait_for) {
-        messages_to_wait_for[message_tracker_id].push_back(message_id_prefix + MESSAGE_ID_CONTENT);
+        messages_to_wait_for[message_tracker_idx].push_back(message_id_prefix + MESSAGE_ID_CONTENT);
     }
 }
 
-int distributing_kernel::get_total_partition_counts(std::size_t message_tracker_id) {
-    int total_count = node_count[message_tracker_id][node_id];
-    for (auto message : messages_to_wait_for[message_tracker_id]){
+int distributing_kernel::get_total_partition_counts(std::size_t message_tracker_idx) {
+    int total_count = node_count[message_tracker_idx][node.id()];
+    for (auto message : messages_to_wait_for[message_tracker_idx]){
         auto meta_message = query_graph->get_input_message_cache()->pullCacheData(message);
         total_count += std::stoi(static_cast<ral::cache::GPUCacheDataMetaData *>(meta_message.get())->getMetadata().get_values()[ral::cache::PARTITION_COUNT]);
     }
@@ -81,13 +80,13 @@ int distributing_kernel::get_total_partition_counts(std::size_t message_tracker_
 void distributing_kernel::send_total_partition_counts(ral::cache::CacheMachine* graph_output,
         std::string message_id_prefix,
         std::string cache_id,
-        std::size_t message_tracker_id) {
+        std::size_t message_tracker_idx) {
     auto nodes = context->getAllNodes();
 
     for(std::size_t i = 0; i < nodes.size(); ++i) {
         if(!(nodes[i] == node)) {
             ral::cache::MetadataDictionary extra_metadata;
-            extra_metadata.add_value(ral::cache::PARTITION_COUNT, std::to_string(node_count[message_tracker_id][nodes[i].id()]));
+            extra_metadata.add_value(ral::cache::PARTITION_COUNT, std::to_string(node_count[message_tracker_idx][nodes[i].id()]));
 
             send_message(nullptr,
                 "false", //specific_cache
@@ -97,7 +96,7 @@ void distributing_kernel::send_total_partition_counts(ral::cache::CacheMachine* 
                 message_id_prefix, //message_id_prefix
                 true, //always_add
                 true, //wait_for
-                message_tracker_id,
+                message_tracker_idx,
                 extra_metadata);
         }
     }
@@ -108,7 +107,7 @@ void distributing_kernel::scatter(std::vector<ral::frame::BlazingTableView> part
         ral::cache::CacheMachine* graph_output,
         std::string message_id_prefix,
         std::string cache_id,
-        std::size_t message_tracker_id) {
+        std::size_t message_tracker_idx) {
     auto nodes = context->getAllNodes();
     assert(nodes.size() == partitions.size());
 
@@ -118,7 +117,7 @@ void distributing_kernel::scatter(std::vector<ral::frame::BlazingTableView> part
             // if we dont clone it, hashed_data will go out of scope before we get to use the partition
             // also we need a BlazingTable to put into the cache, we cant cache views.
             output->addToCache(std::move(partitions[i].clone()), message_id_prefix, true);
-            node_count[message_tracker_id][node.id()]++;
+            node_count[message_tracker_idx][node.id()]++;
         } else {
             send_message(std::move(partitions[i].clone()),
                 "true", //specific_cache
@@ -129,13 +128,13 @@ void distributing_kernel::scatter(std::vector<ral::frame::BlazingTableView> part
                 true //always_add
             );
 
-            node_count[message_tracker_id][nodes[i].id()]++;
+            node_count[message_tracker_idx][nodes[i].id()]++;
         }
     }
 }
 
-void distributing_kernel::increment_node_count(std::string node_id, std::size_t message_tracker_id) {
-    node_count[message_tracker_id][node_id]++;
+void distributing_kernel::increment_node_count(std::string node_id, std::size_t message_tracker_idx) {
+    node_count[message_tracker_idx][node_id]++;
 }
 
 }  // namespace cache

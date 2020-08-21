@@ -679,7 +679,7 @@ public:
 			"determine_if_we_are_scattering_a_small_table_", //message_id_prefix
 			true, //always_add
 			false, //wait_for
-			0, //message_tracker_id
+			0, //message_tracker_idx
 			extra_metadata);
 
 		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
@@ -922,7 +922,7 @@ public:
 			send_total_partition_counts(this->query_graph->get_output_message_cache(),
 				"part_count_", //message_prefix
 				"", //cache_id
-				0 //message_tracker_id
+				0 //message_tracker_idx
 			);
 		});
 
