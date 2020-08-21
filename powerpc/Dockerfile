@@ -44,6 +44,7 @@ ENV CMAKE_ROOT=/usr/share/cmake
 #### Python ######
 RUN yum install -y libffi-devel zlib zlib-devel
 RUN yum install -y bzip2-devel
+RUN yum install -y xz-devel
 RUN wget -q https://www.python.org/ftp/python/3.7.7/Python-3.7.7.tgz
 RUN tar -xf Python-3.7.7.tgz
 RUN cd Python-3.7.7/ && ./configure --enable-optimizations --enable-shared && make altinstall
@@ -64,6 +65,8 @@ RUN yum install epel-release -y
 RUN yum install -y openblas-devel
 
 # LLVM
+RUN yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+
 RUN yum install -y llvm7.0 llvm7.0-devel
 ENV LLVM_CONFIG=/usr/bin/llvm-config-7.0-64
 

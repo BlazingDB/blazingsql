@@ -1,6 +1,7 @@
 #!/bin/bash
 
-set -e
+# NOTE DONT use -e since we need to run some commands after a fail (see arrow)
+#set -e
 
 working_directory=$PWD
 
@@ -201,15 +202,15 @@ if [ ! -d $zstd_build_dir ]; then
     cd $zstd_build_dir
     git clone https://github.com/facebook/zstd.git
     cd zstd/
-    git checkout v1.2.0
+    git checkout v1.4.4
     echo "### Zstd - cmake ###"
     cd $zstd_build_dir/zstd/build/cmake/
+#          -DCMAKE_C_FLAGS=-D_GLIBCXX_USE_CXX11_ABI=0 \
+#          -DCMAKE_CXX_FLAGS=-D_GLIBCXX_USE_CXX11_ABI=0 \
     cmake -DCMAKE_BUILD_TYPE=Release \
           -DCMAKE_INSTALL_PREFIX:PATH=$zstd_install_dir \
-          -DCMAKE_C_FLAGS=-D_GLIBCXX_USE_CXX11_ABI=0 \
-          -DCMAKE_CXX_FLAGS=-D_GLIBCXX_USE_CXX11_ABI=0 \
           -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
-          -DZSTD_BUILD_STATIC=OFF \
+          -DZSTD_BUILD_STATIC=ON \
           .
     if [ $? != 0 ]; then
       exit 1
@@ -223,6 +224,9 @@ if [ ! -d $zstd_build_dir ]; then
 
     echo "### Zstd - End ###"
 fi
+
+export ZSTD_HOME=$tmp_dir
+
 #END zstd
 
 #BEGIN brotli
@@ -289,6 +293,45 @@ export CUDA_HOME=/usr/local/cuda/
 export CUDACXX=$CUDA_HOME/bin/nvcc
 
 #BEGIN arrow
+
+function run_cmake_for_arrow() {
+    tmp_dir=$1
+    cmake \
+        -DARROW_BOOST_USE_SHARED=ON \
+        -DARROW_BUILD_BENCHMARKS=OFF \
+        -DARROW_BUILD_STATIC=OFF \
+        -DARROW_BUILD_SHARED=ON \
+        -DARROW_BUILD_TESTS=OFF \
+        -DARROW_BUILD_UTILITIES=OFF \
+        -DARROW_DATASET=ON \
+        -DARROW_FLIGHT=OFF \
+        -DARROW_GANDIVA=OFF \
+        -DARROW_HDFS=OFF \
+        -DARROW_JEMALLOC=ON \
+        -DARROW_MIMALLOC=ON \
+        -DARROW_ORC=ON \
+        -DARROW_PARQUET=ON \
+        -DARROW_PLASMA=ON \
+        -DARROW_PYTHON=ON \
+        -DARROW_S3=OFF \
+        -DARROW_CUDA=ON \
+        -DARROW_SIMD_LEVEL=NONE \
+        -DARROW_WITH_BROTLI=ON \
+        -DARROW_WITH_BZ2=ON \
+        -DARROW_WITH_LZ4=ON \
+        -DARROW_WITH_SNAPPY=ON \
+        -DARROW_WITH_ZLIB=ON \
+        -DARROW_WITH_ZSTD=ON \
+        -DARROW_USE_LD_GOLD=ON \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_LIBDIR=$tmp_dir/lib \
+        -DCMAKE_INSTALL_PREFIX:PATH=$tmp_dir \
+        ..
+        # TODO Percy check llvm
+        #-DLLVM_TOOLS_BINARY_DIR=$PREFIX/bin \
+        #-DARROW_DEPENDENCY_SOURCE=SYSTEM \
+}
+
 arrow_install_dir=$tmp_dir
 arrow_build_dir=$build_dir/arrow
 echo "arrow_install_dir: "$arrow_install_dir
@@ -318,41 +361,24 @@ if [ ! -d $arrow_build_dir ]; then
     cd cpp/
     mkdir -p build
     cd build
-    cmake \
-        -DARROW_BOOST_USE_SHARED=ON \
-        -DARROW_BUILD_BENCHMARKS=OFF \
-        -DARROW_BUILD_STATIC=OFF \
-        -DARROW_BUILD_SHARED=ON \
-        -DARROW_BUILD_TESTS=OFF \
-        -DARROW_BUILD_UTILITIES=OFF \
-        -DARROW_DATASET=ON \
-        -DARROW_FLIGHT=OFF \
-        -DARROW_GANDIVA=OFF \
-        -DARROW_HDFS=OFF \
-        -DARROW_JEMALLOC=ON \
-        -DARROW_MIMALLOC=ON \
-        -DARROW_ORC=OFF \
-        -DCMAKE_PACKAGE_PREFIX:PATH=$tmp_dir \
-        -DARROW_PARQUET=ON \
-        -DARROW_PLASMA=ON \
-        -DARROW_PYTHON=ON \
-        -DARROW_S3=OFF \
-        -DARROW_CUDA=ON \
-        -DARROW_SIMD_LEVEL=NONE \
-        -DARROW_WITH_BROTLI=ON \
-        -DARROW_WITH_BZ2=ON \
-        -DARROW_WITH_LZ4=ON \
-        -DARROW_WITH_SNAPPY=ON \
-        -DARROW_WITH_ZLIB=ON \
-        -DARROW_WITH_ZSTD=ON \
-        -DARROW_USE_LD_GOLD=ON \
-        -DCMAKE_BUILD_TYPE=Release \
-        -DCMAKE_INSTALL_LIBDIR=$tmp_dir/lib \
-        -DCMAKE_INSTALL_PREFIX:PATH=$tmp_dir \
-        ..
-        # TODO Percy check llvm
-        #-DLLVM_TOOLS_BINARY_DIR=$PREFIX/bin \
-        #-DARROW_DEPENDENCY_SOURCE=SYSTEM \
+
+    run_cmake_for_arrow $tmp_dir
+    
+    # NOTE 1) this will fail
+    echo "---->>>> BUILD ARROW (1st time)"
+    make -j$MAKEJ install
+    
+    # NOTE 2) we need to apply some patches
+    echo "---->>>> APPLY PATCHES TO ARROW"
+    cd $tmp_dir/build/arrow/arrow/cpp/build/orc_ep-prefix/src/orc_ep/cmake_modules/
+    ln -s FindZSTD.cmake Findzstd.cmake
+    sed -i '1 i\set(ZSTD_STATIC_LIB_NAME libzstd.a)' FindZSTD.cmake
+
+    # NOTE 3) run again
+    echo "---->>>> TRY TO BUILD ARROW AGAIN"
+    cd $tmp_dir/build/arrow/arrow/cpp/build
+    make -j$MAKEJ install
+
     if [ $? != 0 ]; then
       exit 1
     fi
@@ -375,14 +401,14 @@ export PARQUET_HOME=$tmp_dir
 export PYARROW_BUILD_TYPE=release
 export PYARROW_WITH_DATASET=1
 export PYARROW_WITH_PARQUET=1
+export PYARROW_WITH_ORC=1
 export PYARROW_WITH_PLASMA=1
 export PYARROW_WITH_CUDA=1
 export PYARROW_WITH_GANDIVA=0
 export PYARROW_WITH_FLIGHT=0
 export PYARROW_WITH_S3=0
 export PYARROW_WITH_HDFS=0
-# TODO percy mario
-export PYARROW_WITH_ORC=0
+
 
 cd $arrow_build_dir/arrow/python
 python setup.py build_ext install --single-version-externally-managed --record=record.txt
