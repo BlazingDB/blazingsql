@@ -70,7 +70,9 @@
 - #929 Update the GPUManager functions
 - #942 Fix column names on sample function
 - #950 Introducing config param for max orderby samples and fixing oversampling 
+- #952 Dummy PR
 - #957 Fixed issues caused by changes to timespamp in cudf
+- #962 Use new rmm API instead of get_device_resource() and set_device_resource() functions
 
 
 # BlazingSQL 0.14.0 (June 9, 2020)
