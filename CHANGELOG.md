@@ -72,6 +72,7 @@
 - #950 Introducing config param for max orderby samples and fixing oversampling 
 - #952 Dummy PR
 - #963 Set log_level when using LOGGING_LEVEL param
+- #957 Fixed issues caused by changes to timespamp in cudf
 
 
 # BlazingSQL 0.14.0 (June 9, 2020)
