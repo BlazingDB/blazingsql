@@ -486,7 +486,6 @@ public:
 				ral::cache::CacheMachine* output,
 				ral::cache::CacheMachine* graph_output,
 				const std::string & cache_id,
-				std::vector<std::string>& messages_to_wait_for,
 				spdlog::logger* logger,
 				int table_idx)
 	{
@@ -808,15 +807,13 @@ public:
 
 		auto self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
 
-		std::vector<std::string> messages_to_wait_for_left;
 		BlazingMutableThread distribute_left_thread(&JoinPartitionKernel::partition_table, this, std::to_string(this->get_id()), this->context.get(),
 			this->left_column_indices, std::move(left_batch), std::ref(left_sequence), this->normalize_left, this->join_column_common_types,
 			this->output_.get_cache("output_a").get(),
 			this->query_graph->get_output_message_cache(),
 			"output_a",
-			std::ref(messages_to_wait_for_left),
 			this->logger.get(),
-		  LEFT_TABLE_IDX);
+			LEFT_TABLE_IDX);
 
 		// BlazingThread left_consumer([context = this->context, this](){
 		// 	ExternalBatchColumnDataSequence<ColumnDataPartitionMessage> external_input_left(this->context, this->get_message_id(), this);
@@ -831,13 +828,11 @@ public:
 		int total_count_left = get_total_partition_counts(1); //left
 		this->output_.get_cache("output_a")->wait_for_count(total_count_left);
 
-		std::vector<std::string> messages_to_wait_for_right;
 		BlazingMutableThread distribute_right_thread(&JoinPartitionKernel::partition_table, this, std::to_string(this->get_id()), this->context.get(),
 			this->right_column_indices, std::move(right_batch), std::ref(right_sequence), this->normalize_right, this->join_column_common_types,
 			this->output_.get_cache("output_b").get(),
 			this->query_graph->get_output_message_cache(),
 			"output_b",
-			std::ref(messages_to_wait_for_right),
 			this->logger.get(),
 			RIGHT_TABLE_IDX);
 
