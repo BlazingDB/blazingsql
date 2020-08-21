@@ -32,10 +32,16 @@ blazingsql_build_dir=$build_dir/blazingsql
 MAKEJ=$(nproc)
 MAKEJ_CUDF=$(( `nproc` / 2 ))
 echo "### Vars ###"
+export CC=/usr/local/bin/gcc
+export CXX=/usr/local/bin/g++
+export CUDACXX=/usr/local/cuda/bin/nvcc
+echo "CC="$CC
+echo "CXX="$CXX
+echo "CUDACXX="$CUDACXX
 echo "MAKEJ="$MAKEJ
 echo "MAKEJ_CUDF="$MAKEJ_CUDF
 echo "PATH="$PATH
-#export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/app/tmp/:/app/tmp/include/:/app/tmp/lib
+export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64:/usr/local/nvidia/lib:/usr/local/nvidia/lib64
 echo "LD_LIBRARY_PATH="$LD_LIBRARY_PATH
 #C_INCLUDE_PATH=/app/tmp/include/
 #CPLUS_INCLUDE_PATH=/app/tmp/include/
