@@ -20,19 +20,16 @@ from .hive import (
 )
 
 from pyblazing.apiv2.utilities import (
+    getNodePartitionKeys,
     checkSocket,
     get_uri_values,
     resolve_relative_path,
     distributed_initialize_server_directory,
     initialize_server_directory,
-    get_current_directory_path,
-    remove_orc_files_from_disk,    
+    remove_orc_files_from_disk,
 )
 
 from pyblazing.apiv2.algebra_utilities import (
-    modifyAlgebraForDataframesWithOnlyWantedColumns,
-    is_double_children,
-    visit,
     get_plan,
 )
 
@@ -168,24 +165,6 @@ def initializeBlazing(
         log_path = os.path.join(os.getcwd(), logging_dir_path)
 
     return ralCommunicationPort, workerIp, log_path
-
-
-def getNodePartitionKeys(df, client):
-    workers = client.scheduler_info()["workers"]
-
-    worker_partitions = {}
-    for worker in workers:
-        worker_partitions[worker] = []
-
-    dask.distributed.wait(df)
-    worker_part = client.who_has(df)
-
-    for key in worker_part:
-        if len(worker_part[key]) > 0:
-            worker = worker_part[key][0]
-            worker_partitions[worker].append(key)
-
-    return worker_partitions
 
 
 def get_element(query_partid):
@@ -1636,7 +1615,6 @@ class BlazingContext(object):
                 return current_table.getSlices(1)
             else:
                 return current_table.getSlices(len(self.nodes))
-
 
     def partition(self, input, by=[]):
         """

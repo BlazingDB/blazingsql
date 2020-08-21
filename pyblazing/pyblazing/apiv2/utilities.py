@@ -1,10 +1,32 @@
 import errno
 import logging
 import os
-import time
 import socket
+import time
 
-# Util functions 
+import dask
+import dask.distributed
+
+# Util functions
+
+
+def getNodePartitionKeys(df, client):
+    workers = client.scheduler_info()["workers"]
+
+    worker_partitions = {}
+    for worker in workers:
+        worker_partitions[worker] = []
+
+    dask.distributed.wait(df)
+    worker_part = client.who_has(df)
+
+    for key in worker_part:
+        if len(worker_part[key]) > 0:
+            worker = worker_part[key][0]
+            worker_partitions[worker].append(key)
+
+    return worker_partitions
+
 
 def checkSocket(socketNum):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)

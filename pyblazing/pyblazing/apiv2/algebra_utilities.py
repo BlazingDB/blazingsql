@@ -1,11 +1,10 @@
-
 from pyblazing.apiv2 import DataType
 
-import json
 import collections
-
+import json
 
 # Util functions related to the Algebra
+
 
 def modifyAlgebraForDataframesWithOnlyWantedColumns(
     algebra, tableScanInfo, originalTables

@@ -4,6 +4,7 @@ import dask_cudf
 import pyarrow
 
 from pyblazing.apiv2 import DataType
+from pyblazing.apiv2.utilities import getNodePartitionKeys
 
 
 class BlazingTable(object):
