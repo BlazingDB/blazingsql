@@ -472,6 +472,27 @@ if [ ! -d dlpack ]; then
 fi
 # END DLPACK
 
+# BEGIN GOLD
+cd $build_dir
+git clone --depth 1 git://sourceware.org/git/binutils-gdb.git binutils
+cd binutils
+./configure --prefix=$tmp_dir --enable-gold --enable-plugins --disable-werror
+make all-gold -j$MAKEJ
+cp gold/ld-new $tmp_dir/bin/ld
+make -j$MAKEJ
+cp binutils/ar $tmp_dir/bin/ar
+cp binutils/nm-new $tmp_dir/bin/nm
+# END GOLD
+
+# BEGIN CUPY
+cd $build_dir
+if [ ! -d cupy ]; then
+    git clone --recurse-submodules https://github.com/cupy/cupy.git
+    git checkout v7.7.0
+    python3 setup.py install
+fi
+# END CUPY
+
 # BEGIN CUDF
 cd $build_dir
 par_build=4

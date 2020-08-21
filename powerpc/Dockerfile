@@ -66,9 +66,8 @@ RUN yum install -y openblas-devel
 
 # LLVM
 RUN yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-
-RUN yum install -y llvm9.0 llvm9.0-devel
-ENV LLVM_CONFIG=/usr/bin/llvm-config-9.0-64
+RUN yum install -y texinfo
+#ENV LLVM_CONFIG=/usr/bin/llvm-config-9.0-64
 
 # Python packages
 RUN yum install -y libjpeg-devel freetype-devel
