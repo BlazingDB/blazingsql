@@ -600,9 +600,20 @@ python setup.py install --single-version-externally-managed --record=record.txt
 
 # BEGIN dask-cudf
 
+cd $build_dir
+git clone https://github.com/dask/dask.git
+cd dask
+git checkout 2.23.0
+python setup.py install
+
+cd $build_dir
+git clone https://github.com/rapidsai/dask-cuda.git
+cd dask-cuda
+git checkout branch-0.15
+python setup.py install
+
 cd $tmp_dir/build/cudf/python/dask_cudf
 python setup.py install --single-version-externally-managed --record=record.txt
-
 # END dask-cudf
 
 # BEGIN gtest
