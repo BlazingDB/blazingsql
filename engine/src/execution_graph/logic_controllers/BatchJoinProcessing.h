@@ -476,7 +476,7 @@ public:
 													right_join_types.cbegin(), right_join_types.cend());
 	}
 
-	static void partition_table(const std::string & kernel_id,
+	void partition_table(const std::string & kernel_id,
 				Context* local_context,
 				std::vector<cudf::size_type> column_indices,
 				std::unique_ptr<ral::frame::BlazingTable> batch,
@@ -533,13 +533,12 @@ public:
 					partitions.push_back(ral::frame::BlazingTableView(partition, batch->names()));
 				}
 
-				/*message_manager.scatter(partitions,
+				scatter(partitions,
 					this->output_.get_cache().get(),
 					this->query_graph->get_output_message_cache(),
 					"", //message_id_prefix
-					"true",
 					"" //cache_id
-				);*/
+				);
 
 				std::vector<ral::distribution::NodeColumnView > partitions_to_send;
 				for(int nodeIndex = 0; nodeIndex < local_context->getTotalNodes(); nodeIndex++ ){
@@ -551,7 +550,7 @@ public:
 						std::unique_ptr<ral::frame::BlazingTable> partition_table_clone = partition_table_view.clone();
 
 						output->addToCache(std::move(partition_table_clone), cache_id + "_" + kernel_id,true);
-						//increment_node_count(self_node.id(), 0);
+						increment_node_count(self_node.id(), 0);
 					} else {
 						partitions_to_send.emplace_back(
 							std::make_pair(local_context->getNode(nodeIndex), partition_table_view));
@@ -566,15 +565,15 @@ public:
 						continue;
 					}
 
-					// send_message(std::move(table_view.clone()),
-					// 	"true", //specific_cache
-					// 	cache_id, //cache_id
-					// 	dest_node.id(), //target_id
-					// 	"", //total_rows
-					// 	"", //message_id_prefix
-					// 	true); //always_add
+					send_message(std::move(table_view.clone()),
+						"true", //specific_cache
+						cache_id, //cache_id
+						dest_node.id(), //target_id
+						"", //total_rows
+						"", //message_id_prefix
+						true); //always_add
 
-					//increment_node_count(dest_node.id(), 0);
+					increment_node_count(dest_node.id(), 0);
 				}
 
 				if (sequence.wait_for_next()){
@@ -597,7 +596,7 @@ public:
 			}
 		}
 
-		//send_total_partition_counts(graph_output, std::to_string(table_idx) + "partition_", "false", cache_id, 0);
+		send_total_partition_counts(graph_output, std::to_string(table_idx) + "partition_", cache_id, 0);
 	}
 
 	std::pair<bool, bool> determine_if_we_are_scattering_a_small_table(const ral::frame::BlazingTableView & left_batch_view,
@@ -810,7 +809,7 @@ public:
 		auto self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
 
 		std::vector<std::string> messages_to_wait_for_left;
-		BlazingMutableThread distribute_left_thread(&JoinPartitionKernel::partition_table, std::to_string(this->get_id()), this->context.get(),
+		BlazingMutableThread distribute_left_thread(&JoinPartitionKernel::partition_table, this, std::to_string(this->get_id()), this->context.get(),
 			this->left_column_indices, std::move(left_batch), std::ref(left_sequence), this->normalize_left, this->join_column_common_types,
 			this->output_.get_cache("output_a").get(),
 			this->query_graph->get_output_message_cache(),
@@ -833,7 +832,7 @@ public:
 		this->output_.get_cache("output_a")->wait_for_count(total_count_left);
 
 		std::vector<std::string> messages_to_wait_for_right;
-		BlazingMutableThread distribute_right_thread(&JoinPartitionKernel::partition_table, std::to_string(this->get_id()), this->context.get(),
+		BlazingMutableThread distribute_right_thread(&JoinPartitionKernel::partition_table, this, std::to_string(this->get_id()), this->context.get(),
 			this->right_column_indices, std::move(right_batch), std::ref(right_sequence), this->normalize_right, this->join_column_common_types,
 			this->output_.get_cache("output_b").get(),
 			this->query_graph->get_output_message_cache(),
