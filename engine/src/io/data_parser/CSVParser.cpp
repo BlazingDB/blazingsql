@@ -18,7 +18,6 @@
 		return error;                                                                                                  \
 	}
 
-
 namespace ral {
 namespace io {
 
