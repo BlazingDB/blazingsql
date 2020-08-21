@@ -55,7 +55,7 @@ namespace distribution {
 	std::unique_ptr<BlazingTable> getPivotPointsTable(cudf::size_type number_pivots, const BlazingTableView & sortedSamples);
 
 	// multi-threaded message sender
-	void broadcastMessage(std::vector<Node> nodes,
+	void broadcastMessage(Context * context, std::vector<Node> nodes,
 			std::shared_ptr<communication::messages::Message> message);
 
 	void distributeNumRows(Context * context, int64_t num_rows);

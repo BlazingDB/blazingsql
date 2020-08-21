@@ -71,6 +71,15 @@ BlazingSchemaClass = jpype.JClass("com.blazingdb.calcite.schema.BlazingSchema")
 RelationalAlgebraGeneratorClass = jpype.JClass(
     "com.blazingdb.calcite.application.RelationalAlgebraGenerator"
 )
+SqlValidationExceptionClass = jpype.JClass(
+    "com.blazingdb.calcite.application.SqlValidationException"
+)
+SqlSyntaxExceptionClass = jpype.JClass(
+    "com.blazingdb.calcite.application.SqlSyntaxException"
+)
+RelConversionExceptionClass = jpype.JClass(
+    "org.apache.calcite.tools.RelConversionException"
+)
 
 
 def checkSocket(socketNum):
@@ -973,7 +982,7 @@ class BlazingContext(object):
 
     def __init__(
         self,
-        dask_client=None,
+        dask_client="autocheck",
         network_interface=None,
         allocator="managed",
         pool=False,
@@ -988,6 +997,9 @@ class BlazingContext(object):
 
         dask_client (optional) : dask.distributed.Client instance.
                     only necessary for distributed query execution.
+                    Set to None if you explicitly dont want it to
+                    connect to any Dask client running, which it will by
+                    default.
         network_interface (optional) : for communicating with the
                     dask-scheduler. see note below.
         allocator (optional) :  "managed" or "default" or "existing", where
@@ -1042,6 +1054,9 @@ class BlazingContext(object):
                     number of rows in the SortAndSampleKernel to calculate
                     the number of samples
                     default: 0.1
+            MAX_ORDER_BY_SAMPLES_PER_NODE : The max number order by samples
+                    to capture per node
+                    default: 10000
             BLAZING_DEVICE_MEM_CONSUMPTION_THRESHOLD : The percent
                     (as a decimal) of total GPU memory that the memory
                     resource will consider to be full
@@ -1073,6 +1088,9 @@ class BlazingContext(object):
             MAX_KERNEL_RUN_THREADS : The number of threads available to run
                     kernels simultaneously.
                     default: 16
+            MAX_SEND_MESSAGE_THREADS : The number of threads available to send
+                    outgoing messages.
+                    default: 20
             LOGGING_LEVEL : Set the level (as string) of the current tool for
                     logging. Log levels have order of priority:
                     {trace, debug, info, warn, error, critical}
@@ -1112,7 +1130,6 @@ class BlazingContext(object):
         self.single_gpu_idx = 0
         self.lock = Lock()
         self.finalizeCaller = ref(cio.finalizeCaller)
-        self.dask_client = dask_client
         self.nodes = []
         self.node_log_paths = []
         self.finalizeCaller = lambda: NotImplemented
@@ -1136,6 +1153,15 @@ class BlazingContext(object):
             "BLAZING_CACHE_DIRECTORY".encode()
         ] = cache_dir_path.encode()
 
+        if dask_client == "autocheck":
+            try:
+                dask_client = dask.distributed.default_client()
+            except ValueError:
+                dask_client = None
+                pass
+
+        self.dask_client = dask_client
+
         # remove if exists older orc tmp files
         remove_orc_files_from_disk(cache_dir_path)
 
@@ -1150,7 +1176,19 @@ class BlazingContext(object):
             distributed_initialize_server_directory(self.dask_client, cache_dir_path)
 
             if network_interface is None:
-                network_interface = "eth0"
+                import psutil
+
+                local_addr = dask_client.scheduler_comm.comm._local_addr
+                local = local_addr.split("://")[-1].split(":")[0]
+                for name, addrs in psutil.net_if_addrs().items():
+                    for addr in addrs:
+                        if addr.address == local:
+                            network_interface = name
+                            break
+                    if network_interface:
+                        break
+                if network_interface is None:
+                    network_interface = "eth0"
 
             worker_list = []
             dask_futures = []
@@ -1418,17 +1456,24 @@ class BlazingContext(object):
         Docs: https://docs.blazingdb.com/docs/explain
         """
         try:
-            algebra = str(self.generator.getRelationalAlgebraString(sql))
-        except jpype.JException as exception:
-            algebra = ""
-            print("SQL Parsing Error")
-            print(exception.message())
-        if algebra.startswith("fail:"):
-            print("Error found")
-            print(algebra)
-            algebra = ""
+            algebra = self.generator.getRelationalAlgebraString(sql)
 
-        return algebra
+        except SqlValidationExceptionClass as exception:
+            # jpype.JException as exception:
+            raise Exception(exception.message())
+            # algebra = ""
+            # print("SQL Parsing Error")
+            # print(exception.message())
+        except SqlSyntaxExceptionClass as exception:
+            raise Exception(exception.message())
+        except RelConversionExceptionClass as exception:
+            raise Exception(exception.message())
+        # if algebra.startswith("fail:"):
+        #     print("Error found")
+        #     print(algebra)
+        #     algebra = ""
+
+        return str(algebra)
 
     def add_remove_table(self, tableName, addTable, table=None):
         self.lock.acquire()
