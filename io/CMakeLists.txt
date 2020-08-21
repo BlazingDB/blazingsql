@@ -69,9 +69,25 @@ include(CheckIncludeFiles)
 include(CheckLibraryExists)
 include(CTest)
 
+# TODO percy jp mario we don't need curl unless we use the storages
 add_definitions( -DCURL_STATICLIB )
-
 find_package(CURL REQUIRED)
+
+# BEGIN find arrow
+find_path(ARROW_INCLUDE_DIR "arrow" HINTS "$ENV{ARROW_ROOT}/include")
+find_library(ARROW_LIB "arrow" NAMES libarrow HINTS "$ENV{ARROW_ROOT}/lib" "$ENV{ARROW_ROOT}/build")
+find_library(ARROW_CUDA_LIB "arrow_cuda" NAMES libarrow_cuda HINTS "$ENV{ARROW_ROOT}/lib" "$ENV{ARROW_ROOT}/build")
+message(STATUS "ARROW: ARROW_INCLUDE_DIR set to ${ARROW_INCLUDE_DIR}")
+message(STATUS "ARROW: ARROW_LIB set to ${ARROW_LIB}")
+message(STATUS "ARROW: ARROW_CUDA_LIB set to ${ARROW_CUDA_LIB}")
+add_library(arrow SHARED IMPORTED ${ARROW_LIB})
+add_library(arrow_cuda SHARED IMPORTED ${ARROW_CUDA_LIB})
+
+if(ARROW_INCLUDE_DIR AND ARROW_LIB AND ARROW_CUDA_LIB)
+  set_target_properties(arrow PROPERTIES IMPORTED_LOCATION ${ARROW_LIB})
+  set_target_properties(arrow_cuda PROPERTIES IMPORTED_LOCATION ${ARROW_CUDA_LIB})
+endif(ARROW_INCLUDE_DIR AND ARROW_LIB AND ARROW_CUDA_LIB)
+# END find arrow
 
 set(FILESYSTEM_SRC_FILES
     ${CMAKE_SOURCE_DIR}/src/FileSystem/FileSystemType.cpp
@@ -133,7 +149,7 @@ if(S3_SUPPORT)
     set(S3_LIBRARY aws-cpp-sdk-core aws-cpp-sdk-s3 aws-cpp-sdk-s3-encryption)
 endif()
 
-include_directories(blazingdb-io ${CMAKE_SOURCE_DIR}/src $ENV{CONDA_PREFIX}/include)
+include_directories(blazingdb-io ${CMAKE_SOURCE_DIR}/src $ENV{CONDA_PREFIX}/include "${ARROW_INCLUDE_DIR}")
 link_directories($ENV{CONDA_PREFIX}/lib)
 
 add_library(blazingdb-io SHARED

@@ -77,4 +77,7 @@ COPY requirements.txt /opt/requirements.txt
 RUN python3 -m venv /opt/blazingsql-powerpc-prefix
 RUN source /opt/blazingsql-powerpc-prefix/bin/activate && pip3.7 install -r /opt/requirements.txt
 
+# For blazingsql
+RUN yum install -y libcurl-devel
+
 WORKDIR /app

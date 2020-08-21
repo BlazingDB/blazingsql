@@ -170,6 +170,9 @@ elseif (DEFINED ENV{CONDA_PREFIX})
     link_directories($ENV{CONDA_PREFIX}/lib64/)
 
 endif ()
+
+link_directories(${CMAKE_CUDA_IMPLICIT_LINK_DIRECTORIES})
+
 message(WARNING "BSQL_BLD_PREFIX set to: ${BSQL_BLD_PREFIX}")
 message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 
@@ -189,6 +192,22 @@ find_package(PythonLibs)
 #find_package(spdlog REQUIRED)
 
 find_package(GTest REQUIRED)
+
+# BEGIN find arrow
+find_path(ARROW_INCLUDE_DIR "arrow" HINTS "$ENV{ARROW_ROOT}/include")
+find_library(ARROW_LIB "arrow" NAMES libarrow HINTS "$ENV{ARROW_ROOT}/lib" "$ENV{ARROW_ROOT}/build")
+find_library(ARROW_CUDA_LIB "arrow_cuda" NAMES libarrow_cuda HINTS "$ENV{ARROW_ROOT}/lib" "$ENV{ARROW_ROOT}/build")
+message(STATUS "ARROW: ARROW_INCLUDE_DIR set to ${ARROW_INCLUDE_DIR}")
+message(STATUS "ARROW: ARROW_LIB set to ${ARROW_LIB}")
+message(STATUS "ARROW: ARROW_CUDA_LIB set to ${ARROW_CUDA_LIB}")
+add_library(arrow SHARED IMPORTED ${ARROW_LIB})
+add_library(arrow_cuda SHARED IMPORTED ${ARROW_CUDA_LIB})
+
+if(ARROW_INCLUDE_DIR AND ARROW_LIB AND ARROW_CUDA_LIB)
+  set_target_properties(arrow PROPERTIES IMPORTED_LOCATION ${ARROW_LIB})
+  set_target_properties(arrow_cuda PROPERTIES IMPORTED_LOCATION ${ARROW_CUDA_LIB})
+endif(ARROW_INCLUDE_DIR AND ARROW_LIB AND ARROW_CUDA_LIB)
+# END find arrow
 
 # BEGIN MAIN #
 
@@ -243,6 +262,7 @@ include_directories(
     $ENV{INSTALL_PREFIX}/include/blazingdb/io
     ${PYTHON_INCLUDE_DIRS}
     ${CUDF_TEST_INCLUDE}
+    "${ARROW_INCLUDE_DIR}"
     )
 
 ## communication primitives

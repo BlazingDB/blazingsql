@@ -163,6 +163,9 @@ elseif (DEFINED ENV{CONDA_PREFIX})
     link_directories($ENV{CONDA_PREFIX}/lib64/)
 
 endif ()
+
+link_directories(${CMAKE_CUDA_IMPLICIT_LINK_DIRECTORIES})
+
 message(WARNING "BSQL_BLD_PREFIX set to: ${BSQL_BLD_PREFIX}")
 message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 
