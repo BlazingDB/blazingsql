@@ -484,7 +484,6 @@ public:
 				bool normalize_types,
 				const std::vector<cudf::data_type> & join_column_common_types,
 				ral::cache::CacheMachine* output,
-				ral::cache::CacheMachine* graph_output,
 				const std::string & cache_id,
 				spdlog::logger* logger,
 				int table_idx)
@@ -526,7 +525,6 @@ public:
 					}
 				}
 
-				//assuming 1:1 a table for each node
 				std::vector<ral::frame::BlazingTableView> partitions;
 				for(auto partition : partitioned) {
 					partitions.push_back(ral::frame::BlazingTableView(partition, batch->names()));
@@ -534,7 +532,6 @@ public:
 
 				scatter(partitions,
 					this->output_.get_cache().get(),
-					this->query_graph->get_output_message_cache(),
 					"", //message_id_prefix
 					"" //cache_id
 				);
@@ -595,7 +592,7 @@ public:
 			}
 		}
 
-		send_total_partition_counts(graph_output, std::to_string(table_idx) + "partition_", cache_id, 0);
+		send_total_partition_counts(std::to_string(table_idx) + "partition_", cache_id, 0);
 	}
 
 	std::pair<bool, bool> determine_if_we_are_scattering_a_small_table(const ral::frame::BlazingTableView & left_batch_view,
@@ -810,7 +807,6 @@ public:
 		BlazingMutableThread distribute_left_thread(&JoinPartitionKernel::partition_table, this, std::to_string(this->get_id()), this->context.get(),
 			this->left_column_indices, std::move(left_batch), std::ref(left_sequence), this->normalize_left, this->join_column_common_types,
 			this->output_.get_cache("output_a").get(),
-			this->query_graph->get_output_message_cache(),
 			"output_a",
 			this->logger.get(),
 			LEFT_TABLE_IDX);
@@ -831,7 +827,6 @@ public:
 		BlazingMutableThread distribute_right_thread(&JoinPartitionKernel::partition_table, this, std::to_string(this->get_id()), this->context.get(),
 			this->right_column_indices, std::move(right_batch), std::ref(right_sequence), this->normalize_right, this->join_column_common_types,
 			this->output_.get_cache("output_b").get(),
-			this->query_graph->get_output_message_cache(),
 			"output_b",
 			this->logger.get(),
 			RIGHT_TABLE_IDX);
@@ -919,7 +914,7 @@ public:
 			}
 			// ral::distribution::notifyLastTablePartitions(this->context.get(), ColumnDataMessage::MessageID());
 
-			send_total_partition_counts(this->query_graph->get_output_message_cache(),
+			send_total_partition_counts(
 				"part_count_", //message_prefix
 				"", //cache_id
 				0 //message_tracker_idx

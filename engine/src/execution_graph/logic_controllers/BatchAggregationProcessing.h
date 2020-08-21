@@ -217,7 +217,6 @@ public:
                             }
                         }
 
-                        //assuming 1:1 a table for each node
                         std::vector<ral::frame::BlazingTableView> partitions;
                         for(auto partition : partitioned) {
                             partitions.push_back(ral::frame::BlazingTableView(partition, batch->names()));
@@ -225,7 +224,6 @@ public:
 
                         scatter(partitions,
                             this->output_.get_cache().get(),
-                            this->query_graph->get_output_message_cache(),
                             "", //message_id_prefix
                             "" //cache_id
                         );
@@ -243,7 +241,7 @@ public:
                 }
             }
 
-            send_total_partition_counts(this->query_graph->get_output_message_cache(),
+            send_total_partition_counts(
                 "", //message_prefix
                 "" //cache_id
             );

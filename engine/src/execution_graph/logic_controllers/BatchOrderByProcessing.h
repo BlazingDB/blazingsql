@@ -387,7 +387,7 @@ public:
 			}
 
 
-			send_total_partition_counts(this->query_graph->get_output_message_cache(),
+			send_total_partition_counts(
 				"", //message_prefix
 				"" //cache_id
 			);

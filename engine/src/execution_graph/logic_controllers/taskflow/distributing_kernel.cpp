@@ -77,7 +77,7 @@ int distributing_kernel::get_total_partition_counts(std::size_t message_tracker_
     return total_count;
 }
 
-void distributing_kernel::send_total_partition_counts(ral::cache::CacheMachine* graph_output,
+void distributing_kernel::send_total_partition_counts(
         std::string message_id_prefix,
         std::string cache_id,
         std::size_t message_tracker_idx) {
@@ -104,7 +104,6 @@ void distributing_kernel::send_total_partition_counts(ral::cache::CacheMachine* 
 
 void distributing_kernel::scatter(std::vector<ral::frame::BlazingTableView> partitions,
         ral::cache::CacheMachine* output,
-        ral::cache::CacheMachine* graph_output,
         std::string message_id_prefix,
         std::string cache_id,
         std::size_t message_tracker_idx) {

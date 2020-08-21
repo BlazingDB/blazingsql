@@ -67,14 +67,12 @@ class distributing_kernel : public kernel {
      *
      * @param partitions The table partitions to be sent.
      * @param output The output cache.
-     * @param graph_output The output graph.
      * @param message_id_prefix The prefix of the identifier of this message.
      * @param cache_id Indicates what cache a message should be routed to.
      * @param message_tracker_idx The message tracker index.
      */
     void scatter(std::vector<ral::frame::BlazingTableView> partitions,
         ral::cache::CacheMachine* output,
-        ral::cache::CacheMachine* graph_output,
         std::string message_id_prefix,
         std::string cache_id,
         std::size_t message_tracker_idx = 0);
@@ -82,12 +80,11 @@ class distributing_kernel : public kernel {
     /**
      * @brief Sends the partition counter to all other nodes.
      *
-     * @param graph_output The output graph.
      * @param message_id_prefix The prefix of the identifier of this message.
      * @param cache_id Indicates what cache a message should be routed to.
      * @param message_tracker_idx The message tracker index.
      */
-    void send_total_partition_counts(ral::cache::CacheMachine* graph_output,
+    void send_total_partition_counts(
         std::string message_id_prefix,
         std::string cache_id,
         std::size_t message_tracker_idx = 0);
