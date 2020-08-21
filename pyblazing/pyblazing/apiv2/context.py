@@ -7,11 +7,9 @@ from urllib.parse import urlparse
 
 from threading import Lock
 from weakref import ref
+from pyblazing.apiv2.blazingsql_table import BlazingTable
 from pyblazing.apiv2.filesystem import FileSystem
 from pyblazing.apiv2 import DataType
-
-import json
-import collections
 
 from pyhive import hive
 from .hive import (
@@ -20,9 +18,24 @@ from .hive import (
     getPartitionsFromUserPartitions,
     get_hive_table,
 )
-import time
-import socket
-import errno
+
+from pyblazing.apiv2.utilities import (
+    checkSocket,
+    get_uri_values,
+    resolve_relative_path,
+    distributed_initialize_server_directory,
+    initialize_server_directory,
+    get_current_directory_path,
+    remove_orc_files_from_disk,    
+)
+
+from pyblazing.apiv2.algebra_utilities import (
+    modifyAlgebraForDataframesWithOnlyWantedColumns,
+    is_double_children,
+    visit,
+    get_plan,
+)
+
 import os
 import pandas
 import numpy as np
@@ -39,7 +52,6 @@ import random
 
 import logging
 
-from enum import IntEnum
 
 jpype.addClassPath(
     os.path.join(os.getenv("CONDA_PREFIX"), "lib/blazingsql-algebra.jar")
@@ -80,29 +92,6 @@ SqlSyntaxExceptionClass = jpype.JClass(
 RelConversionExceptionClass = jpype.JClass(
     "org.apache.calcite.tools.RelConversionException"
 )
-
-
-def checkSocket(socketNum):
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    socket_free = False
-    try:
-        s.bind(("127.0.0.1", socketNum))
-        socket_free = True
-    except socket.error as e:
-        if e.errno == errno.EADDRINUSE:
-            socket_free = False
-        else:
-            # something else raised the socket.error exception
-            print("ERROR: Something happened when checking socket " + str(socketNum))
-    s.close()
-    return socket_free
-
-
-class blazing_allocation_mode(IntEnum):
-    CudaDefaultAllocation = (0,)
-    PoolAllocation = (1,)
-    CudaManagedMemory = (2,)
 
 
 def initializeBlazing(
@@ -307,70 +296,6 @@ def collectPartitionsPerformPartition(
     return cio.performPartitionCaller(masterIndex, nodes, ctxToken, node_input, by)
 
 
-# returns a map of table names to the indices of the columns needed.
-# If there are more than one table scan for one table, it merged the
-# needed columns if the column list is empty, it means we want all columns
-def mergeTableScans(tableScanInfo):
-    table_names = list(set(tableScanInfo["table_names"]))
-    table_columns = {}
-    for table_name in table_names:
-        table_columns[table_name] = []
-
-    for index, table_name in enumerate(tableScanInfo["table_names"]):
-        # if the column list is empty, it means we want all columns
-        if len(tableScanInfo["table_columns"][index]) > 0:
-            table_columns[table_name] = list(
-                set(table_columns[table_name] + tableScanInfo["table_columns"][index])
-            )
-            table_columns[table_name].sort()
-        else:
-            table_columns[table_name] = []
-
-    return table_columns
-
-
-def modifyAlgebraForDataframesWithOnlyWantedColumns(
-    algebra, tableScanInfo, originalTables
-):
-    for table_name in tableScanInfo:
-        # TODO: handle situation with multiple tables being joined twice
-        if originalTables[table_name].fileType == DataType.ARROW:
-            orig_scan = tableScanInfo[table_name]["table_scans"][0]
-            orig_col_indexes = tableScanInfo[table_name]["table_columns"][0]
-            merged_col_indexes = list(range(len(orig_col_indexes)))
-
-            new_col_indexes = []
-            if len(merged_col_indexes) > 0:
-                if orig_col_indexes == merged_col_indexes:
-                    new_col_indexes = list(range(0, len(orig_col_indexes)))
-                else:
-                    enumerated_indexes = enumerate(merged_col_indexes)
-                    for new_index, merged_col_index in enumerated_indexes:
-                        if merged_col_index in orig_col_indexes:
-                            new_col_indexes.append(new_index)
-
-            orig_project = "projects=[" + str(orig_col_indexes) + "]"
-            new_project = "projects=[" + str(new_col_indexes) + "]"
-            new_scan = orig_scan.replace(orig_project, new_project)
-            algebra = algebra.replace(orig_scan, new_scan)
-    return algebra
-
-
-def get_uri_values(files, partitions, base_folder):
-    if base_folder[-1] != "/":
-        base_folder = base_folder + "/"
-
-    uri_values = []
-    for file in files:
-        file_dir = os.path.dirname(file.decode())
-        partition_name = file_dir.replace(base_folder, "")
-        if partition_name in partitions:
-            uri_values.append(partitions[partition_name])
-        else:
-            print("ERROR: Could not get partition values for file: " + file.decode())
-    return uri_values
-
-
 def parseHiveMetadata(curr_table, uri_values):
     metadata = {}
     names = []
@@ -560,109 +485,6 @@ def mergeMetadata(curr_table, fileMetadata, hiveMetadata):
     return result
 
 
-def is_double_children(expr):
-    return "LogicalJoin" in expr or "LogicalUnion" in expr
-
-
-def visit(lines):
-    stack = collections.deque()
-    root_level = 0
-    dicc = {"expr": lines[root_level][1], "children": []}
-    processed = set()
-    for index in range(len(lines)):
-        child_level, expr = lines[index]
-        if child_level == root_level + 1:
-            new_dicc = {"expr": expr, "children": []}
-            if len(dicc["children"]) == 0:
-                dicc["children"] = [new_dicc]
-            else:
-                dicc["children"].append(new_dicc)
-            stack.append((index, child_level, expr, new_dicc))
-            processed.add(index)
-
-    for index in processed:
-        lines[index][0] = -1
-
-    while len(stack) > 0:
-        curr_index, curr_level, curr_expr, curr_dicc = stack.pop()
-        processed = set()
-
-        if curr_index < len(lines) - 1:  # is brother
-            child_level, expr = lines[curr_index + 1]
-            if child_level == curr_level:
-                continue
-            elif child_level == curr_level + 1:
-                index = curr_index + 1
-                if is_double_children(curr_expr):
-                    while index < len(lines) and len(curr_dicc["children"]) < 2:
-                        child_level, expr = lines[index]
-                        if child_level == curr_level + 1:
-                            new_dicc = {"expr": expr, "children": []}
-                            if len(curr_dicc["children"]) == 0:
-                                curr_dicc["children"] = [new_dicc]
-                            else:
-                                curr_dicc["children"].append(new_dicc)
-                            processed.add(index)
-                            stack.append((index, child_level, expr, new_dicc))
-                        index += 1
-                else:
-                    while index < len(lines) and len(curr_dicc["children"]) < 1:
-                        child_level, expr = lines[index]
-                        if child_level == curr_level + 1:
-                            new_dicc = {"expr": expr, "children": []}
-                            if len(curr_dicc["children"]) == 0:
-                                curr_dicc["children"] = [new_dicc]
-                            else:
-                                curr_dicc["children"].append(new_dicc)
-                            processed.add(index)
-                            stack.append((index, child_level, expr, new_dicc))
-                        index += 1
-
-        for index in processed:
-            lines[index][0] = -1
-    return json.dumps(dicc)
-
-
-def get_plan(algebra):
-    algebra = algebra.replace("  ", "\t")
-    lines = algebra.split("\n")
-    # algebra plan was provided and only contains one-line as logical plan
-    if len(lines) == 1:
-        algebra += "\n"
-        lines = algebra.split("\n")
-    new_lines = []
-    for i in range(len(lines) - 1):
-        line = lines[i]
-        level = line.count("\t")
-        new_lines.append([level, line.replace("\t", "")])
-    return visit(new_lines)
-
-
-def resolve_relative_path(files):
-    files_out = []
-    for file in files:
-        if isinstance(file, str):
-            # if its an abolute path or fs path
-            if (
-                file.startswith("/")
-                | file.startswith("hdfs://")
-                | file.startswith("s3://")
-                | file.startswith("gs://")
-            ):
-                files_out.append(file)
-            else:  # if its not, lets see if its a relative path we can access
-                abs_file = os.path.abspath(os.path.join(os.getcwd(), file))
-                if os.path.exists(abs_file):
-                    files_out.append(abs_file)
-                # if its not, lets just leave it and see if somehow
-                # the engine can access it
-                else:
-                    files_out.append(file)
-        else:  # we are assuming all are string. If not, lets just return
-            return files
-    return files_out
-
-
 # this is to handle the cases where there is a file that does not actually
 # have data files that do not have data wont show up in the metadata and
 # we will want to remove them from the table schema
@@ -684,289 +506,6 @@ def adjust_due_missing_rowgroups(metadata, files):
         mask = metadata["file_handle_index"] > ind
         metadata["file_handle_index"][mask] = metadata["file_handle_index"][mask] - 1
     return metadata, new_files
-
-
-def distributed_initialize_server_directory(client, dir_path):
-
-    # We are going to differentiate the two cases. When path is absolute,
-    # we do the logging folder creation only once per host (server).
-    # When path is relative, we have to group the workers according
-    # to whether they have the same current working directory,
-    # so, a unique folder will be created for each sub common cwd set.
-
-    all_items = client.scheduler_info()["workers"].items()
-
-    is_absolute_path = os.path.isabs(dir_path)
-
-    if is_absolute_path:
-        # Let's group the workers by host_name
-        host_worker_dict = {}
-        for worker, worker_info in all_items:
-            host_name = worker.split(":")[0]
-            if host_name not in host_worker_dict.keys():
-                host_worker_dict[host_name] = [worker]
-            else:
-                host_worker_dict[host_name].append(worker)
-
-        dask_futures = []
-        for host_name, worker_list in host_worker_dict.items():
-            dask_futures.append(
-                client.submit(
-                    initialize_server_directory,
-                    dir_path,
-                    workers=[worker_list[0]],
-                    pure=False,
-                )
-            )
-
-        for connection in dask_futures:
-            made_dir = connection.result()
-            if not made_dir:
-                logging.info("Directory already exists")
-    else:
-        # Let's get the current working directory of all workers
-        dask_futures = []
-        for worker, worker_info in all_items:
-            dask_futures.append(
-                client.submit(get_current_directory_path, workers=[worker], pure=False)
-            )
-
-        current_working_dirs = client.gather(dask_futures)
-
-        # Let's group the workers by host_name and by common cwd
-        host_worker_dict = {}
-        for worker_key, cwd in zip(all_items, current_working_dirs):
-            worker = worker_key[0]
-            host_name = worker.split(":")[0]
-            if host_name not in host_worker_dict.keys():
-                host_worker_dict[host_name] = {cwd: [worker]}
-            else:
-                if cwd not in host_worker_dict[host_name].keys():
-                    host_worker_dict[host_name][cwd] = [worker]
-                else:
-                    host_worker_dict[host_name][cwd].append(worker)
-
-        dask_futures = []
-        for host_name, common_current_work in host_worker_dict.items():
-            for cwd, worker_list in common_current_work.items():
-                dask_futures.append(
-                    client.submit(
-                        initialize_server_directory,
-                        dir_path,
-                        workers=[worker_list[0]],
-                        pure=False,
-                    )
-                )
-
-        for connection in dask_futures:
-            made_dir = connection.result()
-            if not made_dir:
-                logging.info("Directory already exists")
-
-
-def initialize_server_directory(dir_path):
-    if not os.path.exists(dir_path):
-        try:
-            os.mkdir(dir_path)
-        except OSError as error:
-            logging.error("Could not create directory: " + error)
-            raise
-        return True
-    else:
-        return False
-
-
-def get_current_directory_path():
-    return os.getcwd()
-
-
-# Delete all generated (older than 1 hour) orc files
-def remove_orc_files_from_disk(data_dir):
-    if os.path.isfile(data_dir):  # only if data_dir exists
-        all_files = os.listdir(data_dir)
-        current_time = time.time()
-        for file in all_files:
-            if ".blazing-temp" in file:
-                full_path_file = data_dir + "/" + file
-                creation_time = os.path.getctime(full_path_file)
-                if (current_time - creation_time) // (1 * 60 * 60) >= 1:
-                    os.remove(full_path_file)
-
-
-class BlazingTable(object):
-    def __init__(
-        self,
-        name,
-        input,
-        fileType,
-        files=None,
-        datasource=[],
-        calcite_to_file_indices=None,
-        args={},
-        convert_gdf_to_dask=False,
-        convert_gdf_to_dask_partitions=1,
-        client=None,
-        uri_values=[],
-        in_file=[],
-        force_conversion=False,
-        metadata=None,
-        row_groups_ids=[],
-    ):
-        # row_groups_ids, vector<vector<int>> one vector
-        # of row_groups per file
-        self.name = name
-        self.fileType = fileType
-        if fileType == DataType.ARROW:
-            if force_conversion:
-                # converts to cudf for querying
-                self.input = cudf.DataFrame.from_arrow(input)
-                self.fileType = DataType.CUDF
-            else:
-                self.input = cudf.DataFrame.from_arrow(input.schema.empty_table())
-                self.arrow_table = input
-        else:
-            self.input = input
-
-        self.calcite_to_file_indices = calcite_to_file_indices
-        self.files = files
-
-        self.datasource = datasource
-
-        self.args = args
-        if self.fileType == DataType.CUDF or self.fileType == DataType.DASK_CUDF:
-            if convert_gdf_to_dask and isinstance(self.input, cudf.DataFrame):
-                self.input = dask_cudf.from_cudf(
-                    self.input, npartitions=convert_gdf_to_dask_partitions
-                )
-            if isinstance(self.input, dask_cudf.core.DataFrame):
-                self.input = self.input.persist()
-        self.uri_values = uri_values
-        self.in_file = in_file
-
-        # slices, this is computed in create table,
-        # and then reused in sql method
-        self.slices = None
-        # metadata, this is computed in create table, after call get_metadata
-        self.metadata = metadata
-        # row_groups_ids, vector<vector<int>> one vector of
-        # row_groups per file
-        self.row_groups_ids = row_groups_ids
-        # a pair of values with the startIndex and batchSize
-        # info for each slice
-        self.offset = (0, 0)
-
-        self.column_names = []
-        self.column_types = []
-
-        if self.fileType == DataType.CUDF:
-            self.column_names = [x for x in self.input._data.keys()]
-            data_values = self.input._data.values()
-            self.column_types = [cio.np_to_cudf_types_int(x.dtype) for x in data_values]
-        elif self.fileType == DataType.DASK_CUDF:
-            self.column_names = [x for x in input.columns]
-            self.column_types = [cio.np_to_cudf_types_int(x) for x in input.dtypes]
-
-        # file_column_names are usually the same as column_names, except
-        # for when in a hive table the column names defined by the hive schema
-        # are different that the names in actual files
-        self.file_column_names = self.column_names
-
-    def has_metadata(self):
-        if isinstance(self.metadata, dask_cudf.core.DataFrame):
-            return not self.metadata.compute().empty
-        if self.metadata is not None:
-            return not self.metadata.empty
-        return False
-
-    def filterAndRemapColumns(self, tableColumns):
-        # only used for arrow
-        new_table = self.arrow_table
-
-        columns = []
-        names = []
-        i = 0
-        for column in new_table.itercolumns():
-            for index in tableColumns:
-                if i == index:
-                    names.append(self.arrow_table.field(i).name)
-                    columns.append(column)
-            i = i + 1
-        new_table = pyarrow.Table.from_arrays(columns, names=names)
-        new_table = BlazingTable(
-            self.name, new_table, DataType.ARROW, force_conversion=True
-        )
-
-        return new_table
-
-    def convertForQuery(self):
-        return BlazingTable(
-            self.name, self.arrow_table, DataType.ARROW, force_conversion=True
-        )
-
-    # until this is implemented we cant do self join with arrow tables
-    #    def unionColumns(self,otherTable):
-
-    def getDaskDataFrameKeySlices(self, nodes, client):
-        import copy
-
-        nodeFilesList = []
-        partition_keys_mapping = getNodePartitionKeys(self.input, client)
-        for node in nodes:
-            # here we are making a shallow copy of the table and getting rid
-            # of the reference for the dask.cudf.DataFrame since we dont want
-            # to send that to dask wokers. You dont want to send a distributed
-            # object to individual workers
-            table = copy.copy(self)
-            if node["worker"] in partition_keys_mapping:
-                table.partition_keys = partition_keys_mapping[node["worker"]]
-                table.input = []
-            else:
-                table.input = [table.input._meta]
-                table.partition_keys = []
-            nodeFilesList.append(table)
-
-        return nodeFilesList
-
-    def getSlices(self, numSlices):
-        nodeFilesList = []
-        if self.files is None:
-            for i in range(0, numSlices):
-                nodeFilesList.append(BlazingTable(self.name, self.input, self.fileType))
-            return nodeFilesList
-        remaining = len(self.files)
-        startIndex = 0
-        for i in range(0, numSlices):
-            batchSize = int(remaining / (numSlices - i))
-            tempFiles = self.files[startIndex : startIndex + batchSize]
-            uri_values = self.uri_values[startIndex : startIndex + batchSize]
-
-            slice_row_groups_ids = []
-            if self.row_groups_ids is not None:
-                slice_row_groups_ids = self.row_groups_ids[
-                    startIndex : startIndex + batchSize
-                ]
-
-            bt = BlazingTable(
-                self.name,
-                self.input,
-                self.fileType,
-                files=tempFiles,
-                calcite_to_file_indices=self.calcite_to_file_indices,
-                uri_values=uri_values,
-                args=self.args,
-                row_groups_ids=slice_row_groups_ids,
-                in_file=self.in_file,
-            )
-            bt.offset = (startIndex, batchSize)
-            bt.column_names = self.column_names
-            bt.file_column_names = self.file_column_names
-            bt.column_types = self.column_types
-            nodeFilesList.append(bt)
-
-            startIndex = startIndex + batchSize
-            remaining = remaining - batchSize
-
-        return nodeFilesList
 
 
 class BlazingContext(object):
@@ -2098,33 +1637,33 @@ class BlazingContext(object):
             else:
                 return current_table.getSlices(len(self.nodes))
 
-    """
-    Partition a dask_cudf DataFrame based on one or more columns.
-
-    Parameters
-    ----------
-
-    input : the dask_cudf.DataFrame you want to partition
-    by : a list of strings of the column names by which you want to partition.
-
-    Examples
-    --------
-
-    >>> bc = BlazingContext(dask_client=client)
-    >>> bc.create_table('product_reviews', "product_reviews/*.parquet")
-    >>> query_1= "SELECT pr_item_sk, pr_review_content, pr_review_sk
-        FROM product_reviews where pr_review_content IS NOT NULL"
-    >>> product_reviews_df = bc.sql(query_1)
-    >>> product_reviews_df = bc.partition(product_reviews_df,
-                                by=["pr_item_sk",
-                                    "pr_review_content",
-                                    "pr_review_sk"])
-    >>> sentences = product_reviews_df.map_partitions(
-                        create_sentences_from_reviews)
-
-    """
 
     def partition(self, input, by=[]):
+        """
+        Partition a dask_cudf DataFrame based on one or more columns.
+
+        Parameters
+        ----------
+
+        input : the dask_cudf.DataFrame you want to partition
+        by : a list of strings of the column names by which you want to partition.
+
+        Examples
+        --------
+
+        >>> bc = BlazingContext(dask_client=client)
+        >>> bc.create_table('product_reviews', "product_reviews/*.parquet")
+        >>> query_1= "SELECT pr_item_sk, pr_review_content, pr_review_sk
+            FROM product_reviews where pr_review_content IS NOT NULL"
+        >>> product_reviews_df = bc.sql(query_1)
+        >>> product_reviews_df = bc.partition(product_reviews_df,
+                                    by=["pr_item_sk",
+                                        "pr_review_content",
+                                        "pr_review_sk"])
+        >>> sentences = product_reviews_df.map_partitions(
+                            create_sentences_from_reviews)
+
+        """
         masterIndex = 0
         ctxToken = random.randint(0, np.iinfo(np.int32).max)
 
