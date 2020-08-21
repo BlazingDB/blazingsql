@@ -1918,9 +1918,11 @@ class BlazingContext(object):
         all_table_names = self.list_tables()
         if table_name in all_table_names:
             column_names_bytes = self.tables[table_name].column_names
-            column_names = [x.decode('utf-8') for x in column_names_bytes]
+            column_names = [x.decode("utf-8") for x in column_names_bytes]
             column_types_int = self.tables[table_name].column_types
-            column_types_np = [cio.cudf_type_int_to_np_types(t) for t in column_types_int]
+            column_types_np = [
+                cio.cudf_type_int_to_np_types(t) for t in column_types_int
+            ]
             column_types = [t.name for t in column_types_np]
             name_type_dictionary = dict(zip(column_names, column_types))
             return name_type_dictionary
