@@ -62,7 +62,10 @@ if os.environ["JAVA_HOME"]:
 
 # NOTE felipe try first with CONDA_PREFIX/jre/lib/amd64/server/libjvm.so
 # (for older Java versions e.g. 8.x)
-jvm_path = os.environ[the_java_home] + "/jre/lib/"+machine_processor+"/server/libjvm.so"
+java_home_path=os.environ[the_java_home]
+print(java_home_path)
+jvm_path = java_home_path + "/jre/lib/"+machine_processor+"/server/libjvm.so"
+print(jvm_path)
 
 if not os.path.isfile(jvm_path):
     # NOTE felipe try a second time using CONDA_PREFIX/lib/server/
