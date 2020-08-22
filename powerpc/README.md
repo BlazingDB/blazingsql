@@ -73,3 +73,9 @@ deactivate
 
 Dockerfile
 nvidia-docker doesn't have powerpc support so this image is only for debugging
+
+#### Run python scripts
+For now we need to run python as:
+```shell
+JAVA_HOME=/usr/lib/jvm/jre CONDA_PREFIX=/opt/blazingsql-powerpc-prefix/ LD_LIBRARY_PATH=/opt/blazingsql-powerpc-prefix/lib:/usr/local/lib64/:/usr/local/lib python
+```
