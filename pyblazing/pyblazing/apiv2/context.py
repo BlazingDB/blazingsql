@@ -63,12 +63,14 @@ if os.environ["JAVA_HOME"]:
 # NOTE felipe try first with CONDA_PREFIX/jre/lib/amd64/server/libjvm.so
 # (for older Java versions e.g. 8.x)
 java_home_path=os.environ[the_java_home]
-jvm_path = java_home_path + "/jre/lib/"+machine_processor+"/server/libjvm.so"
-print(jvm_path)
+jvm_path = java_home_path + "/lib/"+machine_processor+"/server/libjvm.so"
+
 if not os.path.isfile(jvm_path):
     # NOTE felipe try a second time using CONDA_PREFIX/lib/server/
     # (for newer java versions e.g. 11.x)
     jvm_path = os.environ[the_java_home] + "/lib/server/libjvm.so"
+    if not os.path.isfile(jvm_path):
+        jvm_path = java_home_path + "/jre/lib/"+machine_processor+"/server/libjvm.so"
 
 jpype.startJVM("-ea", convertStrings=False, jvmpath=jvm_path)
 
