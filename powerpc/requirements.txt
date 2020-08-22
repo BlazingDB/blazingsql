@@ -1,6 +1,6 @@
 cython==0.29.21
 numba==0.50.1
-cupy==7.8.0
+#cupy==7.7.0
 scikit-learn==0.23.1
 flake8==3.8.3
 ipython==7.17.0
@@ -20,11 +20,11 @@ pytest-timeout==1.4.2
 hypothesis==5.26.0
 python-louvain==0.14
 jupyter-server-proxy==1.5.0
-dask-labextension==3.0.0
+#dask-labextension==3.0.0
 statsmodels==0.11.1
 #jupyterlab-nvdashboard==0.3.1
 #bzip2==1.0.8
 fsspec==0.8.0
-dask==2.23.0
-distributed==2.23.0
+#dask==2.23.0
+#distributed==2.23.0
 pyhive==0.6.2
