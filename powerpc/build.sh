@@ -3,6 +3,8 @@
 # NOTE DONT use -e since we need to run some commands after a fail (see arrow)
 #set -e
 
+alias python=python3
+
 working_directory=$PWD
 
 output_dir=$working_directory
@@ -118,7 +120,7 @@ if [ ! -d $thrift_build_dir ]; then
           -DWITH_QT4=OFF \
           -DWITH_C_GLIB=OFF \
           -DWITH_JAVA=OFF \
-          -DWITH_PYTHON=OFF \
+          -DWITH_PYTHON=ON \
           -DWITH_HASKELL=OFF \
           -DWITH_CPP=ON \
           -DWITH_STATIC_LIB=OFF \
@@ -139,6 +141,10 @@ if [ ! -d $thrift_build_dir ]; then
     fi
 
     echo "### Thrift - end ###"
+
+    # install python binding for thrift
+    cd $build_dir/thrift/thrift/lib/py
+    python setup.py install
 fi
 
 #END thrift
@@ -450,7 +456,7 @@ export PARALLEL_LEVEL=$MAKEJ
 
 cudf_version=0.15
 export CUDA_HOME=/usr/local/cuda/
-alias python=python3
+
 
 # BEGIN RMM
 cd $build_dir

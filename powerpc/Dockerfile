@@ -79,5 +79,6 @@ RUN source /opt/blazingsql-powerpc-prefix/bin/activate && pip3.7 install -r /opt
 
 # For blazingsql
 RUN yum install -y libcurl-devel
+RUN yum install -y maven
 
 WORKDIR /app

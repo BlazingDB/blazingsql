@@ -27,3 +27,4 @@ statsmodels==0.11.1
 fsspec==0.8.0
 dask==2.23.0
 distributed==2.23.0
+pyhive==0.6.2
