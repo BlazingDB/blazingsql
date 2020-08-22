@@ -28,3 +28,5 @@ fsspec==0.8.0
 #dask==2.23.0
 #distributed==2.23.0
 pyhive==0.6.2
+jpype1==1.0.2
+netifaces==0.10.9

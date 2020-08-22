@@ -607,6 +607,12 @@ python setup.py install --single-version-externally-managed --record=record.txt
 # BEGIN dask-cudf
 
 cd $build_dir
+git clone https://github.com/dask/distributed.git
+cd distributed
+git checkout 2.23.0
+python setup.py install
+
+cd $build_dir
 git clone https://github.com/dask/dask.git
 cd dask
 git checkout 2.23.0
