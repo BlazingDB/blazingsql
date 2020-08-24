@@ -793,6 +793,14 @@ def remove_orc_files_from_disk(data_dir):
                     os.remove(full_path_file)
 
 
+# Updates the dtype from `object` to `str` to be more friendly
+def convert_friendly_dtype_to_string(list_types):
+    for i in range(len(list_types)):
+        if list_types[i] == "object":
+            list_types[i] = "str"
+    return list_types
+
+
 class BlazingTable(object):
     def __init__(
         self,
@@ -1912,8 +1920,8 @@ class BlazingContext(object):
         >>> bc.create_table('nation', "nation/*.parquet")
         >>> info_table = bc.describe_table("nation")
         >>> print(info_table)
-                  {'n_nationkey': 'int32', 'n_name': 'object',
-                   'n_regionkey': 'int32', 'n_comment': 'object'}
+                  {'n_nationkey': 'int32', 'n_name': 'str',
+                   'n_regionkey': 'int32', 'n_comment': 'str'}
         """
         all_table_names = self.list_tables()
         if table_name in all_table_names:
@@ -1924,7 +1932,8 @@ class BlazingContext(object):
                 cio.cudf_type_int_to_np_types(t) for t in column_types_int
             ]
             column_types = [t.name for t in column_types_np]
-            name_type_dictionary = dict(zip(column_names, column_types))
+            column_types_friendly = convert_friendly_dtype_to_string(column_types)
+            name_type_dictionary = dict(zip(column_names, column_types_friendly))
             return name_type_dictionary
         else:
             raise ValueError("ERROR: Not found table: " + str(table_name))
