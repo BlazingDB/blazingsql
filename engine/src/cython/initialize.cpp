@@ -61,24 +61,29 @@ std::string get_ip(const std::string & iface_name = "eth0") {
 	return the_ip;
 }
 
-void select_flush_level(std::string flush_level) {
-	if (flush_level == "critical") {
-		spdlog::flush_on(spdlog::level::critical);
+
+
+auto log_level_str_to_enum(std::string level) {
+	if (level == "critical") {
+		return spdlog::level::critical;
 	}
-	else if (flush_level == "err") {
-		spdlog::flush_on(spdlog::level::err);
+	else if (level == "err") {
+		return spdlog::level::err;
 	}
-	else if (flush_level == "info") {
-		spdlog::flush_on(spdlog::level::info);
+	else if (level == "info") {
+		return spdlog::level::info;
 	}
-	else if (flush_level == "debug") {
-		spdlog::flush_on(spdlog::level::debug);
+	else if (level == "debug") {
+		return spdlog::level::debug;
 	}
-	else if (flush_level == "trace") {
-		spdlog::flush_on(spdlog::level::trace);		
+	else if (level == "trace") {
+		return spdlog::level::trace;		
+	}
+	else if (level == "warn") {
+		return spdlog::level::warn;		
 	}
 	else {
-		spdlog::flush_on(spdlog::level::warn);
+		return spdlog::level::off;
 	}
 }
 
@@ -105,31 +110,11 @@ void create_logger(std::string fileName,
 	auto logger = std::make_shared<spdlog::async_logger>(loggingName, sink_list, spdlog::thread_pool(), spdlog::async_overflow_policy::block);
 
 	// level of logs
-	if (logger_level_wanted == "off") {
-		logger->set_level(spdlog::level::off);
-	}
-	else if (logger_level_wanted == "critical") {
-		logger->set_level(spdlog::level::critical);
-	}
-	else if (logger_level_wanted == "err") {
-		logger->set_level(spdlog::level::err);
-	}
-	else if (logger_level_wanted == "warn") {
-		logger->set_level(spdlog::level::warn);
-	}
-	else if (logger_level_wanted == "info") {
-		logger->set_level(spdlog::level::info);
-	}
-	else if (logger_level_wanted == "debug") {
-		logger->set_level(spdlog::level::debug);
-	}
-	else {
-		logger->set_level(spdlog::level::trace);
-	}
-
+	logger->set_level(log_level_str_to_enum(logger_level_wanted));
+	
 	spdlog::register_logger(logger);
 
-	select_flush_level(flush_level);
+	spdlog::flush_on(log_level_str_to_enum(flush_level));
 
 	spdlog::flush_every(std::chrono::seconds(1));
 }
@@ -187,16 +172,6 @@ void initialize(int ralId,
 
 	spdlog::init_thread_pool(8192, 1);
 
-	std::string flush_level = "warn";
-	auto log_it = config_options.find("LOGGING_FLUSH_LEVEL");
-	if (log_it != config_options.end()){
-		flush_level = config_options["LOGGING_FLUSH_LEVEL"];
-	}
-
-	select_flush_level(flush_level);
-
-	spdlog::flush_every(std::chrono::seconds(1));
-
 	std::string logging_dir = "blazing_log";
 	auto config_it = config_options.find("BLAZING_LOGGING_DIRECTORY");
 	if (config_it != config_options.end()){
@@ -209,6 +184,12 @@ void initialize(int ralId,
 	// having all RALs independently trying to create a directory simulatenously can cause problems
 		logging_directory_missing = true;
 		logging_dir = "";
+	}
+
+	std::string flush_level = "warn";
+	auto log_it = config_options.find("LOGGING_FLUSH_LEVEL");
+	if (log_it != config_options.end()){
+		flush_level = config_options["LOGGING_FLUSH_LEVEL"];
 	}
 	
 	std::string logger_level_wanted = "trace";
