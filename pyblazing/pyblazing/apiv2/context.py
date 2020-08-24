@@ -1905,7 +1905,7 @@ class BlazingContext(object):
     def describe_table(self, table_name):
         """
         Returns a dictionary with the names of all the columns and their types
-        for the specified table. An ValueError is throw if not found table.
+        for the specified table. A ValueError is thrown if thr table is not found.
 
         Parameters
         ----------
