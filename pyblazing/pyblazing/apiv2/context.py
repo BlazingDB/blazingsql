@@ -69,8 +69,11 @@ if not os.path.isfile(jvm_path):
     # NOTE felipe try a second time using CONDA_PREFIX/lib/server/
     # (for newer java versions e.g. 11.x)
     jvm_path = os.environ[the_java_home] + "/lib/server/libjvm.so"
-    if not os.path.isfile(jvm_path):
-        jvm_path = java_home_path + "/jre/lib/"+machine_processor+"/server/libjvm.so"
+    if machine_processor == "amd64":
+        if not os.path.isfile(jvm_path):
+            jvm_path = java_home_path + "/jre/lib/"+machine_processor+"/server/libjvm.so"
+    elif machine_processor in ("ppc64", "ppc64le"):
+        jvm_path = os.environ[the_java_home] + "/lib/"+machine_processor+"/default/libjvm.so"
 
 jpype.startJVM("-ea", convertStrings=False, jvmpath=jvm_path)
 
