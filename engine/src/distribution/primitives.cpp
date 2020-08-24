@@ -225,7 +225,7 @@ void distributeTablePartitions(Context * context, std::vector<NodeColumnView> & 
 			try {
 				send_function.get();
 			} catch (std::exception& e) {
-				throw  std::runtime_error("An exception occurred when run() method was called");
+				throw std::runtime_error("An exception occurred when send_function thread was called in distributeTablePartitions");
 			}
 		}
 	}	
@@ -277,7 +277,7 @@ void distributePartitions(Context * context, std::vector<NodeColumnView> & parti
 		try {
 			send_function.get();
 		} catch (std::exception& e) {
-			throw  std::runtime_error("An exception occurred when run() method was called");
+			throw std::runtime_error("An exception occurred when send_function thread was called in distributePartitions");
 		}
 	}
 }
@@ -379,7 +379,7 @@ std::unique_ptr<BlazingTable> getPivotPointsTable(cudf::size_type number_partiti
 }
 
 void broadcastMessage(Context * context, std::vector<Node> nodes,
-			std::shared_ptr<communication::messages::Message> message) {
+	std::shared_ptr<communication::messages::Message> message) {
 	
 	int max_message_threads = 20;
 	std::map<std::string, std::string> config_options = context->getConfigOptions();
@@ -397,7 +397,7 @@ void broadcastMessage(Context * context, std::vector<Node> nodes,
 		try {
 			send_function.get();
 		} catch (std::exception& e) {
-			throw  std::runtime_error("An exception occurred when run() method was called");
+			throw std::runtime_error("An exception occurred when send_function thread was called in broadcastMessage");
 		}
 	}	
 }
