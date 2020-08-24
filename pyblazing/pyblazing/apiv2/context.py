@@ -16,7 +16,7 @@ from pyblazing.apiv2.filesystem import FileSystem
 from pyblazing.apiv2 import DataType
 import asyncio
 
-from pyblazing.apiv2.comms import listen
+from pyblazing.apiv2.comms import listen, UCX
 
 import json
 import collections
@@ -180,11 +180,12 @@ def initializeBlazing(
     if singleNode is False:
         for dask_addr in worker.ucx_addresses:
             addr = worker.ucx_addresses[dask_addr]
-            ep = worker.ucp_endpoints[addr].handle.ep
+            #ep = worker.ucp_endpoints[addr].handle.ep
+            ep = UCX.get()._endpoints[addr].ep
             workers_ucp_info.append({
                 'worker_id': dask_addr.encode(),
-                'ep_handle' : ep.get_ucp_endpoint(),
-                'worker_handle': ep.get_ucp_worker()
+                'ep_handle' : ep.handle.ep.get_ucp_endpoint(),
+                'worker_handle': ep.handle.ep.get_ucp_worker()
             })
 
     output_cache, input_cache = cio.initializeCaller(
@@ -207,7 +208,7 @@ def initializeBlazing(
         log_path = logging_dir_path
     else:
         log_path = os.path.join(os.getcwd(), logging_dir_path)
-    
+    print("returning ral")
     return ralCommunicationPort, workerIp, log_path
 
 

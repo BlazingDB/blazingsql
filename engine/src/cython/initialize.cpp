@@ -161,48 +161,6 @@ std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> > initiali
 
 	blazing_host_memory_resource::getInstance().initialize(host_memory_quota);
 
-	auto & communicationData = ral::communication::CommunicationData::getInstance();
-
-	std::map<std::string, comm::node> nodes_info_map;
-	for (auto &&node_data : workers_ucp_info) {
-		nodes_info_map.emplace(node_data.worker_id, comm::node(ralId, node_data.worker_id, reinterpret_cast<ucp_ep_h>(node_data.ep_handle), reinterpret_cast<ucp_worker_h>(node_data.worker_handle)));
-	}
-
-	auto output_input_caches = std::make_pair(std::make_shared<CacheMachine>(nullptr),std::make_shared<CacheMachine>(nullptr));
-
-	ucp_worker_h ucp_worker = nullptr;
-	for(auto elem : nodes_info_map)
-	{
-		std::cout << elem.first <<  std::endl;
-		ucp_worker = elem.second.get_ucp_worker();
-	}
-	comm::ucp_nodes_info::getInstance().init(nodes_info_map);
-	// start ucp servers
-
-	communicationData.initialize(worker_id, ralHost, ralCommunicationPort);
-
-	std::cout<<"going to init comms!!!"<<std::endl;
-	if(! singleNode){
-		std::cout<<"getting worker"<<worker_id<<std::endl;
-				std::cout<<"initializing listener"<<std::endl;
-		comm::ucx_message_listener::initialize_message_listener(
-			ucp_worker,20);
-		std::cout<<"starting polling"<<std::endl;
-		comm::ucx_message_listener::get_instance()->poll_begin_message_tag();
-
-		std::cout<<"initializing sender"<<std::endl;
-
-		comm::message_sender::initialize_instance(output_input_caches.first,
-			nodes_info_map,
-			20);
-		std::cout<<"starting polling sender"<<std::endl;
-
-		comm::message_sender::get_instance()->run_polling();
-
-	}
-		std::cout<<"finish comms init!!!"<<std::endl;
-
-	//TODO: make this number configurable in options
 
 	// Init AWS S3 ... TODO see if we need to call shutdown and avoid leaks from s3 percy
 	BlazingContext::getInstance()->initExternalSystems();
@@ -254,9 +212,9 @@ std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> > initiali
 		logging_dir = "";
 	}
 
-
 	std::string batchLoggerFileName = logging_dir + "/RAL." + std::to_string(ralId) + ".log";
 	create_logger(batchLoggerFileName, "batch_logger", ralId, flush_level, false);
+	std::cout<<batchLoggerFileName<<std::endl;
 
 	std::string queriesFileName = logging_dir + "/bsql_queries." + std::to_string(ralId) + ".log";
 	bool existsQueriesFileName = std::ifstream(queriesFileName).good();
@@ -321,13 +279,60 @@ std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> > initiali
 	}
 	logger->debug("|||{info}|||||","info"_a=product_details_str);
 
+
+	auto & communicationData = ral::communication::CommunicationData::getInstance();
+
+	std::map<std::string, comm::node> nodes_info_map;
+	for (auto &&node_data : workers_ucp_info) {
+
+		std::cout<<"ep handle is "<< node_data.ep_handle<<" and worker handle is "<< node_data.worker_handle<<std::endl;
+		nodes_info_map.emplace(node_data.worker_id, comm::node(ralId, node_data.worker_id, reinterpret_cast<ucp_ep_h>(node_data.ep_handle), reinterpret_cast<ucp_worker_h>(node_data.worker_handle)));
+	}
+
+	auto output_input_caches = std::make_pair(std::make_shared<CacheMachine>(nullptr),std::make_shared<CacheMachine>(nullptr));
+
+	ucp_worker_h ucp_worker = nullptr;
+	for(auto elem : nodes_info_map)
+	{
+		std::cout << elem.first <<  std::endl;
+		ucp_worker = elem.second.get_ucp_worker();
+	}
+	comm::ucp_nodes_info::getInstance().init(nodes_info_map);
+	// start ucp servers
+
+	communicationData.initialize(worker_id, ralHost, ralCommunicationPort);
+
+	std::cout<<"going to init comms!!!"<<std::endl;
+	if(! singleNode){
+		std::cout<<"getting worker"<<worker_id<<std::endl;
+				std::cout<<"initializing listener"<<std::endl;
+		comm::ucx_message_listener::initialize_message_listener(
+			ucp_worker,20);
+		std::cout<<"starting polling"<<std::endl;
+		comm::ucx_message_listener::get_instance()->poll_begin_message_tag();
+
+		std::cout<<"initializing sender"<<std::endl;
+
+		comm::message_sender::initialize_instance(output_input_caches.first,
+			nodes_info_map,
+			20,ucp_worker,ralId);
+		std::cout<<"starting polling sender"<<std::endl;
+
+		comm::message_sender::get_instance()->run_polling();
+
+	}
+		std::cout<<"finish comms init!!!"<<std::endl;
+
+	//TODO: make this number configurable in options
+
+
+
 	return output_input_caches;
 
 }
 
 void finalize() {
-	ral::communication::network::Client::closeConnections();
-	ral::communication::network::Server::getInstance().close();
+
 	BlazingRMMFinalize();
 	spdlog::shutdown();
 	cudaDeviceReset();

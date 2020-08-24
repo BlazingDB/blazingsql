@@ -155,7 +155,6 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(int32_t masterIndex,
 	}
 
 	Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], "", config_options};
-	ral::communication::network::Server::getInstance().registerContext(ctxToken);
 
 	CodeTimer eventTimer(true);
 	logger->info("{ral_id}|{query_id}|{start_time}|{plan}",
@@ -167,7 +166,7 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(int32_t masterIndex,
 	auto graph = generate_graph(input_loaders, schemas, tableNames, tableScans, query, accessToken, queryContext);
 
 	comm::graphs_info::getInstance().register_graph(ctxToken, graph);
-
+	std::cout<<"graph ptr is"<<graph<<"and token is " << ctxToken<<std::endl;
 	return graph;
 }
 
@@ -175,19 +174,33 @@ std::unique_ptr<PartitionedResultSet> runExecuteGraph(std::shared_ptr<ral::cache
 	// Execute query
 	std::vector<std::unique_ptr<ral::frame::BlazingTable>> frames;
 	frames = execute_graph(graph);
+	std::cout<<"graph exceuted"<<std::endl;
 
 	std::unique_ptr<PartitionedResultSet> result = std::make_unique<PartitionedResultSet>();
+	std::cout<<"1"<<std::endl;
+
 	assert( frames.size()>0 );
+	std::cout<<"2"<<std::endl;
+
 	result->names = frames[0]->names();
+	std::cout<<"3"<<std::endl;
+
 	fix_column_names_duplicated(result->names);
+std::cout<<"4"<<std::endl;
 
 	for(auto& cudfTable : frames){
 		result->cudfTables.emplace_back(std::move(cudfTable->releaseCudfTable()));
+		std::cout<<"5"<<std::endl;
+
 	}
+	std::cout<<"6"<<std::endl;
+
 	result->skipdata_analysis_fail = false;
-
-	comm::graphs_info::getInstance().deregister_graph(graph->get_context_token());
-
+	std::cout<<"pretty much done now deregistering graph is"<<graph <<" and instance is "<<&comm::graphs_info::getInstance()<<std::endl;
+	auto token = graph->get_context_token();
+	std::cout<<"token is"<<token<<std::endl;
+	comm::graphs_info::getInstance().deregister_graph(token);
+	std::cout<<"deregistered"<<std::endl;
 	return result;
 }
 
@@ -213,8 +226,7 @@ std::unique_ptr<ResultSet> performPartition(int32_t masterIndex,
 		}
 
 		Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], "", std::map<std::string, std::string>()};
-		ral::communication::network::Server::getInstance().registerContext(ctxToken);
-
+		
 		const std::vector<std::string> & table_col_names = table.names();
 
 		for(auto col_name:column_names){

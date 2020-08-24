@@ -160,7 +160,7 @@ err:
   return -1;
 }
 
-static char *client_target_name = "127.0.0.1";
+static char *client_target_name = "10.0.0.23";
 static uint16_t server_port = 13337;
 static ucs_status_t client_status = UCS_OK;
 

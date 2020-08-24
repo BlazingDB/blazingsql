@@ -18,9 +18,8 @@ class Server {
 public:
 	static void start(unsigned short port = 8000, bool use_batch_processing = false);
 
-	static void close();
 
-	static Server & getInstance();
+
 
 private:
 	Server();

@@ -10,14 +10,14 @@ export MAX_SYSTEM_MEMORY=$(free -m | awk '/^Mem:/{print $2}')M
 
 # Dask-cuda-worker
 
-
+UCXPY_NON_BLOCKING_MODE=True \
 CUDA_VISIBLE_DEVICES=0  \
 DASK_UCX__CUDA_COPY=True \
 DASK_UCX__TCP=True \
 DASK_UCX__NVLINK=False \
 DASK_UCX__INFINIBAND=False \
 DASK_UCX__RDMACM=False \
-DASK_UCX__REUSE_ENDPOINTS=True \
+DASK_UCX__REUSE_ENDPOINTS=False \
      dask-cuda-worker ucx://10.0.0.23:8786 \
       --interface wlo1 \
-     --enable-tcp-over-ucx --device-memory-limit "4GB" --nthreads 8
+     --enable-tcp-over-ucx --device-memory-limit "4GB" --nthreads=8

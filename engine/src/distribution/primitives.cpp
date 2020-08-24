@@ -54,39 +54,6 @@ void sendSamplesToMaster(Context * context, const BlazingTableView & samples, st
 	Client::send(master_node, *message);
 }
 
-std::pair<std::vector<NodeColumn>, std::vector<std::size_t> > collectSamples(Context * context) {
-
-	std::string context_comm_token = context->getContextCommunicationToken();
-	const uint32_t context_token = context->getContextToken();
-	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + context_comm_token;
-
-	std::vector<NodeColumn> nodeColumns;
-	std::vector<std::size_t> table_total_rows;
-
-	size_t size = context->getWorkerNodes().size();
-	std::vector<bool> received(context->getTotalNodes(), false);
-	for(int k = 0; k < size; ++k) {
-		auto message = Server::getInstance().getMessage(context_token, message_id);
-
-		auto node = message->getSenderNode();
-		int node_idx = context->getNodeIndex(node);
-		if(received[node_idx]) {
-			auto logger = spdlog::get("batch_logger");
-			logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
-							"query_id"_a=context->getContextToken(),
-							"step"_a=context->getQueryStep(),
-							"substep"_a=context->getQuerySubstep(),
-							"info"_a="Already received collectSamples from node " + std::to_string(node_idx),
-							"duration"_a="");
-		}
-		auto concreteMessage = std::static_pointer_cast<ReceivedDeviceMessage>(message);
-		table_total_rows.push_back(concreteMessage->getTotalRowSize());
-		nodeColumns.emplace_back(std::make_pair(node, std::move(concreteMessage->releaseBlazingTable())));
-		received[node_idx] = true;
-	}
-
-	return std::make_pair(std::move(nodeColumns), table_total_rows);
-}
 
 
 std::unique_ptr<BlazingTable> generatePartitionPlans(
@@ -126,18 +93,6 @@ void distributePartitionPlan(Context * context, const BlazingTableView & pivots)
 	auto node = CommunicationData::getInstance().getSelfNode();
 	auto message = Factory::createPartitionPivotsMessage(message_id, context_token, node, pivots);
 	broadcastMessage(context, context->getWorkerNodes(), message);
-}
-
-std::unique_ptr<BlazingTable> getPartitionPlan(Context * context) {
-
-	std::string context_comm_token = context->getContextCommunicationToken();
-	const uint32_t context_token = context->getContextToken();
-	const std::string message_id = PartitionPivotsMessage::MessageID() + "_" + context_comm_token;
-
-	auto message = Server::getInstance().getMessage(context_token, message_id);
-
-	auto concreteMessage = std::static_pointer_cast<ReceivedDeviceMessage>(message);
-	return concreteMessage->releaseBlazingTable();
 }
 
 
@@ -275,46 +230,7 @@ void distributePartitions(Context * context, std::vector<NodeColumnView> & parti
 	}
 }
 
-std::vector<NodeColumn> collectPartitions(Context * context) {
-	int num_partitions = context->getTotalNodes() - 1;
-	return collectSomePartitions(context, num_partitions);
-}
 
-std::vector<NodeColumn> collectSomePartitions(Context * context, int num_partitions) {
-
-	// Get the numbers of rals in the query
-	int number_rals = context->getTotalNodes() - 1;
-	std::vector<bool> received(context->getTotalNodes(), false);
-
-	// Create return value
-	std::vector<NodeColumn> node_columns;
-
-	// Get message from the server
-	std::string context_comm_token = context->getContextCommunicationToken();
-	const uint32_t context_token = context->getContextToken();
-	const std::string message_id = ColumnDataMessage::MessageID() + "_" + context_comm_token;
-
-	while(0 < num_partitions) {
-		auto message = Server::getInstance().getMessage(context_token, message_id);
-		num_partitions--;
-
-		auto node = message->getSenderNode();
-		int node_idx = context->getNodeIndex(node);
-		if(received[node_idx]) {
-			auto logger = spdlog::get("batch_logger");
-			logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
-							"query_id"_a=context->getContextToken(),
-							"step"_a=context->getQueryStep(),
-							"substep"_a=context->getQuerySubstep(),
-							"info"_a="Already received collectSomePartitions from node " + std::to_string(node_idx),
-							"duration"_a="");
-		}
-		auto concreteMessage = std::static_pointer_cast<ReceivedDeviceMessage>(message);
-		node_columns.emplace_back(std::make_pair(node, std::move(concreteMessage->releaseBlazingTable())));
-		received[node_idx] = true;
-	}
-	return node_columns;
-}
 
 void scatterData(Context * context, const BlazingTableView & table) {
 

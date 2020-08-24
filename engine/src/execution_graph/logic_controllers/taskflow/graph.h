@@ -59,6 +59,10 @@ public:
 
 	int32_t get_context_token();
 
+	//TODO: add to constructor when i am not exhausted and want to fix all the tests
+	//this would impact
+	void set_context_token(int32_t token);
+
 	void addPair(kpair p);
 
 	void check_and_complete_work_flow();
@@ -110,7 +114,7 @@ private:
 	std::shared_ptr<ral::cache::CacheMachine> output_cache_;
 
 	std::shared_ptr<spdlog::logger> kernels_edges_logger;
-	std::shared_ptr<Context> context;
+	int32_t context_token;
 };
 
 

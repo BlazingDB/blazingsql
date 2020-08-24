@@ -31,19 +31,25 @@ public:
 	 */
 	message_sender(std::shared_ptr<ral::cache::CacheMachine> output_cache,
 		const std::map<std::string, node> & node_address_map,
-		int num_threads)
-		: output_cache{output_cache}, node_address_map{node_address_map}, pool{num_threads}, protocol{blazing_protocol::ucx} {}
+		int num_threads,
+		ucp_worker_h origin,
+		int ral_id)
+		: ral_id{ral_id}, origin{origin}, output_cache{output_cache}, node_address_map{node_address_map}, pool{num_threads}, protocol{blazing_protocol::ucx} {}
 
 	static void initialize_instance(std::shared_ptr<ral::cache::CacheMachine> output_cache,
 		std::map<std::string, node> node_address_map,
-		int num_threads);
+		int num_threads,
+		ucp_worker_h origin_node,
+		int ral_id);
 	/**
 	 * @brief A polling function that listens on a cache for data and send it off via some protocol
 	 */
 	void run_polling() {
 		auto thread = std::thread([this]{
 			while(true) {
+				std::cout<<"going to pull cache data"<<std::endl;
 				std::unique_ptr<ral::cache::CacheData> cache_data = output_cache->pullCacheData();
+				std::cout<<"pulled cache data"<<std::endl;
 				auto * gpu_cache_data = static_cast<ral::cache::GPUCacheDataMetaData *>(cache_data.get());
 				auto data_and_metadata = gpu_cache_data->decacheWithMetaData();
 
@@ -51,7 +57,8 @@ public:
 							metadata{data_and_metadata.second},
 							node_address_map = node_address_map,
 							output_cache = output_cache,
-								protocol=this->protocol](int thread_id) {
+								protocol=this->protocol, 
+								this](int thread_id) {
 					std::vector<std::size_t> buffer_sizes;
 					std::vector<const char *> raw_buffers;
 					std::vector<blazingdb::transport::ColumnTransport> column_transports;
@@ -68,28 +75,31 @@ public:
 						// }
 
 						// tcp / ucp
-
+						std::cout<<"beging begin transmission"<<std::endl;
 						auto metadata_map = metadata.get_values();
-
-						node origin = node_address_map.at(metadata_map.at(ral::cache::SENDER_WORKER_ID_METADATA_LABEL));
-
+						std::cout<<"beging begin transmission2"<<std::endl;
+						
+						std::cout<<"beging begin transmission3"<<std::endl;
 						std::vector<node> destinations;
 						for(auto worker_id : StringUtil::split(metadata_map.at(ral::cache::WORKER_IDS_METADATA_LABEL), ",")) {
+													std::cout<<"beging begin transmission4"<<std::endl;
 							if(node_address_map.find(worker_id) == node_address_map.end()) {
+													std::cout<<"couldnt find "<<worker_id<<std::endl;
 								throw std::exception();	 // TODO: make a real exception here
 							}
 							destinations.push_back(node_address_map.at(worker_id));
 						}
-
+						std::cout<<"beging begin transmission5"<<std::endl;
 						std::shared_ptr<buffer_transport> transport;
 						if(blazing_protocol::ucx == protocol){
 							transport = std::make_shared<ucx_buffer_transport>(
 								origin, destinations, metadata,
-								buffer_sizes, column_transports);
+								buffer_sizes, column_transports,ral_id);
 						}else{
+						std::cout<<"wrong protocol"<<std::endl;
 							throw std::exception();
 						}
-
+						std::cout<<"sending begin tranmsisions"<<std::endl;
 						transport->send_begin_transmission();
 						for(size_t i = 0; i < raw_buffers.size(); i++) {
 							transport->send(raw_buffers[i], buffer_sizes[i]);
@@ -114,6 +124,8 @@ private:
 	std::shared_ptr<ral::cache::CacheMachine> output_cache;
 	std::map<std::string, node> node_address_map;
 	blazing_protocol protocol;
+	ucp_worker_h origin;
+	int ral_id;
 };
 
 }  // namespace comm

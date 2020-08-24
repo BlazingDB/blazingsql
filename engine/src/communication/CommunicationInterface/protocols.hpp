@@ -62,11 +62,12 @@ private:
 class ucx_buffer_transport : public buffer_transport {
 public:
     ucx_buffer_transport(
-        node origin_node,
+        ucp_worker_h origin_node,
         std::vector<node> destinations,
 		ral::cache::MetadataDictionary metadata,
 		std::vector<size_t> buffer_sizes,
-		std::vector<blazingdb::transport::ColumnTransport> column_transports);
+		std::vector<blazingdb::transport::ColumnTransport> column_transports,
+        int ral_id);
     ~ucx_buffer_transport();
 
     void send_begin_transmission() override;
@@ -85,8 +86,9 @@ private:
     std::atomic<size_t> transmitted_frames; /**< The number of frames transmitted */
     std::mutex mutex;
     std::condition_variable completion_condition_variable;
-    node origin_node;
+    ucp_worker_h origin_node;
     std::vector<node> destinations;
+    int ral_id;
     /**
      * Generates message tag.
      * Generates a tag for the message where the first 4 bytes are our

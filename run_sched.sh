@@ -7,12 +7,13 @@ export DASK_DISTRIBUTED__SCHEDULER__WORK_STEALING=True
 
 
 #Scheduler
+UCXPY_NON_BLOCKING_MODE=True \
 DASK_UCX__CUDA_COPY=True \
 DASK_UCX__TCP=True \
 DASK_UCX__NVLINK=False \
 DASK_UCX__INFINIBAND=False \
 DASK_UCX__RDMACM=False \
-DASK_UCX__REUSE_ENDPOINTS=True \
+DASK_UCX__REUSE_ENDPOINTS=False \
 # DASK_RMM__POOL_SIZE=1GB \
 dask-scheduler \
     --scheduler-file dask-scheduler.json \
