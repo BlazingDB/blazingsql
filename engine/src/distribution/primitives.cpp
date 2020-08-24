@@ -217,10 +217,16 @@ void distributeTablePartitions(Context * context, std::vector<NodeColumnView> & 
 			auto destination_node = nodeColumn.first;
 			int partition_id = part_ids.size() > i ? part_ids[i] : 0; // if part_ids is not set, then it does not matter and we can just use 0 as the partition_id
 
-			threads.push(([message_id, context_token, self_node, destination_node, columns, partition_id](int thread_id) mutable {
+			auto send_function = threads.push(([message_id, context_token, self_node, destination_node, columns, partition_id](int thread_id) mutable {
 				auto message = Factory::createColumnDataPartitionMessage(message_id, context_token, self_node, partition_id, columns);
 				Client::send(destination_node, *message);
 			}));
+
+			try {
+				send_function.get();
+			} catch (std::exception& e) {
+				throw  std::runtime_error("An exception occurred when run() method was called");
+			}
 		}
 	}	
 }
@@ -263,10 +269,16 @@ void distributePartitions(Context * context, std::vector<NodeColumnView> & parti
 		}
 		BlazingTableView columns = nodeColumn.second;
 		auto destination_node = nodeColumn.first;
-		threads.push(([message_id, context_token, self_node, destination_node, columns](int thread_id) mutable {
+		auto send_function = threads.push(([message_id, context_token, self_node, destination_node, columns](int thread_id) mutable {
 			auto message = Factory::createColumnDataMessage(message_id, context_token, self_node, columns);
 			Client::send(destination_node, *message);
 		}));
+
+		try {
+			send_function.get();
+		} catch (std::exception& e) {
+			throw  std::runtime_error("An exception occurred when run() method was called");
+		}
 	}
 }
 
@@ -378,9 +390,15 @@ void broadcastMessage(Context * context, std::vector<Node> nodes,
 	ctpl::thread_pool<BlazingThread> threads(max_message_threads);
 	for(size_t i = 0; i < nodes.size(); i++) {
 		Node node = nodes[i];
-		threads.push([node, message](int thread_id) {
+		auto send_function = threads.push([node, message](int thread_id) {
 			Client::send(node, *message);
 		});
+
+		try {
+			send_function.get();
+		} catch (std::exception& e) {
+			throw  std::runtime_error("An exception occurred when run() method was called");
+		}
 	}	
 }
 

@@ -61,7 +61,7 @@ namespace cache {
 						if(visited.find(edge_id) == visited.end()) {
 							visited.insert(edge_id);
 							Q.push_back(target_id);
-							pool.push([this, source, source_id, edge] (int thread_id) {
+							auto run_function = pool.push([this, source, source_id, edge] (int thread_id) {
 								auto state = source->run();
 								if(state == kstatus::proceed) {
 									source->output_.finish();
@@ -69,6 +69,12 @@ namespace cache {
 									std::cout<<"ERROR kernel "<<source_id<<" did not finished successfully"<<std::endl;
 								}
 							});
+
+							try {
+								run_function.get();
+							} catch (std::exception& e) {
+								throw  std::runtime_error("An exception occurred when run() method was called");
+							}
 						} else {
 							// TODO: and circular graph is defined here. Report and error
 						}
