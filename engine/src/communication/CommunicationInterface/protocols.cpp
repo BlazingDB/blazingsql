@@ -77,6 +77,10 @@ std::map<void *, std::shared_ptr<status_code>> recv_begin_ack_status_map;
 void send_begin_callback_c(void * request, ucs_status_t status) {
 	std::cout<<"send_beging_callback"<<std::endl;
 	auto blazing_request = reinterpret_cast<ucx_request *>(request);
+	std::cout<<"request "<<request<<std::endl;
+	if(message_uid_to_buffer_transport.find(blazing_request->uid) == message_uid_to_buffer_transport.end()){
+		std::cout<<"Call back requesting buffer that doesn't exist!!!"<<std::endl;
+	}
 	auto transport = message_uid_to_buffer_transport[blazing_request->uid];
 	transport->recv_begin_transmission_ack();
 	ucp_request_release(request);
@@ -133,10 +137,12 @@ struct blazing_ucp_tag {
 std::atomic<int> atomic_message_id(0);
 
 ucp_tag_t ucx_buffer_transport::generate_message_tag() {
+	std::cout<<"generating tag"<<std::endl;
 	auto current_message_id = atomic_message_id.fetch_add(1);
 	blazing_ucp_tag blazing_tag = {current_message_id, ral_id, 0u};
 	message_uid_to_buffer_transport[blazing_tag.message_id] = this;
 	this->message_id = blazing_tag.message_id;
+	std::cout<<"almost done"<<std::endl;
 	return *reinterpret_cast<ucp_tag_t *>(&blazing_tag);
 }
 
@@ -147,21 +153,24 @@ void ucx_buffer_transport::send_begin_transmission() {
 
 	std::vector<ucs_status_ptr_t> requests;
 	for(auto const & node : destinations) {
-		requests.push_back(ucp_tag_send_nb(
-			node.get_ucp_endpoint(), buffer_to_send.data(), buffer_to_send.size(), ucp_dt_make_contig(1), tag, send_begin_callback_c));
-	}
-
-	for(auto & request : requests) {
+		auto request = ucp_tag_send_nb(
+		node.get_ucp_endpoint(), buffer_to_send.data(), buffer_to_send.size(), ucp_dt_make_contig(1), tag, send_begin_callback_c);
+		
 		if(UCS_PTR_IS_ERR(request)) {
 			// TODO: decide how to do cleanup i think we just throw an initialization exception
 		} else if(UCS_PTR_STATUS(request) == UCS_OK) {
-			send_begin_callback_c(request,UCS_OK);
+			recv_begin_transmission_ack();
 		} else {
 			// Message was not completed we set the uid for the callback
 			auto blazing_request = reinterpret_cast<ucx_request *>(&request);
 			blazing_request->uid = reinterpret_cast<blazing_ucp_tag *>(&tag)->message_id;
+			requests.push_back(request);
 		}
+		
+
 	}
+
+	
 	// TODO: call ucp_worker_progress here
 	wait_for_begin_transmission();
 }
@@ -206,15 +215,19 @@ void ucx_buffer_transport::recv_begin_transmission_ack() {
 				ucp_dt_make_contig(1),
 				message_tag,
 				recv_begin_ack_callback_c);
-			recv_begin_ack_status_map[request] = recv_begin_status;
+			
 
 			if(UCS_PTR_IS_ERR(request)) {
 				// TODO: decide how to do cleanup i think we just throw an initialization exception
-				break;
+			
 			} else if(UCS_PTR_STATUS(request) == UCS_OK) {
-				recv_begin_ack_callback_c(request, UCS_OK, info_tag.get());
-				break;
+				increment_begin_transmission();
+				
+			}else{
+				recv_begin_ack_status_map[request] = recv_begin_status;
+				
 			}
+			break;
 		}else {
 			//ucp_worker_progress(ucp_worker);
 			//waits until a message event occurs
@@ -256,7 +269,7 @@ void ucx_buffer_transport::send_impl(const char * buffer, size_t buffer_size) {
 		if(UCS_PTR_IS_ERR(request)) {
 			// TODO: decide how to do cleanup i think we just throw an initialization exception
 		} else if(UCS_PTR_STATUS(request) == UCS_OK) {
-			send_callback_c(request,UCS_OK);
+			increment_frame_transmission();
 		} else {
 			// Message was not completed we set the uid for the callback
 			auto blazing_request = reinterpret_cast<ucx_request *>(&request);
@@ -317,7 +330,9 @@ void poll_for_frames(std::shared_ptr<message_receiver> receiver,
 			if(UCS_PTR_IS_ERR(request)) {
 				// TODO: decide how to do cleanup i think we just throw an initialization exception
 			} else if(UCS_PTR_STATUS(request) == UCS_OK) {
-				recv_frame_callback_c(request, UCS_OK, info_tag.get());
+				auto message_listener = ucx_message_listener::get_instance();
+				message_listener->increment_frame_receiver(
+					tag & message_tag_mask);
 			}
 
         }else {
@@ -378,11 +393,13 @@ void recv_begin_callback_c(void * request, ucs_status_t status,
 			acknowledge_tag_ucp,
 			send_acknowledge_callback_c);
 
-		status_scope_holder[request_acknowledge] = status_acknowledge;
+
 		if(UCS_PTR_IS_ERR(request_acknowledge)) {
 			// TODO: decide how to do cleanup i think we just throw an initialization exception
 		} else if(UCS_PTR_STATUS(request_acknowledge) == UCS_OK) {
-			send_acknowledge_callback_c(request_acknowledge, UCS_OK);
+			//nothing to do
+		}else{
+			status_scope_holder[request_acknowledge] = status_acknowledge;
 		}
 		
 
@@ -390,6 +407,9 @@ void recv_begin_callback_c(void * request, ucs_status_t status,
 		tag_to_begin_buffer_and_info.erase(info->sender_tag);
 		receiver->finish();
 		message_listener->remove_receiver(info->sender_tag);
+		if(request){
+			ucp_request_release(request);
+		}
 	});
 
 }
@@ -420,6 +440,7 @@ void ucx_message_listener::poll_begin_message_tag(){
 				if(UCS_PTR_IS_ERR(request)) {
 					// TODO: decide how to do cleanup i think we just throw an initialization exception
 				} else if(UCS_PTR_STATUS(request) == UCS_OK) {
+					
 					recv_begin_callback_c(request, UCS_OK, info_tag.get());
 				}
 
