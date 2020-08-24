@@ -45,7 +45,12 @@ void graphs_info::deregister_graph(int32_t ctx_token){
 
 	}
 }
-std::shared_ptr<ral::cache::graph> graphs_info::get_graph(int32_t ctx_token) { return _ctx_token_to_graph_map.at(ctx_token); }
+std::shared_ptr<ral::cache::graph> graphs_info::get_graph(int32_t ctx_token) { 
+	if(_ctx_token_to_graph_map.find(ctx_token) == _ctx_token_to_graph_map.end()){
+		std::cout<<"Graph with token"<<ctx_token<<" is not found!"<<std::endl;
+		throw std::exception();
+	}
+	return _ctx_token_to_graph_map.at(ctx_token); }
 
 
 std::map<ucp_tag_t, std::pair<std::vector<char>, std::shared_ptr<ucp_tag_recv_info_t> > > tag_to_begin_buffer_and_info;
@@ -310,6 +315,7 @@ ctpl::thread_pool<BlazingThread> & ucx_message_listener::get_pool(){
 
 void poll_for_frames(std::shared_ptr<message_receiver> receiver,
 						ucp_tag_t tag, ucp_worker_h ucp_worker){
+	std::cout<<"polling for frames"<<std::endl;
 	while(! receiver->is_finished()){
 		std::shared_ptr<ucp_tag_recv_info_t> info_tag = std::make_shared<ucp_tag_recv_info_t>();
         auto message_tag = ucp_tag_probe_nb(
@@ -353,26 +359,31 @@ void recv_begin_callback_c(void * request, ucs_status_t status,
 	
 	std::cout<<"recv begin callback c"<<std::endl;
 	auto message_listener = ucx_message_listener::get_instance();
+	if (status != UCS_OK){
+		std::cout<<"status fail in recv_begin_callback_c" <<std::endl;
+		throw std::exception();
+	}
 
-
-	message_listener->get_pool().push([&message_listener, request, status, info](int thread_id) {
-
+	auto fwd = message_listener->get_pool().push([&message_listener, request, status, info](int thread_id) {
+		std::cout<<"in pool of begin callback"<<std::endl;
 		auto blazing_request = reinterpret_cast<ucx_request *>(request);
 		auto buffer = tag_to_begin_buffer_and_info.at(info->sender_tag).first;
 		auto metadata_and_transports = detail::get_metadata_and_transports_from_bytes(buffer);
+		std::cout<<"buffer "<<std::endl<<std::string(buffer.begin(),buffer.end())<<std::endl;
 		auto metadata = metadata_and_transports.first;
-
-
+		metadata.print();
+		std::cout<<"got meta and transports"<<std::endl;
 		int32_t ctx_token = std::stoi(metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL]);
+		std::cout<<"getting graph"<<std::endl;
 		auto graph = graphs_info::getInstance().get_graph(ctx_token);
-
+		std::cout<<"got graph "<<graph<<std::endl;
 		size_t kernel_id = std::stoull(metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL]);
 		std::string cache_id = metadata.get_values()[ral::cache::CACHE_ID_METADATA_LABEL];
-
+				std::cout<<"getting cache"<<std::endl;
 		auto out_cache = metadata.get_values()[ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL] == "true" ?
 				graph->get_kernel_output_cache(kernel_id, cache_id) : graph->get_output_message_cache();
 
-
+		std::cout<<"got cache"<<std::endl;
 		auto receiver = std::make_shared<message_receiver>(
 			metadata_and_transports.second,
 			metadata,
@@ -411,7 +422,12 @@ void recv_begin_callback_c(void * request, ucs_status_t status,
 			ucp_request_release(request);
 		}
 	});
-
+	try{
+		fwd.get();
+	}catch(const std::exception &e){
+		std::cout<<" error running begin callback"<<std::endl;
+		throw;
+	}
 }
 
 

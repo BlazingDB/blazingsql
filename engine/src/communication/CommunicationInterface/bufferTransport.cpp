@@ -16,8 +16,13 @@ get_metadata_and_transports_from_bytes(std::vector<char> data){
 	ptr_offset += metadata_buffer_size;
 	ral::cache::MetadataDictionary dictionary;
 	for(auto metadata_item : StringUtil::split(metadata_buffer,"\n")){
-		std::vector<std::string> key_value = StringUtil::split(metadata_buffer,":");
-		dictionary.add_value(key_value[0],key_value[1]);
+		std::vector<std::string> key_value = StringUtil::split(metadata_buffer,"%==%");
+    if(key_value.size() == 1){
+  		dictionary.add_value(key_value[0],"");
+    }else{
+   		dictionary.add_value(key_value[0],key_value[1]);
+    }
+
 	}
 
 	size_t column_transports_size = from_byte_vector<size_t>(
@@ -50,7 +55,7 @@ std::vector<char> buffer_transport::make_begin_transmission() {
   // first lets serialize and send metadata
   std::string metadata_buffer;
   for(auto it : metadata.get_values()) {
-    metadata_buffer += it.first + ":" + it.second + "\n";
+    metadata_buffer += it.first + "%==%" + it.second + "\n";
   }
 
   std::vector<char> buffer, tmp_buffer;

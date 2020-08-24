@@ -106,8 +106,10 @@ public:
 							// temp_scope_holder[buffer_index] = nullptr;	// TODO: allow the device_vector to go out of
 							// scope
 						}
+						std::cout<<"waiting for complete"<<std::endl;
 						transport->wait_until_complete();  // ensures that the message has been sent before returning the thread
 													// to the pool
+						std::cout<<"completed"<<std::endl;
 					} catch(const std::exception&) {
 						throw;
 					}
