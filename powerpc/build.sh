@@ -478,60 +478,7 @@ if [ ! -d dlpack ]; then
 fi
 # END DLPACK
 
-# BEGIN GOLD
-cd $build_dir
-git clone --depth 1 git://sourceware.org/git/binutils-gdb.git binutils
-cd binutils
-./configure --prefix=$tmp_dir --enable-gold --enable-plugins --disable-werror
-make all-gold -j$MAKEJ
-cp gold/ld-new $tmp_dir/bin/ld
-make -j$MAKEJ
-cp binutils/ar $tmp_dir/bin/ar
-cp binutils/nm-new $tmp_dir/bin/nm
-# END GOLD
-
-# BEGIN LLVM 9
-cd $build_dir
-git clone --single-branch --depth=1 -b release/9.x https://github.com/llvm/llvm-project.git
-wget https://raw.githubusercontent.com/numba/llvmlite/master/conda-recipes/0001-Revert-Limit-size-of-non-GlobalValue-name.patch
-cd llvm-project/llvm/
-patch -p1 < ../../0001-Revert-Limit-size-of-non-GlobalValue-name.patch
-cmake -D CMAKE_INSTALL_PREFIX=$tmp_dir -DLLVM_ENABLE_PROJECTS=clang -DCMAKE_BUILD_TYPE=Release  -DLLVM_TARGETS_TO_BUILD="PowerPC" -D LLVM_BINUTILS_INCDIR=$build_dir/binutils/include/ ../
-make -j`nproc` install
-
-# install LLVMgold.so as plugin to 'ar'
-mkdir -p $tmp_dir/lib/bfd-plugins
-cp $tmp_dir/lib/LLVMgold.so $tmp_dir/lib/bfd-plugins
-pip uninstall -y llvmlite
-cd $build_dir
-git clone https://github.com/numba/llvmlite.git
-cd llvmlite/
-export LLVM_CONFIG=$tmp_dir/bin/llvm-config
-python setup.py install
-# test
-python -c "import numba"
-
-# restore default linker
-cd $tmp_dir/bin
-mv ar ar-new
-mv nm nm-new
-mv ld ld.gold
-# END LLVM
-
-# FSSPEC
-pip install --no-binary fsspec fsspec
-
-
-# BEGIN CUPY
-cd $build_dir
-if [ ! -d cupy ]; then
-    git clone --recurse-submodules https://github.com/cupy/cupy.git
-    git checkout v7.7.0
-    python3 setup.py install
-fi
-# END CUPY
-
-# BEGIN CUDF
+# BEGIN CUDF c++
 cd $build_dir
 par_build=4
 
@@ -581,7 +528,99 @@ if [ ! -d cudf ]; then
     make -j$MAKEJ_CUDF install
 fi
 
-# END CUDF
+# END CUDF c++
+
+# BEGIN GOLD
+cd $build_dir
+if [ ! -d binutils ]; then
+  git clone --depth 1 git://sourceware.org/git/binutils-gdb.git binutils
+  cd binutils
+  ./configure --prefix=$tmp_dir --enable-gold --enable-plugins --disable-werror
+  make all-gold -j$MAKEJ
+  cp gold/ld-new $tmp_dir/bin/ld
+  make -j$MAKEJ
+fi
+# END GOLD
+
+# NOTE LINKER: replace
+cd $build_dir/binutils
+cp gold/ld-new $tmp_dir/bin/ld
+cp binutils/ar $tmp_dir/bin/ar
+cp binutils/nm-new $tmp_dir/bin/nm
+
+# BEGIN LLVM
+
+machine_processor_architecture=`uname -m`
+
+cd $build_dir
+if [ ! -d llvm-project ]; then
+  llvm_target=""
+
+  if [ "$machine_processor_architecture" = "x86_64" ] || [ "$machine_processor_architecture" = "x86" ]; then
+    llvm_target="X86"
+  elif [ "$machine_processor_architecture" = "ppc64le" ] || [ "$machine_processor_architecture" = "ppc64" ]; then
+    llvm_target="PowerPC"
+  fi
+
+  if [ "$llvm_target" = "" ]; then
+    echo "ERROR: Unsupported architecture for LLVM"
+    exit 0
+  fi
+
+  echo "----------------->>> LLVM target: $llvm_target"
+
+  git clone --single-branch --depth=1 -b release/9.x https://github.com/llvm/llvm-project.git
+  wget https://raw.githubusercontent.com/numba/llvmlite/master/conda-recipes/0001-Revert-Limit-size-of-non-GlobalValue-name.patch
+  cd llvm-project/llvm/
+  patch -p1 < ../../0001-Revert-Limit-size-of-non-GlobalValue-name.patch
+  mkdir -p build
+  cd build
+  cmake -D CMAKE_INSTALL_PREFIX=$tmp_dir -DBUILD_SHARED_LIBS=ON -DLLVM_ENABLE_PROJECTS=clang -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD=$llvm_target -D LLVM_BINUTILS_INCDIR=$build_dir/binutils/include/ ../
+  make -j`nproc` install
+fi
+
+export LLVM_CONFIG=$tmp_dir/bin/llvm-config
+
+# END LLVM
+
+# BEGIN numba llvmlite
+
+# install LLVMgold.so as plugin to 'ar'
+cd $build_dir
+
+if [ ! -d llvmlite ]; then
+  mkdir -p $tmp_dir/lib/bfd-plugins
+  cp $tmp_dir/lib/LLVMgold.so $tmp_dir/lib/bfd-plugins
+
+  git clone https://github.com/numba/llvmlite.git
+  cd llvmlite/
+  python setup.py install
+  # test
+  python -c "import numba"
+fi
+
+# END numba llvmlite
+
+# NOTE LINKER: restore
+cd $tmp_dir/bin
+mv ar ar-new
+mv nm nm-new
+mv ld ld.gold
+
+exit 0
+
+# FSSPEC
+pip install --no-binary fsspec fsspec
+
+
+# BEGIN CUPY
+cd $build_dir
+if [ ! -d cupy ]; then
+    git clone --recurse-submodules https://github.com/cupy/cupy.git
+    git checkout v7.7.0
+    python3 setup.py install
+fi
+# END CUPY
 
 export CUDF_ROOT=$tmp_dir/build/cudf/cpp/build
 
