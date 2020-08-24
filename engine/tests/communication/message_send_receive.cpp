@@ -198,9 +198,9 @@ int create_ucp_worker_and_ep(bool is_client) {
                             UCP_PARAM_FIELD_REQUEST_SIZE |
                             UCP_PARAM_FIELD_REQUEST_INIT;
   ucp_params.features     = UCP_FEATURE_TAG;
-  // if (ucp_test_mode == TEST_MODE_WAIT || ucp_test_mode == TEST_MODE_EVENTFD) {
+  if (ucp_test_mode == TEST_MODE_WAIT || ucp_test_mode == TEST_MODE_EVENTFD) {
       ucp_params.features |= UCP_FEATURE_WAKEUP;
-  // }
+  }
   ucp_params.request_size    = sizeof(struct ucx_request);
   ucp_params.request_init    = request_init;
   status = ucp_init(&ucp_params, config, &ucp_context);
@@ -352,7 +352,7 @@ TEST_F(MessageSendReceiveTest, send_receive_test) {
         ASSERT_TRUE(create_ucp_worker_and_ep(true) == 0);
 
         std::map<std::string, comm::node> nodes_info_map;
-        nodes_info_map.emplace("client", comm::node(0, "client", nullptr, ucp_worker));
+        // nodes_info_map.emplace("client", comm::node(0, "client", nullptr, ucp_worker));
         nodes_info_map.emplace("server", comm::node(1, "server", ucp_conn_ep, ucp_worker));
         comm::ucp_nodes_info::getInstance().init(nodes_info_map);
 
@@ -374,10 +374,10 @@ TEST_F(MessageSendReceiveTest, send_receive_test) {
         output_cache->addCacheData(
                 std::make_unique<ral::cache::GPUCacheDataMetaData>(std::make_unique<ral::frame::BlazingTable>(orig_table, columnNames), metadata),"",true);
 
-        comm::message_sender::initialize_instance(output_cache, nodes_info_map, 1);
+        comm::message_sender::initialize_instance(output_cache, nodes_info_map, 1, ucp_worker, 0);
         comm::message_sender::get_instance()->run_polling();
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(15000));
+        std::this_thread::sleep_for(std::chrono::milliseconds(1500));
 
         cleanup();
 
