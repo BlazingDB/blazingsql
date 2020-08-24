@@ -38,6 +38,8 @@ std::vector<T> vector_from_byte_vector(const char * input, size_t length) {
 	return std::vector<T>(byte_pointer,byte_pointer + length);
 }
 
+std::vector<char> serialize_metadata_and_transports(const ral::cache::MetadataDictionary & metadata,
+																										const std::vector<blazingdb::transport::ColumnTransport> & column_transports);
 std::pair<ral::cache::MetadataDictionary, std::vector<blazingdb::transport::ColumnTransport>> get_metadata_and_transports_from_bytes(std::vector<char> data);
 
 } // namespace detail
@@ -81,11 +83,6 @@ public:
 
 protected:
 	virtual void send_impl(const char * buffer, size_t buffer_size) = 0;
-
-	/**
-	 *
-	 */
-	std::vector<char> make_begin_transmission();
 
 	std::vector<blazingdb::transport::ColumnTransport> column_transports;
 	ral::cache::MetadataDictionary metadata;
