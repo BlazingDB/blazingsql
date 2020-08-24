@@ -198,9 +198,7 @@ int create_ucp_worker_and_ep(bool is_client) {
                             UCP_PARAM_FIELD_REQUEST_SIZE |
                             UCP_PARAM_FIELD_REQUEST_INIT;
   ucp_params.features     = UCP_FEATURE_TAG;
-  if (ucp_test_mode == TEST_MODE_WAIT || ucp_test_mode == TEST_MODE_EVENTFD) {
-      ucp_params.features |= UCP_FEATURE_WAKEUP;
-  }
+  ucp_params.features |= UCP_FEATURE_WAKEUP;
   ucp_params.request_size    = sizeof(struct ucx_request);
   ucp_params.request_init    = request_init;
   status = ucp_init(&ucp_params, config, &ucp_context);
