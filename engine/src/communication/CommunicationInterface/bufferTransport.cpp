@@ -13,10 +13,13 @@ get_metadata_and_transports_from_bytes(std::vector<char> data){
 	std::string metadata_buffer(
 		data.data() + ptr_offset,
 		data.data() + ptr_offset + metadata_buffer_size);
+
+  std::cout<<"metadata buffer is"<<metadata_buffer<<std::endl;
 	ptr_offset += metadata_buffer_size;
 	ral::cache::MetadataDictionary dictionary;
 	for(auto metadata_item : StringUtil::split(metadata_buffer,"\n")){
-		std::vector<std::string> key_value = StringUtil::split(metadata_buffer,"%==%");
+    
+		std::vector<std::string> key_value = StringUtil::split(metadata_item,"%==%");
     if(key_value.size() == 1){
   		dictionary.add_value(key_value[0],"");
     }else{
