@@ -73,7 +73,7 @@
 - #952 Dummy PR
 - #957 Fixed issues caused by changes to timespamp in cudf
 - #962 Use new rmm API instead of get_device_resource() and set_device_resource() functions
-
+- #965 Handle exceptions from pool_threads
 
 # BlazingSQL 0.14.0 (June 9, 2020)
 
