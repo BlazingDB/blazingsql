@@ -202,6 +202,7 @@ void ucx_buffer_transport::wait_for_begin_transmission() {
 }
 
 void ucx_buffer_transport::recv_begin_transmission_ack() {
+	std::cout<<"going to receive ack!!"<<std::endl;
 	auto recv_begin_status = std::make_shared<status_code>(status_code::INVALID);
 	std::shared_ptr<ucp_tag_recv_info_t> info_tag = std::make_shared<ucp_tag_recv_info_t>();
 	blazing_ucp_tag acknowledge_tag = *reinterpret_cast<blazing_ucp_tag *>(&tag);
@@ -214,6 +215,7 @@ void ucx_buffer_transport::recv_begin_transmission_ack() {
 			acknownledge_tag_mask, 1, info_tag.get());
 
 		if(message_tag != NULL){
+			std::cout<<"GOT message in recv_begin"<<std::endl;
 			auto request = ucp_tag_msg_recv_nb(ucp_worker,
 				recv_begin_status.get(),
 				info_tag->length,
@@ -388,14 +390,18 @@ void recv_begin_callback_c(void * request, ucs_status_t status,
 			metadata_and_transports.second,
 			metadata,
 			out_cache);
+				std::cout<<"madd receiver"<<std::endl;
 		message_listener->add_receiver(info->sender_tag, receiver);
+				std::cout<<"registered receiver"<<std::endl;
 		//TODO: if its a specific cache get that cache adn put it here else put the general iput cache from the graph
 		auto node = ucp_nodes_info::getInstance().get_node(metadata.get_values()[ral::cache::SENDER_WORKER_ID_METADATA_LABEL]);
-		auto acknowledge_tag = reinterpret_cast<blazing_ucp_tag *>(&info->sender_tag);
-		acknowledge_tag->frame_id = 0xFFFF;
+		std::cout<<"got node"<<std::endl;
+		auto acknowledge_tag = *reinterpret_cast<blazing_ucp_tag *>(&info->sender_tag);
+		acknowledge_tag.frame_id = 0xFFFF;
 		auto acknowledge_tag_ucp = *reinterpret_cast<ucp_tag_t *>(&acknowledge_tag);
 		
 		auto status_acknowledge = std::make_shared<status_code>(status_code::OK);
+		std::cout<<"abpit to send"<<std::endl;
 		auto request_acknowledge = ucp_tag_send_nb(
 			node.get_ucp_endpoint(),
 			status_acknowledge.get(),
@@ -404,12 +410,15 @@ void recv_begin_callback_c(void * request, ucs_status_t status,
 			acknowledge_tag_ucp,
 			send_acknowledge_callback_c);
 
-
+		std::cout<<"sent "<<std::endl;
 		if(UCS_PTR_IS_ERR(request_acknowledge)) {
+			std::cout<<"an error occured"<<std::endl;
 			// TODO: decide how to do cleanup i think we just throw an initialization exception
 		} else if(UCS_PTR_STATUS(request_acknowledge) == UCS_OK) {
 			//nothing to do
+						std::cout<<"finished immediately"<<std::endl;
 		}else{
+						std::cout<<"callback being called"<<std::endl;
 			status_scope_holder[request_acknowledge] = status_acknowledge;
 		}
 		
