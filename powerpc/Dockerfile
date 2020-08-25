@@ -80,4 +80,8 @@ RUN source /opt/blazingsql-powerpc-prefix/bin/activate && pip3.7 install -r /opt
 RUN yum install -y libcurl-devel
 RUN yum install -y maven
 
+# lmod (aka system dependencies)
+COPY install-dependencies.sh /opt/install-dependencies.sh
+RUN bash /opt/install-dependencies.sh /opt/blazingsql-powerpc-prefix
+
 WORKDIR /app
