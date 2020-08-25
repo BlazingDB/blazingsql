@@ -38,6 +38,7 @@ namespace cache {
 		check_and_complete_work_flow();
 
 		ctpl::thread_pool<BlazingThread> pool(max_kernel_run_threads);
+		std::vector<std::future<void>> futures;
 		std::set<std::pair<size_t, size_t>> visited;
 		std::deque<size_t> Q;
 		for(auto start_node : get_neighbours(head_id_)) {
@@ -61,20 +62,15 @@ namespace cache {
 						if(visited.find(edge_id) == visited.end()) {
 							visited.insert(edge_id);
 							Q.push_back(target_id);
-							auto run_function = pool.push([this, source, source_id, edge] (int thread_id) {
+							futures.push_back(pool.push([this, source, source_id, edge] (int thread_id) {
 								auto state = source->run();
 								if(state == kstatus::proceed) {
 									source->output_.finish();
 								} else if (edge.target != -1) { // not a dummy node
 									std::cout<<"ERROR kernel "<<source_id<<" did not finished successfully"<<std::endl;
 								}
-							});
-
-							try {
-								run_function.get();
-							} catch (std::exception& e) {
-								throw  std::runtime_error("An exception occurred when run() method was called");
-							}
+							}));
+							
 						} else {
 							// TODO: and circular graph is defined here. Report and error
 						}
@@ -84,6 +80,16 @@ namespace cache {
 				Q.push_back(source_id);
 			}
 		}
+		// Lets iterate through the futures to check for exceptions
+		for(int i = 0; i < futures.size(); i++){
+			try {
+				futures[i].get();
+			} catch (const std::exception& e) {
+				throw;		
+			}
+		}
+		// lets wait untill all tasks are done
+		pool.stop(true);
 	}
 
 	void graph::show() {
