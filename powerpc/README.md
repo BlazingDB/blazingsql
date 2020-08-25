@@ -79,6 +79,202 @@ For now we need to run python as:
 ```shell
 JAVA_HOME=/usr/lib/jvm/jre CONDA_PREFIX=/opt/blazingsql-powerpc-prefix/ LD_LIBRARY_PATH=/opt/blazingsql-powerpc-prefix/lib:/usr/local/lib64/:/usr/local/lib python
 ```
+### Test results
+#### Single Node
+blazingsql commit hash: b91d78da1a47d3539c3e963fa49ac78478ab3116
+cudf commit hash: 1a3b3f217be93a55b47af3a9d0da29f0fcb7c7e9
+rmm commit hash: 178c2cd2933fa80b70e69863ba727d19f951a551
+```shell
+========================================================
+DETAILED SUMMARY TESTS
+========================================================
+TestGroup                       InputType  Result 
+Aggregations without group by   gdf        Success     7
+                                orc        Success     6
+                                parquet    Success     7
+                                psv        Success     7
+Bindable Alias                  gdf        Success    12
+                                orc        Success    12
+                                parquet    Success    12
+                                psv        Success    12
+Boolean                         psv        Success    10
+Case                            gdf        Success    10
+                                orc        Success    10
+                                parquet    Success    10
+                                psv        Success    10
+Cast                            gdf        Success    13
+                                orc        Success    12
+                                parquet    Success    13
+                                psv        Success    13
+Coalesce                        parquet    Success    11
+                                psv        Success    11
+Common Table Expressions        gdf        Success     3
+                                orc        Success     3
+                                parquet    Success     3
+                                psv        Success     3
+Concat                          gdf        Success    10
+                                orc        Success    10
+                                parquet    Success    10
+                                psv        Success    10
+Count without group by          gdf        Success     6
+                                parquet    Success     6
+                                psv        Success     6
+Cross join                      gdf        Success     4
+                                orc        Success     4
+                                parquet    Success     4
+                                psv        Success     4
+Date                            gdf        Success     5
+                                orc        Success     5
+                                parquet    Success     5
+                                psv        Success     5
+Dir                             gdf        Success    22
+File System Local               orc        Success    21
+                                parquet    Success    21
+                                psv        Success    21
+Full outer join                 gdf        Success     4
+                                orc        Success     4
+                                parquet    Success     4
+                                psv        Success     4
+Group by                        gdf        Success     6
+                                orc        Success     5
+                                parquet    Success     6
+                                psv        Success     6
+Group by without aggregations   gdf        Success     5
+                                orc        Success     5
+                                parquet    Success     5
+                                psv        Success     5
+Inner join                      gdf        Success    10
+                                orc        Success    10
+                                parquet    Success    10
+                                psv        Success    10
+Left outer join                 gdf        Success     4
+                                orc        Success     4
+                                parquet    Success     4
+                                psv        Success     4
+Like                            gdf        Success     3
+Limit                           gdf        Success    10
+                                orc        Success    10
+                                parquet    Success    10
+                                psv        Success    10
+Literal                         orc        Success     5
+Message Validation              gdf        Success     4
+                                orc        Success     4
+                                parquet    Success     4
+                                psv        Success     4
+Nested Queries                  gdf        Success     4
+                                orc        Success     4
+                                parquet    Success     4
+                                psv        Success     4
+Non-EquiJoin Queries            gdf        Success     8
+                                orc        Success     8
+                                parquet    Success     8
+                                psv        Success     8
+Order by                        gdf        Success     4
+                                orc        Success     4
+                                parquet    Success     4
+                                psv        Success     4
+Predicates With Nulls           gdf        Success     7
+                                orc        Success     7
+                                parquet    Success     7
+                                psv        Success     7
+Round                           gdf        Success     5
+                                orc        Success     5
+                                parquet    Success     5
+                                psv        Success     5
+Simple Distribution From Local  gdf        Success    52
+                                orc        Success    52
+                                parquet    Success    52
+                                psv        Success    52
+Simple String                   gdf        Success     9
+                                orc        Success     9
+                                parquet    Success     9
+                                psv        Success     9
+Substring                       gdf        Success    11
+                                orc        Success    11
+                                parquet    Success    11
+                                psv        Success    11
+TPCH Queries                    gdf        Success    17
+                                orc        Success    17
+                                parquet    Success    17
+                                psv        Success    17
+Tables from Pandas              gdf        Success    15
+Timestamp                       orc        Success    12
+Unary ops                       gdf        Success     6
+                                orc        Success     6
+                                parquet    Success     6
+                                psv        Success     6
+Unify Tables                    gdf        Success     8
+                                orc        Success     8
+                                parquet    Success     8
+                                psv        Success     8
+Union                           gdf        Success     7
+                                orc        Success     7
+                                parquet    Success     7
+                                psv        Success     7
+Where clause                    gdf        Success    11
+                                orc        Success    11
+                                parquet    Success    11
+                                psv        Success    11
+Wild Card                       gdf        Success    21
+                                orc        Success    21
+                                parquet    Success    21
+                                psv        Success    21
+Name: Result, dtype: int64
+========================================================
+FAILED TESTS
+========================================================
+Empty DataFrame
+Columns: [index, TestId]
+Index: []
+**********************************************************
+          *********************
+TOTAL SUMMARY for test suite: 
+PASSED: 1275/1275
+FAILED: 0/1275
+CRASH: 0/1275
+TOTAL: 1275
+MAX DELTA: 970.0
+***********************************************************
+              ********************
+Aggregations without group by:   Start Mem: 707.625   End Mem: 1677.625   Diff: 970.0
+Coalesce:   Start Mem: 1677.625   End Mem: 1563.625   Diff: -114.0
+Common Table Expressions:   Start Mem: 1563.625   End Mem: 1637.625   Diff: 74.0
+Count without group by:   Start Mem: 1637.625   End Mem: 1585.625   Diff: -52.0
+Date:   Start Mem: 1585.625   End Mem: 1633.625   Diff: 48.0
+Timestamp:   Start Mem: 1633.625   End Mem: 1635.625   Diff: 2.0
+Full outer join:   Start Mem: 1635.625   End Mem: 1585.625   Diff: -50.0
+Group by:   Start Mem: 1585.625   End Mem: 1555.625   Diff: -30.0
+Group by without aggregations:   Start Mem: 1555.625   End Mem: 1665.625   Diff: 110.0
+Inner join:   Start Mem: 1665.625   End Mem: 1569.625   Diff: -96.0
+Cross join:   Start Mem: 1569.625   End Mem: 1637.625   Diff: 68.0
+Left outer join:   Start Mem: 1637.625   End Mem: 1605.625   Diff: -32.0
+Non-EquiJoin Queries:   Start Mem: 1605.625   End Mem: 1635.625   Diff: 30.0
+Nested Queries:   Start Mem: 1635.625   End Mem: 1597.625   Diff: -38.0
+Order by:   Start Mem: 1597.625   End Mem: 1595.625   Diff: -2.0
+Predicates With Nulls:   Start Mem: 1595.625   End Mem: 1561.625   Diff: -34.0
+Simple String:   Start Mem: 1561.625   End Mem: 1661.625   Diff: 100.0
+Unary ops:   Start Mem: 1803.625   End Mem: 1773.625   Diff: -30.0
+Unify Tables:   Start Mem: 1773.625   End Mem: 1683.625   Diff: -90.0
+Union:   Start Mem: 1683.625   End Mem: 1691.625   Diff: 8.0
+Limit:   Start Mem: 1691.625   End Mem: 1609.625   Diff: -82.0
+Where clause:   Start Mem: 1609.625   End Mem: 1571.625   Diff: -38.0
+Bindable Alias:   Start Mem: 1571.625   End Mem: 1627.625   Diff: 56.0
+Boolean:   Start Mem: 1627.625   End Mem: 1617.625   Diff: -10.0
+Case:   Start Mem: 1617.625   End Mem: 1657.625   Diff: 40.0
+Cast:   Start Mem: 1657.625   End Mem: 1647.625   Diff: -10.0
+Concat:   Start Mem: 1647.625   End Mem: 1595.625   Diff: -52.0
+Literal:   Start Mem: 1595.625   End Mem: 1675.625   Diff: 80.0
+Dir:   Start Mem: 1675.625   End Mem: 1779.625   Diff: 104.0
+Like:   Start Mem: 1779.625   End Mem: 1819.625   Diff: 40.0
+Substring:   Start Mem: 1655.625   End Mem: 1593.625   Diff: -62.0
+Wild Card:   Start Mem: 1593.625   End Mem: 1581.625   Diff: -12.0
+TPCH Queries:   Start Mem: 1581.625   End Mem: 1623.625   Diff: 42.0
+Round:   Start Mem: 1623.625   End Mem: 1617.625   Diff: -6.0
+File System Local:   Start Mem: 1617.625   End Mem: 1599.625   Diff: -18.0
+Message Validation:   Start Mem: 1599.625   End Mem: 1617.625   Diff: 18.0
+
+>>>> Total time for end to end tests: 5 minutes and 23 seconds
+```
 
 ### Issues
 #### CUDF issues
