@@ -1,3 +1,5 @@
+prereq("cmake/3.18.2")
+
 help([[For detailed instructions, go to:
    https://...
 

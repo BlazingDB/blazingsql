@@ -39,7 +39,7 @@ RUN ./bootstrap
 RUN make -j`nproc`
 RUN make install
 #RUN rm -rf /tmp/cmake
-ENV CMAKE_ROOT=/usr/share/cmake
+ENV CMAKE_ROOT=/usr/local/share/cmake-3.17/
 
 #### Python ######
 RUN yum install -y libffi-devel zlib zlib-devel
