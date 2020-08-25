@@ -82,6 +82,21 @@ For now we need to run python as:
 JAVA_HOME=/usr/lib/jvm/jre CONDA_PREFIX=/opt/blazingsql-powerpc-prefix/ LD_LIBRARY_PATH=/opt/blazingsql-powerpc-prefix/lib:/usr/local/lib64/:/usr/local/lib python
 ```
 
+### Lmod
+
+#### Using modules
+```shell
+module list
+module avail
+module show ddt/8.1
+
+echo $PATH
+echo $LD_LIBRARY_PATH
+module load ddt
+echo $PATH
+echo $LD_LIBRARY_PATH
+```
+
 ### Issues
 #### CUDF issues
 

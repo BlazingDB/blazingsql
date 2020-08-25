@@ -84,4 +84,10 @@ RUN yum install -y maven
 COPY install-dependencies.sh /opt/install-dependencies.sh
 RUN bash /opt/install-dependencies.sh /opt/blazingsql-powerpc-prefix
 
+# Lmod
+RUN yum install -y Lmod
+RUN mkdir -p /opt/sw/
+COPY modulefiles /opt/modulefiles
+ENV MODULEPATH=/opt/modulefiles/
+
 WORKDIR /app
