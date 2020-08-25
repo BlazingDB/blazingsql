@@ -31,4 +31,4 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib64/:/usr/local/lib # optio
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:PATH_TO_YOUR_ENV_PREFIX
 export CONDA_PREFIX=PATH_TO_YOUR_ENV_PREFIX
 ```
-Note: We don't need conda, we just export CONDA_PREFIX becouse in some places the blazingsql build system uses that env var as default prefix.
+Note: We don't need conda, we just export CONDA_PREFIX because in some places the blazingsql build system uses that env var as default prefix.
