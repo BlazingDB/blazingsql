@@ -575,7 +575,7 @@ if [ ! -d llvm-project ]; then
   patch -p1 < ../../0001-Revert-Limit-size-of-non-GlobalValue-name.patch
   mkdir -p build
   cd build
-  cmake -D CMAKE_INSTALL_PREFIX=$tmp_dir -DBUILD_SHARED_LIBS=ON -DLLVM_ENABLE_PROJECTS=clang -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD=$llvm_target -D LLVM_BINUTILS_INCDIR=$build_dir/binutils/include/ ../
+  cmake -D CMAKE_INSTALL_PREFIX=$tmp_dir -DLLVM_ENABLE_PROJECTS=clang -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD=$llvm_target -D LLVM_BINUTILS_INCDIR=$build_dir/binutils/include/ ../
   make -j`nproc` install
 fi
 
@@ -588,15 +588,17 @@ export LLVM_CONFIG=$tmp_dir/bin/llvm-config
 # install LLVMgold.so as plugin to 'ar'
 cd $build_dir
 
-if [ ! -d llvmlite ]; then
-  mkdir -p $tmp_dir/lib/bfd-plugins
-  cp $tmp_dir/lib/LLVMgold.so $tmp_dir/lib/bfd-plugins
+if [ "$machine_processor_architecture" = "ppc64le" ] || [ "$machine_processor_architecture" = "ppc64" ]; then
+  if [ ! -d llvmlite ]; then
+    mkdir -p $tmp_dir/lib/bfd-plugins
+    cp $tmp_dir/lib/LLVMgold.so $tmp_dir/lib/bfd-plugins
 
-  git clone https://github.com/numba/llvmlite.git
-  cd llvmlite/
-  python setup.py install
-  # test
-  python -c "import numba"
+    git clone https://github.com/numba/llvmlite.git
+    cd llvmlite/
+    python setup.py install
+    # test
+    python -c "import numba"
+  fi
 fi
 
 # END numba llvmlite
@@ -607,11 +609,8 @@ mv ar ar-new
 mv nm nm-new
 mv ld ld.gold
 
-exit 0
-
 # FSSPEC
 pip install --no-binary fsspec fsspec
-
 
 # BEGIN CUPY
 cd $build_dir
