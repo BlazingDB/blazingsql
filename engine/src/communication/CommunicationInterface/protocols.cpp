@@ -35,17 +35,17 @@ void graphs_info::register_graph(int32_t ctx_token, std::shared_ptr<ral::cache::
 	_ctx_token_to_graph_map.insert({ctx_token, graph});
 }
 
-void graphs_info::deregister_graph(int32_t ctx_token){ 
+void graphs_info::deregister_graph(int32_t ctx_token){
 	std::cout<<"erasing from map"<<std::endl;
 	if(_ctx_token_to_graph_map.find(ctx_token) == _ctx_token_to_graph_map.end()){
 		std::cout<<"token not found!"<<std::endl;
 	}else{
 		std::cout<<"erasing token"<<std::endl;
-			_ctx_token_to_graph_map.erase(ctx_token); 
+			_ctx_token_to_graph_map.erase(ctx_token);
 
 	}
 }
-std::shared_ptr<ral::cache::graph> graphs_info::get_graph(int32_t ctx_token) { 
+std::shared_ptr<ral::cache::graph> graphs_info::get_graph(int32_t ctx_token) {
 	if(_ctx_token_to_graph_map.find(ctx_token) == _ctx_token_to_graph_map.end()){
 		std::cout<<"Graph with token"<<ctx_token<<" is not found!"<<std::endl;
 		throw std::exception();
@@ -82,27 +82,23 @@ std::map<void *, std::shared_ptr<status_code>> recv_begin_ack_status_map;
 void send_begin_callback_c(void * request, ucs_status_t status) {
 	std::cout<<"send_beging_callback"<<std::endl;
 	auto blazing_request = reinterpret_cast<ucx_request *>(request);
-	std::cout<<"request "<<request<<std::endl;
-	if(message_uid_to_buffer_transport.find(blazing_request->uid) == message_uid_to_buffer_transport.end()){
-		std::cout<<"Call back requesting buffer that doesn't exist!!!"<<std::endl;
-	}
-	auto transport = message_uid_to_buffer_transport[blazing_request->uid];
-	transport->recv_begin_transmission_ack();
-	ucp_request_release(request);
+
+	// std::cout<<"request "<<request<<std::endl;
+	// if(message_uid_to_buffer_transport.find(blazing_request->uid) == message_uid_to_buffer_transport.end()){
+	// 	std::cout<<"Call back requesting buffer that doesn't exist!!!"<<std::endl;
+	// }
+	// auto transport = message_uid_to_buffer_transport[blazing_request->uid];
+	// transport->recv_begin_transmission_ack();
+	// ucp_request_release(request);
+
+
+	blazing_request->completed = 1;
 }
 
 void recv_begin_ack_callback_c(void * request, ucs_status_t status, ucp_tag_recv_info_t * info) {
 	std::cout<<"recieve_beging_ack_callback"<<std::endl;
 	std::shared_ptr<status_code> status_begin_ack = recv_begin_ack_status_map[request];
-	if (*status_begin_ack == status_code::OK) {
-		auto blazing_request = reinterpret_cast<ucx_request *>(request);
-		auto transport = message_uid_to_buffer_transport[blazing_request->uid];
-		transport->increment_begin_transmission();
-	}
-
-	recv_begin_ack_status_map.erase(request);
-
-	ucp_request_release(request);
+	*status_begin_ack = status_code::OK;
 }
 
 void send_callback_c(void * request, ucs_status_t status) {
@@ -158,24 +154,33 @@ void ucx_buffer_transport::send_begin_transmission() {
 
 	std::vector<ucs_status_ptr_t> requests;
 	for(auto const & node : destinations) {
-		auto request = ucp_tag_send_nb(
-		node.get_ucp_endpoint(), buffer_to_send.data(), buffer_to_send.size(), ucp_dt_make_contig(1), tag, send_begin_callback_c);
-		
-		if(UCS_PTR_IS_ERR(request)) {
-			// TODO: decide how to do cleanup i think we just throw an initialization exception
-		} else if(UCS_PTR_STATUS(request) == UCS_OK) {
-			recv_begin_transmission_ack();
-		} else {
-			// Message was not completed we set the uid for the callback
-			auto blazing_request = reinterpret_cast<ucx_request *>(&request);
-			blazing_request->uid = reinterpret_cast<blazing_ucp_tag *>(&tag)->message_id;
-			requests.push_back(request);
-		}
-		
-
+		requests.push_back(ucp_tag_send_nb(
+			node.get_ucp_endpoint(), buffer_to_send.data(), buffer_to_send.size(), ucp_dt_make_contig(1), tag, send_begin_callback_c));
 	}
 
-	
+	ucp_worker_h ucp_worker = origin_node;
+	for(auto & request : requests) {
+		if(UCS_PTR_IS_ERR(request)) {
+			// TODO: decide how to do cleanup i think we just throw an initialization exception
+		} else if(UCS_PTR_IS_PTR(request)) {
+			// send_begin_callback_c(request,UCS_OK);
+			auto blazing_request = reinterpret_cast<ucx_request *>(request);
+			while (blazing_request->completed == 0) {
+        ucp_worker_progress(ucp_worker);
+    	}
+			auto transport = message_uid_to_buffer_transport[blazing_request->uid];
+			transport->recv_begin_transmission_ack();
+
+			blazing_request->completed = 0;
+			ucp_request_release(request);
+		} else {
+			int x =1;
+			// Message was not completed we set the uid for the callback
+			// auto blazing_request = reinterpret_cast<ucx_request *>(&request);
+			// blazing_request->uid = reinterpret_cast<blazing_ucp_tag *>(&tag)->message_id;
+		}
+	}
+
 	// TODO: call ucp_worker_progress here
 	wait_for_begin_transmission();
 }
@@ -207,44 +212,74 @@ void ucx_buffer_transport::recv_begin_transmission_ack() {
 	std::shared_ptr<ucp_tag_recv_info_t> info_tag = std::make_shared<ucp_tag_recv_info_t>();
 	blazing_ucp_tag acknowledge_tag = *reinterpret_cast<blazing_ucp_tag *>(&tag);
 	acknowledge_tag.frame_id = 0xFFFF;
-	
-	auto ucp_worker = origin_node;
+
+	ucp_worker_h ucp_worker = origin_node;
+	ucp_tag_message_h message_tag;
 	for(;;) {
-		auto message_tag = ucp_tag_probe_nb(ucp_worker,
+		message_tag = ucp_tag_probe_nb(ucp_worker,
 			*reinterpret_cast<ucp_tag_t *>(&acknowledge_tag),
 			acknownledge_tag_mask, 1, info_tag.get());
 
-		if(message_tag != NULL){
-			std::cout<<"GOT message in recv_begin"<<std::endl;
-			auto request = ucp_tag_msg_recv_nb(ucp_worker,
-				recv_begin_status.get(),
-				info_tag->length,
-				ucp_dt_make_contig(1),
-				message_tag,
-				recv_begin_ack_callback_c);
-			
+		// if(message_tag != NULL){
+		// 	std::cout<<"GOT message in recv_begin"<<std::endl;
+		// 	auto request = ucp_tag_msg_recv_nb(ucp_worker,
+		// 		recv_begin_status.get(),
+		// 		info_tag->length,
+		// 		ucp_dt_make_contig(1),
+		// 		message_tag,
+		// 		recv_begin_ack_callback_c);
 
-			if(UCS_PTR_IS_ERR(request)) {
-				// TODO: decide how to do cleanup i think we just throw an initialization exception
-			
-			} else if(UCS_PTR_STATUS(request) == UCS_OK) {
-				increment_begin_transmission();
-				
-			}else{
-				recv_begin_ack_status_map[request] = recv_begin_status;
-				
-			}
-			break;
-		}else {
-			//ucp_worker_progress(ucp_worker);
-			//waits until a message event occurs
-			auto status = ucp_worker_wait(origin_node);
-			if (status == UCS_OK) {
+
+		// 	if(UCS_PTR_IS_ERR(request)) {
+		// 		// TODO: decide how to do cleanup i think we just throw an initialization exception
+
+		// 	} else if(UCS_PTR_STATUS(request) == UCS_OK) {
+		// 		increment_begin_transmission();
+
+		// 	}else{
+		// 		recv_begin_ack_status_map[request] = recv_begin_status;
+
+		// 	}
+		// 	break;
+		// }else {
+		// 	//ucp_worker_progress(ucp_worker);
+		// 	//waits until a message event occurs
+		// 	auto status = ucp_worker_wait(origin_node);
+		// 	if (status == UCS_OK) {
+		// 		continue;
+		// 	}
+		// }
+
+		if (message_tag != NULL) {
+				/* Message arrived */
+				break;
+		} else if (ucp_worker_progress(ucp_worker)) {
+				/* Some events were polled; try again without going to sleep */
 				continue;
-			} else {
-				throw ::std::exception();
-			}
 		}
+	}
+
+	auto request = ucp_tag_msg_recv_nb(ucp_worker,
+																		recv_begin_status.get(),
+																		info_tag->length,
+																		ucp_dt_make_contig(1),
+																		message_tag,
+																		recv_begin_ack_callback_c);
+	recv_begin_ack_status_map[request] = recv_begin_status;
+
+	if(UCS_PTR_IS_ERR(request)) {
+		// TODO: decide how to do cleanup i think we just throw an initialization exception
+	} else {
+		assert(UCS_PTR_IS_PTR(request));
+    while (*recv_begin_status == status_code::OK) {
+        ucp_worker_progress(ucp_worker);
+    }
+
+		auto blazing_request = reinterpret_cast<ucx_request *>(request);
+		auto transport = message_uid_to_buffer_transport[blazing_request->uid];
+		transport->increment_begin_transmission();
+
+		ucp_request_release(request);
 	}
 }
 
@@ -346,11 +381,10 @@ void poll_for_frames(std::shared_ptr<message_receiver> receiver,
         }else {
             //ucp_worker_progress(ucp_worker);
 			//waits until a message event occurs
-            auto status = ucp_worker_wait(ucp_worker);
-            if (status != UCS_OK){
-               throw ::std::exception();
-            }
-
+            // auto status = ucp_worker_wait(ucp_worker);
+            // if (status != UCS_OK){
+            //     throw ::std::exception();
+            // }
         }
 
 	}
@@ -358,7 +392,7 @@ void poll_for_frames(std::shared_ptr<message_receiver> receiver,
 
 void recv_begin_callback_c(void * request, ucs_status_t status,
 							ucp_tag_recv_info_t *info) {
-	
+
 	std::cout<<"recv begin callback c"<<std::endl;
 	auto message_listener = ucx_message_listener::get_instance();
 	if (status != UCS_OK){
@@ -399,7 +433,7 @@ void recv_begin_callback_c(void * request, ucs_status_t status,
 		auto acknowledge_tag = *reinterpret_cast<blazing_ucp_tag *>(&info->sender_tag);
 		acknowledge_tag.frame_id = 0xFFFF;
 		auto acknowledge_tag_ucp = *reinterpret_cast<ucp_tag_t *>(&acknowledge_tag);
-		
+
 		auto status_acknowledge = std::make_shared<status_code>(status_code::OK);
 		std::cout<<"abpit to send"<<std::endl;
 		auto request_acknowledge = ucp_tag_send_nb(
@@ -421,7 +455,7 @@ void recv_begin_callback_c(void * request, ucs_status_t status,
 						std::cout<<"callback being called"<<std::endl;
 			status_scope_holder[request_acknowledge] = status_acknowledge;
 		}
-		
+
 
 		poll_for_frames(receiver, info->sender_tag, message_listener->get_worker());
 		tag_to_begin_buffer_and_info.erase(info->sender_tag);
@@ -444,11 +478,11 @@ void recv_begin_callback_c(void * request, ucs_status_t status,
 void ucx_message_listener::poll_begin_message_tag(){
 	auto thread = std::thread([this]{
 		for(;;){
-			std::cout<<"starting poll begin"<<std::endl;
+			// std::cout<<"starting poll begin"<<std::endl;
 			std::shared_ptr<ucp_tag_recv_info_t> info_tag = std::make_shared<ucp_tag_recv_info_t>();
 			auto message_tag = ucp_tag_probe_nb(
 				ucp_worker, 0ull, begin_tag_mask, 1, info_tag.get());
-			std::cout<<"probed tag"<<std::endl;
+			// std::cout<<"probed tag"<<std::endl;
 			if(message_tag != NULL){
 				//we have a msg to process
 								std::cout<<"message found!"<<std::endl;
@@ -465,23 +499,21 @@ void ucx_message_listener::poll_begin_message_tag(){
 				if(UCS_PTR_IS_ERR(request)) {
 					// TODO: decide how to do cleanup i think we just throw an initialization exception
 				} else if(UCS_PTR_STATUS(request) == UCS_OK) {
-					
+
 					recv_begin_callback_c(request, UCS_OK, info_tag.get());
 				}
 
 			}else {
-				std::cout<<"no messages"<<std::endl;
-				//ucp_worker_progress(ucp_worker);
-				//waits until a message event occurs
-				auto status = ucp_worker_wait(ucp_worker);
-				std::this_thread::sleep_for(2s);
-				if (status != UCS_OK){
-					throw ::std::exception();
-				}
+			  ucp_worker_progress(ucp_worker);
+				// std::this_thread::sleep_for(2s);
+				// waits until a message event occurs
+				// auto status = ucp_worker_wait(ucp_worker);
+				// if (status != UCS_OK){
+				// 	throw ::std::exception();
+				// }
 
 			}
-
-    	}
+    }
 	});
 	thread.detach();
 

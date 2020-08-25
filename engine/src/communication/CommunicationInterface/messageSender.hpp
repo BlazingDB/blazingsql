@@ -45,9 +45,9 @@ public:
 	 * @brief A polling function that listens on a cache for data and send it off via some protocol
 	 */
 	void run_polling() {
-		auto thread = std::thread([this]{
-			while(true) {
-				std::cout<<"going to pull cache data"<<std::endl;
+		// auto thread = std::thread([this]{
+			int x = 1;
+			while(x--) {
 				std::unique_ptr<ral::cache::CacheData> cache_data = output_cache->pullCacheData();
 				std::cout<<"pulled cache data"<<std::endl;
 				auto * gpu_cache_data = static_cast<ral::cache::GPUCacheDataMetaData *>(cache_data.get());
@@ -57,7 +57,7 @@ public:
 							metadata{data_and_metadata.second},
 							node_address_map = node_address_map,
 							output_cache = output_cache,
-								protocol=this->protocol, 
+								protocol=this->protocol,
 								this](int thread_id) {
 					std::vector<std::size_t> buffer_sizes;
 					std::vector<const char *> raw_buffers;
@@ -78,7 +78,7 @@ public:
 						std::cout<<"beging begin transmission"<<std::endl;
 						auto metadata_map = metadata.get_values();
 						std::cout<<"beging begin transmission2"<<std::endl;
-						
+
 						std::cout<<"beging begin transmission3"<<std::endl;
 						std::vector<node> destinations;
 						for(auto worker_id : StringUtil::split(metadata_map.at(ral::cache::WORKER_IDS_METADATA_LABEL), ",")) {
@@ -115,8 +115,8 @@ public:
 					}
 				});
 			}
-		});
-		thread.detach();
+		// });
+		// thread.detach();
 	}
 private:
 	static message_sender * instance;
