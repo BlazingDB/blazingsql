@@ -1,30 +1,25 @@
 #!/bin/bash
 
-# NOTE DONT use -e since we need to run some commands after a fail (see arrow)
-#set -e
+env_prefix=$1
+
+set -e
 
 alias python=python3
-
-working_directory=$PWD
-
-output_dir=$working_directory
-blazingsql_project_dir=$working_directory/..
-
-if [ ! -z $1 ]; then
-  output_dir=$1
-fi
-
-# Expand args to absolute/full paths (if the user pass relative paths as args)
-output_dir=$(readlink -f $output_dir)
-blazingsql_project_dir=$(readlink -f $blazingsql_project_dir)
 
 # NOTE tmp_dir is the prefix (bin, lib, include, build)
 #tmp_dir=$working_directory/tmp
 # TODO mario
-tmp_dir=/opt/blazingsql-powerpc-prefix
+tmp_dir=$env_prefix
 
-build_dir=$tmp_dir/build
-blazingsql_build_dir=$build_dir/blazingsql
+# if you want to build in other place just set BLAZINGSQL_POWERPC_TMP_BUILD_DIR before run
+
+if [ ! -z $BLAZINGSQL_POWERPC_TMP_BUILD_DIR ]; then
+  BLAZINGSQL_POWERPC_TMP_BUILD_DIR=/tmp/blazingsql_powerpc_tmp_build_dir/
+fi
+
+build_dir=$BLAZINGSQL_POWERPC_TMP_BUILD_DIR
+
+mkdir -p $build_dir
 
 # Clean the build before start a new one
 # TODO percy re-enable this later
@@ -33,6 +28,7 @@ blazingsql_build_dir=$build_dir/blazingsql
 
 MAKEJ=$(nproc)
 MAKEJ_CUDF=$(( `nproc` / 2 ))
+
 echo "### Vars ###"
 export CC=/usr/local/bin/gcc
 export CXX=/usr/local/bin/g++
@@ -50,261 +46,16 @@ echo "LD_LIBRARY_PATH="$LD_LIBRARY_PATH
 echo "CPLUS_INCLUDE_PATH="$CPLUS_INCLUDE_PATH
 
 echo "output_dir="$output_dir
-echo "blazingsql_project_dir="$blazingsql_project_dir
 echo "tmp_dir="$tmp_dir
 echo "build_dir="$build_dir
-echo "blazingsql_build_dir="$blazingsql_build_dir
-
-#BEGIN boost
-
-boost_install_dir=$tmp_dir
-boost_build_dir=$build_dir/boost/
-echo "boost_install_dir: "$boost_install_dir
-echo "boost_build_dir: "$boost_build_dir
-
-# TODO percy mario manage version labels (1.66.0 and 1_66_0)
-if [ ! -f $boost_install_dir/include/boost/version.hpp ]; then
-    echo "### Boost - start ###"
-    mkdir -p $boost_build_dir
-    cd $boost_build_dir
-
-    # TODO percy mario manbage boost version
-    if [ ! -f $boost_build_dir/boost_1_66_0.tar.gz ]; then
-        wget -q https://dl.bintray.com/boostorg/release/1.66.0/source/boost_1_66_0.tar.gz
-    fi
-
-    if [ ! -d $boost_build_dir/boost_1_66_0 ]; then
-        echo "Decompressing boost_1_66_0.tar.gz ..."
-        tar xf boost_1_66_0.tar.gz
-        echo "Boost package boost_1_66_0.tar.gz was decompressed at $boost_dir"
-    fi
-
-    # NOTE build Boost with old C++ ABI _GLIBCXX_USE_CXX11_ABI=0 and with -fPIC
-    cd boost_1_66_0
-    ./bootstrap.sh --with-libraries=system,filesystem,regex,atomic,chrono,container,context,thread --with-icu --prefix=$boost_install_dir
-    ./b2 install variant=release define=_GLIBCXX_USE_CXX11_ABI=0 stage threading=multi --exec-prefix=$boost_install_dir --prefix=$boost_install_dir -a
-    if [ $? != 0 ]; then
-      echo "Error during b2 install"
-      exit 1
-    fi
-    echo "### Boost - end ###"
-fi
-#END boost
-
-#BEGIN thrift
-thrift_install_dir=$tmp_dir
-thrift_build_dir=$build_dir/thrift/
-echo "thrift_install_dir: "$thrift_install_dir
-echo "thrift_build_dir: "$thrift_build_dir
-
-if [ ! -d $thrift_build_dir ]; then
-    echo "### Thrift - start ###"
-    mkdir -p $thrift_build_dir
-    cd $thrift_build_dir
-
-    git clone https://github.com/apache/thrift.git
-    cd thrift/
-    git checkout 0.13.0
-
-    echo "### Thrift - cmake ###"
-    export PY_PREFIX=$thrift_install_dir
-    #./bootstrap.sh
-    #./configure --prefix=$thrift_install_dir --enable-libs --with-cpp=yes --with-haskell=no --with-nodejs=no --with-nodets=no
-    cmake -DCMAKE_BUILD_TYPE=Release \
-          -DCMAKE_INSTALL_PREFIX:PATH=$thrift_install_dir \
-          -DCMAKE_BUILD_TYPE=Release \
-          -DBUILD_SHARED_LIBS=ON \
-          -DBUILD_TESTING=OFF \
-          -DBUILD_EXAMPLES=OFF \
-          -DBUILD_TUTORIALS=OFF \
-          -DWITH_QT4=OFF \
-          -DWITH_C_GLIB=OFF \
-          -DWITH_JAVA=OFF \
-          -DWITH_PYTHON=ON \
-          -DWITH_HASKELL=OFF \
-          -DWITH_CPP=ON \
-          -DWITH_STATIC_LIB=OFF \
-          -DWITH_LIBEVENT=OFF \
-          -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
-          -DCMAKE_C_FLAGS=-D_GLIBCXX_USE_CXX11_ABI=0 \
-          -DCMAKE_CXX_FLAGS=-D_GLIBCXX_USE_CXX11_ABI=0 \
-          -DBOOST_ROOT=$boost_install_dir \
-          .
-    if [ $? != 0 ]; then
-      exit 1
-    fi
-
-    echo "### Thrift - make install ###"
-    make -j$MAKEJ install
-    if [ $? != 0 ]; then
-      exit 1
-    fi
-
-    echo "### Thrift - end ###"
-
-    # install python binding for thrift
-    cd $build_dir/thrift/thrift/lib/py
-    python setup.py install
-fi
-
-#END thrift
-
-#BEGIN flatbuffers
-flatbuffers_install_dir=$tmp_dir
-flatbuffers_build_dir=$build_dir/flatbuffers
-if [ ! -d $flatbuffers_build_dir ]; then
-    echo "### Flatbufferts - Start ###"
-    mkdir -p $flatbuffers_build_dir
-    cd $flatbuffers_build_dir
-
-    git clone https://github.com/google/flatbuffers.git
-    cd flatbuffers/
-    git checkout 02a7807dd8d26f5668ffbbec0360dc107bbfabd5
-
-    echo "### Flatbufferts - cmake ###"
-    cmake -DCMAKE_BUILD_TYPE=Release \
-          -DCMAKE_INSTALL_PREFIX:PATH=$flatbuffers_install_dir \
-          -DCMAKE_C_FLAGS=-D_GLIBCXX_USE_CXX11_ABI=0 \
-          -DCMAKE_CXX_FLAGS=-D_GLIBCXX_USE_CXX11_ABI=0 \
-          -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
-          .
-    if [ $? != 0 ]; then
-      exit 1
-    fi
-
-    echo "### Flatbufferts - make install ###"
-    make -j$MAKEJ install
-    if [ $? != 0 ]; then
-      exit 1
-    fi
-
-    echo "### Flatbufferts - End ###"
-fi
-#END flatbuffers
-
-#BEGIN lz4
-lz4_install_dir=$tmp_dir
-lz4_build_dir=$build_dir/lz4
-if [ ! -d $lz4_build_dir ]; then
-    echo "### Lz4 - Start ###"
-    mkdir -p $lz4_build_dir
-    cd $lz4_build_dir
-    git clone https://github.com/lz4/lz4.git
-    cd lz4/
-    git checkout v1.7.5
-
-    # NOTE build Boost with old C++ ABI _GLIBCXX_USE_CXX11_ABI=0 and with -fPIC
-    echo "### Lz4 - make install ###"
-    CFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0 -O3 -fPIC" CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0 -O3 -fPIC" PREFIX=$lz4_install_dir make -j$MAKEJ install
-    if [ $? != 0 ]; then
-      exit 1
-    fi
-
-    echo "### Lz4 - End ###"
-fi
-
-#END lz4
-
-#BEGIN zstd
-zstd_install_dir=$tmp_dir
-zstd_build_dir=$build_dir/zstd
-if [ ! -d $zstd_build_dir ]; then
-    echo "### Zstd - Start ###"
-    mkdir -p $zstd_build_dir
-    cd $zstd_build_dir
-    git clone https://github.com/facebook/zstd.git
-    cd zstd/
-    git checkout v1.4.4
-    echo "### Zstd - cmake ###"
-    cd $zstd_build_dir/zstd/build/cmake/
-#          -DCMAKE_C_FLAGS=-D_GLIBCXX_USE_CXX11_ABI=0 \
-#          -DCMAKE_CXX_FLAGS=-D_GLIBCXX_USE_CXX11_ABI=0 \
-    cmake -DCMAKE_BUILD_TYPE=Release \
-          -DCMAKE_INSTALL_PREFIX:PATH=$zstd_install_dir \
-          -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
-          -DZSTD_BUILD_STATIC=ON \
-          .
-    if [ $? != 0 ]; then
-      exit 1
-    fi
-
-    echo "### Zstd - make install ###"
-    make -j$MAKEJ install
-    if [ $? != 0 ]; then
-      exit 1
-    fi
-
-    echo "### Zstd - End ###"
-fi
-
-export ZSTD_HOME=$tmp_dir
-
-#END zstd
-
-#BEGIN brotli
-brotli_install_dir=$tmp_dir
-brotli_build_dir=$build_dir/brotli
-if [ ! -d $brotli_build_dir ]; then
-    echo "### Brotli - Start ###"
-    mkdir -p $brotli_build_dir
-    cd $brotli_build_dir
-    git clone https://github.com/google/brotli.git
-    cd brotli/
-    git checkout v0.6.0
-
-    echo "### Brotli - cmake ###"
-    cmake -DCMAKE_BUILD_TYPE=Release \
-          -DCMAKE_INSTALL_PREFIX:PATH=$brotli_install_dir \
-          -DCMAKE_C_FLAGS=-D_GLIBCXX_USE_CXX11_ABI=0 \
-          -DCMAKE_CXX_FLAGS=-D_GLIBCXX_USE_CXX11_ABI=0 \
-          -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
-          -DBUILD_SHARED_LIBS=ON \
-          .
-    if [ $? != 0 ]; then
-      exit 1
-    fi
-
-    echo "### Brotli - make install ###"
-    make -j$MAKEJ install
-    if [ $? != 0 ]; then
-      exit 1
-    fi
-
-    echo "### Brotli - End ###"
-fi
-#END brotli
-
-#BEGIN snappy
-snappy_install_dir=$tmp_dir
-snappy_build_dir=$build_dir/snappy
-if [ ! -d $snappy_build_dir ]; then
-    echo "### Snappy - Start ###"
-    mkdir -p $snappy_build_dir
-    cd $snappy_build_dir
-    git clone https://github.com/google/snappy.git
-    cd snappy/
-    git checkout 1.1.3
-
-    # NOTE build Boost with old C++ ABI _GLIBCXX_USE_CXX11_ABI=0 and with -fPIC
-    CFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0 -O3 -fPIC -O2" CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0 -O3 -fPIC -O2" ./autogen.sh
-
-    echo "### Snappy - Configure ###"
-    CFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0 -O3 -fPIC -O2" CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0 -O3 -fPIC -O2" ./configure --prefix=$snappy_install_dir
-
-    echo "### Snappy - make install ###"
-    CFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0 -O3 -fPIC -O2" CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0 -O3 -fPIC -O2" make -j$MAKEJ install
-    if [ $? != 0 ]; then
-      exit 1
-    fi
-
-    echo "### Snappy - End ###"
-fi
-#END snappy
 
 export CUDA_HOME=/usr/local/cuda/
 export CUDACXX=$CUDA_HOME/bin/nvcc
 
 #BEGIN arrow
+
+# NOTE DONT use -e since we need to run some commands after a fail (see arrow)
+unset -e
 
 function run_cmake_for_arrow() {
     tmp_dir=$1
@@ -345,13 +96,12 @@ function run_cmake_for_arrow() {
 }
 
 arrow_install_dir=$tmp_dir
-arrow_build_dir=$build_dir/arrow
 echo "arrow_install_dir: "$arrow_install_dir
-echo "arrow_build_dir: "$arrow_build_dir
 if [ ! -d $arrow_build_dir ]; then
     echo "### Arrow - start ###"
     mkdir -p $arrow_build_dir
     cd $arrow_build_dir
+    if [ ! -d $arrow_build_dir ]; then
     git clone https://github.com/apache/arrow.git
     cd arrow/
     git checkout apache-arrow-0.17.1
@@ -362,13 +112,7 @@ if [ ! -d $arrow_build_dir ]; then
     # -DARROW_HDFS=ON \ # blazingdb-io use arrow for hdfs
     # -DARROW_TENSORFLOW=ON \ # enable old ABI for C/C++
     
-    export BOOST_ROOT=$boost_install_dir
-    export FLATBUFFERS_HOME=$flatbuffers_install_dir
-    export LZ4_HOME=$lz4_install_dir
-    export ZSTD_HOME=$zstd_install_dir
-    export BROTLI_HOME=$brotli_install_dir
-    export SNAPPY_HOME=$snappy_install_dir
-    export THRIFT_HOME=$thrift_install_dir
+    export BOOST_ROOT=$env_prefix
 
     cd cpp/
     mkdir -p build
@@ -403,6 +147,9 @@ if [ ! -d $arrow_build_dir ]; then
 
     echo "### Arrow - end ###"
 fi
+
+set -e
+
 #END arrow
 
 # BEGIN pyarrow
@@ -719,7 +466,7 @@ if [ ! -d blazingsql ]; then
     git checkout feature/powerpc
     git pull
     export INSTALL_PREFIX=$tmp_dir
-    export BOOST_ROOT=$boost_install_dir
+    export BOOST_ROOT=$tmp_dir
     export ARROW_ROOT=$tmp_dir
     export RMM_ROOT=$tmp_dir
     export DLPACK_ROOT=$tmp_dir
