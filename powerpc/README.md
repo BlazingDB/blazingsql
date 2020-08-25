@@ -218,32 +218,43 @@ cudf commit hash: 1a3b3f217be93a55b47af3a9d0da29f0fcb7c7e9
 rmm commit hash: 178c2cd2933fa80b70e69863ba727d19f951a551
 
 Issues summary:
-| Test                          | #Rals | Issue IDs  | Query Id                        |
-| ----------------------------- | ----- | ---------- | ------------------------------- |
-| coalesceTest                  | 2     | Issue 2    |                                 |
-| columnBasisTest               | 1,2   | Issue 1    |                                 |
-| Count without group by        | 2     | Issue 1    |                                 |
-| Date                          | 2     | Issue 1    |                                 |
-| Timestamp                     | 2     | Issue 1    |                                 |
-| Full outer join               | 2     | Issue 1    |                                 |
-| Group by                      | 2     | Issue 1    |                                 |
-| Group by without aggregations | 2     | Issue 1    |                                 |
-| Inner join                    | 2     | Issue 1    |                                 |
-| Cross join                    | 2     | Issue 1    |                                 |
-| Left outer join               | 2     | Issue 1    |                                 |
-| Non-EquiJoin Queries          | 2     | Issue 1    |                                 |
-| Nested Queries                | 2     | Issue 1    |                                 |
-| Order by                      | 2     | Issue 1    |                                 |
-| Predicates With Nulls         | 2     | Issue 1    |                                 |
-| Simple String                 | 2     | Issue 1    |                                 |
-| Tables from Pandas            | 2     | Issue 1    |                                 |
-| Unify Tables                  | 2     | Issue 1    |                                 |
-| Union                         | 2     | Issue 1    |                                 |
-| Limit                         | 2     | Issue 1    |                                 |
-| Where clause                  | 2     | Issue 1    |                                 |
-| Bindable Alias                | 2     | Issue 1    |                                 |
-| Boolean                       | 2     | Issue 1    |                                 |
-| Case                          | 2     | Issue 1    |                                 |
+| Test                           | #Rals | Issue IDs  | Query Id                        |
+| ------------------------------ | ----- | ---------- | ------------------------------- |
+| coalesceTest                   | 2     | Issue 2    | TEST_01 - dask_cudf             |
+| columnBasisTest                | 1,2   | Issue 1    | TEST_01 - dask_cudf             |
+| Count without group by         | 2     | Issue 1    | TEST_02 - dask_cudf             |
+| Date                           | 2     | Issue 1    | TEST_01 - dask_cudf             |
+| Timestamp                      | 2     | Issue 1    | TEST_01 - orc                   |
+| Full outer join                | 2     | Issue 1    | TEST_01 - dask_cudf             |
+| Group by                       | 2     | Issue 1    | TEST_01 - dask_cudf             |
+| Group by without aggregations  | 2     | Issue 1    | TEST_01 - dask_cudf             |
+| Inner join                     | 2     | Issue 1    | TEST_01 - dask_cudf             |
+| Cross join                     | 2     | Issue 1    | TEST_01 - dask_cudf             |
+| Left outer join                | 2     | Issue 1    | TEST_01 - dask_cudf             |
+| Non-EquiJoin Queries           | 2     | Issue 1    | TEST_02 - dask_cudf             |
+| Nested Queries                 | 2     | Issue 1    | TEST_02 - dask_cudf             |
+| Order by                       | 2     | Issue 1    | TEST_01 - dask_cudf             |
+| Predicates With Nulls          | 2     | Issue 1    | TEST_07 - dask_cudf             |
+| Simple String                  | 2     | Issue 1    | TEST_01 - dask_cudf             |
+| Tables from Pandas             | 2     | Issue 1    | TEST_04 - gdf                   |
+| Unify Tables                   | 2     | Issue 1    | TEST_01A - dask_cudf            |
+| Union                          | 2     | Issue 1    | TEST_01 - dask_cudf             |
+| Limit                          | 2     | Issue 1    | TEST_01 - dask_cudf             |
+| Where clause                   | 2     | Issue 1    | TEST_01 - dask_cudf             |
+| Bindable Alias                 | 2     | Issue 1    | TEST_01 - dask_cudf             |
+| Boolean                        | 2     | Issue 1    | TEST_01 - psv                   |
+| Case                           | 2     | Issue 1    | TEST_01 - gdf                   |
+| Cast                           | 2     | Issue 1    | TEST_01 - gdf                   |
+| Concat                         | 2     | Issue 1    | TEST_04 - dask_cudf             |
+| Literal                        | 2     | Issue 1    | TEST_01 - orc                   |
+| Dir                            | 2     | Issue 1    | TEST_04 - gdf                   |
+| Like                           | 2     | Issue 1    | TEST_02 - gdf                   |
+| Simple Distribution From Local | 2     | Issue 1    | TEST_00 - dask_cudf             |
+| Substring                      | 2     | Issue 1    | TEST_01 - dask_cudf             |
+| Wild Card                      | 2     | Issue 1    | TEST_04 - dask_cudf             |
+| TPCH Queries                   | 2     | Issue 1    | TEST_01 - dask_cudf             |
+| Round Tests                    | 2     | Issue 1    | TEST_03 - dask_cudf             |
+| File System Local              | 2     | Issue 1    | TEST_04 - dask_cudf             |
 
 Issue types:
 * Issue 1 (cudf issue)
@@ -251,12 +262,103 @@ Issue types:
 MemoryError: std::bad_alloc --> at File "cudf/_lib/binaryop.pyx" in cudf._lib.binaryop.binaryop
 ```
 
-* Issue 2 (cudf issue
+* Issue 2 (cudf issue)
 ```python
 MemoryError: std::bad_alloc --> at File "cudf/_lib/binaryop.pyx" in cudf._lib.binaryop.binaryop
 distributed.utils - ERROR - CUDA error at: ../include/rmm/mr/device/per_device_resource.hpp:134: cudaErrorCudartUnloading driver shutting down
 RuntimeError: CUDA error at: ../include/rmm/mr/device/per_device_resource.hpp:134: cudaErrorCudartUnloading driver shutting down
 distributed.protocol.core - CRITICAL - Failed to deserialize
+RuntimeError: CUDA error at: ../include/rmm/mr/device/per_device_resource.hpp:134: cudaErrorCudartUnloading driver shutting down
+```
+
+Compelte log for this issue:
+```python
+==============================
+Coalesce
+==============================
+
+=============== New query: TEST_01 - dask_cudf =================
+distributed.utils_perf - WARNING - full garbage collections took 98% CPU time recently (threshold: 10%)
+distributed.utils_perf - WARNING - full garbage collections took 98% CPU time recently (threshold: 10%)
+distributed.utils_perf - WARNING - full garbage collections took 98% CPU time recently (threshold: 10%)
+distributed.utils_perf - WARNING - full garbage collections took 98% CPU time recently (threshold: 10%)
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.7/runpy.py", line 193, in _run_module_as_main
+    "__main__", mod_spec)
+  File "/usr/local/lib/python3.7/runpy.py", line 85, in _run_code
+    exec(code, run_globals)
+  File "/opt/blazingsql-powerpc-prefix/build/blazingsql/tests/BlazingSQLTest/EndToEndTests/allE2ETest.py", line 286, in <module>
+    result, error_msgs = main()
+  File "/opt/blazingsql-powerpc-prefix/build/blazingsql/tests/BlazingSQLTest/EndToEndTests/allE2ETest.py", line 113, in main
+    dask_client, drill, dir_data_file, bc, nRals
+  File "/opt/blazingsql-powerpc-prefix/build/blazingsql/tests/BlazingSQLTest/EndToEndTests/coalesceTest.py", line 320, in main
+    executionTest(queryType)
+  File "/opt/blazingsql-powerpc-prefix/build/blazingsql/tests/BlazingSQLTest/EndToEndTests/coalesceTest.py", line 56, in executionTest
+    print_result=True,
+  File "/opt/blazingsql-powerpc-prefix/build/blazingsql/tests/BlazingSQLTest/Runner/runTest.py", line 1594, in run_query
+    upcast_to_float(result_gdf)
+  File "/opt/blazingsql-powerpc-prefix/build/blazingsql/tests/BlazingSQLTest/Runner/runTest.py", line 73, in upcast_to_float
+    df[name] = df[name].astype(np.float64)
+  File "/usr/local/lib/python3.7/contextlib.py", line 74, in inner
+    return func(*args, **kwds)
+  File "/opt/blazingsql-powerpc-prefix/lib/python3.7/site-packages/cudf/core/dataframe.py", line 727, in __setitem__
+    allow_non_unique=True,
+  File "/opt/blazingsql-powerpc-prefix/lib/python3.7/site-packages/cudf/core/series.py", line 4127, in _align_to_index
+    if self.index.equals(index):
+  File "/usr/local/lib/python3.7/contextlib.py", line 74, in inner
+    return func(*args, **kwds)
+  File "/opt/blazingsql-powerpc-prefix/lib/python3.7/site-packages/cudf/core/index.py", line 993, in equals
+    result = self == other
+  File "/opt/blazingsql-powerpc-prefix/lib/python3.7/site-packages/cudf/core/index.py", line 949, in __eq__
+    return self._apply_op("__eq__", other)
+  File "/opt/blazingsql-powerpc-prefix/lib/python3.7/site-packages/cudf/core/index.py", line 775, in _apply_op
+    return as_index(op(other))
+  File "/opt/blazingsql-powerpc-prefix/lib/python3.7/site-packages/cudf/core/series.py", line 1464, in __eq__
+    return self._binaryop(other, "eq")
+  File "/usr/local/lib/python3.7/contextlib.py", line 74, in inner
+    return func(*args, **kwds)
+  File "/opt/blazingsql-powerpc-prefix/lib/python3.7/site-packages/cudf/core/series.py", line 1082, in _binaryop
+    outcol = lhs._column.binary_operator(fn, rhs, reflect=reflect)
+  File "/opt/blazingsql-powerpc-prefix/lib/python3.7/site-packages/cudf/core/column/numerical.py", line 98, in binary_operator
+    lhs=self, rhs=rhs, op=binop, out_dtype=out_dtype, reflect=reflect
+  File "/usr/local/lib/python3.7/contextlib.py", line 74, in inner
+    return func(*args, **kwds)
+  File "/opt/blazingsql-powerpc-prefix/lib/python3.7/site-packages/cudf/core/column/numerical.py", line 441, in _numeric_column_binop
+    out = libcudf.binaryop.binaryop(lhs, rhs, op, out_dtype)
+  File "cudf/_lib/binaryop.pyx", line 210, in cudf._lib.binaryop.binaryop
+  File "cudf/_lib/binaryop.pyx", line 107, in cudf._lib.binaryop.binaryop_v_v
+MemoryError: std::bad_alloc
+distributed.utils - ERROR - CUDA error at: ../include/rmm/mr/device/per_device_resource.hpp:134: cudaErrorCudartUnloading driver shutting down
+Traceback (most recent call last):
+  File "/opt/blazingsql-powerpc-prefix/lib/python3.7/site-packages/distributed/utils.py", line 656, in log_errors
+    yield
+  File "/opt/blazingsql-powerpc-prefix/lib/python3.7/site-packages/cudf/comm/serialize.py", line 27, in dask_deserialize_cudf_object
+    return Serializable.host_deserialize(header, frames)
+  File "/opt/blazingsql-powerpc-prefix/lib/python3.7/site-packages/cudf/core/abc.py", line 126, in host_deserialize
+    for c, f in zip(header["is-cuda"], map(memoryview, frames))
+  File "/opt/blazingsql-powerpc-prefix/lib/python3.7/site-packages/cudf/core/abc.py", line 126, in <listcomp>
+    for c, f in zip(header["is-cuda"], map(memoryview, frames))
+  File "rmm/_lib/device_buffer.pyx", line 131, in rmm._lib.device_buffer.DeviceBuffer.to_device
+  File "rmm/_lib/device_buffer.pyx", line 319, in rmm._lib.device_buffer.to_device
+  File "rmm/_lib/device_buffer.pyx", line 71, in rmm._lib.device_buffer.DeviceBuffer.__cinit__
+RuntimeError: CUDA error at: ../include/rmm/mr/device/per_device_resource.hpp:134: cudaErrorCudartUnloading driver shutting down
+distributed.protocol.core - CRITICAL - Failed to deserialize
+Traceback (most recent call last):
+  File "/opt/blazingsql-powerpc-prefix/lib/python3.7/site-packages/distributed/protocol/core.py", line 151, in loads
+    value = _deserialize(head, fs, deserializers=deserializers)
+  File "/opt/blazingsql-powerpc-prefix/lib/python3.7/site-packages/distributed/protocol/serialize.py", line 335, in deserialize
+    return loads(header, frames)
+  File "/opt/blazingsql-powerpc-prefix/lib/python3.7/site-packages/distributed/protocol/serialize.py", line 54, in dask_loads
+    return loads(header, frames)
+  File "/opt/blazingsql-powerpc-prefix/lib/python3.7/site-packages/cudf/comm/serialize.py", line 27, in dask_deserialize_cudf_object
+    return Serializable.host_deserialize(header, frames)
+  File "/opt/blazingsql-powerpc-prefix/lib/python3.7/site-packages/cudf/core/abc.py", line 126, in host_deserialize
+    for c, f in zip(header["is-cuda"], map(memoryview, frames))
+  File "/opt/blazingsql-powerpc-prefix/lib/python3.7/site-packages/cudf/core/abc.py", line 126, in <listcomp>
+    for c, f in zip(header["is-cuda"], map(memoryview, frames))
+  File "rmm/_lib/device_buffer.pyx", line 131, in rmm._lib.device_buffer.DeviceBuffer.to_device
+  File "rmm/_lib/device_buffer.pyx", line 319, in rmm._lib.device_buffer.to_device
+  File "rmm/_lib/device_buffer.pyx", line 71, in rmm._lib.device_buffer.DeviceBuffer.__cinit__
 RuntimeError: CUDA error at: ../include/rmm/mr/device/per_device_resource.hpp:134: cudaErrorCudartUnloading driver shutting down
 ```
 
