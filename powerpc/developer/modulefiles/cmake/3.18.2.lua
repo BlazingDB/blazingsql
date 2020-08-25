@@ -11,3 +11,5 @@ whatis("Description: Compilation tool")
 setenv("DDTPATH", "/opt/sw/cmake-3.18.2/bin")
 prepend_path("PATH", "/opt/sw/cmake-3.18.2/bin")
 prepend_path("LD_LIBRARY_PATH","/opt/cmake-3.18.2/lib")
+
+setenv("CMAKE_ROOT", "/opt/sw/cmake-3.18.2/share")
