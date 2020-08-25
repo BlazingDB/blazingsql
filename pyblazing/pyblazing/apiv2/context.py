@@ -811,6 +811,14 @@ def remove_orc_files_from_disk(data_dir):
                     os.remove(full_path_file)
 
 
+# Updates the dtype from `object` to `str` to be more friendly
+def convert_friendly_dtype_to_string(list_types):
+    for i in range(len(list_types)):
+        if list_types[i] == "object":
+            list_types[i] = "str"
+    return list_types
+
+
 class BlazingTable(object):
     def __init__(
         self,
@@ -1109,9 +1117,16 @@ class BlazingContext(object):
             MAX_SEND_MESSAGE_THREADS : The number of threads available to send
                     outgoing messages.
                     default: 20
-            LOGGING_LEVEL : Set the level (as string) of the current tool for
-                    logging. Log levels have order of priority:
-                    {trace, debug, info, warn, error, critical}
+            LOGGING_LEVEL : Set the level (as string) to register into the logs
+                    for the current tool of logging. Log levels have order of priority:
+                    {trace, debug, info, warn, err, critical, off}. Using 'trace' will
+                    registers all info.
+                    NOTE: This parameter only works when used in the
+                    BlazingContext
+                    default: 'trace'
+            LOGGING_FLUSH_LEVEL : Set the level (as string) of the flush for
+                    the current tool of logging. Log levels have order of priority:
+                    {trace, debug, info, warn, err, critical, off}
                     NOTE: This parameter only works when used in the
                     BlazingContext
                     default: 'warn'
@@ -1893,6 +1908,60 @@ class BlazingContext(object):
         https://docs.blazingdb.com/docs/using-blazingsql#section-drop-tables
         """
         self.add_remove_table(table_name, False)
+
+    def list_tables(self):
+        """
+        Returns a list with the names of all created tables.
+
+        Example
+        --------
+
+        >>> from blazingsql import BlazingContext
+        >>> bc = BlazingContext()
+        >>> bc.create_table('product_reviews', "product_reviews/*.parquet")
+        >>> bc.create_table('store_sales', "store_sales/*.parquet")
+        >>> bc.create_table('nation', "nation/*.parquet")
+        >>> tables = bc.list_tables()
+        >>> print(tables)
+                  ['product_reviews', 'store_sales', 'nation']
+        """
+        return list(self.tables.keys())
+
+    def describe_table(self, table_name):
+        """
+        Returns a dictionary with the names of all the columns and their types
+        for the specified table. A ValueError is thrown if the table is not found.
+
+        Parameters
+        ----------
+
+        table_name : string of the table name to describe
+
+        Example
+        --------
+
+        >>> from blazingsql import BlazingContext
+        >>> bc = BlazingContext()
+        >>> bc.create_table('nation', "nation/*.parquet")
+        >>> info_table = bc.describe_table("nation")
+        >>> print(info_table)
+                  {'n_nationkey': 'int32', 'n_name': 'str',
+                   'n_regionkey': 'int32', 'n_comment': 'str'}
+        """
+        all_table_names = self.list_tables()
+        if table_name in all_table_names:
+            column_names_bytes = self.tables[table_name].column_names
+            column_names = [x.decode("utf-8") for x in column_names_bytes]
+            column_types_int = self.tables[table_name].column_types
+            column_types_np = [
+                cio.cudf_type_int_to_np_types(t) for t in column_types_int
+            ]
+            column_types = [t.name for t in column_types_np]
+            column_types_friendly = convert_friendly_dtype_to_string(column_types)
+            name_type_dictionary = dict(zip(column_names, column_types_friendly))
+            return name_type_dictionary
+        else:
+            raise ValueError("ERROR: Not found table: " + str(table_name))
 
     def _parseSchema(
         self, input, file_format_hint, kwargs, extra_columns, ignore_missing_paths

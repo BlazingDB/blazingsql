@@ -63,7 +63,7 @@ public:
             memory_resource_owner = std::make_unique<rmm::mr::cnmem_managed_memory_resource>(initial_pool_size);
             memory_resource = memory_resource_owner.get();
         } else {  //(allocation_mode == "existing"){
-            memory_resource = rmm::mr::get_default_resource();
+            memory_resource = rmm::mr::get_current_device_resource();
         } 
 
         memory_limit = custom_threshold * total_memory_size;
@@ -188,7 +188,7 @@ public:
         initialized_resource.reset(new internal_blazing_device_memory_resource(
                 allocation_mode, initial_pool_size, device_mem_resouce_consumption_thresh));
         
-        rmm::mr::set_default_resource(initialized_resource.get());
+        rmm::mr::set_current_device_resource(initialized_resource.get());
         
         is_initialized = true;
     }
