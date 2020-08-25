@@ -217,11 +217,48 @@ blazingsql commit hash: b91d78da1a47d3539c3e963fa49ac78478ab3116
 cudf commit hash: 1a3b3f217be93a55b47af3a9d0da29f0fcb7c7e9
 rmm commit hash: 178c2cd2933fa80b70e69863ba727d19f951a551
 
-| Test             | #Rals | Issue                                               |
-| ---------------- | ----- | --------------------------------------------------- |
-| coalesceTest     | 2     | cudf binary ops                                     |
-| columnBasisTest  | 1,2   |                                                     |
-|                  |       |                                                     |
+Issues summary:
+| Test                          | #Rals | Issue IDs  | Query Id                        |
+| ----------------------------- | ----- | ---------- | ------------------------------- |
+| coalesceTest                  | 2     | Issue 2    |                                 |
+| columnBasisTest               | 1,2   | Issue 1    |                                 |
+| Count without group by        | 2     | Issue 1    |                                 |
+| Date                          | 2     | Issue 1    |                                 |
+| Timestamp                     | 2     | Issue 1    |                                 |
+| Full outer join               | 2     | Issue 1    |                                 |
+| Group by                      | 2     | Issue 1    |                                 |
+| Group by without aggregations | 2     | Issue 1    |                                 |
+| Inner join                    | 2     | Issue 1    |                                 |
+| Cross join                    | 2     | Issue 1    |                                 |
+| Left outer join               | 2     | Issue 1    |                                 |
+| Non-EquiJoin Queries          | 2     | Issue 1    |                                 |
+| Nested Queries                | 2     | Issue 1    |                                 |
+| Order by                      | 2     | Issue 1    |                                 |
+| Predicates With Nulls         | 2     | Issue 1    |                                 |
+| Simple String                 | 2     | Issue 1    |                                 |
+| Tables from Pandas            | 2     | Issue 1    |                                 |
+| Unify Tables                  | 2     | Issue 1    |                                 |
+| Union                         | 2     | Issue 1    |                                 |
+| Limit                         | 2     | Issue 1    |                                 |
+| Where clause                  | 2     | Issue 1    |                                 |
+| Bindable Alias                | 2     | Issue 1    |                                 |
+| Boolean                       | 2     | Issue 1    |                                 |
+| Case                          | 2     | Issue 1    |                                 |
+
+Issue types:
+* Issue 1 (cudf issue)
+```python
+MemoryError: std::bad_alloc --> at File "cudf/_lib/binaryop.pyx" in cudf._lib.binaryop.binaryop
+```
+
+* Issue 2 (cudf issue
+```python
+MemoryError: std::bad_alloc --> at File "cudf/_lib/binaryop.pyx" in cudf._lib.binaryop.binaryop
+distributed.utils - ERROR - CUDA error at: ../include/rmm/mr/device/per_device_resource.hpp:134: cudaErrorCudartUnloading driver shutting down
+RuntimeError: CUDA error at: ../include/rmm/mr/device/per_device_resource.hpp:134: cudaErrorCudartUnloading driver shutting down
+distributed.protocol.core - CRITICAL - Failed to deserialize
+RuntimeError: CUDA error at: ../include/rmm/mr/device/per_device_resource.hpp:134: cudaErrorCudartUnloading driver shutting down
+```
 
 #### e2e single node
 
