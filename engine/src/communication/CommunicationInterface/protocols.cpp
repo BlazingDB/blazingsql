@@ -154,7 +154,7 @@ ucp_tag_t ucx_buffer_transport::generate_message_tag() {
 void ucx_buffer_transport::send_begin_transmission() {
 
 	std::cout<<"sending begin transmission"<<std::endl;
-	std::vector<char> buffer_to_send = make_begin_transmission();
+	std::vector<char> buffer_to_send = detail::serialize_metadata_and_transports(metadata, column_transports);
 
 	std::vector<ucs_status_ptr_t> requests;
 	for(auto const & node : destinations) {
