@@ -179,16 +179,24 @@ python setup.py build_ext install --single-version-externally-managed --record=r
 
 #BEGIN spdlog
 cd $build_dir
-if [ ! -d $spdlog_build_dir ]; then
+if [ ! -d spdlog ]; then
     spdlog_version=v1.x
     git clone --depth 1 https://github.com/gabime/spdlog.git --branch $spdlog_version --single-branch
     cd spdlog/
 
+    mkdir install
+    mkdir build
+    cd build
+
     echo "### Spdlog - cmake ###"
-    cmake -DCMAKE_INSTALL_PREFIX=$tmp_dir .
+    cmake -DCMAKE_INSTALL_PREFIX=$build_dir/spdlog/install ..
 
     echo "### Spdlog - make install ###"
     make -j$MAKEJ install
+
+    mkdir -p $env_prefix/include/spdlog
+    cp -rf $build_dir/spdlog/install/include/spdlog/* $env_prefix/include/spdlog
+    cp -rf $build_dir/spdlog/install/lib64/* $env_prefix/lib64
 fi
 #END spdlog
 
@@ -213,10 +221,14 @@ if [ ! -d dlpack ]; then
     dlpack_version=cudf
     git clone --depth 1 https://github.com/rapidsai/dlpack.git --branch $dlpack_version --single-branch
     cd dlpack
+    mkdir myinstall
     mkdir build
     cd build
-    cmake -DCMAKE_INSTALL_PREFIX=$tmp_dir ..
+    cmake -DCMAKE_INSTALL_PREFIX=$build_dir/dlpack/myinstall ..
     make -j$MAKEJ install
+
+    cp -rf $build_dir/dlpack/myinstall/include/* $env_prefix/include/
+    cp -rf $build_dir/dlpack/myinstall/lib64/* $env_prefix/lib64
 fi
 # END DLPACK
 
