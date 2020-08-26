@@ -112,3 +112,6 @@ RUN chmod 777 /opt/blazingsql-powerpc-prefix/share/doc/
 RUN chmod 777 /opt/blazingsql-powerpc-prefix/share/jupyter/
 RUN chmod 777 /opt/blazingsql-powerpc-prefix/share/man/
 RUN chmod 777 /opt/blazingsql-powerpc-prefix/share/man/man1
+
+# More deps for llvm
+RUN yum install -y patch

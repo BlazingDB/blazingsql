@@ -12,7 +12,33 @@ Before run any command first you need to activate your environment with:
 source PATH_TO_YOUR_ENV_PREFIX/bin/activate
 pip list
 ```
-### Install python dependencies
+### System dependencies
+You must have in your system:
+- git
+- patch
+- bzip2
+- wget
+- gcc/g++ 7.4.0
+- cuda >= 10.1.243
+- make
+- cmake 3.17.3
+- libtool
+- openssh-devel
+- boost 1.66.0
+- zlib-devel
+- python (with pip) 3.7.7
+- flex
+- bison
+- byacc
+- openblas-devel
+- texinfo
+- libjpeg-devel
+- freetype-devel
+- libcurl-devel
+- maven
+- lsf-tools 2.0
+
+### Python dependencies
 ```shell
 pip install -r blazingsql/powerpc/requirements.txt
 ```
