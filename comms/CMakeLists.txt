@@ -177,7 +177,8 @@ include(CheckIncludeFiles)
 include(CheckLibraryExists)
 include(CTest)
 
-find_package(Threads)
+# breaks powerpc (using custom compiler)
+#find_package(Threads)
 
 # TODO jp mario c.gonzales we must use find here!
 #find_package(spdlog REQUIRED)
@@ -239,7 +240,7 @@ add_library(blazingdb-transport SHARED ${SRC_FILES})
 
 set_target_properties(blazingdb-transport PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_link_libraries(blazingdb-transport
-    Threads::Threads
+    pthread
     rmm
     cudart
     cuda
