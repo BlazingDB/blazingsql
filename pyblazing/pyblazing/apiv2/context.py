@@ -1516,6 +1516,9 @@ class BlazingContext(object):
             self.lock.release()
 
     def get_free_memory(self):
+        """
+            TODO: Add Doc here
+        """
         if self.dask_client:
             dask_futures = []
             workers_id = []
