@@ -1,7 +1,6 @@
 # BlazingSQL for PowerPC
 ## Build and install BlazingSQL
 ### System dependencies
-You must have in your system:
 - git
 - patch
 - bzip2
@@ -40,7 +39,7 @@ Then install the python dependencies in your environment:
 pip install -r blazingsql/powerpc/requirements.txt
 ```
 ### Build & install BlazingSQL
-Now just run the build script and pass the folder path to you environment:
+Run the build script and pass your environment folder (prefix path) as argument:
 ```shell
 cd blazingsql/powerpc
 ./build.sh PATH_TO_YOUR_ENV_PREFIX
@@ -54,4 +53,4 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib64/:/usr/local/lib # optio
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:PATH_TO_YOUR_ENV_PREFIX
 export CONDA_PREFIX=PATH_TO_YOUR_ENV_PREFIX
 ```
-Note: We don't need conda, we just export CONDA_PREFIX because in some places the blazingsql uses that env var as default prefix.
+Note: We don't need conda, we just export CONDA_PREFIX because in some places blazingsql uses that env var as default prefix.
