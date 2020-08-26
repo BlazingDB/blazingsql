@@ -279,10 +279,11 @@ fi
 # BEGIN GOLD
 cd $build_dir
 if [ ! -d binutils ]; then
-  binutils_gdb_gold_linker_ld_version=8d7f06359adf0d3da93acec0f0ded9076f54ebdb
+  # this hash was used to make this work
+  #binutils_gdb_gold_linker_ld_version=8d7f06359adf0d3da93acec0f0ded9076f54ebdb
   git clone --depth 1 git://sourceware.org/git/binutils-gdb.git binutils
   cd binutils
-  git checkout $binutils_gdb_gold_linker_ld_version
+  #git checkout $binutils_gdb_gold_linker_ld_version # do not make checkout just build the master branch as is
   ./configure --prefix=$tmp_dir --enable-gold --enable-plugins --disable-werror
   make all-gold -j$MAKEJ
   cp gold/ld-new $tmp_dir/bin/ld
