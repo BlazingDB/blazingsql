@@ -352,7 +352,7 @@ TEST_F(MessageSendReceiveTest, send_receive_test) {
         ASSERT_TRUE(create_ucp_worker_and_ep(true) == 0);
 
         std::map<std::string, comm::node> nodes_info_map;
-        // nodes_info_map.emplace("client", comm::node(0, "client", nullptr, ucp_worker));
+        nodes_info_map.emplace("client", comm::node(0, "client", ucp_conn_ep, ucp_worker));
         nodes_info_map.emplace("server", comm::node(1, "server", ucp_conn_ep, ucp_worker));
         comm::ucp_nodes_info::getInstance().init(nodes_info_map);
 

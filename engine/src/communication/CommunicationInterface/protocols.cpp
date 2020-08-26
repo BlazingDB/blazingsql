@@ -76,7 +76,7 @@ enum class status_code {
 // object so we cna send in our c++ callback via the request
 std::map<int, ucx_buffer_transport *> message_uid_to_buffer_transport;
 
-std::map<void *, std::shared_ptr<status_code>> recv_begin_ack_status_map;
+std::map<ucp_tag_t, std::shared_ptr<status_code>> recv_begin_ack_status_map;
 
 
 void send_begin_callback_c(void * request, ucs_status_t status) {
@@ -97,7 +97,7 @@ void send_begin_callback_c(void * request, ucs_status_t status) {
 
 void recv_begin_ack_callback_c(void * request, ucs_status_t status, ucp_tag_recv_info_t * info) {
 	std::cout<<"recieve_beging_ack_callback"<<std::endl;
-	std::shared_ptr<status_code> status_begin_ack = recv_begin_ack_status_map[request];
+	std::shared_ptr<status_code> status_begin_ack = recv_begin_ack_status_map[info->sender_tag];
 	*status_begin_ack = status_code::OK;
 }
 
@@ -259,19 +259,19 @@ void ucx_buffer_transport::recv_begin_transmission_ack() {
 		}
 	}
 
+	recv_begin_ack_status_map[tag] = recv_begin_status;
 	auto request = ucp_tag_msg_recv_nb(ucp_worker,
 																		recv_begin_status.get(),
 																		info_tag->length,
 																		ucp_dt_make_contig(1),
 																		message_tag,
 																		recv_begin_ack_callback_c);
-	recv_begin_ack_status_map[request] = recv_begin_status;
 
 	if(UCS_PTR_IS_ERR(request)) {
 		// TODO: decide how to do cleanup i think we just throw an initialization exception
 	} else {
 		assert(UCS_PTR_IS_PTR(request));
-    while (*recv_begin_status == status_code::OK) {
+    while (*recv_begin_status != status_code::OK) {
         ucp_worker_progress(ucp_worker);
     }
 
