@@ -39,7 +39,7 @@ RUN ./bootstrap
 RUN make -j`nproc`
 RUN make install
 #RUN rm -rf /tmp/cmake
-ENV CMAKE_ROOT=/usr/share/cmake
+ENV CMAKE_ROOT=/usr/local/share/cmake-3.17/
 
 #### Python ######
 RUN yum install -y libffi-devel zlib zlib-devel
@@ -83,5 +83,11 @@ RUN yum install -y maven
 # lmod (aka system dependencies)
 COPY install-dependencies.sh /opt/install-dependencies.sh
 RUN bash /opt/install-dependencies.sh /opt/blazingsql-powerpc-prefix
+
+# Lmod
+RUN yum install -y Lmod
+RUN mkdir -p /opt/sw/
+COPY modulefiles /opt/modulefiles
+ENV MODULEPATH=/opt/modulefiles/
 
 WORKDIR /app
