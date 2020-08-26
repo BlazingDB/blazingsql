@@ -186,7 +186,9 @@ include(CTest)
 
 find_package(CURL REQUIRED)
 
-find_package(Threads)
+# this breaks powerpc custom compiler
+#find_package(Threads)
+
 find_package(PythonLibs)
 # TODO jp mario c.gonzales we must use find here!
 #find_package(spdlog REQUIRED)
@@ -334,7 +336,8 @@ endif()
 set_target_properties(blazingsql-engine PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_link_libraries(blazingsql-engine
     blazingdb-io
-    Threads::Threads
+    #Threads::Threads
+    pthread
     blazingdb-transport
 
     cudf
