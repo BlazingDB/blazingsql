@@ -333,3 +333,8 @@ error_code_t blazingSetAllocator_C(
 		return E_EXCEPTION;
 	}
 }
+
+size_t getFreeMemory() {
+	size_t total_free_memory = ral::config::gpuFreeMemory();
+	return total_free_memory;
+}

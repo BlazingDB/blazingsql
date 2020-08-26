@@ -24,6 +24,7 @@
 RAISE_ERROR(Initialize)
 RAISE_ERROR(Finalize)
 RAISE_ERROR(BlazingSetAllocator)
+RAISE_ERROR(GetFreeMemory)
 RAISE_ERROR(GetProductDetails)
 RAISE_ERROR(RunQuery)
 RAISE_ERROR(RunSkipData)

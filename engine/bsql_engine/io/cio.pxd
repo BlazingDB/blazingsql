@@ -30,6 +30,7 @@ cdef extern from "../include/engine/errors.h":
     cdef void raiseInitializeError()
     cdef void raiseFinalizeError()
     cdef void raiseBlazingSetAllocatorError()
+    cdef void raiseGetFreeMemoryError()
     cdef void raiseGetProductDetailsError()
     cdef void raiseRunQueryError()
     cdef void raiseRunSkipDataError()
@@ -166,6 +167,7 @@ cdef extern from "../include/engine/initialize.h" nogil:
     cdef void initialize(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options) except +raiseInitializeError
     cdef void finalize() except +raiseFinalizeError
     cdef void blazingSetAllocator(string allocation_mode, size_t initial_pool_size, map[string,string] config_options) except +raiseBlazingSetAllocatorError
+    cdef size_t getFreeMemory() except +raiseGetFreeMemoryError
 
 cdef extern from "../include/engine/static.h" nogil:
     cdef map[string,string] getProductDetails() except +raiseGetProductDetailsError
