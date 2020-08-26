@@ -280,7 +280,8 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libblazingdb-transport.so DESTINATION 
 
 # Install target and headers
 install(TARGETS blazingdb-transport DESTINATION lib)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/blazingdb DESTINATION include/blazingdb)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/blazingdb DESTINATION include/blazingdb FILES_MATCHING PATTERN "*.h")
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/blazingdb DESTINATION include/blazingdb FILES_MATCHING PATTERN "*.hpp")
 
 # Tests
 if(BUILD_TESTING)
