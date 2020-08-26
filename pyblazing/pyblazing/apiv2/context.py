@@ -1518,23 +1518,23 @@ class BlazingContext(object):
     def get_free_memory(self):
         if self.dask_client:
             dask_futures = []
-            #worker = tuple(self.dask_client.scheduler_info()["workers"])[0]
+            workers_id = []
             workers = tuple(self.dask_client.scheduler_info()["workers"])
-            
             for worker_id, worker in enumerate(workers):
-                free_memory =  self.dask_client.submit(
-                                    cio.getFreeMemoryCaller,
-                                    workers=[worker],
-                                )
-                #print(free_memory)  # <Future: pending, key: getFreeMemoryCaller-a0cfba6085d39428105efecdd3dd1336>
-            #result = dask.dataframe.from_delayed(dask_futures)
+                free_memory = self.dask_client.submit(
+                                  cio.getFreeMemoryCaller,
+                                  worker_id,
+                                  workers=[worker],
+                            )
                 dask_futures.append(free_memory)
-                print(len(dask_futures))
-            #return dask.dataframe.from_delayed(dask_futures)
-            return self.dask_client.gather(dask_futures)
+                workers_id.append(worker_id)
+            aslist = self.dask_client.gather(dask_futures)
+            free_memory_dictionary = dict(zip(workers_id, aslist))
+            return free_memory_dictionary
         else:
-            free_memory = cio.getFreeMemoryCaller()
-            return [free_memory ]
+            free_memory_dictionary = {}
+            free_memory_dictionary[0] = cio.getFreeMemoryCaller(0)
+            return free_memory_dictionary
 
     def create_table(self, table_name, input, **kwargs):
         """

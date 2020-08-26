@@ -334,7 +334,7 @@ error_code_t blazingSetAllocator_C(
 	}
 }
 
-size_t getFreeMemory() {
-	size_t total_free_memory = ral::config::gpuFreeMemory();
+size_t getFreeMemory(int gpuId) {
+	size_t total_free_memory = ral::config::gpuFreeMemoryPerDevice(gpuId);
 	return total_free_memory;
 }
