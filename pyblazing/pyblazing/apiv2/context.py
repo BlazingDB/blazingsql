@@ -1525,10 +1525,8 @@ class BlazingContext(object):
             workers = tuple(self.dask_client.scheduler_info()["workers"])
             for worker_id, worker in enumerate(workers):
                 free_memory = self.dask_client.submit(
-                                  cio.getFreeMemoryCaller,
-                                  worker_id,
-                                  workers=[worker],
-                            )
+                    cio.getFreeMemoryCaller, worker_id, workers=[worker],
+                )
                 dask_futures.append(free_memory)
                 workers_id.append(worker_id)
             aslist = self.dask_client.gather(dask_futures)
