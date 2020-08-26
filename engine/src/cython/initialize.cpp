@@ -31,6 +31,7 @@
 #include "communication/network/Client.h"
 #include "communication/network/Server.h"
 #include <bmr/initializer.h>
+#include <bmr/BlazingMemoryResource.h>
 
 #include "error.hpp"
 
@@ -334,7 +335,8 @@ error_code_t blazingSetAllocator_C(
 	}
 }
 
-size_t getFreeMemory(int gpuId) {
-	size_t total_free_memory = ral::config::gpuFreeMemoryPerDevice(gpuId);
+size_t getFreeMemory() {
+	BlazingMemoryResource* resource = &blazing_device_memory_resource::getInstance();
+	size_t total_free_memory = resource->get_total_memory() - resource->get_memory_used();
 	return total_free_memory;
 }

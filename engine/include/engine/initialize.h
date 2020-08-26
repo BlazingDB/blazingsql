@@ -18,7 +18,7 @@ void blazingSetAllocator(
 	std::size_t initial_pool_size,
 	std::map<std::string, std::string> config_options);
 
-size_t getFreeMemory(int gpuId);
+size_t getFreeMemory();
 
 extern "C" {
 

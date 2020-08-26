@@ -132,9 +132,9 @@ cdef void blazingSetAllocatorPython(string allocation_mode, size_t initial_pool_
     with nogil:
         cio.blazingSetAllocator(allocation_mode, initial_pool_size, config_options)
 
-cdef size_t getFreeMemoryPython(int gpuId) nogil except *:
+cdef size_t getFreeMemoryPython() nogil except *:
     with nogil:
-        return cio.getFreeMemory(gpuId)
+        return cio.getFreeMemory()
 
 cdef map[string, string] getProductDetailsPython() nogil except *:
     with nogil:
@@ -185,8 +185,8 @@ cpdef finalizeCaller():
 cpdef blazingSetAllocatorCaller(string allocation_mode, size_t initial_pool_size, map[string,string] config_options):
     blazingSetAllocatorPython(allocation_mode, initial_pool_size, config_options)
 
-cpdef getFreeMemoryCaller(int gpuId):
-    return getFreeMemoryPython(gpuId)
+cpdef getFreeMemoryCaller():
+    return getFreeMemoryPython()
 
 cpdef getProductDetailsCaller():
     my_map = getProductDetailsPython()

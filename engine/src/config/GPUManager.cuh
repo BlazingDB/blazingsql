@@ -8,7 +8,6 @@ namespace ral {
 namespace config {
 
 size_t gpuFreeMemory();
-size_t gpuFreeMemoryPerDevice(int currentDeviceId);
 size_t gpuTotalMemory();
 size_t gpuUsedMemory();
 

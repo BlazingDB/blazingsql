@@ -1519,13 +1519,14 @@ class BlazingContext(object):
         """
             TODO: Add Doc here
         """
+
         if self.dask_client:
             dask_futures = []
             workers_id = []
             workers = tuple(self.dask_client.scheduler_info()["workers"])
             for worker_id, worker in enumerate(workers):
                 free_memory = self.dask_client.submit(
-                    cio.getFreeMemoryCaller, worker_id, workers=[worker],
+                    cio.getFreeMemoryCaller, workers=[worker],
                 )
                 dask_futures.append(free_memory)
                 workers_id.append(worker_id)
@@ -1534,7 +1535,7 @@ class BlazingContext(object):
             return free_memory_dictionary
         else:
             free_memory_dictionary = {}
-            free_memory_dictionary[0] = cio.getFreeMemoryCaller(0)
+            free_memory_dictionary[0] = cio.getFreeMemoryCaller()
             return free_memory_dictionary
 
     def create_table(self, table_name, input, **kwargs):
