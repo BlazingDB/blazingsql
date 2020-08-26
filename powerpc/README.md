@@ -1,17 +1,5 @@
 # BlazingSQL for PowerPC
 ## Build and install BlazingSQL
-### Setup the environment
-Using regular python you just need to make sure that you have an environment.
-If you don't have an environment you can create it with:
-```shell
-python -m venv PATH_TO_YOUR_ENV_PREFIX
-```
-Before run any command first you need to activate your environment with:
-
-```shell
-source PATH_TO_YOUR_ENV_PREFIX/bin/activate
-pip list
-```
 ### System dependencies
 You must have in your system:
 - git
@@ -37,8 +25,17 @@ You must have in your system:
 - libcurl-devel
 - maven
 - lsf-tools 2.0
-
-### Python dependencies
+### Setup the environment
+Using regular python you just need to make sure that you have an environment.
+If you don't have an environment you can create it with:
+```shell
+python -m venv PATH_TO_YOUR_ENV_PREFIX
+```
+Before run any command first you need to activate your environment with:
+```shell
+source PATH_TO_YOUR_ENV_PREFIX/bin/activate
+```
+Then install the python dependencies in your environment:
 ```shell
 pip install -r blazingsql/powerpc/requirements.txt
 ```
