@@ -47,11 +47,11 @@ cd blazingsql/powerpc
 ```
 After the process finish you will have BlazingSQL installed and ready in your environment.
 ## Use BlazingSQL
-For now we need to export some env vars before run a python with blazingsql:
+For now we need to export some env vars before run python with blazingsql:
 ```shell
 export JAVA_HOME=/usr/lib/jvm/jre
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib64/:/usr/local/lib # optional
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:PATH_TO_YOUR_ENV_PREFIX
 export CONDA_PREFIX=PATH_TO_YOUR_ENV_PREFIX
 ```
-Note: We don't need conda, we just export CONDA_PREFIX because in some places the blazingsql build system uses that env var as default prefix.
+Note: We don't need conda, we just export CONDA_PREFIX because in some places the blazingsql uses that env var as default prefix.
