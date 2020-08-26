@@ -3,33 +3,33 @@
 To develop and improve the build.sh you can use a custom docker based on CentOS and run from there the commands to build BlazingSQL without conda.
 
 ### Docker
-Building docker image for build:
+Building docker image for build (always run from the root directory blazingsql):
 ```shell
-cd blazingsql/powerpc
+cd blazingsql
 ./docker-build.sh
 ```
 
 Run a container
 ```
-cd blazingsql/powerpc
+cd blazingsql
 docker run -ti --rm blazingdb/build:powerpc bash
 ```
 
 Run a container with volume
 ```
-cd blazingsql/powerpc
+cd blazingsql
 docker run -ti -v $PWD:/app --rm blazingdb/build:powerpc bash
 ```
 
 Run a container with gpu
 ```
-cd blazingsql/powerpc
+cd blazingsql
 docker run -ti -v $PWD:/app --gpus=all --rm blazingdb/build:powerpc bash
 ```
 
 Run a container with gpu and same user
 ```
-cd blazingsql/powerpc
+cd blazingsql
 docker run -u $(id -u):$(id -g) -ti -v /etc/passwd:/etc/passwd -v $PWD:/app --gpus=all --rm blazingdb/build:powerpc bash
 ```
 

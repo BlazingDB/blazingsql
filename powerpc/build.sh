@@ -2,6 +2,9 @@
 
 env_prefix=$1
 
+# NOTE always run this script from blazingsql root folder
+blazingsql_project_root_dir=$PWD
+
 set -e
 
 alias python=python3
@@ -32,12 +35,13 @@ echo "CUDACXX="$CUDACXX
 echo "MAKEJ="$MAKEJ
 echo "MAKEJ_CUDF="$MAKEJ_CUDF
 echo "PATH="$PATH
-export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64:/usr/local/nvidia/lib:/usr/local/nvidia/lib64
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib:/usr/local/lib64:/usr/local/nvidia/lib:/usr/local/nvidia/lib64
 echo "LD_LIBRARY_PATH="$LD_LIBRARY_PATH
 #C_INCLUDE_PATH=/app/tmp/include/
 #CPLUS_INCLUDE_PATH=/app/tmp/include/
 echo "CPLUS_INCLUDE_PATH="$CPLUS_INCLUDE_PATH
 echo "build_dir="$build_dir
+echo "blazingsql_project_root_dir=$blazingsql_project_root_dir"
 
 mkdir -p $build_dir
 
@@ -235,6 +239,13 @@ fi
 # BEGIN CUDF c++
 cd $build_dir
 
+export GPU_ARCH="-DGPU_ARCHS=ALL"
+export BUILD_NVTX=ON
+export BUILD_BENCHMARKS=OFF
+export BUILD_DISABLE_DEPRECATION_WARNING=ON
+export BUILD_PER_THREAD_DEFAULT_STREAM=OFF
+export ARROW_ROOT=$tmp_dir
+
 if [ ! -d cudf ]; then
     cd $build_dir
     echo "### Cudf ###"
@@ -248,13 +259,6 @@ if [ ! -d cudf ]; then
     #cmake -D GPU_ARCHS=70 -DBUILD_TESTS=ON -DCMAKE_INSTALL_PREFIX=$tmp_dir -DCMAKE_CXX11_ABI=ON ./cpp
     #echo "make"
     #make -j4 install
-
-    export GPU_ARCH="-DGPU_ARCHS=ALL"
-    export BUILD_NVTX=ON
-    export BUILD_BENCHMARKS=OFF
-    export BUILD_DISABLE_DEPRECATION_WARNING=ON
-    export BUILD_PER_THREAD_DEFAULT_STREAM=OFF
-    export ARROW_ROOT=$tmp_dir
 
     cd cpp
     mkdir -p build
@@ -374,7 +378,7 @@ if [ ! -d cupy ]; then
 fi
 # END CUPY
 
-export CUDF_ROOT=$tmp_dir/build/cudf/cpp/build
+export CUDF_ROOT=$build_dir/cudf/cpp/build
 
 # TODO Mario percy the user will need to do this ... for now
 # add arrow libs to the lib path for arrow and pycudf
@@ -436,7 +440,7 @@ if [ ! -d googletest ]; then
   git clone --depth 1 https://github.com/google/googletest.git --branch $googletest_version --single-branch
   cd googletest
   mkdir build
-  cd /build
+  cd build
   cmake -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=$tmp_dir ..
   make -j$MAKEJ install
 fi
@@ -473,25 +477,25 @@ fi
 # ENDzmq
 
 # BEGIN blazingsql
-cd $build_dir
-if [ ! -d blazingsql ]; then
-    cd $build_dir
-    git clone https://github.com/aucahuasi/blazingsql.git
-    cd blazingsql
-    #git checkout branch-$cudf_version
-    git checkout feature/powerpc
-    git pull
-    export INSTALL_PREFIX=$tmp_dir
-    export BOOST_ROOT=$tmp_dir
-    export ARROW_ROOT=$tmp_dir
-    export RMM_ROOT=$tmp_dir
-    export DLPACK_ROOT=$tmp_dir
-    export CONDA_PREFIX=$tmp_dir
-    export CUDF_HOME=$build_dir/cudf/
-    export CUDF_ROOT=$tmp_dir
-    ./build.sh -t disable-aws-s3 disable-google-gs
-fi
+cd $blazingsql_project_root_dir
+#cd $build_dir
+#git clone https://github.com/aucahuasi/blazingsql.git
+#cd blazingsql
+#git checkout feature/powerpc
+#git pull
+export INSTALL_PREFIX=$tmp_dir
+export BOOST_ROOT=$tmp_dir
+export ARROW_ROOT=$tmp_dir
+export RMM_ROOT=$tmp_dir
+export DLPACK_ROOT=$tmp_dir
+export CONDA_PREFIX=$tmp_dir
+export CUDF_HOME=$build_dir/cudf/
+export THRIFT_INSTALL_DIR=$build_dir/arrow/cpp/build/thrift_ep-install/lib
+export SNAPPY_INSTALL_DIR=$build_dir/arrow/cpp/build/snappy_ep/src/snappy_ep-install/lib
+export LZ4_INSTALL_DIR=$build_dir/arrow/cpp/build/lz4_ep-prefix/src/lz4_ep/lib
+
+./build.sh -t disable-aws-s3 disable-google-gs
 
 # END blazingsql
 
-echo "end before"
+echo "FINISH: Your env $env_prefix has blazingsql and cudf"
