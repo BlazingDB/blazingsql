@@ -44,6 +44,28 @@ mkdir -p $build_dir
 export CUDA_HOME=/usr/local/cuda/
 export CUDACXX=$CUDA_HOME/bin/nvcc
 
+#BEGIN zstd
+cd $build_dir
+
+if [ ! -d zstd ]; then
+    echo "### Zstd - Start ###"
+    zstd_version=v1.4.3 # same version used by arrow_version https://github.com/apache/arrow/blob/maint-0.17.x/cpp/thirdparty/versions.txt#L53
+    git clone --depth 1 https://github.com/facebook/zstd.git --branch $zstd_version --single-branch
+    cd zstd/
+    echo "### Zstd - cmake ###"
+
+    cd build/cmake/
+    mkdir build
+    cd build
+    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=$tmp_dir ..
+    make -j$MAKEJ install
+    echo "### Zstd - End ###"
+fi
+
+export ZSTD_HOME=$tmp_dir
+
+#END zstd
+
 #BEGIN arrow
 
 cd $build_dir
@@ -111,9 +133,19 @@ if [ ! -d arrow ]; then
 
     run_cmake_for_arrow $tmp_dir
     
+    # NOTE 1) this will fail
+    echo "---->>>> BUILD ARROW (1st time)"
     make -j$MAKEJ install
     
-    echo "### Arrow - make install ###"
+    # NOTE 2) we need to apply some patches
+    echo "---->>>> APPLY PATCHES TO ARROW"
+    cd $build_dir/arrow/cpp/build/orc_ep-prefix/src/orc_ep/cmake_modules/
+    ln -s FindZSTD.cmake Findzstd.cmake
+    sed -i '1 i\set(ZSTD_STATIC_LIB_NAME libzstd.a)' FindZSTD.cmake
+
+    # NOTE 3) run again
+    echo "---->>>> TRY TO BUILD ARROW AGAIN"
+    cd $build_dir/arrow/cpp/build
     make -j$MAKEJ install
 
     echo "### Arrow - end ###"
@@ -140,8 +172,7 @@ export PYARROW_WITH_FLIGHT=0
 export PYARROW_WITH_S3=0
 export PYARROW_WITH_HDFS=0
 
-
-cd $arrow_build_dir/arrow/python
+cd $build_dir/arrow/python
 python setup.py build_ext install --single-version-externally-managed --record=record.txt
 
 # END pyarrow
@@ -380,7 +411,7 @@ fi
 # END dask-cuda
 
 # BEGIN dask-cudf
-cd $tmp_dir/build/cudf/python/dask_cudf
+cd $build_dir/cudf/python/dask_cudf
 python setup.py install --single-version-externally-managed --record=record.txt
 # END dask-cudf
 
@@ -443,7 +474,7 @@ if [ ! -d blazingsql ]; then
     export RMM_ROOT=$tmp_dir
     export DLPACK_ROOT=$tmp_dir
     export CONDA_PREFIX=$tmp_dir
-    export CUDF_HOME=$tmp_dir/build/blazingsql/thirdparty/cudf/
+    export CUDF_HOME=$build_dir/cudf/
     export CUDF_ROOT=$tmp_dir
     ./build.sh -t disable-aws-s3 disable-google-gs
 fi

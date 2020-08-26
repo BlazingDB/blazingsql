@@ -91,3 +91,24 @@ COPY modulefiles /opt/modulefiles
 ENV MODULEPATH=/opt/modulefiles/
 
 WORKDIR /app
+
+# More utils
+RUN yum install -y tree
+
+RUN chmod 777 /opt
+RUN chmod 777 /opt/blazingsql-powerpc-prefix
+RUN chmod 777 /opt/blazingsql-powerpc-prefix/bin
+RUN chmod 777 /opt/blazingsql-powerpc-prefix/lib
+#RUN chmod 777 /opt/blazingsql-powerpc-prefix/lib/pkgconfig/
+RUN chmod 777 /opt/blazingsql-powerpc-prefix/lib/python3.7/
+RUN chmod 777 /opt/blazingsql-powerpc-prefix/lib/python3.7/site-packages/
+RUN chmod 777 /opt/blazingsql-powerpc-prefix/lib64
+#RUN chmod 777 /opt/blazingsql-powerpc-prefix/lib64/pkgconfig/
+RUN chmod 777 /opt/blazingsql-powerpc-prefix/include
+RUN chmod 777 /opt/blazingsql-powerpc-prefix/etc
+RUN chmod 777 /opt/blazingsql-powerpc-prefix/share
+RUN chmod 777 /opt/blazingsql-powerpc-prefix/share/cysignals/
+RUN chmod 777 /opt/blazingsql-powerpc-prefix/share/doc/
+RUN chmod 777 /opt/blazingsql-powerpc-prefix/share/jupyter/
+RUN chmod 777 /opt/blazingsql-powerpc-prefix/share/man/
+RUN chmod 777 /opt/blazingsql-powerpc-prefix/share/man/man1
