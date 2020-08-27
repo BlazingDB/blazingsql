@@ -33,12 +33,12 @@ get_metadata_and_transports_from_bytes(std::vector<char> data){
     size_t ptr_offset = 0;
 	size_t metadata_buffer_size = from_byte_vector<size_t>(data.data());
 	ptr_offset += sizeof(size_t);
-
+std::cout<<"before metadata_buffer: " <<data.size() << " ptr_offset:  "<< ptr_offset<< " metadata_buffer_size "<< metadata_buffer_size <<std::endl;
 	std::string metadata_buffer(
 		data.data() + ptr_offset,
 		data.data() + ptr_offset + metadata_buffer_size);
 
-  std::cout<<"metadata buffer is"<<metadata_buffer<<std::endl;
+  std::cout<<"metadata buffer size is : "<<metadata_buffer.size()<<std::endl;
 	ptr_offset += metadata_buffer_size;
 	ral::cache::MetadataDictionary dictionary;
 	for(auto metadata_item : StringUtil::split(metadata_buffer,"\n")){
