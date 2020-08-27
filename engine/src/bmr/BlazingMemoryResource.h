@@ -45,7 +45,7 @@ public:
     {
 		total_memory_size = ral::config::gpuTotalMemory();
         // TODO: cordova remove this line
-        std::cout << " Al empezar, total_memory_size: " total_memory_size << std::endl;
+        std::cout << " Al empezar, total_memory_size: " << total_memory_size << std::endl;
 		used_memory = 0;
 
         if (total_memory_size <= initial_pool_size) {
@@ -69,7 +69,7 @@ public:
         } 
 
         memory_limit = custom_threshold * total_memory_size;
-        std::cout << " Despues del threshold, memory_limit: " memory_limit << std::endl;
+        std::cout << " Despues del threshold, memory_limit: " <<  memory_limit << std::endl;
 	}
 
 	virtual ~internal_blazing_device_memory_resource() = default;

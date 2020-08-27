@@ -338,7 +338,7 @@ error_code_t blazingSetAllocator_C(
 size_t getFreeMemory() {
 	// BY default all get the 0 ?? 
 	BlazingMemoryResource* resource = &blazing_device_memory_resource::getInstance();
-	size_t total_free_memory = resource->get_limit_memory() - resource->get_memory_used();
+	size_t total_free_memory = resource->get_memory_limit() - resource->get_memory_used();
 	//size_t total_free_memory = resource->get_total_memory() - resource->get_memory_used();
 	return total_free_memory;
 }
