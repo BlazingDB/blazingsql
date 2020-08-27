@@ -71,9 +71,16 @@ if not os.path.isfile(jvm_path):
     jvm_path = os.environ[the_java_home] + "/lib/server/libjvm.so"
     if machine_processor == "amd64":
         if not os.path.isfile(jvm_path):
-            jvm_path = java_home_path + "/jre/lib/" + machine_processor + "/server/libjvm.so"
+            jvm_path = (
+                java_home_path + "/jre/lib/" + machine_processor + "/server/libjvm.so"
+            )
     elif machine_processor in ("ppc64", "ppc64le"):
-        jvm_path = os.environ[the_java_home] + "/lib/" + machine_processor + "/default/libjvm.so"
+        jvm_path = (
+            os.environ[the_java_home]
+            + "/lib/"
+            + machine_processor
+            + "/default/libjvm.so"
+        )
 
 jpype.startJVM("-ea", convertStrings=False, jvmpath=jvm_path)
 
@@ -2449,7 +2456,9 @@ class BlazingContext(object):
                     self.dask_client.submit(
                         collectPartitionsRunQuery,
                         masterIndex,
-                        [self.nodes[0],],
+                        [
+                            self.nodes[0],
+                        ],
                         nodeTableList[0],
                         table_scans,
                         fileTypes,
