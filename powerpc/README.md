@@ -1,6 +1,7 @@
 # BlazingSQL for PowerPC
 ## Build and install BlazingSQL
 ### System dependencies
+You need these dependencies, they can be provided by OS package system (e.g. apt/deb, yum/rpm, etc.) or other external package system (e.g. Lmod)
 - git
 - patch
 - bzip2
@@ -38,14 +39,17 @@ Then install the python dependencies in your environment:
 ```shell
 pip install -r blazingsql/powerpc/requirements.txt
 ```
+Note: All the python dependencies in *requirements.txt* are just simple python packages that doesn't need any gcc/c++ compilation, i.e. they are only pure python packages.
 ### Build & install BlazingSQL
 Run the build script and pass your environment folder (prefix path) as argument:
 ```shell
 cd blazingsql
 bash powerpc/build.sh PATH_TO_YOUR_ENV_PREFIX
 ```
-Note that you need to run the build process from the root directory of the project: *blazingsql*
-After the process finish you will have BlazingSQL installed and ready in your environment.
+Notes:
+* You need to run the build process from the root directory of the project: *blazingsql*
+* After the process finish you will have BlazingSQL installed and ready in your environment.
+* This build process will install cudf and its dependencies (dask-cudf, arrow, etc.), llvm, compiled python packages like (llvmlite, cupy, etc.) and blazingsql.
 ## Use BlazingSQL
 For now we need to export some env vars before run python with blazingsql:
 ```shell
