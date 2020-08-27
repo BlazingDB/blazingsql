@@ -153,7 +153,7 @@ cdef extern from "../include/engine/engine.h" nogil:
         cdef struct NodeMetaDataTCP:
             string ip
             int communication_port
-        unique_ptr[PartitionedResultSet] runQuery(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[string] tableScans, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken, vector[vector[map[string,string]]] uri_values_cpp, map[string,string] config_options) except +raiseRunQueryError
+        unique_ptr[PartitionedResultSet] runQuery(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[string] tableScans, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken, vector[vector[map[string,string]]] uri_values_cpp, map[string,string] config_options) except +
         unique_ptr[ResultSet] runSkipData(BlazingTableView metadata, vector[string] all_column_names, string query) except +raiseRunSkipDataError
 
         cdef struct TableScanInfo:

@@ -205,7 +205,8 @@ void distributeTablePartitions(Context * context, std::vector<NodeColumnView> & 
 	if (it != config_options.end()){
 		max_message_threads = std::stoi(config_options["MAX_SEND_MESSAGE_THREADS"]);
 	}
-	ctpl::thread_pool<BlazingThread> threads(max_message_threads);
+	ctpl::thread_pool<BlazingThread> pool(max_message_threads);
+	std::vector<std::future<void>> futures;
 	for (auto i = 0; i < partitions.size(); i++){
 		auto & nodeColumn = partitions[i];
 		if(nodeColumn.first == self_node) {
@@ -217,12 +218,22 @@ void distributeTablePartitions(Context * context, std::vector<NodeColumnView> & 
 			auto destination_node = nodeColumn.first;
 			int partition_id = part_ids.size() > i ? part_ids[i] : 0; // if part_ids is not set, then it does not matter and we can just use 0 as the partition_id
 
-			threads.push(([message_id, context_token, self_node, destination_node, columns, partition_id](int thread_id) mutable {
+			futures.push_back(pool.push(([message_id, context_token, self_node, destination_node, columns, partition_id](int thread_id) mutable {
 				auto message = Factory::createColumnDataPartitionMessage(message_id, context_token, self_node, partition_id, columns);
 				Client::send(destination_node, *message);
-			}));
+			})));
 		}
 	}	
+	// Lets iterate through the futures to check for exceptions
+	for(int i = 0; i < futures.size(); i++){
+		try {
+			futures[i].get();
+		} catch (const std::exception& e) {
+			throw;		
+		}
+	}
+	// lets wait untill all tasks are done
+	pool.stop(true);
 }
 
 void notifyLastTablePartitions(Context * context, std::string message_id) {
@@ -256,18 +267,29 @@ void distributePartitions(Context * context, std::vector<NodeColumnView> & parti
 	if (it != config_options.end()){
 		max_message_threads = std::stoi(config_options["MAX_SEND_MESSAGE_THREADS"]);
 	}
-	ctpl::thread_pool<BlazingThread> threads(max_message_threads);
+	ctpl::thread_pool<BlazingThread> pool(max_message_threads);
+	std::vector<std::future<void>> futures;
 	for(auto & nodeColumn : partitions) {
 		if(nodeColumn.first == self_node) {
 			continue;
 		}
 		BlazingTableView columns = nodeColumn.second;
 		auto destination_node = nodeColumn.first;
-		threads.push(([message_id, context_token, self_node, destination_node, columns](int thread_id) mutable {
+		futures.push_back(pool.push(([message_id, context_token, self_node, destination_node, columns](int thread_id) mutable {
 			auto message = Factory::createColumnDataMessage(message_id, context_token, self_node, columns);
 			Client::send(destination_node, *message);
-		}));
+		})));
 	}
+	// Lets iterate through the futures to check for exceptions
+	for(int i = 0; i < futures.size(); i++){
+		try {
+			futures[i].get();
+		} catch (const std::exception& e) {
+			throw;		
+		}
+	}
+	// lets wait untill all tasks are done
+	pool.stop(true);
 }
 
 std::vector<NodeColumn> collectPartitions(Context * context) {
@@ -367,7 +389,7 @@ std::unique_ptr<BlazingTable> getPivotPointsTable(cudf::size_type number_partiti
 }
 
 void broadcastMessage(Context * context, std::vector<Node> nodes,
-			std::shared_ptr<communication::messages::Message> message) {
+	std::shared_ptr<communication::messages::Message> message) {
 	
 	int max_message_threads = 20;
 	std::map<std::string, std::string> config_options = context->getConfigOptions();
@@ -375,13 +397,24 @@ void broadcastMessage(Context * context, std::vector<Node> nodes,
 	if (it != config_options.end()){
 		max_message_threads = std::stoi(config_options["MAX_SEND_MESSAGE_THREADS"]);
 	}
-	ctpl::thread_pool<BlazingThread> threads(max_message_threads);
+	ctpl::thread_pool<BlazingThread> pool(max_message_threads);
+	std::vector<std::future<void>> futures;
 	for(size_t i = 0; i < nodes.size(); i++) {
 		Node node = nodes[i];
-		threads.push([node, message](int thread_id) {
+		futures.push_back(pool.push([node, message](int thread_id) {
 			Client::send(node, *message);
-		});
-	}	
+		}));
+	}
+	// Lets iterate through the futures to check for exceptions
+	for(int i = 0; i < futures.size(); i++){
+		try {
+			futures[i].get();
+		} catch (const std::exception& e) {
+			throw;		
+		}
+	}
+	// lets wait untill all tasks are done
+	pool.stop(true);
 }
 
 void distributeNumRows(Context * context, int64_t num_rows) {
