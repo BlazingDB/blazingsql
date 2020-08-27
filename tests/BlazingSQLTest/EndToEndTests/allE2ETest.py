@@ -56,6 +56,7 @@ from EndToEndTests import unionTest as unionTest
 from EndToEndTests import useLimitTest
 from EndToEndTests import whereClauseTest as whereClauseTest
 from EndToEndTests import wildCardTest
+from EndToEndTests import messageValidationTest
 from pynvml import nvmlInit
 from Runner import runTest
 from Utils import Execution, init_context
@@ -70,7 +71,6 @@ def main():
 
     drill = "drill"
     spark = "spark"
-
     compareResults = True
     if "compare_results" in Settings.data["RunSettings"]:
         compareResults = Settings.data["RunSettings"]["compare_results"]
@@ -231,6 +231,9 @@ def main():
 
     if runAllTests or ("fileSystemLocalTest" in targetTestGroups):
         fileSystemLocalTest.main(dask_client, drill, dir_data_file, bc, nRals)
+
+    if runAllTests or ("messageValidationTest" in targetTestGroups):
+        messageValidationTest.main(dask_client, drill, dir_data_file, bc, nRals) 
 
     if Settings.execution_mode != ExecutionMode.GPUCI:
         if runAllTests or ("fileSystemS3Test" in targetTestGroups):

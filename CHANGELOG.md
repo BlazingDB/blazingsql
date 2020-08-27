@@ -23,16 +23,19 @@
 - #887 concatenating cache improvement and replacing PartwiseJoin::load_set with a concatenating cache
 - #885 Added initial set of unit tests for `WaitingQueue` and nullptr checks around spdlog calls
 - #904 Added doxygen comments to CacheMachine.h
-- #901 Added more documentation about memory management 
-- #910 updated readme 
+- #901 Added more documentation about memory management
+- #910 updated readme
 - #915 Adding max kernel num threads pool
 - #921 Make AWS and GCS optional
 - #925 Replace random_generator with cudf::sample
 - #900 Added doxygen comments to some kernels and the batch processing
 - #936 Adding extern C for include files
 - #941 Logging level (flush_on) can be configurable
+- #947 Use default client and network interface from Dask
 - #945 Added new separate thresh for concat cache 
-
+- #939 Add unit test for Project kernel
+- #949 Implemented using threadpool for outgoing messages 
+- #961 Add list_tables() and describe_table() functions
 
 
 ## Bug Fixes
@@ -67,6 +70,12 @@
 - #927 Fixed random segfault issue in parser
 - #929 Update the GPUManager functions
 - #942 Fix column names on sample function
+- #950 Introducing config param for max orderby samples and fixing oversampling 
+- #952 Dummy PR
+- #957 Fixed issues caused by changes to timespamp in cudf
+- #962 Use new rmm API instead of get_device_resource() and set_device_resource() functions
+- #965 Handle exceptions from pool_threads
+- #963 Set log_level when using LOGGING_LEVEL param
 
 
 # BlazingSQL 0.14.0 (June 9, 2020)
@@ -114,4 +123,5 @@
 - #828 Fix gpuci issues and improve tooling to debug gpuci related issues
 - #867 Fix boost dependencie issues
 - #785 Add script for Manual Testing Artifacts.
+- #931 Add script for error messages validation.
 - #932 Import pydrill and pyspark only when its generator or full mode.

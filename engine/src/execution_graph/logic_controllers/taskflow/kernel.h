@@ -39,12 +39,14 @@ public:
 		std::shared_ptr<spdlog::logger> kernels_logger;
 		kernels_logger = spdlog::get("kernels_logger");
 
-		kernels_logger->info("{ral_id}|{query_id}|{kernel_id}|{is_kernel}|{kernel_type}",
+		if(kernels_logger != nullptr) {
+			kernels_logger->info("{ral_id}|{query_id}|{kernel_id}|{is_kernel}|{kernel_type}",
 								"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
 								"query_id"_a=(this->context ? std::to_string(this->context->getContextToken()) : "null"),
 								"kernel_id"_a=this->get_id(),
 								"is_kernel"_a=1, //true
 								"kernel_type"_a=get_kernel_type_name(this->get_type_id()));
+		}
 	}
 
 	/**
@@ -144,7 +146,8 @@ public:
 
 		cacheEventTimer.stop();
 
-		cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+		if(cache_events_logger != nullptr) {
+			cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
 						"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
 						"query_id"_a=context->getContextToken(),
 						"source"_a=this->get_id(),
@@ -154,6 +157,7 @@ public:
 						"event_type"_a="addCache",
 						"timestamp_begin"_a=cacheEventTimer.start_time(),
 						"timestamp_end"_a=cacheEventTimer.end_time());
+		}
 	}
 
 	/**
@@ -177,7 +181,8 @@ public:
 
 		cacheEventTimer.stop();
 
-		cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+		if(cache_events_logger != nullptr) {
+			cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
 						"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
 						"query_id"_a=context->getContextToken(),
 						"source"_a=this->get_id(),
@@ -187,6 +192,7 @@ public:
 						"event_type"_a="addCache",
 						"timestamp_begin"_a=cacheEventTimer.start_time(),
 						"timestamp_end"_a=cacheEventTimer.end_time());
+		}
 	}
 
 	/**
@@ -210,7 +216,8 @@ public:
 
 		cacheEventTimer.stop();
 
-		cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+		if(cache_events_logger != nullptr) {
+			cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
 						"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
 						"query_id"_a=context->getContextToken(),
 						"source"_a=this->get_id(),
@@ -220,6 +227,7 @@ public:
 						"event_type"_a="addCache",
 						"timestamp_begin"_a=cacheEventTimer.start_time(),
 						"timestamp_end"_a=cacheEventTimer.end_time());
+		}
 	}
 
 	/**

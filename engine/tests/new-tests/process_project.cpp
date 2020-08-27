@@ -350,7 +350,7 @@ TEST_F(ProjectTestString, test_cast_to_string)
     cudf::test::fixed_width_column_wrapper<bool> col1{{true, false, true, true, true, false, false, true, false, false}};
     cudf::test::fixed_width_column_wrapper<int32_t> col2{{1, 5, 10, 15, 100, 500, 1000, 5000, 10000, 999999}};
     cudf::test::fixed_width_column_wrapper<double> col3{{1.0, 5.5, 10.00003, 15.45, 100.656, 500.756756, 0.45435436, 0.0000324, 0.1, 999999.001}};
-    cudf::test::fixed_width_column_wrapper<cudf::timestamp_s> col4{{0, 10, 2600, 89260, 579500, 6834000, 86796400, 135768000, 715360000, 1230720000}};
+    cudf::test::fixed_width_column_wrapper<cudf::timestamp_s, cudf::timestamp_s::rep> col4{{0, 10, 2600, 89260, 579500, 6834000, 86796400, 135768000, 715360000, 1230720000}};
   
     cudf::table_view in_table_view {{col1, col2, col3, col4}};
     std::unique_ptr<CudfTable> cudf_table = std::make_unique<CudfTable>(in_table_view);
@@ -387,17 +387,17 @@ TEST_F(ProjectTestString, test_cast_from_string)
 
     cudf::test::fixed_width_column_wrapper<int32_t> expected_col1{{1, 5, 10, 15, 100, 500, 1000, 5000, 10000, 999999}};
     cudf::test::fixed_width_column_wrapper<double> expected_col2{{1.0, 5.5, 10.00003, 15.45, 100.656, 500.756756, 0.45435436, 0.0000324, 0.1, 999999.001}};
-    cudf::test::fixed_width_column_wrapper<cudf::timestamp_ns> expected_col3{{
-        cudf::timestamp_ns{cudf::timestamp_s{0}},
-        cudf::timestamp_ns{cudf::timestamp_s{10}},
-        cudf::timestamp_ns{cudf::timestamp_s{2600}},
-        cudf::timestamp_ns{cudf::timestamp_s{89260}},
-        cudf::timestamp_ns{cudf::timestamp_s{579500}},
-        cudf::timestamp_ns{cudf::timestamp_s{6834000}},
-        cudf::timestamp_ns{cudf::timestamp_s{86796400}},
-        cudf::timestamp_ns{cudf::timestamp_s{135768000}},
-        cudf::timestamp_ns{cudf::timestamp_s{715360000}},
-        cudf::timestamp_ns{cudf::timestamp_s{1230720000}}}};
+    cudf::test::fixed_width_column_wrapper<cudf::timestamp_ns, cudf::timestamp_ns::rep> expected_col3{{
+        0L,
+        10000000000L,
+        2600000000000L,
+        89260000000000L,
+        579500000000000L,
+        6834000000000000L,
+        86796400000000000L,
+        135768000000000000L,
+        715360000000000000L,
+        1230720000000000000L }};
     cudf::table_view expected_table_view {{expected_col1, expected_col2, expected_col3}};
 
     cudf::test::expect_tables_equivalent(expected_table_view, out_table->view());

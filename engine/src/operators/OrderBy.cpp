@@ -154,7 +154,7 @@ std::unique_ptr<ral::frame::BlazingTable> sort(const ral::frame::BlazingTableVie
 	return logicalSort(table, sortColIndices, sortOrderTypes);
 }
 
-std::unique_ptr<ral::frame::BlazingTable> sample(const ral::frame::BlazingTableView & table, const std::string & query_part){
+std::unique_ptr<ral::frame::BlazingTable> sample(const ral::frame::BlazingTableView & table, const std::string & query_part, float samples_ratio){
 	std::vector<cudf::order> sortOrderTypes;
 	std::vector<int> sortColIndices;
 	cudf::size_type limitRows;
@@ -165,7 +165,7 @@ std::unique_ptr<ral::frame::BlazingTable> sample(const ral::frame::BlazingTableV
   std::transform(sortColIndices.begin(), sortColIndices.end(), sortColNames.begin(), [&](auto index) { return tableNames[index]; });
 
 	std::random_device rd;
-	auto samples = cudf::sample(table.view().select(sortColIndices), std::ceil(table.num_rows() * 0.1), cudf::sample_with_replacement::FALSE, rd());
+	auto samples = cudf::sample(table.view().select(sortColIndices), std::ceil(table.num_rows() * samples_ratio), cudf::sample_with_replacement::FALSE, rd());
 
 	return std::make_unique<ral::frame::BlazingTable>(std::move(samples), sortColNames);
 }

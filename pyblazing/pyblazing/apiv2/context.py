@@ -71,6 +71,15 @@ BlazingSchemaClass = jpype.JClass("com.blazingdb.calcite.schema.BlazingSchema")
 RelationalAlgebraGeneratorClass = jpype.JClass(
     "com.blazingdb.calcite.application.RelationalAlgebraGenerator"
 )
+SqlValidationExceptionClass = jpype.JClass(
+    "com.blazingdb.calcite.application.SqlValidationException"
+)
+SqlSyntaxExceptionClass = jpype.JClass(
+    "com.blazingdb.calcite.application.SqlSyntaxException"
+)
+RelConversionExceptionClass = jpype.JClass(
+    "org.apache.calcite.tools.RelConversionException"
+)
 
 
 def checkSocket(socketNum):
@@ -784,6 +793,14 @@ def remove_orc_files_from_disk(data_dir):
                     os.remove(full_path_file)
 
 
+# Updates the dtype from `object` to `str` to be more friendly
+def convert_friendly_dtype_to_string(list_types):
+    for i in range(len(list_types)):
+        if list_types[i] == "object":
+            list_types[i] = "str"
+    return list_types
+
+
 class BlazingTable(object):
     def __init__(
         self,
@@ -973,7 +990,7 @@ class BlazingContext(object):
 
     def __init__(
         self,
-        dask_client=None,
+        dask_client="autocheck",
         network_interface=None,
         allocator="managed",
         pool=False,
@@ -988,6 +1005,9 @@ class BlazingContext(object):
 
         dask_client (optional) : dask.distributed.Client instance.
                     only necessary for distributed query execution.
+                    Set to None if you explicitly dont want it to
+                    connect to any Dask client running, which it will by
+                    default.
         network_interface (optional) : for communicating with the
                     dask-scheduler. see note below.
         allocator (optional) :  "managed" or "default" or "existing", where
@@ -1042,6 +1062,9 @@ class BlazingContext(object):
                     number of rows in the SortAndSampleKernel to calculate
                     the number of samples
                     default: 0.1
+            MAX_ORDER_BY_SAMPLES_PER_NODE : The max number order by samples
+                    to capture per node
+                    default: 10000
             BLAZING_DEVICE_MEM_CONSUMPTION_THRESHOLD : The percent
                     (as a decimal) of total GPU memory that the memory
                     resource will consider to be full
@@ -1073,9 +1096,19 @@ class BlazingContext(object):
             MAX_KERNEL_RUN_THREADS : The number of threads available to run
                     kernels simultaneously.
                     default: 16
-            LOGGING_LEVEL : Set the level (as string) of the current tool for
-                    logging. Log levels have order of priority:
-                    {trace, debug, info, warn, error, critical}
+            MAX_SEND_MESSAGE_THREADS : The number of threads available to send
+                    outgoing messages.
+                    default: 20
+            LOGGING_LEVEL : Set the level (as string) to register into the logs
+                    for the current tool of logging. Log levels have order of priority:
+                    {trace, debug, info, warn, err, critical, off}. Using 'trace' will
+                    registers all info.
+                    NOTE: This parameter only works when used in the
+                    BlazingContext
+                    default: 'trace'
+            LOGGING_FLUSH_LEVEL : Set the level (as string) of the flush for
+                    the current tool of logging. Log levels have order of priority:
+                    {trace, debug, info, warn, err, critical, off}
                     NOTE: This parameter only works when used in the
                     BlazingContext
                     default: 'warn'
@@ -1112,7 +1145,6 @@ class BlazingContext(object):
         self.single_gpu_idx = 0
         self.lock = Lock()
         self.finalizeCaller = ref(cio.finalizeCaller)
-        self.dask_client = dask_client
         self.nodes = []
         self.node_log_paths = []
         self.finalizeCaller = lambda: NotImplemented
@@ -1136,6 +1168,15 @@ class BlazingContext(object):
             "BLAZING_CACHE_DIRECTORY".encode()
         ] = cache_dir_path.encode()
 
+        if dask_client == "autocheck":
+            try:
+                dask_client = dask.distributed.default_client()
+            except ValueError:
+                dask_client = None
+                pass
+
+        self.dask_client = dask_client
+
         # remove if exists older orc tmp files
         remove_orc_files_from_disk(cache_dir_path)
 
@@ -1150,7 +1191,19 @@ class BlazingContext(object):
             distributed_initialize_server_directory(self.dask_client, cache_dir_path)
 
             if network_interface is None:
-                network_interface = "eth0"
+                import psutil
+
+                local_addr = dask_client.scheduler_comm.comm._local_addr
+                local = local_addr.split("://")[-1].split(":")[0]
+                for name, addrs in psutil.net_if_addrs().items():
+                    for addr in addrs:
+                        if addr.address == local:
+                            network_interface = name
+                            break
+                    if network_interface:
+                        break
+                if network_interface is None:
+                    network_interface = "eth0"
 
             worker_list = []
             dask_futures = []
@@ -1418,17 +1471,24 @@ class BlazingContext(object):
         Docs: https://docs.blazingdb.com/docs/explain
         """
         try:
-            algebra = str(self.generator.getRelationalAlgebraString(sql))
-        except jpype.JException as exception:
-            algebra = ""
-            print("SQL Parsing Error")
-            print(exception.message())
-        if algebra.startswith("fail:"):
-            print("Error found")
-            print(algebra)
-            algebra = ""
+            algebra = self.generator.getRelationalAlgebraString(sql)
 
-        return algebra
+        except SqlValidationExceptionClass as exception:
+            # jpype.JException as exception:
+            raise Exception(exception.message())
+            # algebra = ""
+            # print("SQL Parsing Error")
+            # print(exception.message())
+        except SqlSyntaxExceptionClass as exception:
+            raise Exception(exception.message())
+        except RelConversionExceptionClass as exception:
+            raise Exception(exception.message())
+        # if algebra.startswith("fail:"):
+        #     print("Error found")
+        #     print(algebra)
+        #     algebra = ""
+
+        return str(algebra)
 
     def add_remove_table(self, tableName, addTable, table=None):
         self.lock.acquire()
@@ -1830,6 +1890,60 @@ class BlazingContext(object):
         https://docs.blazingdb.com/docs/using-blazingsql#section-drop-tables
         """
         self.add_remove_table(table_name, False)
+
+    def list_tables(self):
+        """
+        Returns a list with the names of all created tables.
+
+        Example
+        --------
+
+        >>> from blazingsql import BlazingContext
+        >>> bc = BlazingContext()
+        >>> bc.create_table('product_reviews', "product_reviews/*.parquet")
+        >>> bc.create_table('store_sales', "store_sales/*.parquet")
+        >>> bc.create_table('nation', "nation/*.parquet")
+        >>> tables = bc.list_tables()
+        >>> print(tables)
+                  ['product_reviews', 'store_sales', 'nation']
+        """
+        return list(self.tables.keys())
+
+    def describe_table(self, table_name):
+        """
+        Returns a dictionary with the names of all the columns and their types
+        for the specified table. A ValueError is thrown if the table is not found.
+
+        Parameters
+        ----------
+
+        table_name : string of the table name to describe
+
+        Example
+        --------
+
+        >>> from blazingsql import BlazingContext
+        >>> bc = BlazingContext()
+        >>> bc.create_table('nation', "nation/*.parquet")
+        >>> info_table = bc.describe_table("nation")
+        >>> print(info_table)
+                  {'n_nationkey': 'int32', 'n_name': 'str',
+                   'n_regionkey': 'int32', 'n_comment': 'str'}
+        """
+        all_table_names = self.list_tables()
+        if table_name in all_table_names:
+            column_names_bytes = self.tables[table_name].column_names
+            column_names = [x.decode("utf-8") for x in column_names_bytes]
+            column_types_int = self.tables[table_name].column_types
+            column_types_np = [
+                cio.cudf_type_int_to_np_types(t) for t in column_types_int
+            ]
+            column_types = [t.name for t in column_types_np]
+            column_types_friendly = convert_friendly_dtype_to_string(column_types)
+            name_type_dictionary = dict(zip(column_names, column_types_friendly))
+            return name_type_dictionary
+        else:
+            raise ValueError("ERROR: Not found table: " + str(table_name))
 
     def _parseSchema(
         self, input, file_format_hint, kwargs, extra_columns, ignore_missing_paths

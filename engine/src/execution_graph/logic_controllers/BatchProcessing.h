@@ -107,7 +107,8 @@ public:
 			auto num_rows = output->num_rows();
 			auto num_bytes = output->sizeInBytes();
 
-			cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+			if(cache_events_logger != nullptr) {
+				cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
 							"ral_id"_a=cache->get_context()->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
 							"query_id"_a=cache->get_context()->getContextToken(),
 							"source"_a=cache->get_id(),
@@ -117,6 +118,7 @@ public:
 							"event_type"_a="removeCache",
 							"timestamp_begin"_a=cacheEventTimer.start_time(),
 							"timestamp_end"_a=cacheEventTimer.end_time());
+			}
 		}
 
 		return output;
@@ -795,8 +797,8 @@ public:
 				if(columns){
 					auto log_output_num_rows = columns->num_rows();
 					auto log_output_num_bytes = columns->sizeInBytes();
-
-					events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+					if(events_logger != nullptr) {
+						events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
 									"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
 									"query_id"_a=context->getContextToken(),
 									"kernel_id"_a=this->get_id(),
@@ -807,30 +809,34 @@ public:
 									"event_type"_a="compute",
 									"timestamp_begin"_a=eventTimer.start_time(),
 									"timestamp_end"_a=eventTimer.end_time());
+					}
 				}
 
 				this->add_to_output_cache(std::move(columns));
 				batch_count++;
 			} catch(const std::exception& e) {
 				// TODO add retry here
-				logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+				if(logger != nullptr) {
+					logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
 											"query_id"_a=context->getContextToken(),
 											"step"_a=context->getQueryStep(),
 											"substep"_a=context->getQuerySubstep(),
 											"info"_a="In Projection kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
 											"duration"_a="");
+				}
 				throw;
 			}
 		}
 
-		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+		if(logger != nullptr) {
+			logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
 									"query_id"_a=context->getContextToken(),
 									"step"_a=context->getQueryStep(),
 									"substep"_a=context->getQuerySubstep(),
 									"info"_a="Projection Kernel Completed",
 									"duration"_a=timer.elapsed_time(),
 									"kernel_id"_a=this->get_id());
-
+		}
 		return kstatus::proceed;
 	}
 

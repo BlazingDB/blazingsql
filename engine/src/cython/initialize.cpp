@@ -61,8 +61,39 @@ std::string get_ip(const std::string & iface_name = "eth0") {
 	return the_ip;
 }
 
+
+
+auto log_level_str_to_enum(std::string level) {
+	if (level == "critical") {
+		return spdlog::level::critical;
+	}
+	else if (level == "err") {
+		return spdlog::level::err;
+	}
+	else if (level == "info") {
+		return spdlog::level::info;
+	}
+	else if (level == "debug") {
+		return spdlog::level::debug;
+	}
+	else if (level == "trace") {
+		return spdlog::level::trace;		
+	}
+	else if (level == "warn") {
+		return spdlog::level::warn;		
+	}
+	else {
+		return spdlog::level::off;
+	}
+}
+
 // simple_log: true (no timestamp or log level)
-void create_logger(std::string fileName, std::string loggingName, int ralId, std::string flush_level, bool simple_log=true){
+void create_logger(std::string fileName,
+	std::string loggingName,
+	int ralId, std::string flush_level,
+	std::string logger_level_wanted,
+	bool simple_log=true) {
+
 	auto stdout_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
 	stdout_sink->set_pattern("[%T.%e] [%^%l%$] %v");
 	stdout_sink->set_level(spdlog::level::err);
@@ -73,31 +104,17 @@ void create_logger(std::string fileName, std::string loggingName, int ralId, std
 		file_sink->set_pattern(fmt::format("%Y-%m-%d %T.%e|{}|%^%l%$|%v", ralId));
 	}
 
+	// We want ALL levels of info to be registered. So using by default `trace` level
 	file_sink->set_level(spdlog::level::trace);
 	spdlog::sinks_init_list sink_list = { stdout_sink, file_sink };
 	auto logger = std::make_shared<spdlog::async_logger>(loggingName, sink_list, spdlog::thread_pool(), spdlog::async_overflow_policy::block);
-	logger->set_level(spdlog::level::trace);
+
+	// level of logs
+	logger->set_level(log_level_str_to_enum(logger_level_wanted));
+	
 	spdlog::register_logger(logger);
 
-	// type of flush
-	if (flush_level == "critical") {
-		spdlog::flush_on(spdlog::level::critical);
-	}
-	else if (flush_level == "error") {
-		spdlog::flush_on(spdlog::level::err);
-	}
-	else if (flush_level == "info") {
-		spdlog::flush_on(spdlog::level::info);
-	}
-	else if (flush_level == "debug") {
-		spdlog::flush_on(spdlog::level::debug);
-	}
-	else if (flush_level == "trace") {
-		spdlog::flush_on(spdlog::level::trace);		
-	}
-	else {
-		spdlog::flush_on(spdlog::level::warn);
-	}
+	spdlog::flush_on(log_level_str_to_enum(flush_level));
 
 	spdlog::flush_every(std::chrono::seconds(1));
 }
@@ -155,34 +172,6 @@ void initialize(int ralId,
 
 	spdlog::init_thread_pool(8192, 1);
 
-	std::string flush_level = "warn";
-	auto log_it = config_options.find("LOGGING_LEVEL");
-	if (log_it != config_options.end()){
-		flush_level = config_options["LOGGING_LEVEL"];
-	}
-
-	// type of flush
-	if (flush_level == "critical") {
-		spdlog::flush_on(spdlog::level::critical);
-	}
-	else if (flush_level == "error") {
-		spdlog::flush_on(spdlog::level::err);
-	}
-	else if (flush_level == "info") {
-		spdlog::flush_on(spdlog::level::info);
-	}
-	else if (flush_level == "debug") {
-		spdlog::flush_on(spdlog::level::debug);
-	}
-	else if (flush_level == "trace") {
-		spdlog::flush_on(spdlog::level::trace);		
-	}
-	else {
-		spdlog::flush_on(spdlog::level::warn);
-	}
-
-	spdlog::flush_every(std::chrono::seconds(1));
-
 	std::string logging_dir = "blazing_log";
 	auto config_it = config_options.find("BLAZING_LOGGING_DIRECTORY");
 	if (config_it != config_options.end()){
@@ -197,29 +186,40 @@ void initialize(int ralId,
 		logging_dir = "";
 	}
 
+	std::string flush_level = "warn";
+	auto log_it = config_options.find("LOGGING_FLUSH_LEVEL");
+	if (log_it != config_options.end()){
+		flush_level = config_options["LOGGING_FLUSH_LEVEL"];
+	}
+	
+	std::string logger_level_wanted = "trace";
+	auto log_level_it = config_options.find("LOGGING_LEVEL");
+	if (log_level_it != config_options.end()){
+		logger_level_wanted = config_options["LOGGING_LEVEL"];
+	}
 
 	std::string batchLoggerFileName = logging_dir + "/RAL." + std::to_string(ralId) + ".log";
-	create_logger(batchLoggerFileName, "batch_logger", ralId, flush_level, false);
+	create_logger(batchLoggerFileName, "batch_logger", ralId, flush_level, logger_level_wanted, false);
 
 	std::string queriesFileName = logging_dir + "/bsql_queries." + std::to_string(ralId) + ".log";
 	bool existsQueriesFileName = std::ifstream(queriesFileName).good();
-	create_logger(queriesFileName, "queries_logger", ralId, flush_level);
+	create_logger(queriesFileName, "queries_logger", ralId, flush_level, logger_level_wanted);
 
 	std::string kernelsFileName = logging_dir + "/bsql_kernels." + std::to_string(ralId) + ".log";
 	bool existsKernelsFileName = std::ifstream(kernelsFileName).good();
-	create_logger(kernelsFileName, "kernels_logger", ralId, flush_level);
+	create_logger(kernelsFileName, "kernels_logger", ralId, flush_level, logger_level_wanted);
 
 	std::string kernelsEdgesFileName = logging_dir + "/bsql_kernels_edges." + std::to_string(ralId) + ".log";
 	bool existsKernelsEdgesFileName = std::ifstream(kernelsEdgesFileName).good();
-	create_logger(kernelsEdgesFileName, "kernels_edges_logger", ralId, flush_level);
+	create_logger(kernelsEdgesFileName, "kernels_edges_logger", ralId, flush_level, logger_level_wanted);
 
 	std::string kernelEventsFileName = logging_dir + "/bsql_kernel_events." + std::to_string(ralId) + ".log";
 	bool existsKernelEventsFileName = std::ifstream(kernelEventsFileName).good();
-	create_logger(kernelEventsFileName, "events_logger", ralId, flush_level);
+	create_logger(kernelEventsFileName, "events_logger", ralId, flush_level, logger_level_wanted);
 
 	std::string cacheEventsFileName = logging_dir + "/bsql_cache_events." + std::to_string(ralId) + ".log";
 	bool existsCacheEventsFileName = std::ifstream(cacheEventsFileName).good();
-	create_logger(cacheEventsFileName, "cache_events_logger", ralId, flush_level);
+	create_logger(cacheEventsFileName, "cache_events_logger", ralId, flush_level, logger_level_wanted);
 
 	//Logger Headers
 	if(!existsQueriesFileName) {
