@@ -69,6 +69,7 @@ public:
         } 
 
         memory_limit = custom_threshold * total_memory_size;
+        // TODO: cordova remove this line
         std::cout << " Despues del threshold, memory_limit: " <<  memory_limit << std::endl;
 	}
 
