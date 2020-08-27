@@ -188,7 +188,7 @@ def getNodePartitionKeys(df, client):
     for worker in workers:
         worker_partitions[worker] = []
 
-    dask.distributed.wait(df)
+    # dask.distributed.wait(df)
     worker_part = client.who_has(df)
 
     for key in worker_part:
@@ -846,8 +846,8 @@ class BlazingTable(object):
                 self.input = dask_cudf.from_cudf(
                     self.input, npartitions=convert_gdf_to_dask_partitions
                 )
-            if isinstance(self.input, dask_cudf.core.DataFrame):
-                self.input = self.input.persist()
+            # if isinstance(self.input, dask_cudf.core.DataFrame):
+            #     self.input = self.input.persist()
         self.uri_values = uri_values
         self.in_file = in_file
 
@@ -1236,6 +1236,7 @@ class BlazingContext(object):
                         config_options=self.config_options,
                         logging_dir_path=logging_dir_path,
                         workers=[worker],
+                        pure=False,
                     )
                 )
                 worker_list.append(worker)
@@ -1958,6 +1959,7 @@ class BlazingContext(object):
                 extra_columns,
                 ignore_missing_paths,
                 workers=[worker],
+                pure=False,
             )
             return connection.result()
         else:
@@ -1981,6 +1983,7 @@ class BlazingContext(object):
                         file_format_hint,
                         kwargs,
                         workers=[worker],
+                        pure=False,
                     )
                     dask_futures.append(connection)
             return dask.dataframe.from_delayed(dask_futures)
@@ -2221,6 +2224,7 @@ class BlazingContext(object):
                             by,
                             i,  # node number
                             workers=[worker],
+                            pure=False,
                         )
                     )
                 result = dask.dataframe.from_delayed(dask_futures)
@@ -2340,7 +2344,7 @@ class BlazingContext(object):
         else:
             worker = tuple(self.dask_client.scheduler_info()["workers"])[0]
             connection = self.dask_client.submit(
-                cio.getTableScanInfoCaller, algebra, workers=[worker]
+                cio.getTableScanInfoCaller, algebra, workers=[worker], pure=False
             )
             table_names, table_scans = connection.result()
 
@@ -2440,6 +2444,7 @@ class BlazingContext(object):
                         accessToken,
                         query_config_options,
                         single_gpu=True,
+                        pure=False,
                     )
                 ]
             else:
@@ -2460,6 +2465,7 @@ class BlazingContext(object):
                             accessToken,
                             query_config_options,
                             workers=[worker],
+                            pure=False,
                         )
                     )
                     i = i + 1
@@ -2474,7 +2480,7 @@ class BlazingContext(object):
                     for query_partid in query_partids:
                         futures.append(
                             self.dask_client.submit(
-                                get_element, query_partid, workers=[worker_id]
+                                get_element, query_partid, workers=[worker_id], pure=False
                             )
                         )
 
