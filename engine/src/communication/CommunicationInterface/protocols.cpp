@@ -66,6 +66,8 @@ struct ucx_request {
 	int uid;	   /**< We store a map of request uid ==> buffer_transport to manage completion of send */
 };
 
+static size_t req_size = 232 + 8 + sizeof(ucx_request);
+
 enum class status_code {
 	INVALID = -1,
 	OK = 1,
@@ -182,20 +184,20 @@ void ucx_buffer_transport::send_begin_transmission() {
 	std::vector<void *> requests(destinations.size());
 	int i = 0;
 	for(auto const & node : destinations) {
-		requests[i] = new char[64];
+		requests[i] = new char[req_size];
 		auto status = ucp_tag_send_nbr(
-			node.get_ucp_endpoint(), buffer_to_send.data(), buffer_to_send.size(), ucp_dt_make_contig(1), tag, requests[i] + 32);
+			node.get_ucp_endpoint(), buffer_to_send.data(), buffer_to_send.size(), ucp_dt_make_contig(1), tag, requests[i] + req_size);
 
 		if (status == UCS_INPROGRESS) {
 			do {
 				ucp_worker_progress(origin_node);
-				status = ucp_request_check_status(&requests[i] + sizeof(ucx_request));
-			} while (status == UCS_INPROGRESS);			
+				status = ucp_request_check_status(&requests[i] + req_size);
+			} while (status == UCS_INPROGRESS);
 		}
 		if(status != UCS_OK){
 			throw std::runtime_error("Was not able to send begin transmission to " + node.id());
 		}
-		
+
 		status_code recv_begin_status = status_code::INVALID;
 		ucp_tag_recv_info_t info_tag;
 		blazing_ucp_tag acknowledge_tag = *reinterpret_cast<blazing_ucp_tag *>(&tag);
@@ -205,7 +207,7 @@ void ucx_buffer_transport::send_begin_transmission() {
 
 
 		std::cout<< "recv_begin_transmission_ack recv_nb" << std::endl;
-		
+
 		status = ucp_tag_recv_nbr(origin_node,
 									&recv_begin_status,
 									sizeof(status_code),
@@ -218,7 +220,7 @@ void ucx_buffer_transport::send_begin_transmission() {
 			do {
 				ucp_worker_progress(origin_node);
 				status = ucp_request_check_status(&requests[i] + sizeof(ucx_request));
-			} while (status == UCS_INPROGRESS);			
+			} while (status == UCS_INPROGRESS);
 		}
 		if(status != UCS_OK){
 			throw std::runtime_error("Was not able to receive acknowledgment of begin transmission from " + node.id());
@@ -439,7 +441,7 @@ void recv_begin_callback_c(void * request, ucs_status_t status,
 		throw std::exception();
 	}
 
-	auto fwd = message_listener->get_pool().push([&message_listener, request, status, info](int thread_id) {
+	auto fwd = message_listener->get_pool().push([&message_listener, request, info](int thread_id) {
 		std::cout<<"in pool of begin callback"<<std::endl;
 		// auto blazing_request = reinterpret_cast<ucx_request *>(request);
 		auto buffer = tag_to_begin_buffer_and_info.at(info->sender_tag).first;
@@ -476,25 +478,37 @@ void recv_begin_callback_c(void * request, ucs_status_t status,
 
 		auto status_acknowledge = std::make_shared<status_code>(status_code::OK);
 		std::cout<<"abpit to send"<<std::endl;
-		auto request_acknowledge = ucp_tag_send_nb(
+
+		char * request = new char[req_size];
+		auto status = ucp_tag_send_nbr(
 			node.get_ucp_endpoint(),
 			status_acknowledge.get(),
 			sizeof(status_code),
 			ucp_dt_make_contig(1),
 			acknowledge_tag_ucp,
-			send_acknowledge_callback_c);
+			request + req_size);
 
-		std::cout<<"sent "<<std::endl;
-		if(UCS_PTR_IS_ERR(request_acknowledge)) {
-			std::cout<<"an error occured"<<std::endl;
-			// TODO: decide how to do cleanup i think we just throw an initialization exception
-		} else if(UCS_PTR_STATUS(request_acknowledge) == UCS_OK) {
-			//nothing to do
-						std::cout<<"finished immediately"<<std::endl;
-		}else{
-						std::cout<<"callback being called"<<std::endl;
-			status_scope_holder[request_acknowledge] = status_acknowledge;
+		if (status == UCS_INPROGRESS) {
+			do {
+				ucp_worker_progress(node.get_ucp_worker());
+				status = ucp_request_check_status(request + req_size);
+			} while (status == UCS_INPROGRESS);
 		}
+		if(status != UCS_OK){
+			throw std::runtime_error("Was not able to send transmission ack");
+		}
+
+		// std::cout<<"sent "<<std::endl;
+		// if(UCS_PTR_IS_ERR(request_acknowledge)) {
+		// 	std::cout<<"an error occured"<<std::endl;
+		// 	// TODO: decide how to do cleanup i think we just throw an initialization exception
+		// } else if(UCS_PTR_STATUS(request_acknowledge) == UCS_OK) {
+		// 	//nothing to do
+		// 				std::cout<<"finished immediately"<<std::endl;
+		// }else{
+		// 				std::cout<<"callback being called"<<std::endl;
+		// 	status_scope_holder[request_acknowledge] = status_acknowledge;
+		// }
 
 		// poll_for_frames(receiver, info->sender_tag, message_listener->get_worker());
 		// tag_to_begin_buffer_and_info.erase(info->sender_tag);
