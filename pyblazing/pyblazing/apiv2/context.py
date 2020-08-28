@@ -1526,7 +1526,7 @@ class BlazingContext(object):
             workers = tuple(self.dask_client.scheduler_info()["workers"])
             for worker_id, worker in enumerate(workers):
                 free_memory = self.dask_client.submit(
-                    cio.getFreeMemoryCaller, workers=[worker],
+                    cio.getFreeMemoryCaller, workers=[worker], pure=False
                 )
                 dask_futures.append(free_memory)
                 workers_id.append(worker_id)
@@ -1981,6 +1981,7 @@ class BlazingContext(object):
                 extra_columns,
                 ignore_missing_paths,
                 workers=[worker],
+                pure=False,
             )
             return connection.result()
         else:
@@ -2004,6 +2005,7 @@ class BlazingContext(object):
                         file_format_hint,
                         kwargs,
                         workers=[worker],
+                        pure=False,
                     )
                     dask_futures.append(connection)
             return dask.dataframe.from_delayed(dask_futures)
