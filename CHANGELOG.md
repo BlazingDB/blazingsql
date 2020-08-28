@@ -3,6 +3,10 @@
 ## New Features
 - #835 Added a memory monitor for better memory management and added pull ordered from cache
 - #889 Added Sphinx based code architecture documentation
+- #961 Add list_tables() and describe_table() functions
+- #826 Added support for cross join
+- #802 Support for timestampadd and constant expressions evaluation by Calcite
+- #883 Added rand() and support for running unary operations on literals
 
 ## Improvements
 - #777 Update Calcite to the most recent version 1.23
@@ -10,15 +14,12 @@
 - #815 Implemented Unordered pull from cache to help performance
 - #822 remove "from_cudf" code and cudf test utilities from engine code
 - #824 Added a test on Calcite to compare the logical plans when the ruleset is updated
-- #802 Support for timestampadd and constant expressions evaluation by Calcite
 - #849 Added check for CUDF_HOME to allow build to use an existing prebuilt cudf source tree
 - #829 Python/Cython check code style
-- #826 Support cross join
 - #866 Added nogil statements for pure C functions in Cython
 - #784 Updated set of TPCH queries on the E2E tests
 - #877 round robing dask workers on single gpu queries
 - #880 reraising query errors in context.py
-- #883 add rand() and running unary operations on literals
 - #894 added exhale to generate doxygen for sphinx docs
 - #887 concatenating cache improvement and replacing PartwiseJoin::load_set with a concatenating cache
 - #885 Added initial set of unit tests for `WaitingQueue` and nullptr checks around spdlog calls
@@ -35,7 +36,7 @@
 - #945 Added new separate thresh for concat cache 
 - #939 Add unit test for Project kernel
 - #949 Implemented using threadpool for outgoing messages 
-- #961 Add list_tables() and describe_table() functions
+
 
 
 ## Bug Fixes
@@ -76,6 +77,7 @@
 - #962 Use new rmm API instead of get_device_resource() and set_device_resource() functions
 - #965 Handle exceptions from pool_threads
 - #963 Set log_level when using LOGGING_LEVEL param
+- #972 Removed persist for dask dataframe table creation 
 
 
 # BlazingSQL 0.14.0 (June 9, 2020)
