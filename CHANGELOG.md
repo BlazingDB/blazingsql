@@ -3,6 +3,7 @@
 ## New Features
 - #835 Added a memory monitor for better memory management and added pull ordered from cache
 - #889 Added Sphinx based code architecture documentation
+- #968 Support PowerPC architecture
 
 ## Improvements
 - #777 Update Calcite to the most recent version 1.23
@@ -74,7 +75,9 @@
 - #952 Dummy PR
 - #957 Fixed issues caused by changes to timespamp in cudf
 - #962 Use new rmm API instead of get_device_resource() and set_device_resource() functions
+- #965 Handle exceptions from pool_threads
 - #963 Set log_level when using LOGGING_LEVEL param
+
 
 # BlazingSQL 0.14.0 (June 9, 2020)
 
