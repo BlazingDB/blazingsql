@@ -20,6 +20,9 @@ namespace cache {
 		this->add_edge(p.src, p.dst, source_port_name, target_port_name, p.cache_machine_config);
 	}
 
+	void graph::set_memory_monitor(std::shared_ptr<ral::MemoryMonitor> mem_monitor){
+		this->mem_monitor = mem_monitor;
+	}
 	void graph::check_and_complete_work_flow() {
 		for(auto node : container_) {
 			std::shared_ptr<kernel> kernel_node = node.second;
@@ -36,6 +39,7 @@ namespace cache {
 	}
 
 	void graph::execute(const std::size_t max_kernel_run_threads) {
+		mem_monitor->start();
 		check_and_complete_work_flow();
 
 		ctpl::thread_pool<BlazingThread> pool(max_kernel_run_threads);
@@ -88,6 +92,8 @@ namespace cache {
 		// 	}
 
 		// }
+
+		mem_monitor->finalize();
 	}
 
 	void graph::show() {

@@ -34,18 +34,17 @@ std::shared_ptr<ral::cache::graph> generate_graph(std::vector<ral::io::data_load
 
 	try {
 		assert(input_loaders.size() == table_names.size());
-
-		ral::batch::tree_processor tree{
-			.root = {},
-			.context = queryContext.clone(),
-			.input_loaders = input_loaders,
-			.schemas = schemas,
-			.table_names = table_names,
-			.table_scans = table_scans,
-			.transform_operators_bigger_than_gpu = true
-		};
+		 
+		auto tree = std::make_shared<ral::batch::tree_processor>(
+			ral::batch::node(),
+			queryContext.clone(),
+			input_loaders,
+			schemas,
+			table_names,
+			table_scans,
+			true);
 			
-		auto query_graph_and_max_kernel_id = tree.build_batch_graph(logicalPlan);
+		auto query_graph_and_max_kernel_id = tree->build_batch_graph(logicalPlan);
 		auto query_graph = std::get<0>(query_graph_and_max_kernel_id);
 		auto max_kernel_id = std::get<1>(query_graph_and_max_kernel_id);
 		auto output = std::shared_ptr<ral::cache::kernel>(new ral::batch::OutputKernel(max_kernel_id, queryContext.clone()));
@@ -54,7 +53,7 @@ std::shared_ptr<ral::cache::graph> generate_graph(std::vector<ral::io::data_load
 									"query_id"_a=queryContext.getContextToken(),
 									"step"_a=queryContext.getQueryStep(),
 									"substep"_a=queryContext.getQuerySubstep(),
-									"info"_a="\"Query Start\n{}\""_format(tree.to_string()));
+									"info"_a="\"Query Start\n{}\""_format(tree->to_string()));
 
 		std::string tables_info = "";
 		for (int i = 0; i < table_names.size(); i++){
@@ -112,7 +111,7 @@ std::shared_ptr<ral::cache::graph> generate_graph(std::vector<ral::io::data_load
 			}
 			
 		}
-
+		auto  mem_monitor = std::make_shared<ral::MemoryMonitor>(tree,config_options);
 		return query_graph;
 	} catch(const std::exception& e) {
 		logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",

@@ -40,6 +40,18 @@ struct tree_processor {
 	std::vector<std::string> table_scans;
 	const bool transform_operators_bigger_than_gpu = false;
 
+	tree_processor(	node root,
+	std::shared_ptr<Context> context,
+	std::vector<ral::io::data_loader> input_loaders,
+	std::vector<ral::io::Schema> schemas,
+	std::vector<std::string> table_names,
+	std::vector<std::string> table_scans,
+	const bool transform_operators_bigger_than_gpu) : root(root),context(context),
+	input_loaders(input_loaders),schemas(schemas),table_names(table_names),
+	table_scans(table_scans), transform_operators_bigger_than_gpu(transform_operators_bigger_than_gpu){
+
+	}
+
 	std::shared_ptr<kernel> make_kernel(std::size_t kernel_id, std::string expr, std::shared_ptr<ral::cache::graph> query_graph) {
 		std::shared_ptr<kernel> k;
 		auto kernel_context = this->context->clone();

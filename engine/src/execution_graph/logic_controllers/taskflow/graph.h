@@ -4,6 +4,7 @@
 #include "kpair.h"
 #include "execution_graph/logic_controllers/CacheMachine.h"
 #include "utilities/ctpl_stl.h"
+#include "bmr/MemoryMonitor.h"
 
 namespace ral {
 namespace cache {
@@ -102,7 +103,7 @@ public:
 	std::set<Edge> get_reverse_neighbours(int32_t id);
 
 	void check_for_simple_scan_with_limit_query();
-
+	void set_memory_monitor(std::shared_ptr<ral::MemoryMonitor> mem_monitor);
 private:
 	const std::int32_t head_id_{-1};
 	std::vector<kernel *> kernels_;
@@ -115,6 +116,7 @@ private:
 
 	std::shared_ptr<spdlog::logger> kernels_edges_logger;
 	int32_t context_token;
+	std::shared_ptr<ral::MemoryMonitor> mem_monitor;
 };
 
 

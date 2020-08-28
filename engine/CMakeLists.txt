@@ -259,6 +259,7 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingH
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/port.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/kernel.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/kernel_type.cpp
+              ${CMAKE_SOURCE_DIR}/src/bmr/MemoryMonitor.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/graph.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BatchJoinProcessing.cpp
               ${CMAKE_SOURCE_DIR}/src/config/GPUManager.cu
@@ -293,7 +294,7 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingH
               ${CMAKE_SOURCE_DIR}/src/cython/errors.cpp
               ${CMAKE_SOURCE_DIR}/src/cython/engine.cpp
               ${CMAKE_SOURCE_DIR}/src/distribution/primitives.cpp
-              ${CMAKE_SOURCE_DIR}/src/bmr/MemoryMonitor.cpp
+              
               ${CMAKE_SOURCE_DIR}/src/communication/factory/MessageFactory.cpp
               ${CMAKE_SOURCE_DIR}/src/communication/network/Client.cpp
               ${CMAKE_SOURCE_DIR}/src/communication/network/Server.cpp
