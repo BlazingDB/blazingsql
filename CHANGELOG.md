@@ -77,7 +77,7 @@
 - #962 Use new rmm API instead of get_device_resource() and set_device_resource() functions
 - #965 Handle exceptions from pool_threads
 - #963 Set log_level when using LOGGING_LEVEL param
-
+- #973 Fix how we check the existence of the JAVA_HOME environment variable
 
 # BlazingSQL 0.14.0 (June 9, 2020)
 
