@@ -57,7 +57,7 @@ if machine_processor in ("x86_64", "x64"):
 
 the_java_home = "CONDA_PREFIX"
 
-if os.environ["JAVA_HOME"]:
+if "JAVA_HOME" in os.environ:
     the_java_home = "JAVA_HOME"
 
 # NOTE felipe try first with CONDA_PREFIX/jre/lib/amd64/server/libjvm.so
