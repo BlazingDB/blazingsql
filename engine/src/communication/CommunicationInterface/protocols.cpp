@@ -66,7 +66,7 @@ struct ucx_request {
 	int uid;	   /**< We store a map of request uid ==> buffer_transport to manage completion of send */
 };
 
-static size_t req_size = 232 + 8 + sizeof(ucx_request);
+static size_t req_size = 232 + sizeof(ucx_request);
 
 enum class status_code {
 	INVALID = -1,
@@ -181,22 +181,24 @@ void ucx_buffer_transport::send_begin_transmission() {
 	std::cout<<"sending begin transmission"<<std::endl;
 	std::vector<char> buffer_to_send = detail::serialize_metadata_and_transports(metadata, column_transports);
 
-	std::vector<void *> requests(destinations.size());
+	std::vector<char *> requests(destinations.size());
 	int i = 0;
 	for(auto const & node : destinations) {
-		requests[i] = new char[req_size];
+		requests[i] = new char[req_size+1];
 		auto status = ucp_tag_send_nbr(
-			node.get_ucp_endpoint(), buffer_to_send.data(), buffer_to_send.size(), ucp_dt_make_contig(1), tag, requests[i] + req_size);
+			node.get_ucp_endpoint(), buffer_to_send.data(), buffer_to_send.size(), ucp_dt_make_contig(1), tag, requests[i] + req_size - sizeof(ucx_request));
 
 		if (status == UCS_INPROGRESS) {
 			do {
 				ucp_worker_progress(origin_node);
-				status = ucp_request_check_status(&requests[i] + req_size);
+    		status = ucp_request_check_status(requests[i] + req_size - sizeof(ucx_request));
 			} while (status == UCS_INPROGRESS);
 		}
 		if(status != UCS_OK){
 			throw std::runtime_error("Was not able to send begin transmission to " + node.id());
 		}
+
+		std::cout<< "send begin transmition done" << std::endl;
 
 		status_code recv_begin_status = status_code::INVALID;
 		ucp_tag_recv_info_t info_tag;
@@ -214,12 +216,13 @@ void ucx_buffer_transport::send_begin_transmission() {
 									ucp_dt_make_contig(1),
 									*reinterpret_cast<ucp_tag_t *>(&acknowledge_tag),
 									acknownledge_tag_mask,
-									&requests[i] + sizeof(ucx_request));
+									requests[i] + req_size - sizeof(ucx_request));
 
 		if (status == UCS_INPROGRESS) {
 			do {
 				ucp_worker_progress(origin_node);
-				status = ucp_request_check_status(&requests[i] + sizeof(ucx_request));
+				ucp_tag_recv_info_t info_tag;
+    		status = ucp_tag_recv_request_test(requests[i] + req_size - sizeof(ucx_request), &info_tag);
 			} while (status == UCS_INPROGRESS);
 		}
 		if(status != UCS_OK){
@@ -477,26 +480,29 @@ void recv_begin_callback_c(void * request, ucs_status_t status,
 		auto acknowledge_tag_ucp = *reinterpret_cast<ucp_tag_t *>(&acknowledge_tag);
 
 		auto status_acknowledge = std::make_shared<status_code>(status_code::OK);
-		std::cout<<"abpit to send"<<std::endl;
+		std::cout<<"about to send ack"<<std::endl;
 
-		char * request = new char[req_size];
+		char * request_nbr = new char[req_size+1];
 		auto status = ucp_tag_send_nbr(
 			node.get_ucp_endpoint(),
 			status_acknowledge.get(),
 			sizeof(status_code),
 			ucp_dt_make_contig(1),
 			acknowledge_tag_ucp,
-			request + req_size);
+			request_nbr + req_size - sizeof(ucx_request));
 
+		std::cout<<"ucp_tag_send_nbr ACK"<<std::endl;
 		if (status == UCS_INPROGRESS) {
 			do {
 				ucp_worker_progress(node.get_ucp_worker());
-				status = ucp_request_check_status(request + req_size);
+    		status = ucp_request_check_status(request_nbr + req_size - sizeof(ucx_request));
 			} while (status == UCS_INPROGRESS);
 		}
 		if(status != UCS_OK){
 			throw std::runtime_error("Was not able to send transmission ack");
 		}
+
+		std::cout<<"send ack complete"<<std::endl;
 
 		// std::cout<<"sent "<<std::endl;
 		// if(UCS_PTR_IS_ERR(request_acknowledge)) {
@@ -554,10 +560,12 @@ void ucx_message_listener::poll_begin_message_tag(){
 				if(UCS_PTR_IS_ERR(request)) {
 					// TODO: decide how to do cleanup i think we just throw an initialization exception
 				} else if(UCS_PTR_STATUS(request) == UCS_OK) {
-
+					std::cout<< "poll_begin_message_tag RECV immediate"<<std::endl;
 					recv_begin_callback_c(request, UCS_OK, info_tag.get());
 				}
 
+				std::cout<<">>>>>>>>>   probed tag SUCCESS GONNA BREAK"<<std::endl;
+				break;
 			}else {
 				// std::cout<<"no messages"<<std::endl;
 			  // ucp_worker_progress(ucp_worker);
@@ -570,6 +578,8 @@ void ucx_message_listener::poll_begin_message_tag(){
 
 			}
     }
+
+		std::cout<<">>>>>>>>>   FINISHED poll_begin_message_tag"<<std::endl;
 	});
 	thread.detach();
 }

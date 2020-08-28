@@ -77,9 +77,10 @@ public:
       _output_cache->addToCache(std::move(table), "", true);
     }
 
+    std::cout<< ">>>>>>>> TABLE ADDED TO CACHE: SUCCESS" << std::endl;
   }
 private:
-  
+
 
   std::vector<ColumnTransport> _column_transports;
   std::shared_ptr<ral::cache::CacheMachine> _output_cache;

@@ -99,7 +99,7 @@ public:
 						std::cout<<"wrong protocol"<<std::endl;
 							throw std::exception();
 						}
-						std::cout<<"sending begin tranmsisions"<<std::endl;
+
 						transport->send_begin_transmission();
 						for(size_t i = 0; i < raw_buffers.size(); i++) {
 							transport->send(raw_buffers[i], buffer_sizes[i]);
