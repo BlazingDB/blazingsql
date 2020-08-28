@@ -31,6 +31,7 @@
 #include "communication/network/Client.h"
 #include "communication/network/Server.h"
 #include <bmr/initializer.h>
+#include <bmr/BlazingMemoryResource.h>
 
 #include "error.hpp"
 
@@ -332,4 +333,10 @@ error_code_t blazingSetAllocator_C(
 	} catch (std::exception& e) {
 		return E_EXCEPTION;
 	}
+}
+
+size_t getFreeMemory() {
+	BlazingMemoryResource* resource = &blazing_device_memory_resource::getInstance();
+	size_t total_free_memory = resource->get_memory_limit() - resource->get_memory_used();
+	return total_free_memory;
 }

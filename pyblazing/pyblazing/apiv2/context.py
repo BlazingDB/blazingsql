@@ -1540,6 +1540,50 @@ class BlazingContext(object):
         finally:
             self.lock.release()
 
+    def get_free_memory(self):
+        """
+            This function returns a dictionary which contains as
+            key the gpuID and as value the free memory (bytes)
+
+            Example
+            --------
+            # single-GPU
+            >>> from blazingsql import BlazingContext
+            >>> bc = BlazingContext()
+            >>> free_mem = bc.get_free_memory()
+            >>> print(free_mem)
+                    {0: 4234220154}
+
+            # multi-GPU (4 GPUs):
+            >>> from blazingsql import BlazingContext
+            >>> from dask_cuda import LocalCUDACluster
+            >>> from dask.distributed import Client
+            >>> cluster = LocalCUDACluster()
+            >>> client = Client(cluster)
+            >>> bc = BlazingContext(dask_client=client, network_interface='lo')
+            >>> free_mem = bc.get_free_memory()
+            >>> print(free_mem)
+                    {0: 4234220154, 1: 4104210987,
+                     2: 4197720291, 3: 3934320116}
+        """
+        if self.dask_client:
+            dask_futures = []
+            workers_id = []
+            workers = tuple(self.dask_client.scheduler_info()["workers"])
+            for worker_id, worker in enumerate(workers):
+                free_memory = self.dask_client.submit(
+                    cio.getFreeMemoryCaller, workers=[worker], pure=False
+                )
+                dask_futures.append(free_memory)
+                workers_id.append(worker_id)
+            aslist = self.dask_client.gather(dask_futures)
+            free_memory_dictionary = dict(zip(workers_id, aslist))
+            return free_memory_dictionary
+        else:
+            free_memory_dictionary = {}
+            free_memory_dictionary[0] = cio.getFreeMemoryCaller()
+            return free_memory_dictionary
+
     def create_table(self, table_name, input, **kwargs):
         """
         Create a BlazingSQL table.
@@ -1983,6 +2027,7 @@ class BlazingContext(object):
                 extra_columns,
                 ignore_missing_paths,
                 workers=[worker],
+                pure=False,
             )
             return connection.result()
         else:
@@ -2006,6 +2051,7 @@ class BlazingContext(object):
                         file_format_hint,
                         kwargs,
                         workers=[worker],
+                        pure=False,
                     )
                     dask_futures.append(connection)
             return dask.dataframe.from_delayed(dask_futures)
