@@ -18,20 +18,14 @@ size_t gpuFreeMemory() {
 }
 
 size_t gpuTotalMemory() {
-	int nDevices;
-
-	cudaGetDeviceCount(&nDevices);
-
-	size_t total_memory;
-	size_t free, total;
+	int currentDeviceId = 0;
 	struct cudaDeviceProp props;
-	for (int gpu_id = 0; gpu_id < nDevices; ++gpu_id) {
-		CUDA_TRY( cudaSetDevice(gpu_id) );
-		cudaGetDeviceProperties(&props, gpu_id);
-		cudaMemGetInfo(&free, &total);
-		total_memory += total;
-	}
-	return total_memory;
+	CUDA_TRY( cudaSetDevice(currentDeviceId) );
+	cudaGetDeviceProperties(&props, currentDeviceId);
+	size_t free, total;
+	cudaMemGetInfo(&free, &total);
+
+	return total;
 }
 
 size_t gpuUsedMemory() {
