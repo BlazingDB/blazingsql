@@ -2480,7 +2480,10 @@ class BlazingContext(object):
                     for query_partid in query_partids:
                         futures.append(
                             self.dask_client.submit(
-                                get_element, query_partid, workers=[worker_id], pure=False
+                                get_element,
+                                query_partid,
+                                workers=[worker_id],
+                                pure=False,
                             )
                         )
 
