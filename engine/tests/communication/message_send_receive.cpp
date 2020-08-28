@@ -207,7 +207,10 @@ int create_ucp_worker_and_ep(bool is_client) {
   // ucp_config_print(config, stdout, NULL, UCS_CONFIG_PRINT_CONFIG);
   ucp_config_release(config);
   CHKERR_JUMP(status != UCS_OK, "ucp_init\n", err);
-
+  ucp_context_attr_t attr;
+  status =  ucp_context_query(ucp_context, &attr);
+  CHKERR_JUMP(status != UCS_OK, "ucp_context_query\n", err);
+  
   worker_params.field_mask  = UCP_WORKER_PARAM_FIELD_THREAD_MODE;
   worker_params.thread_mode = UCS_THREAD_MODE_SINGLE;
   status = ucp_worker_create(ucp_context, &worker_params, &ucp_worker);
@@ -220,6 +223,7 @@ int create_ucp_worker_and_ep(bool is_client) {
 
   /* OOB connection establishment */
   if (is_client) {
+    std::this_thread::sleep_for(4s);
     oob_sock = client_connect(client_target_name, server_port);
     CHKERR_JUMP(oob_sock < 0, "client_connect\n", err_addr);
     ret = recv(oob_sock, &addr_len, sizeof(addr_len), MSG_WAITALL);

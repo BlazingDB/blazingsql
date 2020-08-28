@@ -179,28 +179,53 @@ void ucx_buffer_transport::send_begin_transmission() {
 	std::cout<<"sending begin transmission"<<std::endl;
 	std::vector<char> buffer_to_send = detail::serialize_metadata_and_transports(metadata, column_transports);
 
+	std::vector<void *> requests(destinations.size());
+	int i = 0;
 	for(auto const & node : destinations) {
-		auto request = ucp_tag_send_nb(
-			node.get_ucp_endpoint(), buffer_to_send.data(), buffer_to_send.size(), ucp_dt_make_contig(1), tag, send_begin_callback_c);
+		requests[i] = new char[64];
+		auto status = ucp_tag_send_nbr(
+			node.get_ucp_endpoint(), buffer_to_send.data(), buffer_to_send.size(), ucp_dt_make_contig(1), tag, requests[i] + 32);
 
-		if(UCS_PTR_IS_ERR(request)) {
-			// TODO: decide how to do cleanup i think we just throw an initialization exception
-			int x =1;
-		} else if(UCS_PTR_STATUS(request) == UCS_OK) {
-			recv_begin_transmission_ack();
-		} else {
-			// Message was not completed we set the uid for the callback
-			auto blazing_request = reinterpret_cast<ucx_request *>(&request);
-			blazing_request->uid = reinterpret_cast<blazing_ucp_tag *>(&tag)->message_id;
-			message_uid_to_buffer_transport[blazing_request->uid] = this;
-
-
-			// ucp_worker_progress(origin_node);
+		if (status == UCS_INPROGRESS) {
+			do {
+				ucp_worker_progress(origin_node);
+				status = ucp_request_check_status(&requests[i] + sizeof(ucx_request));
+			} while (status == UCS_INPROGRESS);			
 		}
-	}
+		if(status != UCS_OK){
+			throw std::runtime_error("Was not able to send begin transmission to " + node.id());
+		}
+		
+		status_code recv_begin_status = status_code::INVALID;
+		ucp_tag_recv_info_t info_tag;
+		blazing_ucp_tag acknowledge_tag = *reinterpret_cast<blazing_ucp_tag *>(&tag);
+		acknowledge_tag.frame_id = 0xFFFF;
 
-	// TODO: call ucp_worker_progress here
-	wait_for_begin_transmission();
+
+
+
+		std::cout<< "recv_begin_transmission_ack recv_nb" << std::endl;
+		
+		status = ucp_tag_recv_nbr(origin_node,
+									&recv_begin_status,
+									sizeof(status_code),
+									ucp_dt_make_contig(1),
+									*reinterpret_cast<ucp_tag_t *>(&acknowledge_tag),
+									acknownledge_tag_mask,
+									&requests[i] + sizeof(ucx_request));
+
+		if (status == UCS_INPROGRESS) {
+			do {
+				ucp_worker_progress(origin_node);
+				status = ucp_request_check_status(&requests[i] + sizeof(ucx_request));
+			} while (status == UCS_INPROGRESS);			
+		}
+		if(status != UCS_OK){
+			throw std::runtime_error("Was not able to receive acknowledgment of begin transmission from " + node.id());
+		}
+		i++;
+		increment_begin_transmission();
+	}
 }
 
 void ucx_buffer_transport::increment_frame_transmission() {
