@@ -195,7 +195,7 @@ def initializeBlazing(
         singleNode,
         config_options,
         allocator.encode(),
-        initial_pool_size
+        initial_pool_size,
     )
 
     if os.path.isabs(logging_dir_path):
