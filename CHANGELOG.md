@@ -1,3 +1,16 @@
+# BlazingSQL 0.16.0 (Date TBS)
+
+## New Features
+
+
+## Improvements
+
+
+## Bug Fixes
+- #975 Fixed issue due to cudf orc api change 
+
+
+
 # BlazingSQL 0.15.0 (Date TBS)
 
 ## New Features
