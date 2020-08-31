@@ -78,6 +78,7 @@
 - #965 Handle exceptions from pool_threads
 - #963 Set log_level when using LOGGING_LEVEL param
 - #973 Fix how we check the existence of the JAVA_HOME environment variable
+- #977 Just one initialize() function at beginning and add logs related to allocation stuff
 
 # BlazingSQL 0.14.0 (June 9, 2020)
 
