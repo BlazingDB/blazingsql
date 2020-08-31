@@ -45,7 +45,7 @@ public:
 	 * @brief A polling function that listens on a cache for data and send it off via some protocol
 	 */
 	void run_polling() {
-		// auto thread = std::thread([this]{
+		 auto thread = std::thread([this]{
 			int x = 1;
 			while(x--) {
 				std::unique_ptr<ral::cache::CacheData> cache_data = output_cache->pullCacheData();
@@ -115,8 +115,8 @@ public:
 					}
 				});
 			}
-		// });
-		// thread.detach();
+		 });
+		 thread.detach();
 	}
 private:
 	static message_sender * instance;

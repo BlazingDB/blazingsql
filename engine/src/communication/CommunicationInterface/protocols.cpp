@@ -66,7 +66,7 @@ struct ucx_request {
 	int uid;	   /**< We store a map of request uid ==> buffer_transport to manage completion of send */
 };
 
-static size_t req_size = 232 + sizeof(ucx_request);
+static size_t req_size = 256 + sizeof(ucx_request);
 
 enum class status_code {
 	INVALID = -1,
@@ -184,7 +184,7 @@ void ucx_buffer_transport::send_begin_transmission() {
 	std::vector<char *> requests(destinations.size());
 	int i = 0;
 	for(auto const & node : destinations) {
-		requests[i] = new char[req_size+1];
+		requests[i] = new char[req_size + sizeof(ucx_request) + 1];
 		auto status = ucp_tag_send_nbr(
 			node.get_ucp_endpoint(), buffer_to_send.data(), buffer_to_send.size(), ucp_dt_make_contig(1), tag, requests[i] + req_size - sizeof(ucx_request));
 
@@ -207,9 +207,8 @@ void ucx_buffer_transport::send_begin_transmission() {
 
 
 
-
 		std::cout<< "recv_begin_transmission_ack recv_nb" << std::endl;
-
+		requests[i] = new char[req_size + sizeof(ucx_request) + 1];
 		status = ucp_tag_recv_nbr(origin_node,
 									&recv_begin_status,
 									sizeof(status_code),
@@ -229,12 +228,14 @@ void ucx_buffer_transport::send_begin_transmission() {
 			throw std::runtime_error("Was not able to receive acknowledgment of begin transmission from " + node.id());
 		}
 		i++;
+		std::cout<<"got ack!!!!"<<std::endl;
 		increment_begin_transmission();
 	}
 }
 
 void ucx_buffer_transport::increment_frame_transmission() {
 	transmitted_frames++;
+	std::cout<<"Increment begin transmission"<<std::endl;	
 	completion_condition_variable.notify_all();
 }
 
@@ -462,7 +463,7 @@ void recv_begin_callback_c(void * request, ucs_status_t status,
 		std::string cache_id = metadata.get_values()[ral::cache::CACHE_ID_METADATA_LABEL];
 				std::cout<<"getting cache"<<std::endl;
 		auto out_cache = metadata.get_values()[ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL] == "true" ?
-				graph->get_kernel_output_cache(kernel_id, cache_id) : graph->get_output_message_cache();
+				graph->get_kernel_output_cache(kernel_id, cache_id) : graph->get_input_message_cache();
 
 		std::cout<<"got cache"<<std::endl;
 		auto receiver = std::make_shared<message_receiver>(
@@ -482,7 +483,7 @@ void recv_begin_callback_c(void * request, ucs_status_t status,
 		auto status_acknowledge = std::make_shared<status_code>(status_code::OK);
 		std::cout<<"about to send ack"<<std::endl;
 
-		char * request_nbr = new char[req_size+1];
+		char * request_nbr = new char[req_size+1 + sizeof(ucx_request)];
 		auto status = ucp_tag_send_nbr(
 			node.get_ucp_endpoint(),
 			status_acknowledge.get(),
@@ -516,9 +517,9 @@ void recv_begin_callback_c(void * request, ucs_status_t status,
 		// 	status_scope_holder[request_acknowledge] = status_acknowledge;
 		// }
 
-		// poll_for_frames(receiver, info->sender_tag, message_listener->get_worker());
+		poll_for_frames(receiver, info->sender_tag, message_listener->get_worker());
 		// tag_to_begin_buffer_and_info.erase(info->sender_tag);
-		// receiver->finish();
+		receiver->finish();
 		// message_listener->remove_receiver(info->sender_tag);
 		if(request){
 			ucp_request_release(request);
@@ -565,7 +566,7 @@ void ucx_message_listener::poll_begin_message_tag(){
 				}
 
 				std::cout<<">>>>>>>>>   probed tag SUCCESS GONNA BREAK"<<std::endl;
-				break;
+				
 			}else {
 				// std::cout<<"no messages"<<std::endl;
 			  // ucp_worker_progress(ucp_worker);

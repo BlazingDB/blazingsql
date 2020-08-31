@@ -172,6 +172,7 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(int32_t masterIndex,
 
 std::unique_ptr<PartitionedResultSet> runExecuteGraph(std::shared_ptr<ral::cache::graph> graph) {
 	// Execute query
+	std::cout<<"executing"<<std::endl;
 	std::vector<std::unique_ptr<ral::frame::BlazingTable>> frames;
 	frames = execute_graph(graph);
 	std::cout<<"graph exceuted"<<std::endl;
@@ -199,7 +200,7 @@ std::cout<<"4"<<std::endl;
 	std::cout<<"pretty much done now deregistering graph is"<<graph <<" and instance is "<<&comm::graphs_info::getInstance()<<std::endl;
 	auto token = graph->get_context_token();
 	std::cout<<"token is"<<token<<std::endl;
-	comm::graphs_info::getInstance().deregister_graph(token);
+	//comm::graphs_info::getInstance().deregister_graph(token);
 	std::cout<<"deregistered"<<std::endl;
 	return result;
 }

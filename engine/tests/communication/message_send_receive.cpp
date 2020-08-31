@@ -468,8 +468,8 @@ TEST_F(MessageSendReceiveTest, send_receive_test) {
   thread.join();
   thread_2.join();
 
-  cleanup(true);
-  cleanup(false);
+//  cleanup(true);
+//  cleanup(false);
 
   // cudf::test::fixed_width_column_wrapper<int> col1{{4, 5, 3, 5, 8, 5, 6}};
   // cudf::table_view orig_table{{col1}};
