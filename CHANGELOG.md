@@ -1,4 +1,4 @@
-# BlazingSQL 0.15.0 (Date TBS)
+# BlazingSQL 0.15.0 (August 31, 2020)
 
 ## New Features
 - #835 Added a memory monitor for better memory management and added pull ordered from cache
