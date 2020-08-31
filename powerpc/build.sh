@@ -207,7 +207,7 @@ fi
 # NOTE percy mario this var is used by rmm build.sh and by pycudf setup.py
 export PARALLEL_LEVEL=$MAKEJ
 
-cudf_version=0.15
+cudf_version=0.16
 export CUDA_HOME=/usr/local/cuda/
 
 # BEGIN RMM
