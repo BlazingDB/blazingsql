@@ -14,6 +14,7 @@
 #include <vector>
 
 #include <cudf/io/functions.hpp>
+#include <cudf/io/datasource.hpp>
 
 namespace ral {
 namespace io {
@@ -25,11 +26,6 @@ public:
 	csv_parser(cudf::io::read_csv_args new_csv_arg);
 
 	virtual ~csv_parser();
-
-	std::unique_ptr<ral::frame::BlazingTable> parse(
-		std::shared_ptr<arrow::io::RandomAccessFile> file,
-		const Schema & schema,
-		std::vector<size_t> column_indices);
 
 	std::unique_ptr<ral::frame::BlazingTable> parse_batch(
 		std::shared_ptr<arrow::io::RandomAccessFile> file,

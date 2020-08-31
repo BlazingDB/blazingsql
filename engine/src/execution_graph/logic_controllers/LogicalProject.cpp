@@ -14,6 +14,7 @@
 #include <cudf/strings/convert/convert_datetime.hpp>
 #include <cudf/strings/convert/convert_floats.hpp>
 #include <cudf/strings/convert/convert_integers.hpp>
+#include <cudf/unary.hpp>
 #include <regex>
 #include <algorithm>
 
@@ -57,6 +58,11 @@ struct cast_to_str_functor {
         return cudf::strings::from_booleans(col);
     }
 
+    template<typename T, std::enable_if_t<cudf::is_fixed_point<T>()> * = nullptr>
+    std::unique_ptr<cudf::column> operator()(const cudf::column_view & col) {
+        return cudf::strings::from_floats(col);
+    }
+
     template<typename T, std::enable_if_t<std::is_integral<T>::value && !cudf::is_boolean<T>()> * = nullptr>
     std::unique_ptr<cudf::column> operator()(const cudf::column_view & col) {
         return cudf::strings::from_integers(col);
@@ -72,7 +78,7 @@ struct cast_to_str_functor {
         return cudf::strings::from_timestamps(col, std::is_same<cudf::timestamp_D, T>::value ? "%Y-%m-%d" : "%Y-%m-%d %H:%M:%S");
     }
 
-    template<typename T, std::enable_if_t<cudf::is_compound<T>()> * = nullptr>
+    template<typename T, std::enable_if_t<cudf::is_compound<T>() or cudf::is_duration<T>()> * = nullptr>
     std::unique_ptr<cudf::column> operator()(const cudf::column_view & col) {
         return nullptr;
     }
@@ -118,7 +124,7 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
             int32_t length = arg_tokens.size() == 3 ? std::stoi(arg_tokens[2]) : -1;
             int32_t end = length >= 0 ? start + length : 0;
 
-            computed_col = cudf::strings::slice_strings(column, start, cudf::numeric_scalar<int32_t>(end, length >= 0));
+            computed_col = cudf::strings::slice_strings(column, start, cudf::numeric_scalar<int32_t>(end, length >= 0));            
         } else {
             // TODO: create a version of cudf::strings::slice_strings that uses start and length columns
             // so we can remove all the calculations for start and end
@@ -126,13 +132,13 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
             std::unique_ptr<cudf::column> computed_string_column;
             cudf::column_view column;
             if (is_var_column(arg_tokens[0])) {
-                column = table.column(get_index(arg_tokens[0]));
+                column = table.column(get_index(arg_tokens[0]));                
             } else {
                 auto evaluated_col = evaluate_expressions(table, {arg_tokens[0]});
                 RAL_EXPECTS(evaluated_col.size() == 1 && evaluated_col[0]->view().type().id() == cudf::type_id::STRING, "Expression does not evaluate to a string column");
 
                 computed_string_column = evaluated_col[0]->release();
-                column = computed_string_column->view();
+                column = computed_string_column->view();                
             }
 
             std::unique_ptr<cudf::column> computed_start_column;
@@ -160,25 +166,35 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
                 if (is_var_column(arg_tokens[2])) {
                     computed_end_column = std::make_unique<cudf::column>(table.column(get_index(arg_tokens[2])));
                 } else if(is_literal(arg_tokens[2])) {
-                    int32_t length = std::stoi(arg_tokens[2]);
-
-                    cudf::numeric_scalar<int32_t> end_scalar(length);
-                    computed_end_column = cudf::make_column_from_scalar(end_scalar, table.num_rows());
+                    std::unique_ptr<cudf::scalar> end_scalar = get_scalar_from_string(arg_tokens[2], start_column.type());
+                    computed_end_column = cudf::make_column_from_scalar(*end_scalar, table.num_rows());
                 } else {
                     auto evaluated_col = evaluate_expressions(table, {arg_tokens[2]});
                     RAL_EXPECTS(evaluated_col.size() == 1 && is_type_integer(evaluated_col[0]->view().type().id()), "Expression does not evaluate to an integer column");
 
                     computed_end_column = evaluated_col[0]->release();
                 }
+
+                // lets make sure that the start and end are the same type
+                if (!(start_column.type() == computed_end_column->type())){
+                    cudf::data_type common_type = ral::utilities::get_common_type(start_column.type(), computed_end_column->type(), true);
+                    if (!(start_column.type() == common_type)){
+                        computed_start_column = cudf::cast(start_column, common_type);
+                        start_column = computed_start_column->view();
+                    }
+                    if (!(computed_end_column->type() == common_type)){
+                        computed_end_column = cudf::cast(computed_end_column->view(), common_type);
+                    }
+                }
                 cudf::mutable_column_view mutable_view = computed_end_column->mutable_view();
                 ral::utilities::transform_length_to_end(mutable_view, start_column);
                 end_column = computed_end_column->view();
             } else {
-                cudf::numeric_scalar<int32_t> end_scalar(0, false);
-                computed_end_column = cudf::make_column_from_scalar(end_scalar, table.num_rows());
+                std::unique_ptr<cudf::scalar> end_scalar = get_max_integer_scalar(start_column.type());
+                computed_end_column = cudf::make_column_from_scalar(*end_scalar, table.num_rows());
                 end_column = computed_end_column->view();
             }
-
+            
             computed_col = cudf::strings::slice_strings(column, start_column, end_column);
         }
         break;
@@ -245,8 +261,12 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
             computed_column = evaluated_col[0]->release();
             column = computed_column->view();
         }
-
-        computed_col = cudf::type_dispatcher(column.type(), cast_to_str_functor{}, column);
+        if (column.type() == cudf::data_type{cudf::type_id::STRING}){
+            // this should not happen, but sometimes calcite produces inefficient plans that ask to cast a string column to a "VARCHAR NOT NULL"
+            computed_col = std::make_unique<cudf::column>(column);
+        } else {
+            computed_col = cudf::type_dispatcher(column.type(), cast_to_str_functor{}, column);
+        }        
         break;
     }
     case operator_type::BLZ_CAST_TINYINT:
@@ -520,9 +540,11 @@ public:
 		operator_type op = map_to_operator_type(node.value);
 		if(is_binary_operator(op)) {
 			output_type = cudf::data_type{get_output_type(op, node_to_type_map_.at(node.children[0].get()).id(), node_to_type_map_.at(node.children[1].get()).id())};
-		} else {
+		} else if (is_unary_operator(op)) {
 			output_type = cudf::data_type{get_output_type(op, node_to_type_map_.at(node.children[0].get()).id())};
-		}
+		}else{
+            output_type = cudf::data_type{get_output_type(op)};
+        }
 
 		node_to_type_map_.insert({&node, output_type});
 		expr_output_type_ = output_type;
@@ -676,7 +698,8 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
                                                 final_output_positions,
                                                 operators,
                                                 left_scalars,
-                                                right_scalars);
+                                                right_scalars,
+                                                table.num_rows());
     }
 
     return std::move(out_columns);

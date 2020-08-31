@@ -11,12 +11,12 @@
 #include "operators/OrderBy.h"
 #include "utilities/CommonOperations.h"
 #include "utilities/StringUtils.h"
-#include "utilities/DebuggingUtils.h"
 
 #include "execution_graph/logic_controllers/LogicalFilter.h"
 #include "execution_graph/logic_controllers/LogicalProject.h"
 #include "execution_graph/logic_controllers/BatchProcessing.h"
 #include "execution_graph/logic_controllers/PhysicalPlanGenerator.h"
+#include "bmr/MemoryMonitor.h"
 
 
 
@@ -46,7 +46,7 @@ std::vector<std::unique_ptr<ral::frame::BlazingTable>> execute_plan(std::vector<
 			.table_scans = table_scans,
 			.transform_operators_bigger_than_gpu = true
 		};
-
+			
 		auto query_graph_and_max_kernel_id = tree.build_batch_graph(logicalPlan);
 		auto query_graph = std::get<0>(query_graph_and_max_kernel_id);
 		auto max_kernel_id = std::get<1>(query_graph_and_max_kernel_id);
@@ -98,6 +98,7 @@ std::vector<std::unique_ptr<ral::frame::BlazingTable>> execute_plan(std::vector<
 			ral::cache::cache_settings cache_machine_config;
 			cache_machine_config.type = queryContext.getTotalNodes() == 1 ? ral::cache::CacheType::CONCATENATING : ral::cache::CacheType::SIMPLE;
 			cache_machine_config.context = queryContext.clone();
+			cache_machine_config.concat_all = true;
 
 			*query_graph += link(query_graph->get_last_kernel(), output, cache_machine_config);
 			// query_graph.show();
@@ -105,7 +106,17 @@ std::vector<std::unique_ptr<ral::frame::BlazingTable>> execute_plan(std::vector<
 			// useful when the Algebra Relacional only contains: ScanTable (or BindableScan) and Limit
 			query_graph->check_for_simple_scan_with_limit_query();
 
-			query_graph->execute();
+			size_t max_kernel_run_threads = 16; //default
+			std::map<std::string, std::string> config_options = queryContext.getConfigOptions();
+			auto it = config_options.find("MAX_KERNEL_RUN_THREADS");
+			if (it != config_options.end()){
+				max_kernel_run_threads = std::stoi(config_options["MAX_KERNEL_RUN_THREADS"]);
+			}
+
+			ral::MemoryMonitor mem_monitor(&tree, config_options);
+			mem_monitor.start();
+			query_graph->execute(max_kernel_run_threads);
+			mem_monitor.finalize();
 			output_frame = output.release();
 		}
 

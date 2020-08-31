@@ -5,13 +5,12 @@
 
 #include <cuda_runtime_api.h>
 
-#include <rmm/rmm_api.h>
-#include <rmm/detail/memory_manager.hpp>
 #include <rmm/mr/device/device_memory_resource.hpp>
 #include <rmm/mr/device/cuda_memory_resource.hpp>
 #include <rmm/mr/device/managed_memory_resource.hpp>
 #include <rmm/mr/device/cnmem_managed_memory_resource.hpp>
 #include <rmm/mr/device/cnmem_memory_resource.hpp>
+#include <rmm/mr/device/default_memory_resource.hpp>
 
 #include "config/GPUManager.cuh"
 
@@ -40,29 +39,33 @@ class internal_blazing_device_memory_resource : public rmm::mr::device_memory_re
 public:
     // TODO: use another constructor for memory in bytes
 
-	internal_blazing_device_memory_resource(rmmOptions_t rmmValues, float custom_threshold = 0.95)
+	internal_blazing_device_memory_resource(std::string allocation_mode,
+                                            std::size_t initial_pool_size,
+                                            float custom_threshold = 0.95)
     {
-		total_memory_size = ral::config::gpuMemorySize();
+		total_memory_size = ral::config::gpuTotalMemory();
 		used_memory = 0;
 
-		rmmAllocationMode_t allocation_mode = static_cast<rmmAllocationMode_t>(rmmValues.allocation_mode);
-		if (allocation_mode == (CudaManagedMemory | PoolAllocation) || allocation_mode == PoolAllocation) {
-			if (total_memory_size <= rmmValues.initial_pool_size) {
-				throw std::runtime_error("Cannot allocate this Pool memory size on the GPU.");
-			} 
+        if (total_memory_size <= initial_pool_size) {
+            throw std::runtime_error("Cannot allocate this Pool memory size on the GPU.");
+        }
 
-			if (allocation_mode == CudaManagedMemory | PoolAllocation) {
-				memory_resource = std::make_unique<rmm::mr::cnmem_managed_memory_resource>();
-			} else {
-				memory_resource = std::make_unique<rmm::mr::cnmem_memory_resource>();
-			}
-		} 
-		else if (allocation_mode == CudaManagedMemory) {
-			memory_resource = std::make_unique<rmm::mr::managed_memory_resource>();
-		}
-		else { // allocation_mode == useCudaDefaultAllocator
-			memory_resource = std::make_unique<rmm::mr::cuda_memory_resource>();
-		}
+        if (allocation_mode == "cuda_memory_resource"){
+            memory_resource_owner = std::make_unique<rmm::mr::cuda_memory_resource>();
+            memory_resource = memory_resource_owner.get();
+        } else if (allocation_mode == "managed_memory_resource"){
+            memory_resource_owner = std::make_unique<rmm::mr::managed_memory_resource>();
+            memory_resource = memory_resource_owner.get();
+        } else if (allocation_mode == "cnmem_memory_resource"){
+            memory_resource_owner = std::make_unique<rmm::mr::cnmem_memory_resource>(initial_pool_size);
+            memory_resource = memory_resource_owner.get();
+        } else if (allocation_mode == "cnmem_managed_memory_resource"){
+            memory_resource_owner = std::make_unique<rmm::mr::cnmem_managed_memory_resource>(initial_pool_size);
+            memory_resource = memory_resource_owner.get();
+        } else {  //(allocation_mode == "existing"){
+            memory_resource = rmm::mr::get_current_device_resource();
+        } 
+
         memory_limit = custom_threshold * total_memory_size;
 	}
 
@@ -117,7 +120,8 @@ private:
 	size_t total_memory_size;
 	size_t memory_limit;
 	std::atomic<size_t> used_memory;
-    std::unique_ptr<rmm::mr::device_memory_resource> memory_resource;
+    std::unique_ptr<rmm::mr::device_memory_resource> memory_resource_owner;
+    rmm::mr::device_memory_resource * memory_resource;
 };
 
 // forward declaration
@@ -128,8 +132,7 @@ typedef struct CUstream_st *cudaStream_t;
  * the RMM event log, configuration options, and registered streams.
  * 
  * blazing_device_memory_resource is a singleton class, and should be accessed via getInstance(). 
- * A number of static convenience methods are provided that wrap getInstance(),
- * such as getLogger() and getOptions().
+ * A number of static convenience methods are provided that wrap getInstance()
  * ------------------------------------------------------------------------**/
 class blazing_device_memory_resource : public BlazingMemoryResource {
 public:
@@ -162,24 +165,30 @@ public:
   /** -----------------------------------------------------------------------*
    * @brief Initialize RMM options
    * 
-   * Accepts an optional rmmOptions_t struct that describes the settings used
-   * to initialize the memory manager. If no `options` is passed, default
-   * options are used.
+   *   allocator          :  "managed" or "default" or "existing", where "managed" uses Unified Virtual Memory (UVM)
+   *                            and may use system memory if GPU memory runs out, "default" uses the default Cuda allocation
+   *                            and "existing" assumes rmm allocator is already set and does not initialize it.
+   *                            "managed" is the BlazingSQL default, since it provides the most robustness against OOM errors.
+   *   pool               : if True, BlazingContext will self-allocate a GPU memory pool. can greatly improve performance.
+   *   initial_pool_size  : initial size of memory pool in bytes (if pool=True).
+   *                                   if None, and pool=True, defaults to 1/2 GPU memory.
+   *   device_mem_resouce_consumption_thresh : The percent (as a decimal) of total GPU memory that the memory resource
    * 
    * @param[in] options Optional options to set
    * ----------------------------------------------------------------------**/
-    void initialize(const rmmOptions_t *new_options, float device_mem_resouce_consumption_thresh) {
+    void initialize(std::string allocation_mode,
+                    std::size_t initial_pool_size,
+                    float device_mem_resouce_consumption_thresh) {
         
         std::lock_guard<std::mutex> guard(manager_mutex);
 
         // repeat initialization is a no-op
         if (isInitialized()) return;
 
-        if (nullptr != new_options) options = *new_options;
-
-        initialized_resource.reset(new internal_blazing_device_memory_resource(options, device_mem_resouce_consumption_thresh));
+        initialized_resource.reset(new internal_blazing_device_memory_resource(
+                allocation_mode, initial_pool_size, device_mem_resouce_consumption_thresh));
         
-        rmm::mr::set_default_resource(initialized_resource.get());
+        rmm::mr::set_current_device_resource(initialized_resource.get());
         
         is_initialized = true;
     }
@@ -207,55 +216,8 @@ public:
     bool isInitialized() {
         return getInstance().is_initialized;
     }
-
-    /** -----------------------------------------------------------------------*
-     * @brief Get the Options object
-     * 
-     * @return rmmOptions_t the currently set RMM options
-     * ----------------------------------------------------------------------**/
-    static rmmOptions_t getOptions() { return getInstance().options; }
-
-    /** -----------------------------------------------------------------------*
-     * @brief Returns true when pool allocation is enabled
-     * 
-     * @return true if pool allocation is enabled
-     * @return false if pool allocation is disabled
-     * ----------------------------------------------------------------------**/
-    static inline bool usePoolAllocator() {
-        return getOptions().allocation_mode & PoolAllocation;
-    }
-
-    /** -----------------------------------------------------------------------*
-     * @brief Returns true if CUDA Managed Memory allocation is enabled
-     * 
-     * @return true if CUDA Managed Memory allocation is enabled
-     * @return false if CUDA Managed Memory allocation is disabled
-     * ----------------------------------------------------------------------**/
-    static inline bool useManagedMemory() {
-        return getOptions().allocation_mode & CudaManagedMemory;
-    }
-
-    /** -----------------------------------------------------------------------*
-     * @brief Returns true when CUDA default allocation is enabled
-     *          * 
-     * @return true if CUDA default allocation is enabled
-     * @return false if CUDA default allocation is disabled
-     * ----------------------------------------------------------------------**/
-    inline bool useCudaDefaultAllocator() {
-        return CudaDefaultAllocation == getOptions().allocation_mode;
-    }
-
-    /** -----------------------------------------------------------------------*
-     * @brief Register a new stream into the device memory manager.
-     * 
-     * Also returns success if the stream is already registered.
-     * 
-     * @param stream The stream to register
-     * @return rmmError_t RMM_SUCCESS if all goes well,
-     *                    RMM_ERROR_INVALID_ARGUMENT if the stream is invalid.
-     * ----------------------------------------------------------------------**/
-    rmmError_t registerStream(cudaStream_t stream);
-
+   
+   
 private:
     blazing_device_memory_resource() = default;
     ~blazing_device_memory_resource() = default;
@@ -264,7 +226,6 @@ private:
     std::mutex manager_mutex;
     std::set<cudaStream_t> registered_streams;
 
-    rmmOptions_t options{};
     bool is_initialized{false};
 
     std::unique_ptr<internal_blazing_device_memory_resource> initialized_resource{};
@@ -368,7 +329,7 @@ public:
 		initialized_resource->deallocate(bytes);
 	}
 
-  /** -----------------------------------------------------------------------*
+   /** -----------------------------------------------------------------------*
    * @brief Initialize
    * 
    * Accepts an optional rmmOptions_t struct that describes the settings used
@@ -389,7 +350,7 @@ public:
         is_initialized = true;
     }
 
-    /** -----------------------------------------------------------------------*
+     /** -----------------------------------------------------------------------*
      * @brief Shut down the blazing_device_memory_resource (clears the context)
      * ----------------------------------------------------------------------**/
     void finalize(){

@@ -19,7 +19,8 @@ cudf_io::table_with_metadata get_new_orc(cudf_io::read_orc_args orc_arg,
 	std::shared_ptr<arrow::io::RandomAccessFile> arrow_file_handle,
 	bool first_row_only = false){
 
-	orc_arg.source = cudf_io::source_info(arrow_file_handle);
+	auto arrow_source = cudf_io::arrow_io_source{arrow_file_handle};
+	orc_arg.source = cudf_io::source_info{&arrow_source};
 
 	if (first_row_only)
 		orc_arg.num_rows = 1;
@@ -29,33 +30,6 @@ cudf_io::table_with_metadata get_new_orc(cudf_io::read_orc_args orc_arg,
 	arrow_file_handle->Close();
 
 	return std::move(table_out);
-}
-
-std::unique_ptr<ral::frame::BlazingTable> orc_parser::parse(
-	std::shared_ptr<arrow::io::RandomAccessFile> file,
-	const Schema & schema,
-	std::vector<size_t> column_indices) {
-
-	if(file == nullptr) {
-		return nullptr;
-	}
-
-	cudf::io::read_orc_args new_orc_args = this->orc_args;
-	if(column_indices.size() > 0) {
-		new_orc_args.columns.resize(column_indices.size());
-
-		for(size_t column_i = 0; column_i < column_indices.size(); column_i++) {
-			new_orc_args.columns[column_i] = schema.get_name(column_indices[column_i]);
-		}
-
-		cudf_io::table_with_metadata orc_table = get_new_orc(new_orc_args, file);
-
-		if(orc_table.tbl->num_columns() <= 0)
-			Library::Logging::Logger().logWarn("orc_parser::parse no columns were read");
-
-		return std::make_unique<ral::frame::BlazingTable>(std::move(orc_table.tbl), orc_table.metadata.column_names);
-	}
-	return nullptr;
 }
 
 std::unique_ptr<ral::frame::BlazingTable> orc_parser::parse_batch(
@@ -69,7 +43,8 @@ std::unique_ptr<ral::frame::BlazingTable> orc_parser::parse_batch(
 	}
 	if(column_indices.size() > 0) {
 		// Fill data to orc_args
-		cudf_io::read_orc_args orc_args{cudf_io::source_info{file}};
+		auto arrow_source = cudf_io::arrow_io_source{file};
+		orc_args.source = cudf_io::source_info{&arrow_source};
 
 		orc_args.columns.resize(column_indices.size());
 

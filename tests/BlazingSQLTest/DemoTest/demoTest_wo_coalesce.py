@@ -1,24 +1,35 @@
-import numpy as np
-from sklearn.model_selection import train_test_split
-import xgboost as xgb
-import cudf
-from cudf.dataframe import DataFrame
-from collections import OrderedDict
-import gc
-from glob import glob
-import os
-import pyblazing
-import pandas as pd
 
+# if use_registered_hdfs:
+#     acq_data_path = "hdfs://myLocalHdfs/data/acq"
+#     perf_data_path = "hdfs://myLocalHdfs/data/perf"
+#     col_names_path = "hdfs://myLocalHdfs/data/names.csv"
+# elif use_registered_posix:
+#     acq_data_path = "file://mortgage/data/acq"
+#     perf_data_path = "file://mortgage/data/perf"
+#     col_names_path = "file://mortgage/data/names.csv"
+# else:
+
+import time
+from collections import OrderedDict
+import numpy as np
+import pandas as pd
+import pyblazing
+from pyblazing import (
+    DriverType,
+    FileSystemType,
+    SchemaFrom,
+    get_dtype_values,
+)
+from sklearn.model_selection import train_test_split
+
+import xgboost as xgb
+from Configuration import Settings as Settings
 from DemoTest.chronometer import Chronometer
 from Utils import Execution
-from Configuration import Settings as Settings
-
-from pyblazing import FileSystemType, SchemaFrom, DriverType, gdf_dtype, get_dtype_values
 
 
 def register_hdfs():
-    print('*** Register a HDFS File System ***')
+    print("*** Register a HDFS File System ***")
     fs_status = pyblazing.register_file_system(
         authority="myLocalHdfs",
         type=FileSystemType.HDFS,
@@ -28,8 +39,8 @@ def register_hdfs():
             "port": 54310,
             "user": "hadoop",
             "driverType": DriverType.LIBHDFS3,
-            "kerberosTicket": ""
-        }
+            "kerberosTicket": "",
+        },
     )
     print(fs_status)
 
@@ -38,35 +49,40 @@ def deregister_hdfs():
     fs_status = pyblazing.deregister_file_system(authority="myLocalHdfs")
     print(fs_status)
 
+
 def register_posix():
 
-    import os 
+    import os
+
     dir_path = os.path.dirname(os.path.realpath(__file__))
 
-    print('*** Register a POSIX File System ***')
+    print("*** Register a POSIX File System ***")
     fs_status = pyblazing.register_file_system(
-        authority="mortgage",
-        type=FileSystemType.POSIX,
-        root=dir_path
+        authority="mortgage", type=FileSystemType.POSIX, root=dir_path
     )
     print(fs_status)
+
 
 def deregister_posix():
     fs_status = pyblazing.deregister_file_system(authority="mortgage")
     print(fs_status)
 
-def get_type_schema(path):
-    format = path.split('.')[-1]
 
-    if format == 'parquet':
+def get_type_schema(path):
+    format = path.split(".")[-1]
+
+    if format == "parquet":
         return SchemaFrom.ParquetFile
-    elif format == 'csv' or format == 'psv' or format.startswith("txt"):
+    elif format == "csv" or format == "psv" or format.startswith("txt"):
         return SchemaFrom.CsvFile
+
 
 def open_perf_table(table_ref):
     for key in table_ref.keys():
-        sql = 'select * from main.%(table_name)s' % {"table_name": key.table_name}
+        sql = "select * from main.%(table_name)s" % {"table_name":
+                                                     key.table_name}
         return pyblazing.run_query(sql, table_ref)
+
 
 def run_gpu_workflow(quarter=1, year=2000, perf_file="", **kwargs):
 
@@ -75,47 +91,63 @@ def run_gpu_workflow(quarter=1, year=2000, perf_file="", **kwargs):
     load_start_time = time.time()
 
     names = gpu_load_names()
-    acq_gdf = gpu_load_acquisition_csv(acquisition_path=acq_data_path + "/Acquisition_"
-                                                        + str(year) + "Q" + str(quarter) + ".txt")
+    acq_gdf = gpu_load_acquisition_csv(
+        acquisition_path=acq_data_path
+        + "/Acquisition_"
+        + str(year)
+        + "Q"
+        + str(quarter)
+        + ".txt"
+    )
 
     gdf = gpu_load_performance_csv(perf_file)
 
     load_end_time = time.time()
 
     etl_start_time = time.time()
-    
+
     acq_gdf_results = merge_names(acq_gdf, names)
 
     everdf_results = create_ever_features(gdf)
 
     delinq_merge_results = create_delinq_features(gdf)
 
-    new_everdf_results = join_ever_delinq_features(everdf_results.columns, delinq_merge_results.columns)
+    new_everdf_results = join_ever_delinq_features(
+        everdf_results.columns, delinq_merge_results.columns
+    )
 
-    joined_df_results = create_joined_df(gdf.columns, new_everdf_results.columns)
-    del (new_everdf_results)
+    joined_df_results = create_joined_df(gdf.columns,
+                                         new_everdf_results.columns)
+    del new_everdf_results
 
     testdf_results = create_12_mon_features_union(joined_df_results.columns)
-    
-    testdf = testdf_results.columns
-    new_joined_df_results = combine_joined_12_mon(joined_df_results.columns, testdf)
-    del (testdf)
-    del (joined_df_results)
-    perf_df_results = final_performance_delinquency(gdf.columns, new_joined_df_results.columns)
-    del (gdf)
-    del (new_joined_df_results)
 
-    final_gdf_results = join_perf_acq_gdfs(perf_df_results.columns, acq_gdf_results.columns)
-    del (perf_df_results)
-    del (acq_gdf_results)
-    
+    testdf = testdf_results.columns
+    new_joined_df_results = combine_joined_12_mon(joined_df_results.columns,
+                                                  testdf)
+    del testdf
+    del joined_df_results
+    perf_df_results = final_performance_delinquency(
+        gdf.columns, new_joined_df_results.columns
+    )
+    del gdf
+    del new_joined_df_results
+
+    final_gdf_results = join_perf_acq_gdfs(
+        perf_df_results.columns, acq_gdf_results.columns
+    )
+    del perf_df_results
+    del acq_gdf_results
+
     final_gdf = last_mile_cleaning(final_gdf_results.columns)
 
     etl_end_time = time.time()
-    
-    return [final_gdf, (load_end_time - load_start_time), (etl_end_time - etl_start_time)]
 
-
+    return [
+        final_gdf,
+        (load_end_time - load_start_time),
+        (etl_end_time - etl_start_time),
+    ]
 
 
 def gpu_load_performance_csv(performance_path, **kwargs):
@@ -128,54 +160,87 @@ def gpu_load_performance_csv(performance_path, **kwargs):
     chronometer = Chronometer.makeStarted()
 
     cols = [
-        "loan_id", "monthly_reporting_period", "servicer", "interest_rate", "current_actual_upb",
-        "loan_age", "remaining_months_to_legal_maturity", "adj_remaining_months_to_maturity",
-        "maturity_date", "msa", "current_loan_delinquency_status", "mod_flag", "zero_balance_code",
-        "zero_balance_effective_date", "last_paid_installment_date", "foreclosed_after",
-        "disposition_date", "foreclosure_costs", "prop_preservation_and_repair_costs",
-        "asset_recovery_costs", "misc_holding_expenses", "holding_taxes", "net_sale_proceeds",
-        "credit_enhancement_proceeds", "repurchase_make_whole_proceeds", "other_foreclosure_proceeds",
-        "non_interest_bearing_upb", "principal_forgiveness_upb", "repurchase_make_whole_proceeds_flag",
-        "foreclosure_principal_write_off_amount", "servicing_activity_indicator"
+        "loan_id",
+        "monthly_reporting_period",
+        "servicer",
+        "interest_rate",
+        "current_actual_upb",
+        "loan_age",
+        "remaining_months_to_legal_maturity",
+        "adj_remaining_months_to_maturity",
+        "maturity_date",
+        "msa",
+        "current_loan_delinquency_status",
+        "mod_flag",
+        "zero_balance_code",
+        "zero_balance_effective_date",
+        "last_paid_installment_date",
+        "foreclosed_after",
+        "disposition_date",
+        "foreclosure_costs",
+        "prop_preservation_and_repair_costs",
+        "asset_recovery_costs",
+        "misc_holding_expenses",
+        "holding_taxes",
+        "net_sale_proceeds",
+        "credit_enhancement_proceeds",
+        "repurchase_make_whole_proceeds",
+        "other_foreclosure_proceeds",
+        "non_interest_bearing_upb",
+        "principal_forgiveness_upb",
+        "repurchase_make_whole_proceeds_flag",
+        "foreclosure_principal_write_off_amount",
+        "servicing_activity_indicator",
     ]
 
-    dtypes = OrderedDict([
-        ("loan_id", "int64"),
-        ("monthly_reporting_period", "date"),
-        ("servicer", "category"),
-        ("interest_rate", "float64"),
-        ("current_actual_upb", "float64"),
-        ("loan_age", "float64"),
-        ("remaining_months_to_legal_maturity", "float64"),
-        ("adj_remaining_months_to_maturity", "float64"),
-        ("maturity_date", "date"),
-        ("msa", "float64"),
-        ("current_loan_delinquency_status", "int32"),
-        ("mod_flag", "category"),
-        ("zero_balance_code", "category"),
-        ("zero_balance_effective_date", "date"),
-        ("last_paid_installment_date", "date"),
-        ("foreclosed_after", "date"),
-        ("disposition_date", "date"),
-        ("foreclosure_costs", "float64"),
-        ("prop_preservation_and_repair_costs", "float64"),
-        ("asset_recovery_costs", "float64"),
-        ("misc_holding_expenses", "float64"),
-        ("holding_taxes", "float64"),
-        ("net_sale_proceeds", "float64"),
-        ("credit_enhancement_proceeds", "float64"),
-        ("repurchase_make_whole_proceeds", "float64"),
-        ("other_foreclosure_proceeds", "float64"),
-        ("non_interest_bearing_upb", "float64"),
-        ("principal_forgiveness_upb", "float64"),
-        ("repurchase_make_whole_proceeds_flag", "category"),
-        ("foreclosure_principal_write_off_amount", "float64"),
-        ("servicing_activity_indicator", "category")
-    ])
+    dtypes = OrderedDict(
+        [
+            ("loan_id", "int64"),
+            ("monthly_reporting_period", "date"),
+            ("servicer", "category"),
+            ("interest_rate", "float64"),
+            ("current_actual_upb", "float64"),
+            ("loan_age", "float64"),
+            ("remaining_months_to_legal_maturity", "float64"),
+            ("adj_remaining_months_to_maturity", "float64"),
+            ("maturity_date", "date"),
+            ("msa", "float64"),
+            ("current_loan_delinquency_status", "int32"),
+            ("mod_flag", "category"),
+            ("zero_balance_code", "category"),
+            ("zero_balance_effective_date", "date"),
+            ("last_paid_installment_date", "date"),
+            ("foreclosed_after", "date"),
+            ("disposition_date", "date"),
+            ("foreclosure_costs", "float64"),
+            ("prop_preservation_and_repair_costs", "float64"),
+            ("asset_recovery_costs", "float64"),
+            ("misc_holding_expenses", "float64"),
+            ("holding_taxes", "float64"),
+            ("net_sale_proceeds", "float64"),
+            ("credit_enhancement_proceeds", "float64"),
+            ("repurchase_make_whole_proceeds", "float64"),
+            ("other_foreclosure_proceeds", "float64"),
+            ("non_interest_bearing_upb", "float64"),
+            ("principal_forgiveness_upb", "float64"),
+            ("repurchase_make_whole_proceeds_flag", "category"),
+            ("foreclosure_principal_write_off_amount", "float64"),
+            ("servicing_activity_indicator", "category"),
+        ]
+    )
     print(performance_path)
-    performance_table = pyblazing.create_table(table_name='perf', type=get_type_schema(performance_path), path=performance_path, delimiter='|', names=cols, dtypes=get_dtype_values(dtypes), skip_rows=1)
-    Chronometer.show(chronometer, 'Read Performance CSV')
+    performance_table = pyblazing.create_table(
+        table_name="perf",
+        type=get_type_schema(performance_path),
+        path=performance_path,
+        delimiter="|",
+        names=cols,
+        dtypes=get_dtype_values(dtypes),
+        skip_rows=1,
+    )
+    Chronometer.show(chronometer, "Read Performance CSV")
     return performance_table
+
 
 def gpu_load_acquisition_csv(acquisition_path, **kwargs):
     """ Loads acquisition data
@@ -187,46 +252,77 @@ def gpu_load_acquisition_csv(acquisition_path, **kwargs):
     chronometer = Chronometer.makeStarted()
 
     cols = [
-        'loan_id', 'orig_channel', 'seller_name', 'orig_interest_rate', 'orig_upb', 'orig_loan_term',
-        'orig_date', 'first_pay_date', 'orig_ltv', 'orig_cltv', 'num_borrowers', 'dti', 'borrower_credit_score',
-        'first_home_buyer', 'loan_purpose', 'property_type', 'num_units', 'occupancy_status', 'property_state',
-        'zip', 'mortgage_insurance_percent', 'product_type', 'coborrow_credit_score', 'mortgage_insurance_type',
-        'relocation_mortgage_indicator'
+        "loan_id",
+        "orig_channel",
+        "seller_name",
+        "orig_interest_rate",
+        "orig_upb",
+        "orig_loan_term",
+        "orig_date",
+        "first_pay_date",
+        "orig_ltv",
+        "orig_cltv",
+        "num_borrowers",
+        "dti",
+        "borrower_credit_score",
+        "first_home_buyer",
+        "loan_purpose",
+        "property_type",
+        "num_units",
+        "occupancy_status",
+        "property_state",
+        "zip",
+        "mortgage_insurance_percent",
+        "product_type",
+        "coborrow_credit_score",
+        "mortgage_insurance_type",
+        "relocation_mortgage_indicator",
     ]
 
-    dtypes = OrderedDict([
-        ("loan_id", "int64"),
-        ("orig_channel", "category"),
-        ("seller_name", "category"),
-        ("orig_interest_rate", "float64"),
-        ("orig_upb", "int64"),
-        ("orig_loan_term", "int64"),
-        ("orig_date", "date"),
-        ("first_pay_date", "date"),
-        ("orig_ltv", "float64"),
-        ("orig_cltv", "float64"),
-        ("num_borrowers", "float64"),
-        ("dti", "float64"),
-        ("borrower_credit_score", "float64"),
-        ("first_home_buyer", "category"),
-        ("loan_purpose", "category"),
-        ("property_type", "category"),
-        ("num_units", "int64"),
-        ("occupancy_status", "category"),
-        ("property_state", "category"),
-        ("zip", "int64"),
-        ("mortgage_insurance_percent", "float64"),
-        ("product_type", "category"),
-        ("coborrow_credit_score", "float64"),
-        ("mortgage_insurance_type", "float64"),
-        ("relocation_mortgage_indicator", "category")
-    ])
+    dtypes = OrderedDict(
+        [
+            ("loan_id", "int64"),
+            ("orig_channel", "category"),
+            ("seller_name", "category"),
+            ("orig_interest_rate", "float64"),
+            ("orig_upb", "int64"),
+            ("orig_loan_term", "int64"),
+            ("orig_date", "date"),
+            ("first_pay_date", "date"),
+            ("orig_ltv", "float64"),
+            ("orig_cltv", "float64"),
+            ("num_borrowers", "float64"),
+            ("dti", "float64"),
+            ("borrower_credit_score", "float64"),
+            ("first_home_buyer", "category"),
+            ("loan_purpose", "category"),
+            ("property_type", "category"),
+            ("num_units", "int64"),
+            ("occupancy_status", "category"),
+            ("property_state", "category"),
+            ("zip", "int64"),
+            ("mortgage_insurance_percent", "float64"),
+            ("product_type", "category"),
+            ("coborrow_credit_score", "float64"),
+            ("mortgage_insurance_type", "float64"),
+            ("relocation_mortgage_indicator", "category"),
+        ]
+    )
 
     print(acquisition_path)
 
-    acquisition_table = pyblazing.create_table(table_name='acq', type=get_type_schema(acquisition_path), path=acquisition_path, delimiter='|', names=cols, dtypes=get_dtype_values(dtypes), skip_rows=1)
-    Chronometer.show(chronometer, 'Read Acquisition CSV')
+    acquisition_table = pyblazing.create_table(
+        table_name="acq",
+        type=get_type_schema(acquisition_path),
+        path=acquisition_path,
+        delimiter="|",
+        names=cols,
+        dtypes=get_dtype_values(dtypes),
+        skip_rows=1,
+    )
+    Chronometer.show(chronometer, "Read Acquisition CSV")
     return acquisition_table
+
 
 def gpu_load_names(**kwargs):
     """ Loads names used for renaming the banks
@@ -237,131 +333,176 @@ def gpu_load_names(**kwargs):
     """
     chronometer = Chronometer.makeStarted()
 
-    cols = [
-        'seller_name', 'new_seller_name'
-    ]
+    cols = ["seller_name", "new_seller_name"]
 
-    dtypes = OrderedDict([
-        ("seller_name", "category"),
-        ("new_seller_name", "category"),
-    ])
+    dtypes = OrderedDict(
+        [("seller_name", "category"), ("new_seller_name", "category"), ]
+    )
 
-    names_table = pyblazing.create_table(table_name='names', type=get_type_schema(col_names_path), path=col_names_path, delimiter='|', names=cols, dtypes=get_dtype_values(dtypes), skip_rows=1)
-    Chronometer.show(chronometer, 'Read Names CSV')
+    names_table = pyblazing.create_table(
+        table_name="names",
+        type=get_type_schema(col_names_path),
+        path=col_names_path,
+        delimiter="|",
+        names=cols,
+        dtypes=get_dtype_values(dtypes),
+        skip_rows=1,
+    )
+    Chronometer.show(chronometer, "Read Names CSV")
     return names_table
 
 
 def merge_names(names_table, acq_table):
     chronometer = Chronometer.makeStarted()
     tables = {names_table.name: names_table.columns,
-              acq_table.name:acq_table.columns}
+              acq_table.name: acq_table.columns}
 
-    query = """SELECT loan_id, orig_channel, orig_interest_rate, orig_upb, orig_loan_term, 
-        orig_date, first_pay_date, orig_ltv, orig_cltv, num_borrowers, dti, borrower_credit_score, 
-        first_home_buyer, loan_purpose, property_type, num_units, occupancy_status, property_state,
-        zip, mortgage_insurance_percent, product_type, coborrow_credit_score, mortgage_insurance_type, 
-        relocation_mortgage_indicator, new_seller_name as seller_name 
-        FROM main.acq as a LEFT OUTER JOIN main.names as n ON  a.seller_name = n.seller_name"""
+    query = """
+        SELECT loan_id, orig_channel, orig_interest_rate, orig_upb,
+            orig_loan_term, orig_date, first_pay_date, orig_ltv, orig_cltv,
+            num_borrowers, dti, borrower_credit_score, first_home_buyer,
+            loan_purpose, property_type, num_units, occupancy_status,
+            property_state, zip, mortgage_insurance_percent, product_type,
+            coborrow_credit_score, mortgage_insurance_type,
+            relocation_mortgage_indicator, new_seller_name as seller_name
+        FROM main.acq as a
+        LEFT OUTER JOIN main.names as n ON  a.seller_name = n.seller_name
+    """
     result = pyblazing.run_query(query, tables)
-    Chronometer.show(chronometer, 'Create Acquisition (Merge Names)')
+    Chronometer.show(chronometer, "Create Acquisition (Merge Names)")
     return result
 
 
 def create_ever_features(table, **kwargs):
     chronometer = Chronometer.makeStarted()
     query = """SELECT loan_id,
-        max(current_loan_delinquency_status) >= 1 as ever_30, 
+        max(current_loan_delinquency_status) >= 1 as ever_30,
         max(current_loan_delinquency_status) >= 3 as ever_90,
         max(current_loan_delinquency_status) >= 6 as ever_180
         FROM main.perf group by loan_id"""
     result = pyblazing.run_query(query, {table.name: table.columns})
-    Chronometer.show(chronometer, 'Create Ever Features')
+    Chronometer.show(chronometer, "Create Ever Features")
     return result
 
 
 def create_delinq_features(table, **kwargs):
     chronometer = Chronometer.makeStarted()
-    query = """SELECT loan_id,
-        min(monthly_reporting_period) as delinquency_30
-        FROM main.perf where current_loan_delinquency_status >= 1 group by loan_id"""
+    query = """
+        SELECT loan_id,
+            min(monthly_reporting_period) as delinquency_30
+        FROM main.perf
+        where current_loan_delinquency_status >= 1 group by loan_id
+    """
     result_delinq_30 = pyblazing.run_query(query, {table.name: table.columns})
-    
-    query = """SELECT loan_id,
-        min(monthly_reporting_period) as delinquency_90
-        FROM main.perf where current_loan_delinquency_status >= 3 group by loan_id"""
-    result_delinq_90 = pyblazing.run_query(query, {table.name: table.columns})
-    
-    query = """SELECT loan_id,
-        min(monthly_reporting_period) as delinquency_180
-        FROM main.perf where current_loan_delinquency_status >= 6 group by loan_id"""
-    result_delinq_180 = pyblazing.run_query(query, {table.name: table.columns})
-    
-    
 
-    new_tables = {"delinq_30": result_delinq_30.columns, "delinq_90": result_delinq_90.columns, "delinq_180": result_delinq_180.columns}
-    query = """SELECT d30.loan_id, delinquency_30, delinquency_90,
-                delinquency_180 FROM main.delinq_30 as d30
-                LEFT OUTER JOIN main.delinq_90 as d90 ON d30.loan_id = d90.loan_id
-                LEFT OUTER JOIN main.delinq_180 as d180 ON d30.loan_id = d180.loan_id"""
+    query = """
+        SELECT loan_id,
+            min(monthly_reporting_period) as delinquency_90
+        FROM main.perf
+        where current_loan_delinquency_status >= 3 group by loan_id
+    """
+    result_delinq_90 = pyblazing.run_query(query, {table.name: table.columns})
+
+    query = """
+        SELECT loan_id,
+            min(monthly_reporting_period) as delinquency_180
+        FROM main.perf
+        where current_loan_delinquency_status >= 6 group by loan_id
+    """
+    result_delinq_180 = pyblazing.run_query(query, {table.name: table.columns})
+
+    new_tables = {
+        "delinq_30": result_delinq_30.columns,
+        "delinq_90": result_delinq_90.columns,
+        "delinq_180": result_delinq_180.columns,
+    }
+    query = """
+        SELECT d30.loan_id, delinquency_30, delinquency_90,
+            delinquency_180 FROM main.delinq_30 as d30
+        LEFT OUTER JOIN main.delinq_90 as d90 ON d30.loan_id = d90.loan_id
+        LEFT OUTER JOIN main.delinq_180 as d180 ON d30.loan_id = d180.loan_id
+    """
     result_merge = pyblazing.run_query(query, new_tables)
-    result_merge.columns['delinquency_90'] = result_merge.columns['delinquency_90'].fillna(
-        np.dtype('datetime64[ms]').type('1970-01-01').astype('datetime64[ms]'))
-    result_merge.columns['delinquency_180'] = result_merge.columns['delinquency_180'].fillna(
-        np.dtype('datetime64[ms]').type('1970-01-01').astype('datetime64[ms]'))
-    Chronometer.show(chronometer, 'Create deliquency features')
+    result_merge.columns["delinquency_90"] = result_merge.columns[
+        "delinquency_90"
+    ].fillna(np.dtype("datetime64[ms]").type(
+                                    "1970-01-01").astype("datetime64[ms]"))
+    result_merge.columns["delinquency_180"] = result_merge.columns[
+        "delinquency_180"
+    ].fillna(np.dtype("datetime64[ms]").type(
+                                    "1970-01-01").astype("datetime64[ms]"))
+    Chronometer.show(chronometer, "Create deliquency features")
     return result_merge
 
 
 def join_ever_delinq_features(everdf_tmp, delinq_merge, **kwargs):
     chronometer = Chronometer.makeStarted()
     tables = {"everdf": everdf_tmp, "delinq": delinq_merge}
-    query = """SELECT everdf.loan_id as loan_id, ever_30, ever_90, ever_180,
-                  delinquency_30,
-                  delinquency_90,
-                  delinquency_180 FROM main.everdf as everdf
-                  LEFT OUTER JOIN main.delinq as delinq ON everdf.loan_id = delinq.loan_id"""
+    query = """
+        SELECT everdf.loan_id as loan_id, ever_30, ever_90, ever_180,
+            delinquency_30,
+            delinquency_90,
+            delinquency_180 FROM main.everdf as everdf
+            LEFT OUTER JOIN main.delinq as delinq
+            ON everdf.loan_id = delinq.loan_id
+    """
     result_merge = pyblazing.run_query(query, tables)
-    result_merge.columns['delinquency_30'] = result_merge.columns['delinquency_30'].fillna(
-        np.dtype('datetime64[ms]').type('1970-01-01').astype('datetime64[ms]'))
-    result_merge.columns['delinquency_90'] = result_merge.columns['delinquency_90'].fillna(
-        np.dtype('datetime64[ms]').type('1970-01-01').astype('datetime64[ms]'))
-    result_merge.columns['delinquency_180'] = result_merge.columns['delinquency_180'].fillna(
-        np.dtype('datetime64[ms]').type('1970-01-01').astype('datetime64[ms]'))
-    Chronometer.show(chronometer, 'Create ever deliquency features')
+    result_merge.columns["delinquency_30"] = result_merge.columns[
+        "delinquency_30"
+    ].fillna(np.dtype("datetime64[ms]").type(
+                                    "1970-01-01").astype("datetime64[ms]"))
+    result_merge.columns["delinquency_90"] = result_merge.columns[
+        "delinquency_90"
+    ].fillna(np.dtype("datetime64[ms]").type(
+                                    "1970-01-01").astype("datetime64[ms]"))
+    result_merge.columns["delinquency_180"] = result_merge.columns[
+        "delinquency_180"
+    ].fillna(np.dtype("datetime64[ms]").type(
+                                    "1970-01-01").astype("datetime64[ms]"))
+    Chronometer.show(chronometer, "Create ever deliquency features")
     return result_merge
 
 
 def create_joined_df(gdf, everdf, **kwargs):
     chronometer = Chronometer.makeStarted()
     tables = {"perf": gdf, "everdf": everdf}
-    
-    query = """SELECT perf.loan_id as loan_id, 
-                perf.monthly_reporting_period as mrp_timestamp,
-                EXTRACT(MONTH FROM perf.monthly_reporting_period) as timestamp_month,
-                EXTRACT(YEAR FROM perf.monthly_reporting_period) as timestamp_year,
-                perf.current_loan_delinquency_status as delinquency_12,
-                perf.current_actual_upb as upb_12,
-                everdf.ever_30 as ever_30,
-                everdf.ever_90 as ever_90, 
-                everdf.ever_180 as ever_180, 
-                everdf.delinquency_30 as delinquency_30, 
-                everdf.delinquency_90 as delinquency_90, 
-                everdf.delinquency_180 as delinquency_180
-                FROM main.perf as perf 
-                LEFT OUTER JOIN main.everdf as everdf ON perf.loan_id = everdf.loan_id"""
+
+    query = """
+        SELECT perf.loan_id as loan_id,
+            perf.monthly_reporting_period as mrp_timestamp,
+            EXTRACT(MONTH FROM perf.monthly_reporting_period)
+                as timestamp_month,
+            EXTRACT(YEAR FROM perf.monthly_reporting_period)
+                as timestamp_year,
+            perf.current_loan_delinquency_status as delinquency_12,
+            perf.current_actual_upb as upb_12,
+            everdf.ever_30 as ever_30,
+            everdf.ever_90 as ever_90,
+            everdf.ever_180 as ever_180,
+            everdf.delinquency_30 as delinquency_30,
+            everdf.delinquency_90 as delinquency_90,
+            everdf.delinquency_180 as delinquency_180
+        FROM main.perf as perf
+        LEFT OUTER JOIN main.everdf as everdf
+        ON perf.loan_id = everdf.loan_id
+    """
 
     results = pyblazing.run_query(query, tables)
 
-    results.columns['upb_12'] = results.columns['upb_12'].fillna(999999999)
-    results.columns['delinquency_12'] = results.columns['delinquency_12'].fillna(-1)
-    results.columns['ever_30'] = results.columns['ever_30'].fillna(-1)
-    results.columns['ever_90'] = results.columns['ever_90'].fillna(-1)
-    results.columns['ever_180'] = results.columns['ever_180'].fillna(-1)
-    results.columns['delinquency_30'] = results.columns['delinquency_30'].fillna(-1)
-    results.columns['delinquency_90'] = results.columns['delinquency_90'].fillna(-1)
-    results.columns['delinquency_180'] = results.columns['delinquency_180'].fillna(-1)
+    results.columns["upb_12"] = results.columns["upb_12"].fillna(999999999)
+    results.columns["delinquency_12"] = results.columns[
+                                                "delinquency_12"].fillna(-1)
+    results.columns["ever_30"] = results.columns["ever_30"].fillna(-1)
+    results.columns["ever_90"] = results.columns["ever_90"].fillna(-1)
+    results.columns["ever_180"] = results.columns["ever_180"].fillna(-1)
+    results.columns["delinquency_30"] = results.columns[
+                                                "delinquency_30"].fillna(-1)
+    results.columns["delinquency_90"] = results.columns[
+                                                "delinquency_90"].fillna(-1)
+    results.columns["delinquency_180"] = results.columns[
+                                                "delinquency_180"].fillna(-1)
 
-    Chronometer.show(chronometer, 'Create Joined DF')
+    Chronometer.show(chronometer, "Create Joined DF")
     return results
 
 
@@ -369,133 +510,180 @@ def create_12_mon_features_union(joined_df, **kwargs):
     chronometer = Chronometer.makeStarted()
     tables = {"joined_df": joined_df}
     josh_mody_n_str = "timestamp_year * 12 + timestamp_month - 24000.0"
-    query = "SELECT loan_id, " + josh_mody_n_str + " as josh_mody_n, max(delinquency_12) as max_d12, min(upb_12) as min_upb_12  FROM main.joined_df as joined_df GROUP BY loan_id, " + josh_mody_n_str
+    query = (
+        "SELECT loan_id, "
+        + josh_mody_n_str
+        + " as josh_mody_n, max(delinquency_12) as max_d12,"
+        + " min(upb_12) as min_upb_12"
+        + " FROM main.joined_df as joined_df GROUP BY loan_id, "
+        + josh_mody_n_str
+    )
     mastertemp = pyblazing.run_query(query, tables)
-    
+
     all_temps = []
     all_tokens = []
     tables = {"joined_df": mastertemp.columns}
     n_months = 12
-    
+
     for y in range(1, n_months + 1):
         josh_mody_n_str = "floor((josh_mody_n - " + str(y) + ")/12.0)"
-        query = "SELECT loan_id, " + josh_mody_n_str + " as josh_mody_n, max(max_d12) > 3 as max_d12_gt3, min(min_upb_12) = 0 as min_upb_12_eq0, min(min_upb_12) as upb_12  FROM main.joined_df as joined_df GROUP BY loan_id, " + josh_mody_n_str
-        
+        query = (
+            "SELECT loan_id, "
+            + josh_mody_n_str
+            + " as josh_mody_n, max(max_d12) > 3 as max_d12_gt3,"
+            + " min(min_upb_12) = 0 as min_upb_12_eq0,"
+            + " min(min_upb_12) as upb_12"
+            + " FROM main.joined_df as joined_df GROUP BY loan_id, "
+            + josh_mody_n_str
+        )
+
         metaToken = pyblazing.run_query_get_token(query, tables)
         all_tokens.append(metaToken)
-        
+
     for metaToken in all_tokens:
         temp = pyblazing.run_query_get_results(metaToken)
         all_temps.append(temp)
-    
+
     y = 1
     tables2 = {"temp1": all_temps[0].columns}
-    union_query = "(SELECT loan_id, max_d12_gt3 + min_upb_12_eq0 as delinquency_12, upb_12, floor(((josh_mody_n * 12) + " + str(
-            24000 + (y - 1)) + ")/12) as timestamp_year, josh_mody_n * 0 + " + str(
-            y) + " as timestamp_month from main.temp" + str(y) + ")"
+    union_query = (
+        """(SELECT loan_id, max_d12_gt3 + min_upb_12_eq0 as delinquency_12,
+         upb_12, floor(((josh_mody_n * 12) + """
+        + str(24000 + (y - 1))
+        + ")/12) as timestamp_year, josh_mody_n * 0 + "
+        + str(y)
+        + " as timestamp_month from main.temp"
+        + str(y)
+        + ")"
+    )
     for y in range(2, n_months + 1):
-        tables2["temp" + str(y)] = all_temps[y-1].columns
-        query = " UNION ALL (SELECT loan_id, max_d12_gt3 + min_upb_12_eq0 as delinquency_12, upb_12, floor(((josh_mody_n * 12) + " + str(
-            24000 + (y - 1)) + ")/12) as timestamp_year, josh_mody_n * 0 + " + str(
-            y) + " as timestamp_month from main.temp" + str(y) + ")"
+        tables2["temp" + str(y)] = all_temps[y - 1].columns
+        query = (
+            """ UNION ALL (SELECT loan_id, max_d12_gt3 + min_upb_12_eq0 as
+            delinquency_12, upb_12, floor(((josh_mody_n * 12) + """
+            + str(24000 + (y - 1))
+            + ")/12) as timestamp_year, josh_mody_n * 0 + "
+            + str(y)
+            + " as timestamp_month from main.temp"
+            + str(y)
+            + ")"
+        )
         union_query = union_query + query
 
     results = pyblazing.run_query(union_query, tables2)
-    Chronometer.show(chronometer, 'Create 12 month features once')
+    Chronometer.show(chronometer, "Create 12 month features once")
     return results
 
 
 def combine_joined_12_mon(joined_df, testdf, **kwargs):
     chronometer = Chronometer.makeStarted()
     tables = {"joined_df": joined_df, "testdf": testdf}
-    query = """SELECT j.loan_id, j.mrp_timestamp, j.timestamp_month, j.timestamp_year, 
-                j.ever_30, j.ever_90, j.ever_180, j.delinquency_30, j.delinquency_90, j.delinquency_180,
-                t.delinquency_12, t.upb_12 
-                FROM main.joined_df as j LEFT OUTER JOIN main.testdf as t 
-                ON j.loan_id = t.loan_id and j.timestamp_year = t.timestamp_year and j.timestamp_month = t.timestamp_month"""
+    query = """
+        SELECT j.loan_id, j.mrp_timestamp, j.timestamp_month,
+            j.timestamp_year, j.ever_30, j.ever_90, j.ever_180,
+            j.delinquency_30, j.delinquency_90, j.delinquency_180,
+            t.delinquency_12, t.upb_12
+        FROM main.joined_df as j LEFT OUTER JOIN main.testdf as t
+        ON j.loan_id = t.loan_id
+        and j.timestamp_year = t.timestamp_year
+        and j.timestamp_month = t.timestamp_month
+    """
     results = pyblazing.run_query(query, tables)
-    Chronometer.show(chronometer, 'Combine joind 12 month')
+    Chronometer.show(chronometer, "Combine joind 12 month")
     return results
 
 
 def final_performance_delinquency(gdf, joined_df, **kwargs):
     chronometer = Chronometer.makeStarted()
     tables = {"gdf": gdf, "joined_df": joined_df}
-    query = """SELECT g.loan_id, current_actual_upb, current_loan_delinquency_status, delinquency_12, interest_rate, loan_age, mod_flag, msa, non_interest_bearing_upb 
+    query = """
+        SELECT g.loan_id, current_actual_upb, current_loan_delinquency_status,
+            delinquency_12, interest_rate, loan_age, mod_flag, msa,
+            non_interest_bearing_upb
         FROM main.gdf as g LEFT OUTER JOIN main.joined_df as j
-        ON g.loan_id = j.loan_id and EXTRACT(YEAR FROM g.monthly_reporting_period) = j.timestamp_year and EXTRACT(MONTH FROM g.monthly_reporting_period) = j.timestamp_month """
+        ON g.loan_id = j.loan_id
+        and EXTRACT(YEAR FROM g.monthly_reporting_period) = j.timestamp_year
+        and EXTRACT(MONTH FROM g.monthly_reporting_period) = j.timestamp_month
+    """
     results = pyblazing.run_query(query, tables)
-    Chronometer.show(chronometer, 'Final performance delinquency')
+    Chronometer.show(chronometer, "Final performance delinquency")
     return results
 
 
 def join_perf_acq_gdfs(perf, acq, **kwargs):
     chronometer = Chronometer.makeStarted()
     tables = {"perf": perf, "acq": acq}
-    query = """SELECT p.loan_id, current_actual_upb, current_loan_delinquency_status, delinquency_12, interest_rate, loan_age, mod_flag, msa, non_interest_bearing_upb,
-     borrower_credit_score, dti, first_home_buyer, loan_purpose, mortgage_insurance_percent, num_borrowers, num_units, occupancy_status, 
-     orig_channel, orig_cltv, orig_date, orig_interest_rate, orig_loan_term, orig_ltv, orig_upb, product_type, property_state, property_type, 
-     relocation_mortgage_indicator, seller_name, zip FROM main.perf as p LEFT OUTER JOIN main.acq as a ON p.loan_id = a.loan_id"""
+    query = """
+        SELECT p.loan_id, current_actual_upb, current_loan_delinquency_status,
+            delinquency_12, interest_rate, loan_age, mod_flag, msa,
+            non_interest_bearing_upb, borrower_credit_score, dti,
+            first_home_buyer, loan_purpose, mortgage_insurance_percent,
+            num_borrowers, num_units, occupancy_status, orig_channel,
+            orig_cltv, orig_date, orig_interest_rate, orig_loan_term,
+            orig_ltv, orig_upb, product_type, property_state, property_type,
+            relocation_mortgage_indicator, seller_name, zip
+        FROM main.perf as p
+        LEFT OUTER JOIN main.acq as a ON p.loan_id = a.loan_id
+    """
     results = pyblazing.run_query(query, tables)
-    Chronometer.show(chronometer, 'Join performance acquitistion gdfs')
+    Chronometer.show(chronometer, "Join performance acquitistion gdfs")
     return results
 
 
 def last_mile_cleaning(df, **kwargs):
     chronometer = Chronometer.makeStarted()
     for col, dtype in df.dtypes.iteritems():
-        if str(dtype) == 'category':
+        if str(dtype) == "category":
             df[col] = df[col].cat.codes
-        df[col] = df[col].astype('float32')
-    df['delinquency_12'] = df['delinquency_12'] > 0
-    df['delinquency_12'] = df['delinquency_12'].fillna(False).astype('int32')
+        df[col] = df[col].astype("float32")
+    df["delinquency_12"] = df["delinquency_12"] > 0
+    df["delinquency_12"] = df["delinquency_12"].fillna(False).astype("int32")
     for column in df.columns:
         df[column] = df[column].fillna(-1)
-    Chronometer.show(chronometer, 'Last mile cleaning')
+    Chronometer.show(chronometer, "Last mile cleaning")
     return df
-  
-
-
 
 
 use_registered_hdfs = False
 use_registered_posix = True
 
 
-# to download data for this notebook, visit https://rapidsai.github.io/demos/datasets/mortgage-data and update the following paths accordingly
+# to download data for this notebook, visit
+# https://rapidsai.github.io/demos/datasets/mortgage-data
+# and update the following paths accordingly
 
 acq_data_path = ""
 perf_data_path = ""
 col_names_path = ""
-import os 
-# acq_data_path = "/home/kharoly/blazing/datadocker/blazingsql-mortgage-pipeline/data/data/acq/" #dir_path + "/data/acq"
-# perf_data_path ="/home/kharoly/blazing/datadocker/blazingsql-mortgage-pipeline/data/data/perf/"  #dir_path + "/data/perf"
-# col_names_path ="/home/kharoly/blazing/datadocker/blazingsql-mortgage-pipeline/data/data/names.csv"
+# acq_data_path = "/home/kharoly/blazing/datadocker/
+#                   blazingsql-mortgage-pipeline/data/data/acq/"
+# perf_data_path ="/home/kharoly/blazing/datadocker/
+#                   blazingsql-mortgage-pipeline/data/data/perf/"
+# col_names_path ="/home/kharoly/blazing/datadocker/
+#                   blazingsql-mortgage-pipeline/data/data/names.csv"
 
 Execution.getArgs()
 
-dir_data_file = Settings.data['TestSettings']['dataDirectory']
-    
+dir_data_file = Settings.data["TestSettings"]["dataDirectory"]
+
 acq_data_path = ""
 perf_data_path = ""
 col_names_path = ""
-# if use_registered_hdfs:
-#     acq_data_path = "hdfs://myLocalHdfs/data/acq"
-#     perf_data_path = "hdfs://myLocalHdfs/data/perf"
-#     col_names_path = "hdfs://myLocalHdfs/data/names.csv"
-# elif use_registered_posix:
-#     acq_data_path = "file://mortgage/data/acq"
-#     perf_data_path = "file://mortgage/data/perf"
-#     col_names_path = "file://mortgage/data/names.csv"
-# else:
-import os 
 # acq_data_path = dir_data_file + "/acq"
 # perf_data_path = dir_data_file + "/perf"
-# col_names_path = dir_data_file 
+# col_names_path = dir_data_file
 
-acq_data_path = "/home/kharoly/blazing/datadocker/blazingsql-mortgage-pipeline/data/data/acq/" #dir_path + "/data/acq"
-perf_data_path ="/home/kharoly/blazing/datadocker/blazingsql-mortgage-pipeline/data/data/perf/"  #dir_path + "/data/perf"
-col_names_path ="/home/kharoly/blazing/datadocker/blazingsql-mortgage-pipeline/data/data/names.csv"
+# dir_path + "/data/acq"
+acq_data_path = """/home/kharoly/blazing/datadocker/
+                    blazingsql-mortgage-pipeline/data/data/acq/"""
+
+# dir_path + "/data/perf"
+perf_data_path = """/home/kharoly/blazing/datadocker/
+                    blazingsql-mortgage-pipeline/data/data/perf/"""
+col_names_path = (
+    "/home/kharoly/blazing/datadocker/blazingsql-mortgage-pipeline/"
+    + "data/data/names.csv"
+)
 
 
 start_year = 2000
@@ -504,45 +692,47 @@ start_quarter = 1
 end_quarter = 1
 part_count = 1  # the number of data files to train against
 
-import time
 
 dxgb_gpu_params = {
-    'nround':            100,
-    'max_depth':         8,
-    'max_leaves':        2**8,
-    'alpha':             0.9,
-    'eta':               0.1,
-    'gamma':             0.1,
-    'learning_rate':     0.1,
-    'subsample':         1,
-    'reg_lambda':        1,
-    'scale_pos_weight':  2,
-    'min_child_weight':  30,
-    'tree_method':       'gpu_hist',
-    'n_gpus':            1,
-    'distributed_dask':  True,
-    'loss':              'ls',
-    'objective':         'reg:linear',
-    'max_features':      'auto',
-    'criterion':         'friedman_mse',
-    'grow_policy':       'lossguide',
+    "nround": 100,
+    "max_depth": 8,
+    "max_leaves": 2 ** 8,
+    "alpha": 0.9,
+    "eta": 0.1,
+    "gamma": 0.1,
+    "learning_rate": 0.1,
+    "subsample": 1,
+    "reg_lambda": 1,
+    "scale_pos_weight": 2,
+    "min_child_weight": 30,
+    "tree_method": "gpu_hist",
+    "n_gpus": 1,
+    "distributed_dask": True,
+    "loss": "ls",
+    "objective": "reg:linear",
+    "max_features": "auto",
+    "criterion": "friedman_mse",
+    "grow_policy": "lossguide",
     # 'nthread', ncores[worker],  # WSM may want to set this
-    'verbose':           True
+    "verbose": True,
 }
 
 
 def range1(start, end):
-    return range(start, end+1)
+    return range(start, end + 1)
+
 
 def use_file_type_suffix(year, quarter):
-    if year==2001 and quarter>=2:
+    if year == 2001 and quarter >= 2:
         return True
     return False
 
+
 def getChunks(year, quarter):
     if use_file_type_suffix(year, quarter):
-        return range(0, 1+1)
-    return range(0, 0+1)
+        return range(0, 1 + 1)
+    return range(0, 0 + 1)
+
 
 final_cpu_df_label = None
 final_cpu_df_data = None
@@ -554,58 +744,87 @@ all_xgb_convert_times = []
 for year in range1(start_year, end_year):
     for quarter in range1(start_quarter, end_quarter):
         for chunk in getChunks(year, quarter):
-            chunk_sufix = "_{}".format(chunk) if use_file_type_suffix(year, quarter) else ""
-            perf_file = perf_data_path + "/Performance_" + str(year) + "Q" + str(quarter) + ".txt" + chunk_sufix
-        
-            [gpu_df, load_time, etl_time] = run_gpu_workflow(quarter=quarter, year=year, perf_file=perf_file)
+            if use_file_type_suffix(year, quarter) is True:
+                chunk_sufix = ("_{}".format(chunk))
+            else:
+                chunk_sufix = ""
+
+            perf_file = (
+                perf_data_path
+                + "/Performance_"
+                + str(year)
+                + "Q"
+                + str(quarter)
+                + ".txt"
+                + chunk_sufix
+            )
+
+            [gpu_df, load_time, etl_time] = run_gpu_workflow(
+                quarter=quarter, year=year, perf_file=perf_file
+            )
             all_load_times.append(load_time)
             all_etl_times.append(etl_time)
 
             xgb_convert_start_time = time.time()
 
-            gpu_df = (gpu_df[['delinquency_12']], gpu_df[list(gpu_df.columns.difference(['delinquency_12']))])
+            gpu_df = (
+                gpu_df[["delinquency_12"]],
+                gpu_df[list(gpu_df.columns.difference(["delinquency_12"]))],
+            )
 
             cpu_df_label = gpu_df[0].to_pandas()
             cpu_df_data = gpu_df[1].to_pandas()
 
-            del (gpu_df)
+            del gpu_df
 
             if year == start_year:
                 final_cpu_df_label = cpu_df_label
                 final_cpu_df_data = cpu_df_data
             else:
-                final_cpu_df_label = pd.concat([final_cpu_df_label, cpu_df_label])
-                final_cpu_df_data = pd.concat([final_cpu_df_data, cpu_df_data])
+                final_cpu_df_label = pd.concat([final_cpu_df_label,
+                                               cpu_df_label])
+                final_cpu_df_data = pd.concat([final_cpu_df_data,
+                                              cpu_df_data])
 
             xgb_convert_end_time = time.time()
 
-            all_xgb_convert_times.append(xgb_convert_end_time - xgb_convert_start_time)
+            all_xgb_convert_times.append(
+                xgb_convert_end_time - xgb_convert_start_time)
 
-data_train, data_test, label_train, label_test = train_test_split(final_cpu_df_data, final_cpu_df_label, test_size=0.20, random_state=42)
+data_train, data_test, label_train, label_test = train_test_split(
+    final_cpu_df_data, final_cpu_df_label, test_size=0.20, random_state=42
+)
 
 xgdf_train = xgb.DMatrix(data_train, label_train)
 xgdf_test = xgb.DMatrix(data_test, label_test)
 
 chronometerTrain1 = Chronometer.makeStarted()
 startTime = time.time()
-bst = xgb.train(dxgb_gpu_params, xgdf_train, num_boost_round=dxgb_gpu_params['nround'])
-Chronometer.show(chronometerTrain1, 'Train 1')
+bst = xgb.train(dxgb_gpu_params, xgdf_train,
+                num_boost_round=dxgb_gpu_params["nround"])
+Chronometer.show(chronometerTrain1, "Train 1")
 
 chronometerPredict1 = Chronometer.makeStarted()
 preds = bst.predict(xgdf_test)
-Chronometer.show(chronometerPredict1, 'Predict 1')
+Chronometer.show(chronometerPredict1, "Predict 1")
 
 labels = xgdf_test.get_label()
-print('prediction error=%f' % (sum(1 for i in range(len(preds)) if int(preds[i] > 0.5) != labels[i]) / float(len(preds))))
+print(
+    "prediction error=%f"
+    % (
+        sum(1 for i in range(len(preds)) if int(preds[i] > 0.5) != labels[i])
+        / float(len(preds))
+    )
+)
 
 endTime = time.time()
-trainPredict_time = (endTime - startTime)
+trainPredict_time = endTime - startTime
 
 print("TIMES SUMMARY")
-print('LOAD Time: %fs' % sum(all_load_times))
-print('ETL Time: %fs' % sum(all_etl_times))
-print('CONVERT Time: %fs' % sum(all_xgb_convert_times))
-print('TRAIN/PREDICT Time: %fs' % trainPredict_time)
+print("LOAD Time: %fs" % sum(all_load_times))
+print("ETL Time: %fs" % sum(all_etl_times))
+print("CONVERT Time: %fs" % sum(all_xgb_convert_times))
+print("TRAIN/PREDICT Time: %fs" % trainPredict_time)
 
 
 if use_registered_hdfs:

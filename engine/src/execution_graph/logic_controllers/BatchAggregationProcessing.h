@@ -9,7 +9,6 @@
 #include "communication/CommunicationData.h"
 #include "operators/GroupBy.h"
 #include "distribution/primitives.h"
-#include "utilities/DebuggingUtils.h"
 #include <cudf/partitioning.hpp>
 #include "CodeTimer.h"
 
@@ -40,7 +39,8 @@ public:
         std::tie(this->group_column_indices, aggregation_input_expressions, this->aggregation_types,
             aggregation_column_assigned_aliases) = ral::operators::parseGroupByExpression(this->expression);
 
-        BatchSequence input(this->input_cache(), this);
+        bool ordered = false; // If we start using sort based aggregations this may need to change
+        BatchSequence input(this->input_cache(), this, ordered);
         int batch_count = 0;
         while (input.wait_for_next()) {
 
@@ -165,7 +165,8 @@ public:
             int num_partitions = this->context->getTotalNodes();
             bool set_empty_part_for_non_master_node = false; // this is only for aggregation without group by
 
-            BatchSequence input(this->input_cache(), this);
+            bool ordered = false; // If we start using sort based aggregations this may need to change
+            BatchSequence input(this->input_cache(), this, ordered);
             int batch_count = 0;
             while (input.wait_for_next()) {
                 auto batch = input.next();
@@ -292,7 +293,8 @@ public:
         // This Kernel needs all of the input before it can do any output. So lets wait until all the input is available
         this->input_cache()->wait_until_finished();
 
-        BatchSequence input(this->input_cache(), this);
+        bool ordered = false; // If we start using sort based aggregations this may need to change
+        BatchSequence input(this->input_cache(), this, ordered);
         int batch_count=0;
         try {
             while (input.wait_for_next()) {
@@ -305,6 +307,13 @@ public:
             }
             eventTimer.start();
 
+			if( ral::utilities::checkIfConcatenatingStringsWillOverflow(tableViewsToConcat)) {
+				logger->warn("{query_id}|{step}|{substep}|{info}",
+								"query_id"_a=(context ? std::to_string(context->getContextToken()) : ""),
+								"step"_a=(context ? std::to_string(context->getQueryStep()) : ""),
+								"substep"_a=(context ? std::to_string(context->getQuerySubstep()) : ""),
+								"info"_a="In MergeAggregateKernel::run Concatenating Strings will overflow strings length");
+			}
             auto concatenated = ral::utilities::concatTables(tableViewsToConcat);
 
             auto log_input_num_rows = concatenated ? concatenated->num_rows() : 0;

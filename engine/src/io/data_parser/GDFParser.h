@@ -24,10 +24,6 @@ public:
 
 	virtual ~gdf_parser();
 
-	std::unique_ptr<ral::frame::BlazingTable> parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
-		const Schema & schema,
-		std::vector<std::size_t> column_indices);
-
 	std::unique_ptr<ral::frame::BlazingTable> parse_batch(
 		std::shared_ptr<arrow::io::RandomAccessFile> file,
 		const Schema & schema,

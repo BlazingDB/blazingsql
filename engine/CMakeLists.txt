@@ -49,6 +49,9 @@ message(STATUS "CUDA_VERSION_MAJOR: ${CUDA_VERSION_MAJOR}")
 message(STATUS "CUDA_VERSION_MINOR: ${CUDA_VERSION_MINOR}")
 message(STATUS "CUDA_VERSION: ${CUDA_VERSION}")
 
+find_library(CUDFTESTUTIL_LIBRARY "libcudftestutil.a"
+             HINTS "$ENV{CUDF_ROOT}/lib")
+
 # Always set this convenience variable
 set(CUDA_VERSION_STRING "${CUDA_VERSION}")
 
@@ -113,6 +116,9 @@ option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 option(BUILD_TESTS "Configure CMake to build tests" ON)
 option(BUILD_BENCHMARKS "Configure CMake to build (google) benchmarks" OFF)
 
+option(GCS_SUPPORT "Enables support for GCS fileSystem" ON)
+option(S3_SUPPORT "Enables support for S3 fileSystem" ON)
+
 ###################################################################################################
 # - cudart options --------------------------------------------------------------------------------
 # cudart can be statically linked or dynamically linked. The python ecosystem wants dynamic linking
@@ -164,6 +170,9 @@ elseif (DEFINED ENV{CONDA_PREFIX})
     link_directories($ENV{CONDA_PREFIX}/lib64/)
 
 endif ()
+
+link_directories(${CMAKE_CUDA_IMPLICIT_LINK_DIRECTORIES})
+
 message(WARNING "BSQL_BLD_PREFIX set to: ${BSQL_BLD_PREFIX}")
 message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 
@@ -175,14 +184,32 @@ include(CheckIncludeFiles)
 include(CheckLibraryExists)
 include(CTest)
 
-# NOTE Do not change the inclusion order
-include(ConfigureAWSSDK)
-include(ConfigureGoogleCloudCPP)
+find_package(CURL REQUIRED)
 
-find_package(Threads)
+# this breaks powerpc custom compiler
+#find_package(Threads)
+
 find_package(PythonLibs)
 # TODO jp mario c.gonzales we must use find here!
 #find_package(spdlog REQUIRED)
+
+find_package(GTest REQUIRED)
+
+# BEGIN find arrow
+find_path(ARROW_INCLUDE_DIR "arrow" HINTS "$ENV{ARROW_ROOT}/include")
+find_library(ARROW_LIB "arrow" NAMES libarrow HINTS "$ENV{ARROW_ROOT}/lib" "$ENV{ARROW_ROOT}/build")
+find_library(ARROW_CUDA_LIB "arrow_cuda" NAMES libarrow_cuda HINTS "$ENV{ARROW_ROOT}/lib" "$ENV{ARROW_ROOT}/build")
+message(STATUS "ARROW: ARROW_INCLUDE_DIR set to ${ARROW_INCLUDE_DIR}")
+message(STATUS "ARROW: ARROW_LIB set to ${ARROW_LIB}")
+message(STATUS "ARROW: ARROW_CUDA_LIB set to ${ARROW_CUDA_LIB}")
+add_library(arrow SHARED IMPORTED ${ARROW_LIB})
+add_library(arrow_cuda SHARED IMPORTED ${ARROW_CUDA_LIB})
+
+if(ARROW_INCLUDE_DIR AND ARROW_LIB AND ARROW_CUDA_LIB)
+  set_target_properties(arrow PROPERTIES IMPORTED_LOCATION ${ARROW_LIB})
+  set_target_properties(arrow_cuda PROPERTIES IMPORTED_LOCATION ${ARROW_CUDA_LIB})
+endif(ARROW_INCLUDE_DIR AND ARROW_LIB AND ARROW_CUDA_LIB)
+# END find arrow
 
 # BEGIN MAIN #
 
@@ -190,6 +217,27 @@ find_package(PythonLibs)
 add_definitions(${CXX_DEFINES})
 get_directory_property(CXX_COMPILE_DEFINITIONS DIRECTORY ${CMAKE_SOURCE_DIR} COMPILE_DEFINITIONS)
 message(STATUS "C++ compiler definitions: ${CXX_COMPILE_DEFINITIONS}")
+
+
+###################################################################################################
+# - common test utils -----------------------------------------------------------------------------
+
+set(CUDF_TEST_INCLUDE "$ENV{CUDF_HOME}/cpp")
+
+find_library(CUDFTESTUTIL_LIBRARY "libcudftestutil.a"
+             HINTS "$ENV{CUDF_ROOT}/lib")
+
+message(STATUS "CUDFTESTUTIL: CUDFTESTUTIL_LIBRARY set to ${CUDFTESTUTIL_LIBRARY}")
+message(STATUS "CUDFTESTUTIL: CUDF_TEST_INCLUDE set to ${CUDF_TEST_INCLUDE}")
+
+add_library(cudftestutil STATIC IMPORTED ${CUDFTESTUTIL_LIBRARY})
+
+if (CUDF_TEST_INCLUDE AND CUDFTESTUTIL_LIBRARY)
+    set_target_properties(cudftestutil PROPERTIES IMPORTED_LOCATION ${CUDFTESTUTIL_LIBRARY})
+endif (CUDF_TEST_INCLUDE AND CUDFTESTUTIL_LIBRARY)
+
+###################################################################################################
+
 
 include_directories(
     ${PROJECT_BINARY_DIR}
@@ -200,25 +248,23 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/thirdparty/jitify
     ${BSQL_BLD_PREFIX}/include
     ${BSQL_BLD_PREFIX}/include/cudf
-    ${BSQL_BLD_PREFIX}/include/bsql-rapids-thirdparty/cub
-    ${BSQL_BLD_PREFIX}/include/bsql-rapids-thirdparty/libcudacxx/include
+    ${BSQL_BLD_PREFIX}/include/libcudf/libcudacxx/
     ${BSQL_BLD_PREFIX}/include/blazingdb/io
     ${PREFIX}/include
     ${PREFIX}/include/cudf
-    ${PREFIX}/include/bsql-rapids-thirdparty/cub
-    ${PREFIX}/include/bsql-rapids-thirdparty/libcudacxx/include
+    ${PREFIX}/include/libcudf/libcudacxx/
     ${PREFIX}/include/blazingdb/io
     ${CMAKE_INSTALL_PREFIX}/include
     ${CMAKE_INSTALL_PREFIX}/include/cudf
-    ${CMAKE_INSTALL_PREFIX}/include/bsql-rapids-thirdparty/cub
-    ${CMAKE_INSTALL_PREFIX}/include/bsql-rapids-thirdparty/libcudacxx/include
+    ${CMAKE_INSTALL_PREFIX}/include/libcudf/libcudacxx/
     ${CMAKE_INSTALL_PREFIX}/include/blazingdb/io
     $ENV{INSTALL_PREFIX}/include
     $ENV{INSTALL_PREFIX}/include/cudf
-    $ENV{INSTALL_PREFIX}/include/bsql-rapids-thirdparty/cub
-    $ENV{INSTALL_PREFIX}/include/bsql-rapids-thirdparty/libcudacxx/include
+    $ENV{INSTALL_PREFIX}/include/libcudf/libcudacxx/
     $ENV{INSTALL_PREFIX}/include/blazingdb/io
     ${PYTHON_INCLUDE_DIRS}
+    ${CUDF_TEST_INCLUDE}
+    "${ARROW_INCLUDE_DIR}"
     )
 
 ## communication primitives
@@ -254,7 +300,6 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingH
               ${CMAKE_SOURCE_DIR}/src/utilities/StringUtils.cpp
               ${CMAKE_SOURCE_DIR}/src/utilities/scalar_timestamp_parser.cpp
               ${CMAKE_SOURCE_DIR}/src/utilities/DebuggingUtils.cpp
-              ${CMAKE_SOURCE_DIR}/src/utilities/random_generator.cu
               ${CMAKE_SOURCE_DIR}/src/utilities/transform.cu
               ${CMAKE_SOURCE_DIR}/src/CalciteExpressionParsing.cpp
               ${CMAKE_SOURCE_DIR}/src/io/DataLoader.cpp
@@ -269,25 +314,38 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingH
               ${CMAKE_SOURCE_DIR}/src/cython/io.cpp
               ${CMAKE_SOURCE_DIR}/src/cython/errors.cpp
               ${CMAKE_SOURCE_DIR}/src/cython/engine.cpp
-              ${CMAKE_SOURCE_DIR}/src/from_cudf/cpp_tests/utilities/column_utilities.cu
               ${CMAKE_SOURCE_DIR}/src/communication/messages/GPUComponentMessage.cpp
               ${CMAKE_SOURCE_DIR}/src/distribution/primitives.cpp
+              ${CMAKE_SOURCE_DIR}/src/bmr/MemoryMonitor.cpp
               ${communication_source_files}
         )
 
 link_directories(${BSQL_BLD_PREFIX}/lib)
 
+# These new var are for custom build process (powerpc)
+link_directories($ENV{THRIFT_INSTALL_DIR})
+link_directories($ENV{SNAPPY_INSTALL_DIR})
+link_directories($ENV{LZ4_INSTALL_DIR})
+
 add_library(blazingsql-engine SHARED ${SRC_FILES})
+
+if(GCS_SUPPORT)
+    find_package(storage_client REQUIRED)
+    set(GCS_LIBRARY storage_client google_cloud_cpp_common crc32c)
+endif()
+
+if(S3_SUPPORT)
+    set(S3_LIBRARY aws-cpp-sdk-s3 aws-cpp-sdk-s3-encryption)
+endif()
 
 set_target_properties(blazingsql-engine PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_link_libraries(blazingsql-engine
     blazingdb-io
-    Threads::Threads
+    #Threads::Threads
+    pthread
     blazingdb-transport
 
     cudf
-    NVCategory
-    NVStrings
     rmm
     zmq
     cudart
@@ -304,16 +362,13 @@ target_link_libraries(blazingsql-engine
     zstd
     lz4
 
-    aws-cpp-sdk-s3
-    aws-cpp-sdk-s3-encryption
+    ${S3_LIBRARY}
 
-    storage_client
-    google_cloud_cpp_common
-    crc32c
+    ${GCS_LIBRARY}
 
-    libboost_filesystem.a
-    libboost_system.a
-    libboost_regex.a
+    libboost_filesystem.so
+    libboost_system.so
+    libboost_regex.so
 
     # TODO jp c.gonzales make use of standard cmake find_package here (see above)
     #spdlog::spdlog
@@ -323,6 +378,7 @@ target_link_libraries(blazingsql-engine
     gcov
 
     gtest
+    cudftestutil
 )
 
 ###################################################################################################
@@ -351,8 +407,6 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libblazingsql-engine.so DESTINATION li
 
 # Tests
 if(BUILD_TESTING)
-    find_package(GTest REQUIRED)
-
     if(GTEST_FOUND)
         add_subdirectory(tests)
     else()

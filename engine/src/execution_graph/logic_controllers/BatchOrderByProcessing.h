@@ -37,7 +37,8 @@ public:
 		BatchSequence input_partitionPlan(this->input_.get_cache("input_b"), this);
 		auto partitionPlan = std::move(input_partitionPlan.next());
 
-		BatchSequence input(this->input_.get_cache("input_a"), this);
+		bool ordered = false;
+		BatchSequence input(this->input_.get_cache("input_a"), this, ordered);
 		int batch_count = 0;
 		while (input.wait_for_next()) {
 			try {
@@ -99,6 +100,13 @@ public:
 				local_total_num_rows, avg_bytes_per_row, this->expression, this->context.get());
 			this->add_to_output_cache(std::move(partitionPlan), "output_b");
 		} else { // distributed mode
+			if( ral::utilities::checkIfConcatenatingStringsWillOverflow(sampledTableViews)) {
+				logger->warn("{query_id}|{step}|{substep}|{info}",
+								"query_id"_a=(context ? std::to_string(context->getContextToken()) : ""),
+								"step"_a=(context ? std::to_string(context->getQueryStep()) : ""),
+								"substep"_a=(context ? std::to_string(context->getQuerySubstep()) : ""),
+								"info"_a="In SortAndSampleKernel::compute_partition_plan Concatenating Strings will overflow strings length");
+			}
 			auto concatSamples = ral::utilities::concatTables(sampledTableViews);
 			auto partitionPlan = ral::operators::generate_distributed_partition_plan(concatSamples->toBlazingTableView(),
 				local_total_num_rows, avg_bytes_per_row, this->expression, this->context.get());
@@ -115,6 +123,7 @@ public:
 		CodeTimer eventTimer(false);
 
 		bool try_num_rows_estimation = true;
+		bool get_samples = true;
 		bool estimate_samples = false;
 		uint64_t num_rows_estimate = 0;
 		uint64_t population_to_sample = 0;
@@ -126,8 +135,14 @@ public:
 		if (it != config_options.end()){
 			order_by_samples_ratio = std::stof(config_options["ORDER_BY_SAMPLES_RATIO"]);
 		}
+		int max_order_by_samples = 10000;
+		it = config_options.find("MAX_ORDER_BY_SAMPLES_PER_NODE");
+		if (it != config_options.end()){
+			max_order_by_samples = std::stoi(config_options["MAX_ORDER_BY_SAMPLES_PER_NODE"]);
+		}
 
-		BatchSequence input(this->input_cache(), this);
+		bool ordered = false;
+		BatchSequence input(this->input_cache(), this, ordered);
 		std::vector<std::unique_ptr<ral::frame::BlazingTable>> sampledTables;
 		std::vector<ral::frame::BlazingTableView> sampledTableViews;
 		std::size_t localTotalNumRows = 0;
@@ -143,9 +158,11 @@ public:
 				auto log_input_num_bytes = batch ? batch->sizeInBytes() : 0;
 
 				auto sortedTable = ral::operators::sort(batch->toBlazingTableView(), this->expression);
-				auto sampledTable = ral::operators::sample(batch->toBlazingTableView(), this->expression);
-				sampledTableViews.push_back(sampledTable->toBlazingTableView());
-				sampledTables.push_back(std::move(sampledTable));
+				if (get_samples) {
+					auto sampledTable = ral::operators::sample(batch->toBlazingTableView(), this->expression, order_by_samples_ratio);
+					sampledTableViews.push_back(sampledTable->toBlazingTableView());
+					sampledTables.push_back(std::move(sampledTable));
+				}
 				localTotalNumRows += batch->view().num_rows();
 				localTotalBytes += batch->sizeInBytes();
 
@@ -153,6 +170,7 @@ public:
 				if(try_num_rows_estimation) {
 					std::tie(estimate_samples, num_rows_estimate) = this->query_graph->get_estimated_input_rows_to_cache(this->get_id(), std::to_string(this->get_id()));
 					population_to_sample = static_cast<uint64_t>(num_rows_estimate * order_by_samples_ratio);
+					population_to_sample = (population_to_sample > max_order_by_samples) ? (max_order_by_samples) : population_to_sample;
 					try_num_rows_estimation = false;
 				}
 				population_sampled += batch->num_rows();
@@ -160,6 +178,7 @@ public:
 					size_t avg_bytes_per_row = localTotalNumRows == 0 ? 1 : localTotalBytes/localTotalNumRows;
 					partition_plan_thread = BlazingThread(&SortAndSampleKernel::compute_partition_plan, this, sampledTableViews, avg_bytes_per_row, num_rows_estimate);
 					estimate_samples = false;
+					get_samples = false;
 				}
 				// End estimation
 
@@ -242,7 +261,8 @@ public:
 		context->incrementQuerySubstep();
 
 		BlazingThread generator([input_cache = this->input_.get_cache("input_a"), &partitionPlan, this](){
-			BatchSequence input(input_cache, this);
+			bool ordered = false;
+			BatchSequence input(input_cache, this, ordered);
 			int batch_count = 0;
 			while (input.wait_for_next()) {
 				try {
@@ -294,6 +314,10 @@ private:
 
 };
 
+/**
+ * This kernel has a loop over all its different input caches.
+ * It then pulls all the inputs from one cache and merges them.
+ */
 class MergeStreamKernel : public kernel {
 public:
 	MergeStreamKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
@@ -391,7 +415,9 @@ private:
 
 };
 
-
+/**
+ * @brief This kernel only returns a specified number of rows given by their corresponding logical limit expression.
+ */
 class LimitKernel : public kernel {
 public:
 	LimitKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)

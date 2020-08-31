@@ -4,6 +4,12 @@ set(parser_sources
 
 configure_test(parser_test "${parser_sources}")
 
+set(parser_utils_sources
+    expression_utils_test.cpp
+)
+
+configure_test(parser_utils_test "${parser_utils_sources}")
+
 set(split_inequality_join_sources
     split_inequality_join_test.cpp
 )

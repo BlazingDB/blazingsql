@@ -144,10 +144,10 @@ auto deserialize_from_gpu_raw_buffers(const std::vector<ColumnTransport> & colum
 		if(string_offset != -1) {
 			cudf::size_type num_strings = columns_offsets[i].metadata.size;
 			std::unique_ptr<cudf::column> offsets_column
-				= std::make_unique<cudf::column>(cudf::data_type{cudf::INT32}, num_strings + 1, std::move(raw_buffers[columns_offsets[i].strings_offsets]));
+				= std::make_unique<cudf::column>(cudf::data_type{cudf::type_id::INT32}, num_strings + 1, std::move(raw_buffers[columns_offsets[i].strings_offsets]));
 
 			cudf::size_type total_bytes = columns_offsets[i].strings_data_size;
-			std::unique_ptr<cudf::column> chars_column	= std::make_unique<cudf::column>(cudf::data_type{cudf::INT8}, total_bytes, std::move(raw_buffers[columns_offsets[i].strings_data]));
+			std::unique_ptr<cudf::column> chars_column	= std::make_unique<cudf::column>(cudf::data_type{cudf::type_id::INT8}, total_bytes, std::move(raw_buffers[columns_offsets[i].strings_data]));
 			rmm::device_buffer null_mask;
 			if (columns_offsets[i].strings_nullmask != -1)
 				null_mask = rmm::device_buffer(std::move(raw_buffers[columns_offsets[i].strings_nullmask]));

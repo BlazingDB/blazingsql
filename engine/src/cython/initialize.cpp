@@ -32,6 +32,8 @@
 #include "communication/network/Server.h"
 #include <bmr/initializer.h>
 
+#include "error.hpp"
+
 using namespace fmt::literals;
 
 #include <engine/static.h> // this contains function call for getProductDetails
@@ -59,8 +61,39 @@ std::string get_ip(const std::string & iface_name = "eth0") {
 	return the_ip;
 }
 
+
+
+auto log_level_str_to_enum(std::string level) {
+	if (level == "critical") {
+		return spdlog::level::critical;
+	}
+	else if (level == "err") {
+		return spdlog::level::err;
+	}
+	else if (level == "info") {
+		return spdlog::level::info;
+	}
+	else if (level == "debug") {
+		return spdlog::level::debug;
+	}
+	else if (level == "trace") {
+		return spdlog::level::trace;		
+	}
+	else if (level == "warn") {
+		return spdlog::level::warn;		
+	}
+	else {
+		return spdlog::level::off;
+	}
+}
+
 // simple_log: true (no timestamp or log level)
-void create_logger(std::string fileName, std::string loggingName, int ralId, bool simple_log=true){
+void create_logger(std::string fileName,
+	std::string loggingName,
+	int ralId, std::string flush_level,
+	std::string logger_level_wanted,
+	bool simple_log=true) {
+
 	auto stdout_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
 	stdout_sink->set_pattern("[%T.%e] [%^%l%$] %v");
 	stdout_sink->set_level(spdlog::level::err);
@@ -71,13 +104,18 @@ void create_logger(std::string fileName, std::string loggingName, int ralId, boo
 		file_sink->set_pattern(fmt::format("%Y-%m-%d %T.%e|{}|%^%l%$|%v", ralId));
 	}
 
+	// We want ALL levels of info to be registered. So using by default `trace` level
 	file_sink->set_level(spdlog::level::trace);
 	spdlog::sinks_init_list sink_list = { stdout_sink, file_sink };
 	auto logger = std::make_shared<spdlog::async_logger>(loggingName, sink_list, spdlog::thread_pool(), spdlog::async_overflow_policy::block);
-	logger->set_level(spdlog::level::trace);
+
+	// level of logs
+	logger->set_level(log_level_str_to_enum(logger_level_wanted));
+	
 	spdlog::register_logger(logger);
 
-	spdlog::flush_on(spdlog::level::warn);
+	spdlog::flush_on(log_level_str_to_enum(flush_level));
+
 	spdlog::flush_every(std::chrono::seconds(1));
 }
 
@@ -88,12 +126,12 @@ void initialize(int ralId,
 	int ralCommunicationPort,
 	bool singleNode,
 	std::map<std::string, std::string> config_options) {
-  // ---------------------------------------------------------------------------
-  // DISCLAIMER
-  // TODO: Support proper locale support for non-US cases (percy)
-    std::setlocale(LC_ALL, "en_US.UTF-8");
-    std::setlocale(LC_NUMERIC, "en_US.UTF-8");
-  // ---------------------------------------------------------------------------
+	// ---------------------------------------------------------------------------
+	// DISCLAIMER
+	// TODO: Support proper locale support for non-US cases (percy)
+	std::setlocale(LC_ALL, "en_US.UTF-8");
+	std::setlocale(LC_NUMERIC, "en_US.UTF-8");
+	// ---------------------------------------------------------------------------
 
 	ralHost = get_ip(network_iface_name);
 
@@ -106,14 +144,14 @@ void initialize(int ralId,
 	std::string env_cuda_device_str = env_cuda_device == nullptr ? "" : std::string(env_cuda_device);
 	initLogMsg = initLogMsg + "CUDA_VISIBLE_DEVICES is set to: " + env_cuda_device_str + ", ";
 
-	size_t total_gpu_mem_size = ral::config::gpuMemorySize();
+	size_t total_gpu_mem_size = ral::config::gpuTotalMemory();
 	assert(total_gpu_mem_size > 0);
 	auto nthread = 4;
 	blazingdb::transport::io::setPinnedBufferProvider(0.1 * total_gpu_mem_size, nthread);
 
- 	//to avoid redundancy the default value or user defined value for this parameter is placed on the pyblazing side
-	assert( config_options.find("BLAZING_HOST_MEM_RESOURCE_CONSUMPTION_THRESHOLD") != config_options.end() );
-	float host_memory_quota = std::stof(config_options["BLAZING_HOST_MEM_RESOURCE_CONSUMPTION_THRESHOLD"]);
+	//to avoid redundancy the default value or user defined value for this parameter is placed on the pyblazing side
+	assert( config_options.find("BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD") != config_options.end() );
+	float host_memory_quota = std::stof(config_options["BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD"]);
 
 	blazing_host_memory_resource::getInstance().initialize(host_memory_quota);
 
@@ -134,9 +172,6 @@ void initialize(int ralId,
 
 	spdlog::init_thread_pool(8192, 1);
 
-	spdlog::flush_on(spdlog::level::warn);
-	spdlog::flush_every(std::chrono::seconds(1));
-
 	std::string logging_dir = "blazing_log";
 	auto config_it = config_options.find("BLAZING_LOGGING_DIRECTORY");
 	if (config_it != config_options.end()){
@@ -148,32 +183,43 @@ void initialize(int ralId,
 	// we are assuming that this logging directory was created by the python layer, because only the python layer can only target on directory creation per server
 	// having all RALs independently trying to create a directory simulatenously can cause problems
 		logging_directory_missing = true;
-		logging_dir = "";		
+		logging_dir = "";
 	}
 
+	std::string flush_level = "warn";
+	auto log_it = config_options.find("LOGGING_FLUSH_LEVEL");
+	if (log_it != config_options.end()){
+		flush_level = config_options["LOGGING_FLUSH_LEVEL"];
+	}
+	
+	std::string logger_level_wanted = "trace";
+	auto log_level_it = config_options.find("LOGGING_LEVEL");
+	if (log_level_it != config_options.end()){
+		logger_level_wanted = config_options["LOGGING_LEVEL"];
+	}
 
 	std::string batchLoggerFileName = logging_dir + "/RAL." + std::to_string(ralId) + ".log";
-	create_logger(batchLoggerFileName, "batch_logger", ralId, false);
+	create_logger(batchLoggerFileName, "batch_logger", ralId, flush_level, logger_level_wanted, false);
 
 	std::string queriesFileName = logging_dir + "/bsql_queries." + std::to_string(ralId) + ".log";
 	bool existsQueriesFileName = std::ifstream(queriesFileName).good();
-	create_logger(queriesFileName, "queries_logger", ralId);
+	create_logger(queriesFileName, "queries_logger", ralId, flush_level, logger_level_wanted);
 
 	std::string kernelsFileName = logging_dir + "/bsql_kernels." + std::to_string(ralId) + ".log";
 	bool existsKernelsFileName = std::ifstream(kernelsFileName).good();
-	create_logger(kernelsFileName, "kernels_logger", ralId);
+	create_logger(kernelsFileName, "kernels_logger", ralId, flush_level, logger_level_wanted);
 
 	std::string kernelsEdgesFileName = logging_dir + "/bsql_kernels_edges." + std::to_string(ralId) + ".log";
 	bool existsKernelsEdgesFileName = std::ifstream(kernelsEdgesFileName).good();
-	create_logger(kernelsEdgesFileName, "kernels_edges_logger", ralId);
+	create_logger(kernelsEdgesFileName, "kernels_edges_logger", ralId, flush_level, logger_level_wanted);
 
 	std::string kernelEventsFileName = logging_dir + "/bsql_kernel_events." + std::to_string(ralId) + ".log";
 	bool existsKernelEventsFileName = std::ifstream(kernelEventsFileName).good();
-	create_logger(kernelEventsFileName, "events_logger", ralId);
+	create_logger(kernelEventsFileName, "events_logger", ralId, flush_level, logger_level_wanted);
 
 	std::string cacheEventsFileName = logging_dir + "/bsql_cache_events." + std::to_string(ralId) + ".log";
 	bool existsCacheEventsFileName = std::ifstream(cacheEventsFileName).good();
-	create_logger(cacheEventsFileName, "cache_events_logger", ralId);
+	create_logger(cacheEventsFileName, "cache_events_logger", ralId, flush_level, logger_level_wanted);
 
 	//Logger Headers
 	if(!existsQueriesFileName) {
@@ -228,27 +274,62 @@ void finalize() {
 	exit(0);
 }
 
-
 void blazingSetAllocator(
-	int allocation_mode,
+	std::string allocation_mode,
 	std::size_t initial_pool_size,
-	std::vector<int> devices,
-	bool enable_logging,
 	std::map<std::string, std::string> config_options) {
 
-	rmmOptions_t rmmValues;
-	rmmValues.allocation_mode = static_cast<rmmAllocationMode_t>(allocation_mode);
-	rmmValues.initial_pool_size = initial_pool_size;
-	rmmValues.enable_logging = enable_logging;
-
-	for (size_t i = 0; i < devices.size(); ++i)
-		rmmValues.devices.push_back(devices[i]);
-
 	float device_mem_resouce_consumption_thresh = 0.95;
-	auto it = config_options.find("BLAZING_DEVICE_MEM_RESOURCE_CONSUMPTION_THRESHOLD");
+	auto it = config_options.find("BLAZING_DEVICE_MEM_CONSUMPTION_THRESHOLD");
 	if (it != config_options.end()){
-		device_mem_resouce_consumption_thresh = std::stof(config_options["BLAZING_DEVICE_MEM_RESOURCE_CONSUMPTION_THRESHOLD"]);
+		device_mem_resouce_consumption_thresh = std::stof(config_options["BLAZING_DEVICE_MEM_CONSUMPTION_THRESHOLD"]);
 	}
 
-	BlazingRMMInitialize(&rmmValues, device_mem_resouce_consumption_thresh);
+	BlazingRMMInitialize(allocation_mode, initial_pool_size, device_mem_resouce_consumption_thresh);
+}
+
+error_code_t initialize_C(int ralId,
+	int gpuId,
+	std::string network_iface_name,
+	std::string ralHost,
+	int ralCommunicationPort,
+	bool singleNode,
+	std::map<std::string, std::string> config_options) {
+
+	try {
+		initialize(ralId,
+			gpuId,
+			network_iface_name,
+			ralHost,
+			ralCommunicationPort,
+			singleNode,
+			config_options);
+		return E_SUCCESS;
+	} catch (std::exception& e) {
+		return E_EXCEPTION;
+	}
+}
+
+error_code_t finalize_C() {
+	try {
+		finalize();
+		return E_SUCCESS;
+	} catch (std::exception& e) {
+		return E_EXCEPTION;
+	}
+}
+
+error_code_t blazingSetAllocator_C(
+	std::string allocation_mode,
+	std::size_t initial_pool_size,
+	std::map<std::string, std::string> config_options) {
+
+	try {
+		blazingSetAllocator(allocation_mode,
+			initial_pool_size,
+			config_options);
+		return E_SUCCESS;
+	} catch (std::exception& e) {
+		return E_EXCEPTION;
+	}
 }

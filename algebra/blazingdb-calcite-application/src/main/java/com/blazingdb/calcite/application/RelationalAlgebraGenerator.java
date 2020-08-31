@@ -28,6 +28,8 @@ import org.apache.calcite.rel.rules.ProjectJoinTransposeRule;
 import org.apache.calcite.rel.rules.ProjectMergeRule;
 import org.apache.calcite.rel.rules.ProjectRemoveRule;
 import org.apache.calcite.rel.rules.AggregateReduceFunctionsRule;
+import org.apache.calcite.rel.rules.ReduceExpressionsRule;
+import org.apache.calcite.rex.RexExecutorImpl;
 import org.apache.calcite.rel.type.RelDataTypeSystem;
 import org.apache.calcite.schema.SchemaPlus;
 import org.apache.calcite.sql.SqlNode;
@@ -182,11 +184,16 @@ public class RelationalAlgebraGenerator {
 						  .addRuleInstance(FilterAggregateTransposeRule.INSTANCE)
 						  .addRuleInstance(FilterJoinRule.JoinConditionPushRule.FILTER_ON_JOIN)
 						  .addRuleInstance(FilterJoinRule.JoinConditionPushRule.JOIN)
+						  .addRuleInstance(ProjectMergeRule.INSTANCE)
 						  .addRuleInstance(FilterMergeRule.INSTANCE)
 						  .addRuleInstance(ProjectJoinTransposeRule.INSTANCE)
 						  .addRuleInstance(ProjectFilterTransposeRule.INSTANCE)
-						  .addRuleInstance(ProjectMergeRule.INSTANCE)
 						  .addRuleInstance(ProjectRemoveRule.INSTANCE)
+
+						  //The following three rules evaluate expressions in Projects and Filters
+						  .addRuleInstance(ReduceExpressionsRule.PROJECT_INSTANCE)
+						  .addRuleInstance(ReduceExpressionsRule.FILTER_INSTANCE)
+
 						  .addRuleInstance(ProjectTableScanRule.INSTANCE)
 						  .addRuleInstance(FilterTableScanRule.INSTANCE)
 						  .addRuleInstance(FilterRemoveIsNotDistinctFromRule.INSTANCE)
@@ -201,6 +208,7 @@ public class RelationalAlgebraGenerator {
 		}
 
 		final HepPlanner hepPlanner = new HepPlanner(program, config.getContext());
+		nonOptimizedPlan.getCluster().getPlanner().setExecutor(new RexExecutorImpl(null));
 		hepPlanner.setRoot(nonOptimizedPlan);
 
 		planner.close();
@@ -240,11 +248,13 @@ public class RelationalAlgebraGenerator {
 		}catch(SqlValidationException ex){
 			//System.out.println(ex.getMessage());
 			//System.out.println("Found validation err!");
-			return "fail: \n " + ex.getMessage();
+			throw ex;
+			//return "fail: \n " + ex.getMessage();
 		}catch(SqlSyntaxException ex){
 			//System.out.println(ex.getMessage());
 			//System.out.println("Found syntax err!");
-			return "fail: \n " + ex.getMessage();
+			throw ex;
+			//return "fail: \n " + ex.getMessage();
 		} catch(Exception ex) {
 			//System.out.println(ex.toString());
 			//System.out.println(ex.getMessage());

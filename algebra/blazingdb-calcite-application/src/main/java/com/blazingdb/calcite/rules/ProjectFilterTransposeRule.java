@@ -1,11 +1,12 @@
 /*
  * This file is a copy with some modifications of the ProjectFilterTransposeRule from
  * the Apache Calcite project. The original code can be found at:
- * https://github.com/apache/calcite/blob/branch-1.21/core/src/main/java/org/apache/calcite/rel/rules/ProjectFilterTransposeRule.java
+ * https://github.com/apache/calcite/blob/branch-1.23/core/src/main/java/org/apache/calcite/rel/rules/ProjectFilterTransposeRule.java
  * The changes are about using our customized version from the PushProjector class.
  */
 package com.blazingdb.calcite.rules;
 
+import org.apache.calcite.rel.rules.TransformationRule;
 import org.apache.calcite.plan.RelOptRule;
 import org.apache.calcite.plan.RelOptRuleCall;
 import org.apache.calcite.plan.RelOptRuleOperand;
@@ -24,7 +25,7 @@ import org.apache.calcite.tools.RelBuilderFactory;
  * Planner rule that pushes a {@link org.apache.calcite.rel.core.Project}
  * past a {@link org.apache.calcite.rel.core.Filter}.
  */
-public class ProjectFilterTransposeRule extends RelOptRule {
+public class ProjectFilterTransposeRule extends RelOptRule implements TransformationRule {
 	public static final ProjectFilterTransposeRule INSTANCE = new ProjectFilterTransposeRule(
 		LogicalProject.class, LogicalFilter.class, RelFactories.LOGICAL_BUILDER, expr -> false);
 
@@ -113,5 +114,3 @@ public class ProjectFilterTransposeRule extends RelOptRule {
 		}
 	}
 }
-
-// End ProjectFilterTransposeRule.java

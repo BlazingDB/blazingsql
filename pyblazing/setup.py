@@ -1,9 +1,9 @@
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 install_requires = ["pyhive", "cudf", "dask-cudf", "dask", "distributed"]
 
 setup(
-    name='blazingsql',
+    name="blazingsql",
     version="0.6",
     description="BlazingSQL engine",
     url="https://github.com/BlazingDB/pyBlazing/",
@@ -19,11 +19,8 @@ setup(
         "Programming Language :: Python :: 3.7",
     ],
     packages=find_packages(
-        include=[
-            "pyblazing",
-            "pyblazing.*",
-            "blazingsql",
-            "blazingsql.*"]),
+        include=["pyblazing", "pyblazing.*", "blazingsql", "blazingsql.*"]
+    ),
     install_requires=install_requires,
     zip_safe=False,
 )

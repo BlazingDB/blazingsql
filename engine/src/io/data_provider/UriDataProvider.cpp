@@ -165,12 +165,13 @@ data_handle uri_data_provider::get_next(bool open_file) {
 			return get_next(open_file);
 
 		} else if(fileStatus.isFile()) {
-			std::shared_ptr<arrow::io::RandomAccessFile> file = open_file ? 
-				BlazingContext::getInstance()->getFileSystemManager()->openReadable(current_uri) : nullptr;
-
-			if (open_file){
+			std::shared_ptr<arrow::io::RandomAccessFile> file = nullptr;
+            
+            if (open_file) {
+                file = BlazingContext::getInstance()->getFileSystemManager()->openReadable(current_uri);
 				this->opened_files.push_back(file);
 			}
+            
 			data_handle handle;
 			handle.uri = current_uri;
 			handle.fileHandle = file;

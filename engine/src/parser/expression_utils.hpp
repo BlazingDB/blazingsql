@@ -8,6 +8,9 @@
 enum class operator_type {
 	BLZ_INVALID_OP,
 
+	// Nullary operators
+	BLZ_RAND,
+
 	// Unary operators
 	BLZ_NOT,
 	BLZ_ABS,
@@ -67,11 +70,14 @@ enum class operator_type {
 	BLZ_STR_CONCAT
 };
 
+
+bool is_nullary_operator(operator_type op);
 bool is_unary_operator(operator_type op);
 bool is_binary_operator(operator_type op);
 
 cudf::type_id get_output_type(operator_type op, cudf::type_id input_left_type);
 cudf::type_id get_output_type(operator_type op, cudf::type_id input_left_type, cudf::type_id input_right_type);
+cudf::type_id get_output_type(operator_type op);
 
 operator_type map_to_operator_type(const std::string & operator_token);
 

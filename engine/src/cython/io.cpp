@@ -8,7 +8,6 @@
 #include "../io/data_provider/UriDataProvider.h"
 
 #include "utilities/CommonOperations.h"
-#include "utilities/DebuggingUtils.h"
 
 #include <blazingdb/io/Config/BlazingContext.h>
 
@@ -192,6 +191,7 @@ std::pair<bool, std::string> registerFileSystemGCS(GCS gcs, std::string root, st
 		FileSystemConnection(gcs.projectId, gcs.bucketName, gcs.useDefaultAdcJsonFile, gcs.adcJsonFile);
 	return registerFileSystem(fileSystemConnection, root, authority);
 }
+
 std::pair<bool, std::string> registerFileSystemS3(S3 s3, std::string root, std::string authority) {
 	FileSystemConnection fileSystemConnection = FileSystemConnection(s3.bucketName,
 		(S3FileSystemConnection::EncryptionType) s3.encryptionType,
@@ -203,7 +203,96 @@ std::pair<bool, std::string> registerFileSystemS3(S3 s3, std::string root, std::
 		s3.region);
 	return registerFileSystem(fileSystemConnection, root, authority);
 }
+
 std::pair<bool, std::string> registerFileSystemLocal(std::string root, std::string authority) {
 	FileSystemConnection fileSystemConnection = FileSystemConnection(FileSystemType::LOCAL);
 	return registerFileSystem(fileSystemConnection, root, authority);
+}
+
+std::pair<TableSchema, error_code_t> parseSchema_C(std::vector<std::string> files,
+	std::string file_format_hint,
+	std::vector<std::string> arg_keys,
+	std::vector<std::string> arg_values,
+	std::vector<std::pair<std::string, cudf::type_id>> extra_columns,
+	bool ignore_missing_paths) {
+
+	TableSchema result;
+
+	try {
+		result = parseSchema(files,
+					file_format_hint,
+					arg_keys,
+					arg_values,
+					extra_columns,
+					ignore_missing_paths);
+		return std::make_pair(result, E_SUCCESS);
+	} catch (std::exception& e) {
+		return std::make_pair(result, E_EXCEPTION);
+	}
+}
+
+std::pair<std::unique_ptr<ResultSet>, error_code_t> parseMetadata_C(std::vector<std::string> files,
+	std::pair<int, int> offset,
+	TableSchema schema,
+	std::string file_format_hint,
+	std::vector<std::string> arg_keys,
+	std::vector<std::string> arg_values) {
+
+	std::unique_ptr<ResultSet> result = nullptr;
+
+	try {
+		result = std::move(parseMetadata(files,
+					offset,
+					schema,
+					file_format_hint,
+					arg_keys,
+					arg_values));
+		return std::make_pair(std::move(result), E_SUCCESS);
+	} catch (std::exception& e) {
+		return std::make_pair(std::move(result), E_EXCEPTION);
+	}
+}
+
+std::pair<std::pair<bool, std::string>, error_code_t> registerFileSystemHDFS_C(HDFS hdfs, std::string root, std::string authority) {
+	std::pair<bool, std::string> result;
+
+	try {
+		result = registerFileSystemHDFS(hdfs, root, authority);
+		return std::make_pair(result, E_SUCCESS);
+	} catch (std::exception& e) {
+		return std::make_pair(result, E_EXCEPTION);
+	}
+}
+
+std::pair<std::pair<bool, std::string>, error_code_t> registerFileSystemGCS_C(GCS gcs, std::string root, std::string authority) {
+	std::pair<bool, std::string> result;
+
+	try {
+		result = registerFileSystemGCS(gcs, root, authority);
+		return std::make_pair(result, E_SUCCESS);
+	} catch (std::exception& e) {
+		return std::make_pair(result, E_EXCEPTION);
+	}
+}
+
+std::pair<std::pair<bool, std::string>, error_code_t> registerFileSystemS3_C(S3 s3, std::string root, std::string authority) {
+	std::pair<bool, std::string> result;
+
+	try {
+		result = registerFileSystemS3(s3, root, authority);
+		return std::make_pair(result, E_SUCCESS);
+	} catch (std::exception& e) {
+		return std::make_pair(result, E_EXCEPTION);
+	}
+}
+
+std::pair<std::pair<bool, std::string>, error_code_t> registerFileSystemLocal_C(std::string root, std::string authority) {
+	std::pair<bool, std::string> result;
+
+	try {
+		result = registerFileSystemLocal(root, authority);
+		return std::make_pair(result, E_SUCCESS);
+	} catch (std::exception& e) {
+		return std::make_pair(result, E_EXCEPTION);
+	}
 }

@@ -5,7 +5,6 @@
 #include <chrono>
 #include <memory>
 #include <thread>
-#include "rmm/rmm.h"
 #include <rmm/device_buffer.hpp>
 
 namespace blazingdb {

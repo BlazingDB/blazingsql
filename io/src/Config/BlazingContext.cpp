@@ -5,7 +5,9 @@
  *      Author: felipe
  */
 
+#ifdef S3_SUPPORT
 #include <aws/core/Aws.h>
+#endif
 
 #include "Config/BlazingContext.h"
 #include "Library/Logging/Logger.h"
@@ -17,13 +19,17 @@ namespace Logging = Library::Logging;
 BlazingContext * BlazingContext::instance = nullptr;
 
 void BlazingContext::initExternalSystems() {
+#ifdef S3_SUPPORT
 	Aws::SDKOptions sdkOptions;
 	Aws::InitAPI(sdkOptions);
+#endif
 }
 
 void BlazingContext::shutDownExternalSystems() {
+#ifdef S3_SUPPORT
 	Aws::SDKOptions sdkOptions;
 	Aws::ShutdownAPI(sdkOptions);
+#endif
 }
 
 BlazingContext::BlazingContext() : fileSystemManager(new FileSystemManager()) {}

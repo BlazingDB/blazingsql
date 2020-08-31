@@ -15,11 +15,9 @@ function(configure_test TEST_NAME Tests_SRCS)
         gmock_main
         gtest
         blazingdb-io
+        ${S3_LIBRARY}
+        ${GCS_LIBRARY}
         arrow
-        aws-cpp-sdk-core
-        aws-cpp-sdk-s3
-        aws-cpp-sdk-s3-encryption
-        storage_client
     )
 
     set_target_properties(${TEST_NAME} PROPERTIES

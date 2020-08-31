@@ -13,6 +13,8 @@
 #include <memory>
 #include <vector>
 
+#include <cudf/io/datasource.hpp>
+
 namespace ral {
 namespace io {
 
@@ -20,11 +22,6 @@ class parquet_parser : public data_parser {
 public:
 	parquet_parser();
 	virtual ~parquet_parser();
-
-	std::unique_ptr<ral::frame::BlazingTable> parse(
-		std::shared_ptr<arrow::io::RandomAccessFile> file,
-		const Schema & schema,
-		std::vector<size_t> column_indices);
 
 	std::unique_ptr<ral::frame::BlazingTable> parse_batch(
 		std::shared_ptr<arrow::io::RandomAccessFile> file,

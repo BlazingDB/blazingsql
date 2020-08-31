@@ -12,7 +12,7 @@ from libcpp cimport bool
 from pyarrow.lib cimport *
 
 from cudf import DataFrame
-
+from cudf._lib.cpp.types cimport type_id
 from cudf._lib.table cimport table
 
 from libc.stdint cimport (  # noqa: E211
@@ -34,10 +34,10 @@ cdef extern from "../include/engine/errors.h":
     cdef void raiseRunQueryError()
     cdef void raiseRunSkipDataError()
     cdef void raiseParseSchemaError()
-    cdef void raiseRegisterFileSystemHDFSError();
-    cdef void raiseRegisterFileSystemGCSError();
-    cdef void raiseRegisterFileSystemS3Error();
-    cdef void raiseRegisterFileSystemLocalError();
+    cdef void raiseRegisterFileSystemHDFSError()
+    cdef void raiseRegisterFileSystemGCSError()
+    cdef void raiseRegisterFileSystemS3Error()
+    cdef void raiseRegisterFileSystemLocalError()
 
 
 from cudf._lib.cpp.column cimport *
@@ -51,7 +51,7 @@ ctypedef table_view CudfTableView
 ctypedef table CudfTable
 
 
-cdef extern from "../include/io/io.h":
+cdef extern from "../include/io/io.h" nogil:
     cdef struct ResultSet:
         unique_ptr[table] cudfTable
         vector[string]  names
@@ -144,16 +144,16 @@ cdef extern from * namespace "blazing":
         template <class T> inline typename std::remove_reference<T>::type&& blaz_move(T&& t) { return std::move(t); }
         }
         """
-        cdef T blaz_move[T](T)
+        cdef T blaz_move[T](T) nogil
 
-cdef extern from "../include/engine/engine.h":
+cdef extern from "../include/engine/engine.h" nogil:
 
         unique_ptr[ResultSet] performPartition(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, int ctxToken, BlazingTableView blazingTableView, vector[string] columnNames) except +raiseRunQueryError
 
         cdef struct NodeMetaDataTCP:
             string ip
             int communication_port
-        unique_ptr[PartitionedResultSet] runQuery(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[string] tableScans, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken, vector[vector[map[string,string]]] uri_values_cpp, map[string,string] config_options) except +raiseRunQueryError
+        unique_ptr[PartitionedResultSet] runQuery(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[string] tableScans, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken, vector[vector[map[string,string]]] uri_values_cpp, map[string,string] config_options) except +
         unique_ptr[ResultSet] runSkipData(BlazingTableView metadata, vector[string] all_column_names, string query) except +raiseRunSkipDataError
 
         cdef struct TableScanInfo:
@@ -162,11 +162,10 @@ cdef extern from "../include/engine/engine.h":
             vector[vector[int]] table_columns
         TableScanInfo getTableScanInfo(string logicalPlan)
 
-cdef extern from "../include/engine/initialize.h":
+cdef extern from "../include/engine/initialize.h" nogil:
     cdef void initialize(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options) except +raiseInitializeError
     cdef void finalize() except +raiseFinalizeError
-    cdef void blazingSetAllocator(int allocation_mode, size_t initial_pool_size, vector[int] devices , bool enable_logging, map[string,string] config_options) except +raiseBlazingSetAllocatorError
+    cdef void blazingSetAllocator(string allocation_mode, size_t initial_pool_size, map[string,string] config_options) except +raiseBlazingSetAllocatorError
 
-cdef extern from "../include/engine/static.h":
+cdef extern from "../include/engine/static.h" nogil:
     cdef map[string,string] getProductDetails() except +raiseGetProductDetailsError
-

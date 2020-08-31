@@ -1,9 +1,10 @@
 #include <thread>
-#include <src/from_cudf/cpp_tests/utilities/base_fixture.hpp>
+#include <tests/utilities/base_fixture.hpp>
 
 #include "tests/utilities/MemoryConsumer.cuh"
+#include "tests/utilities/BlazingUnitTest.h"
 
-struct MemoryConsumerTest : public cudf::test::BaseFixture {
+struct MemoryConsumerTest : public BlazingUnitTest {
 	MemoryConsumerTest() {}
 	~MemoryConsumerTest() {}
 };

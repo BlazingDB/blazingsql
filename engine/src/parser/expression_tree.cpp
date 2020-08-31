@@ -1,4 +1,5 @@
 #include "expression_tree.hpp"
+#include <cassert>
 
 namespace ral {
 namespace parser {
@@ -30,64 +31,74 @@ lexer::token lexer::next_token() {
 
   if (text_[pos_] == '(') {
     advance();
+    assert(pos_ <= text_.length());
     return {lexer::token_type::ParenthesisOpen, "("};
   }
 
   if (text_[pos_] == ')') {
     advance();
+    assert(pos_ <= text_.length());
     return {lexer::token_type::ParenthesisClose, ")"};
   }
 
   if (text_[pos_] == ',') {
     advance();
+    assert(pos_ <= text_.length());
     return {lexer::token_type::Comma, ","};
   }
 
   if (text_[pos_] == ':') {
     advance();
+    assert(pos_ <= text_.length());
     return {lexer::token_type::Colon, ":"};
   }
 
   std::smatch match;
-  if (std::regex_search(text_.cbegin() + pos_, text_.cend(), match, variable_regex)) {
+  std::string remainder = text_.substr(pos_);
+  if (std::regex_search(remainder, match, variable_regex)) {
     advance(match.length());
+    assert(pos_ <= text_.length());
     return {lexer::token_type::Variable, match.str()};
   }
 
-  if (std::regex_search(text_.cbegin() + pos_, text_.cend(), match, null_regex)) {
+  if (std::regex_search(remainder, match, null_regex)) {
     advance(match.length());
+    assert(pos_ <= text_.length());
     return {lexer::token_type::Null, match.str()};
   }
 
-  if (std::regex_search(text_.cbegin() + pos_, text_.cend(), match, boolean_regex)) {
+  if (std::regex_search(remainder, match, boolean_regex)) {
     advance(match.length());
+    assert(pos_ <= text_.length());
     return {lexer::token_type::Boolean, match.str()};
   }
 
-  if (std::regex_search(text_.cbegin() + pos_, text_.cend(), match, timestamp_regex)) {
+  if (std::regex_search(remainder, match, timestamp_regex)) {
     advance(match.length());
+    assert(pos_ <= text_.length());
     return {lexer::token_type::Timestamp, match.str()};
   }
 
-  if (std::regex_search(text_.cbegin() + pos_, text_.cend(), match, number_regex)) {
+  if (std::regex_search(remainder, match, number_regex)) {
     advance(match.length());
+    assert(pos_ <= text_.length());
     return {lexer::token_type::Number, match.str()};
   }
 
-  if (std::regex_search(text_.cbegin() + pos_, text_.cend(), match, string_regex)) {
+  if (std::regex_search(remainder, match, string_regex)) {
     advance(match.length());
+    assert(pos_ <= text_.length());
     return {lexer::token_type::String, match.str()};
   }
 
   size_t len = 0;
   char ch;
   do {
-    ++len;
     ch = text_[pos_ + len];
-  } while (ch != '('
-          && ch != ')'
-          && ch != ','
-          && ch != ':');
+
+    if (ch == '(' || ch == ')' || ch == ',' || ch == ':')
+        break;
+  } while ((pos_ + (++len)) < text_.length());
 
   std::string value = text_.substr(pos_, len);
 
@@ -239,7 +250,7 @@ cudf::data_type expr_parser::infer_type_from_literal_token(const lexer::token & 
 
 cudf::data_type expr_parser::type_from_type_token(const lexer::token & token) {
   const std::string & token_value = token.value;
-  if (token_value == "NULL") {
+  if (token_value == "NULL" || token_value == "BOOLEAN") {
     // Default Null type to boolean
     return cudf::data_type{cudf::type_id::BOOL8};
   }
@@ -249,7 +260,13 @@ cudf::data_type expr_parser::type_from_type_token(const lexer::token & token) {
   if (token_value == "SMALLINT") {
     return cudf::data_type{cudf::type_id::INT16};
   }
-  if (token_value == "INTEGER") {
+
+  if (token_value == "INTEGER"
+      //INTERVALS MONTH AND YEAR ARE NOT CURRENTLY SUPPORTED
+      || token_value == "INTERVAL SECOND"
+      || token_value == "INTERVAL MINUTE"
+      || token_value == "INTERVAL HOUR"
+      || token_value == "INTERVAL DAY" ) {
     return cudf::data_type{cudf::type_id::INT32};
   }
   if (token_value == "BIGINT") {

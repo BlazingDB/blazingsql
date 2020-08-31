@@ -34,10 +34,11 @@ namespace cache {
 		}
 	}
 
-	void graph::execute() {
+	void graph::execute(const std::size_t max_kernel_run_threads) {
 		check_and_complete_work_flow();
 
-		std::vector<BlazingThread> threads;
+		ctpl::thread_pool<BlazingThread> pool(max_kernel_run_threads);
+		std::vector<std::future<void>> futures;
 		std::set<std::pair<size_t, size_t>> visited;
 		std::deque<size_t> Q;
 		for(auto start_node : get_neighbours(head_id_)) {
@@ -61,15 +62,15 @@ namespace cache {
 						if(visited.find(edge_id) == visited.end()) {
 							visited.insert(edge_id);
 							Q.push_back(target_id);
-							BlazingThread t([this, source, source_id, edge] {
+							futures.push_back(pool.push([this, source, source_id, edge] (int thread_id) {
 								auto state = source->run();
 								if(state == kstatus::proceed) {
 									source->output_.finish();
 								} else if (edge.target != -1) { // not a dummy node
 									std::cout<<"ERROR kernel "<<source_id<<" did not finished successfully"<<std::endl;
 								}
-							});
-							threads.push_back(std::move(t));
+							}));
+							
 						} else {
 							// TODO: and circular graph is defined here. Report and error
 						}
@@ -79,9 +80,16 @@ namespace cache {
 				Q.push_back(source_id);
 			}
 		}
-		for(auto & thread : threads) {
-			thread.join();
+		// Lets iterate through the futures to check for exceptions
+		for(int i = 0; i < futures.size(); i++){
+			try {
+				futures[i].get();
+			} catch (const std::exception& e) {
+				throw;		
+			}
 		}
+		// lets wait untill all tasks are done
+		pool.stop(true);
 	}
 
 	void graph::show() {
@@ -280,24 +288,23 @@ namespace cache {
 
 	// This function will work when the Relational Algebra only contains: TableScan (or BindableTableScan) and Limit
 	void graph::check_for_simple_scan_with_limit_query() {
-		auto first_iterator = container_.begin(); // points to null
+		auto first_iterator = container_.begin();
 		first_iterator++;
 		int32_t min_index_valid = first_iterator->first;
 		size_t total_kernels = container_.size(); 
 
-		if (total_kernels == 4) { // null, TableScanKernel (or BindableTableScan), LimitKernel, OutputKernel
-			if ( get_node(min_index_valid )->expression == "OutputKernel" &&
-				 get_node(min_index_valid + 1)->get_type_id() == kernel_type::LimitKernel &&
-			 	 	(get_node(min_index_valid + 2)->get_type_id() == kernel_type::TableScanKernel || 
-					 get_node(min_index_valid + 2)->get_type_id() == kernel_type::BindableTableScanKernel)
+		if (total_kernels == 4) { // LimitKernel, TableScanKernel (or BindableTableScan), OutputKernel and null
+			if ( get_node(min_index_valid)->get_type_id() == kernel_type::LimitKernel &&
+				(get_node(min_index_valid + 1)->get_type_id() == kernel_type::TableScanKernel || 
+				 get_node(min_index_valid + 1)->get_type_id() == kernel_type::BindableTableScanKernel) &&
+				 get_node(min_index_valid + 2)->expression == "OutputKernel"
 				)
 			{
-				get_node(min_index_valid + 2)->has_limit_ = true;
-
+				get_node(min_index_valid + 1)->has_limit_ = true;
 				// get the limit value from LogicalLimit
-				std::string LimitExpression = get_node(min_index_valid + 1)->expression;
+				std::string LimitExpression = get_node(min_index_valid)->expression;
 				int64_t scan_only_rows = ral::operators::get_limit_rows_when_relational_alg_is_simple(LimitExpression);
-				get_node(min_index_valid + 2)->limit_rows_ = scan_only_rows;
+				get_node(min_index_valid + 1)->limit_rows_ = scan_only_rows;
 			}
 		}
 	}

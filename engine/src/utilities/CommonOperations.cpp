@@ -16,10 +16,56 @@
 namespace ral {
 namespace utilities {
 
+bool checkIfConcatenatingStringsWillOverflow(const std::vector<std::unique_ptr<BlazingTable>> & tables) {
+	std::vector<ral::frame::BlazingTableView> tables_to_concat(tables.size());
+	for (std::size_t i = 0; i < tables.size(); i++){
+		tables_to_concat[i] = tables[i]->toBlazingTableView();
+	}
+
+	return checkIfConcatenatingStringsWillOverflow(tables_to_concat);
+}
+
+bool checkIfConcatenatingStringsWillOverflow(const std::vector<BlazingTableView> & tables) {
+	if( tables.size() == 0 ) {
+		return false;
+	}
+
+	for(size_t col_idx = 0; col_idx < tables[0].get_schema().size(); col_idx++) {
+		if(tables[0].get_schema()[col_idx].id() == cudf::type_id::STRING) {
+			std::size_t total_bytes_size = 0;
+			std::size_t total_offset_count = 0;
+
+			for(size_t table_idx = 0; table_idx < tables.size(); table_idx++) {
+
+				// Column i-th from the next tables are expected to have the same string data type
+				assert( tables[table_idx].get_schema()[col_idx].id() == cudf::type_id::STRING );
+
+				auto & column = tables[table_idx].column(col_idx);
+				auto num_children = column.num_children();
+				if(num_children == 2) {
+
+					auto offsets_column = column.child(0);
+					auto chars_column = column.child(1);
+
+					// Similarly to cudf, we focus only on the byte number of chars and the offsets count
+					total_bytes_size += chars_column.size();
+					total_offset_count += offsets_column.size() + 1;
+
+					if( total_bytes_size > static_cast<std::size_t>(std::numeric_limits<cudf::size_type>::max()) ||
+						total_offset_count > static_cast<std::size_t>(std::numeric_limits<cudf::size_type>::max())) {
+						return true;
+					}
+				}
+			}
+		}
+	}
+
+	return false;
+}
+
 std::unique_ptr<BlazingTable> concatTables(const std::vector<BlazingTableView> & tables) {
 	assert(tables.size() >= 0);
 
-	std::vector<std::unique_ptr<CudfTable>> temp_holder;
 	std::vector<std::string> names;
 	std::vector<CudfTableView> table_views_to_concat;
 	for(size_t i = 0; i < tables.size(); i++) {
@@ -115,7 +161,7 @@ cudf::data_type get_common_type(cudf::data_type type1, cudf::data_type type2, bo
 		}
 	}
 	if (strict) {
-		RAL_FAIL("No common type between " + std::to_string(type1.id()) + " and " + std::to_string(type2.id()));
+		RAL_FAIL("No common type between " + std::to_string(static_cast<int32_t>(type1.id())) + " and " + std::to_string(static_cast<int32_t>(type2.id())));
 	} else {
 		if(is_type_float(type1.id()) && is_type_integer(type2.id())) {
 			return type1;

@@ -7,6 +7,16 @@
 #include "CalciteExpressionParsing.h"
 #include "error.hpp"
 
+bool is_nullary_operator(operator_type op){
+switch (op)
+	{
+	case operator_type::BLZ_RAND:
+		return true;
+	default:
+		return false;
+	}	
+}
+
 bool is_unary_operator(operator_type op) {
 	switch (op)
 	{
@@ -80,6 +90,17 @@ bool is_binary_operator(operator_type op) {
 		return true;
 	default:
 		return false;
+	}
+}
+
+cudf::type_id get_output_type(operator_type op) {
+	switch (op)
+	{
+	case operator_type::BLZ_RAND:
+		return cudf::type_id::FLOAT64;
+	default:
+	 	assert(false);
+		return cudf::type_id::EMPTY;
 	}
 }
 
@@ -203,8 +224,12 @@ cudf::type_id get_output_type(operator_type op, cudf::type_id input_left_type, c
 
 operator_type map_to_operator_type(const std::string & operator_token) {
 	static std::map<std::string, operator_type> OPERATOR_MAP = {
+		// Nullary operators
+		{"BLZ_RND", operator_type::BLZ_RAND},
+
 		// Unary operators
 		{"NOT", operator_type::BLZ_NOT},
+		{"IS NOT TRUE", operator_type::BLZ_NOT},
 		{"SIN", operator_type::BLZ_SIN},
 		{"ASIN", operator_type::BLZ_ASIN},
 		{"COS", operator_type::BLZ_COS},
@@ -356,6 +381,23 @@ std::vector<size_t> get_projections(const std::string & query_part) {
 	std::vector<size_t> projections;
 	for(int i = 0; i < project_string_split.size(); i++) {
 		projections.push_back(std::stoull(project_string_split[i]));
+	}
+
+	// On Calcite, the select count(*) case is represented with
+	// the projection list empty and the aliases list containing
+	// only one element as follows:
+	//
+	// ...
+	//   BindableTableScan(table=[[main, big_taxi]], projects=[[]], aliases=[[$f0]])
+	//
+	// So, in such a scenario, we will load only the first column.
+
+	std::string aliases_string = get_named_expression(query_part, "aliases");
+	std::vector<std::string> aliases_string_split =
+		get_expressions_from_expression_list(aliases_string, true);
+
+	if(projections.size() == 0 && aliases_string_split.size() == 1) {
+		projections.push_back(0);
 	}
 
 	return projections;
@@ -513,7 +555,7 @@ std::string replace_calcite_regex(const std::string & expression) {
 	StringUtil::findAndReplaceAll(ret, "IS NOT NULL", "IS_NOT_NULL");
 	StringUtil::findAndReplaceAll(ret, "IS NULL", "IS_NULL");
 	StringUtil::findAndReplaceAll(ret, " NOT NULL", "");
-
+	StringUtil::findAndReplaceAll(ret, "RAND()", "BLZ_RND()");
 	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(YEAR), ", "BL_YEAR(");
 	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(MONTH), ", "BL_MONTH(");
 	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(DAY), ", "BL_DAY(");

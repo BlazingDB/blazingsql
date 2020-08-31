@@ -10,7 +10,7 @@
 #include <memory>
 #include <cudf/io/functions.hpp>
 #include <execution_graph/logic_controllers/LogicPrimitives.h>
-
+#include "../../src/error.hpp"
 
 typedef ral::io::DataType DataType;
 namespace cudf_io = cudf::io;
@@ -95,3 +95,26 @@ std::pair<bool, std::string> registerFileSystemHDFS(HDFS hdfs, std::string root,
 std::pair<bool, std::string> registerFileSystemGCS(GCS gcs, std::string root, std::string authority);
 std::pair<bool, std::string> registerFileSystemS3(S3 s3, std::string root, std::string authority);
 std::pair<bool, std::string> registerFileSystemLocal(std::string root, std::string authority);
+
+extern "C" {
+
+std::pair<TableSchema, error_code_t> parseSchema_C(std::vector<std::string> files,
+	std::string file_format_hint,
+	std::vector<std::string> arg_keys,
+	std::vector<std::string> arg_values,
+	std::vector<std::pair<std::string, cudf::type_id>> extra_columns,
+	bool ignore_missing_paths);
+
+std::pair<std::unique_ptr<ResultSet>, error_code_t> parseMetadata_C(std::vector<std::string> files,
+	std::pair<int, int> offset,
+	TableSchema schema,
+	std::string file_format_hint,
+	std::vector<std::string> arg_keys,
+	std::vector<std::string> arg_values);
+
+std::pair<std::pair<bool, std::string>, error_code_t> registerFileSystemHDFS_C(HDFS hdfs, std::string root, std::string authority);
+std::pair<std::pair<bool, std::string>, error_code_t> registerFileSystemGCS_C(GCS gcs, std::string root, std::string authority);
+std::pair<std::pair<bool, std::string>, error_code_t> registerFileSystemS3_C(S3 s3, std::string root, std::string authority);
+std::pair<std::pair<bool, std::string>, error_code_t> registerFileSystemLocal_C(std::string root, std::string authority);
+
+} // extern "C"
