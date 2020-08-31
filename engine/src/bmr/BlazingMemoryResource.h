@@ -66,7 +66,7 @@ public:
             memory_resource = rmm::mr::get_current_device_resource();
         } 
 
-        memory_limit = custom_threshold * total_memory_size;
+        memory_limit = (double)custom_threshold * total_memory_size;
 	}
 
 	virtual ~internal_blazing_device_memory_resource() = default;

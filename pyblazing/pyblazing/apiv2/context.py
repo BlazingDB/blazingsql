@@ -186,8 +186,6 @@ def initializeBlazing(
     elif pool and allocator == "managed":
         allocator = "cnmem_managed_memory_resource"
 
-    cio.blazingSetAllocatorCaller(allocator.encode(), initial_pool_size, config_options)
-
     cio.initializeCaller(
         ralId,
         0,
@@ -196,6 +194,8 @@ def initializeBlazing(
         ralCommunicationPort,
         singleNode,
         config_options,
+        allocator.encode(),
+        initial_pool_size
     )
 
     if os.path.isabs(logging_dir_path):

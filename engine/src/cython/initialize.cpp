@@ -62,8 +62,6 @@ std::string get_ip(const std::string & iface_name = "eth0") {
 	return the_ip;
 }
 
-
-
 auto log_level_str_to_enum(std::string level) {
 	if (level == "critical") {
 		return spdlog::level::critical;
@@ -126,7 +124,18 @@ void initialize(int ralId,
 	std::string ralHost,
 	int ralCommunicationPort,
 	bool singleNode,
-	std::map<std::string, std::string> config_options) {
+	std::map<std::string, std::string> config_options,
+	std::string allocation_mode,
+	std::size_t initial_pool_size) {
+
+	float device_mem_resouce_consumption_thresh = 0.95;
+	auto device_it = config_options.find("BLAZING_DEVICE_MEM_CONSUMPTION_THRESHOLD");
+	if (device_it != config_options.end()){
+		device_mem_resouce_consumption_thresh = std::stof(config_options["BLAZING_DEVICE_MEM_CONSUMPTION_THRESHOLD"]);
+	}
+
+	BlazingRMMInitialize(allocation_mode, initial_pool_size, device_mem_resouce_consumption_thresh);
+
 	// ---------------------------------------------------------------------------
 	// DISCLAIMER
 	// TODO: Support proper locale support for non-US cases (percy)
@@ -264,6 +273,13 @@ void initialize(int ralId,
 		it++;
 	}
 	logger->debug("|||{info}|||||","info"_a=product_details_str);
+
+	BlazingMemoryResource* resource = &blazing_device_memory_resource::getInstance();
+	std::string alloc_info = "allocation_mode: " + allocation_mode;
+	alloc_info += ", total_memory: " + std::to_string(resource->get_total_memory());
+	alloc_info += ", memory_limit: " + std::to_string(resource->get_memory_limit());
+
+	logger->debug("|||{info}|||||","info"_a=alloc_info);
 }
 
 void finalize() {
@@ -275,27 +291,15 @@ void finalize() {
 	exit(0);
 }
 
-void blazingSetAllocator(
-	std::string allocation_mode,
-	std::size_t initial_pool_size,
-	std::map<std::string, std::string> config_options) {
-
-	float device_mem_resouce_consumption_thresh = 0.95;
-	auto it = config_options.find("BLAZING_DEVICE_MEM_CONSUMPTION_THRESHOLD");
-	if (it != config_options.end()){
-		device_mem_resouce_consumption_thresh = std::stof(config_options["BLAZING_DEVICE_MEM_CONSUMPTION_THRESHOLD"]);
-	}
-
-	BlazingRMMInitialize(allocation_mode, initial_pool_size, device_mem_resouce_consumption_thresh);
-}
-
 error_code_t initialize_C(int ralId,
 	int gpuId,
 	std::string network_iface_name,
 	std::string ralHost,
 	int ralCommunicationPort,
 	bool singleNode,
-	std::map<std::string, std::string> config_options) {
+	std::map<std::string, std::string> config_options,
+	std::string allocation_mode,
+	std::size_t initial_pool_size) {
 
 	try {
 		initialize(ralId,
@@ -304,7 +308,9 @@ error_code_t initialize_C(int ralId,
 			ralHost,
 			ralCommunicationPort,
 			singleNode,
-			config_options);
+			config_options,
+			allocation_mode,
+			initial_pool_size);
 		return E_SUCCESS;
 	} catch (std::exception& e) {
 		return E_EXCEPTION;
@@ -314,21 +320,6 @@ error_code_t initialize_C(int ralId,
 error_code_t finalize_C() {
 	try {
 		finalize();
-		return E_SUCCESS;
-	} catch (std::exception& e) {
-		return E_EXCEPTION;
-	}
-}
-
-error_code_t blazingSetAllocator_C(
-	std::string allocation_mode,
-	std::size_t initial_pool_size,
-	std::map<std::string, std::string> config_options) {
-
-	try {
-		blazingSetAllocator(allocation_mode,
-			initial_pool_size,
-			config_options);
 		return E_SUCCESS;
 	} catch (std::exception& e) {
 		return E_EXCEPTION;
