@@ -46,8 +46,8 @@ public:
 	 */
 	void run_polling() {
 		 auto thread = std::thread([this]{
-			int x = 1;
-			while(x--) {
+			
+			while(true) {
 				std::unique_ptr<ral::cache::CacheData> cache_data = output_cache->pullCacheData();
 				std::cout<<"pulled cache data"<<std::endl;
 				auto * gpu_cache_data = static_cast<ral::cache::GPUCacheDataMetaData *>(cache_data.get());
