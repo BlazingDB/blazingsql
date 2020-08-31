@@ -62,9 +62,12 @@ public:
         } else if (allocation_mode == "cnmem_managed_memory_resource"){
             memory_resource_owner = std::make_unique<rmm::mr::cnmem_managed_memory_resource>(initial_pool_size);
             memory_resource = memory_resource_owner.get();
-        } else {  //(allocation_mode == "existing"){
-            memory_resource = rmm::mr::get_current_device_resource();
-        } 
+        } else if (allocation_mode == "existing"){
+            memory_resource = rmm::mr::get_current_device_resource();        
+        } else {
+            throw std::runtime_error("ERROR creating internal_blazing_device_memory_resource: allocation_mode not recognized.");
+        }
+        type = allocation_mode;
 
         memory_limit = (double)custom_threshold * total_memory_size;
 	}
@@ -83,6 +86,10 @@ public:
 	}
 	size_t get_memory_limit() {
         return memory_limit;
+    }
+
+    std::string get_type() {
+		return type;
     }
 
 	bool supports_streams() const noexcept override { return memory_resource->supports_streams(); }
@@ -122,6 +129,7 @@ private:
 	std::atomic<size_t> used_memory;
     std::unique_ptr<rmm::mr::device_memory_resource> memory_resource_owner;
     rmm::mr::device_memory_resource * memory_resource;
+    std::string type;
 };
 
 // forward declaration
@@ -160,6 +168,10 @@ public:
     }
 	size_t get_memory_limit() {
 		return initialized_resource->get_memory_limit() ;
+    }
+
+    std::string get_type() {
+		return initialized_resource->get_type() ;
     }
 
   /** -----------------------------------------------------------------------*

@@ -274,10 +274,11 @@ void initialize(int ralId,
 	}
 	logger->debug("|||{info}|||||","info"_a=product_details_str);
 
-	BlazingMemoryResource* resource = &blazing_device_memory_resource::getInstance();
+	blazing_device_memory_resource* resource = &blazing_device_memory_resource::getInstance();
 	std::string alloc_info = "allocation_mode: " + allocation_mode;
 	alloc_info += ", total_memory: " + std::to_string(resource->get_total_memory());
 	alloc_info += ", memory_limit: " + std::to_string(resource->get_memory_limit());
+	alloc_info += ", type: " + resource->get_type();
 
 	logger->debug("|||{info}|||||","info"_a=alloc_info);
 }
