@@ -72,7 +72,7 @@ public:
 
     void send_begin_transmission() override;
     void wait_until_complete() override;
-    void wait_for_begin_transmission();
+    void wait_for_begin_transmission() override;
     void increment_frame_transmission();
     void increment_begin_transmission();
     void recv_begin_transmission_ack();
@@ -114,7 +114,7 @@ static const ucp_tag_t acknownledge_tag_mask = 0xFFFFFFFFFFFFFFFF;
 class ucx_message_listener {
 public:
 
-    static void initialize_message_listener(ucp_worker_h worker, int num_threads);
+    static void initialize_message_listener(ucp_worker_h worker, const std::map<std::string, node> & nodes_map, int num_threads);
     static ucx_message_listener * get_instance();
     void poll_begin_message_tag();
     void add_receiver(ucp_tag_t tag,std::shared_ptr<message_receiver> receiver);
@@ -122,12 +122,14 @@ public:
     void increment_frame_receiver(ucp_tag_t tag);
     ucp_worker_h get_worker();
     ctpl::thread_pool<BlazingThread> & get_pool();
+    node get_node(const std::string& id);
 private:
-    ucx_message_listener(ucp_worker_h worker, int num_threads);
+    ucx_message_listener(ucp_worker_h worker, const std::map<std::string, node> & nodes_map, int num_threads);
 	ctpl::thread_pool<BlazingThread> pool;
-    void poll_message_tag(ucp_tag_t tag, ucp_tag_t mask);
     ucp_worker_h ucp_worker;
     std::map<ucp_tag_t,std::shared_ptr<message_receiver> > tag_to_receiver;
+    std::map<std::string, node> _id_to_node_info_map;
+
 	static ucx_message_listener * instance;
 };
 

@@ -40,11 +40,6 @@ public:
     _metadata{metadata}
   {
     _raw_buffers.resize(column_transports.size());
-
-    if (_raw_buffers.size() == 0) {
-      std::cout << "NO GPU DATA TO RECEIVE"<<std::endl;
-      finish();
-    }
   }
 
   void set_buffer_size(uint16_t index,size_t size){
@@ -69,6 +64,10 @@ public:
   }
 
   void finish() {
+    if (_raw_buffers.size() == 0) {
+      std::cout << "NO GPU DATA TO RECEIVED"<<std::endl;
+    }
+
     std::unique_ptr<ral::frame::BlazingTable> table = deserialize_from_gpu_raw_buffers(_column_transports, _raw_buffers);
     _output_cache->addCacheData(
             std::make_unique<ral::cache::GPUCacheDataMetaData>(std::move(table), _metadata), _metadata.get_values()[ral::cache::MESSAGE_ID], true);

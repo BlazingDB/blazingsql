@@ -196,7 +196,7 @@ public:
                             ral::cache::MetadataDictionary metadata;
                             metadata.add_value(ral::cache::KERNEL_ID_METADATA_LABEL, std::to_string(this->get_id()));
                             metadata.add_value(ral::cache::QUERY_ID_METADATA_LABEL, std::to_string(this->context->getContextToken()));
-                            metadata.add_value(ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL, "true");
+                            metadata.add_value(ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL, "false");
                             metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, "");
                             metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, self_node.id());
                             metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, this->context->getMasterNode().id());
@@ -240,7 +240,7 @@ public:
                         ral::cache::MetadataDictionary metadata;
                         metadata.add_value(ral::cache::KERNEL_ID_METADATA_LABEL, std::to_string(this->get_id()));
                         metadata.add_value(ral::cache::QUERY_ID_METADATA_LABEL, std::to_string(this->context->getContextToken()));
-                        metadata.add_value(ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL, "true");
+                        metadata.add_value(ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL, "false");
                         metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, "");
                         metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, self_node.id());
                         auto output_cache = this->query_graph->get_output_message_cache();
@@ -314,6 +314,8 @@ public:
             total_count += std::stoi(static_cast<ral::cache::GPUCacheDataMetaData *>(meta_message.get())->getMetadata().get_values()[ral::cache::PARTITION_COUNT]);
 	    }
         this->output_cache()->wait_for_count(total_count);
+
+        std::cout<< "FINISH AGGR KERNEL !!!" <<std::endl;
 
         logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
                     "query_id"_a=context->getContextToken(),
