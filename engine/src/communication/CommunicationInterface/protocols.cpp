@@ -185,8 +185,11 @@ void ucx_buffer_transport::send_begin_transmission() {
 	int i = 0;
 	for(auto const & node : destinations) {
 		requests[i] = new char[req_size + sizeof(ucx_request) + 1];
+		auto temp_tag = *reinterpret_cast<blazing_ucp_tag *>(&tag);
+		std::cout<<"sending "<<temp_tag.message_id<<" "<<temp_tag.worker_origin_id <<" "<<temp_tag.frame_id<<std::endl;
 		auto status = ucp_tag_send_nbr(
 			node.get_ucp_endpoint(), buffer_to_send.data(), buffer_to_send.size(), ucp_dt_make_contig(1), tag, requests[i] + req_size - sizeof(ucx_request));
+		
 
 		if (status == UCS_INPROGRESS) {
 			do {
@@ -209,6 +212,27 @@ void ucx_buffer_transport::send_begin_transmission() {
 
 		std::cout<< "recv_begin_transmission_ack recv_nb" << std::endl;
 		requests[i] = new char[req_size + sizeof(ucx_request) + 1];
+		std::cout<<"listening for "<<acknowledge_tag.message_id<<" "<<acknowledge_tag.worker_origin_id <<" "<<acknowledge_tag.frame_id<<std::endl;
+	
+			ucp_tag_recv_info_t	info;
+		auto stat =	ucp_tag_probe_nb	(	origin_node,
+									*reinterpret_cast<ucp_tag_t *>(&acknowledge_tag),
+									acknownledge_tag_mask,
+			0,
+			&info 
+			);
+		while(!stat){
+
+			stat =	ucp_tag_probe_nb	(	origin_node,
+												*reinterpret_cast<ucp_tag_t *>(&acknowledge_tag),
+												acknownledge_tag_mask,
+						0,
+						&info 
+						);
+		}
+			temp_tag = *reinterpret_cast<blazing_ucp_tag *>(info.sender_tag);
+			std::cout<<"probed tag is  "<<temp_tag.message_id<<" "<<temp_tag.worker_origin_id <<" "<<temp_tag.frame_id<<std::endl;
+			std::cout<<"message length was "<<info.length<<std::endl;
 		status = ucp_tag_recv_nbr(origin_node,
 									&recv_begin_status,
 									sizeof(status_code),
@@ -228,7 +252,7 @@ void ucx_buffer_transport::send_begin_transmission() {
 			throw std::runtime_error("Was not able to receive acknowledgment of begin transmission from " + node.id());
 		}
 		i++;
-		std::cout<<"got ack!!!!"<<std::endl;
+		std::cout<<"ack status == status_code::OK = "<<(recv_begin_status == status_code::OK)<<std::endl;
 		increment_begin_transmission();
 	}
 }
@@ -482,7 +506,7 @@ void recv_begin_callback_c(void * request, ucs_status_t status,
 
 		auto status_acknowledge = std::make_shared<status_code>(status_code::OK);
 		std::cout<<"about to send ack"<<std::endl;
-
+		std::cout<<"ack tag is  "<<acknowledge_tag.message_id<<" "<<acknowledge_tag.worker_origin_id <<" "<<acknowledge_tag.frame_id<<std::endl;
 		char * request_nbr = new char[req_size+1 + sizeof(ucx_request)];
 		auto status = ucp_tag_send_nbr(
 			node.get_ucp_endpoint(),
