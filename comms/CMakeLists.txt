@@ -163,6 +163,9 @@ elseif (DEFINED ENV{CONDA_PREFIX})
     link_directories($ENV{CONDA_PREFIX}/lib64/)
 
 endif ()
+
+link_directories(${CMAKE_CUDA_IMPLICIT_LINK_DIRECTORIES})
+
 message(WARNING "BSQL_BLD_PREFIX set to: ${BSQL_BLD_PREFIX}")
 message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 
@@ -174,7 +177,8 @@ include(CheckIncludeFiles)
 include(CheckLibraryExists)
 include(CTest)
 
-find_package(Threads)
+# breaks powerpc (using custom compiler)
+#find_package(Threads)
 
 # TODO jp mario c.gonzales we must use find here!
 #find_package(spdlog REQUIRED)
@@ -236,7 +240,7 @@ add_library(blazingdb-transport SHARED ${SRC_FILES})
 
 set_target_properties(blazingdb-transport PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_link_libraries(blazingdb-transport
-    Threads::Threads
+    pthread
     rmm
     cudart
     cuda
@@ -276,7 +280,12 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libblazingdb-transport.so DESTINATION 
 
 # Install target and headers
 install(TARGETS blazingdb-transport DESTINATION lib)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/ DESTINATION include/)
+
+# NOTE do not change how we install the headers
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/blazingdb/concurrency DESTINATION include/blazingdb)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/blazingdb/manager DESTINATION include/blazingdb)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/blazingdb/network DESTINATION include/blazingdb)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/blazingdb/transport DESTINATION include/blazingdb)
 
 # Tests
 if(BUILD_TESTING)
