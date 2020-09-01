@@ -25,17 +25,23 @@ build_dir=$BLAZINGSQL_POWERPC_TMP_BUILD_DIR
 MAKEJ=$(nproc)
 MAKEJ_CUDF=$(( `nproc` / 2 ))
 
+export CC=$(which gcc)
+export CXX=$(which g++)
+export CUDA_HOME=/usr/local/cuda/ # cambiar si definido
+#export CUDACXX=$CUDA_HOME/bin/nvcc
+export CUDACXX=$(which nvcc)
+export BOOST_ROOT=$env_prefix
+# NOTE percy mario this var is used by rmm build.sh and by pycudf setup.py
+export PARALLEL_LEVEL=$MAKEJ
+
 echo "### Vars ###"
-export CC=/usr/local/bin/gcc
-export CXX=/usr/local/bin/g++
-export CUDACXX=/usr/local/cuda/bin/nvcc
 echo "CC="$CC
 echo "CXX="$CXX
 echo "CUDACXX="$CUDACXX
 echo "MAKEJ="$MAKEJ
 echo "MAKEJ_CUDF="$MAKEJ_CUDF
 echo "PATH="$PATH
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib:/usr/local/lib64:/usr/local/nvidia/lib:/usr/local/nvidia/lib64
+#export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib:/usr/local/lib64:/usr/local/nvidia/lib:/usr/local/nvidia/lib64
 echo "LD_LIBRARY_PATH="$LD_LIBRARY_PATH
 #C_INCLUDE_PATH=/app/tmp/include/
 #CPLUS_INCLUDE_PATH=/app/tmp/include/
@@ -45,8 +51,6 @@ echo "blazingsql_project_root_dir=$blazingsql_project_root_dir"
 
 mkdir -p $build_dir
 
-export CUDA_HOME=/usr/local/cuda/
-export CUDACXX=$CUDA_HOME/bin/nvcc
 
 #BEGIN zstd
 cd $build_dir
@@ -129,7 +133,6 @@ if [ ! -d arrow ]; then
     # -DARROW_HDFS=ON \ # blazingdb-io use arrow for hdfs
     # -DARROW_TENSORFLOW=ON \ # enable old ABI for C/C++
     
-    export BOOST_ROOT=$env_prefix
 
     cd cpp/
     mkdir -p build
@@ -204,11 +207,8 @@ if [ ! -d spdlog ]; then
 fi
 #END spdlog
 
-# NOTE percy mario this var is used by rmm build.sh and by pycudf setup.py
-export PARALLEL_LEVEL=$MAKEJ
 
 cudf_version=0.16
-export CUDA_HOME=/usr/local/cuda/
 
 # BEGIN RMM
 cd $build_dir
@@ -385,9 +385,11 @@ export CUDF_ROOT=$build_dir/cudf/cpp/build
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$tmp_dir/lib
 
 # add g++ libs to the lib path for arrow and pycudf
+# TODO: we need to be sure about /usr/local/lib64
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib64/
 
 # add python libs
+# TODO: we need to be sure about /usr/local/lib
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/
 
 # BEGIN cudf python

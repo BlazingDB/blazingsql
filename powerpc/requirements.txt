@@ -1,4 +1,4 @@
-cython==0.29.21
+#cython==0.29.21
 numba==0.50.1
 #cupy==7.7.0
 scikit-learn==0.23.1
