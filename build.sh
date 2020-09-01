@@ -147,12 +147,12 @@ if buildAll || hasArg io || hasArg libengine || hasArg thirdparty || hasArg upda
             cd ${REPODIR}/thirdparty/cudf
             if hasArg update; then
                 git pull
+                if [ ! -d "${REPODIR}/thirdparty/cudf/cpp/build" ]; then
+                    mkdir cpp/build
+                fi
+                cd cpp/build
+                cmake -DCMAKE_CXX11_ABI=ON ..
             fi
-            if [ ! -d "${REPODIR}/thirdparty/cudf/cpp/build" ]; then
-                mkdir cpp/build
-            fi
-            cd cpp/build
-            cmake -DCMAKE_CXX11_ABI=ON ..
         fi
         export CUDF_HOME=${REPODIR}/thirdparty/cudf/
     fi

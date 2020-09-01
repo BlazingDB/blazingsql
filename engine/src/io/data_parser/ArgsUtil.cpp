@@ -97,8 +97,8 @@ void getReaderArgJson(std::map<std::string, std::string> args, ReaderArgs & read
 }
 
 void getReaderArgOrc(std::map<std::string, std::string> args, ReaderArgs & readerArg) {
-	if(in("stripe", args)) {
-		readerArg.orcReaderArg.stripe = to_int(args["stripe"]);
+	if(in("stripes", args)) {
+		readerArg.orcReaderArg.stripes = to_vector_int(args["stripes"]);
 	}
 	if(in("skip_rows", args)) {
 		readerArg.orcReaderArg.skip_rows = to_int(args["skip_rows"]);
