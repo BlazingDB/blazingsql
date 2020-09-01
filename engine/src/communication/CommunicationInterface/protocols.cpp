@@ -222,7 +222,7 @@ void ucx_buffer_transport::send_begin_transmission() {
 			&info 
 			);
 		while(!stat){
-
+				//ucp_worker_progress(origin_nodes);
 			stat =	ucp_tag_probe_nb	(	origin_node,
 												*reinterpret_cast<ucp_tag_t *>(&acknowledge_tag),
 												acknownledge_tag_mask,
