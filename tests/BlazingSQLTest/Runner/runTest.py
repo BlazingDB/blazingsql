@@ -10,10 +10,8 @@ import time
 import blazingsql
 
 # import git
-import gspread
 import numpy as np
 import pandas as pd
-from oauth2client.service_account import ServiceAccountCredentials
 
 from BlazingLogging import loggingHandler as lhandler
 from Configuration import ExecutionMode
@@ -709,6 +707,9 @@ def create_summary_detail(df, no_color):
 # TODO william kharoly felipe we should try to enable and use
 # this function in the future
 def _verify_prev_google_sheet_results(log_pdf):
+    import gspread
+    from oauth2client.service_account import ServiceAccountCredentials
+
     def get_the_data_from_sheet():
         # Use creds to create a client to interact with the Google Drive API
         scope = [
@@ -946,6 +947,9 @@ def _verify_prev_google_sheet_results(log_pdf):
 
 
 def saving_google_sheet_results(log_pdf):
+    import gspread
+    from oauth2client.service_account import ServiceAccountCredentials
+
     log_info = Settings.data["RunSettings"]["logInfo"]
 
     if log_info == "":

@@ -1,3 +1,16 @@
+# BlazingSQL 0.16.0 (Date TBS)
+
+## New Features
+
+
+## Improvements
+
+
+## Bug Fixes
+- #975 Fixed issue due to cudf orc api change 
+
+
+
 # BlazingSQL 0.15.0 (Date TBS)
 
 ## New Features
@@ -7,6 +20,7 @@
 - #826 Added support for cross join
 - #802 Support for timestampadd and constant expressions evaluation by Calcite
 - #883 Added rand() and support for running unary operations on literals
+- #968 Support PowerPC architecture
 
 ## Improvements
 - #777 Update Calcite to the most recent version 1.23
