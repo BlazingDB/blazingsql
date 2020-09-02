@@ -773,6 +773,8 @@ void ReceiverCall(const UcpWorkerAddress &peerUcpWorkerAddress,
 
   comm::ucx_message_listener::initialize_message_listener(ucp_worker, nodes_info_map, 1);
   comm::ucx_message_listener::get_instance()->poll_begin_message_tag();
+
+  std::this_thread::sleep_for(std::chrono::seconds(10));
 }
 
 // struct MessageSendReceiveTest : public BlazingUnitTest {

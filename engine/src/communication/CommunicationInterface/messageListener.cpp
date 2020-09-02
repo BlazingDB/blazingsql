@@ -200,7 +200,7 @@ void tcp_message_listener::start_polling(){
 void ucx_message_listener::poll_begin_message_tag(){
 	auto thread = std::thread([this]{
 		for(;;){
-			// std::cout<<"starting poll begin"<<std::endl;
+			std::cout<<"starting poll begin"<<std::endl;
 			std::shared_ptr<ucp_tag_recv_info_t> info_tag = std::make_shared<ucp_tag_recv_info_t>();
 			ucp_tag_message_h message_tag;
 			do {
@@ -210,7 +210,7 @@ void ucx_message_listener::poll_begin_message_tag(){
 
 			}while(message_tag == nullptr);
 
-			// std::cout<<"probed tag"<<std::endl;
+			std::cout<<"probed tag"<<std::endl;
 
 				char * request = new char[req_size];
 
@@ -266,7 +266,7 @@ void ucx_message_listener::increment_frame_receiver(ucp_tag_t tag){
 }
 ucx_message_listener * ucx_message_listener::instance = nullptr;
 
-ucx_message_listener::ucx_message_listener(ucp_worker_h worker, const std::map<std::string, comm::node>& nodes, int num_threads) : message_listener(nodes, num_threads), ucp_worker{ucp_worker} {
+ucx_message_listener::ucx_message_listener(ucp_worker_h worker, const std::map<std::string, comm::node>& nodes, int num_threads) : message_listener(nodes, num_threads), ucp_worker{worker} {
 
 }
 
