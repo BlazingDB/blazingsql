@@ -204,7 +204,7 @@ if buildAll || hasArg io || hasArg libengine || hasArg thirdparty || hasArg upda
         # all these vars will be used inside the cmake process of orc
         export SNAPPY_HOME=$INSTALL_PREFIX
         export ZLIB_HOME=$INSTALL_PREFIX
-        export LZ4_HOME=$INSTALL_PREFIX
+        # export LZ4_HOME=$INSTALL_PREFIX
         export PROTOBUF_HOME=$INSTALL_PREFIX
         export ZSTD_HOME=$INSTALL_PREFIX
         export GTEST_HOME=$INSTALL_PREFIX
