@@ -75,7 +75,6 @@ public:
     void wait_for_begin_transmission() override;
     void increment_frame_transmission();
     void increment_begin_transmission();
-    void recv_begin_transmission_ack();
 
 protected:
     void send_impl(const char * buffer, size_t buffer_size) override;
