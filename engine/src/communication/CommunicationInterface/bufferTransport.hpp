@@ -38,9 +38,11 @@ std::vector<T> vector_from_byte_vector(const char * input, size_t length) {
 	return std::vector<T>(byte_pointer,byte_pointer + length);
 }
 
-std::vector<char> serialize_metadata_and_transports(const ral::cache::MetadataDictionary & metadata,
-																										const std::vector<blazingdb::transport::ColumnTransport> & column_transports);
-std::pair<ral::cache::MetadataDictionary, std::vector<blazingdb::transport::ColumnTransport>> get_metadata_and_transports_from_bytes(std::vector<char> data);
+std::vector<char> serialize_metadata_and_transports_and_buffer_sizes(const ral::cache::MetadataDictionary & metadata,
+                                                    const std::vector<blazingdb::transport::ColumnTransport> & column_transports,
+                                                    const std::vector<size_t> buffer_sizes);
+													
+std::tuple<ral::cache::MetadataDictionary, std::vector<blazingdb::transport::ColumnTransport> , std::vector<size_t> > get_metadata_and_transports_and_buffer_sizes_from_bytes(std::vector<char> data);
 
 } // namespace detail
 
@@ -63,7 +65,8 @@ public:
 	 */
 	buffer_transport(ral::cache::MetadataDictionary metadata,
 		std::vector<size_t> buffer_sizes,
-		std::vector<blazingdb::transport::ColumnTransport> column_transports);
+		std::vector<blazingdb::transport::ColumnTransport> column_transports,
+		std::vector<node> destinations);
 	virtual ~buffer_transport();
 
   virtual void send_begin_transmission() = 0;
@@ -77,10 +80,12 @@ public:
   void send(const char * buffer, size_t buffer_size);
 
 	/**
-	 * @brief Waits until all the data is send
+	 * @brief Waits until all the data is sents
 	 */
-  virtual void wait_until_complete() = 0;
-
+	void wait_until_complete();
+    void wait_for_begin_transmission();
+    void increment_frame_transmission();
+    void increment_begin_transmission();
 protected:
 	virtual void send_impl(const char * buffer, size_t buffer_size) = 0;
 
@@ -88,6 +93,13 @@ protected:
 	ral::cache::MetadataDictionary metadata;
 	std::vector<size_t> buffer_sizes;
 	size_t buffer_sent = 0;
+
+    std::atomic<size_t> transmitted_begin_frames; /**<  The number of begin_transmission messages sent */
+    std::atomic<size_t> transmitted_frames; /**< The number of frames transmitted */
+    std::mutex mutex;
+    std::condition_variable completion_condition_variable;
+    std::vector<node> destinations;
+
 };
 
 

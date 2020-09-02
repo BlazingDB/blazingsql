@@ -4,8 +4,9 @@ namespace comm {
 
 namespace detail {
 
-std::vector<char> serialize_metadata_and_transports(const ral::cache::MetadataDictionary & metadata,
-                                                    const std::vector<blazingdb::transport::ColumnTransport> & column_transports) {
+std::vector<char> serialize_metadata_and_transports_and_buffer_sizes(const ral::cache::MetadataDictionary & metadata,
+                                                    const std::vector<blazingdb::transport::ColumnTransport> & column_transports,
+                                                    const std::vector<size_t> buffer_sizes) {
   // builds the cpu host buffer that we are going to send
   // first lets serialize and send metadata
   std::string metadata_buffer;
@@ -19,17 +20,25 @@ std::vector<char> serialize_metadata_and_transports(const ral::cache::MetadataDi
 
   buffer.insert(buffer.end(), metadata_buffer.begin(), metadata_buffer.end());
 
-  tmp_buffer = detail::to_byte_vector(column_transports.size()); // tells us how many befores will be sent
+  tmp_buffer = detail::to_byte_vector(column_transports.size()); // tells us how many transports will be sent
   buffer.insert(buffer.end(), tmp_buffer.begin(), tmp_buffer.end());
 
   tmp_buffer = detail::vector_to_byte_vector(column_transports);
   buffer.insert(buffer.end(), tmp_buffer.begin(), tmp_buffer.end());
 
+  tmp_buffer = detail::to_byte_vector(buffer_sizes.size()); // tells us how many buffers will be sent
+  buffer.insert(buffer.end(), tmp_buffer.begin(), tmp_buffer.end());
+
+  tmp_buffer = detail::vector_to_byte_vector(buffer_sizes);
+  buffer.insert(buffer.end(), tmp_buffer.begin(), tmp_buffer.end());
+
+
+
   return buffer;
 }
 
-std::pair<ral::cache::MetadataDictionary, std::vector<blazingdb::transport::ColumnTransport>>
-get_metadata_and_transports_from_bytes(std::vector<char> data){
+std::tuple<ral::cache::MetadataDictionary, std::vector<blazingdb::transport::ColumnTransport>, std::vector<size_t> >
+get_metadata_and_transports_and_buffer_sizes_from_bytes(std::vector<char> data){
     size_t ptr_offset = 0;
 	size_t metadata_buffer_size = from_byte_vector<size_t>(data.data());
 	ptr_offset += sizeof(size_t);
@@ -60,15 +69,25 @@ std::cout<<"before metadata_buffer: " <<data.size() << " ptr_offset:  "<< ptr_of
 	ptr_offset += sizeof(size_t);
 	auto column_transports = vector_from_byte_vector<blazingdb::transport::ColumnTransport>(
 		data.data() + ptr_offset, column_transports_size);
-	return std::make_pair(dictionary,column_transports);
+  ptr_offset += column_transports_size * sizeof(blazingdb::transport::ColumnTransport);
+
+
+  size_t buffer_size = from_byte_vector<size_t>(
+		data.data() + ptr_offset);
+	ptr_offset += sizeof(size_t);
+	auto buffer_sizes = vector_from_byte_vector<size_t>(
+		data.data() + ptr_offset, buffer_size);
+
+	return std::make_tuple(dictionary,column_transports,buffer_sizes);
 }
 
 } // namespace detail
 
 buffer_transport::buffer_transport(ral::cache::MetadataDictionary metadata,
   std::vector<size_t> buffer_sizes,
-  std::vector<blazingdb::transport::ColumnTransport> column_transports)
-  : column_transports{column_transports}, buffer_sizes{buffer_sizes}, metadata{metadata} {
+  std::vector<blazingdb::transport::ColumnTransport> column_transports, std::vector<node> destinations)
+  : column_transports{column_transports}, buffer_sizes{buffer_sizes}, metadata{metadata}, transmitted_begin_frames(0), transmitted_frames(0),
+	 destinations{destinations}   {
   // iterate for workers this is destined for
 
 }
@@ -78,6 +97,44 @@ buffer_transport::~buffer_transport(){}
 void buffer_transport::send(const char * buffer, size_t buffer_size){
   send_impl(buffer, buffer_size);
   buffer_sent++;
+}
+
+
+
+void buffer_transport::increment_frame_transmission() {
+	transmitted_frames++;
+	std::cout<<"Increment begin transmission"<<std::endl;	
+	completion_condition_variable.notify_all();
+}
+
+void buffer_transport::increment_begin_transmission() {
+	transmitted_begin_frames++;
+	completion_condition_variable.notify_all();
+	std::cout<<"Increment begin transmission"<<std::endl;
+}
+
+void buffer_transport::wait_for_begin_transmission() {
+	std::unique_lock<std::mutex> lock(mutex);
+	completion_condition_variable.wait(lock, [this] {
+		if(transmitted_begin_frames >= destinations.size()) {
+			return true;
+		} else {
+			return false;
+		}
+	});
+	std::cout<< "FINISHED WAITING wait_for_begin_transmission"<<std::endl;
+}
+
+
+void buffer_transport::wait_until_complete() {
+	std::unique_lock<std::mutex> lock(mutex);
+	completion_condition_variable.wait(lock, [this] {
+		if(transmitted_frames >= (buffer_sizes.size() * destinations.size())) {
+			return true;
+		} else {
+			return false;
+		}
+	});
 }
 
 } // namespace comm
