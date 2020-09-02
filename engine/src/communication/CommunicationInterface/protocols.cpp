@@ -173,7 +173,7 @@ void ucx_buffer_transport::send_begin_transmission() {
 		std::cout<<"sending "<<temp_tag.message_id<<" "<<temp_tag.worker_origin_id <<" "<<temp_tag.frame_id<<std::endl;
 		auto status = ucp_tag_send_nbr(
 			node.get_ucp_endpoint(), buffer_to_send.data(), buffer_to_send.size(), ucp_dt_make_contig(1), tag, requests[i] + req_size - sizeof(ucx_request));
-		
+
 
 		if (status == UCS_INPROGRESS) {
 			do {
@@ -182,6 +182,7 @@ void ucx_buffer_transport::send_begin_transmission() {
 			} while (status == UCS_INPROGRESS);
 		}
 		if(status != UCS_OK){
+			std::cout<<"Was not able to send begin transmission" << std::endl;
 			throw std::runtime_error("Was not able to send begin transmission to " + node.id());
 		}
 
@@ -193,30 +194,28 @@ void ucx_buffer_transport::send_begin_transmission() {
 		acknowledge_tag.frame_id = 0xFFFF;
 
 
-
 		std::cout<< "recv_begin_transmission_ack recv_nb" << std::endl;
 		requests[i] = new char[req_size + sizeof(ucx_request) + 1];
 		std::cout<<"listening for "<<acknowledge_tag.message_id<<" "<<acknowledge_tag.worker_origin_id <<" "<<acknowledge_tag.frame_id<<std::endl;
-	
-			ucp_tag_recv_info_t	info;
-		auto stat =	ucp_tag_probe_nb	(	origin_node,
-									*reinterpret_cast<ucp_tag_t *>(&acknowledge_tag),
-									acknownledge_tag_mask,
-			0,
-			&info 
-			);
-		while(!stat){
-				//ucp_worker_progress(origin_nodes);
-			stat =	ucp_tag_probe_nb	(	origin_node,
-												*reinterpret_cast<ucp_tag_t *>(&acknowledge_tag),
-												acknownledge_tag_mask,
-						0,
-						&info 
-						);
-		}
-			temp_tag = *reinterpret_cast<blazing_ucp_tag *>(info.sender_tag);
-			std::cout<<"probed tag is  "<<temp_tag.message_id<<" "<<temp_tag.worker_origin_id <<" "<<temp_tag.frame_id<<std::endl;
-			std::cout<<"message length was "<<info.length<<std::endl;
+
+		// ucp_tag_recv_info_t	info;
+		// auto stat =	ucp_tag_probe_nb(origin_node,
+		// 														*reinterpret_cast<ucp_tag_t *>(&acknowledge_tag),
+		// 														acknownledge_tag_mask,
+		// 														1,
+		// 														&info);
+		// while(!stat){
+		// 	//ucp_worker_progress(origin_nodes);
+		// 	stat =	ucp_tag_probe_nb(origin_node,
+		// 													*reinterpret_cast<ucp_tag_t *>(&acknowledge_tag),
+		// 													acknownledge_tag_mask,
+		// 													1,
+		// 													&info);
+		// }
+
+		// temp_tag = *reinterpret_cast<blazing_ucp_tag *>(info.sender_tag);
+		// std::cout<<"probed tag is  "<<temp_tag.message_id<<" "<<temp_tag.worker_origin_id <<" "<<temp_tag.frame_id<<std::endl;
+		// std::cout<<"message length was "<<info.length<<std::endl;
 		status = ucp_tag_recv_nbr(origin_node,
 									&recv_begin_status,
 									sizeof(status_code),
@@ -233,14 +232,33 @@ void ucx_buffer_transport::send_begin_transmission() {
 			} while (status == UCS_INPROGRESS);
 		}
 		if(status != UCS_OK){
+			std::cout<<"Was not able to receive acknowledgment of begin transmission" << std::endl;
 			throw std::runtime_error("Was not able to receive acknowledgment of begin transmission from " + node.id());
 		}
-		i++;
+
 		std::cout<<"ack status == status_code::OK = "<<(recv_begin_status == status_code::OK)<<std::endl;
-		increment_begin_transmission();
+		if (recv_begin_status == status_code::OK) {
+			increment_begin_transmission();
+		}
+
+		// this->recv_begin_transmission_ack();
+
+		i++;
 	}
 }
 
+
+void ucx_buffer_transport::wait_until_complete() {
+	std::unique_lock<std::mutex> lock(mutex);
+	completion_condition_variable.wait(lock, [this] {
+		if(transmitted_frames >= (buffer_sizes.size() * destinations.size())) {
+			return true;
+		} else {
+			return false;
+		}
+	});
+	std::cout<< "FINISHED WAITING wait_until_complete"<<std::endl;
+}
 
 void ucx_buffer_transport::recv_begin_transmission_ack() {
 	std::cout<<"going to receive ack!!"<<std::endl;
@@ -298,8 +316,6 @@ void ucx_buffer_transport::recv_begin_transmission_ack() {
 	}
 }
 
-
-
 void ucx_buffer_transport::send_impl(const char * buffer, size_t buffer_size) {
 	std::vector<ucs_status_ptr_t> requests;
 	blazing_ucp_tag blazing_tag = *reinterpret_cast<blazing_ucp_tag *>(&tag);
@@ -328,7 +344,6 @@ void ucx_buffer_transport::send_impl(const char * buffer, size_t buffer_size) {
 }
 
 
-
 std::map<void *,std::shared_ptr<status_code> > status_scope_holder;
 
 void send_acknowledge_callback_c(void * request, ucs_status_t status){
@@ -351,11 +366,7 @@ static void flush_callback(void *request, ucs_status_t status)
 }
 
 
-
-
-
 /*
-
 tcp_buffer_transport::tcp_buffer_transport(
         std::vector<node> destinations,
 		ral::cache::MetadataDictionary metadata,

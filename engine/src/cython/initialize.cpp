@@ -111,7 +111,7 @@ void create_logger(std::string fileName, std::string loggingName, int ralId, std
 		spdlog::flush_on(spdlog::level::debug);
 	}
 	else if (flush_level == "trace") {
-		spdlog::flush_on(spdlog::level::trace);		
+		spdlog::flush_on(spdlog::level::trace);
 	}
 	else {
 		spdlog::flush_on(spdlog::level::warn);
@@ -192,7 +192,7 @@ std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> > initiali
 		spdlog::flush_on(spdlog::level::debug);
 	}
 	else if (flush_level == "trace") {
-		spdlog::flush_on(spdlog::level::trace);		
+		spdlog::flush_on(spdlog::level::trace);
 	}
 	else {
 		spdlog::flush_on(spdlog::level::warn);
@@ -309,7 +309,7 @@ std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> > initiali
 		std::cout<<"getting worker"<<worker_id<<std::endl;
 				std::cout<<"initializing listener"<<std::endl;
 		comm::ucx_message_listener::initialize_message_listener(
-			ucp_worker,20);
+			ucp_worker,nodes_info_map,20);
 		std::cout<<"starting polling"<<std::endl;
 		comm::ucx_message_listener::get_instance()->poll_begin_message_tag();
 

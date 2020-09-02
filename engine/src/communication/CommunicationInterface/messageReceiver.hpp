@@ -60,7 +60,6 @@ public:
   *                 execution, planning, or physical optimizations. E.G. num rows in table, num partitions to be processed
   * @param output_cache The destination for the message being received. It is either a specific cache inbetween
   *                     two kernels or it is intended for the general input cache using a mesage_id
-  * @param include_metadata Indicates if we should add the metadata along with the payload to the cache or if we should not.
   */
   message_receiver(const std::vector<char> & buffer);
   virtual ~message_receiver(){
@@ -97,13 +96,13 @@ public:
   }
 
   void finish() {
-    std::unique_ptr<ral::frame::BlazingTable> table = deserialize_from_gpu_raw_buffers(_column_transports, _raw_buffers);
-    if(_include_metadata){
-      _output_cache->addCacheData(
-            std::make_unique<ral::cache::GPUCacheDataMetaData>(std::move(table), _metadata), _metadata.get_values()[ral::cache::MESSAGE_ID], true);
-    } else {
-      _output_cache->addToCache(std::move(table), "", true);
+    if (_raw_buffers.size() == 0) {
+      std::cout << "NO GPU DATA TO RECEIVED"<<std::endl;
     }
+
+    std::unique_ptr<ral::frame::BlazingTable> table = deserialize_from_gpu_raw_buffers(_column_transports, _raw_buffers);
+    _output_cache->addCacheData(
+            std::make_unique<ral::cache::GPUCacheDataMetaData>(std::move(table), _metadata), _metadata.get_values()[ral::cache::MESSAGE_ID], true);
 
     std::cout<< ">>>>>>>> TABLE ADDED TO CACHE: SUCCESS" << std::endl;
   }
@@ -113,8 +112,12 @@ private:
   std::vector<ColumnTransport> _column_transports;
   std::shared_ptr<ral::cache::CacheMachine> _output_cache;
   ral::cache::MetadataDictionary _metadata;
+<<<<<<< HEAD
   bool _include_metadata;
   std::vector<size_t> _buffer_sizes;
+=======
+
+>>>>>>> 62fe9bf26e259a5105879a3803bcbb23facb7357
   std::vector<rmm::device_buffer> _raw_buffers;
   int _buffer_counter = 0;
 };

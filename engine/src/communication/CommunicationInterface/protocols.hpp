@@ -85,6 +85,7 @@ public:
     ~ucx_buffer_transport();
 
     void send_begin_transmission() override;
+
     void recv_begin_transmission_ack();
 
 protected:
@@ -140,7 +141,6 @@ private:
 static const ucp_tag_t begin_tag_mask =        0xFFFF000000000000;
 static const ucp_tag_t message_tag_mask =      0x0000FFFFFFFFFFFF;
 static const ucp_tag_t acknownledge_tag_mask = 0xFFFFFFFFFFFFFFFF;
-
 
 
 } // namespace comm

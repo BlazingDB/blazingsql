@@ -101,6 +101,7 @@ public:
 						}
 
 						transport->send_begin_transmission();
+						transport->wait_for_begin_transmission();
 						for(size_t i = 0; i < raw_buffers.size(); i++) {
 							transport->send(raw_buffers[i], buffer_sizes[i]);
 							// temp_scope_holder[buffer_index] = nullptr;	// TODO: allow the device_vector to go out of
