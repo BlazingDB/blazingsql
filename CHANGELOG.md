@@ -10,8 +10,7 @@
 - #975 Fixed issue due to cudf orc api change 
 
 
-
-# BlazingSQL 0.15.0 (Date TBS)
+# BlazingSQL 0.15.0 (August 31, 2020)
 
 ## New Features
 - #835 Added a memory monitor for better memory management and added pull ordered from cache
@@ -50,7 +49,7 @@
 - #939 Add unit test for Project kernel
 - #949 Implemented using threadpool for outgoing messages 
 - #961 Add list_tables() and describe_table() functions
-
+- #967 Add bc.get_free_memory() function
 
 ## Bug Fixes
 - #774 fixed build issues with latest cudf 0.15 including updating from_cudf
@@ -90,7 +89,7 @@
 - #962 Use new rmm API instead of get_device_resource() and set_device_resource() functions
 - #965 Handle exceptions from pool_threads
 - #963 Set log_level when using LOGGING_LEVEL param
-
+- #973 Fix how we check the existence of the JAVA_HOME environment variable
 
 # BlazingSQL 0.14.0 (June 9, 2020)
 
