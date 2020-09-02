@@ -41,10 +41,13 @@ TEST_F(MessageReceiverTest, receive_test) {
 
   ral::cache::MetadataDictionary metadata;
   auto output_cache = std::make_shared<ral::cache::CacheMachine>(nullptr);
-
-  comm::message_receiver msg_rcv(column_transports, metadata, output_cache);
+  
+  auto meta_buffer = detail::serialize_metadata_and_transports_and_buffer_sizes(metadata,
+                    column_transports,
+                    buffer_sizes);
+  comm::message_receiver msg_rcv(meta_buffer);
   for (size_t i = 0; i < raw_buffers.size(); i++) {
-    msg_rcv.set_buffer_size(i,buffer_sizes[i]);
+    msg_rcv.allocate_buffer(i);
     cudaMemcpy(msg_rcv.get_buffer(i),gpu_buffers[i]->data(),buffer_sizes[i],cudaMemcpyDeviceToDevice);
   }
 
@@ -80,7 +83,8 @@ TEST_F(MessageReceiverTest, receive_metatdata) {
 
   ral::cache::MetadataDictionary out_metadata;
   std::vector<ColumnTransport> out_column_transports;
-  std::tie(out_metadata, out_column_transports) = comm::detail::get_metadata_and_transports_from_bytes(bytes_buffer);
+  std::vector<size_t> buffer_sizes;
+  std::tie(out_metadata, out_column_transports, buffer_sizes) = comm::detail::get_metadata_and_transports_and_buffer_sizes_from_bytes(bytes_buffer);
 
   auto expected_values = metadata.get_values();
   auto out_values = out_metadata.get_values();

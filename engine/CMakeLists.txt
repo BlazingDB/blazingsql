@@ -304,6 +304,7 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingH
               ${CMAKE_SOURCE_DIR}/src/communication/CommunicationInterface/serializer.cpp
               ${CMAKE_SOURCE_DIR}/src/communication/CommunicationInterface/node.cpp
               ${CMAKE_SOURCE_DIR}/src/communication/CommunicationInterface/messageReceiver.cpp
+              ${CMAKE_SOURCE_DIR}/src/communication/CommunicationInterface/messageListener.cpp 
               ${CMAKE_SOURCE_DIR}/src/communication/CommunicationInterface/bufferTransport.cpp
               ${CMAKE_SOURCE_DIR}/src/communication/CommunicationInterface/protocols.cpp
               ${CMAKE_SOURCE_DIR}/src/communication/CommunicationInterface/messageSender.cpp

@@ -7,10 +7,24 @@
 #include "messageReceiver.hpp"
 #include "node.hpp"
 #include "utilities/ctpl_stl.h"
-
+#include <arpa/inet.h>
 #include "execution_graph/logic_controllers/taskflow/graph.h"
 
+namespace io{
+    void read_from_socket(int socket_fd, void * data, size_t read_size);
+    void write_to_socket(int socket_fd, void * data, size_t read_size);
+}
+
+
 namespace comm {
+
+
+enum class status_code {
+	INVALID = -1,
+	OK = 1,
+	ERROR = 0
+};
+
 
 enum blazing_protocol
 {
@@ -71,22 +85,15 @@ public:
     ~ucx_buffer_transport();
 
     void send_begin_transmission() override;
-    void wait_until_complete() override;
-    void wait_for_begin_transmission() override;
-    void increment_frame_transmission();
-    void increment_begin_transmission();
+
+    void recv_begin_transmission_ack();
 
 protected:
     void send_impl(const char * buffer, size_t buffer_size) override;
 
 private:
 
-    std::atomic<size_t> transmitted_begin_frames; /**<  The number of begin_transmission messages sent */
-    std::atomic<size_t> transmitted_frames; /**< The number of frames transmitted */
-    std::mutex mutex;
-    std::condition_variable completion_condition_variable;
     ucp_worker_h origin_node;
-    std::vector<node> destinations;
     int ral_id;
     /**
      * Generates message tag.
@@ -101,35 +108,39 @@ private:
 
     int message_id;
 };
+/*
+
+class tcp_buffer_transport : public buffer_transport {
+public:
+
+    tcp_buffer_transport(
+        std::vector<node> destinations,
+		ral::cache::MetadataDictionary metadata,
+		std::vector<size_t> buffer_sizes,
+		std::vector<blazingdb::transport::ColumnTransport> column_transports,
+        int ral_id,
+        ctpl::thread_pool<BlazingThread> * allocate_copy_buffer_pool);
+    ~tcp_buffer_transport();
+
+    void send_begin_transmission() override;
+
+protected:
+    void send_impl(const char * buffer, size_t buffer_size) override;
+
+private:
+
+    int ral_id;
+    int message_id;
+    std::vector<int> socket_fds;
+    ctpl::thread_pool<BlazingThread> * allocate_copy_buffer_pool;
+};
 
 
-
+*/
 
 static const ucp_tag_t begin_tag_mask =        0xFFFF000000000000;
 static const ucp_tag_t message_tag_mask =      0x0000FFFFFFFFFFFF;
 static const ucp_tag_t acknownledge_tag_mask = 0xFFFFFFFFFFFFFFFF;
 
-
-class ucx_message_listener {
-public:
-
-    static void initialize_message_listener(ucp_worker_h worker, const std::map<std::string, node> & nodes_map, int num_threads);
-    static ucx_message_listener * get_instance();
-    void poll_begin_message_tag();
-    void add_receiver(ucp_tag_t tag,std::shared_ptr<message_receiver> receiver);
-    void remove_receiver(ucp_tag_t tag);
-    void increment_frame_receiver(ucp_tag_t tag);
-    ucp_worker_h get_worker();
-    ctpl::thread_pool<BlazingThread> & get_pool();
-    node get_node(const std::string& id);
-private:
-    ucx_message_listener(ucp_worker_h worker, const std::map<std::string, node> & nodes_map, int num_threads);
-	ctpl::thread_pool<BlazingThread> pool;
-    ucp_worker_h ucp_worker;
-    std::map<ucp_tag_t,std::shared_ptr<message_receiver> > tag_to_receiver;
-    std::map<std::string, node> _id_to_node_info_map;
-
-	static ucx_message_listener * instance;
-};
 
 } // namespace comm
