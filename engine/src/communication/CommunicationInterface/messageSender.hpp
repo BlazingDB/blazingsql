@@ -45,9 +45,9 @@ public:
 	 * @brief A polling function that listens on a cache for data and send it off via some protocol
 	 */
 	void run_polling() {
-		// auto thread = std::thread([this]{
-			int x = 1;
-			while(x--) {
+		 auto thread = std::thread([this]{
+			
+			while(true) {
 				std::unique_ptr<ral::cache::CacheData> cache_data = output_cache->pullCacheData();
 				std::cout<<"pulled cache data"<<std::endl;
 				auto * gpu_cache_data = static_cast<ral::cache::GPUCacheDataMetaData *>(cache_data.get());
@@ -99,8 +99,9 @@ public:
 						std::cout<<"wrong protocol"<<std::endl;
 							throw std::exception();
 						}
-						std::cout<<"sending begin tranmsisions"<<std::endl;
+
 						transport->send_begin_transmission();
+						transport->wait_for_begin_transmission();
 						for(size_t i = 0; i < raw_buffers.size(); i++) {
 							transport->send(raw_buffers[i], buffer_sizes[i]);
 							// temp_scope_holder[buffer_index] = nullptr;	// TODO: allow the device_vector to go out of
@@ -115,8 +116,8 @@ public:
 					}
 				});
 			}
-		// });
-		// thread.detach();
+		 });
+		 thread.detach();
 	}
 private:
 	static message_sender * instance;

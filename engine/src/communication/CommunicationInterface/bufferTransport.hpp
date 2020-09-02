@@ -68,6 +68,8 @@ public:
 
   virtual void send_begin_transmission() = 0;
 
+	virtual void wait_for_begin_transmission() = 0;
+
 	/**
 	 * @brief Sends a chunk of bytes throught a transport protocol
 	 *

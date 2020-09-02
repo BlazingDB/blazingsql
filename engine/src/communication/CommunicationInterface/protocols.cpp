@@ -66,7 +66,7 @@ struct ucx_request {
 	int uid;	   /**< We store a map of request uid ==> buffer_transport to manage completion of send */
 };
 
-static size_t req_size = 232 + 8 + sizeof(ucx_request);
+static size_t req_size = 256 + sizeof(ucx_request);
 
 enum class status_code {
 	INVALID = -1,
@@ -181,22 +181,28 @@ void ucx_buffer_transport::send_begin_transmission() {
 	std::cout<<"sending begin transmission"<<std::endl;
 	std::vector<char> buffer_to_send = detail::serialize_metadata_and_transports(metadata, column_transports);
 
-	std::vector<void *> requests(destinations.size());
+	std::vector<char *> requests(destinations.size());
 	int i = 0;
 	for(auto const & node : destinations) {
-		requests[i] = new char[req_size];
+		requests[i] = new char[req_size + sizeof(ucx_request) + 1];
+		auto temp_tag = *reinterpret_cast<blazing_ucp_tag *>(&tag);
+		std::cout<<"sending "<<temp_tag.message_id<<" "<<temp_tag.worker_origin_id <<" "<<temp_tag.frame_id<<std::endl;
 		auto status = ucp_tag_send_nbr(
-			node.get_ucp_endpoint(), buffer_to_send.data(), buffer_to_send.size(), ucp_dt_make_contig(1), tag, requests[i] + req_size);
+			node.get_ucp_endpoint(), buffer_to_send.data(), buffer_to_send.size(), ucp_dt_make_contig(1), tag, requests[i] + req_size - sizeof(ucx_request));
+
 
 		if (status == UCS_INPROGRESS) {
 			do {
 				ucp_worker_progress(origin_node);
-				status = ucp_request_check_status(&requests[i] + req_size);
+    		status = ucp_request_check_status(requests[i] + req_size - sizeof(ucx_request));
 			} while (status == UCS_INPROGRESS);
 		}
 		if(status != UCS_OK){
+			std::cout<<"Was not able to send begin transmission" << std::endl;
 			throw std::runtime_error("Was not able to send begin transmission to " + node.id());
 		}
+
+		std::cout<< "send begin transmition done" << std::endl;
 
 		status_code recv_begin_status = status_code::INVALID;
 		ucp_tag_recv_info_t info_tag;
@@ -204,41 +210,69 @@ void ucx_buffer_transport::send_begin_transmission() {
 		acknowledge_tag.frame_id = 0xFFFF;
 
 
-
-
 		std::cout<< "recv_begin_transmission_ack recv_nb" << std::endl;
+		requests[i] = new char[req_size + sizeof(ucx_request) + 1];
+		std::cout<<"listening for "<<acknowledge_tag.message_id<<" "<<acknowledge_tag.worker_origin_id <<" "<<acknowledge_tag.frame_id<<std::endl;
 
+		// ucp_tag_recv_info_t	info;
+		// auto stat =	ucp_tag_probe_nb(origin_node,
+		// 														*reinterpret_cast<ucp_tag_t *>(&acknowledge_tag),
+		// 														acknownledge_tag_mask,
+		// 														1,
+		// 														&info);
+		// while(!stat){
+		// 	//ucp_worker_progress(origin_nodes);
+		// 	stat =	ucp_tag_probe_nb(origin_node,
+		// 													*reinterpret_cast<ucp_tag_t *>(&acknowledge_tag),
+		// 													acknownledge_tag_mask,
+		// 													1,
+		// 													&info);
+		// }
+
+		// temp_tag = *reinterpret_cast<blazing_ucp_tag *>(info.sender_tag);
+		// std::cout<<"probed tag is  "<<temp_tag.message_id<<" "<<temp_tag.worker_origin_id <<" "<<temp_tag.frame_id<<std::endl;
+		// std::cout<<"message length was "<<info.length<<std::endl;
 		status = ucp_tag_recv_nbr(origin_node,
 									&recv_begin_status,
 									sizeof(status_code),
 									ucp_dt_make_contig(1),
 									*reinterpret_cast<ucp_tag_t *>(&acknowledge_tag),
 									acknownledge_tag_mask,
-									&requests[i] + sizeof(ucx_request));
+									requests[i] + req_size - sizeof(ucx_request));
 
 		if (status == UCS_INPROGRESS) {
 			do {
 				ucp_worker_progress(origin_node);
-				status = ucp_request_check_status(&requests[i] + sizeof(ucx_request));
+				ucp_tag_recv_info_t info_tag;
+    		status = ucp_tag_recv_request_test(requests[i] + req_size - sizeof(ucx_request), &info_tag);
 			} while (status == UCS_INPROGRESS);
 		}
 		if(status != UCS_OK){
+			std::cout<<"Was not able to receive acknowledgment of begin transmission" << std::endl;
 			throw std::runtime_error("Was not able to receive acknowledgment of begin transmission from " + node.id());
 		}
+
+		std::cout<<"ack status == status_code::OK = "<<(recv_begin_status == status_code::OK)<<std::endl;
+		if (recv_begin_status == status_code::OK) {
+			increment_begin_transmission();
+		}
+
+		// this->recv_begin_transmission_ack();
+
 		i++;
-		increment_begin_transmission();
 	}
 }
 
 void ucx_buffer_transport::increment_frame_transmission() {
 	transmitted_frames++;
+	std::cout<<"Increment frame transmission"<<std::endl;
 	completion_condition_variable.notify_all();
 }
 
 void ucx_buffer_transport::increment_begin_transmission() {
 	transmitted_begin_frames++;
-	completion_condition_variable.notify_all();
 	std::cout<<"Increment begin transmission"<<std::endl;
+	completion_condition_variable.notify_all();
 }
 
 void ucx_buffer_transport::wait_for_begin_transmission() {
@@ -251,6 +285,18 @@ void ucx_buffer_transport::wait_for_begin_transmission() {
 		}
 	});
 	std::cout<< "FINISHED WAITING wait_for_begin_transmission"<<std::endl;
+}
+
+void ucx_buffer_transport::wait_until_complete() {
+	std::unique_lock<std::mutex> lock(mutex);
+	completion_condition_variable.wait(lock, [this] {
+		if(transmitted_frames >= (buffer_sizes.size() * destinations.size())) {
+			return true;
+		} else {
+			return false;
+		}
+	});
+	std::cout<< "FINISHED WAITING wait_until_complete"<<std::endl;
 }
 
 void ucx_buffer_transport::recv_begin_transmission_ack() {
@@ -309,15 +355,7 @@ void ucx_buffer_transport::recv_begin_transmission_ack() {
 	}
 }
 
-void ucx_buffer_transport::wait_until_complete() {
-	std::unique_lock<std::mutex> lock(mutex);
-	completion_condition_variable.wait(lock, [this] {
-		if(transmitted_frames >= (buffer_sizes.size() * destinations.size())) {
-			return true;
-		} else {
-			return false;
-		}
-	});
+	}
 }
 
 void ucx_buffer_transport::send_impl(const char * buffer, size_t buffer_size) {
@@ -345,11 +383,6 @@ void ucx_buffer_transport::send_impl(const char * buffer, size_t buffer_size) {
 		}
 	}
 	// TODO: call ucp_worker_progress here
-}
-
-ucx_message_listener::ucx_message_listener(ucp_worker_h worker, int num_threads) :
-    ucp_worker(worker), pool{num_threads} {
-
 }
 
 std::map<void *,std::shared_ptr<status_code> > status_scope_holder;
@@ -391,7 +424,7 @@ ctpl::thread_pool<BlazingThread> & ucx_message_listener::get_pool(){
 void poll_for_frames(std::shared_ptr<message_receiver> receiver,
 						ucp_tag_t tag, ucp_worker_h ucp_worker){
 	std::cout<<"polling for frames"<<std::endl;
-	while(! receiver->is_finished()){
+	while(!receiver->is_finished()){
 		std::shared_ptr<ucp_tag_recv_info_t> info_tag = std::make_shared<ucp_tag_recv_info_t>();
 		auto message_tag = ucp_tag_probe_nb(ucp_worker, tag, message_tag_mask, 1, info_tag.get());
 		if(message_tag != NULL){
@@ -424,6 +457,7 @@ void poll_for_frames(std::shared_ptr<message_receiver> receiver,
             // }
 		}
 	}
+	receiver->finish();
 }
 
 
@@ -438,7 +472,7 @@ void recv_begin_callback_c(void * request, ucs_status_t status,
 	auto message_listener = ucx_message_listener::get_instance();
 	if (status != UCS_OK){
 		std::cout<<"status fail in recv_begin_callback_c" <<std::endl;
-		throw std::exception();
+		throw std::runtime_error("status fail in recv_begin_callback_c");
 	}
 
 	auto fwd = message_listener->get_pool().push([&message_listener, request, info](int thread_id) {
@@ -457,46 +491,54 @@ void recv_begin_callback_c(void * request, ucs_status_t status,
 		std::cout<<"got graph "<<graph<<std::endl;
 		size_t kernel_id = std::stoull(metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL]);
 		std::string cache_id = metadata.get_values()[ral::cache::CACHE_ID_METADATA_LABEL];
-				std::cout<<"getting cache"<<std::endl;
-		auto out_cache = metadata.get_values()[ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL] == "true" ?
-				graph->get_kernel_output_cache(kernel_id, cache_id) : graph->get_output_message_cache();
+		std::cout<<"getting cache"<<std::endl;
 
+		auto out_cache = metadata.get_values()[ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL] == "true" ?
+				graph->get_kernel_output_cache(kernel_id, cache_id) : graph->get_input_message_cache();
 		std::cout<<"got cache"<<std::endl;
+
 		auto receiver = std::make_shared<message_receiver>(
 			metadata_and_transports.second,
 			metadata,
 			out_cache);
-				std::cout<<"madd receiver"<<std::endl;
+		std::cout<<"madd receiver"<<std::endl;
+
 		message_listener->add_receiver(info->sender_tag, receiver);
-				std::cout<<"registered receiver"<<std::endl;
+		std::cout<<"registered receiver"<<std::endl;
+
 		//TODO: if its a specific cache get that cache adn put it here else put the general iput cache from the graph
-		auto node = ucp_nodes_info::getInstance().get_node(metadata.get_values()[ral::cache::SENDER_WORKER_ID_METADATA_LABEL]);
-		std::cout<<"got node"<<std::endl;
+		auto node = message_listener->get_node(metadata.get_values()[ral::cache::SENDER_WORKER_ID_METADATA_LABEL]);
+		std::cout<<"got node : "<< node.id()<<std::endl;
+
 		auto acknowledge_tag = *reinterpret_cast<blazing_ucp_tag *>(&info->sender_tag);
 		acknowledge_tag.frame_id = 0xFFFF;
 		auto acknowledge_tag_ucp = *reinterpret_cast<ucp_tag_t *>(&acknowledge_tag);
 
 		auto status_acknowledge = std::make_shared<status_code>(status_code::OK);
-		std::cout<<"abpit to send"<<std::endl;
-
-		char * request = new char[req_size];
+		std::cout<<"about to send ack"<<std::endl;
+		std::cout<<"ack tag is  "<<acknowledge_tag.message_id<<" "<<acknowledge_tag.worker_origin_id <<" "<<acknowledge_tag.frame_id<<std::endl;
+		char * request_nbr = new char[req_size + sizeof(ucx_request)];
 		auto status = ucp_tag_send_nbr(
 			node.get_ucp_endpoint(),
 			status_acknowledge.get(),
 			sizeof(status_code),
 			ucp_dt_make_contig(1),
 			acknowledge_tag_ucp,
-			request + req_size);
+			request_nbr + req_size - sizeof(ucx_request));
 
+		std::cout<<">>>>>>> ucp_tag_send_nbr SEND ACK"<<std::endl;
 		if (status == UCS_INPROGRESS) {
 			do {
 				ucp_worker_progress(node.get_ucp_worker());
-				status = ucp_request_check_status(request + req_size);
+    		status = ucp_request_check_status(request_nbr + req_size - sizeof(ucx_request));
 			} while (status == UCS_INPROGRESS);
 		}
 		if(status != UCS_OK){
+			std::cout<<"Was not able to send transmission ack"<<std::endl;
 			throw std::runtime_error("Was not able to send transmission ack");
 		}
+
+		std::cout<<"send ack complete"<<std::endl;
 
 		// std::cout<<"sent "<<std::endl;
 		// if(UCS_PTR_IS_ERR(request_acknowledge)) {
@@ -510,9 +552,8 @@ void recv_begin_callback_c(void * request, ucs_status_t status,
 		// 	status_scope_holder[request_acknowledge] = status_acknowledge;
 		// }
 
-		// poll_for_frames(receiver, info->sender_tag, message_listener->get_worker());
+		poll_for_frames(receiver, info->sender_tag, message_listener->get_worker());
 		// tag_to_begin_buffer_and_info.erase(info->sender_tag);
-		// receiver->finish();
 		// message_listener->remove_receiver(info->sender_tag);
 		if(request){
 			ucp_request_release(request);
@@ -554,9 +595,11 @@ void ucx_message_listener::poll_begin_message_tag(){
 				if(UCS_PTR_IS_ERR(request)) {
 					// TODO: decide how to do cleanup i think we just throw an initialization exception
 				} else if(UCS_PTR_STATUS(request) == UCS_OK) {
-
+					std::cout<< "poll_begin_message_tag RECV immediate"<<std::endl;
 					recv_begin_callback_c(request, UCS_OK, info_tag.get());
 				}
+
+				std::cout<<">>>>>>>>>   probed tag SUCCESS GONNA BREAK"<<std::endl;
 
 			}else {
 				// std::cout<<"no messages"<<std::endl;
@@ -570,10 +613,17 @@ void ucx_message_listener::poll_begin_message_tag(){
 
 			}
     }
+
+		std::cout<<">>>>>>>>>   FINISHED poll_begin_message_tag"<<std::endl;
 	});
 	thread.detach();
 }
 
+
+ucx_message_listener::ucx_message_listener(ucp_worker_h worker, const std::map<std::string, node> & nodes_map, int num_threads) :
+    ucp_worker(worker), _id_to_node_info_map(nodes_map), pool{num_threads} {
+
+}
 
 void ucx_message_listener::add_receiver(ucp_tag_t tag,std::shared_ptr<message_receiver> receiver){
 	tag_to_receiver[tag] = receiver;
@@ -586,14 +636,16 @@ ucp_worker_h ucx_message_listener::get_worker(){
 	return ucp_worker;
 }
 
+node ucx_message_listener::get_node(const std::string& id) { return _id_to_node_info_map.at(id); }
+
 void ucx_message_listener::increment_frame_receiver(ucp_tag_t tag){
 	tag_to_receiver[tag]->confirm_transmission();
 }
 ucx_message_listener * ucx_message_listener::instance = nullptr;
 
-void ucx_message_listener::initialize_message_listener(ucp_worker_h worker, int num_threads){
+void ucx_message_listener::initialize_message_listener(ucp_worker_h worker, const std::map<std::string, node> & nodes_map, int num_threads){
 	if(instance == NULL) {
-		instance = new ucx_message_listener(worker,num_threads);
+		instance = new ucx_message_listener(worker, nodes_map, num_threads);
 	}
 }
 ucx_message_listener * ucx_message_listener::get_instance() {

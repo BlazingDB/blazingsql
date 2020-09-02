@@ -225,15 +225,17 @@ int create_ucp_worker_and_ep(bool is_client) {
   CHKERR_JUMP(status != UCS_OK, "ucp_init\n", err);
 
   ucp_context_attr_t attr;
+  attr.field_mask = UCP_ATTR_FIELD_REQUEST_SIZE;
   if (is_client) {
-    status =  ucp_context_query(ucp_context_sender, &attr);
+    status = ucp_context_query(ucp_context_sender, &attr);
   } else {
-    status =  ucp_context_query(ucp_context, &attr);
+    status = ucp_context_query(ucp_context, &attr);
   }
+  std::cout << "ucp_context_attr_t size: " << attr.request_size << std::endl;
   CHKERR_JUMP(status != UCS_OK, "ucp_context_query\n", err);
 
   worker_params.field_mask  = UCP_WORKER_PARAM_FIELD_THREAD_MODE;
-  worker_params.thread_mode = UCS_THREAD_MODE_SINGLE;
+  worker_params.thread_mode = UCS_THREAD_MODE_MULTI;
 
   if (is_client) {
     status = ucp_worker_create(ucp_context_sender, &worker_params, &ucp_worker_sender);
@@ -436,8 +438,6 @@ TEST_F(MessageSendReceiveTest, send_receive_test) {
 
         std::this_thread::sleep_for(std::chrono::milliseconds(1500));
 
-        cleanup(true);
-
         // exit(testing::Test::HasFailure());
   });
 
@@ -460,15 +460,16 @@ TEST_F(MessageSendReceiveTest, send_receive_test) {
         comm::ucx_message_listener::initialize_message_listener(ucp_worker, 1);
         comm::ucx_message_listener::get_instance()->poll_begin_message_tag();
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(1500));
+        std::this_thread::sleep_for(std::chrono::milliseconds(2000));
         //check data
 
-        cleanup(false);
+
   });
   thread.join();
   thread_2.join();
 
-
+//  cleanup(true);
+//  cleanup(false);
 
   // cudf::test::fixed_width_column_wrapper<int> col1{{4, 5, 3, 5, 8, 5, 6}};
   // cudf::table_view orig_table{{col1}};
