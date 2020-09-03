@@ -145,10 +145,19 @@ void initialize(int ralId,
 	std::string env_cuda_device_str = env_cuda_device == nullptr ? "" : std::string(env_cuda_device);
 	initLogMsg = initLogMsg + "CUDA_VISIBLE_DEVICES is set to: " + env_cuda_device_str + ", ";
 
-	size_t total_gpu_mem_size = ral::config::gpuTotalMemory();
-	assert(total_gpu_mem_size > 0);
+	size_t free_gpu_mem_size = ral::config::gpuFreeMemory();
+	assert(free_gpu_mem_size > 0);
+	
+	size_t sizeBuffers = 0.1 * free_gpu_mem_size;
+	size_t tempSizeBufferPinned = 0;
+	auto it_pinned = config_options.find("TRANSPORT_BUFFER_BYTE_SIZE");
+	if (it_pinned != config_options.end()){
+		tempSizeBufferPinned = std::stoi(config_options["TRANSPORT_BUFFER_BYTE_SIZE"]);
+	}
+
+	if (tempSizeBufferPinned > 0) sizeBuffers = tempSizeBufferPinned;
 	auto nthread = 4;
-	blazingdb::transport::io::setPinnedBufferProvider(0.1 * total_gpu_mem_size, nthread);
+	blazingdb::transport::io::setPinnedBufferProvider(sizeBuffers, nthread);
 
 	//to avoid redundancy the default value or user defined value for this parameter is placed on the pyblazing side
 	assert( config_options.find("BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD") != config_options.end() );
