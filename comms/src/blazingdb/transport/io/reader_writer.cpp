@@ -33,7 +33,7 @@ PinnedBufferProvider::PinnedBufferProvider(std::size_t sizeBuffers,
     PinnedBuffer *buffer = new PinnedBuffer();
     buffer->size = sizeBuffers;
     this->bufferSize = sizeBuffers;
-    cudaError_t err = cudaMallocHost((void **)&buffer->data, sizeBuffers);
+    cudaError_t err = cudaMallocManaged((void **)&buffer->data, sizeBuffers);
     if (err != cudaSuccess) {
       throw std::exception();
     }
@@ -58,7 +58,7 @@ PinnedBuffer *PinnedBufferProvider::getBuffer() {
 void PinnedBufferProvider::grow() {
   PinnedBuffer *buffer = new PinnedBuffer();
   buffer->size = this->bufferSize;
-  cudaError_t err = cudaMallocHost((void **)&buffer->data, this->bufferSize);
+  cudaError_t err = cudaMallocManaged((void **)&buffer->data, this->bufferSize);
   if (err != cudaSuccess) {
     throw std::exception();
   }
@@ -75,7 +75,7 @@ void PinnedBufferProvider::freeAll() {
   std::unique_lock<std::mutex> lock(inUseMutex);
   while (false == this->buffers.empty()) {
     PinnedBuffer *buffer = this->buffers.top();
-    cudaFreeHost(buffer->data);
+    cudaFree(buffer->data);
     delete buffer;
     this->buffers.pop();
   }
