@@ -14,6 +14,7 @@ struct NodeMetaDataUCP {
 	std::string worker_id;
 	std::uintptr_t ep_handle;
 	std::uintptr_t worker_handle;
+	std::uintptr_t context_handle;
 };
 
 struct TableScanInfo {

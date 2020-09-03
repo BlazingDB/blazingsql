@@ -43,7 +43,7 @@ private:
 class ucx_message_listener : public message_listener {
 public:
 
-    static void initialize_message_listener(ucp_worker_h worker, const std::map<std::string, comm::node>& nodes, int num_threads);
+    static void initialize_message_listener(ucp_context_h context, ucp_worker_h worker, const std::map<std::string, comm::node>& nodes, int num_threads);
     static ucx_message_listener * get_instance();
     void poll_begin_message_tag();
     void add_receiver(ucp_tag_t tag,std::shared_ptr<message_receiver> receiver);
@@ -52,11 +52,12 @@ public:
     ucp_worker_h get_worker();
     void start_polling() override;
 private:
-    ucx_message_listener(ucp_worker_h worker, const std::map<std::string, comm::node>& nodes, int num_threads);
+    ucx_message_listener(ucp_context_h context, ucp_worker_h worker, const std::map<std::string, comm::node>& nodes, int num_threads);
 	virtual ~ucx_message_listener(){
 
     }
     void poll_message_tag(ucp_tag_t tag, ucp_tag_t mask);
+    size_t _request_size;
     ucp_worker_h ucp_worker;
     std::map<ucp_tag_t,std::shared_ptr<message_receiver> > tag_to_receiver;
 	static ucx_message_listener * instance;

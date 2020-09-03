@@ -73,7 +73,7 @@ void poll_for_frames(std::shared_ptr<message_receiver> receiver,
 
 
 void recv_begin_callback_c(void * request, ucs_status_t status,
-							ucp_tag_recv_info_t *info) {
+							ucp_tag_recv_info_t *info, size_t request_size) {
 
 	std::cout<<"recv begin callback c"<<std::endl;
 	auto message_listener = ucx_message_listener::get_instance();
@@ -82,7 +82,7 @@ void recv_begin_callback_c(void * request, ucs_status_t status,
 		throw std::runtime_error("status fail in recv_begin_callback_c");
 	}
 
-	auto fwd = message_listener->get_pool().push([&message_listener, request, info](int thread_id) {
+	auto fwd = message_listener->get_pool().push([&message_listener, request, info, request_size](int thread_id) {
 		std::cout<<"in pool of begin callback"<<std::endl;
 		// auto blazing_request = reinterpret_cast<ucx_request *>(request);
 		auto buffer = tag_to_begin_buffer_and_info.at(info->sender_tag).first;
@@ -103,20 +103,20 @@ void recv_begin_callback_c(void * request, ucs_status_t status,
 		auto status_acknowledge = std::make_shared<status_code>(status_code::OK);
 		std::cout<<"about to send ack status_code: " << (int)(*status_acknowledge) <<std::endl;
 		std::cout<<"ack tag is  "<<acknowledge_tag.message_id<<" "<<acknowledge_tag.worker_origin_id <<" "<<acknowledge_tag.frame_id<<std::endl;
-		char * request_nbr = new char[req_size];
+		char * request_nbr = new char[request_size];
 		auto status = ucp_tag_send_nbr(
 			node.get_ucp_endpoint(),
 			status_acknowledge.get(),
 			sizeof(status_code),
 			ucp_dt_make_contig(1),
 			acknowledge_tag_ucp,
-			request_nbr + req_size);
+			request_nbr + request_size);
 
 		std::cout<<">>>>>>> ucp_tag_send_nbr SEND ACK"<<std::endl;
 
 		do {
 			ucp_worker_progress(node.get_ucp_worker());
-			status = ucp_request_check_status(request_nbr + req_size);
+			status = ucp_request_check_status(request_nbr + request_size);
 		} while (status == UCS_INPROGRESS);
 
 		if(status != UCS_OK){
@@ -212,7 +212,7 @@ void ucx_message_listener::poll_begin_message_tag(){
 
 			std::cout<<"probed tag"<<std::endl;
 
-				char * request = new char[req_size];
+				char * request = new char[_request_size];
 
 				std::cout<<"poll_begin_message_tag: message found!"<<std::endl;
 				std::cout<<"info_tag :"<< info_tag->sender_tag << std::endl;
@@ -226,12 +226,12 @@ void ucx_message_listener::poll_begin_message_tag(){
 					ucp_dt_make_contig(1),
 					0ull,
 					begin_tag_mask,
-					request + req_size);
+					request + _request_size);
 
 				do {
 					ucp_worker_progress(ucp_worker);
 					ucp_tag_recv_info_t info_tag_;
-					status = ucp_tag_recv_request_test(request + req_size, &info_tag_);
+					status = ucp_tag_recv_request_test(request + _request_size, &info_tag_);
 				} while (status == UCS_INPROGRESS);
 
 				if(status != UCS_OK){
@@ -239,7 +239,7 @@ void ucx_message_listener::poll_begin_message_tag(){
 					throw std::runtime_error("Was not able to receive begin message");
 				}
 
-				recv_begin_callback_c(nullptr, UCS_OK, info_tag.get());
+				recv_begin_callback_c(nullptr, UCS_OK, info_tag.get(), _request_size);
 
 				std::cout<<">>>>>>>>>   probed tag SUCCESS GONNA BREAK"<<std::endl;
     }
@@ -266,14 +266,24 @@ void ucx_message_listener::increment_frame_receiver(ucp_tag_t tag){
 }
 ucx_message_listener * ucx_message_listener::instance = nullptr;
 
-ucx_message_listener::ucx_message_listener(ucp_worker_h worker, const std::map<std::string, comm::node>& nodes, int num_threads) : message_listener(nodes, num_threads), ucp_worker{worker} {
+ucx_message_listener::ucx_message_listener(ucp_context_h context, ucp_worker_h worker, const std::map<std::string, comm::node>& nodes, int num_threads) :
+	message_listener(nodes, num_threads), ucp_worker{worker}
+{
+  ucp_context_attr_t attr;
+  attr.field_mask = UCP_ATTR_FIELD_REQUEST_SIZE;
+  ucs_status_t status = ucp_context_query(context, &attr);
+	if (status != UCS_OK)	{
+		throw std::runtime_error("Error calling ucp_context_query");
+	}
 
+	_request_size = attr.request_size;
+
+	std::cout << "ucx_message_listener request_size: " << _request_size << std::endl;
 }
 
-
-void ucx_message_listener::initialize_message_listener(ucp_worker_h worker, const std::map<std::string, comm::node>& nodes, int num_threads){
+void ucx_message_listener::initialize_message_listener(ucp_context_h context, ucp_worker_h worker, const std::map<std::string, comm::node>& nodes, int num_threads){
 	if(instance == NULL) {
-		instance = new ucx_message_listener(worker, nodes, num_threads);
+		instance = new ucx_message_listener(context, worker, nodes, num_threads);
 	}
 }
 

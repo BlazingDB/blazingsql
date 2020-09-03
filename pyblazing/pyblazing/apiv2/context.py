@@ -185,7 +185,8 @@ def initializeBlazing(
             workers_ucp_info.append({
                 'worker_id': dask_addr.encode(),
                 'ep_handle' : ep.handle.ep.get_ucp_endpoint(),
-                'worker_handle': ep.handle.ep.get_ucp_worker()
+                'worker_handle': ep.handle.ep.get_ucp_worker(),
+                'context_handle': ep.handle.ep._ctx.context.handle
             })
 
     output_cache, input_cache = cio.initializeCaller(
@@ -1288,7 +1289,7 @@ class BlazingContext(object):
             # need to initialize this logging independently, in case its set as a relative path
             # and the location from where the python script is running is different
             # than the local dask workers
-            print("collected dask futures")    
+            print("collected dask futures")
 
             initialize_server_directory(logging_dir_path)
             # this one is for the non dask side

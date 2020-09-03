@@ -25,18 +25,6 @@ namespace io{
 
 namespace comm {
 
-ucp_nodes_info & ucp_nodes_info::getInstance() {
-	static ucp_nodes_info instance;
-	return instance;
-}
-
-void ucp_nodes_info::init(const std::map<std::string, node> & nodes_map) {
-	_id_to_node_info_map = nodes_map;
-}
-
-node ucp_nodes_info::get_node(const std::string& id) { return _id_to_node_info_map.at(id); }
-
-
 graphs_info & graphs_info::getInstance() {
 	static graphs_info instance;
 	return instance;
@@ -87,13 +75,14 @@ void send_callback_c(void * request, ucs_status_t status) {
 }
 
 
-ucx_buffer_transport::ucx_buffer_transport(ucp_worker_h origin_node,
+ucx_buffer_transport::ucx_buffer_transport(size_t request_size,
+	ucp_worker_h origin_node,
     std::vector<node> destinations,
 	ral::cache::MetadataDictionary metadata,
 	std::vector<size_t> buffer_sizes,
 	std::vector<blazingdb::transport::ColumnTransport> column_transports,
 	int ral_id)
-	: ral_id{ral_id}, buffer_transport(metadata, buffer_sizes, column_transports,destinations), origin_node(origin_node){
+	: ral_id{ral_id}, buffer_transport(metadata, buffer_sizes, column_transports,destinations), origin_node(origin_node), _request_size{request_size}{
 	tag = generate_message_tag();
 }
 
@@ -122,18 +111,18 @@ void ucx_buffer_transport::send_begin_transmission() {
 	std::vector<char *> requests(destinations.size());
 	int i = 0;
 	for(auto const & node : destinations) {
-		requests[i] = new char[req_size];
+		requests[i] = new char[_request_size];
 		auto temp_tag = *reinterpret_cast<blazing_ucp_tag *>(&tag);
 		std::cout<<"sending begin transmission to "<<temp_tag.message_id
 						<<" "<<temp_tag.worker_origin_id
 						<<" "<<temp_tag.frame_id
 						<<" total bytes: "<< buffer_to_send.size() <<std::endl;
 		auto status = ucp_tag_send_nbr(
-			node.get_ucp_endpoint(), buffer_to_send.data(), buffer_to_send.size(), ucp_dt_make_contig(1), tag, requests[i] + req_size);
+			node.get_ucp_endpoint(), buffer_to_send.data(), buffer_to_send.size(), ucp_dt_make_contig(1), tag, requests[i] + _request_size);
 
 		do {
 			ucp_worker_progress(origin_node);
-			status = ucp_request_check_status(requests[i] + req_size);
+			status = ucp_request_check_status(requests[i] + _request_size);
 		} while (status == UCS_INPROGRESS);
 
 		if(status != UCS_OK){
@@ -148,7 +137,7 @@ void ucx_buffer_transport::send_begin_transmission() {
 		acknowledge_tag.frame_id = 0xFFFF;
 
 		std::cout<< "recv_begin_transmission_ack recv_nb" << std::endl;
-		requests[i] = new char[req_size];
+		requests[i] = new char[_request_size];
 		std::cout<<"listening for "<<acknowledge_tag.message_id<<" "<<acknowledge_tag.worker_origin_id <<" "<<acknowledge_tag.frame_id<<std::endl;
 
 		status_code recv_begin_status = status_code::INVALID;
@@ -158,12 +147,12 @@ void ucx_buffer_transport::send_begin_transmission() {
 									ucp_dt_make_contig(1),
 									*reinterpret_cast<ucp_tag_t *>(&acknowledge_tag),
 									acknownledge_tag_mask,
-									requests[i] + req_size);
+									requests[i] + _request_size);
 
 		do {
 			ucp_worker_progress(origin_node);
 			ucp_tag_recv_info_t info_tag;
-			status = ucp_tag_recv_request_test(requests[i] + req_size, &info_tag);
+			status = ucp_tag_recv_request_test(requests[i] + _request_size, &info_tag);
 		} while (status == UCS_INPROGRESS);
 
 		if(status != UCS_OK){
