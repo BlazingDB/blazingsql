@@ -16,11 +16,13 @@ public:
 
   ucp_ep_h get_ucp_endpoint() const;
   ucp_worker_h get_ucp_worker() const;
-
+  int port() const;
+  std::string ip() const;
 protected:
   int _idx;
   std::string _id;
-
+  std::string _ip;
+  int _port;
   ucp_ep_h _ucp_ep;
   ucp_worker_h _ucp_worker;
 };

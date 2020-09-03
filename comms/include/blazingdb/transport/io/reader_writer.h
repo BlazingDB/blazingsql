@@ -15,6 +15,8 @@ using Buffer = std::basic_string<char>;
 struct PinnedBuffer {
   std::size_t size;
   char *data;
+  cudaStream_t stream;
+  std::size_t use_size;
 };
 
 class PinnedBufferProvider {

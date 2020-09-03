@@ -3,6 +3,7 @@
 #include "communication/CommunicationInterface/messageReceiver.hpp"
 #include "communication/CommunicationInterface/protocols.hpp"
 #include "communication/CommunicationInterface/messageSender.hpp"
+#include "communication/CommunicationInterface/messageListener.hpp"
 #include "execution_graph/logic_controllers/CacheMachine.h"
 #include "execution_graph/logic_controllers/taskflow/kernel.h"
 #include "execution_graph/logic_controllers/taskflow/graph.h"
@@ -21,6 +22,7 @@
 
 #include <ucp/api/ucp.h>
 #include <ucs/type/status.h>
+#include <ucs/memory/memory_type.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netinet/in.h>
@@ -28,39 +30,232 @@
 #include <pthread.h> /* pthread_self */
 #include <thread>
 
+#include <spdlog/spdlog.h>
+#include <spdlog/async.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+
+void create_test_logger(std::string loggingName){
+	auto stdout_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+	stdout_sink->set_pattern("[%T.%e] [%^%l%$] %v");
+	stdout_sink->set_level(spdlog::level::warn);
+
+	spdlog::sinks_init_list sink_list = { stdout_sink};
+	auto logger = std::make_shared<spdlog::async_logger>(loggingName, sink_list, spdlog::thread_pool(), spdlog::async_overflow_policy::block);
+	logger->set_level(spdlog::level::off);
+	spdlog::register_logger(logger);
+}
+
 using namespace ral::frame;
 
-#define CHKERR_ACTION(_cond, _msg, _action) \
-    do { \
-        if (_cond) { \
-            fprintf(stderr, "Failed to %s\n", _msg); \
-            _action; \
-        } \
-    } while (0)
+template <class Callable>
+static inline void CheckError(const bool condition,
+                              const std::string &message,
+                              Callable &&callable) {
+  if (condition) {
+    std::forward<Callable>(callable)();
+    std::cerr << message << std::endl;
+    throw std::runtime_error(message);
+  }
+}
 
+static inline void CheckError(const bool condition,
+                              const std::string &message) {
+  CheckError(condition, message, []() {});
+}
 
-#define CHKERR_JUMP(_cond, _msg, _label) \
-    CHKERR_ACTION(_cond, _msg, goto _label)
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-
-#define CHKERR_JUMP_RETVAL(_cond, _msg, _label, _retval) \
-    do { \
-        if (_cond) { \
-            fprintf(stderr, "Failed to %s, return value %d\n", _msg, _retval); \
-            goto _label; \
-        } \
-    } while (0)
-
-
-enum ucp_test_mode_t {
-    TEST_MODE_PROBE,
-    TEST_MODE_WAIT,
-    TEST_MODE_EVENTFD
+class UcpWorkerAddress {
+public:
+  ucp_address_t *address;
+  std::size_t length;
 };
 
-/**
- * A struct that lets us access the request that the end points ucx-py generates.
- */
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+class AddressExchanger {
+public:
+  const UcpWorkerAddress Exchange(const UcpWorkerAddress &ucpWorkerAddress) {
+
+    std::uint8_t *data = new std::uint8_t[ucpWorkerAddress.length];
+
+    UcpWorkerAddress peerUcpWorkerAddress{
+        reinterpret_cast<ucp_address_t *>(data),
+        std::numeric_limits<decltype(ucpWorkerAddress.length)>::max()};
+
+    try {
+      Exchange(&peerUcpWorkerAddress.length,
+               fd(),
+               &ucpWorkerAddress.length,
+               sizeof(ucpWorkerAddress.length));
+
+      Exchange(peerUcpWorkerAddress.address,
+               fd(),
+               ucpWorkerAddress.address,
+               ucpWorkerAddress.length);
+    } catch (...) {
+      delete[] data;
+      throw;
+    }
+
+    return peerUcpWorkerAddress;
+  }
+
+  static std::unique_ptr<AddressExchanger>
+  MakeForSender(const std::uint16_t port);
+
+  static std::unique_ptr<AddressExchanger>
+  MakeForReceiver(const std::uint16_t port, const char *hostname);
+
+protected:
+  virtual int fd() = 0;
+
+private:
+  static inline void Exchange(void *peerData,
+                              const int fd,
+                              const void *localData,
+                              const std::size_t length) {
+    int ret = send(fd, localData, length, 0);
+    CheckError(ret != static_cast<int>(length), "send");
+    ret = recv(fd, peerData, length, MSG_WAITALL);
+    CheckError(ret != static_cast<int>(length), "recv");
+  }
+};
+
+class AddressExchangerForSender : public AddressExchanger {
+public:
+  ~AddressExchangerForSender() { CheckError(close(fd()), "close sender"); }
+
+  AddressExchangerForSender(const std::uint16_t port) {
+    struct sockaddr_in inaddr;
+
+    int lsock = -1;
+    int dsock = -1;
+    int optval = 1;
+    int ret;
+
+    lsock = socket(AF_INET, SOCK_STREAM, 0);
+    if (lsock < 0) {
+      std::cerr << "open server socket" << std::endl;
+      throw std::runtime_error("open server socket");
+    }
+
+    optval = 1;
+    ret = setsockopt(lsock, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
+    if (ret < 0) {
+      std::cerr << "server setsockopt()" << std::endl;
+      close(lsock);
+      throw std::runtime_error("server setsockopt()");
+    }
+
+    inaddr.sin_family = AF_INET;
+    inaddr.sin_port = htons(port);
+    inaddr.sin_addr.s_addr = INADDR_ANY;
+    std::memset(inaddr.sin_zero, 0, sizeof(inaddr.sin_zero));
+    ret = bind(lsock, (struct sockaddr *) &inaddr, sizeof(inaddr));
+    if (ret < 0) {
+      std::cout << "bind server" << std::endl;
+      close(lsock);
+      throw std::runtime_error("bind server");
+    }
+
+    ret = listen(lsock, 0);
+    if (ret < 0) {
+      std::cout << "listen server" << std::endl;
+      close(lsock);
+      throw std::runtime_error("listen server");
+    }
+
+    std::cout << "[" << std::hex << std::this_thread::get_id()
+              << "] Waiting for connection..." << std::endl;
+
+    dsock = accept(lsock, NULL, NULL);
+    if (dsock < 0) {
+      std::cout << "accept server" << std::endl;
+      close(lsock);
+      throw std::runtime_error("accept server");
+    }
+
+    close(lsock);
+
+    CheckError(dsock < 0, "server_connect");
+    dsock_ = dsock;
+  }
+
+protected:
+  int fd() final { return dsock_; }
+
+private:
+  int dsock_;
+};
+
+class AddressExchangerForReceiver : public AddressExchanger {
+public:
+  ~AddressExchangerForReceiver() { CheckError(close(fd()), "close receiver"); }
+
+  AddressExchangerForReceiver(const std::uint16_t port, const char *hostname) {
+    struct sockaddr_in conn_addr;
+    struct hostent *he;
+    int connfd;
+    int ret;
+
+    connfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (connfd < 0) {
+      const std::string message = "open client socket";
+      std::cout << message << std::endl;
+      throw std::runtime_error(message);
+    }
+
+    he = gethostbyname(hostname);
+    if (he == NULL || he->h_addr_list == NULL) {
+      const std::string message = "found a host";
+      std::cout << message << std::endl;
+      close(connfd);
+      throw std::runtime_error(message);
+    }
+
+    conn_addr.sin_family = he->h_addrtype;
+    conn_addr.sin_port = htons(port);
+
+    std::memcpy(&conn_addr.sin_addr, he->h_addr_list[0], he->h_length);
+    std::memset(conn_addr.sin_zero, 0, sizeof(conn_addr.sin_zero));
+
+    ret = connect(connfd, (struct sockaddr *) &conn_addr, sizeof(conn_addr));
+    if (ret < 0) {
+      const std::string message = "connect client";
+      std::cout << message << std::endl;
+      close(connfd);
+      throw std::runtime_error(message);
+    }
+
+    CheckError(connfd < 0, "server_connect");
+    connfd_ = connfd;
+  }
+
+protected:
+  int fd() final { return connfd_; }
+
+private:
+  int connfd_;
+};
+
+std::unique_ptr<AddressExchanger>
+AddressExchanger::MakeForSender(const std::uint16_t port) {
+  return std::make_unique<AddressExchangerForSender>(port);
+}
+
+std::unique_ptr<AddressExchanger>
+AddressExchanger::MakeForReceiver(const std::uint16_t port,
+                                  const char *hostname) {
+  return std::make_unique<AddressExchangerForReceiver>(port, hostname);
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+const std::uint16_t exchangingPort = 13337;
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 struct ucx_request {
 	//!!!!!!!!!!! do not modify this struct this has to match what is found in
 	// https://github.com/rapidsai/ucx-py/blob/branch-0.15/ucp/_libs/ucx_api.pyx
@@ -72,302 +267,138 @@ struct ucx_request {
 static void request_init(void *request)
 {
   struct ucx_request *req = (struct ucx_request *)request;
-
   req->completed = 0;
+  req->uid = -1;
 }
 
-static void failure_handler(void *arg, ucp_ep_h ep, ucs_status_t status)
-{
-  ucs_status_t *arg_status = (ucs_status_t *)arg;
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-  // printf("[0x%x] failure handler called with status %d (%s)\n",
-  //         (unsigned int)pthread_self(), status, ucs_status_string(status));
-  printf("[0x%x] failure handler called with status %d\n",
-          (unsigned int)pthread_self(), status);
-
-  *arg_status = status;
-}
-
-int server_connect(uint16_t server_port)
-{
-  struct sockaddr_in inaddr;
-  int lsock  = -1;
-  int dsock  = -1;
-  int optval = 1;
-  int ret;
-
-  lsock = socket(AF_INET, SOCK_STREAM, 0);
-  CHKERR_JUMP(lsock < 0, "open server socket", err);
-
-  optval = 1;
-  ret = setsockopt(lsock, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
-  CHKERR_JUMP(ret < 0, "server setsockopt()", err_sock);
-
-  inaddr.sin_family      = AF_INET;
-  inaddr.sin_port        = htons(server_port);
-  inaddr.sin_addr.s_addr = INADDR_ANY;
-  memset(inaddr.sin_zero, 0, sizeof(inaddr.sin_zero));
-  ret = bind(lsock, (struct sockaddr*)&inaddr, sizeof(inaddr));
-  CHKERR_JUMP(ret < 0, "bind server", err_sock);
-
-  ret = listen(lsock, 0);
-  CHKERR_JUMP(ret < 0, "listen server", err_sock);
-
-  fprintf(stdout, "Waiting for connection...\n");
-
-  /* Accept next connection */
-  dsock = accept(lsock, NULL, NULL);
-  CHKERR_JUMP(dsock < 0, "accept server", err_sock);
-
-  close(lsock);
-
-  return dsock;
-
-err_sock:
-  close(lsock);
-
-err:
-  return -1;
-}
-
-int client_connect(const char *server, uint16_t server_port)
-{
-  struct sockaddr_in conn_addr;
-  struct hostent *he;
-  int connfd;
-  int ret;
-
-  connfd = socket(AF_INET, SOCK_STREAM, 0);
-  CHKERR_JUMP(connfd < 0, "open client socket", err);
-
-  he = gethostbyname(server);
-  CHKERR_JUMP((he == NULL || he->h_addr_list == NULL), "found a host", err_conn);
-
-  conn_addr.sin_family = he->h_addrtype;
-  conn_addr.sin_port   = htons(server_port);
-
-  memcpy(&conn_addr.sin_addr, he->h_addr_list[0], he->h_length);
-  memset(conn_addr.sin_zero, 0, sizeof(conn_addr.sin_zero));
-
-  ret = connect(connfd, (struct sockaddr*)&conn_addr, sizeof(conn_addr));
-  CHKERR_JUMP(ret < 0, "connect client", err_conn);
-
-  return connfd;
-
-err_conn:
-  close(connfd);
-err:
-  return -1;
-}
-
-static char *client_target_name = "127.0.0.1";
-static uint16_t server_port = 13337;
-static ucs_status_t client_status = UCS_OK;
-
-static ucp_address_t *local_addr_sender;
-static ucp_address_t *peer_addr_sender;
-
-static ucp_address_t *local_addr;
-static ucp_address_t *peer_addr;
-
-static size_t local_addr_len;
-static size_t peer_addr_len;
-
-static size_t local_addr_len_sender;
-static size_t peer_addr_len_sender;
-
-static int oob_sock = -1;
-static int oob_sock_sender = -1;
-
-/* UCP handler objects */
-static ucp_context_h ucp_context;
-static ucp_worker_h ucp_worker;
-static ucp_ep_h ucp_conn_ep;
-
-static ucp_context_h ucp_context_sender;
-static ucp_worker_h ucp_worker_sender;
-static ucp_ep_h ucp_conn_ep_sender;
-
-
-int create_ucp_worker_and_ep(bool is_client) {
-  ucp_test_mode_t ucp_test_mode = TEST_MODE_PROBE;
-
-  /* UCP temporary vars */
-  ucp_params_t ucp_params;
-  ucp_worker_params_t worker_params;
+ucp_context_h CreateUcpContext() {
   ucp_config_t *config;
-  ucs_status_t status;
-  /* OOB connection vars */
-  uint64_t addr_len = 0;
-  int ret = -1;
-  memset(&ucp_params, 0, sizeof(ucp_params));
-  memset(&worker_params, 0, sizeof(worker_params));
+  ucs_status_t status = ucp_config_read(NULL, NULL, &config);
+  CheckError(status != UCS_OK, "ucp_config_read");
 
-  /* UCP initialization */
-  status = ucp_config_read(NULL, NULL, &config);
-  CHKERR_JUMP(status != UCS_OK, "ucp_config_read\n", err);
-  ucp_params.field_mask   = UCP_PARAM_FIELD_FEATURES |
-                            UCP_PARAM_FIELD_REQUEST_SIZE |
-                            UCP_PARAM_FIELD_REQUEST_INIT;
-  ucp_params.features     = UCP_FEATURE_TAG;
-  if (ucp_test_mode == TEST_MODE_WAIT || ucp_test_mode == TEST_MODE_EVENTFD) {
-      ucp_params.features |= UCP_FEATURE_WAKEUP;
+  ucp_params_t ucp_params;
+  std::memset(&ucp_params, 0, sizeof(ucp_params));
+  ucp_params.field_mask = UCP_PARAM_FIELD_FEATURES |
+                          UCP_PARAM_FIELD_REQUEST_SIZE |
+                          UCP_PARAM_FIELD_REQUEST_INIT;
+  ucp_params.features = UCP_FEATURE_TAG | UCP_FEATURE_WAKEUP;
+  ucp_params.request_size = sizeof(ucx_request);
+  ucp_params.request_init = request_init;
+
+  ucp_context_h ucp_context;
+  status = ucp_init(&ucp_params, config, &ucp_context);
+
+  const bool hasPrintUcpConfig = false;
+  if (hasPrintUcpConfig) {
+    ucp_config_print(config, stdout, NULL, UCS_CONFIG_PRINT_CONFIG);
   }
-  ucp_params.request_size    = sizeof(struct ucx_request);
-  ucp_params.request_init    = request_init;
-  if (is_client) {
-    status = ucp_init(&ucp_params, config, &ucp_context_sender);
-  } else {
-    status = ucp_init(&ucp_params, config, &ucp_context);
-  }
-  // ucp_config_print(config, stdout, NULL, UCS_CONFIG_PRINT_CONFIG);
+
   ucp_config_release(config);
-  CHKERR_JUMP(status != UCS_OK, "ucp_init\n", err);
+  CheckError(status != UCS_OK, "ucp_init");
+
+  return ucp_context;
+}
+
+ucp_worker_h CreatetUcpWorker(ucp_context_h ucp_context) {
+  ucp_worker_params_t worker_params;
+  std::memset(&worker_params, 0, sizeof(worker_params));
+  worker_params.field_mask = UCP_WORKER_PARAM_FIELD_THREAD_MODE;
+  worker_params.thread_mode = UCS_THREAD_MODE_MULTI;  // UCS_THREAD_MODE_SINGLE;
+
+  ucp_worker_h ucp_worker;
+  ucs_status_t status =
+      ucp_worker_create(ucp_context, &worker_params, &ucp_worker);
+  CheckError(status != UCS_OK, "ucp_worker_create", [&ucp_context]() {
+    ucp_cleanup(ucp_context);
+  });
+
+  return ucp_worker;
+}
+
+UcpWorkerAddress GetUcpWorkerAddress(ucp_worker_h ucp_worker) {
+  UcpWorkerAddress ucpWorkerAddress;
+
+  ucs_status_t status = ucp_worker_get_address(
+      ucp_worker, &ucpWorkerAddress.address, &ucpWorkerAddress.length);
+  CheckError(status != UCS_OK,
+             "ucp_worker_get_address",
+             [&ucp_worker /*, &ucp_context*/]() {
+               ucp_worker_destroy(ucp_worker);
+               // ucp_cleanup(ucp_context);
+             });
+
+  return ucpWorkerAddress;
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+template <class Callback>
+void Run(Callback &&callback,
+         std::unique_ptr<AddressExchanger> &&addressExchanger) {
+  ucp_context_h ucp_context = CreateUcpContext();
+  ucp_worker_h ucp_worker = CreatetUcpWorker(ucp_context);
+  UcpWorkerAddress ucpWorkerAddress = GetUcpWorkerAddress(ucp_worker);
+
+  UcpWorkerAddress peerUcpWorkerAddress =
+      addressExchanger->Exchange(ucpWorkerAddress);
+
+  std::cout << '[' << std::hex << std::this_thread::get_id()
+            << "] local: " << std::hex
+            << *reinterpret_cast<std::size_t *>(ucpWorkerAddress.address) << ' '
+            << ucpWorkerAddress.length << std::endl
+            << '[' << std::hex << std::this_thread::get_id()
+            << "] peer: " << std::hex
+            << *reinterpret_cast<std::size_t *>(peerUcpWorkerAddress.address)
+            << ' ' << peerUcpWorkerAddress.length << std::endl;
 
   ucp_context_attr_t attr;
   attr.field_mask = UCP_ATTR_FIELD_REQUEST_SIZE;
-  if (is_client) {
-    status = ucp_context_query(ucp_context_sender, &attr);
-  } else {
-    status = ucp_context_query(ucp_context, &attr);
-  }
-  std::cout << "ucp_context_attr_t size: " << attr.request_size << std::endl;
-  CHKERR_JUMP(status != UCS_OK, "ucp_context_query\n", err);
 
-  worker_params.field_mask  = UCP_WORKER_PARAM_FIELD_THREAD_MODE;
-  worker_params.thread_mode = UCS_THREAD_MODE_MULTI;
+  ucs_status_t status = ucp_context_query(ucp_context, &attr);
+  CheckError(status != UCS_OK, "ucp_context_query");
 
-  if (is_client) {
-    status = ucp_worker_create(ucp_context_sender, &worker_params, &ucp_worker_sender);
-    CHKERR_JUMP(status != UCS_OK, "ucp_worker_create\n", err_cleanup);
-    status = ucp_worker_get_address(ucp_worker_sender, &local_addr_sender, &local_addr_len_sender);
-  } else {
-    status = ucp_worker_create(ucp_context, &worker_params, &ucp_worker);
-    CHKERR_JUMP(status != UCS_OK, "ucp_worker_create\n", err_cleanup);
-    status = ucp_worker_get_address(ucp_worker, &local_addr, &local_addr_len);
-  }
+  static const std::size_t testStringLength = 10;
+  callback(
+      peerUcpWorkerAddress, ucp_worker, attr.request_size, testStringLength);
 
-  CHKERR_JUMP(status != UCS_OK, "ucp_worker_get_address\n", err_worker);
-
-  // printf("[0x%x] local address length: %lu\n",
-  //        (unsigned int)pthread_self(), local_addr_len);
-
-  /* OOB connection establishment */
-  if (is_client) {
-    oob_sock_sender = client_connect(client_target_name, server_port);
-    CHKERR_JUMP(oob_sock_sender < 0, "client_connect\n", err_addr);
-    ret = recv(oob_sock_sender, &addr_len, sizeof(addr_len), MSG_WAITALL);
-    CHKERR_JUMP_RETVAL(ret != (int)sizeof(addr_len),
-                        "receive server address length\n", err_addr, ret);
-    peer_addr_len_sender = addr_len;
-    peer_addr_sender = (ucp_address_t *)malloc(peer_addr_len_sender);
-    CHKERR_JUMP(!peer_addr_sender, "allocate memory\n", err_addr);
-    ret = recv(oob_sock_sender, peer_addr_sender, peer_addr_len_sender, MSG_WAITALL);
-    CHKERR_JUMP_RETVAL(ret != (int)peer_addr_len_sender,
-                        "receive server address\n", err_peer_addr, ret);
-
-    addr_len = local_addr_len_sender;
-    ret = send(oob_sock_sender, &addr_len, sizeof(addr_len), 0);
-    CHKERR_JUMP_RETVAL(ret != (int)sizeof(addr_len),
-                        "send client address length\n", err_peer_addr, ret);
-    ret = send(oob_sock_sender, local_addr_sender, local_addr_len_sender, 0);
-    CHKERR_JUMP_RETVAL(ret != (int)local_addr_len_sender, "send client address\n",
-                        err_peer_addr, ret);
-
-    ucp_ep_params_t ep_params;
-    ep_params.field_mask      = UCP_EP_PARAM_FIELD_REMOTE_ADDRESS |
-                                UCP_EP_PARAM_FIELD_ERR_HANDLING_MODE;
-    ep_params.address         = peer_addr_sender;
-    ep_params.err_mode        = UCP_ERR_HANDLING_MODE_NONE;
-
-    status = ucp_ep_create(ucp_worker_sender, &ep_params, &ucp_conn_ep_sender);
-    CHKERR_JUMP(status != UCS_OK, "ucp_ep_create client\n", err_peer_addr);
-  } else {
-    oob_sock = server_connect(server_port);
-    CHKERR_JUMP(oob_sock < 0, "server_connect\n", err_peer_addr);
-    addr_len = local_addr_len;
-    ret = send(oob_sock, &addr_len, sizeof(addr_len), 0);
-    CHKERR_JUMP_RETVAL(ret != (int)sizeof(addr_len),
-                        "send server address length\n", err_peer_addr, ret);
-    ret = send(oob_sock, local_addr, local_addr_len, 0);
-    CHKERR_JUMP_RETVAL(ret != (int)local_addr_len, "send server address\n",
-                        err_peer_addr, ret);
-
-    ret = recv(oob_sock, &addr_len, sizeof(addr_len), MSG_WAITALL);
-    CHKERR_JUMP_RETVAL(ret != (int)sizeof(addr_len),
-                        "receive client address length\n", err_addr, ret);
-    peer_addr_len = addr_len;
-    peer_addr = (ucp_address_t *)malloc(peer_addr_len);
-    CHKERR_JUMP(!peer_addr, "allocate memory\n", err_addr);
-    ret = recv(oob_sock, peer_addr, peer_addr_len, MSG_WAITALL);
-    CHKERR_JUMP_RETVAL(ret != (int)peer_addr_len,
-                        "receive client address\n", err_peer_addr, ret);
-
-    ucp_ep_params_t ep_params;
-    ep_params.field_mask      = UCP_EP_PARAM_FIELD_REMOTE_ADDRESS |
-                                UCP_EP_PARAM_FIELD_ERR_HANDLING_MODE |
-                                UCP_EP_PARAM_FIELD_ERR_HANDLER |
-                                UCP_EP_PARAM_FIELD_USER_DATA;
-    ep_params.address         = peer_addr;
-    ep_params.err_mode        = UCP_ERR_HANDLING_MODE_NONE;
-    ep_params.err_handler.cb  = failure_handler;
-    ep_params.err_handler.arg = NULL;
-    ep_params.user_data       = &client_status;
-
-    status = ucp_ep_create(ucp_worker, &ep_params, &ucp_conn_ep);
-    CHKERR_JUMP(status != UCS_OK, "ucp_ep_create client\n", err_peer_addr);
-  }
-
-  return 0;
-
-err_peer_addr:
-  if (is_client) {
-    free(peer_addr_sender);
-  } else {
-    free(peer_addr);
-  }
-
-err_addr:
-  if (is_client) {
-    ucp_worker_release_address(ucp_worker_sender, local_addr_sender);
-  } else {
-    ucp_worker_release_address(ucp_worker, local_addr);
-  }
-
-err_worker:
-  if (is_client) {
-    ucp_worker_destroy(ucp_worker_sender);
-  } else {
-    ucp_worker_destroy(ucp_worker);
-  }
-
-err_cleanup:
-  if (is_client) {
-    ucp_cleanup(ucp_context_sender);
-  } else {
-    ucp_cleanup(ucp_context);
-  }
-
-err:
-  return ret;
+  ucp_worker_release_address(ucp_worker, ucpWorkerAddress.address);
+  ucp_worker_destroy(ucp_worker);
+  ucp_cleanup(ucp_context);
 }
 
-void cleanup(bool is_client) {
-  if (is_client) {
-    free(peer_addr_sender);
-    close(oob_sock_sender);
-    ucp_worker_release_address(ucp_worker_sender, local_addr_sender);
-    ucp_ep_destroy(ucp_conn_ep_sender);
-    ucp_worker_destroy(ucp_worker_sender);
-    ucp_cleanup(ucp_context_sender);
-  } else {
-    free(peer_addr);
-    close(oob_sock);
-    ucp_worker_release_address(ucp_worker, local_addr);
-    ucp_ep_destroy(ucp_conn_ep);
-    ucp_worker_destroy(ucp_worker);
-    ucp_cleanup(ucp_context);
-  }
+static class ErrorHandling {
+public:
+  ucp_err_handling_mode_t ucp_err_mode;
+  int failure;
+} err_handling_opt;
+
+static void failure_handler(void *arg, ucp_ep_h, ucs_status_t status) {
+  ucs_status_t *arg_status = static_cast<ucs_status_t *>(arg);
+  std::cout << '[' << std::hex << std::this_thread::get_id()
+            << "] failure handler called with status " << status << std::endl;
+  *arg_status = status;
+}
+
+ucp_ep_h CreateUcpEp(ucp_worker_h ucp_worker,
+                     const UcpWorkerAddress &ucpWorkerAddress) {
+  static ucs_status_t current_status = UCS_OK;
+  ucp_ep_params_t ep_params;
+  ep_params.field_mask =
+      UCP_EP_PARAM_FIELD_REMOTE_ADDRESS | UCP_EP_PARAM_FIELD_ERR_HANDLING_MODE |
+      UCP_EP_PARAM_FIELD_ERR_HANDLER | UCP_EP_PARAM_FIELD_USER_DATA;
+  ep_params.address = ucpWorkerAddress.address;
+  ep_params.err_mode = err_handling_opt.ucp_err_mode;
+  ep_params.err_handler.cb = failure_handler;
+  ep_params.err_handler.arg = NULL;
+  ep_params.user_data = &current_status;
+
+  ucp_ep_h ucp_ep;
+  ucs_status_t status = ucp_ep_create(ucp_worker, &ep_params, &ucp_ep);
+  CheckError(status != UCS_OK, "ucp_ep_create");
+
+  return ucp_ep;
 }
 
 static size_t query_id = 0;
@@ -399,104 +430,383 @@ std::shared_ptr<ral::cache::graph> create_graph(){
   return graph;
 }
 
-struct MessageSendReceiveTest : public BlazingUnitTest {
-  MessageSendReceiveTest() {}
-
-  ~MessageSendReceiveTest() {}
+class Message {
+public:
+  std::uint64_t data_len;
 };
 
-TEST_F(MessageSendReceiveTest, send_receive_test) {
-  auto thread = std::thread([]{
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
-        ASSERT_TRUE(create_ucp_worker_and_ep(true) == 0);
-
-        std::map<std::string, comm::node> nodes_info_map;
-        nodes_info_map.emplace("client", comm::node(0, "client", ucp_conn_ep_sender, ucp_worker_sender));
-        nodes_info_map.emplace("server", comm::node(1, "server", ucp_conn_ep_sender, ucp_worker_sender));
-        comm::ucp_nodes_info::getInstance().init(nodes_info_map);
-
-        cudf::test::fixed_width_column_wrapper<int> col1{{4, 5, 3, 5, 8, 5, 6}};
-        cudf::table_view orig_table{{col1}};
-        std::vector<std::string> columnNames = {"column_1"};
-
-        auto output_cache = std::make_shared<ral::cache::CacheMachine>(nullptr);
-
-        ral::cache::MetadataDictionary metadata;
-        metadata.add_value(ral::cache::KERNEL_ID_METADATA_LABEL, 0);
-        metadata.add_value(ral::cache::QUERY_ID_METADATA_LABEL, query_id);
-        metadata.add_value(ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL, "false");
-        metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, "");
-        metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, "client");
-        metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, "server");
-        metadata.add_value(ral::cache::MESSAGE_ID, "");
-
-        output_cache->addCacheData(
-                std::make_unique<ral::cache::GPUCacheDataMetaData>(std::make_unique<ral::frame::BlazingTable>(orig_table, columnNames), metadata),"",true);
-
-        comm::message_sender::initialize_instance(output_cache, nodes_info_map, 1, ucp_worker_sender, 0);
-        comm::message_sender::get_instance()->run_polling();
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(1500));
-
-        // exit(testing::Test::HasFailure());
-  });
-
-  auto thread_2 = std::thread([]{
-     ASSERT_TRUE(create_ucp_worker_and_ep(false) == 0);
-
-        std::map<std::string, comm::node> nodes_info_map;
-        nodes_info_map.emplace("client", comm::node(0, "client", ucp_conn_ep, ucp_worker));
-        // nodes_info_map.emplace("server", comm::node(1, "server", nullptr, ucp_worker));
-        comm::ucp_nodes_info::getInstance().init(nodes_info_map);
-
-        auto output_cache = std::make_shared<ral::cache::CacheMachine>(nullptr);
-
-        auto graph = create_graph();
-        comm::graphs_info::getInstance().register_graph(query_id, graph);
-
-        auto kernel_filter = graph->get_node(0);
-        auto out_cache = kernel_filter->output_cache();
-
-        comm::ucx_message_listener::initialize_message_listener(ucp_worker, 1);
-        comm::ucx_message_listener::get_instance()->poll_begin_message_tag();
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-        //check data
+static ucs_memory_type_t test_mem_type =
+#ifdef USE_CUDA
+    UCS_MEMORY_TYPE_CUDA;
+#else
+    UCS_MEMORY_TYPE_HOST;
+#endif
 
 
-  });
-  thread.join();
-  thread_2.join();
+static inline void *mem_type_malloc(std::size_t length) {
+  void *ptr;
 
-//  cleanup(true);
-//  cleanup(false);
+  switch (test_mem_type) {
+  case UCS_MEMORY_TYPE_HOST: ptr = std::malloc(length); break;
+#ifdef USE_CUDA
+  case UCS_MEMORY_TYPE_CUDA: CheckCudaCall(cudaMalloc(&ptr, length)); break;
+  case UCS_MEMORY_TYPE_CUDA_MANAGED:
+    CheckCudaCall(cudaMallocManaged(&ptr, length, cudaMemAttachGlobal));
+    break;
+#endif
+  default:
+    std::cerr << "Unsupported memory type: " << test_mem_type << std::endl;
+    throw std::runtime_error("Unsupported memory type");
+  }
 
-  // cudf::test::fixed_width_column_wrapper<int> col1{{4, 5, 3, 5, 8, 5, 6}};
-  // cudf::table_view orig_table{{col1}};
+  CheckError(ptr == nullptr, "Allocate memory");
 
-  // std::vector<std::string> columnNames = {"column_1"};
+  return ptr;
+}
 
-  // std::vector<std::size_t> buffer_sizes;
-  // std::vector<const char *> raw_buffers;
-  // std::vector<ColumnTransport> column_transports;
-  // std::vector<std::unique_ptr<rmm::device_buffer>> temp_scope_holder;
-  // std::tie(buffer_sizes, raw_buffers, column_transports, temp_scope_holder) = comm::serialize_gpu_message_to_gpu_containers(ral::frame::BlazingTableView{orig_table, columnNames});
+static inline void *mem_type_memset(void *dst, int value, std::size_t count) {
+  switch (test_mem_type) {
+  case UCS_MEMORY_TYPE_HOST: std::memset(dst, value, count); break;
+#ifdef USE_CUDA
+  case UCS_MEMORY_TYPE_CUDA:
+  case UCS_MEMORY_TYPE_CUDA_MANAGED:
+    CheckCudaCall(cudaMemset(dst, value, count));
+    break;
+#endif
+  default:
+    std::cerr << "Unsupported memory type: " << test_mem_type << std::endl;
+    throw std::runtime_error("Unsupported memory type");
+  }
 
-  // std::vector<std::unique_ptr<rmm::device_buffer>> gpu_buffers(raw_buffers.size());
-  // for (size_t i = 0; i < raw_buffers.size(); i++) {
-  //   gpu_buffers[i] = std::make_unique<rmm::device_buffer>(raw_buffers[i], buffer_sizes[i]);
-  // }
+  return dst;
+}
 
-  // ral::cache::MetadataDictionary metadata;
-  // auto output_cache = std::make_shared<ral::cache::CacheMachine>(nullptr);
+static inline void *
+mem_type_memcpy(void *dst, const void *src, std::size_t count) {
+  switch (test_mem_type) {
+  case UCS_MEMORY_TYPE_HOST: std::memcpy(dst, src, count); break;
+#ifdef USE_CUDA
+  case UCS_MEMORY_TYPE_CUDA:
+  case UCS_MEMORY_TYPE_CUDA_MANAGED:
+    CheckCudaCall(cudaMemcpy(dst, src, count, cudaMemcpyDefault));
+    break;
+#endif
+  default:
+    std::cerr << "Unsupported memory type: " << test_mem_type << std::endl;
+    throw std::runtime_error("Unsupported memory type");
+  }
 
-  // comm::message_receiver msg_rcv(column_transports, metadata, output_cache);
+  return dst;
+}
 
-  // for (size_t i = 0; i < gpu_buffers.size(); i++) {
-  //   msg_rcv.add_buffer(std::move(*(gpu_buffers[i])), i);
-  // }
+static inline void mem_type_free(void *address) {
+  switch (test_mem_type) {
+  case UCS_MEMORY_TYPE_HOST: free(address); break;
+#ifdef USE_CUDA
+  case UCS_MEMORY_TYPE_CUDA:
+  case UCS_MEMORY_TYPE_CUDA_MANAGED: CheckCudaCall(cudaFree(address)); break;
+#endif
+  default:
+    std::cerr << "Unsupported memory type: " << test_mem_type << std::endl;
+    throw std::runtime_error("Unsupported memory type");
+  }
+}
 
-  // auto pulled_table = output_cache->pullFromCache();
+static inline void set_msg_data_len(Message *message, std::uint64_t data_len) {
+  mem_type_memcpy(&message->data_len, &data_len, sizeof(data_len));
+}
 
-  // cudf::test::expect_tables_equal(orig_table, pulled_table->view());
+static inline void generate_test_string(char *str, const std::size_t size) {
+  char *tmp = reinterpret_cast<char *>(std::calloc(1, size));
+  CheckError(tmp == nullptr, "allocate memory");
+
+  std::generate_n(
+      tmp, size - 1, [n = -1]() mutable { return 'A' + (++n % 26); });
+  mem_type_memcpy(str, tmp, size);
+
+  std::free(tmp);
+}
+
+static const ucp_tag_t tag_base = 0x1337a880u;
+static const ucp_tag_t tag_mask = std::numeric_limits<std::uint64_t>::max();
+
+class Package {
+public:
+  Message *message() noexcept { return message_; }
+
+  std::size_t length() noexcept { return length_; }
+
+  static inline Package MakeTestString(const std::size_t stringLength) {
+    const std::size_t length = sizeof(Message) + stringLength;
+    Message *message = reinterpret_cast<Message *>(mem_type_malloc(length));
+    mem_type_memset(message, 0, length);
+    set_msg_data_len(message, length - sizeof(*message));
+    try {
+      generate_test_string(reinterpret_cast<char *>(message + 1), stringLength);
+    } catch (std::exception) {
+      std::cerr << "generate test string" << std::endl;
+      mem_type_free(message);
+      throw std::runtime_error("generate test string");
+    }
+    return Package{message, length};
+  }
+
+  static inline Package MakeToStore(const std::size_t stringLength) {
+    const std::size_t length = sizeof(Message) + stringLength;
+    Message *message = reinterpret_cast<Message *>(mem_type_malloc(length));
+    mem_type_memset(message, 0, length);
+    return Package{message, length};
+  }
+
+private:
+  explicit Package(Message *message, std::size_t length)
+      : message_{message}, length_{length} {}
+
+  friend std::ostream &operator<<(std::ostream &os, Package &package) {
+    const std::size_t length = package.length() - sizeof(*package.message());
+    char *str = reinterpret_cast<char *>(std::calloc(1, length));
+    if (str != nullptr) {
+      mem_type_memcpy(str, package.message() + 1, length);
+      os << str;
+      std::free(str);
+    } else {
+      throw std::runtime_error("Memory allocation failed");
+    }
+    return os;
+  }
+
+  Message *message_;
+  std::size_t length_;
+};
+
+template <class Callable>
+std::vector<Package> MakePackages(const std::size_t length,
+                                  const std::size_t stringLength,
+                                  Callable &&callable) {
+  std::vector<Package> packages;
+  packages.reserve(length);
+  std::generate_n(std::back_inserter(packages),
+                  length,
+                  [n = stringLength, &callable]() mutable {
+                    return std::forward<Callable>(callable)(++n);
+                  });
+  return packages;
+}
+
+std::vector<Package> MakePackagesForSending(const std::size_t length,
+                                            const std::size_t stringLength) {
+  return MakePackages(length, stringLength, Package::MakeTestString);
+}
+
+std::vector<Package> MakePackagesForReceiving(const std::size_t length,
+                                              const std::size_t stringLength) {
+  return MakePackages(length, stringLength, Package::MakeToStore);
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+char *Send(Package &package,
+           ucp_ep_h ucp_ep,
+           ucp_worker_h ucp_worker,
+           ucp_tag_t tag,
+           const std::size_t requestSize) {
+  char *request = reinterpret_cast<char *>(std::malloc(requestSize));
+  ucs_status_t status = ucp_tag_send_nbr(ucp_ep,
+                                         package.message(),
+                                         package.length(),
+                                         ucp_dt_make_contig(1),
+                                         tag,
+                                         request + requestSize);
+  if (status != UCS_INPROGRESS) {
+    std::cout << ">>> Sender no in progress" << std::endl;
+  }
+
+  do {
+    ucp_worker_progress(ucp_worker);
+    status = ucp_request_check_status(request + requestSize);
+  } while (status == UCS_INPROGRESS);
+
+  return request;
+}
+
+void Receive(Package &package,
+             ucp_worker_h ucp_worker,
+             ucp_tag_t tag,
+             const std::size_t requestSize) {
+  char *request = reinterpret_cast<char *>(std::malloc(requestSize));
+  ucs_status_t status = ucp_tag_recv_nbr(ucp_worker,
+                                         package.message(),
+                                         package.length(),
+                                         ucp_dt_make_contig(1),
+                                         tag,
+                                         tag_mask,
+                                         request + requestSize);
+
+  if (UCS_STATUS_IS_ERR(status)) {
+    std::cerr << "ucp_tag_recv_nb returned status "<< std::endl;
+              // << ucs_status_string(status);
+    throw std::runtime_error("ucp_tag_recv_nb returned status");
+  }
+
+  do {
+    ucp_worker_progress(ucp_worker);
+    ucp_tag_recv_info_t info_tag;
+    status = ucp_tag_recv_request_test(request + requestSize, &info_tag);
+  } while (status == UCS_INPROGRESS);
+}
+
+static const std::size_t packagesLength = 10;
+
+// void SenderCall(const UcpWorkerAddress &peerUcpWorkerAddress,
+//                 ucp_worker_h ucp_worker,
+//                 const std::size_t requestSize,
+//                 const std::size_t testStringLength) {
+//   ucp_ep_h ucp_ep = CreateUcpEp(ucp_worker, peerUcpWorkerAddress);
+
+//   std::vector<Package> packages =
+//       MakePackagesForSending(packagesLength, testStringLength);
+
+//   ucp_tag_t tag = tag_base;
+//   for (Package &package : packages) {
+//     std::thread([&package, tag, ucp_ep, ucp_worker, requestSize]() {
+//       Send(package, ucp_ep, ucp_worker, tag, requestSize);
+//     }).detach();
+//     ++tag;
+//   }
+
+//   std::this_thread::sleep_for(std::chrono::seconds(1));
+
+//   packages = MakePackagesForReceiving(packagesLength, testStringLength);
+//   tag = tag_base + 15;
+//   for (Package &package : packages) {
+//     Receive(package, ucp_worker, tag, requestSize);
+//     std::cout << '[' << std::hex << std::this_thread::get_id()
+//               << "] Message received: " << package << std::endl;
+//     ++tag;
+//   }
+// }
+
+// void ReceiverCall(const UcpWorkerAddress &peerUcpWorkerAddress,
+//                   ucp_worker_h ucp_worker,
+//                   const std::size_t requestSize,
+//                   const std::size_t testStringLength) {
+//   std::vector<Package> packages =
+//       MakePackagesForReceiving(packagesLength, testStringLength);
+
+//   ucp_tag_t tag = tag_base;
+//   for (Package &package : packages) {
+//     Receive(package, ucp_worker, tag, requestSize);
+//     std::cout << '[' << std::hex << std::this_thread::get_id()
+//               << "] Message received: " << package << std::endl;
+//     ++tag;
+//   }
+
+//   ucp_ep_h ucp_ep = CreateUcpEp(ucp_worker, peerUcpWorkerAddress);
+
+//   packages = MakePackagesForSending(packagesLength, testStringLength);
+
+//   tag = tag_base + 15;
+//   for (Package &package : packages) {
+//     std::thread([&package, tag, ucp_ep, ucp_worker, requestSize]() {
+//       Send(package, ucp_ep, ucp_worker, tag, requestSize);
+//     }).detach();
+//     ++tag;
+//   }
+
+//   std::this_thread::sleep_for(std::chrono::seconds(1));
+// }
+
+void SenderCall(const UcpWorkerAddress &peerUcpWorkerAddress,
+                ucp_worker_h ucp_worker,
+                const std::size_t requestSize,
+                const std::size_t testStringLength) {
+  ucp_ep_h ucp_ep = CreateUcpEp(ucp_worker, peerUcpWorkerAddress);
+
+  std::cout << "requestSize: " << requestSize << std::endl;
+
+  std::map<std::string, comm::node> nodes_info_map;
+  nodes_info_map.emplace("server", comm::node(1, "server", ucp_ep, ucp_worker));
+
+  cudf::test::fixed_width_column_wrapper<int> col1{{4, 5, 3, 5, 8, 5, 6}};
+  cudf::table_view orig_table{{col1}};
+  std::vector<std::string> columnNames = {"column_1"};
+
+  auto output_cache = std::make_shared<ral::cache::CacheMachine>(nullptr);
+
+  ral::cache::MetadataDictionary metadata;
+  metadata.add_value(ral::cache::KERNEL_ID_METADATA_LABEL, 0);
+  metadata.add_value(ral::cache::QUERY_ID_METADATA_LABEL, query_id);
+  metadata.add_value(ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL, "false");
+  metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, "");
+  metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, "client");
+  metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, "server");
+  metadata.add_value(ral::cache::MESSAGE_ID, "");
+
+  output_cache->addCacheData(
+          std::make_unique<ral::cache::GPUCacheDataMetaData>(std::make_unique<ral::frame::BlazingTable>(orig_table, columnNames), metadata),"",true);
+
+  comm::message_sender::initialize_instance(output_cache, nodes_info_map, 1, ucp_worker, 0);
+  comm::message_sender::get_instance()->run_polling();
+
+
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+}
+
+void ReceiverCall(const UcpWorkerAddress &peerUcpWorkerAddress,
+                  ucp_worker_h ucp_worker,
+                  const std::size_t requestSize,
+                  const std::size_t testStringLength) {
+  ucp_ep_h ucp_ep = CreateUcpEp(ucp_worker, peerUcpWorkerAddress);
+
+  std::cout << "requestSize: " << requestSize << std::endl;
+
+  std::map<std::string, comm::node> nodes_info_map;
+  nodes_info_map.emplace("client", comm::node(0, "client", ucp_ep, ucp_worker));
+
+  auto output_cache = std::make_shared<ral::cache::CacheMachine>(nullptr);
+
+  auto graph = create_graph();
+  comm::graphs_info::getInstance().register_graph(query_id, graph);
+
+  auto kernel_filter = graph->get_node(0);
+  auto out_cache = kernel_filter->output_cache();
+
+  comm::ucx_message_listener::initialize_message_listener(ucp_worker, nodes_info_map, 1);
+  comm::ucx_message_listener::get_instance()->poll_begin_message_tag();
+
+  std::this_thread::sleep_for(std::chrono::seconds(10));
+}
+
+// struct MessageSendReceiveTest : public BlazingUnitTest {
+//   MessageSendReceiveTest() {}
+
+//   ~MessageSendReceiveTest() {}
+// };
+
+// TEST_F(MessageSendReceiveTest, send_receive_test) {
+//   auto thread = std::thread([]{
+//     ::Run(SenderCall, AddressExchanger::MakeForSender(exchangingPort));
+//   });
+// // std::this_thread::sleep_for(std::chrono::seconds(2));
+//   auto thread_2 = std::thread([]{
+//     ::Run(ReceiverCall, AddressExchanger::MakeForReceiver(exchangingPort, "localhost"));
+//   });
+//   thread.join();
+//   thread_2.join();
+// }
+
+int main(int argc, char *argv[]){
+	create_test_logger("batch_logger");
+	create_test_logger("queries_logger");
+	create_test_logger("kernels_logger");
+	create_test_logger("kernels_edges_logger");
+	create_test_logger("events_logger");
+	create_test_logger("cache_events_logger");
+
+  if (argc < 2) {
+    ::Run(SenderCall, AddressExchanger::MakeForSender(exchangingPort));
+  }else {
+    ::Run(ReceiverCall, AddressExchanger::MakeForReceiver(exchangingPort, "localhost"));
+  };
+  return 0;
 }
