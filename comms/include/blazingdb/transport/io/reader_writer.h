@@ -39,7 +39,10 @@ private:
   std::stack<PinnedBuffer *> buffers;
 
   std::size_t bufferSize;
+
+  int buffer_counter;
 };
+
 // Memory Pool
 PinnedBufferProvider &getPinnedBufferProvider();
 

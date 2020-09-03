@@ -29,6 +29,7 @@ namespace io {
 // numBuffers should be equal to number of threads
 PinnedBufferProvider::PinnedBufferProvider(std::size_t sizeBuffers,
                                            std::size_t numBuffers) {
+  this->buffer_counter = numBuffers;
   for (int bufferIndex = 0; bufferIndex < numBuffers; bufferIndex++) {
     PinnedBuffer *buffer = new PinnedBuffer();
     buffer->size = sizeBuffers;
@@ -56,9 +57,17 @@ PinnedBuffer *PinnedBufferProvider::getBuffer() {
 }
 
 void PinnedBufferProvider::grow() {
+  this->buffer_counter++;
   PinnedBuffer *buffer = new PinnedBuffer();
   buffer->size = this->bufferSize;
   cudaError_t err = cudaMallocManaged((void **)&buffer->data, this->bufferSize);
+
+  auto logger = spdlog::get("batch_logger");
+  std::string log_detail = "PinnedBufferProvider::grow() now buffer_counter = ";
+  log_detail += std::to_string(this->buffer_counter);
+  log_detail += ", bufferSize: " + std::to_string(this->bufferSize);
+  logger->debug("|||{info}|||||","info"_a=log_detail);
+
   if (err != cudaSuccess) {
     throw std::exception();
   }
@@ -73,6 +82,7 @@ void PinnedBufferProvider::freeBuffer(PinnedBuffer *buffer) {
 
 void PinnedBufferProvider::freeAll() {
   std::unique_lock<std::mutex> lock(inUseMutex);
+  this->buffer_counter = 0;
   while (false == this->buffers.empty()) {
     PinnedBuffer *buffer = this->buffers.top();
     cudaFree(buffer->data);

@@ -144,18 +144,13 @@ void initialize(int ralId,
 	const char * env_cuda_device = std::getenv("CUDA_VISIBLE_DEVICES");
 	std::string env_cuda_device_str = env_cuda_device == nullptr ? "" : std::string(env_cuda_device);
 	initLogMsg = initLogMsg + "CUDA_VISIBLE_DEVICES is set to: " + env_cuda_device_str + ", ";
-
-	size_t free_gpu_mem_size = ral::config::gpuFreeMemory();
-	assert(free_gpu_mem_size > 0);
 	
-	size_t sizeBuffers = 0.1 * free_gpu_mem_size;
-	size_t tempSizeBufferPinned = 0;
+	size_t sizeBuffers = 78643200;  // 75 MBs        0.1 * free_gpu_mem_size;
 	auto it_pinned = config_options.find("TRANSPORT_BUFFER_BYTE_SIZE");
 	if (it_pinned != config_options.end()){
-		tempSizeBufferPinned = std::stoi(config_options["TRANSPORT_BUFFER_BYTE_SIZE"]);
+		sizeBuffers = std::stoi(config_options["TRANSPORT_BUFFER_BYTE_SIZE"]);
 	}
 
-	if (tempSizeBufferPinned > 0) sizeBuffers = tempSizeBufferPinned;
 	auto nthread = 4;
 	blazingdb::transport::io::setPinnedBufferProvider(sizeBuffers, nthread);
 

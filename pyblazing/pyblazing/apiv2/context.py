@@ -1138,7 +1138,7 @@ class BlazingContext(object):
                     BlazingContext
                     default: 'warn'
             TRANSPORT_BUFFER_BYTE_SIZE : The size in bytes about the pinned buffer memory
-                    default: automatically will calculate 10 % of free memory
+                    default: 75 MBs
 
         Examples
         --------
