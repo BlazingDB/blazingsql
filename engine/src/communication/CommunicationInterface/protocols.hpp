@@ -67,8 +67,8 @@ public:
     ~ucx_buffer_transport();
 
     void send_begin_transmission() override;
-
-    void recv_begin_transmission_ack();
+    void increment_frame_transmission() override;
+	void increment_begin_transmission() override;
 
 protected:
     void send_impl(const char * buffer, size_t buffer_size) override;
