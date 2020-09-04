@@ -250,7 +250,8 @@ void writeBuffersFromGPUTCP(std::vector<ColumnTransport> &column_transport,
   writeThread.join();
   PinnedBuffer *buffer = getPinnedBufferProvider().getBuffer();
   getPinnedBufferProvider().freeBuffer(buffer);
-  getPinnedBufferProvider().freeAll();
+  //getPinnedBufferProvider().freeAll();  // TODO: c cordova uncomment this only for proof 
+
 }
 
 void readBuffersIntoGPUTCP(std::vector<std::size_t> bufferSizes,
