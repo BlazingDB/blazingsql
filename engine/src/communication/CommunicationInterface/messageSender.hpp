@@ -32,13 +32,14 @@ public:
 	message_sender(std::shared_ptr<ral::cache::CacheMachine> output_cache,
 		const std::map<std::string, node> & node_address_map,
 		int num_threads,
+		ucp_context_h context,
 		ucp_worker_h origin,
-		int ral_id)
-		: ral_id{ral_id}, origin{origin}, output_cache{output_cache}, node_address_map{node_address_map}, pool{num_threads}, protocol{blazing_protocol::ucx} {}
+		int ral_id);
 
 	static void initialize_instance(std::shared_ptr<ral::cache::CacheMachine> output_cache,
 		std::map<std::string, node> node_address_map,
 		int num_threads,
+		ucp_context_h context,
 		ucp_worker_h origin_node,
 		int ral_id);
 	/**
@@ -46,7 +47,6 @@ public:
 	 */
 	void run_polling() {
 		 auto thread = std::thread([this]{
-			
 			while(true) {
 				std::unique_ptr<ral::cache::CacheData> cache_data = output_cache->pullCacheData();
 				std::cout<<"pulled cache data"<<std::endl;
@@ -93,7 +93,7 @@ public:
 						std::shared_ptr<buffer_transport> transport;
 						if(blazing_protocol::ucx == protocol){
 							transport = std::make_shared<ucx_buffer_transport>(
-								origin, destinations, metadata,
+								request_size, origin, destinations, metadata,
 								buffer_sizes, column_transports,ral_id);
 						}else{
 						std::cout<<"wrong protocol"<<std::endl;
@@ -128,6 +128,7 @@ private:
 	std::map<std::string, node> node_address_map;
 	blazing_protocol protocol;
 	ucp_worker_h origin;
+	size_t request_size;
 	int ral_id;
 };
 

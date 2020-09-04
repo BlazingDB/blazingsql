@@ -361,7 +361,7 @@ void Run(Callback &&callback,
 
   static const std::size_t testStringLength = 10;
   callback(
-      peerUcpWorkerAddress, ucp_worker, attr.request_size, testStringLength);
+      peerUcpWorkerAddress, ucp_worker, ucp_context, attr.request_size, testStringLength);
 
   ucp_worker_release_address(ucp_worker, ucpWorkerAddress.address);
   ucp_worker_destroy(ucp_worker);
@@ -718,11 +718,10 @@ static const std::size_t packagesLength = 10;
 
 void SenderCall(const UcpWorkerAddress &peerUcpWorkerAddress,
                 ucp_worker_h ucp_worker,
+                ucp_context_h ucp_context,
                 const std::size_t requestSize,
                 const std::size_t testStringLength) {
   ucp_ep_h ucp_ep = CreateUcpEp(ucp_worker, peerUcpWorkerAddress);
-
-  std::cout << "requestSize: " << requestSize << std::endl;
 
   std::map<std::string, comm::node> nodes_info_map;
   nodes_info_map.emplace("server", comm::node(1, "server", ucp_ep, ucp_worker));
@@ -745,7 +744,7 @@ void SenderCall(const UcpWorkerAddress &peerUcpWorkerAddress,
   output_cache->addCacheData(
           std::make_unique<ral::cache::GPUCacheDataMetaData>(std::make_unique<ral::frame::BlazingTable>(orig_table, columnNames), metadata),"",true);
 
-  comm::message_sender::initialize_instance(output_cache, nodes_info_map, 1, ucp_worker, 0);
+  comm::message_sender::initialize_instance(output_cache, nodes_info_map, 1, ucp_context, ucp_worker, 0);
   comm::message_sender::get_instance()->run_polling();
 
 
@@ -754,11 +753,10 @@ void SenderCall(const UcpWorkerAddress &peerUcpWorkerAddress,
 
 void ReceiverCall(const UcpWorkerAddress &peerUcpWorkerAddress,
                   ucp_worker_h ucp_worker,
+                  ucp_context_h ucp_context,
                   const std::size_t requestSize,
                   const std::size_t testStringLength) {
   ucp_ep_h ucp_ep = CreateUcpEp(ucp_worker, peerUcpWorkerAddress);
-
-  std::cout << "requestSize: " << requestSize << std::endl;
 
   std::map<std::string, comm::node> nodes_info_map;
   nodes_info_map.emplace("client", comm::node(0, "client", ucp_ep, ucp_worker));
@@ -771,7 +769,7 @@ void ReceiverCall(const UcpWorkerAddress &peerUcpWorkerAddress,
   auto kernel_filter = graph->get_node(0);
   auto out_cache = kernel_filter->output_cache();
 
-  comm::ucx_message_listener::initialize_message_listener(ucp_worker, nodes_info_map, 1);
+  comm::ucx_message_listener::initialize_message_listener(ucp_context, ucp_worker, nodes_info_map, 1);
   comm::ucx_message_listener::get_instance()->poll_begin_message_tag();
 
   std::this_thread::sleep_for(std::chrono::seconds(10));

@@ -32,24 +32,6 @@ enum blazing_protocol
     tcp
 };
 
-class ucp_nodes_info
-{
-public:
-	static ucp_nodes_info & getInstance();
-
-	void init(const std::map<std::string, node> & nodes_map);
-    node get_node(const std::string& id);
-
-private:
-    ucp_nodes_info() = default;
-	ucp_nodes_info(ucp_nodes_info &&) = delete;
-	ucp_nodes_info(const ucp_nodes_info &) = delete;
-	ucp_nodes_info & operator=(ucp_nodes_info &&) = delete;
-	ucp_nodes_info & operator=(const ucp_nodes_info &) = delete;
-
-    std::map<std::string, node> _id_to_node_info_map;
-};
-
 class graphs_info
 {
 public:
@@ -75,7 +57,7 @@ private:
  */
 class ucx_buffer_transport : public buffer_transport {
 public:
-    ucx_buffer_transport(
+    ucx_buffer_transport(size_t request_size,
         ucp_worker_h origin_node,
         std::vector<node> destinations,
 		ral::cache::MetadataDictionary metadata,
@@ -107,6 +89,8 @@ private:
                          indicate which frame this is. */
 
     int message_id;
+
+    size_t _request_size;
 };
 /*
 

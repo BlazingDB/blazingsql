@@ -284,32 +284,28 @@ std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> > initiali
 
 	auto & communicationData = ral::communication::CommunicationData::getInstance();
 
-	std::map<std::string, comm::node> nodes_info_map;
-	for (auto &&node_data : workers_ucp_info) {
-
-		std::cout<<"ep handle is "<< node_data.ep_handle<<" and worker handle is "<< node_data.worker_handle<<std::endl;
-		nodes_info_map.emplace(node_data.worker_id, comm::node(ralId, node_data.worker_id, reinterpret_cast<ucp_ep_h>(node_data.ep_handle), reinterpret_cast<ucp_worker_h>(node_data.worker_handle)));
-	}
-
 	auto output_input_caches = std::make_pair(std::make_shared<CacheMachine>(nullptr),std::make_shared<CacheMachine>(nullptr));
 
-	ucp_worker_h ucp_worker = nullptr;
-	for(auto elem : nodes_info_map)
-	{
-		std::cout << elem.first <<  std::endl;
-		ucp_worker = elem.second.get_ucp_worker();
-	}
-	comm::ucp_nodes_info::getInstance().init(nodes_info_map);
 	// start ucp servers
 
 	communicationData.initialize(worker_id, ralHost, ralCommunicationPort);
 
 	std::cout<<"going to init comms!!!"<<std::endl;
 	if(! singleNode){
+		std::map<std::string, comm::node> nodes_info_map;
+		for (auto &&node_data : workers_ucp_info) {
+			std::cout<<"ep handle is "<< node_data.ep_handle<<" and worker handle is "<< node_data.worker_handle<<std::endl;
+			nodes_info_map.emplace(node_data.worker_id, comm::node(ralId, node_data.worker_id, reinterpret_cast<ucp_ep_h>(node_data.ep_handle), reinterpret_cast<ucp_worker_h>(node_data.worker_handle)));
+		}
+
 		std::cout<<"getting worker"<<worker_id<<std::endl;
-				std::cout<<"initializing listener"<<std::endl;
+		std::cout<<"initializing listener"<<std::endl;
+
+		ucp_context_h ucp_context = reinterpret_cast<ucp_context_h>(workers_ucp_info[0].context_handle);
+		ucp_worker_h self_worker = reinterpret_cast<ucp_worker_h>(workers_ucp_info[0].worker_handle);
+
 		comm::ucx_message_listener::initialize_message_listener(
-			ucp_worker,nodes_info_map,20);
+			ucp_context, self_worker,nodes_info_map,20);
 		std::cout<<"starting polling"<<std::endl;
 		comm::ucx_message_listener::get_instance()->poll_begin_message_tag();
 
@@ -317,7 +313,7 @@ std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> > initiali
 
 		comm::message_sender::initialize_instance(output_input_caches.first,
 			nodes_info_map,
-			20,ucp_worker,ralId);
+			20, ucp_context, self_worker, ralId);
 		std::cout<<"starting polling sender"<<std::endl;
 
 		comm::message_sender::get_instance()->run_polling();

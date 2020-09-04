@@ -27,8 +27,6 @@ struct ucx_request {
 };
 
 
-static size_t req_size = 232 + sizeof(ucx_request);
-
 /**
  * A struct for managing the 64 bit tag that ucx uses
  * This allow us to make a value that is stored in 8 bytes
