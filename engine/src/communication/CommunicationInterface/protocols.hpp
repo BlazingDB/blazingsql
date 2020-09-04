@@ -92,7 +92,7 @@ private:
 
     size_t _request_size;
 };
-/*
+
 
 class tcp_buffer_transport : public buffer_transport {
 public:
@@ -120,7 +120,7 @@ private:
 };
 
 
-*/
+
 
 static const ucp_tag_t begin_tag_mask =        0xFFFF000000000000;
 static const ucp_tag_t message_tag_mask =      0x0000FFFFFFFFFFFF;

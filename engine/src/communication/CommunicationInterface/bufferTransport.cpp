@@ -92,7 +92,9 @@ buffer_transport::buffer_transport(ral::cache::MetadataDictionary metadata,
 
 }
 
-buffer_transport::~buffer_transport(){}
+buffer_transport::~buffer_transport(){
+	
+}
 
 void buffer_transport::send(const char * buffer, size_t buffer_size){
   send_impl(buffer, buffer_size);
