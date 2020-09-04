@@ -42,10 +42,10 @@ TEST_F(MessageReceiverTest, receive_test) {
   ral::cache::MetadataDictionary metadata;
   auto output_cache = std::make_shared<ral::cache::CacheMachine>(nullptr);
   
-  auto meta_buffer = detail::serialize_metadata_and_transports_and_buffer_sizes(metadata,
+  auto meta_buffer = comm::detail::serialize_metadata_and_transports_and_buffer_sizes(metadata,
                     column_transports,
                     buffer_sizes);
-  comm::message_receiver msg_rcv(meta_buffer);
+  comm::message_receiver msg_rcv({},meta_buffer);
   for (size_t i = 0; i < raw_buffers.size(); i++) {
     msg_rcv.allocate_buffer(i);
     cudaMemcpy(msg_rcv.get_buffer(i),gpu_buffers[i]->data(),buffer_sizes[i],cudaMemcpyDeviceToDevice);
@@ -79,11 +79,11 @@ TEST_F(MessageReceiverTest, receive_metatdata) {
   metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, "ucx://127.0.0.2");
   metadata.add_value(ral::cache::MESSAGE_ID, "");
 
-  auto bytes_buffer = comm::detail::serialize_metadata_and_transports(metadata, column_transports);
+  auto bytes_buffer = comm::detail::serialize_metadata_and_transports_and_buffer_sizes(metadata, column_transports,buffer_sizes);
 
   ral::cache::MetadataDictionary out_metadata;
   std::vector<ColumnTransport> out_column_transports;
-  std::vector<size_t> buffer_sizes;
+  
   std::tie(out_metadata, out_column_transports, buffer_sizes) = comm::detail::get_metadata_and_transports_and_buffer_sizes_from_bytes(bytes_buffer);
 
   auto expected_values = metadata.get_values();

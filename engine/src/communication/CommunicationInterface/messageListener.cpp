@@ -276,7 +276,7 @@ ucx_message_listener::ucx_message_listener(ucp_context_h context, ucp_worker_h w
 		throw std::runtime_error("Error calling ucp_context_query");
 	}
 
-	_request_size = attr.request_size;
+	_request_size = attr.request_size + 16;
 
 	std::cout << "ucx_message_listener request_size: " << _request_size << std::endl;
 }
