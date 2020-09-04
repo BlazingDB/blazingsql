@@ -34,7 +34,7 @@ PinnedBufferProvider::PinnedBufferProvider(std::size_t sizeBuffers,
     PinnedBuffer *buffer = new PinnedBuffer();
     buffer->size = sizeBuffers;
     this->bufferSize = sizeBuffers;
-    cudaError_t err = cudaMallocManaged((void **)&buffer->data, sizeBuffers);
+    cudaError_t err = cudaMallocHost((void **)&buffer->data, sizeBuffers);
     if (err != cudaSuccess) {
       throw std::exception();
     }
@@ -60,7 +60,7 @@ void PinnedBufferProvider::grow() {
   this->buffer_counter++;
   PinnedBuffer *buffer = new PinnedBuffer();
   buffer->size = this->bufferSize;
-  cudaError_t err = cudaMallocManaged((void **)&buffer->data, this->bufferSize);
+  cudaError_t err = cudaMallocHost((void **)&buffer->data, this->bufferSize);
 
   auto logger = spdlog::get("batch_logger");
   std::string log_detail = "PinnedBufferProvider::grow() now buffer_counter = ";
@@ -85,7 +85,7 @@ void PinnedBufferProvider::freeAll() {
   this->buffer_counter = 0;
   while (false == this->buffers.empty()) {
     PinnedBuffer *buffer = this->buffers.top();
-    cudaFree(buffer->data);
+    cudaFreeHost(buffer->data);
     delete buffer;
     this->buffers.pop();
   }
