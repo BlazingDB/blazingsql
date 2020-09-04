@@ -215,30 +215,73 @@ void ucx_buffer_transport::send_begin_transmission() {
 }
 
 void ucx_buffer_transport::send_impl(const char * buffer, size_t buffer_size) {
-	std::vector<ucs_status_ptr_t> requests;
-	blazing_ucp_tag blazing_tag = *reinterpret_cast<blazing_ucp_tag *>(&tag);
-	blazing_tag.frame_id = buffer_sent + 1;	 // 0th position is for the begin_message
-	for(auto const & node : destinations) {
-		requests.push_back(ucp_tag_send_nb(node.get_ucp_endpoint(),
-			buffer,
-			buffer_size,
-			ucp_dt_make_contig(1),
-			*reinterpret_cast<ucp_tag_t *>(&blazing_tag),
-			send_callback_c));
-	}
+	//std::vector<ucs_status_ptr_t> requests;
+	//blazing_ucp_tag blazing_tag = *reinterpret_cast<blazing_ucp_tag *>(&tag);
+	//blazing_tag.frame_id = buffer_sent + 1;	 // 0th position is for the begin_message
+	//for(auto const & node : destinations) {
+		//requests.push_back(ucp_tag_send_nb(node.get_ucp_endpoint(),
+			//buffer,
+			//buffer_size,
+			//ucp_dt_make_contig(1),
+			//*reinterpret_cast<ucp_tag_t *>(&blazing_tag),
+			//send_callback_c));
+	//}
 
-	for(auto & request : requests) {
-		if(UCS_PTR_IS_ERR(request)) {
-			// TODO: decide how to do cleanup i think we just throw an initialization exception
-		} else if(UCS_PTR_STATUS(request) == UCS_OK) {
-			increment_frame_transmission();
-		} else {
-			// Message was not completed we set the uid for the callback
-			auto blazing_request = reinterpret_cast<ucx_request *>(&request);
-			blazing_request->uid = reinterpret_cast<blazing_ucp_tag *>(&tag)->message_id;
-		}
-	}
+	//for(auto & request : requests) {
+		//if(UCS_PTR_IS_ERR(request)) {
+			//// TODO: decide how to do cleanup i think we just throw an initialization exception
+		//} else if(UCS_PTR_STATUS(request) == UCS_OK) {
+			//increment_frame_transmission();
+		//} else {
+			//// Message was not completed we set the uid for the callback
+			//auto blazing_request = reinterpret_cast<ucx_request *>(&request);
+			//blazing_request->uid = reinterpret_cast<blazing_ucp_tag *>(&tag)->message_id;
+		//}
+	//}
 	// TODO: call ucp_worker_progress here
+
+	blazing_ucp_tag blazing_tag = *reinterpret_cast<blazing_ucp_tag *>(&tag);
+  std::vector<char *> requests;
+  requests.reserve(destinations.size());
+  for (auto const &node : destinations) {
+    char *request = reinterpret_cast<char *>(std::malloc(_request_size));
+    ucp_tag_send_nbr(node.get_ucp_endpoint(),
+                     buffer,
+                     buffer_size,
+                     ucp_dt_make_contig(1),
+                     *reinterpret_cast<ucp_tag_t *>(&blazing_tag),
+                     request + _request_size);
+    requests.push_back(request);
+  }
+
+  // TODO: add a max attempts
+  std::vector<ucs_status_t> statuses;
+  statuses.reserve(destinations.size());
+  do {
+    ucp_worker_progress(origin_node);
+    std::transform(requests.cbegin(),
+                   requests.cend(),
+                   std::back_inserter(statuses),
+                   [this](char *request) {
+                     return ucp_request_check_status(request + _request_size);
+                   });
+  } while (std::find(statuses.cbegin(), statuses.cend(), UCS_INPROGRESS) !=
+           statuses.cend());
+
+  for (std::size_t i = 0; i < requests.size(); i++) {
+    char *request = requests.at(i);
+    ucs_status_t status = statuses.at(i);
+
+    if (status == UCS_OK) {
+      std::free(request);
+      increment_frame_transmission();
+    } else {
+      // Message was not completed we set the uid for the callback
+      auto blazing_request = reinterpret_cast<ucx_request *>(&request);
+      blazing_request->uid =
+          reinterpret_cast<blazing_ucp_tag *>(&tag)->message_id;
+    }
+  }
 }
 
 

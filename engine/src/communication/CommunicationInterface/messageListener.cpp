@@ -33,42 +33,50 @@ void recv_frame_callback_c(void * request, ucs_status_t status,
 
 
 void poll_for_frames(std::shared_ptr<message_receiver> receiver,
-						ucp_tag_t tag, ucp_worker_h ucp_worker){
+		                 ucp_tag_t tag,
+                     ucp_worker_h ucp_worker,
+                     const std::size_t request_size){
 	std::cout<<"polling for frames"<<std::endl;
-	while(!receiver->is_finished()){
-		std::shared_ptr<ucp_tag_recv_info_t> info_tag = std::make_shared<ucp_tag_recv_info_t>();
-		auto message_tag = ucp_tag_probe_nb(ucp_worker, tag, message_tag_mask, 1, info_tag.get());
-		if(message_tag != NULL){
-			std::cout<< "poll_for_frames: got tag"<< std::endl;
-			auto converted_tag = reinterpret_cast<blazing_ucp_tag *>(&message_tag);
-			auto position = converted_tag->frame_id - 1;
-			receiver->allocate_buffer(position);
+  while (!receiver->is_finished()) {
+    std::shared_ptr<ucp_tag_recv_info_t> info_tag = std::make_shared<ucp_tag_recv_info_t>();
 
-			auto request = ucp_tag_msg_recv_nb(ucp_worker,
-																				receiver->get_buffer(position),
-																				receiver->buffer_size(position),
-																				ucp_dt_make_contig(1), message_tag,
-																				recv_frame_callback_c);
+    ucp_tag_message_h message_tag;
+    do {
+      ucp_worker_progress(ucp_worker);
+      message_tag = ucp_tag_probe_nb(
+          ucp_worker, tag, message_tag_mask, 1, info_tag.get());
+    } while (message_tag == nullptr);
 
-			if(UCS_PTR_IS_ERR(request)) {
-				// TODO: decide how to do cleanup i think we just throw an initialization exception
-			} else if(UCS_PTR_STATUS(request) == UCS_OK) {
-				std::cout<< "poll_for_frames: received"<< std::endl;
-				auto message_listener = ucx_message_listener::get_instance();
-				message_listener->increment_frame_receiver(tag & message_tag_mask);
-			}
+    std::cout << "poll_for_frames: got tag" << std::endl;
+    auto converted_tag = reinterpret_cast<blazing_ucp_tag *>(&message_tag);
+    auto position = converted_tag->frame_id - 1;
+    receiver->allocate_buffer(position);
 
-		}else {
-			// ucp_worker_progress(ucp_worker);
-			// std::cout<< "progressing poll_for_frames"<< std::endl;
-			//waits until a message event occurs
-            // auto status = ucp_worker_wait(ucp_worker);
-            // if (status != UCS_OK){
-            //   throw ::std::runtime_error("poll_for_frames: ucp_worker_wait invalid status");
-            // }
-		}
-	}
-	receiver->finish();
+    char *request = reinterpret_cast<char *>(std::malloc(request_size));
+    ucs_status_t status = ucp_tag_recv_nbr(ucp_worker,
+                                           receiver->get_buffer(position),
+                                           receiver->buffer_size(position),
+                                           ucp_dt_make_contig(1),
+                                           tag,
+                                           message_tag_mask,
+                                           request + request_size);
+
+    do {
+      ucp_worker_progress(ucp_worker);
+      status = ucp_request_check_status(request + request_size);
+    } while (status == UCS_INPROGRESS);
+
+    if (status == UCS_OK) {
+      std::cout << "poll_for_frames: received" << std::endl;
+      auto message_listener = ucx_message_listener::get_instance();
+      message_listener->increment_frame_receiver(tag & message_tag_mask);
+    } else {
+      // TODO: decide how to do cleanup i think we just throw an
+      // initialization exception
+    }
+    std::free(request);
+  }
+  receiver->finish();
 }
 
 
@@ -126,7 +134,7 @@ void recv_begin_callback_c(void * request, ucs_status_t status,
 
 		std::cout<<"send ack complete"<<std::endl;
 
-		poll_for_frames(receiver, info->sender_tag, message_listener->get_worker());
+		poll_for_frames(receiver, info->sender_tag, message_listener->get_worker(), request_size);
 		// tag_to_begin_buffer_and_info.erase(info->sender_tag);
 		// message_listener->remove_receiver(info->sender_tag);
 		if(request){
