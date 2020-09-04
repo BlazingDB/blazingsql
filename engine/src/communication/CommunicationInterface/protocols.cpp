@@ -226,17 +226,27 @@ void ucx_buffer_transport::send_impl(const char * buffer, size_t buffer_size) {
     ucp_worker_progress(origin_node);
     std::transform(requests.cbegin(),
                    requests.cend(),
-                   statuses.begin(),
+                   std::back_inserter(statuses),
                    [req_size](char *request) {
                      return ucp_request_check_status(request + req_size);
                    });
   } while (std::find(statues.cbegin(), statues.cend(), UCS_INPROGRESS) !=
            statues.cend());
 
-  std::for_each(requests.cbegin(), requests.cend(), [](char *request) {
-    std::free(request);
-    increment_frame_transmission();
-  });
+  for (std::size_t i = 0; i < requests.size(); i++) {
+    char *request = requests.at(i);
+    ucs_status_t status = statuses.at(i);
+
+    if (status == UCS_OK) {
+      std::free(request);
+      increment_frame_transmission();
+    } else {
+      // Message was not completed we set the uid for the callback
+      auto blazing_request = reinterpret_cast<ucx_request *>(&request);
+      blazing_request->uid =
+          reinterpret_cast<blazing_ucp_tag *>(&tag)->message_id;
+    }
+  }
 }
 
 
