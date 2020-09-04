@@ -195,16 +195,17 @@ void ucx_buffer_transport::send_impl(const char * buffer, size_t buffer_size) {
 	//}
 	// TODO: call ucp_worker_progress here
 
+	blazing_ucp_tag blazing_tag = *reinterpret_cast<blazing_ucp_tag *>(&tag);
   std::vector<char *> requests;
   requests.reserve(destinations.size());
   for (auto const &node : destinations) {
-    char *request = reinterpret_cast<char *>(std::malloc(request_size));
+    char *request = reinterpret_cast<char *>(std::malloc(_request_size));
     ucp_tag_send_nbr(node.get_ucp_endpoint(),
                      buffer,
                      buffer_size,
                      ucp_dt_make_contig(1),
                      *reinterpret_cast<ucp_tag_t *>(&blazing_tag),
-                     request + request_size);
+                     request + _request_size);
     requests.push_back(request);
   }
 
@@ -216,11 +217,11 @@ void ucx_buffer_transport::send_impl(const char * buffer, size_t buffer_size) {
     std::transform(requests.cbegin(),
                    requests.cend(),
                    std::back_inserter(statuses),
-                   [req_size](char *request) {
-                     return ucp_request_check_status(request + req_size);
+                   [this](char *request) {
+                     return ucp_request_check_status(request + _request_size);
                    });
-  } while (std::find(statues.cbegin(), statues.cend(), UCS_INPROGRESS) !=
-           statues.cend());
+  } while (std::find(statuses.cbegin(), statuses.cend(), UCS_INPROGRESS) !=
+           statuses.cend());
 
   for (std::size_t i = 0; i < requests.size(); i++) {
     char *request = requests.at(i);
