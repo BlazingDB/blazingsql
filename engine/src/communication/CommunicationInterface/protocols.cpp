@@ -214,6 +214,16 @@ void ucx_buffer_transport::send_begin_transmission() {
 	}
 }
 
+void ucx_buffer_transport::increment_frame_transmission() {
+	buffer_transport::increment_frame_transmission();
+	reinterpret_cast<blazing_ucp_tag *>(&tag)->frame_id++;
+}
+
+void ucx_buffer_transport::increment_begin_transmission(){
+	buffer_transport::increment_begin_transmission();
+	reinterpret_cast<blazing_ucp_tag *>(&tag)->frame_id++;
+}
+
 void ucx_buffer_transport::send_impl(const char * buffer, size_t buffer_size) {
 	//std::vector<ucs_status_ptr_t> requests;
 	//blazing_ucp_tag blazing_tag = *reinterpret_cast<blazing_ucp_tag *>(&tag);

@@ -80,17 +80,12 @@ void poll_for_frames(std::shared_ptr<message_receiver> receiver,
 }
 
 
-void recv_begin_callback_c(void * request, ucs_status_t status,
-							ucp_tag_recv_info_t *info, size_t request_size) {
+void recv_begin_callback_c(ucp_tag_recv_info_t *info, size_t request_size) {
 
 	std::cout<<"recv begin callback c"<<std::endl;
 	auto message_listener = ucx_message_listener::get_instance();
-	if (status != UCS_OK){
-		std::cout<<"status fail in recv_begin_callback_c" <<std::endl;
-		throw std::runtime_error("status fail in recv_begin_callback_c");
-	}
 
-	auto fwd = message_listener->get_pool().push([&message_listener, request, info, request_size](int thread_id) {
+	auto fwd = message_listener->get_pool().push([&message_listener, info, request_size](int thread_id) {
 		std::cout<<"in pool of begin callback"<<std::endl;
 		// auto blazing_request = reinterpret_cast<ucx_request *>(request);
 		auto buffer = tag_to_begin_buffer_and_info.at(info->sender_tag).first;
@@ -135,11 +130,6 @@ void recv_begin_callback_c(void * request, ucs_status_t status,
 		std::cout<<"send ack complete"<<std::endl;
 
 		poll_for_frames(receiver, info->sender_tag, message_listener->get_worker(), request_size);
-		// tag_to_begin_buffer_and_info.erase(info->sender_tag);
-		// message_listener->remove_receiver(info->sender_tag);
-		if(request){
-			ucp_request_release(request);
-		}
 	});
 	try{
 		fwd.get();
@@ -210,12 +200,15 @@ void ucx_message_listener::poll_begin_message_tag(){
 		for(;;){
 			std::cout<<"starting poll begin"<<std::endl;
 			std::shared_ptr<ucp_tag_recv_info_t> info_tag = std::make_shared<ucp_tag_recv_info_t>();
-			ucp_tag_message_h message_tag;
+			ucp_tag_message_h message_tag = nullptr;
 			do {
-				ucp_worker_progress(ucp_worker);
 				message_tag = ucp_tag_probe_nb(
 					ucp_worker, 0ull, begin_tag_mask, 0, info_tag.get());
 
+				// NOTE: comment this out when running using dask workers, it crashes for some reason
+				if (message_tag == nullptr) {
+					ucp_worker_progress(ucp_worker);
+				}
 			}while(message_tag == nullptr);
 
 			std::cout<<"probed tag"<<std::endl;
@@ -247,7 +240,7 @@ void ucx_message_listener::poll_begin_message_tag(){
 					throw std::runtime_error("Was not able to receive begin message");
 				}
 
-				recv_begin_callback_c(nullptr, UCS_OK, info_tag.get(), _request_size);
+				recv_begin_callback_c( info_tag.get(), _request_size);
 
 				std::cout<<">>>>>>>>>   probed tag SUCCESS GONNA BREAK"<<std::endl;
     }
@@ -284,7 +277,7 @@ ucx_message_listener::ucx_message_listener(ucp_context_h context, ucp_worker_h w
 		throw std::runtime_error("Error calling ucp_context_query");
 	}
 
-	_request_size = attr.request_size + 16;
+	_request_size = attr.request_size;
 
 	std::cout << "ucx_message_listener request_size: " << _request_size << std::endl;
 }

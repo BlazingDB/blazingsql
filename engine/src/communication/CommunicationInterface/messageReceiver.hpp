@@ -68,6 +68,7 @@ public:
   }
 
   void allocate_buffer(uint16_t index){
+    std::cout<< "allocate_buffer index : " << index << " total buffers : " << _raw_buffers.size()<<std::endl;
     if (index >= _raw_buffers.size()) {
       throw std::runtime_error("Invalid access to raw buffer");
     }
