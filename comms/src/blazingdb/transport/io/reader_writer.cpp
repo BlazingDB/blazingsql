@@ -42,6 +42,10 @@ PinnedBufferProvider::PinnedBufferProvider(std::size_t sizeBuffers,
   }
 }
 
+PinnedBufferProvider::~PinnedBufferProvider(){
+    getPinnedBufferProvider().freeAll();
+}
+
 // TODO: consider adding some kind of priority
 // based on when the request was made
 PinnedBuffer *PinnedBufferProvider::getBuffer() {
@@ -250,8 +254,6 @@ void writeBuffersFromGPUTCP(std::vector<ColumnTransport> &column_transport,
   writeThread.join();
   PinnedBuffer *buffer = getPinnedBufferProvider().getBuffer();
   getPinnedBufferProvider().freeBuffer(buffer);
-  //getPinnedBufferProvider().freeAll();  // TODO: c cordova uncomment this only for proof 
-
 }
 
 void readBuffersIntoGPUTCP(std::vector<std::size_t> bufferSizes,

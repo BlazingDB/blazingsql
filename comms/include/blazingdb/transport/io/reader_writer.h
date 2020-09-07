@@ -21,6 +21,8 @@ class PinnedBufferProvider {
 public:
   PinnedBufferProvider(std::size_t sizeBuffers, std::size_t numBuffers);
 
+  ~PinnedBufferProvider();
+
   PinnedBuffer *getBuffer();
 
   void freeBuffer(PinnedBuffer *buffer);
