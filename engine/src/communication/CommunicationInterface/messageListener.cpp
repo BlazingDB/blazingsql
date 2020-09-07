@@ -37,27 +37,19 @@ void poll_for_frames(std::shared_ptr<message_receiver> receiver,
                      ucp_worker_h ucp_worker,
                      const std::size_t request_size){
 	std::cout<<"polling for frames"<<std::endl;
+	blazing_ucp_tag message_tag = *reinterpret_cast<blazing_ucp_tag *>(&tag);
+	int buffer_id = 0;
   while (!receiver->is_finished()) {
-    std::shared_ptr<ucp_tag_recv_info_t> info_tag = std::make_shared<ucp_tag_recv_info_t>();
+    receiver->allocate_buffer(buffer_id);
 
-    ucp_tag_message_h message_tag;
-    do {
-      ucp_worker_progress(ucp_worker);
-      message_tag = ucp_tag_probe_nb(
-          ucp_worker, tag, message_tag_mask, 1, info_tag.get());
-    } while (message_tag == nullptr);
-
-    std::cout << "poll_for_frames: got tag" << std::endl;
-    auto converted_tag = reinterpret_cast<blazing_ucp_tag *>(&message_tag);
-    auto position = converted_tag->frame_id - 1;
-    receiver->allocate_buffer(position);
+		message_tag.frame_id = buffer_id + 1;
 
     char *request = reinterpret_cast<char *>(std::malloc(request_size));
     ucs_status_t status = ucp_tag_recv_nbr(ucp_worker,
-                                           receiver->get_buffer(position),
-                                           receiver->buffer_size(position),
+                                           receiver->get_buffer(buffer_id),
+                                           receiver->buffer_size(buffer_id),
                                            ucp_dt_make_contig(1),
-                                           tag,
+                                           *reinterpret_cast<ucp_tag_t *>(&message_tag),
                                            message_tag_mask,
                                            request + request_size);
 
@@ -67,7 +59,7 @@ void poll_for_frames(std::shared_ptr<message_receiver> receiver,
     } while (status == UCS_INPROGRESS);
 
     if (status == UCS_OK) {
-      std::cout << "poll_for_frames: received" << std::endl;
+      std::cout << "poll_for_frames: received frame_id "<< buffer_id << std::endl;
       auto message_listener = ucx_message_listener::get_instance();
       message_listener->increment_frame_receiver(tag & message_tag_mask);
     } else {
@@ -75,6 +67,8 @@ void poll_for_frames(std::shared_ptr<message_receiver> receiver,
       // initialization exception
     }
     std::free(request);
+
+		++buffer_id;
   }
   receiver->finish();
 }

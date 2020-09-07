@@ -716,6 +716,27 @@ static const std::size_t packagesLength = 10;
 //   std::this_thread::sleep_for(std::chrono::seconds(1));
 // }
 
+std::unique_ptr<ral::frame::BlazingTable> generate_table_data(){
+  cudf::test::fixed_width_column_wrapper<int> col1{{4, 5, 3, 5, 8, 5, 6}};
+  cudf::table_view orig_table{{col1}};
+  std::vector<std::string> columnNames = {"column_1"};
+
+  return std::make_unique<ral::frame::BlazingTable>(std::make_unique<cudf::table>(orig_table), columnNames);
+}
+
+ral::cache::MetadataDictionary generate_metadata(){
+  ral::cache::MetadataDictionary metadata;
+  metadata.add_value(ral::cache::KERNEL_ID_METADATA_LABEL, 0);
+  metadata.add_value(ral::cache::QUERY_ID_METADATA_LABEL, query_id);
+  metadata.add_value(ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL, "false");
+  metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, "");
+  metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, "client");
+  metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, "server");
+  metadata.add_value(ral::cache::MESSAGE_ID, "");
+
+  return metadata;
+}
+
 void SenderCall(const UcpWorkerAddress &peerUcpWorkerAddress,
                 ucp_worker_h ucp_worker,
                 ucp_context_h ucp_context,
@@ -726,23 +747,10 @@ void SenderCall(const UcpWorkerAddress &peerUcpWorkerAddress,
   std::map<std::string, comm::node> nodes_info_map;
   nodes_info_map.emplace("server", comm::node(1, "server", ucp_ep, ucp_worker));
 
-  cudf::test::fixed_width_column_wrapper<int> col1{{4, 5, 3, 5, 8, 5, 6}};
-  cudf::table_view orig_table{{col1}};
-  std::vector<std::string> columnNames = {"column_1"};
-
   auto output_cache = std::make_shared<ral::cache::CacheMachine>(nullptr);
 
-  ral::cache::MetadataDictionary metadata;
-  metadata.add_value(ral::cache::KERNEL_ID_METADATA_LABEL, 0);
-  metadata.add_value(ral::cache::QUERY_ID_METADATA_LABEL, query_id);
-  metadata.add_value(ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL, "false");
-  metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, "");
-  metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, "client");
-  metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, "server");
-  metadata.add_value(ral::cache::MESSAGE_ID, "");
-
   output_cache->addCacheData(
-          std::make_unique<ral::cache::GPUCacheDataMetaData>(std::make_unique<ral::frame::BlazingTable>(orig_table, columnNames), metadata),"",true);
+          std::make_unique<ral::cache::GPUCacheDataMetaData>(generate_table_data(), generate_metadata()), "", true);
 
   comm::message_sender::initialize_instance(output_cache, nodes_info_map, 1, ucp_context, ucp_worker, 0);
   comm::message_sender::get_instance()->run_polling();
@@ -762,17 +770,24 @@ void ReceiverCall(const UcpWorkerAddress &peerUcpWorkerAddress,
   nodes_info_map.emplace("client", comm::node(0, "client", ucp_ep, ucp_worker));
 
   auto output_cache = std::make_shared<ral::cache::CacheMachine>(nullptr);
+  auto input_cache = std::make_shared<ral::cache::CacheMachine>(nullptr);
 
   auto graph = create_graph();
+  graph->set_input_and_output_caches(input_cache, output_cache);
   comm::graphs_info::getInstance().register_graph(query_id, graph);
-
-  auto kernel_filter = graph->get_node(0);
-  auto out_cache = kernel_filter->output_cache();
 
   comm::ucx_message_listener::initialize_message_listener(ucp_context, ucp_worker, nodes_info_map, 1);
   comm::ucx_message_listener::get_instance()->poll_begin_message_tag();
 
-  std::this_thread::sleep_for(std::chrono::seconds(10));
+  auto cache_data = input_cache->pullCacheData();
+  auto gpu_cache_data = static_cast<ral::cache::GPUCacheDataMetaData *>(cache_data.get());
+  auto table_metadata_pair = gpu_cache_data->decacheWithMetaData();
+
+  auto expected_metadata = generate_metadata();
+  EXPECT_TRUE(expected_metadata.get_values() == table_metadata_pair.second.get_values());
+
+  auto expected_table = generate_table_data();
+  cudf::test::expect_tables_equal(expected_table->view(), table_metadata_pair.first->view());
 }
 
 // struct MessageSendReceiveTest : public BlazingUnitTest {
