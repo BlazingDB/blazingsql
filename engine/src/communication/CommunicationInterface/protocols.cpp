@@ -11,14 +11,59 @@
 
 
 #include "execution_graph/logic_controllers/CacheMachine.h"
+#include "blazingdb/transport/io/reader_writer.h"
+
+constexpr size_t NUMBER_RETRIES = 20;
+constexpr size_t FILE_RETRY_DELAY = 20;
+    
 
 namespace io{
-    void read_from_socket(int socket_fd, void * data, size_t read_size){
 
+	
+	void read_from_socket(int socket_fd, void * data, size_t read_size){
+		size_t amount_read = 0;
+		int bytes_read = 0;
+		int count_invalids = 0;
+		while (amount_read < read_size && count_invalids < NUMBER_RETRIES) {
+			bytes_read = read(socket_fd, data + amount_read, read_size - amount_read);
+			if (bytes_read != -1) {
+				amount_read += bytes_read;
+				count_invalids = 0;
+			} else {
+				if (errno == 9) { // Bad socket number
+					std::cerr << "Bad socket reading from  " << socket_fd << std::endl;
+					throw std::runtime_error("Bad socket");
+				}
+				const int sleep_milliseconds = (count_invalids + 1) * FILE_RETRY_DELAY;
+				std::this_thread::sleep_for(std::chrono::milliseconds(sleep_milliseconds));
+				count_invalids++;
+			}
+		}
     }
 
-    void write_to_socket(int socket_fd, void * data, size_t read_size){
-
+    void write_to_socket(int socket_fd, void * data, size_t write_size){
+		size_t amount_written = 0;
+		int bytes_written = 0;
+		int count_invalids = 0;
+		while (amount_written < write_size && count_invalids < NUMBER_RETRIES) {
+			bytes_written = write(socket_fd, data + amount_written, write_size - amount_written);
+			if (bytes_written != -1) {
+				amount_written += bytes_written;
+				count_invalids = 0;
+			} else {
+				if (errno == 9) { // Bad socket number
+					std::cerr << "Bad socket writing to " << socket_fd << std::endl;
+					throw std::runtime_error("Bad socket");
+				}
+				// TODO: add check to make sure that the task was not handlerThread
+				const int sleep_milliseconds = (count_invalids + 1) * FILE_RETRY_DELAY;
+				std::this_thread::sleep_for(
+					std::chrono::milliseconds(sleep_milliseconds));
+				if (count_invalids < 300) {
+					count_invalids++;
+				}
+			}
+		}
     }
 }
 
@@ -169,6 +214,16 @@ void ucx_buffer_transport::send_begin_transmission() {
 	}
 }
 
+void ucx_buffer_transport::increment_frame_transmission() {
+	buffer_transport::increment_frame_transmission();
+	reinterpret_cast<blazing_ucp_tag *>(&tag)->frame_id++;
+}
+
+void ucx_buffer_transport::increment_begin_transmission(){
+	buffer_transport::increment_begin_transmission();
+	reinterpret_cast<blazing_ucp_tag *>(&tag)->frame_id++;
+}
+
 void ucx_buffer_transport::send_impl(const char * buffer, size_t buffer_size) {
 	//std::vector<ucs_status_ptr_t> requests;
 	//blazing_ucp_tag blazing_tag = *reinterpret_cast<blazing_ucp_tag *>(&tag);
@@ -262,7 +317,7 @@ static void flush_callback(void *request, ucs_status_t status)
 }
 
 
-/*
+
 tcp_buffer_transport::tcp_buffer_transport(
         std::vector<node> destinations,
 		ral::cache::MetadataDictionary metadata,
@@ -321,22 +376,22 @@ void tcp_buffer_transport::send_impl(const char * buffer, size_t buffer_size){
 
     //allocate pinned + copy from gpu
     //transmit
-    size_t pinned_buffer_size = getPinnedBufferProvider().sizeBuffers();
+    size_t pinned_buffer_size = blazingdb::transport::io::getPinnedBufferProvider().sizeBuffers();
     size_t num_chunks = (buffer_size +(pinned_buffer_size - 1))/ pinned_buffer_size;
 
-    std::vector<std::future<PinnedBuffer *> > buffers;
+    std::vector<std::future<blazingdb::transport::io::PinnedBuffer *> > buffers;
     for( size_t chunk = 0; chunk < num_chunks; chunk++ ){
         size_t chunk_size = pinned_buffer_size;
         auto buffer_chunk = buffer + (chunk * pinned_buffer_size);
         if(( chunk + 1) == num_chunks){
             chunk_size = buffer_size - (chunk * pinned_buffer_size);
         }
-        buffers.append(
-            std::move(allocate_copy_buffer_pool.push(
+        buffers.push_back(
+            std::move(allocate_copy_buffer_pool->push(
                 [buffer_chunk,chunk_size](int thread_id) {
-                    auto pinned_buffer = getPinnedBufferProvider().getBuffer();
+                    auto pinned_buffer = blazingdb::transport::io::getPinnedBufferProvider().getBuffer();
                     pinned_buffer->use_size =
-                    cudaMemcpyAsync(pinned_buffer->data,buffer_chunk,chunk_size,cuaMemcpyDeviceToHost,pinned_buffer->stream);
+                    cudaMemcpyAsync(pinned_buffer->data,buffer_chunk,chunk_size,cudaMemcpyDeviceToHost,pinned_buffer->stream);
                     return pinned_buffer;
             }))
         );
@@ -351,7 +406,7 @@ void tcp_buffer_transport::send_impl(const char * buffer, size_t buffer_size){
                 io::write_to_socket(socket_fd, pinned_buffer->data,pinned_buffer->use_size);
                 increment_frame_transmission();
             }
-            getPinnedBufferProvider().freeBuffer(pinned_buffer);
+            blazingdb::transport::io::getPinnedBufferProvider().freeBuffer(pinned_buffer);
         }
     }catch(const std::exception & e ){
         throw;
@@ -366,6 +421,6 @@ tcp_buffer_transport::~tcp_buffer_transport(){
 }
 
 
-*/
+
 
 }  // namespace comm

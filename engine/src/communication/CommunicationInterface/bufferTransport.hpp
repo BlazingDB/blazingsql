@@ -85,8 +85,8 @@ public:
 	void wait_until_complete();
 
 	void wait_for_begin_transmission();
-	void increment_frame_transmission();
-	void increment_begin_transmission();
+	virtual void increment_frame_transmission();
+	virtual void increment_begin_transmission();
 protected:
 	virtual void send_impl(const char * buffer, size_t buffer_size) = 0;
 
