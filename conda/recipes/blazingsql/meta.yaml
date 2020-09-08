@@ -28,6 +28,7 @@ requirements:
         - python
         - pip
         - setuptools
+        - spdlog=1.7.0
         - cython >=0.29,<0.30
         - openjdk >=8.0
         - maven
@@ -43,6 +44,7 @@ requirements:
         - python
         - pip
         - setuptools
+        - spdlog=1.7.0
         - cython >=0.29,<0.30
         - openjdk >=8.0
         - maven
