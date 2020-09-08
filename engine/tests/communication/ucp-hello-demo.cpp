@@ -276,7 +276,7 @@ ucp_worker_h CreatetUcpWorker(ucp_context_h ucp_context) {
   ucp_worker_params_t worker_params;
   std::memset(&worker_params, 0, sizeof(worker_params));
   worker_params.field_mask = UCP_WORKER_PARAM_FIELD_THREAD_MODE;
-  worker_params.thread_mode = UCS_THREAD_MODE_MULTI;  // UCS_THREAD_MODE_SINGLE;
+  worker_params.thread_mode = UCS_THREAD_MODE_MULTI;
 
   ucp_worker_h ucp_worker;
   ucs_status_t status =
@@ -293,12 +293,9 @@ UcpWorkerAddress GetUcpWorkerAddress(ucp_worker_h ucp_worker) {
 
   ucs_status_t status = ucp_worker_get_address(
       ucp_worker, &ucpWorkerAddress.address, &ucpWorkerAddress.length);
-  CheckError(status != UCS_OK,
-             "ucp_worker_get_address",
-             [&ucp_worker /*, &ucp_context*/]() {
-               ucp_worker_destroy(ucp_worker);
-               // ucp_cleanup(ucp_context);
-             });
+  CheckError(status != UCS_OK, "ucp_worker_get_address", [&ucp_worker]() {
+    ucp_worker_destroy(ucp_worker);
+  });
 
   return ucpWorkerAddress;
 }
@@ -330,7 +327,7 @@ void Run(Callback &&callback,
   ucs_status_t status = ucp_context_query(ucp_context, &attr);
   CheckError(status != UCS_OK, "ucp_context_query");
 
-  static const std::size_t testStringLength = 10;
+  static const std::size_t testStringLength = std::pow(10, 5);
   callback(
       peerUcpWorkerAddress, ucp_worker, attr.request_size, testStringLength);
 
@@ -509,8 +506,9 @@ private:
     const std::size_t length = package.length() - sizeof(*package.message());
     char *str = reinterpret_cast<char *>(std::calloc(1, length));
     if (str != nullptr) {
-      mem_type_memcpy(str, package.message() + 1, length);
-      os << str;
+      //mem_type_memcpy(str, package.message() + 1, length);
+      //os << str;
+      os << std::dec << length;
       std::free(str);
     } else {
       throw std::runtime_error("Memory allocation failed");
@@ -548,11 +546,11 @@ std::vector<Package> MakePackagesForReceiving(const std::size_t length,
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-char *Send(Package &package,
-           ucp_ep_h ucp_ep,
-           ucp_worker_h ucp_worker,
-           ucp_tag_t tag,
-           const std::size_t requestSize) {
+void Send(Package &package,
+          ucp_ep_h ucp_ep,
+          ucp_worker_h ucp_worker,
+          ucp_tag_t tag,
+          const std::size_t requestSize) {
   char *request = reinterpret_cast<char *>(std::malloc(requestSize));
   ucs_status_t status = ucp_tag_send_nbr(ucp_ep,
                                          package.message(),
@@ -560,22 +558,26 @@ char *Send(Package &package,
                                          ucp_dt_make_contig(1),
                                          tag,
                                          request + requestSize);
-  if (status != UCS_INPROGRESS) {
-    std::cout << ">>> Sender no in progress" << std::endl;
-  }
+  if (status != UCS_INPROGRESS) { return; }
 
   do {
     ucp_worker_progress(ucp_worker);
     status = ucp_request_check_status(request + requestSize);
   } while (status == UCS_INPROGRESS);
-
-  return request;
 }
 
-void Receive(Package &package,
-             ucp_worker_h ucp_worker,
-             ucp_tag_t tag,
-             const std::size_t requestSize) {
+Package
+Receive(ucp_worker_h ucp_worker, ucp_tag_t tag, const std::size_t requestSize) {
+  ucp_tag_message_h tag_message;
+  ucp_tag_recv_info_t recv_info;
+
+  do {
+    ucp_worker_progress(ucp_worker);
+    tag_message = ucp_tag_probe_nb(ucp_worker, tag, tag_mask, 0, &recv_info);
+  } while (tag_message == nullptr);
+
+  Package package = Package::MakeToStore(recv_info.length - sizeof(Message));
+
   char *request = reinterpret_cast<char *>(std::malloc(requestSize));
   ucs_status_t status = ucp_tag_recv_nbr(ucp_worker,
                                          package.message(),
@@ -596,6 +598,8 @@ void Receive(Package &package,
     ucp_tag_recv_info_t info_tag;
     status = ucp_tag_recv_request_test(request + requestSize, &info_tag);
   } while (status == UCS_INPROGRESS);
+
+  return package;
 }
 
 static const std::size_t packagesLength = 10;
@@ -617,6 +621,14 @@ void SenderCall(const UcpWorkerAddress &peerUcpWorkerAddress,
     ++tag;
   }
 
+  // tag = tag_base;
+  // for (std::size_t i = 0; i < packagesLength; i++) {
+  // Package package = Receive(ucp_worker, tag, requestSize);
+  // std::cout << '[' << std::hex << std::this_thread::get_id()
+  //<< "] Message received: " << package << std::endl;
+  //++tag;
+  //}
+
   std::this_thread::sleep_for(std::chrono::seconds(1));
 }
 
@@ -624,23 +636,33 @@ void ReceiverCall(const UcpWorkerAddress &peerUcpWorkerAddress,
                   ucp_worker_h ucp_worker,
                   const std::size_t requestSize,
                   const std::size_t testStringLength) {
-  std::vector<Package> packages =
-      MakePackagesForReceiving(packagesLength, testStringLength);
-
   ucp_tag_t tag = tag_base;
-  for (Package &package : packages) {
-    Receive(package, ucp_worker, tag, requestSize);
+  for (std::size_t i = 0; i < packagesLength; i++) {
+    Package package = Receive(ucp_worker, tag, requestSize);
     std::cout << '[' << std::hex << std::this_thread::get_id()
               << "] Message received: " << package << std::endl;
     ++tag;
   }
+
+  // ucp_ep_h ucp_ep = CreateUcpEp(ucp_worker, peerUcpWorkerAddress);
+  // std::vector<Package> packages =
+  // MakePackagesForSending(packagesLength, testStringLength);
+  // tag = tag_base;
+  // for (Package &package : packages) {
+  // std::thread([&package, tag, ucp_ep, ucp_worker, requestSize]() {
+  // Send(package, ucp_ep, ucp_worker, tag, requestSize);
+  //}).detach();
+  //++tag;
+  //}
+
+  // std::this_thread::sleep_for(std::chrono::seconds(1));
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 int main(int argc, char *argv[]) {
   /**
-   * Compile: g++ -std=c++17 -pthread demo.cc -lucp -lucs
+   * Compile: g++ -std=c++17 -pthread demo2.cc -lucp -lucs
    * Usage
    *   for sender: demo
    *   for receiver: demo localhost
@@ -658,6 +680,48 @@ int main(int argc, char *argv[]) {
     Run(ReceiverCall,
         AddressExchanger::MakeForReceiver(exchangingPort, argv[1]));
   }
+
+  ////////////////////////////////////////////////////////////////////////
+
+  // std::thread senderThread([]() {
+  // Run(SenderCall, AddressExchanger::MakeForSender(exchangingPort));
+  //});
+
+  // std::thread receiverThread([]() {
+  // Run(ReceiverCall,
+  // AddressExchanger::MakeForReceiver(exchangingPort, "localhost"));
+  //});
+
+  // senderThread.join();
+  // receiverThread.join();
+
+  ////////////////////////////////////////////////////////////////////////
+
+  // std::thread senderThread([]() {
+  // Run(SenderCall, AddressExchanger::MakeForSender(exchangingPort));
+  //});
+
+  // std::thread receiverThread([]() {
+  // Run(ReceiverCall,
+  // AddressExchanger::MakeForReceiver(exchangingPort, "localhost"));
+  //});
+
+  // senderThread.detach();
+  // receiverThread.detach();
+
+  // std::this_thread::sleep_for(std::chrono::seconds(2));
+
+  ////////////////////////////////////////////////////////////////////////
+
+  // pid_t pid = fork();
+  // if (pid) {
+  // Run(ReceiverCall,
+  // AddressExchanger::MakeForReceiver(exchangingPort, "localhost"));
+  //} else {
+  // Run(SenderCall, AddressExchanger::MakeForSender(exchangingPort));
+  //}
+
+  // std::this_thread::sleep_for(std::chrono::seconds(2));
 
   return 0;
 }
