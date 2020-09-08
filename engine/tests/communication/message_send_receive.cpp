@@ -717,7 +717,14 @@ static const std::size_t packagesLength = 10;
 // }
 
 std::unique_ptr<ral::frame::BlazingTable> generate_table_data(){
-  cudf::test::fixed_width_column_wrapper<int> col1{{4, 5, 3, 5, 8, 5, 6}};
+  cudf::size_type inputRows = 100'000;
+
+  using T = int32_t;
+  auto sequence1 = cudf::test::make_counting_transform_iterator(0, [](auto row) {
+      return static_cast<T>(row);
+    });
+  cudf::test::fixed_width_column_wrapper<T> col1(sequence1, sequence1 + inputRows);
+
   cudf::table_view orig_table{{col1}};
   std::vector<std::string> columnNames = {"column_1"};
 
