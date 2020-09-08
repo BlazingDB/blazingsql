@@ -52,8 +52,10 @@ source activate bsql
 
 echo "Installing BlazingSQL dev environment"
 
+# NOTE: needing to manually install spdlog here because v1.8 is causing issues https://github.com/gabime/spdlog/issues/1662
+
 # install deps
-echo "conda install --yes -c conda-forge google-cloud-cpp ninja"
+echo "conda install --yes -c conda-forge spdlog=1.7.0 google-cloud-cpp ninja"
 conda install --yes -c conda-forge google-cloud-cpp ninja
 echo "BlazingSQL dev basic deps installed"
 
