@@ -8,6 +8,20 @@ export DASK_DISTRIBUTED__WORKER__MEMORY__Terminate="False"
 export DEVICE_MEMORY_LIMIT="25GB"
 export MAX_SYSTEM_MEMORY=$(free -m | awk '/^Mem:/{print $2}')M
 
+ARG_INTERFACE=wlo1
+ARG_HOSTNAME=ucx://10.0.0.23:8786
+
+while getopts 'i:h:' o; do
+  case "${o}" in
+    h)
+      ARG_HOSTNAME=${OPTARG}
+      ;;
+    i)
+      ARG_INTERFACE=${OPTARG}
+      ;;
+  esac
+done
+
 # Dask-cuda-worker
 
 UCXPY_NON_BLOCKING_MODE=True \
@@ -18,6 +32,6 @@ DASK_UCX__NVLINK=False \
 DASK_UCX__INFINIBAND=False \
 DASK_UCX__RDMACM=False \
 DASK_UCX__REUSE_ENDPOINTS=False \
-     dask-cuda-worker ucx://10.0.0.23:8786 \
-      --interface wlo1 \
-     --enable-tcp-over-ucx --device-memory-limit "4GB" --nthreads=8
+dask-cuda-worker $ARG_HOSTNAME \
+    --interface $ARG_INTERFACE \
+    --enable-tcp-over-ucx --device-memory-limit "4GB" --nthreads=8
