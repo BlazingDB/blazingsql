@@ -717,7 +717,7 @@ static const std::size_t packagesLength = 10;
 // }
 
 std::unique_ptr<ral::frame::BlazingTable> generate_table_data(){
-  cudf::size_type inputRows = 100'000;
+  cudf::size_type inputRows = 1'000'000;
 
   using T = int32_t;
   auto sequence1 = cudf::test::make_counting_transform_iterator(0, [](auto row) {
@@ -763,7 +763,7 @@ void SenderCall(const UcpWorkerAddress &peerUcpWorkerAddress,
   comm::message_sender::get_instance()->run_polling();
 
 
-  std::this_thread::sleep_for(std::chrono::seconds(1));
+  std::this_thread::sleep_for(std::chrono::seconds(10));
 }
 
 void ReceiverCall(const UcpWorkerAddress &peerUcpWorkerAddress,
