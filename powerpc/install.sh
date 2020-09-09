@@ -1,5 +1,6 @@
 #!/bin/bash
 # usage: /new-path/python/environment/
+set -e
 
 VIRTUAL_ENV=$1
 
