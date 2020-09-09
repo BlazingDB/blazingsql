@@ -15,11 +15,11 @@
 
 constexpr size_t NUMBER_RETRIES = 20;
 constexpr size_t FILE_RETRY_DELAY = 20;
-    
+
 
 namespace io{
 
-	
+
 	void read_from_socket(int socket_fd, void * data, size_t read_size){
 		size_t amount_read = 0;
 		int bytes_read = 0;
@@ -225,35 +225,11 @@ void ucx_buffer_transport::increment_begin_transmission(){
 }
 
 void ucx_buffer_transport::send_impl(const char * buffer, size_t buffer_size) {
-	//std::vector<ucs_status_ptr_t> requests;
-	//blazing_ucp_tag blazing_tag = *reinterpret_cast<blazing_ucp_tag *>(&tag);
-	//blazing_tag.frame_id = buffer_sent + 1;	 // 0th position is for the begin_message
-	//for(auto const & node : destinations) {
-		//requests.push_back(ucp_tag_send_nb(node.get_ucp_endpoint(),
-			//buffer,
-			//buffer_size,
-			//ucp_dt_make_contig(1),
-			//*reinterpret_cast<ucp_tag_t *>(&blazing_tag),
-			//send_callback_c));
-	//}
-
-	//for(auto & request : requests) {
-		//if(UCS_PTR_IS_ERR(request)) {
-			//// TODO: decide how to do cleanup i think we just throw an initialization exception
-		//} else if(UCS_PTR_STATUS(request) == UCS_OK) {
-			//increment_frame_transmission();
-		//} else {
-			//// Message was not completed we set the uid for the callback
-			//auto blazing_request = reinterpret_cast<ucx_request *>(&request);
-			//blazing_request->uid = reinterpret_cast<blazing_ucp_tag *>(&tag)->message_id;
-		//}
-	//}
-	// TODO: call ucp_worker_progress here
-
 	blazing_ucp_tag blazing_tag = *reinterpret_cast<blazing_ucp_tag *>(&tag);
   std::vector<char *> requests;
   requests.reserve(destinations.size());
   for (auto const &node : destinations) {
+		std::cout <<"Sending frame size: "<< buffer_size << std::endl;
     char *request = reinterpret_cast<char *>(std::malloc(_request_size));
     ucp_tag_send_nbr(node.get_ucp_endpoint(),
                      buffer,
@@ -264,19 +240,23 @@ void ucx_buffer_transport::send_impl(const char * buffer, size_t buffer_size) {
     requests.push_back(request);
   }
 
+	std::cout <<"All frames send"<< std::endl;
+
   // TODO: add a max attempts
   std::vector<ucs_status_t> statuses;
-  statuses.reserve(destinations.size());
+  statuses.resize(requests.size());
   do {
     ucp_worker_progress(origin_node);
     std::transform(requests.cbegin(),
                    requests.cend(),
-                   std::back_inserter(statuses),
+                   statuses.begin(),
                    [this](char *request) {
                      return ucp_request_check_status(request + _request_size);
                    });
   } while (std::find(statuses.cbegin(), statuses.cend(), UCS_INPROGRESS) !=
            statuses.cend());
+
+	std::cout <<"After progress sending frame"<< std::endl;
 
   for (std::size_t i = 0; i < requests.size(); i++) {
     char *request = requests.at(i);
@@ -286,37 +266,10 @@ void ucx_buffer_transport::send_impl(const char * buffer, size_t buffer_size) {
       std::free(request);
       increment_frame_transmission();
     } else {
-      // Message was not completed we set the uid for the callback
-      auto blazing_request = reinterpret_cast<ucx_request *>(&request);
-      blazing_request->uid =
-          reinterpret_cast<blazing_ucp_tag *>(&tag)->message_id;
+			std::cout<<"Something went wrong while sending frame data"<<std::endl;
     }
   }
 }
-
-
-std::map<void *,std::shared_ptr<status_code> > status_scope_holder;
-
-void send_acknowledge_callback_c(void * request, ucs_status_t status){
-	try{
-		std::cout<<"send ack callback"<<std::endl;
-		status_scope_holder.erase(request);
-		ucp_request_release(request);
-	}
-	catch(const std::exception& e)
-	{
-		std::cerr << "Error in send_acknowledge_callback_c: " << e.what() << '\n';
-	}
-}
-
-
-
-
-static void flush_callback(void *request, ucs_status_t status)
-{
-}
-
-
 
 tcp_buffer_transport::tcp_buffer_transport(
         std::vector<node> destinations,
@@ -419,8 +372,5 @@ tcp_buffer_transport::~tcp_buffer_transport(){
         close(socket_fd);
     }
 }
-
-
-
 
 }  // namespace comm

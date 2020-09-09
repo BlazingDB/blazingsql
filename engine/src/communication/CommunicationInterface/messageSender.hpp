@@ -47,6 +47,8 @@ public:
 	 */
 	void run_polling() {
 		 auto thread = std::thread([this]{
+			 cudaSetDevice(0);
+
 			while(true) {
 				std::unique_ptr<ral::cache::CacheData> cache_data = output_cache->pullCacheData();
 				std::cout<<"pulled cache data"<<std::endl;

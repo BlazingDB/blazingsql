@@ -191,6 +191,8 @@ void tcp_message_listener::start_polling(){
 
 void ucx_message_listener::poll_begin_message_tag(){
 	auto thread = std::thread([this]{
+		cudaSetDevice(0);
+
 		for(;;){
 			std::cout<<"starting poll begin"<<std::endl;
 			std::shared_ptr<ucp_tag_recv_info_t> info_tag = std::make_shared<ucp_tag_recv_info_t>();
