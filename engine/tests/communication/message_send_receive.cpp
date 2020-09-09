@@ -784,7 +784,7 @@ void ReceiverCall(const UcpWorkerAddress &peerUcpWorkerAddress,
   comm::graphs_info::getInstance().register_graph(query_id, graph);
 
   comm::ucx_message_listener::initialize_message_listener(ucp_context, ucp_worker, nodes_info_map, 1);
-  comm::ucx_message_listener::get_instance()->poll_begin_message_tag();
+  comm::ucx_message_listener::get_instance()->poll_begin_message_tag(true);
 
   auto cache_data = input_cache->pullCacheData();
   auto gpu_cache_data = static_cast<ral::cache::GPUCacheDataMetaData *>(cache_data.get());
