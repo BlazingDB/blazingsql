@@ -45,7 +45,7 @@ public:
 
     static void initialize_message_listener(ucp_context_h context, ucp_worker_h worker, const std::map<std::string, comm::node>& nodes, int num_threads);
     static ucx_message_listener * get_instance();
-    void poll_begin_message_tag();
+    void poll_begin_message_tag(bool running_from_unit_test);
     void add_receiver(ucp_tag_t tag,std::shared_ptr<message_receiver> receiver);
     void remove_receiver(ucp_tag_t tag);
     void increment_frame_receiver(ucp_tag_t tag);

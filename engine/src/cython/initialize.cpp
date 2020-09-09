@@ -307,7 +307,7 @@ std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> > initiali
 		comm::ucx_message_listener::initialize_message_listener(
 			ucp_context, self_worker,nodes_info_map,20);
 		std::cout<<"starting polling"<<std::endl;
-		comm::ucx_message_listener::get_instance()->poll_begin_message_tag();
+		comm::ucx_message_listener::get_instance()->poll_begin_message_tag(false);
 
 		std::cout<<"initializing sender"<<std::endl;
 
