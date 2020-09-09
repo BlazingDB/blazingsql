@@ -119,7 +119,7 @@ arrow_install_dir=$tmp_dir
 echo "arrow_install_dir: "$arrow_install_dir
 if [ ! -d arrow ]; then
     echo "### Arrow - start ###"
-    arrow_version=apache-arrow-0.17.1
+    arrow_version=apache-arrow-1.0.1
     git clone --depth 1 https://github.com/apache/arrow.git --branch $arrow_version --single-branch
     cd arrow/
 
