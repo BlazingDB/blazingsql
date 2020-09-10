@@ -440,14 +440,6 @@ public:
 			total_count += std::stoi(static_cast<ral::cache::GPUCacheDataMetaData *>(meta_message.get())->getMetadata().get_values()[ral::cache::PARTITION_COUNT]);
 		}
 
-		//for (auto i = 0; i < partitions.size(); i++) {
-		//		std::string cache_id = "output_" + std::to_string(part_ids[i]);
-		//		this->output_cache(cache_id)->wait_for_count(total_count);
-		//}
-
-
-
-
 		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
 									"query_id"_a=context->getContextToken(),
 									"step"_a=context->getQueryStep(),
