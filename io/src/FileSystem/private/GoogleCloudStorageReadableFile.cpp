@@ -177,8 +177,7 @@ return arrow::Status::OK();
 		//}
 		//		results.GetResult().GetBody().read((char*)(out->get()->mutable_data()), bytesRead);
 
-		std::shared_ptr<arrow::ResizableBuffer> buffer;
-		AllocateResizableBuffer(nbytes, arrow::default_memory_pool());
+		std::shared_ptr<arrow::ResizableBuffer> buffer = AllocateResizableBuffer(nbytes, arrow::default_memory_pool());
 
 		results.read((char *) (buffer->mutable_data()), bytesRead);
 
@@ -293,9 +292,7 @@ arrow::Result<std::shared_ptr<arrow::Buffer>> GoogleCloudStorageReadableFile::Re
 		//}
 		//		results.GetResult().GetBody().read((char*)(out->get()->mutable_data()), bytesRead);
 
-		std::shared_ptr<arrow::ResizableBuffer> buffer;
-		//AllocateResizableBuffer(arrow::default_memory_pool(), nbytes, &buffer);
-		AllocateResizableBuffer(nbytes, arrow::default_memory_pool());
+		std::shared_ptr<arrow::ResizableBuffer> buffer = AllocateResizableBuffer(nbytes, arrow::default_memory_pool());
 
 		results.read((char *) (buffer->mutable_data()), bytesRead);
 
