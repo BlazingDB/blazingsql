@@ -4,7 +4,10 @@ export DASK_DISTRIBUTED__COMM__RETRY__DELAY__MIN="1s"
 export DASK_DISTRIBUTED__COMM__RETRY__DELAY__MAX="60s"
 export DASK_DISTRIBUTED__SCHEDULER__WORK_STEALING=True
 
-
+export UCX_TLS=tcp,sockcm,cuda_copy,cuda_ipc
+export UCX_SOCKADDR_TLS_PRIORITY=sockcm
+export UCX_NET_DEVICES="wlo1"
+export UCX_MEMTYPE_CACHE=n
 
 #Scheduler
 UCXPY_NON_BLOCKING_MODE=True \

@@ -759,7 +759,7 @@ void SenderCall(const UcpWorkerAddress &peerUcpWorkerAddress,
   output_cache->addCacheData(
           std::make_unique<ral::cache::GPUCacheDataMetaData>(generate_table_data(), generate_metadata()), "", true);
 
-  comm::message_sender::initialize_instance(output_cache, nodes_info_map, 1, ucp_context, ucp_worker, 0);
+  comm::message_sender::initialize_instance(output_cache, nodes_info_map, 1, ucp_context, ucp_worker, 0,comm::blazing_protocol::ucx);
   comm::message_sender::get_instance()->run_polling();
 
 
