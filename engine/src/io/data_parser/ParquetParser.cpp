@@ -80,7 +80,6 @@ void parquet_parser::parse_schema(
 	cudf_io::parquet_reader_options pq_args = cudf_io::parquet_reader_options::builder(cudf_io::source_info{&arrow_source});
 
 	pq_args.enable_convert_strings_to_categories(false);
-	pq_args.set_row_groups(std::vector<std::vector<cudf::size_type>>(1, std::vector<cudf::size_type>(1, 0)));
 	
 	pq_args.set_num_rows(1);
 
