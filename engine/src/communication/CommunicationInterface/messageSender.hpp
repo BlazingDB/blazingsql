@@ -34,14 +34,16 @@ public:
 		int num_threads,
 		ucp_context_h context,
 		ucp_worker_h origin,
-		int ral_id);
+		int ral_id,
+		comm::blazing_protocol protocol);
 
 	static void initialize_instance(std::shared_ptr<ral::cache::CacheMachine> output_cache,
 		std::map<std::string, node> node_address_map,
 		int num_threads,
 		ucp_context_h context,
 		ucp_worker_h origin_node,
-		int ral_id);
+		int ral_id,
+		comm::blazing_protocol protocol);
 	/**
 	 * @brief A polling function that listens on a cache for data and send it off via some protocol
 	 */

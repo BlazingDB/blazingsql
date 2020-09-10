@@ -29,13 +29,16 @@ protected:
 class tcp_message_listener : public message_listener {
 
 public:
+    static void initialize_message_listener(const std::map<std::string, comm::node>& nodes, int port, int num_threads);
+    static tcp_message_listener * get_instance();
     void start_polling() override;
     virtual ~tcp_message_listener(){
 
     }
 private:
-    tcp_message_listener(int port, int num_threads);
+    tcp_message_listener(const std::map<std::string, comm::node>& nodes, int port, int num_threads);
     int _port;
+    static tcp_message_listener * instance;
 };
 
 

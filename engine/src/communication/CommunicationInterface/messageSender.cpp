@@ -17,9 +17,10 @@ void message_sender::initialize_instance(std::shared_ptr<ral::cache::CacheMachin
 		int num_threads,
 		ucp_context_h context,
 		ucp_worker_h origin_node,
-		int ral_id){
+		int ral_id,
+		comm::blazing_protocol protocol){
         message_sender::instance = new message_sender(
-            output_cache,node_address_map,num_threads,context,origin_node,ral_id);
+            output_cache,node_address_map,num_threads,context,origin_node,ral_id,protocol);
 }
 
 message_sender::message_sender(std::shared_ptr<ral::cache::CacheMachine> output_cache,
@@ -27,8 +28,9 @@ message_sender::message_sender(std::shared_ptr<ral::cache::CacheMachine> output_
 		int num_threads,
 		ucp_context_h context,
 		ucp_worker_h origin,
-		int ral_id)
-		: ral_id{ral_id}, origin{origin}, output_cache{output_cache}, node_address_map{node_address_map}, pool{num_threads}, protocol{blazing_protocol::ucx}
+		int ral_id,
+		comm::blazing_protocol protocol)
+		: ral_id{ral_id}, origin{origin}, output_cache{output_cache}, node_address_map{node_address_map}, pool{num_threads}, protocol{protocol}
 {
 	request_size = 0;
 	if (protocol == blazing_protocol::ucx)	{

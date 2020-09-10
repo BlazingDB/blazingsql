@@ -262,6 +262,7 @@ void ucx_message_listener::increment_frame_receiver(ucp_tag_t tag){
 	tag_to_receiver[tag]->confirm_transmission();
 }
 ucx_message_listener * ucx_message_listener::instance = nullptr;
+tcp_message_listener * tcp_message_listener::instance = nullptr;
 
 ucx_message_listener::ucx_message_listener(ucp_context_h context, ucp_worker_h worker, const std::map<std::string, comm::node>& nodes, int num_threads) :
 	message_listener(nodes, num_threads), ucp_worker{worker}
@@ -278,9 +279,19 @@ ucx_message_listener::ucx_message_listener(ucp_context_h context, ucp_worker_h w
 	std::cout << "ucx_message_listener request_size: " << _request_size << std::endl;
 }
 
+tcp_message_listener::tcp_message_listener(const std::map<std::string, comm::node>& nodes,int port, int num_threads) : _port{port} , message_listener{nodes,num_threads}{
+
+}
+
 void ucx_message_listener::initialize_message_listener(ucp_context_h context, ucp_worker_h worker, const std::map<std::string, comm::node>& nodes, int num_threads){
 	if(instance == NULL) {
 		instance = new ucx_message_listener(context, worker, nodes, num_threads);
+	}
+}
+
+void tcp_message_listener::initialize_message_listener(const std::map<std::string, comm::node>& nodes, int port, int num_threads){
+	if(instance == NULL){
+		instance = new tcp_message_listener(nodes,port,num_threads);
 	}
 }
 
@@ -289,6 +300,13 @@ void ucx_message_listener::start_polling(){
 }
 
 ucx_message_listener * ucx_message_listener::get_instance() {
+	if(instance == NULL) {
+		throw::std::exception();
+	}
+	return instance;
+}
+
+tcp_message_listener * tcp_message_listener::get_instance() {
 	if(instance == NULL) {
 		throw::std::exception();
 	}
