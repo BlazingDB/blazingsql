@@ -2266,38 +2266,61 @@ class BlazingContext(object):
 
     """
 
-    def partition(self, input, by=[]):
-        masterIndex = 0
-        ctxToken = random.randint(0, np.iinfo(np.int32).max)
-
+    def partition(self, input, by):
+        
         if self.dask_client is None:
-            print("Not supported...")
+            print('ERROR: partition is only supported in distributed mode')
+            return input
         else:
             if not isinstance(input, dask_cudf.core.DataFrame):
-                print("Not supported...")
+                print('ERROR: partition is only supported for dask_cudf.core.DataFrame')
+                return input
             else:
-                partition_keys_mapping = getNodePartitionKeys(input, self.dask_client)
-                df_schema = input._meta
 
-                dask_futures = []
-                for i, node in enumerate(self.nodes):
-                    worker = node["worker"]
-                    dask_futures.append(
-                        self.dask_client.submit(
-                            collectPartitionsPerformPartition,
-                            masterIndex,
-                            self.nodes,
-                            ctxToken,
-                            input,
-                            partition_keys_mapping,
-                            df_schema,
-                            by,
-                            i,  # node number
-                            workers=[worker],
-                        )
-                    )
-                result = dask.dataframe.from_delayed(dask_futures)
-            return result
+                table_id = random.randint(0, np.iinfo(np.int32).max)
+                table_name = "partition_tmp_" + str(table_id)
+
+                input = input.persist()
+                self.create_table(table_name, input)
+
+                column_names = self.tables[table_name].column_names
+                partition_col_indexes_str = "{"
+                if len(by) == 0:
+                    print('ERROR: "by" parameter cannot be empty')
+                    return input
+                else:
+                    for by_col_ind, by_col in enumerate(by):
+                        if isinstance(by_col, str):
+                            if by_col in column_names:
+                                for col_ind, col in enumerate(column_names):
+                                    if col == by_col:
+                                        partition_col_indexes_str += str(col_ind)
+                                        break
+                            else:
+                                print('ERROR: "by" element ' + by_col + ' is not a column name in the input')
+                                return input
+                        elif isinstance(by_col, int):
+                            if by_col < 0 or by_col > len(column_names):
+                                print('ERROR: "by" elements must be either strings (column names) or integers (column indexes)')
+                                return input
+                            else:                            
+                                partition_col_indexes_str += str(by_col)
+                        else:
+                            print('ERROR: "by" elements must be either strings (column names) or integers (column indexes)')
+                            return input
+                        
+                        if by_col_ind < len(by) - 1:
+                            partition_col_indexes_str += ', '
+                    partition_col_indexes_str += '}'
+                    
+                    algebra = f"""SingleTableHashPartition(partition=[{partition_col_indexes_str}])
+  LogicalTableScan(table=[[main, {table_name}]])
+"""
+                    print(algebra)
+                    ddf = self.sql("", algebra=algebra)
+                    self.drop_table(table_name)
+                    return ddf          
+
 
     def sql(
         self,
