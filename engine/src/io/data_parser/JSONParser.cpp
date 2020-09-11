@@ -7,19 +7,19 @@
 namespace ral {
 namespace io {
 
-json_parser::json_parser(cudf::io::read_json_args args) : args(args) {}
+json_parser::json_parser(cudf::io::json_reader_options args) : args(args) {}
 
 json_parser::~json_parser() {
 	// TODO Auto-generated destructor stub
 }
 
 cudf::io::table_with_metadata read_json_file(
-	cudf::io::read_json_args args,
+	cudf::io::json_reader_options args,
 	std::shared_ptr<arrow::io::RandomAccessFile> arrow_file_handle,
 	bool first_row_only = false)
 {
 	auto arrow_source = cudf_io::arrow_io_source{arrow_file_handle};
-	args.source = cudf_io::source_info{&arrow_source};
+	args = cudf::io::json_reader_options::builder(cudf::io::source_info{&arrow_source});
 
 	if(first_row_only) {
 		int64_t num_bytes = arrow_file_handle->GetSize().ValueOrDie();
@@ -29,8 +29,8 @@ cudf::io::table_with_metadata read_json_file(
 			num_bytes = 48192;
 		}
 
-		args.byte_range_offset = 0;
-		args.byte_range_size = num_bytes;
+		args.set_byte_range_offset(0);
+		args.set_byte_range_size(num_bytes);
 	}
 
 	auto table_and_metadata = cudf::io::read_json(args);

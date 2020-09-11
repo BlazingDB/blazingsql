@@ -2,13 +2,14 @@
 #define _BZ_RAL_ARGS_UTIL_H_
 
 #include "io/io.h"
+#include <cudf/io/json.hpp>
 
 namespace ral {
 namespace io {
 
 struct ReaderArgs {
 	cudf_io::read_orc_args orcReaderArg = cudf_io::read_orc_args(cudf_io::source_info(""));
-	cudf_io::read_json_args jsonReaderArg = cudf_io::read_json_args(cudf_io::source_info(""));
+	cudf::io::json_reader_options jsonReaderArg = cudf::io::json_reader_options::builder(cudf::io::source_info(""));
 	cudf_io::read_csv_args csvReaderArg = cudf_io::read_csv_args(cudf_io::source_info(""));
 };
 
