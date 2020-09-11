@@ -1137,6 +1137,8 @@ class BlazingContext(object):
                     NOTE: This parameter only works when used in the
                     BlazingContext
                     default: 'warn'
+            TRANSPORT_BUFFER_BYTE_SIZE : The size in bytes about the pinned buffer memory
+                    default: 75 MBs
 
         Examples
         --------
