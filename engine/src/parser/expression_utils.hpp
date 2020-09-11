@@ -101,6 +101,7 @@ std::vector<size_t> get_projections(const std::string & query_part);
 const std::string LOGICAL_JOIN_TEXT = "LogicalJoin";
 const std::string LOGICAL_PARTWISE_JOIN_TEXT = "PartwiseJoin";
 const std::string LOGICAL_JOIN_PARTITION_TEXT = "JoinPartition";
+const std::string LOGICAL_SINGLE_TABLE_HASH_PARTITION_TEXT = "SingleTableHashPartition";
 const std::string LOGICAL_UNION_TEXT = "LogicalUnion";
 const std::string LOGICAL_SCAN_TEXT = "LogicalTableScan";
 const std::string BINDABLE_SCAN_TEXT = "BindableTableScan";
@@ -136,6 +137,7 @@ bool is_single_node_partition(std::string query_part);
 bool is_join(const std::string & query);
 bool is_pairwise_join(const std::string & query);
 bool is_join_partition(const std::string & query);
+bool is_single_table_hash_partition(const std::string & query);
 bool is_aggregate(std::string query_part); // this is the base Aggregate that gets replaced
 bool is_compute_aggregate(std::string query_part);
 bool is_distribute_aggregate(std::string query_part);

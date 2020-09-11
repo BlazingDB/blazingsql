@@ -20,6 +20,7 @@ std::string get_kernel_type_name(kernel_type type){
         case kernel_type::BindableTableScanKernel: return "BindableTableScanKernel";
         case kernel_type::PartwiseJoinKernel: return "PartwiseJoinKernel";
         case kernel_type::JoinPartitionKernel: return "JoinPartitionKernel";
+        case kernel_type::SingleTableHashPartitionKernel: return "SingleTableHashPartitionKernel";        
         case kernel_type::OutputKernel: return "OutputKernel";
         case kernel_type::PrintKernel: return "PrintKernel";
         case kernel_type::GenerateKernel: return "GenerateKernel";

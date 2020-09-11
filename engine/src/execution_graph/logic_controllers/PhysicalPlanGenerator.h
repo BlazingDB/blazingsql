@@ -97,6 +97,9 @@ struct tree_processor {
 		} else if (is_join_partition(expr)) {
 			k = std::make_shared<JoinPartitionKernel>(kernel_id,expr, kernel_context, query_graph);
 
+		} else if (is_single_table_hash_partition(expr)) {
+			k = std::make_shared<SingleTableHashPartitionKernel>(kernel_id,expr, kernel_context, query_graph);
+
 		} else if (is_union(expr)) {
 			k = std::make_shared<UnionKernel>(kernel_id,expr, kernel_context, query_graph);
 

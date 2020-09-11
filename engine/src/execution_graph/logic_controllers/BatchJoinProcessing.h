@@ -438,6 +438,92 @@ private:
 	std::vector<std::string> result_names;
 };
 
+static void partition_table(std::shared_ptr<Context> local_context,
+				std::vector<cudf::size_type> column_indices,
+				std::unique_ptr<ral::frame::BlazingTable> batch,
+				BatchSequence & sequence,
+				bool normalize_types,
+				const std::vector<cudf::data_type> & join_column_common_types,
+				std::shared_ptr<ral::cache::CacheMachine> output,
+				const std::string & message_id,
+				std::shared_ptr<spdlog::logger> logger)
+{
+	using ColumnDataPartitionMessage = ral::communication::messages::ColumnDataPartitionMessage;
+
+	bool done = false;
+	// num_partitions = context->getTotalNodes() will do for now, but may want a function to determine this in the future.
+	// If we do partition into something other than the number of nodes, then we have to use part_ids and change up more of the logic
+	int num_partitions = local_context->getTotalNodes();
+	std::unique_ptr<CudfTable> hashed_data;
+	std::vector<cudf::size_type> hased_data_offsets;
+	int batch_count = 0;
+	while (!done) {
+		try {
+			if (normalize_types) {
+				ral::utilities::normalize_types(batch, join_column_common_types, column_indices);
+			}
+
+			auto batch_view = batch->view();
+			std::vector<CudfTableView> partitioned;
+			if (batch->num_rows() > 0) {
+				// When is cross_join. `column_indices` is equal to 0, so we need all `batch` columns to apply cudf::hash_partition correctly
+				if (column_indices.size() == 0) {
+					column_indices.resize(batch->num_columns());
+					std::iota(std::begin(column_indices), std::end(column_indices), 0);
+				}
+
+				std::tie(hashed_data, hased_data_offsets) = cudf::hash_partition(batch_view, column_indices, num_partitions);
+
+				assert(hased_data_offsets.begin() != hased_data_offsets.end());
+				// the offsets returned by hash_partition will always start at 0, which is a value we want to ignore for cudf::split
+				std::vector<cudf::size_type> split_indexes(hased_data_offsets.begin() + 1, hased_data_offsets.end());
+				partitioned = cudf::split(hashed_data->view(), split_indexes);
+			} else {
+				for(int nodeIndex = 0; nodeIndex < local_context->getTotalNodes(); nodeIndex++ ){
+					partitioned.push_back(batch_view);
+				}
+			}
+			std::vector<ral::distribution::NodeColumnView > partitions_to_send;
+			for(int nodeIndex = 0; nodeIndex < local_context->getTotalNodes(); nodeIndex++ ){
+				ral::frame::BlazingTableView partition_table_view = ral::frame::BlazingTableView(partitioned[nodeIndex], batch->names());
+				if (local_context->getNode(nodeIndex) == ral::communication::CommunicationData::getInstance().getSelfNode()){
+					// hash_partition followed by split does not create a partition that we can own, so we need to clone it.
+					// if we dont clone it, hashed_data will go out of scope before we get to use the partition
+					// also we need a BlazingTable to put into the cache, we cant cache views.
+					std::unique_ptr<ral::frame::BlazingTable> partition_table_clone = partition_table_view.clone();
+
+					// TODO: create message id and send to add add_to_output_cache
+					output->addToCache(std::move(partition_table_clone), message_id);
+				} else {
+					partitions_to_send.emplace_back(
+						std::make_pair(local_context->getNode(nodeIndex), partition_table_view));
+				}
+			}
+			ral::distribution::distributeTablePartitions(local_context.get(), partitions_to_send);
+
+			if (sequence.wait_for_next()){
+				batch = sequence.next();
+				batch_count++;
+			} else {
+				done = true;
+			}
+		} catch(const std::exception& e) {
+			// TODO add retry here
+			std::string err = "ERROR: in partition_table batch_count " + std::to_string(batch_count) + " Error message: " + std::string(e.what());
+
+			logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+										"query_id"_a=local_context->getContextToken(),
+										"step"_a=local_context->getQueryStep(),
+										"substep"_a=local_context->getQuerySubstep(),
+										"info"_a=err,
+										"duration"_a="");
+			throw;
+		}
+	}
+	//printf("... notifyLastTablePartitions\n");
+	ral::distribution::notifyLastTablePartitions(local_context.get(), ColumnDataPartitionMessage::MessageID());
+}
+
 
 class JoinPartitionKernel : public kernel {
 public:
@@ -469,91 +555,7 @@ public:
 													right_join_types.cbegin(), right_join_types.cend());
 	}
 
-	static void partition_table(std::shared_ptr<Context> local_context,
-				std::vector<cudf::size_type> column_indices,
-				std::unique_ptr<ral::frame::BlazingTable> batch,
-				BatchSequence & sequence,
-				bool normalize_types,
-				const std::vector<cudf::data_type> & join_column_common_types,
-				std::shared_ptr<ral::cache::CacheMachine> & output,
-				const std::string & message_id,
-				std::shared_ptr<spdlog::logger> logger)
-	{
-		using ColumnDataPartitionMessage = ral::communication::messages::ColumnDataPartitionMessage;
-
-		bool done = false;
-		// num_partitions = context->getTotalNodes() will do for now, but may want a function to determine this in the future.
-		// If we do partition into something other than the number of nodes, then we have to use part_ids and change up more of the logic
-		int num_partitions = local_context->getTotalNodes();
-		std::unique_ptr<CudfTable> hashed_data;
-		std::vector<cudf::size_type> hased_data_offsets;
-		int batch_count = 0;
-		while (!done) {
-			try {
-				if (normalize_types) {
-					ral::utilities::normalize_types(batch, join_column_common_types, column_indices);
-				}
-
-				auto batch_view = batch->view();
-				std::vector<CudfTableView> partitioned;
-				if (batch->num_rows() > 0) {
-					// When is cross_join. `column_indices` is equal to 0, so we need all `batch` columns to apply cudf::hash_partition correctly
-					if (column_indices.size() == 0) {
-						column_indices.resize(batch->num_columns());
-						std::iota(std::begin(column_indices), std::end(column_indices), 0);
-					}
-
-					std::tie(hashed_data, hased_data_offsets) = cudf::hash_partition(batch_view, column_indices, num_partitions);
-
-					assert(hased_data_offsets.begin() != hased_data_offsets.end());
-					// the offsets returned by hash_partition will always start at 0, which is a value we want to ignore for cudf::split
-					std::vector<cudf::size_type> split_indexes(hased_data_offsets.begin() + 1, hased_data_offsets.end());
-					partitioned = cudf::split(hashed_data->view(), split_indexes);
-				} else {
-					for(int nodeIndex = 0; nodeIndex < local_context->getTotalNodes(); nodeIndex++ ){
-						partitioned.push_back(batch_view);
-					}
-				}
-				std::vector<ral::distribution::NodeColumnView > partitions_to_send;
-				for(int nodeIndex = 0; nodeIndex < local_context->getTotalNodes(); nodeIndex++ ){
-					ral::frame::BlazingTableView partition_table_view = ral::frame::BlazingTableView(partitioned[nodeIndex], batch->names());
-					if (local_context->getNode(nodeIndex) == ral::communication::CommunicationData::getInstance().getSelfNode()){
-						// hash_partition followed by split does not create a partition that we can own, so we need to clone it.
-						// if we dont clone it, hashed_data will go out of scope before we get to use the partition
-						// also we need a BlazingTable to put into the cache, we cant cache views.
-						std::unique_ptr<ral::frame::BlazingTable> partition_table_clone = partition_table_view.clone();
-
-						// TODO: create message id and send to add add_to_output_cache
-						output->addToCache(std::move(partition_table_clone), message_id);
-					} else {
-						partitions_to_send.emplace_back(
-							std::make_pair(local_context->getNode(nodeIndex), partition_table_view));
-					}
-				}
-				ral::distribution::distributeTablePartitions(local_context.get(), partitions_to_send);
-
-				if (sequence.wait_for_next()){
-					batch = sequence.next();
-					batch_count++;
-				} else {
-					done = true;
-				}
-			} catch(const std::exception& e) {
-				// TODO add retry here
-				std::string err = "ERROR: in partition_table batch_count " + std::to_string(batch_count) + " Error message: " + std::string(e.what());
-
-				logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
-											"query_id"_a=local_context->getContextToken(),
-											"step"_a=local_context->getQueryStep(),
-											"substep"_a=local_context->getQuerySubstep(),
-											"info"_a=err,
-											"duration"_a="");
-				throw;
-			}
-		}
-		//printf("... notifyLastTablePartitions\n");
-		ral::distribution::notifyLastTablePartitions(local_context.get(), ColumnDataPartitionMessage::MessageID());
-	}
+	
 
 	std::pair<bool, bool> determine_if_we_are_scattering_a_small_table(const ral::frame::BlazingTableView & left_batch_view,
 		const ral::frame::BlazingTableView & right_batch_view ){
@@ -726,7 +728,7 @@ public:
 
 		computeNormalizationData(left_batch->get_schema(), right_batch->get_schema());
 
-		BlazingMutableThread distribute_left_thread(&JoinPartitionKernel::partition_table, this->context,
+		BlazingMutableThread distribute_left_thread(&partition_table, this->context,
 			this->left_column_indices, std::move(left_batch), std::ref(left_sequence), this->normalize_left, this->join_column_common_types,
 			std::ref(this->output_.get_cache("output_a")), "output_a_" + this->get_message_id(),
 			this->logger);
@@ -744,7 +746,7 @@ public:
 		auto cloned_context = context->clone();
 		cloned_context->incrementQuerySubstep();
 
-		BlazingMutableThread distribute_right_thread(&JoinPartitionKernel::partition_table, cloned_context,
+		BlazingMutableThread distribute_right_thread(&partition_table, cloned_context,
 			this->right_column_indices, std::move(right_batch), std::ref(right_sequence), this->normalize_right, this->join_column_common_types,
 			std::ref(this->output_.get_cache("output_b")), "output_b_" + this->get_message_id(),
 			this->logger);
@@ -932,6 +934,92 @@ private:
 	std::vector<cudf::size_type> left_column_indices, right_column_indices;
 	std::vector<cudf::data_type> join_column_common_types;
 	bool normalize_left, normalize_right;
+};
+
+
+
+
+class SingleTableHashPartitionKernel : public kernel {
+public:
+	SingleTableHashPartitionKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
+		: kernel{kernel_id, queryString, context, kernel_type::SingleTableHashPartitionKernel} {
+		this->query_graph = query_graph;
+	
+		auto rangeStart = queryString.find("(");
+		auto rangeEnd = queryString.rfind(")") - rangeStart;
+		std::string expression = queryString.substr(rangeStart + 1, rangeEnd - 1);
+
+		std::string temp_column_string = get_named_expression(expression, "partition");
+		
+		if(temp_column_string.size() <= 2) {
+			partition_column_indices = std::vector<cudf::size_type>(1,0);
+		}
+
+		// Now we have somethig like {0, 1}
+		temp_column_string = temp_column_string.substr(1, temp_column_string.length() - 2);
+		std::vector<std::string> column_numbers_string = StringUtil::split(temp_column_string, ",");
+		partition_column_indices.resize(column_numbers_string.size());
+		for(int i = 0; i < column_numbers_string.size(); i++) {
+			partition_column_indices[i] = std::stoull(column_numbers_string[i], 0);
+		}		
+	}
+
+	bool can_you_throttle_my_input() {
+		return false;
+	}
+
+	virtual kstatus run() {
+		CodeTimer timer;
+
+		bool ordered = false; // If we start using sort based aggregations this may need to change
+        BatchSequence input(this->input_cache(), this, ordered);
+
+		std::unique_ptr<ral::frame::BlazingTable> batch = input.next();
+		
+		if (batch == nullptr || batch->num_columns() == 0){
+			while (input.wait_for_next()){
+				batch = input.next();
+				if (batch != nullptr && batch->num_columns() > 0){
+					break;
+				}
+			}
+		}
+		std::vector<cudf::data_type> join_column_common_types; // not used
+
+		BlazingMutableThread distribute_thread(&partition_table, this->context,
+			this->partition_column_indices, std::move(batch), std::ref(input), false, join_column_common_types,
+			this->output_cache(), "output_" + this->get_message_id(),
+			this->logger);
+
+		BlazingThread consumer_thread([context = this->context, this](){
+			ExternalBatchColumnDataSequence<ral::communication::messages::ColumnDataPartitionMessage> external_input(
+				this->context, this->get_message_id(), this);
+			std::unique_ptr<ral::frame::BlazingHostTable> host_table;
+
+			while (host_table = external_input.next()) {
+				this->add_to_output_cache(std::move(host_table));
+			}
+		});
+
+		distribute_thread.join();
+		consumer_thread.join();
+
+
+		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="SingleTableHashPartitionKernel Completed",
+									"duration"_a=timer.elapsed_time(),
+									"kernel_id"_a=this->get_id());
+
+		return kstatus::proceed;
+	}
+
+private:
+	// parsed expression related parameters
+	std::vector<cudf::size_type> partition_column_indices;
+	
 };
 
 

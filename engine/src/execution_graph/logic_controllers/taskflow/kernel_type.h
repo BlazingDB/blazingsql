@@ -21,6 +21,7 @@ enum class kernel_type {
 	BindableTableScanKernel,
 	PartwiseJoinKernel,
 	JoinPartitionKernel,
+	SingleTableHashPartitionKernel,
 	OutputKernel,
 	PrintKernel,
 	GenerateKernel,
