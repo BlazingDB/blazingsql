@@ -17,7 +17,7 @@
 #include <cudf/stream_compaction.hpp>
 #include <cudf/partitioning.hpp>
 #include <cudf/join.hpp>
-#include "error.hpp"
+#include "utilities/DebuggingUtils.h"
 
 namespace ral {
 namespace batch {
@@ -91,6 +91,7 @@ public:
 			left_schema = std::make_unique<TableSchema>(table->get_schema(),  table->names());
 		}
 		if (table == nullptr) {
+			std::cout << ">>>>>>>>>>>> load_left_set  EMPTY"<<std::endl;
 			return ral::frame::createEmptyBlazingTable(left_schema->column_types, left_schema->column_names);
 		}
 		return std::move(table);
@@ -103,6 +104,7 @@ public:
 			right_schema = std::make_unique<TableSchema>(table->get_schema(),  table->names());
 		}
 		if (table == nullptr) {
+			std::cout << ">>>>>>>>>>>> load_right_set  EMPTY"<<std::endl;
 			return ral::frame::createEmptyBlazingTable(right_schema->column_types, right_schema->column_names);
 		}
 		return std::move(table);
@@ -261,10 +263,18 @@ public:
 					this->left_sequence.wait_for_next();
 					this->right_sequence.wait_for_next();
 
+					std::cout << ">>>>>>>>>>>> JOIN BEGIN "<<std::endl;
+
 					left_batch = load_left_set();
 					right_batch = load_right_set();
 					this->max_left_ind = 0; // we have loaded just once. This is the highest index for now
 					this->max_right_ind = 0; // we have loaded just once. This is the highest index for now
+
+
+
+					ral::utilities::print_blazing_table_view(left_batch->toBlazingTableView(), "LEFT");
+					ral::utilities::print_blazing_table_view(right_batch->toBlazingTableView(), "RIGHT");
+
 
 					// parsing more of the expression here because we need to have the number of columns of the tables
 					std::vector<int> column_indices;
@@ -350,6 +360,12 @@ public:
 					auto log_input_num_bytes = left_batch->sizeInBytes() + right_batch->sizeInBytes();
 
 					std::unique_ptr<ral::frame::BlazingTable> joined = join_set(left_batch->toBlazingTableView(), right_batch->toBlazingTableView());
+
+					std::cout << ">>>>>>>>>>>> JOIN left idx : "<< left_ind << "  right idx : " << right_ind <<std::endl;
+					ral::utilities::print_blazing_table_view(left_batch->toBlazingTableView(), "LEFT");
+					ral::utilities::print_blazing_table_view(right_batch->toBlazingTableView(), "RIGHT");
+					ral::utilities::print_blazing_table_view(joined->toBlazingTableView(), "JOIN");
+
 
 					auto log_output_num_rows = joined->num_rows();
 					auto log_output_num_bytes = joined->sizeInBytes();
@@ -531,6 +547,9 @@ public:
 						// if we dont clone it, hashed_data will go out of scope before we get to use the partition
 						// also we need a BlazingTable to put into the cache, we cant cache views.
 						std::unique_ptr<ral::frame::BlazingTable> partition_table_clone = partition_table_view.clone();
+
+							std::cout << ">>>>>>>>>>>> LOCAL PARTITION " << cache_id <<std::endl;
+						ral::utilities::print_blazing_table_view(partition_table_clone->toBlazingTableView(), "LOCAL PARITION " + cache_id);
 
 						output->addToCache(std::move(partition_table_clone), cache_id + "_" + kernel_id,true);
 						node_count[self_node.id()]++;
