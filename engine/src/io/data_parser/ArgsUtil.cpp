@@ -78,21 +78,21 @@ std::vector<int> to_vector_int(std::string value) {
 
 void getReaderArgJson(std::map<std::string, std::string> args, ReaderArgs & readerArg) {
 	std::vector<std::string> dtypes;
-	readerArg.jsonReaderArg.lines = true;
+	readerArg.jsonReaderArg.enable_lines(true);
 	if(in("dtype", args)) {
-		readerArg.jsonReaderArg.dtype = to_vector_string(args["dtype"]);
+		readerArg.jsonReaderArg.dtypes(to_vector_string(args["dtype"]));
 	}
 	if(in("compression", args)) {
-		readerArg.jsonReaderArg.compression = static_cast<cudf_io::compression_type>(to_int(args["compression"]));
+		readerArg.jsonReaderArg.compression(static_cast<cudf_io::compression_type>(to_int(args["compression"])));
 	}
 	if(in("lines", args)) {
-		readerArg.jsonReaderArg.lines = to_bool(args["lines"]);
+		readerArg.jsonReaderArg.enable_lines(to_bool(args["lines"]));
 	}
 	if(in("byte_range_offset", args)) {
-		readerArg.jsonReaderArg.byte_range_offset = (size_t) to_int(args["byte_range_offset"]);
+		readerArg.jsonReaderArg.set_byte_range_offset( (size_t) to_int(args["byte_range_offset"]) );
 	}
 	if(in("byte_range_size", args)) {
-		readerArg.jsonReaderArg.byte_range_size = (size_t) to_int(args["byte_range_size"]);
+		readerArg.jsonReaderArg.set_byte_range_size( (size_t) to_int(args["byte_range_size"]) );
 	}
 }
 
@@ -112,7 +112,7 @@ void getReaderArgOrc(std::map<std::string, std::string> args, ReaderArgs & reade
 		readerArg.orcReaderArg.use_index = true;
 	}
 	if(in("byte_range_size", args)) {
-		readerArg.jsonReaderArg.byte_range_size = (size_t) to_int(args["byte_range_size"]);
+		readerArg.jsonReaderArg.set_byte_range_size( (size_t) to_int(args["byte_range_size"]) );
 	}
 }
 
