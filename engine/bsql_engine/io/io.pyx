@@ -201,7 +201,6 @@ cpdef getProductDetailsCaller():
 
     return new_map
 
-
 cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns, ignore_missing_paths):
     cdef vector[string] files
     for file in fileList:
@@ -269,7 +268,6 @@ cpdef parseMetadataCaller(fileList, offset, schema, file_format_hint, args):
     df = cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTable), decoded_names)._data)
     df._rename_columns(decoded_names)
     return df
-
 
 cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  table_scans, vector[int] fileTypes, int ctxToken, queryPy, unsigned long accessToken, map[string,string] config_options, bool is_single_node):
     cdef string query
