@@ -2247,7 +2247,7 @@ class BlazingContext(object):
     ----------
 
     input : the dask_cudf.DataFrame you want to partition
-    by : a list of strings of the column names by which you want to partition.
+    partition_by : a list of strings of the column names by which you want to partition.
 
     Examples
     --------
@@ -2258,7 +2258,7 @@ class BlazingContext(object):
         FROM product_reviews where pr_review_content IS NOT NULL"
     >>> product_reviews_df = bc.sql(query_1)
     >>> product_reviews_df = bc.partition(product_reviews_df,
-                                by=["pr_item_sk",
+                                ["pr_item_sk",
                                     "pr_review_content",
                                     "pr_review_sk"])
     >>> sentences = product_reviews_df.map_partitions(
@@ -2266,7 +2266,7 @@ class BlazingContext(object):
 
     """
 
-    def partition(self, input, by):
+    def partition(self, input, partition_by):
         
         if self.dask_client is None:
             print('ERROR: partition is only supported in distributed mode')
@@ -2285,11 +2285,11 @@ class BlazingContext(object):
 
                 column_names = self.tables[table_name].column_names
                 partition_col_indexes_str = "{"
-                if len(by) == 0:
-                    print('ERROR: "by" parameter cannot be empty')
+                if len(partition_by) == 0:
+                    print('ERROR: "partition_by" parameter cannot be empty')
                     return input
                 else:
-                    for by_col_ind, by_col in enumerate(by):
+                    for by_col_ind, by_col in enumerate(partition_by):
                         if isinstance(by_col, str):
                             if by_col in column_names:
                                 for col_ind, col in enumerate(column_names):
@@ -2297,19 +2297,19 @@ class BlazingContext(object):
                                         partition_col_indexes_str += str(col_ind)
                                         break
                             else:
-                                print('ERROR: "by" element ' + by_col + ' is not a column name in the input')
+                                print('ERROR: "partition_by" element ' + by_col + ' is not a column name in the input')
                                 return input
                         elif isinstance(by_col, int):
                             if by_col < 0 or by_col > len(column_names):
-                                print('ERROR: "by" elements must be either strings (column names) or integers (column indexes)')
+                                print('ERROR: "partition_by" element ' + str(by_col) + ' is out of range')
                                 return input
                             else:                            
                                 partition_col_indexes_str += str(by_col)
                         else:
-                            print('ERROR: "by" elements must be either strings (column names) or integers (column indexes)')
+                            print('ERROR: "partition_by" elements must be either strings (column names) or integers (column indexes)')
                             return input
                         
-                        if by_col_ind < len(by) - 1:
+                        if by_col_ind < len(partition_by) - 1:
                             partition_col_indexes_str += ', '
                     partition_col_indexes_str += '}'
                     
