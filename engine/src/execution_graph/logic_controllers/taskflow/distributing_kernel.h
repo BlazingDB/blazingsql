@@ -78,6 +78,21 @@ class distributing_kernel : public kernel {
         std::size_t message_tracker_idx = 0);
 
     /**
+     * @brief Sends same table to all other nodes.
+     *
+     * @param table_view The table view to be sent.
+     * @param output The output cache.
+     * @param message_id_prefix The prefix of the identifier of this message.
+     * @param cache_id Indicates what cache a message should be routed to.
+     * @param message_tracker_idx The message tracker index.
+     */
+    void broadcast(ral::frame::BlazingTableView table_view,
+        ral::cache::CacheMachine* output,
+        std::string message_id_prefix,
+        std::string cache_id,
+        std::size_t message_tracker_idx = 0);
+
+    /**
      * @brief Sends the partition counter to all other nodes.
      *
      * @param message_id_prefix The prefix of the identifier of this message.

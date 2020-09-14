@@ -833,32 +833,14 @@ public:
 			while (!done) {
 				try {
 					if(small_table_batch != nullptr ) {
-						// ral::distribution::scatterData(this->context.get(), small_table_batch->toBlazingTableView());
-
-						int self_node_idx = context->getNodeIndex(self_node);
-						auto nodes_to_send = context->getAllOtherNodes(self_node_idx);
-						std::string worker_ids_metadata;
-						for (auto i = 0; i < nodes_to_send.size(); i++)	{
-							if(nodes_to_send[i].id() != self_node.id()){
-								worker_ids_metadata += nodes_to_send[i].id();
-								if (i < nodes_to_send.size() - 1) {
-									worker_ids_metadata += ",";
-								}
-								increment_node_count(nodes_to_send[i].id(), 0);
-							}
-						}
-						increment_node_count(self_node.id(), 0);
-
-						send_message(std::move(small_table_batch->toBlazingTableView().clone()),
-							"true", //specific_cache
-							small_output_cache_name, //cache_id
-							worker_ids_metadata, //target_id
-							"", //total_rows
+						broadcast(small_table_batch->toBlazingTableView(),
+							this->output_.get_cache(small_output_cache_name).get(),
 							"", //message_id_prefix
-							true); //always_add
-
-						this->output_.get_cache(small_output_cache_name).get()->addToCache(std::move(small_table_batch),"",true);
+							small_output_cache_name, //cache_id
+							0 //message_tracker_idx
+						);
 					}
+
 					if (small_table_sequence.wait_for_next()){
 						small_table_batch = small_table_sequence.next();
 						batch_count++;
