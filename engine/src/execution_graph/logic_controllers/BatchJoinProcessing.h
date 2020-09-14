@@ -449,7 +449,7 @@ public:
 	JoinPartitionKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
 		: distributing_kernel{kernel_id, queryString, context, kernel_type::JoinPartitionKernel} {
 		this->query_graph = query_graph;
-		set_number_of_message_trackers(3); //default
+		set_number_of_message_trackers(2); //default for left and right partitions
 
 		this->input_.add_port("input_a", "input_b");
 		this->output_.add_port("output_a", "output_b");
@@ -533,44 +533,9 @@ public:
 				scatter(partitions,
 					this->output_.get_cache().get(),
 					"", //message_id_prefix
-					"" //cache_id
+					"", //cache_id
+					table_idx  //message_tracker_idx
 				);
-
-				std::vector<ral::distribution::NodeColumnView > partitions_to_send;
-				for(int nodeIndex = 0; nodeIndex < local_context->getTotalNodes(); nodeIndex++ ){
-					ral::frame::BlazingTableView partition_table_view = ral::frame::BlazingTableView(partitioned[nodeIndex], batch->names());
-					if (local_context->getNode(nodeIndex) == self_node){
-						// hash_partition followed by split does not create a partition that we can own, so we need to clone it.
-						// if we dont clone it, hashed_data will go out of scope before we get to use the partition
-						// also we need a BlazingTable to put into the cache, we cant cache views.
-						std::unique_ptr<ral::frame::BlazingTable> partition_table_clone = partition_table_view.clone();
-
-						output->addToCache(std::move(partition_table_clone), cache_id + "_" + kernel_id,true);
-						increment_node_count(self_node.id(), 0);
-					} else {
-						partitions_to_send.emplace_back(
-							std::make_pair(local_context->getNode(nodeIndex), partition_table_view));
-					}
-				}
-
-				for (auto i = 0; i < partitions_to_send.size(); i++) {
-					blazingdb::transport::Node dest_node;
-					ral::frame::BlazingTableView table_view;
-					std::tie(dest_node, table_view) = partitions_to_send[i];
-					if(dest_node == self_node ) {
-						continue;
-					}
-
-					send_message(std::move(table_view.clone()),
-						"true", //specific_cache
-						cache_id, //cache_id
-						dest_node.id(), //target_id
-						"", //total_rows
-						"", //message_id_prefix
-						true); //always_add
-
-					increment_node_count(dest_node.id(), 0);
-				}
 
 				if (sequence.wait_for_next()){
 					batch = sequence.next();
@@ -592,7 +557,7 @@ public:
 			}
 		}
 
-		send_total_partition_counts(std::to_string(table_idx) + "partition_", cache_id, 0);
+		send_total_partition_counts(std::to_string(table_idx) + "partition_", cache_id, table_idx);
 	}
 
 	std::pair<bool, bool> determine_if_we_are_scattering_a_small_table(const ral::frame::BlazingTableView & left_batch_view,
