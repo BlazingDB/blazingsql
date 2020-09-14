@@ -1517,29 +1517,29 @@ class BlazingContext(object):
 
     def get_free_memory(self):
         """
-            This function returns a dictionary which contains as
-            key the gpuID and as value the free memory (bytes)
+        This function returns a dictionary which contains as
+        key the gpuID and as value the free memory (bytes)
 
-            Example
-            --------
-            # single-GPU
-            >>> from blazingsql import BlazingContext
-            >>> bc = BlazingContext()
-            >>> free_mem = bc.get_free_memory()
-            >>> print(free_mem)
-                    {0: 4234220154}
+        Example
+        --------
+        # single-GPU
+        >>> from blazingsql import BlazingContext
+        >>> bc = BlazingContext()
+        >>> free_mem = bc.get_free_memory()
+        >>> print(free_mem)
+                {0: 4234220154}
 
-            # multi-GPU (4 GPUs):
-            >>> from blazingsql import BlazingContext
-            >>> from dask_cuda import LocalCUDACluster
-            >>> from dask.distributed import Client
-            >>> cluster = LocalCUDACluster()
-            >>> client = Client(cluster)
-            >>> bc = BlazingContext(dask_client=client, network_interface='lo')
-            >>> free_mem = bc.get_free_memory()
-            >>> print(free_mem)
-                    {0: 4234220154, 1: 4104210987,
-                     2: 4197720291, 3: 3934320116}
+        # multi-GPU (4 GPUs):
+        >>> from blazingsql import BlazingContext
+        >>> from dask_cuda import LocalCUDACluster
+        >>> from dask.distributed import Client
+        >>> cluster = LocalCUDACluster()
+        >>> client = Client(cluster)
+        >>> bc = BlazingContext(dask_client=client, network_interface='lo')
+        >>> free_mem = bc.get_free_memory()
+        >>> print(free_mem)
+                {0: 4234220154, 1: 4104210987,
+                 2: 4197720291, 3: 3934320116}
         """
         if self.dask_client:
             dask_futures = []
@@ -2240,13 +2240,13 @@ class BlazingContext(object):
     """
 
     def partition(self, input, partition_by):
-        
+
         if self.dask_client is None:
-            print('ERROR: partition is only supported in distributed mode')
+            print("ERROR: partition is only supported in distributed mode")
             return input
         else:
             if not isinstance(input, dask_cudf.core.DataFrame):
-                print('ERROR: partition is only supported for dask_cudf.core.DataFrame')
+                print("ERROR: partition is only supported for dask_cudf.core.DataFrame")
                 return input
             else:
 
@@ -2270,30 +2270,39 @@ class BlazingContext(object):
                                         partition_col_indexes_str += str(col_ind)
                                         break
                             else:
-                                print('ERROR: "partition_by" element ' + by_col + ' is not a column name in the input')
+                                print(
+                                    'ERROR: "partition_by" element '
+                                    + by_col
+                                    + " is not a column name in the input"
+                                )
                                 return input
                         elif isinstance(by_col, int):
                             if by_col < 0 or by_col > len(column_names):
-                                print('ERROR: "partition_by" element ' + str(by_col) + ' is out of range')
+                                print(
+                                    'ERROR: "partition_by" element '
+                                    + str(by_col)
+                                    + " is out of range"
+                                )
                                 return input
-                            else:                            
+                            else:
                                 partition_col_indexes_str += str(by_col)
                         else:
-                            print('ERROR: "partition_by" elements must be either strings (column names) or integers (column indexes)')
+                            print(
+                                'ERROR: "partition_by" elements must be either strings (column names) or integers (column indexes)'
+                            )
                             return input
-                        
+
                         if by_col_ind < len(partition_by) - 1:
-                            partition_col_indexes_str += ', '
-                    partition_col_indexes_str += '}'
-                    
+                            partition_col_indexes_str += ", "
+                    partition_col_indexes_str += "}"
+
                     algebra = f"""SingleTableHashPartition(partition=[{partition_col_indexes_str}])
   LogicalTableScan(table=[[main, {table_name}]])
 """
                     print(algebra)
                     ddf = self.sql("", algebra=algebra)
                     self.drop_table(table_name)
-                    return ddf          
-
+                    return ddf
 
     def sql(
         self,
@@ -2500,7 +2509,9 @@ class BlazingContext(object):
                     self.dask_client.submit(
                         collectPartitionsRunQuery,
                         masterIndex,
-                        [self.nodes[0],],
+                        [
+                            self.nodes[0],
+                        ],
                         nodeTableList[0],
                         table_scans,
                         fileTypes,
