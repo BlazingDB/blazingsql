@@ -8,6 +8,7 @@
 
 ## Bug Fixes
 - #975 Fixed issue due to cudf orc api change 
+- #1011 Fix bc.partition
 
 
 # BlazingSQL 0.15.0 (August 31, 2020)
