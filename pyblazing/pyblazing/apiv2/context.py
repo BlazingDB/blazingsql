@@ -305,33 +305,6 @@ def collectPartitionsRunQuery(
     return query_partids, meta, worker.name
 
 
-def collectPartitionsPerformPartition(
-    masterIndex, nodes, ctxToken, input, partition_keys_mapping, df_schema, by, i
-):
-    import dask.distributed
-
-    worker = dask.distributed.get_worker()
-    worker_id = nodes[i]["worker"]
-
-    if worker_id in partition_keys_mapping:
-        partition_keys = partition_keys_mapping[worker_id]
-        if len(partition_keys) > 1:
-            node_inputs = []
-            for key in partition_keys:
-                node_inputs.append(worker.data[key])
-            # TODO, eventually we want the engine side of the
-            # partition function to handle the table in parts
-            node_input = cudf.concat(node_inputs)
-        elif len(partition_keys) == 1:
-            node_input = worker.data[partition_keys[0]]
-        else:
-            node_input = df_schema
-    else:
-        node_input = df_schema
-
-    return cio.performPartitionCaller(masterIndex, nodes, ctxToken, node_input, by)
-
-
 # returns a map of table names to the indices of the columns needed.
 # If there are more than one table scan for one table, it merged the
 # needed columns if the column list is empty, it means we want all columns

@@ -192,61 +192,6 @@ std::unique_ptr<PartitionedResultSet> runQuery(int32_t masterIndex,
 	}
 }
 
-std::unique_ptr<ResultSet> performPartition(int32_t masterIndex,
-	std::vector<NodeMetaDataTCP> tcpMetadata,
-	int32_t ctxToken,
-	const ral::frame::BlazingTableView & table,
-	std::vector<std::string> column_names) {
-
-	try {
-		std::unique_ptr<ResultSet> result = std::make_unique<ResultSet>();
-
-		std::vector<int> columnIndices;
-
-		using blazingdb::manager::Context;
-		using blazingdb::transport::Node;
-
-		std::vector<Node> contextNodes;
-		for(auto currentMetadata : tcpMetadata) {
-			auto address =
-				blazingdb::transport::Address::TCP(currentMetadata.ip, currentMetadata.communication_port, 0);
-			contextNodes.push_back(Node(address));
-		}
-
-		Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], "", std::map<std::string, std::string>()};
-		ral::communication::network::Server::getInstance().registerContext(ctxToken);
-
-		const std::vector<std::string> & table_col_names = table.names();
-
-		for(auto col_name:column_names){
-			auto it = std::find(table_col_names.begin(), table_col_names.end(), col_name);
-			if(it != table_col_names.end()){
-				columnIndices.push_back(std::distance(table_col_names.begin(), it));
-			}
-		}
-
-		std::unique_ptr<ral::frame::BlazingTable> frame = ral::processor::process_distribution_table(
-			table, columnIndices, &queryContext);
-
-		result->names = frame->names();
-		result->cudfTable = frame->releaseCudfTable();
-		result->skipdata_analysis_fail = false;
-		return result;
-
-	} catch(const std::exception & e) {
-		std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
-		logger->error("|||{info}|||||",
-									"info"_a="In performPartition. What: {}"_format(e.what()));
-		logger->flush();
-
-		std::cerr << "**[performPartition]** error partitioning table.\n";
-		std::cerr << e.what() << std::endl;
-		throw;
-	}
-}
-
-
-
 std::unique_ptr<ResultSet> runSkipData(ral::frame::BlazingTableView metadata, 
 	std::vector<std::string> all_column_names, std::string query) {
 
@@ -351,23 +296,3 @@ std::pair<std::unique_ptr<ResultSet>, error_code_t> runSkipData_C(
 	}
 }
 
-std::pair<std::unique_ptr<ResultSet>, error_code_t> performPartition_C(
-	int32_t masterIndex,
-	std::vector<NodeMetaDataTCP> tcpMetadata,
-	int32_t ctxToken,
-	const ral::frame::BlazingTableView & table,
-	std::vector<std::string> column_names) {
-
-	std::unique_ptr<ResultSet> result = nullptr;
-
-	try {
-		result = std::move(performPartition(masterIndex,
-					tcpMetadata,
-					ctxToken,
-					table,
-					column_names));
-		return std::make_pair(std::move(result), E_SUCCESS);
-	} catch (std::exception& e) {
-		return std::make_pair(std::move(result), E_EXCEPTION);
-	}
-}

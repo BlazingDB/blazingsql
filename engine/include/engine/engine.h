@@ -46,13 +46,6 @@ std::unique_ptr<ResultSet> runSkipData(
 	std::vector<std::string> all_column_names, 
 	std::string query);
 
-std::unique_ptr<ResultSet> performPartition(
-	int32_t masterIndex,
-	std::vector<NodeMetaDataTCP> tcpMetadata,
-	int32_t ctxToken,
-	const ral::frame::BlazingTableView & table,
-	std::vector<std::string> column_names);
-
 extern "C" {
 std::pair<std::unique_ptr<PartitionedResultSet>, error_code_t> runQuery_C(int32_t masterIndex,
 	std::vector<NodeMetaDataTCP> tcpMetadata,
@@ -76,10 +69,4 @@ std::pair<std::unique_ptr<ResultSet>, error_code_t> runSkipData_C(
 	std::vector<std::string> all_column_names, 
 	std::string query);
 
-std::pair<std::unique_ptr<ResultSet>, error_code_t> performPartition_C(
-	int32_t masterIndex,
-	std::vector<NodeMetaDataTCP> tcpMetadata,
-	int32_t ctxToken,
-	const ral::frame::BlazingTableView & table,
-	std::vector<std::string> column_names);
 } // extern "C"

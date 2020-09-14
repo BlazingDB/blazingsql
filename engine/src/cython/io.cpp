@@ -62,7 +62,6 @@ TableSchema parseSchema(std::vector<std::string> files,
 		std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
 		logger->error("|||{info}|||||",
 									"info"_a="In parseSchema. What: {}"_format(e.what()));
-		std::cerr << "**[performPartition]** error partitioning table.\n";
 		logger->flush();
 
 		throw;
