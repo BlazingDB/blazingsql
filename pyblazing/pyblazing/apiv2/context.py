@@ -2299,7 +2299,6 @@ class BlazingContext(object):
                     algebra = f"""SingleTableHashPartition(partition=[{partition_col_indexes_str}])
   LogicalTableScan(table=[[main, {table_name}]])
 """
-                    print(algebra)
                     ddf = self.sql("", algebra=algebra)
                     self.drop_table(table_name)
                     return ddf
