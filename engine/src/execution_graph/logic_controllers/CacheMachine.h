@@ -702,7 +702,7 @@ public:
 	size_t get_next_size_in_bytes(){
 		std::unique_lock<std::mutex> lock(mutex_);
 		if (message_queue_.size() > 0){
-			message_queue_[0]->get_data().sizeInBytes();
+			return message_queue_[0]->get_data().sizeInBytes();
 		} else {
 			return 0;
 		}
@@ -740,7 +740,7 @@ public:
 				}
 				return done_waiting;
 			})){
-				
+
 			}
 		if(this->message_queue_.size() == 0) {
 			return nullptr;
@@ -1055,7 +1055,7 @@ class ConcatenatingCacheMachine : public CacheMachine {
 public:
 	ConcatenatingCacheMachine(std::shared_ptr<Context> context);
 
-	ConcatenatingCacheMachine(std::shared_ptr<Context> context, std::size_t flow_control_bytes_threshold, 
+	ConcatenatingCacheMachine(std::shared_ptr<Context> context, std::size_t flow_control_bytes_threshold,
 			std::size_t concat_cache_num_bytes, bool concat_all);
 
 	~ConcatenatingCacheMachine() = default;
