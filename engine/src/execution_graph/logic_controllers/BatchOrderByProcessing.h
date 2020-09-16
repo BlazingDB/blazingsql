@@ -178,7 +178,8 @@ public:
 				context->incrementQuerySubstep();
 			}
 
-			this->output_cache("output_b")->wait_for_count(1);
+			int total_count = get_total_partition_counts();
+			this->output_cache("output_b")->wait_for_count(total_count);
 		}
 	}
 
@@ -360,8 +361,6 @@ public:
 							"", //total_rows
 							"", //message_id_prefix
 							true); //always_add
-
-						increment_node_count(dest_node.id(), 0);
 					}
 
 					for (auto i = 0; i < partitions.size(); i++) {

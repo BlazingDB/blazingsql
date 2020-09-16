@@ -66,6 +66,10 @@ void distributing_kernel::send_message(std::unique_ptr<ral::frame::BlazingTable>
     if(wait_for) {
         messages_to_wait_for[message_tracker_idx].push_back(message_id_prefix + MESSAGE_ID_CONTENT);
     }
+
+    if(specific_cache != "false") {
+        node_count[message_tracker_idx][target_id]++;
+    }
 }
 
 int distributing_kernel::get_total_partition_counts(std::size_t message_tracker_idx) {
@@ -131,8 +135,6 @@ void distributing_kernel::broadcast(ral::frame::BlazingTableView table_view,
                 "", //message_id_prefix
                 true //always_add
             );
-
-            node_count[message_tracker_idx][nodes[i].id()]++;
         }
     }
 }
@@ -161,8 +163,6 @@ void distributing_kernel::scatter(std::vector<ral::frame::BlazingTableView> part
                 "", //message_id_prefix
                 true //always_add
             );
-
-            node_count[message_tracker_idx][nodes[i].id()]++;
         }
     }
 }

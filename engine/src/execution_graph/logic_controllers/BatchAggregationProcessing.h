@@ -197,8 +197,6 @@ public:
                                 "true", //specific_cache
                                 "", //cache_id
                                 this->context->getMasterNode().id()); //target_id
-
-                            increment_node_count(this->context->getMasterNode().id());
                         }
                     } else {
                         CudfTableView batch_view = batch->view();

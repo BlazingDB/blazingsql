@@ -878,7 +878,7 @@ public:
 		// });
 		distribute_small_table_thread.join();
 
-		int total_count = get_total_partition_counts(0);
+		int total_count = get_total_partition_counts();
 		this->output_cache(small_output_cache_name)->wait_for_count(total_count);
 
 		this->add_to_output_cache(std::move(big_table_batch), big_output_cache_name);
