@@ -14,6 +14,10 @@ bool Node::operator==(const Node &rhs) const {
   return address_.metadata_ == rhs.address_.metadata_ && id_ == rhs.id_;
 }
 
+bool Node::operator!=(const Node &rhs) const {
+  return !(*this == rhs);
+}
+
 std::string Node::id() const { return id_; }
 
 const Address& Node::address() const noexcept { return address_; }
