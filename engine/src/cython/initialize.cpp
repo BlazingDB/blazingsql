@@ -5,6 +5,8 @@
 #include <net/if.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
+#include <execinfo.h>
+#include <signal.h>
 
 #include <ucp/api/ucp.h>
 
@@ -55,6 +57,17 @@ using namespace fmt::literals;
 
 using namespace fmt::literals;
 using namespace ral::cache;
+
+void handler(int sig) {
+  void *array[10];
+  size_t size;
+  // get void*'s for all entries on the stack
+  size = backtrace(array, 10);
+  // print out all the frames to stderr
+  fprintf(stderr, "Error: signal %d:\n", sig);
+  backtrace_symbols_fd(array, size, STDERR_FILENO);
+  exit(1);
+}
 
 std::string get_ip(const std::string & iface_name = "eth0") {
 	int fd;
@@ -140,6 +153,8 @@ std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> > initiali
 	std::setlocale(LC_ALL, "en_US.UTF-8");
 	std::setlocale(LC_NUMERIC, "en_US.UTF-8");
 	// ---------------------------------------------------------------------------
+
+	signal(SIGSEGV, handler);   // install our handler
 
 	ralHost = get_ip(network_iface_name);
 
