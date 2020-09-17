@@ -49,6 +49,9 @@ echo "CPLUS_INCLUDE_PATH="$CPLUS_INCLUDE_PATH
 echo "build_dir="$build_dir
 echo "blazingsql_project_root_dir=$blazingsql_project_root_dir"
 
+echo "### Pip upgrade ###"
+pip install --upgrade pip
+
 echo "### Cython ###"
 pip install cython==0.29.21
 mkdir -p $build_dir
