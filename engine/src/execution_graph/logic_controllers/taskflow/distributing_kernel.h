@@ -31,7 +31,9 @@ class distributing_kernel : public kernel {
 
     /**
      * @brief Resizes the vector of the message trackers.
-     *
+     * Keeping more than one message tracker is useful for
+     * example for joins where we must keep track of separately
+     * for left and right partitions.
      * @param num_message_trackers The new number of the message trackers.
      */
     void set_number_of_message_trackers(std::size_t num_message_trackers);
@@ -94,6 +96,8 @@ class distributing_kernel : public kernel {
 
     /**
      * @brief Sends the partition counter to all other nodes.
+     * These sent counters represent the number of messages
+     * that each node should wait on their end.
      *
      * @param message_id_prefix The prefix of the identifier of this message.
      * @param cache_id Indicates what cache a message should be routed to.
@@ -106,6 +110,9 @@ class distributing_kernel : public kernel {
 
     /**
      * @brief Get the total partition counters associated to a message tracker.
+     * The total counter returned by this function usually is the input for
+     * function WaitingQueue::wait_for_count() that allows waiting for the
+     * arrival of a certain number of messages.
      *
      * @param message_tracker_idx The message tracker index.
      */
@@ -114,6 +121,8 @@ class distributing_kernel : public kernel {
     /**
      * @brief Increments by one the corresponding node counter associated to
      * the node identifier and the message tracker identifier.
+     * Every time data is added to a cache, the node counter must
+     * be incremented by one.
      *
      * @param node_id The node identifier.
      * @param message_tracker_idx The message tracker index.
