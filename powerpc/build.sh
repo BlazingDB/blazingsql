@@ -49,6 +49,8 @@ echo "CPLUS_INCLUDE_PATH="$CPLUS_INCLUDE_PATH
 echo "build_dir="$build_dir
 echo "blazingsql_project_root_dir=$blazingsql_project_root_dir"
 
+echo "### Cython ###"
+pip install cython==0.29.21
 mkdir -p $build_dir
 
 
@@ -356,7 +358,37 @@ if [ "$machine_processor_architecture" = "ppc64le" ] || [ "$machine_processor_ar
     echo "---->>> llvmlite_version_from_pip: $llvmlite_version_from_pip"
     git clone --depth 1 https://github.com/numba/llvmlite.git --branch "release$llvmlite_version_from_pip" --single-branch
     cd llvmlite/
-    python setup.py install --user
+    pip install .
+
+    echo "### Pip dependencies ###"
+    # pip install -r requirements.txt
+    #pip install --no-binary numpy numpy==1.13.3
+    pip install --no-binary numpy numpy
+    pip install numba==0.50.1
+    pip install scikit-learn==0.23.1
+    pip install flake8==3.8.3
+    pip install ipython==7.17.0
+    pip install pytest-timeout==1.4.2
+    pip install sphinx-rtd-theme==0.5.0
+    pip install cysignals==1.10.2
+    pip install numpydoc==1.1.0
+    pip install scipy==1.5.2
+    pip install pynvml==8.0.4
+    pip install cysignals==1.10.2
+    pip install networkx==2.4
+    pip install jupyterlab==2.2.4
+    pip install notebook==6.1.3
+    pip install joblib==0.16.0
+    pip install fastrlock==0.5
+    pip install pytest-timeout==1.4.2
+    pip install hypothesis==5.26.0
+    pip install python-louvain==0.14
+    pip install jupyter-server-proxy==1.5.0
+    pip install statsmodels==0.11.1
+    pip install pyhive==0.6.2
+    pip install thrift==0.13.0
+    pip install jpype1==1.0.2
+    pip install netifaces==0.10.9
     # test
 #    python -c "import numba"
     echo "---->>> finished llvmlite"
@@ -381,7 +413,8 @@ if [ ! -d cupy ]; then
     cupy_version=v7.7.0
     git clone --recurse-submodules --depth 1 https://github.com/cupy/cupy.git --branch $cupy_version --single-branch
     cd cupy
-    python setup.py install --user
+    #python setup.py install --user
+    pip install .
 fi
 # END CUPY
 
@@ -414,7 +447,8 @@ cd $build_dir
 if [ ! -d distributed ]; then
   git clone --depth 1 https://github.com/dask/distributed.git --branch $dask_version --single-branch
   cd distributed
-  python setup.py install --user
+  #python setup.py install --user
+  pip install .
 fi
 # END dask distributed
 
@@ -423,7 +457,8 @@ cd $build_dir
 if [ ! -d dask ]; then
   git clone --depth 1 https://github.com/dask/dask.git --branch $dask_version --single-branch
   cd dask
-  python setup.py install --user
+  #python setup.py install --user
+  pip install .
 fi
 # END dask
 
@@ -432,7 +467,8 @@ cd $build_dir
 if [ ! -d dask-cuda ]; then
   git clone --depth 1 https://github.com/rapidsai/dask-cuda.git --branch "branch-$cudf_version" --single-branch
   cd dask-cuda
-  python setup.py install --user
+  #python setup.py install --user
+  pip install .
 fi
 # END dask-cuda
 
