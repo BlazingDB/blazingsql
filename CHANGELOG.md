@@ -92,6 +92,7 @@
 - #973 Fix how we check the existence of the JAVA_HOME environment variable
 - #997 Add capacity to set the transport memory
 - #1007 Fix arrow and spdlog compilation issues
+- #1016 Removed workaround for parquet read schema
 
 # BlazingSQL 0.14.0 (June 9, 2020)
 
