@@ -340,37 +340,10 @@ public:
 
 					std::vector<ral::distribution::NodeColumnView> partitions = ral::distribution::partitionData(this->context.get(), batch->toBlazingTableView(), partitionPlan->toBlazingTableView(), sortColIndices, sortOrderTypes);
 
-					std::vector<int32_t> part_ids(partitions.size());
-					int num_partitions_per_node = partitions.size() / this->context->getTotalNodes();
-					std::generate(part_ids.begin(), part_ids.end(), [count=0, num_partitions_per_node] () mutable { return (count++) % (num_partitions_per_node); });
-
-					// ral::distribution::distributeTablePartitions(context, partitions, part_ids);
-
-					for (auto i = 0; i < partitions.size(); i++) {
-						blazingdb::transport::Node dest_node;
-						ral::frame::BlazingTableView table_view;
-						std::tie(dest_node, table_view) = partitions[i];
-						if(dest_node == self_node || table_view.num_rows() == 0) {
-							continue;
-						}
-
-						send_message(std::move(table_view.clone()),
-							"true", //specific_cache
-							"output_" + std::to_string(part_ids[i]), //cache_id
-							dest_node.id(), //target_id
-							"", //total_rows
-							"", //message_id_prefix
-							true); //always_add
-					}
-
-					for (auto i = 0; i < partitions.size(); i++) {
-						auto & partition = partitions[i];
-						if(partition.first == self_node) {
-							std::string cache_id = "output_" + std::to_string(part_ids[i]);
-							this->add_to_output_cache(partition.second.clone(), cache_id);
-							increment_node_count(self_node.id(), 0);
-						}
-					}
+					scatterNodeColumnViews(partitions,
+						this->output_.get_cache().get(),
+						"" //message_id_prefix
+					);
 
 					batch_count++;
 				} catch(const std::exception& e) {

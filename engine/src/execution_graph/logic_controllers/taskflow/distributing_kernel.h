@@ -3,6 +3,7 @@
 #include <atomic>
 #include <map>
 #include <vector>
+#include "distribution/primitives.h"
 #include "execution_graph/logic_controllers/CacheMachine.h"
 #include <blazingdb/manager/Context.h>
 #include "kernel.h"
@@ -77,6 +78,20 @@ class distributing_kernel : public kernel {
         ral::cache::CacheMachine* output,
         std::string message_id_prefix,
         std::string cache_id,
+        std::size_t message_tracker_idx = 0);
+
+    /**
+     * @brief Sends each partition to its corresponding nodes.
+     * More than one partition can belong to the same node.
+     *
+     * @param partitions The table partitions to be sent represented as node column views.
+     * @param output The output cache.
+     * @param message_id_prefix The prefix of the identifier of this message.
+     * @param message_tracker_idx The message tracker index.
+     */
+    void scatterNodeColumnViews(std::vector<ral::distribution::NodeColumnView> partitions,
+        ral::cache::CacheMachine* output,
+        std::string message_id_prefix,
         std::size_t message_tracker_idx = 0);
 
     /**
