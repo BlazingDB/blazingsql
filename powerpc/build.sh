@@ -22,15 +22,15 @@ fi
 
 build_dir=$BLAZINGSQL_POWERPC_TMP_BUILD_DIR
 
-MAKEJ=$(nproc)
-MAKEJ_CUDF=$(( `nproc` / 2 ))
+MAKEJ=8
+MAKEJ_CUDF=2
 
 export CC=$(which gcc)
 export CXX=$(which g++)
-export CUDA_HOME=/usr/local/cuda/ # cambiar si definido
+#export CUDA_HOME=/usr/local/cuda/ # cambiar si definido
 #export CUDACXX=$CUDA_HOME/bin/nvcc
-export CUDACXX=$(which nvcc)
-export BOOST_ROOT=$env_prefix
+#export CUDACXX=$(which nvcc)
+#export BOOST_ROOT=$env_prefix
 # NOTE percy mario this var is used by rmm build.sh and by pycudf setup.py
 export PARALLEL_LEVEL=$MAKEJ
 
@@ -123,8 +123,10 @@ arrow_install_dir=$tmp_dir
 echo "arrow_install_dir: "$arrow_install_dir
 if [ ! -d arrow ]; then
     echo "### Arrow - start ###"
-    arrow_version=apache-arrow-0.17.1
-    git clone --depth 1 https://github.com/apache/arrow.git --branch $arrow_version --single-branch
+    arrow_version=apache-arrow-1.0.1
+ #   git clone --depth 1 https://github.com/apache/arrow.git --branch $arrow_version --single-branch
+    # patched version
+    git clone -b fix/power9 --depth 1  https://github.com/williamBlazing/arrow 
     cd arrow/
 
     echo "### Arrow - cmake ###"
@@ -158,6 +160,7 @@ if [ ! -d arrow ]; then
     echo "### Arrow - end ###"
 fi
 
+
 # reenable the error catch system for the shell
 set -e
 
@@ -179,15 +182,16 @@ export PYARROW_WITH_FLIGHT=0
 export PYARROW_WITH_S3=0
 export PYARROW_WITH_HDFS=0
 
+# TODO ADD IF HERE
 cd $build_dir/arrow/python
-python setup.py build_ext install --single-version-externally-managed --record=record.txt
+# python setup.py build_ext install --single-version-externally-managed --record=record.txt
 
 # END pyarrow
 
 #BEGIN spdlog
 cd $build_dir
 if [ ! -d spdlog ]; then
-    spdlog_version=v1.x
+    spdlog_version=v1.7.0 # v1.8 has issues for us
     git clone --depth 1 https://github.com/gabime/spdlog.git --branch $spdlog_version --single-branch
     cd spdlog/
 
@@ -249,7 +253,7 @@ export ARROW_ROOT=$tmp_dir
 if [ ! -d cudf ]; then
     cd $build_dir
     echo "### Cudf ###"
-    git clone --depth 1 https://github.com/rapidsai/cudf.git --branch "branch-$cudf_version" --single-branch
+   git clone --depth 1 https://github.com/rapidsai/cudf.git --branch "branch-$cudf_version" --single-branch
     cd cudf
 
     #git submodule update --init --remote --recursive
@@ -330,7 +334,7 @@ if [ ! -d llvm-project ]; then
   mkdir -p build
   cd build
   cmake -D CMAKE_INSTALL_PREFIX=$tmp_dir -DLLVM_ENABLE_PROJECTS=clang -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD=$llvm_target -D LLVM_BINUTILS_INCDIR=$build_dir/binutils/include/ ../
-  make -j$MAKEJ install
+  make -j1 install
 fi
 
 export LLVM_CONFIG=$tmp_dir/bin/llvm-config
@@ -346,14 +350,16 @@ if [ "$machine_processor_architecture" = "ppc64le" ] || [ "$machine_processor_ar
   if [ ! -d llvmlite ]; then
     mkdir -p $tmp_dir/lib/bfd-plugins
     cp $tmp_dir/lib/LLVMgold.so $tmp_dir/lib/bfd-plugins
-    llvmlite_version_from_pip=$(pip show llvmlite |grep Version|awk '{print $2}') # => e.g. 0.33.3
-    llvmlite_version_from_pip=${llvmlite_version_from_pip%.*} # => e.g. 0.33
+  #  llvmlite_version_from_pip=$(pip show llvmlite |grep Version|awk '{print $2}') # => e.g. 0.33.3
+  #  llvmlite_version_from_pip=${llvmlite_version_from_pip%.*} # => e.g. 0.33
+    llvmlite_version_from_pip=0.33
     echo "---->>> llvmlite_version_from_pip: $llvmlite_version_from_pip"
     git clone --depth 1 https://github.com/numba/llvmlite.git --branch "release$llvmlite_version_from_pip" --single-branch
     cd llvmlite/
-    python setup.py install
+    python setup.py install --user
     # test
-    python -c "import numba"
+#    python -c "import numba"
+    echo "---->>> finished llvmlite"
   fi
 fi
 
@@ -366,6 +372,7 @@ mv nm nm-new
 mv ld ld.gold
 
 # FSSPEC
+echo "---->>> install fsspec"
 pip install --no-binary fsspec fsspec
 
 # BEGIN CUPY
@@ -374,7 +381,7 @@ if [ ! -d cupy ]; then
     cupy_version=v7.7.0
     git clone --recurse-submodules --depth 1 https://github.com/cupy/cupy.git --branch $cupy_version --single-branch
     cd cupy
-    python3 setup.py install
+    python setup.py install --user
 fi
 # END CUPY
 
@@ -396,7 +403,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/
 
 cd $build_dir/cudf/python/cudf
 PARALLEL_LEVEL=$MAKEJ python setup.py build_ext --inplace
-python setup.py install --single-version-externally-managed --record=record.txt
+python setup.py install --single-version-externally-managed --record=record.txt --user
 
 # END cudf python
 
@@ -407,7 +414,7 @@ cd $build_dir
 if [ ! -d distributed ]; then
   git clone --depth 1 https://github.com/dask/distributed.git --branch $dask_version --single-branch
   cd distributed
-  python setup.py install
+  python setup.py install --user
 fi
 # END dask distributed
 
@@ -416,7 +423,7 @@ cd $build_dir
 if [ ! -d dask ]; then
   git clone --depth 1 https://github.com/dask/dask.git --branch $dask_version --single-branch
   cd dask
-  python setup.py install
+  python setup.py install --user
 fi
 # END dask
 
@@ -425,13 +432,13 @@ cd $build_dir
 if [ ! -d dask-cuda ]; then
   git clone --depth 1 https://github.com/rapidsai/dask-cuda.git --branch "branch-$cudf_version" --single-branch
   cd dask-cuda
-  python setup.py install
+  python setup.py install --user
 fi
 # END dask-cuda
 
 # BEGIN dask-cudf
 cd $build_dir/cudf/python/dask_cudf
-python setup.py install --single-version-externally-managed --record=record.txt
+python setup.py install --single-version-externally-managed --record=record.txt --user
 # END dask-cudf
 
 # BEGIN gtest
