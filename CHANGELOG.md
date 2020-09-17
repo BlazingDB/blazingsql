@@ -8,6 +8,7 @@
 
 ## Bug Fixes
 - #975 Fixed issue due to cudf orc api change 
+- #1017 Fixed issue parsing fixed with string literals
 
 
 # BlazingSQL 0.15.0 (August 31, 2020)
