@@ -184,9 +184,13 @@ export PYARROW_WITH_FLIGHT=0
 export PYARROW_WITH_S3=0
 export PYARROW_WITH_HDFS=0
 
-# TODO ADD IF HERE
-cd $build_dir/arrow/python
-# python setup.py build_ext install --single-version-externally-managed --record=record.txt
+python -c "import pyarrow"
+if [ $? != 0 ]; then
+    echo "### PyArrow installation ###"
+    cd $build_dir/arrow/python
+    python setup.py build_ext install --single-version-externally-managed --record=record.txt
+fi
+
 
 # END pyarrow
 
@@ -365,6 +369,9 @@ if [ "$machine_processor_architecture" = "ppc64le" ] || [ "$machine_processor_ar
     #pip install --no-binary numpy numpy==1.13.3
     pip install --no-binary numpy numpy
     pip install numba==0.50.1
+    # test
+    python -c "import numba"
+
     pip install scikit-learn==0.23.1
     pip install flake8==3.8.3
     pip install ipython==7.17.0
@@ -389,8 +396,6 @@ if [ "$machine_processor_architecture" = "ppc64le" ] || [ "$machine_processor_ar
     pip install thrift==0.13.0
     pip install jpype1==1.0.2
     pip install netifaces==0.10.9
-    # test
-#    python -c "import numba"
     echo "---->>> finished llvmlite"
   fi
 fi
