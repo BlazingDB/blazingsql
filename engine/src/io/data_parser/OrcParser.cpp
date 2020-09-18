@@ -9,23 +9,23 @@
 namespace ral {
 namespace io {
 
-orc_parser::orc_parser(cudf::io::read_orc_args arg_) : orc_args{arg_} {}
+orc_parser::orc_parser(cudf::io::orc_reader_options opts_) : orc_opts{opts_} {}
 
 orc_parser::~orc_parser() {
 	// TODO Auto-generated destructor stub
 }
 
-cudf_io::table_with_metadata get_new_orc(cudf_io::read_orc_args orc_arg,
+cudf_io::table_with_metadata get_new_orc(cudf_io::orc_reader_options orc_opts,
 	std::shared_ptr<arrow::io::RandomAccessFile> arrow_file_handle,
 	bool first_row_only = false){
 
 	auto arrow_source = cudf_io::arrow_io_source{arrow_file_handle};
-	orc_arg.source = cudf_io::source_info{&arrow_source};
+	orc_opts = cudf_io::orc_reader_options::builder(cudf::io::source_info{&arrow_source});
 
 	if (first_row_only)
-		orc_arg.num_rows = 1;
+		orc_opts.set_num_rows(1);
 
-	cudf_io::table_with_metadata table_out = cudf_io::read_orc(orc_arg);
+	cudf_io::table_with_metadata table_out = cudf_io::read_orc(orc_opts);
 
 	arrow_file_handle->Close();
 
@@ -42,19 +42,21 @@ std::unique_ptr<ral::frame::BlazingTable> orc_parser::parse_batch(
 		return schema.makeEmptyBlazingTable(column_indices);
 	}
 	if(column_indices.size() > 0) {
-		// Fill data to orc_args
+		// Fill data to orc_opts
 		auto arrow_source = cudf_io::arrow_io_source{file};
-		orc_args.source = cudf_io::source_info{&arrow_source};
+		orc_opts = cudf_io::orc_reader_options::builder(cudf::io::source_info{&arrow_source});
 
-		orc_args.columns.resize(column_indices.size());
+		std::vector<std::string> col_names;
+		col_names.resize(column_indices.size());
 
 		for(size_t column_i = 0; column_i < column_indices.size(); column_i++) {
-			orc_args.columns[column_i] = schema.get_name(column_indices[column_i]);
+			col_names[column_i] = schema.get_name(column_indices[column_i]);
 		}
 
-		orc_args.stripes = row_groups;
+		orc_opts.set_columns(col_names);
+		orc_opts.set_stripes(row_groups);
 
-		auto result = cudf_io::read_orc(orc_args);
+		auto result = cudf_io::read_orc(orc_opts);
 		return std::make_unique<ral::frame::BlazingTable>(std::move(result.tbl), result.metadata.column_names);
 	}
 	return nullptr;
@@ -63,7 +65,7 @@ std::unique_ptr<ral::frame::BlazingTable> orc_parser::parse_batch(
 void orc_parser::parse_schema(
 	std::shared_ptr<arrow::io::RandomAccessFile> file, ral::io::Schema & schema) {
 
-	cudf_io::table_with_metadata table_out = get_new_orc(orc_args, file, true);
+	cudf_io::table_with_metadata table_out = get_new_orc(orc_opts, file, true);
 
 	for(cudf::size_type i = 0; i < table_out.tbl->num_columns() ; i++) {
 		std::string name = table_out.metadata.column_names[i];

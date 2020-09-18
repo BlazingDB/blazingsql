@@ -98,21 +98,18 @@ void getReaderArgJson(std::map<std::string, std::string> args, ReaderArgs & read
 
 void getReaderArgOrc(std::map<std::string, std::string> args, ReaderArgs & readerArg) {
 	if(in("stripes", args)) {
-		readerArg.orcReaderArg.stripes = to_vector_int(args["stripes"]);
+		readerArg.orcReaderArg.set_stripes(to_vector_int(args["stripes"]));
 	}
 	if(in("skip_rows", args)) {
-		readerArg.orcReaderArg.skip_rows = to_int(args["skip_rows"]);
+		readerArg.orcReaderArg.set_skip_rows(to_int(args["skip_rows"]));
 	}
 	if(in("num_rows", args)) {
-		readerArg.orcReaderArg.num_rows = to_int(args["num_rows"]);
+		readerArg.orcReaderArg.set_num_rows(to_int(args["num_rows"]));
 	}
 	if(in("use_index", args)) {
-		readerArg.orcReaderArg.use_index = to_int(args["use_index"]);
+		readerArg.orcReaderArg.enable_use_index(to_int(args["use_index"]));
 	} else {
-		readerArg.orcReaderArg.use_index = true;
-	}
-	if(in("byte_range_size", args)) {
-		readerArg.jsonReaderArg.set_byte_range_size( (size_t) to_int(args["byte_range_size"]) );
+		readerArg.orcReaderArg.enable_use_index(true);
 	}
 }
 
