@@ -85,13 +85,13 @@ def get_tpch_query(test_id):
                     o.o_orderdate,
                     o.o_shippriority
                 from
-                    customer as c,
-                    orders as o,
-                    lineitem as l
+                    customer c
+                    inner join orders o 
+                    on c.c_custkey = o.o_custkey
+                    inner join lineitem l
+                    on l.l_orderkey = o.o_orderkey
                 where
                     c.c_mktsegment = 'BUILDING'
-                    and c.c_custkey = o.o_custkey
-                    and l.l_orderkey = o.o_orderkey
                     and o.o_orderdate < date '1995-03-15'
                     and l.l_shipdate > date '1995-03-15'
                 group by
@@ -105,6 +105,7 @@ def get_tpch_query(test_id):
             """,
 
         # WARNING:
+            # - Became implicit joins into explicit joins
             # - Fails with Drill, passes only with ORC files on PySpark
             # - Passes with BigQuery
             # - Blazingsql is returning different results
@@ -143,29 +144,36 @@ def get_tpch_query(test_id):
                     n.n_name,
                     sum(l.l_extendedprice * (1 - l.l_discount)) as revenue
                 from
-                    customer as c,
-                    orders as o,
-                    lineitem as l,
-                    supplier as s,
-                    nation as n,
-                    region as r
+                    customer as c
+                    inner join orders as o
+                    on c.c_custkey = o.o_custkey
+                    inner join lineitem as l
+                    on l.l_orderkey = o.o_orderkey
+                    inner join supplier as s
+                    on l.l_suppkey = s.s_suppkey 
+                    inner join nation as n
+                    on s.s_nationkey = n.n_nationkey
+                    inner join region as r
+                    on n.n_regionkey = r.r_regionkey
+                    inner join customer c2
+                    on c2.c_nationkey = s.s_nationkey
                 where
-                    c.c_custkey = o.o_custkey
-                    and l.l_orderkey = o.o_orderkey
-                    and l.l_suppkey = s.s_suppkey
-                    and c.c_nationkey = s.s_nationkey
-                    and s.s_nationkey = n.n_nationkey
-                    and n.n_regionkey = r.r_regionkey
-                    and r.r_name = 'ASIA'
+                    r.r_name = 'ASIA'
                     and o.o_orderdate >= date '1994-01-01'
-                    and o.o_orderdate < date '1994-01-01' + interval '1' year
+                    and o.o_orderdate < date '1995-01-01' 
                 group by
-                    n.n_name
+                    n.n_name,
+                    o.o_orderkey,
+                    l.l_linenumber
                 order by
                     revenue desc
             """,
 
         # Edited:
+            # - Became implicit joins into explicit joins
+            # - Added o.o_orderkey, l.l_linenumber into group by clause 
+            # - Changed ('1994-01-01' + interval '1' year) by date '1995-01-01' 
+            #   to became the query deterministic.
             # - Even that there is a difference with evaluations on Calcite,
             # the query passes on PySpark and BigQuery but fails on Drill
             # >=($6, -(0.06:DECIMAL(3, 2), 0.01:DECIMAL(3, 2))),
@@ -200,19 +208,19 @@ def get_tpch_query(test_id):
                         extract(year from l.l_shipdate) as l_year,
                         l.l_extendedprice * (1 - l.l_discount) as volume
                     from
-                        supplier as s,
-                        lineitem as l,
-                        orders as o,
-                        customer as c,
-                        nation as n1,
-                        nation as n2
+                        supplier as s
+                        inner join lineitem as l 
+                        on s.s_suppkey = l.l_suppkey
+                        inner join orders as o
+                        on o.o_orderkey = l.l_orderkey
+                        inner join customer as c
+                        on c.c_custkey = o.o_custkey
+                        inner join nation as n1
+                        on s.s_nationkey = n1.n_nationkey
+                        inner join nation as n2
+                        on c.c_nationkey = n2.n_nationkey
                     where
-                        s.s_suppkey = l.l_suppkey
-                        and o.o_orderkey = l.l_orderkey
-                        and c.c_custkey = o.o_custkey
-                        and s.s_nationkey = n1.n_nationkey
-                        and c.c_nationkey = n2.n_nationkey
-                        and (
+                        (
                             (n1.n_name = 'FRANCE' and n2.n_name = 'GERMANY')
                             or (n1.n_name = 'GERMANY' and n2.n_name = 'FRANCE')
                         )
@@ -331,17 +339,17 @@ def get_tpch_query(test_id):
                     c.c_phone,
                     c.c_comment
                 from
-                    customer c,
-                    orders o,
-                    lineitem l,
-                    nation n
+                    customer c
+                    inner join orders o
+                    on c.c_custkey = o.o_custkey
+                    inner join lineitem l
+                    on l.l_orderkey = o.o_orderkey
+                    inner join nation n
+                    on c.c_nationkey = n.n_nationkey
                 where
-                    c.c_custkey = o.o_custkey
-                    and l.l_orderkey = o.o_orderkey
-                    and o.o_orderdate >= date '1993-10-01'
+                    o.o_orderdate >= date '1993-10-01'
                     and o.o_orderdate < date '1993-10-01' + interval '3' month
                     and l.l_returnflag = 'R'
-                    and c.c_nationkey = n.n_nationkey
                 group by
                     c.c_custkey,
                     c.c_name,
@@ -412,11 +420,11 @@ def get_tpch_query(test_id):
                         else 0
                     end) as low_line_count
                 from
-                    orders o,
-                    lineitem l
+                    orders o
+                    inner join lineitem l
+                    on o.o_orderkey = l.l_orderkey
                 where
-                    o.o_orderkey = l.l_orderkey
-                    and l.l_shipmode in ('MAIL', 'SHIP')
+                    l.l_shipmode in ('MAIL', 'SHIP')
                     and l.l_commitdate < l.l_receiptdate
                     and l.l_shipdate < l.l_commitdate
                     and l.l_receiptdate >= date '1994-01-01'
@@ -467,18 +475,18 @@ def get_tpch_query(test_id):
                     end) / sum(l.l_extendedprice * (1 - l.l_discount))
                             as promo_revenue
                 from
-                    lineitem l,
-                    part p
+                    lineitem l
+                    inner join part p
+                    on l.l_partkey = p.p_partkey
                 where
-                    l.l_partkey = p.p_partkey
-                    and l.l_shipdate >= date '1995-09-01'
+                    l.l_shipdate >= date '1995-09-01'
                     and l.l_shipdate < date '1995-09-01' + interval '1' month
             """,
         "TEST_15": """
                 with revenue (suplier_no, total_revenue) as (
                     select
                         l_suppkey,
-                        sum(l_extendedprice * (1-l_discount))
+                        cast(sum(l_extendedprice * (1-l_discount)) AS INTEGER)
                     from
                         lineitem
                     where
@@ -494,10 +502,11 @@ def get_tpch_query(test_id):
                     s_phone,
                     total_revenue
                 from
-                    supplier, revenue
+                    supplier
+                    inner join revenue
+                    on s_suppkey = suplier_no
                 where
-                    s_suppkey = suplier_no
-                    and total_revenue = (
+                    total_revenue = (
                         select
                             max(total_revenue)
                         from
@@ -545,6 +554,7 @@ def get_tpch_query(test_id):
             """,
 
         # Edited:
+            # - Became implicit joins into explicit joins
             # - implicit joins generated some condition=[true] on Blazingsql
             # - added table aliases to avoid ambiguity on Drill
 
@@ -552,11 +562,11 @@ def get_tpch_query(test_id):
                 select
                     sum(l.l_extendedprice) / 7.0 as avg_yearly
                 from
-                    lineitem l,
-                    part p
+                    lineitem l
+                    inner join part p
+                    on p.p_partkey = l.l_partkey
                 where
-                    p.p_partkey = l.l_partkey
-                    and p.p_brand = 'Brand#23'
+                    p.p_brand = 'Brand#23'
                     and p.p_container = 'MED BOX'
                     and l.l_quantity < (
                         select
@@ -568,8 +578,7 @@ def get_tpch_query(test_id):
             """,
 
         # Edited:
-            # - implicit joins without table aliases causes parsing
-            #   errors on Drill
+            # - became implicit joins into explicit joins 
             # - no needed to converting to explicit joins, added
             #   only table aliases
             # - this query fails on Drill with all format files,
@@ -584,9 +593,11 @@ def get_tpch_query(test_id):
                     o.o_totalprice,
                     sum(l.l_quantity)
                 from
-                    customer c,
-                    orders o,
-                    lineitem l
+                    customer c
+                    inner join orders o
+                    on c.c_custkey = o.o_custkey
+                    inner join lineitem l
+                    on o.o_orderkey = l.l_orderkey
                 where
                     o.o_orderkey in (
                         select
@@ -597,8 +608,6 @@ def get_tpch_query(test_id):
                             l_orderkey having
                             sum(l_quantity) > 300
                     )
-                    and c.c_custkey = o.o_custkey
-                    and o.o_orderkey = l.l_orderkey
                 group by
                     c.c_name,
                     c.c_custkey,
@@ -607,11 +616,14 @@ def get_tpch_query(test_id):
                     o.o_totalprice
                 order by
                     o.o_totalprice desc,
-                    o.o_orderdate
+                    o.o_orderdate,
+                    o.o_orderkey,
+                    c.c_custkey
                 limit 100
             """,
 
         # Edited:
+            # - became implicit joins into explicit joins
             # - implicit joins without table aliases causes parsing
             #   errors on Drill
             # - no needed to converting to explicit joins, added only
@@ -622,7 +634,8 @@ def get_tpch_query(test_id):
                     sum(l.l_extendedprice * (1 - l.l_discount) ) as revenue
                 from
                     lineitem l
-                inner join part p ON l.l_partkey = p.p_partkey
+                    inner join part p 
+                    ON l.l_partkey = p.p_partkey
                 where
                     (
                         p.p_brand = 'Brand#12'
@@ -671,7 +684,9 @@ def get_tpch_query(test_id):
                     s.s_name,
                     s.s_address
                 from
-                    supplier s, nation n
+                    supplier s
+                    inner join nation n
+                    on s.s_nationkey = n.n_nationkey
                 where
                     s.s_suppkey in (
                         select
@@ -700,7 +715,6 @@ def get_tpch_query(test_id):
                                     date '1994-01-01' + interval '1' year
                         )
                     )
-                    and s.s_nationkey = n.n_nationkey
                     and n.n_name = 'CANADA'
                 order by
                     s.s_name

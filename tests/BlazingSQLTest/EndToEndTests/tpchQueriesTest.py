@@ -89,49 +89,63 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
 
             query = tpch.get_tpch_query(queryId)
 
-            # if fileSchemaType == DataType.ORC:
-            #     runTest.run_query(
-            #         bc,
-            #         spark,
-            #         query,
-            #         queryId,
-            #         queryType,
-            #         worder,
-            #         "",
-            #         acceptable_difference,
-            #         use_percentage,
-            #         fileSchemaType,
-            #     )
-            # else:
-            #     runTest.run_query(
-            #         bc,
-            #         drill,
-            #         query,
-            #         queryId,
-            #         queryType,
-            #         worder,
-            #         "",
-            #         acceptable_difference,
-            #         use_percentage,
-            #         fileSchemaType,
-            #     )
+            if fileSchemaType == DataType.ORC:
+                runTest.run_query(
+                    bc,
+                    spark,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
+            else:
+                runTest.run_query(
+                    bc,
+                    drill,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    True,
+                    fileSchemaType,
+                )
 
             queryId = "TEST_04"
 
             query = tpch.get_tpch_query(queryId)
             
-            # runTest.run_query(
-            #     bc,
-            #     spark,
-            #     query,
-            #     queryId,
-            #     queryType,
-            #     worder,
-            #     "",
-            #     acceptable_difference,
-            #     use_percentage,
-            #     fileSchemaType,
-            # )
+            if fileSchemaType == DataType.ORC:
+                runTest.run_query(
+                    bc,
+                    spark,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
+            else:
+                runTest.run_query(
+                    bc,
+                    drill,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    True,
+                    fileSchemaType,
+                )
 
             queryId = "TEST_05"
 
@@ -168,8 +182,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
 
             query = tpch.get_tpch_query(queryId)
             
-            if fileSchemaType == DataType.ORC:
-                runTest.run_query(
+            runTest.run_query(
                     bc,
                     spark,
                     query,
@@ -178,20 +191,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                     worder,
                     "",
                     acceptable_difference,
-                    use_percentage,
-                    fileSchemaType,
-                )
-            else:
-                runTest.run_query(
-                    bc,
-                    drill,
-                    query,
-                    queryId,
-                    queryType,
-                    worder,
-                    "",
-                    acceptable_difference,
-                    use_percentage,
+                    True,
                     fileSchemaType,
                 )
 
@@ -419,18 +419,18 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
 
             query = tpch.get_tpch_query(queryId)
 
-            # runTest.run_query(
-            #     bc,
-            #     drill,
-            #     query,
-            #     queryId,
-            #     queryType,
-            #     worder,
-            #     "",
-            #     acceptable_difference,
-            #     use_percentage,
-            #     fileSchemaType
-            # )
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType
+            )
 
             queryId = "TEST_16"
 
@@ -510,7 +510,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 worder,
                 "",
                 acceptable_difference,
-                use_percentage,
+                True,
                 fileSchemaType,
             )
 
@@ -527,7 +527,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 worder,
                 "",
                 acceptable_difference,
-                use_percentage,
+                True,
                 fileSchemaType,
             )
 
