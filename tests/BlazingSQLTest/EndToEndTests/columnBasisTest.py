@@ -98,7 +98,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             token = bc.sql(query_blz)
             temp_gdf = get_results(nRals, token)
 
-            temp_gdf.drop_column("c_custkey")
+            temp_gdf.drop(columns=["c_custkey"], inplace=True)
 
             bc.create_table("temp2", temp_gdf)
 
@@ -135,7 +135,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             temp_gdf = get_results(nRals, token)
 
             temp_gdf["c_acctbal"] = temp_gdf["c_acctbal"] + 3
-            temp_gdf.drop_column("c_custkey")
+            temp_gdf.drop(columns=["c_custkey"], inplace=True)
 
             bc.create_table("temp3", temp_gdf)
 
@@ -175,8 +175,9 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             temp_gdf = get_results(nRals, token)
 
             temp_gdf["c_acctbal_new"] = temp_gdf["c_acctbal"] + 3
-            temp_gdf.drop_column("c_acctbal")
-            temp_gdf.drop_column("c_custkey")
+
+            temp_gdf.drop(columns=["c_acctbal"], inplace=True)
+            temp_gdf.drop(columns=["c_custkey"], inplace=True)
 
             bc.create_table("temp0", temp_gdf)
             sql = "select * from main.temp0"
@@ -184,7 +185,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             token = bc.sql(sql)
             temp2_gdf = get_results(nRals, token)
 
-            temp2_gdf.drop_column("c_nationkey")
+            temp2_gdf.drop(columns=["c_nationkey"], inplace=True)
 
             bc.create_table("temp4", temp2_gdf)
             sql = "select * from main.temp4"

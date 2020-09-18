@@ -10,6 +10,7 @@
 - #975 Fixed issue due to cudf orc api change 
 - #1017 Fixed issue parsing fixed with string literals
 - #1021 removed an rmm include
+- #1020 Fixed build issues with latest rmm 0.16 and columnBasisTest due to deprecated drop_column() function
 
 
 # BlazingSQL 0.15.0 (August 31, 2020)

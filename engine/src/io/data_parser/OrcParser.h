@@ -6,8 +6,8 @@
 #include <memory>
 #include <vector>
 
-#include <cudf/io/functions.hpp>
 #include <cudf/io/datasource.hpp>
+#include <cudf/io/orc.hpp>
 
 namespace ral {
 namespace io {
@@ -16,7 +16,7 @@ namespace cudf_io = cudf::io;
 
 class orc_parser : public data_parser {
 public:
-	orc_parser(cudf::io::read_orc_args orc_args);
+	orc_parser(cudf::io::orc_reader_options orc_opts);
 
 	virtual ~orc_parser();
 
@@ -29,7 +29,7 @@ public:
 	void parse_schema(std::shared_ptr<arrow::io::RandomAccessFile> file, Schema & schema);
 
 private:
-	cudf::io::read_orc_args orc_args{cudf_io::source_info("")};
+	cudf::io::orc_reader_options orc_opts{cudf_io::orc_reader_options::builder(cudf_io::source_info(""))};
 };
 
 } /* namespace io */
