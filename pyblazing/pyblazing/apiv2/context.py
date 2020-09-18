@@ -382,6 +382,8 @@ def modifyAlgebraForDataframesWithOnlyWantedColumns(
 
 
 def get_uri_values(files, partitions, base_folder):
+    print("partitions: " + str(partitions))
+    print("base: " + str(base_folder))
     if base_folder[-1] != "/":
         base_folder = base_folder + "/"
 
@@ -1889,7 +1891,7 @@ class BlazingContext(object):
                 table.column_types = parsedSchema["types"]
 
             table.slices = table.getSlices(len(self.nodes))
-
+            parsedMetadata = None
             if len(uri_values) > 0:
                 parsedMetadata = parseHiveMetadata(table, uri_values)
                 table.metadata = parsedMetadata

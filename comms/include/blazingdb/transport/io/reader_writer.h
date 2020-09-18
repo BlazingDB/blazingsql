@@ -43,6 +43,10 @@ private:
   std::size_t bufferSize;
 
   int buffer_counter;
+
+  int allocation_counter;
+    
+  std::vector<char *> allocations;
 };
 
 // Memory Pool

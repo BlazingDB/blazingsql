@@ -145,7 +145,7 @@ void initialize(int ralId,
 	std::string env_cuda_device_str = env_cuda_device == nullptr ? "" : std::string(env_cuda_device);
 	initLogMsg = initLogMsg + "CUDA_VISIBLE_DEVICES is set to: " + env_cuda_device_str + ", ";
 	
-	size_t buffers_size = 78643200;  // 75 MBs        0.1 * free_gpu_mem_size;
+	size_t buffers_size = 78643200 / 8;  // 75 MBs / 8       0.1 * free_gpu_mem_size;
 	auto iter = config_options.find("TRANSPORT_BUFFER_BYTE_SIZE");
 	if (iter != config_options.end()){
 		buffers_size = std::stoi(config_options["TRANSPORT_BUFFER_BYTE_SIZE"]);
