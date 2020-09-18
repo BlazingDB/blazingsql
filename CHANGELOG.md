@@ -8,6 +8,7 @@
 
 ## Bug Fixes
 - #975 Fixed issue due to cudf orc api change 
+- #1019 Fix hive string col 
 
 
 # BlazingSQL 0.15.0 (August 31, 2020)
