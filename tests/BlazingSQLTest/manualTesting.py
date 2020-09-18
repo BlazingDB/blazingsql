@@ -259,9 +259,9 @@ def main():
             log_dict[queryId] = result
 
             queryId = 'TEST_04'
-            #print("Executing " + queryId + " ... ")
+            print("Executing " + queryId + " ... ")
             query = tpch.get_tpch_query(queryId)     
-            #result = run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+            result = run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
             
             queryId = 'TEST_05'
             print("Executing " + queryId + " ... ")
@@ -273,7 +273,7 @@ def main():
             queryId = 'TEST_06'
             print("Executing " + queryId + " ... ")
             query = tpch.get_tpch_query(queryId)          
-            result = run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+            result = run_query(bc, spark, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
             
             log_dict[queryId] = result
 
@@ -329,9 +329,9 @@ def main():
             log_dict[queryId] = result
 
             queryId = 'TEST_09'
-            #print("Executing " + queryId + " ... ")
+            print("Executing " + queryId + " ... ")
             query = tpch.get_tpch_query(queryId)       
-            #result = run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+            result = run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
             
             queryId = 'TEST_10'
             print("Executing " + queryId + " ... ")
@@ -400,19 +400,19 @@ def main():
             queryId = 'TEST_15'
             print("Executing " + queryId + " ... ")
             query = tpch.get_tpch_query(queryId)        
-            result = run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+            result = run_query(bc, spark, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
             
             log_dict[queryId] = result
 
             queryId = 'TEST_16'
-            #print("Executing " + queryId + " ... ")
+            print("Executing " + queryId + " ... ")
             query = tpch.get_tpch_query(queryId)         
-            #result = run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+            result = run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
             
             queryId = 'TEST_17'
             print("Executing " + queryId + " ... ")
             query = tpch.get_tpch_query(queryId)        
-            result = run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+            result = run_query(bc, spark, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
             
             log_dict[queryId] = result
 
@@ -433,7 +433,7 @@ def main():
             queryId = 'TEST_20'
             print("Executing " + queryId + " ... ")
             query = tpch.get_tpch_query(queryId)          
-            result = run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+            result = run_query(bc, spark, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
             
             log_dict[queryId] = result
 
