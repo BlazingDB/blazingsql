@@ -87,7 +87,7 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_batch(
 				names.push_back(name);
 				cudf::type_id type = schema.get_dtype(col_ind);
 				std::string literal_str = file_data_handle.column_values[name];
-				std::unique_ptr<cudf::scalar> scalar = get_scalar_from_string(literal_str, cudf::data_type{type});
+				std::unique_ptr<cudf::scalar> scalar = get_scalar_from_string(literal_str, cudf::data_type{type},false);
 				all_columns[i] = cudf::make_column_from_scalar(*scalar, num_rows);
 			} else {
 				all_columns[i] = std::move(file_columns[in_file_column_counter]);
