@@ -25,6 +25,6 @@ std::string get_string_between_outer_parentheses(std::string operator_string);
 
 std::unique_ptr<cudf::scalar> get_max_integer_scalar(cudf::data_type type);
 
-std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_string, cudf::data_type type);
+std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_string, cudf::data_type type, bool strings_have_quotes = false);
 
 int count_string_occurrence(std::string haystack, std::string needle);
