@@ -30,10 +30,9 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
         data_types = [
             DataType.DASK_CUDF,
             DataType.CUDF,
-            DataType.CSV,
-            DataType.ORC,
+            DataType.CSV,            
             DataType.PARQUET,
-        ]  # TODO json
+        ]  # TODO orc, json
 
         # Create Tables ------------------------------------------------------
         for fileSchemaType in data_types:

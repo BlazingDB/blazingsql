@@ -99,6 +99,7 @@ def get_tpch_query(test_id):
                     o.o_orderdate,
                     o.o_shippriority
                 order by
+                    l.l_orderkey,
                     revenue desc,
                     o.o_orderdate
                 limit 10
