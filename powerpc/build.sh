@@ -27,10 +27,11 @@ MAKEJ_CUDF=2
 
 export CC=$(which gcc)
 export CXX=$(which g++)
-#export CUDA_HOME=/usr/local/cuda/ # cambiar si definido
-#export CUDACXX=$CUDA_HOME/bin/nvcc
-#export CUDACXX=$(which nvcc)
-#export BOOST_ROOT=$env_prefix
+export CUDA_HOME=$CUDAPATH
+export CUDACXX=$CUDAPATH/bin/nvcc
+export BOOST_ROOT=$OLCF_BOOST_ROOT
+export LAPACK=$OLCF_NETLIB_LAPACK_ROOT/lib64/liblapack.so
+export BLAS=$OLCF_NETLIB_LAPACK_ROOT/lib64/libcblas.so
 # NOTE percy mario this var is used by rmm build.sh and by pycudf setup.py
 export PARALLEL_LEVEL=$MAKEJ
 
@@ -50,6 +51,7 @@ echo "build_dir="$build_dir
 echo "blazingsql_project_root_dir=$blazingsql_project_root_dir"
 
 echo "### Cython ###"
+pip install wheel
 pip install cython==0.29.21
 mkdir -p $build_dir
 
@@ -160,6 +162,32 @@ if [ ! -d arrow ]; then
     make -j$MAKEJ install
 
     echo "### Arrow - end ###"
+    
+    # BEGIN pyarrow
+
+    export ARROW_HOME=$tmp_dir
+    export PARQUET_HOME=$tmp_dir
+    #export SETUPTOOLS_SCM_PRETEND_VERSION=$PKG_VERSION
+    export PYARROW_BUILD_TYPE=release
+    export PYARROW_WITH_DATASET=1
+    export PYARROW_WITH_PARQUET=1
+    export PYARROW_WITH_ORC=1
+    export PYARROW_WITH_PLASMA=1
+    export PYARROW_WITH_CUDA=1
+    export PYARROW_WITH_GANDIVA=0
+    export PYARROW_WITH_FLIGHT=0
+    export PYARROW_WITH_S3=0
+    export PYARROW_WITH_HDFS=0
+
+    #python -c "import pyarrow"
+    #if [ $? != 0 ]; then
+        echo "### PyArrow installation ###"
+        cd $build_dir/arrow/python
+        python setup.py build_ext install --single-version-externally-managed --record=record.txt
+    #fi
+    echo "pyarrow done"
+
+# END pyarrow
 fi
 
 
@@ -168,31 +196,6 @@ set -e
 
 #END arrow
 
-# BEGIN pyarrow
-
-export ARROW_HOME=$tmp_dir
-export PARQUET_HOME=$tmp_dir
-#export SETUPTOOLS_SCM_PRETEND_VERSION=$PKG_VERSION
-export PYARROW_BUILD_TYPE=release
-export PYARROW_WITH_DATASET=1
-export PYARROW_WITH_PARQUET=1
-export PYARROW_WITH_ORC=1
-export PYARROW_WITH_PLASMA=1
-export PYARROW_WITH_CUDA=1
-export PYARROW_WITH_GANDIVA=0
-export PYARROW_WITH_FLIGHT=0
-export PYARROW_WITH_S3=0
-export PYARROW_WITH_HDFS=0
-
-python -c "import pyarrow"
-if [ $? != 0 ]; then
-    echo "### PyArrow installation ###"
-    cd $build_dir/arrow/python
-    python setup.py build_ext install --single-version-externally-managed --record=record.txt
-fi
-
-
-# END pyarrow
 
 #BEGIN spdlog
 cd $build_dir
@@ -438,10 +441,11 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib64/
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/
 
 # BEGIN cudf python
-
-cd $build_dir/cudf/python/cudf
-PARALLEL_LEVEL=$MAKEJ python setup.py build_ext --inplace
-python setup.py install --single-version-externally-managed --record=record.txt --user
+if [ ! -d $build_dir/cudf ]; then
+    cd $build_dir/cudf/python/cudf
+    PARALLEL_LEVEL=$MAKEJ python setup.py build_ext --inplace
+    python setup.py install --single-version-externally-managed --record=record.txt 
+fi
 
 # END cudf python
 
@@ -477,10 +481,12 @@ if [ ! -d dask-cuda ]; then
 fi
 # END dask-cuda
 
-# BEGIN dask-cudf
-cd $build_dir/cudf/python/dask_cudf
-python setup.py install --single-version-externally-managed --record=record.txt --user
-# END dask-cudf
+if [ ! -d $build_dir/cudf ]; then
+    # BEGIN dask-cudf
+    cd $build_dir/cudf/python/dask_cudf
+    python setup.py install --single-version-externally-managed --record=record.txt --user
+    # END dask-cudf
+fi
 
 # BEGIN gtest
 # google test

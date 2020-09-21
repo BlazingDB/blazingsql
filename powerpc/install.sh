@@ -13,6 +13,7 @@ module load cuda/10.1.243
 module load zlib
 module load texinfo
 module load openblas
+module load netlib-lapack
 module list
 
 echo "### Modules loading ###"
