@@ -45,7 +45,6 @@ function(configure_test TEST_NAME Tests_SRCS)
         blazingdb-transport
 
         Threads::Threads
-        rmm
         cudart
         cuda
         zmq
