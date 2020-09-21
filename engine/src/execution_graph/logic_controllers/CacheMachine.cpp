@@ -42,8 +42,8 @@ size_t CacheDataLocalFile::sizeInBytes() const {
 }
 
 std::unique_ptr<ral::frame::BlazingTable> CacheDataLocalFile::decache() {
-	cudf_io::orc_reader_options read_opts = cudf_io::orc_reader_options::builder(cudf_io::source_info{this->filePath_});
-	auto result = cudf_io::read_orc(read_opts);
+	cudf::io::orc_reader_options read_opts = cudf::io::orc_reader_options::builder(cudf::io::source_info{this->filePath_});
+	auto result = cudf::io::read_orc(read_opts);
 
 	// Remove temp orc files
 	const char *orc_path_file = this->filePath_.c_str();
@@ -57,15 +57,15 @@ CacheDataLocalFile::CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable>
 	this->size_in_bytes = table->sizeInBytes();
 	this->filePath_ = orc_files_path + "/.blazing-temp-" + randomString(64) + ".orc";
 
-	cudf_io::table_metadata metadata;
+	cudf::io::table_metadata metadata;
 	for(auto name : table->names()) {
 		metadata.column_names.emplace_back(name);
 	}
 
-	cudf_io::orc_writer_options out_opts = cudf_io::orc_writer_options::builder(cudf_io::sink_info{this->filePath_}, table->view())
+	cudf::io::orc_writer_options out_opts = cudf::io::orc_writer_options::builder(cudf::io::sink_info{this->filePath_}, table->view())
 		.metadata(&metadata);
 
-	cudf_io::write_orc(out_opts);
+	cudf::io::write_orc(out_opts);
 }
 std::unique_ptr<GPUCacheDataMetaData> cast_cache_data_to_gpu_with_meta(std::unique_ptr<CacheData> base_pointer){
 	return std::unique_ptr<GPUCacheDataMetaData>(static_cast<GPUCacheDataMetaData *>(base_pointer.release()));
