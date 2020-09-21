@@ -164,7 +164,7 @@ def initializeBlazing(
         "managed",
         "existing",
         "cuda_memory_resource",
-        "managed_memory_resource"
+        "managed_memory_resource",
     ]
     if allocator not in possible_allocators:
         print(
