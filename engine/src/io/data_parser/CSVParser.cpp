@@ -30,13 +30,28 @@ cudf::io::table_with_metadata read_csv_arg_arrow(cudf::io::csv_reader_options ar
 	bool first_row_only = false) {
 
 	auto arrow_source = cudf::io::arrow_io_source{arrow_file_handle};
-	args = cudf::io::csv_reader_options::builder(cudf::io::source_info{&arrow_source});
+	args = cudf::io::csv_reader_options::builder(cudf::io::source_info{&arrow_source})
+		.compression(args.get_compression())
+		.delimiter(args.get_delimiter())
+		.lineterminator(args.get_lineterminator())
+		.header(args.get_header())
+		.names(args.get_names())
+		.dtypes(args.get_dtypes())
+		.use_cols_names(args.get_use_cols_names())
+		.use_cols_indexes(args.get_use_cols_indexes())
+		.true_values(args.get_true_values())
+		.false_values(args.get_false_values())
+		.na_values(args.get_na_values())
+		.keep_default_na(args.is_enabled_keep_default_na())
+		.na_filter(args.is_enabled_na_filter())
+		.quotechar(args.get_quotechar())
+		.comment(args.get_comment())
+		.build();
 
 	int64_t num_bytes = arrow_file_handle->GetSize().ValueOrDie();
 
 	// lets only read up to 48192 bytes. We are assuming that a full row will always be less than that
 	if(first_row_only && num_bytes > 48192) {
-		args.set_byte_range_size(48192);
 		args.set_nrows(1);
 		args.set_skipfooter(0);
 	}
