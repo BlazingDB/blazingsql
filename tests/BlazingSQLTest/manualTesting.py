@@ -254,7 +254,7 @@ def main():
             queryId = 'TEST_03'
             print("Executing " + queryId + " ... ")
             query = tpch.get_tpch_query(queryId)       
-            result = run_query(bc, drill, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
+            result = run_query(bc, spark, query, queryId, queryType, worder, '', acceptable_difference, use_percentage, fileSchemaType)
             
             log_dict[queryId] = result
 

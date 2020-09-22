@@ -27,11 +27,11 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             "part",
             "partsupp",
         ]
-        data_types = [
+        data_types = [           
             DataType.DASK_CUDF,
             DataType.CUDF,
-            DataType.CSV,            
-            DataType.PARQUET,
+            DataType.CSV,
+            DataType.PARQUET
         ]  # TODO orc, json
 
         # Create Tables ------------------------------------------------------
@@ -88,7 +88,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
 
             query = tpch.get_tpch_query(queryId)
 
-            if fileSchemaType == DataType.ORC:
+            if fileSchemaType == DataType.PARQUET:
                 runTest.run_query(
                     bc,
                     spark,
@@ -110,8 +110,8 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                     queryType,
                     worder,
                     "",
-                    acceptable_difference,
-                    True,
+                    0.1,
+                    use_percentage,
                     fileSchemaType,
                 )
 
