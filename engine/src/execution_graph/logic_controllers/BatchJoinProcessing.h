@@ -263,18 +263,10 @@ public:
 					this->left_sequence.wait_for_next();
 					this->right_sequence.wait_for_next();
 
-					std::cout << ">>>>>>>>>>>> JOIN BEGIN "<<std::endl;
-
 					left_batch = load_left_set();
 					right_batch = load_right_set();
 					this->max_left_ind = 0; // we have loaded just once. This is the highest index for now
 					this->max_right_ind = 0; // we have loaded just once. This is the highest index for now
-
-
-
-					ral::utilities::print_blazing_table_view(left_batch->toBlazingTableView(), "LEFT");
-					ral::utilities::print_blazing_table_view(right_batch->toBlazingTableView(), "RIGHT");
-
 
 					// parsing more of the expression here because we need to have the number of columns of the tables
 					std::vector<int> column_indices;
@@ -361,12 +353,6 @@ public:
 
 					std::unique_ptr<ral::frame::BlazingTable> joined = join_set(left_batch->toBlazingTableView(), right_batch->toBlazingTableView());
 
-					std::cout << ">>>>>>>>>>>> JOIN left idx : "<< left_ind << "  right idx : " << right_ind <<std::endl;
-					ral::utilities::print_blazing_table_view(left_batch->toBlazingTableView(), "LEFT");
-					ral::utilities::print_blazing_table_view(right_batch->toBlazingTableView(), "RIGHT");
-					ral::utilities::print_blazing_table_view(joined->toBlazingTableView(), "JOIN");
-
-
 					auto log_output_num_rows = joined->num_rows();
 					auto log_output_num_bytes = joined->sizeInBytes();
 
@@ -380,8 +366,6 @@ public:
 
 						this->add_to_output_cache(std::move(filter_table));
 					} else{
-						// printf("joined table\n");
-						// ral::utilities::print_blazing_table_view(joined->toBlazingTableView());
 						eventTimer.stop();
 						this->add_to_output_cache(std::move(joined));
 					}
@@ -548,11 +532,10 @@ public:
 						// also we need a BlazingTable to put into the cache, we cant cache views.
 						std::unique_ptr<ral::frame::BlazingTable> partition_table_clone = partition_table_view.clone();
 
-							std::cout << ">>>>>>>>>>>> LOCAL PARTITION " << cache_id <<std::endl;
-						ral::utilities::print_blazing_table_view(partition_table_clone->toBlazingTableView(), "LOCAL PARITION " + cache_id);
-
-						output->addToCache(std::move(partition_table_clone), cache_id + "_" + kernel_id,true);
-						node_count[self_node.id()]++;
+						bool added = output->addToCache(std::move(partition_table_clone), cache_id + "_" + kernel_id,true);
+						if (added) {
+							node_count[self_node.id()]++;
+						}
 					} else {
 						partitions_to_send.emplace_back(
 							std::make_pair(local_context->getNode(nodeIndex), partition_table_view));
@@ -575,8 +558,10 @@ public:
 					metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, dest_node.id());
 					metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, cache_id);
 
-					node_count[dest_node.id()]++;
-					graph_output->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(table_view.clone(), metadata),"",true);
+					bool added = graph_output->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(table_view.clone(), metadata),"",true);
+					if (added) {
+						node_count[dest_node.id()]++;
+					}
 				}
 
 				if (sequence.wait_for_next()){
