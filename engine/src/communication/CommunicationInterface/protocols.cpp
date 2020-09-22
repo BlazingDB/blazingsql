@@ -97,29 +97,6 @@ std::shared_ptr<ral::cache::graph> graphs_info::get_graph(int32_t ctx_token) {
 	return _ctx_token_to_graph_map.at(ctx_token); }
 
 
-
-
-
-
-// TODO: remove this hack when we can modify the ucx_request
-// object so we cna send in our c++ callback via the request
-std::map<int, ucx_buffer_transport *> message_uid_to_buffer_transport;
-
-void send_callback_c(void * request, ucs_status_t status) {
-	try{
-		std::cout<<"send_callback"<<std::endl;
-		auto blazing_request = reinterpret_cast<ucx_request *>(request);
-		auto transport = message_uid_to_buffer_transport[blazing_request->uid];
-		transport->increment_frame_transmission();
-		ucp_request_release(request);
-	}
-	catch(const std::exception& e)
-	{
-		std::cerr << "Error in send_callback_c: " << e.what() << '\n';
-	}
-}
-
-
 ucx_buffer_transport::ucx_buffer_transport(size_t request_size,
 	ucp_worker_h origin_node,
     std::vector<node> destinations,
@@ -132,9 +109,7 @@ ucx_buffer_transport::ucx_buffer_transport(size_t request_size,
 }
 
 ucx_buffer_transport::~ucx_buffer_transport() {
-	message_uid_to_buffer_transport.erase(this->message_id);
 }
-
 
 std::atomic<int> atomic_message_id(0);
 
@@ -142,7 +117,6 @@ ucp_tag_t ucx_buffer_transport::generate_message_tag() {
 	std::cout<<"generating tag"<<std::endl;
 	auto current_message_id = atomic_message_id.fetch_add(1);
 	blazing_ucp_tag blazing_tag = {current_message_id, ral_id, 0u};
-	message_uid_to_buffer_transport[blazing_tag.message_id] = this;
 	this->message_id = blazing_tag.message_id;
 	std::cout<<"almost done"<<std::endl;
 	return *reinterpret_cast<ucp_tag_t *>(&blazing_tag);
