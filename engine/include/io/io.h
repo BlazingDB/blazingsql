@@ -8,12 +8,10 @@
 #include <vector>
 #include <arrow/table.h>
 #include <memory>
-#include <cudf/io/functions.hpp>
 #include <execution_graph/logic_controllers/LogicPrimitives.h>
 #include "../../src/error.hpp"
 
 typedef ral::io::DataType DataType;
-namespace cudf_io = cudf::io;
 
 struct PartitionedResultSet {
 	std::vector<std::unique_ptr<cudf::table>> cudfTables;

@@ -18,7 +18,7 @@ cudf::io::table_with_metadata read_json_file(
 	std::shared_ptr<arrow::io::RandomAccessFile> arrow_file_handle,
 	bool first_row_only = false)
 {
-	auto arrow_source = cudf_io::arrow_io_source{arrow_file_handle};
+	auto arrow_source = cudf::io::arrow_io_source{arrow_file_handle};
 	args = cudf::io::json_reader_options::builder(cudf::io::source_info{&arrow_source});
 
 	if(first_row_only) {
