@@ -68,9 +68,6 @@ TableSchema parseSchema(std::vector<std::string> files,
 		throw;
 	}
 
-	std::vector<size_t> column_indices(schema.get_num_columns());
-	std::iota(column_indices.begin(), column_indices.end(), 0);
-
 	tableSchema.types = schema.get_dtypes();
 	tableSchema.names = schema.get_names();
 	tableSchema.files = schema.get_files();
@@ -155,8 +152,6 @@ std::unique_ptr<ResultSet> parseMetadata(std::vector<std::string> files,
 		throw e;
 	}
 }
-
-
 
 std::pair<bool, std::string> registerFileSystem(
 	FileSystemConnection fileSystemConnection, std::string root, std::string authority) {
