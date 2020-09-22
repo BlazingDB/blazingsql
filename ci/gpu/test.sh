@@ -5,7 +5,7 @@ ARGS=$*
 set -e
 
 if [ -n $CONDA_PREFIX ]; then
-    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CONDA_PREFIX/lib
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CONDA_PREFIX/lib:$CONDA_PREFIX/lib64
 fi
 
 # Logger function for build status output
