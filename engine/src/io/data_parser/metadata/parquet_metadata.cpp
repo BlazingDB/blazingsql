@@ -347,7 +347,6 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 
 			if (columnMetaData->is_stats_set() && dtype.id() != cudf::type_id::STRING) {
 				auto statistics = columnMetaData->statistics();
-				if (statistics->HasMinMax()) {
 					auto col_name_min = "min_" + std::to_string(colIndex) + "_" + column->name();
 					metadata_dtypes.push_back(dtype);
 					metadata_names.push_back(col_name_min);
@@ -357,7 +356,6 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 					metadata_names.push_back(col_name_max);
 
 					columns_with_metadata.push_back(colIndex);
-				}
 			}
 		}
 
