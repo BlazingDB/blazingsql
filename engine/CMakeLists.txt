@@ -346,7 +346,6 @@ target_link_libraries(blazingsql-engine
     blazingdb-transport
 
     cudf
-    rmm
     zmq
     cudart
     cuda
