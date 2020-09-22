@@ -1883,6 +1883,7 @@ class BlazingContext(object):
             # it only did so for the first file. For the rest we want to guarantee that they are all returning
             # the same types, so we are setting it in the args
             table.args["names"] = table.column_names
+            table.args["names"]  = [i.decode() for i in table.args["names"]]
 
             dtypes_list = []
             for i in range(0, len(table.column_types)):
