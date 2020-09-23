@@ -788,7 +788,7 @@ def initialize_server_directory(dir_path):
         try:
             os.mkdir(dir_path)
         except OSError as error:
-            logging.error("Could not create directory: " + error)
+            logging.error("Could not create directory: " + str(error))
             raise
         return True
     else:
