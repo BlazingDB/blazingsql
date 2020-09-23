@@ -34,6 +34,8 @@ export LAPACK=$OLCF_NETLIB_LAPACK_ROOT/lib64/liblapack.so
 export BLAS=$OLCF_NETLIB_LAPACK_ROOT/lib64/libcblas.so
 # NOTE percy mario this var is used by rmm build.sh and by pycudf setup.py
 export PARALLEL_LEVEL=$MAKEJ
+export LDFLAGS="-L$CUDA_HOME/lib64"
+export LIBRARY_PATH="$CUDA_HOME/lib64":$LIBRARY_PATH
 
 echo "### Vars ###"
 echo "CC="$CC
@@ -129,6 +131,7 @@ function run_cmake_for_arrow() {
 arrow_install_dir=$tmp_dir
 echo "arrow_install_dir: "$arrow_install_dir
 if [ ! -d arrow ]; then
+    pip install --no-binary numpy numpy
     echo "### Arrow - start ###"
     arrow_version=apache-arrow-1.0.1
  #   git clone --depth 1 https://github.com/apache/arrow.git --branch $arrow_version --single-branch
@@ -192,6 +195,9 @@ if [ ! -d arrow ]; then
 
 # END pyarrow
 fi
+
+export ARROW_HOME=$tmp_dir
+export PARQUET_HOME=$tmp_dir
 
 
 # reenable the error catch system for the shell
@@ -373,10 +379,11 @@ if [ "$machine_processor_architecture" = "ppc64le" ] || [ "$machine_processor_ar
     echo "### Pip dependencies ###"
     # pip install -r requirements.txt
     #pip install --no-binary numpy numpy==1.13.3
-    pip install --no-binary numpy numpy
+#    pip install --no-binary numpy numpy
     pip install numba==0.50.1
     # test
     python -c "import numba"
+
 
     pip install scikit-learn==0.23.1
     pip install flake8==3.8.3
@@ -387,7 +394,6 @@ if [ "$machine_processor_architecture" = "ppc64le" ] || [ "$machine_processor_ar
     pip install numpydoc==1.1.0
     pip install scipy==1.5.2
     pip install pynvml==8.0.4
-    pip install cysignals==1.10.2
     pip install networkx==2.4
     pip install jupyterlab==2.2.4
     pip install notebook==6.1.3
@@ -403,8 +409,9 @@ if [ "$machine_processor_architecture" = "ppc64le" ] || [ "$machine_processor_ar
     pip install jpype1==1.0.2
     pip install netifaces==0.10.9
     echo "---->>> finished llvmlite"
-  fi
+ fi
 fi
+
 
 # END numba llvmlite
 
@@ -484,12 +491,12 @@ if [ ! -d dask-cuda ]; then
 fi
 # END dask-cuda
 
-if [ ! -d $build_dir/cudf ]; then
+#if [ ! -d $build_dir/cudf ]; then
     # BEGIN dask-cudf
     cd $build_dir/cudf/python/dask_cudf
-    python setup.py install --single-version-externally-managed --record=record.txt --user
+    python setup.py install --single-version-externally-managed --record=record.txt
     # END dask-cudf
-fi
+#fi
 
 # BEGIN gtest
 # google test
@@ -535,6 +542,23 @@ fi
 
 # ENDzmq
 
+# BEGIN mvn
+#echo "BEING mvn"
+#cd $build_dir
+#wget http://public.dhe.ibm.com/ibmdl/export/pub/systems/cloud/runtimes/java/8.0.6.11/linux/ppc64le/ibm-java-sdk-8.0-6.11-ppc64le-archive.bin
+#chmod +x ibm-java-sdk-8.0-6.11-ppc64le-archive.bin
+#./ibm-java-sdk-8.0-6.11-ppc64le-archive.bin
+#export PATH=$PWD/ibm-java-ppc64le-80/bin:$PATH
+#export JAVA_HOME=$PWD/ibm-java-ppc64le-80/jre
+
+wget https://downloads.apache.org/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz
+tar xvfz apache-maven-3.6.3-bin.tar.gz
+mv apache-maven-3.6.3 $VIRTUAL_ENV/
+export PATH=$VIRTUAL_ENV/apache-maven-3.6.3/bin:$PATH
+
+
+
+
 # BEGIN blazingsql
 cd $blazingsql_project_root_dir
 #cd $build_dir
@@ -552,6 +576,7 @@ export CUDF_HOME=$build_dir/cudf/
 export THRIFT_INSTALL_DIR=$build_dir/arrow/cpp/build/thrift_ep-install/lib
 export SNAPPY_INSTALL_DIR=$build_dir/arrow/cpp/build/snappy_ep/src/snappy_ep-install/lib
 export LZ4_INSTALL_DIR=$build_dir/arrow/cpp/build/lz4_ep-prefix/src/lz4_ep/lib
+export CONDA_PREFIX=$VIRTUAL_ENV
 
 ./build.sh -t disable-aws-s3 disable-google-gs
 

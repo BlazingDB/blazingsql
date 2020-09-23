@@ -1,8 +1,8 @@
 #pragma once
 
 #include <arrow/io/interfaces.h>
-#include <cudf/io/functions.hpp>
 #include <cudf/io/datasource.hpp>
+#include <cudf/io/json.hpp>
 #include <memory>
 #include <vector>
 
@@ -13,14 +13,14 @@ namespace io {
 
 class json_parser : public data_parser {
 public:
-	json_parser(cudf::io::read_json_args args);
+	json_parser(cudf::io::json_reader_options args);
 
 	virtual ~json_parser();
 
 	void parse_schema(std::shared_ptr<arrow::io::RandomAccessFile> file, Schema & schema);
 
 private:
-	cudf::io::read_json_args args;
+	cudf::io::json_reader_options args;
 };
 
 } /* namespace io */
