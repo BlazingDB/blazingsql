@@ -13,30 +13,28 @@
 #include <memory>
 #include <vector>
 
-#include <cudf/io/functions.hpp>
 #include <cudf/io/datasource.hpp>
+#include <cudf/io/csv.hpp>
 
 namespace ral {
 namespace io {
 
-namespace cudf_io = cudf::io;
-
 class csv_parser : public data_parser {
 public:
-	csv_parser(cudf::io::read_csv_args new_csv_arg);
+	csv_parser(cudf::io::csv_reader_options args);
 
 	virtual ~csv_parser();
 
 	std::unique_ptr<ral::frame::BlazingTable> parse_batch(
 		std::shared_ptr<arrow::io::RandomAccessFile> file,
 		const Schema & schema,
-		std::vector<size_t> column_indices,
+		std::vector<int> column_indices,
 		std::vector<cudf::size_type> row_groups);
 
 	void parse_schema(std::shared_ptr<arrow::io::RandomAccessFile> file, ral::io::Schema & schema);
 
 private:
-	cudf_io::read_csv_args csv_args{cudf_io::source_info("")};
+	cudf::io::csv_reader_options csv_args;
 };
 
 } /* namespace io */

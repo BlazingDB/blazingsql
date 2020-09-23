@@ -97,7 +97,7 @@ if hasArg --skip-tests; then
     logger "Skipping Tests..."
 else
     INSTALL_PREFIX=${INSTALL_PREFIX:=${PREFIX:=${CONDA_PREFIX}}}
-    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$INSTALL_PREFIX/lib
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$INSTALL_PREFIX/lib:$INSTALL_PREFIX/lib64
 
     logger "Check GPU usage..."
     nvidia-smi
