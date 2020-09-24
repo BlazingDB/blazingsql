@@ -723,7 +723,7 @@ def distributed_initialize_server_directory(client, dir_path):
         # Let's group the workers by host_name
         host_worker_dict = {}
         for worker, worker_info in all_items:
-            host_name = re.findall( r'[0-9]+(?:\.[0-9]+){3}', worker)[0]
+            host_name = re.findall(r"[0-9]+(?:\.[0-9]+){3}", worker)[0]
             if host_name not in host_worker_dict.keys():
                 host_worker_dict[host_name] = [worker]
             else:
@@ -758,7 +758,7 @@ def distributed_initialize_server_directory(client, dir_path):
         host_worker_dict = {}
         for worker_key, cwd in zip(all_items, current_working_dirs):
             worker = worker_key[0]
-            host_name = re.findall( r'[0-9]+(?:\.[0-9]+){3}', worker)[0]
+            host_name = re.findall(r"[0-9]+(?:\.[0-9]+){3}", worker)[0]
             if host_name not in host_worker_dict.keys():
                 host_worker_dict[host_name] = {cwd: [worker]}
             else:
@@ -1011,9 +1011,9 @@ class BlazingTable(object):
                 self.fileType,
                 files=target_files,
                 calcite_to_file_indices=self.calcite_to_file_indices,
-                uri_values=self.uri_values, #TODO
+                uri_values=self.uri_values,  # TODO
                 args=self.args,
-                row_groups_ids=self.row_groups_ids, #TODO
+                row_groups_ids=self.row_groups_ids,  # TODO
                 in_file=self.in_file,
             )
 
@@ -1024,6 +1024,7 @@ class BlazingTable(object):
             nodeFilesList.append(bt)
 
         return nodeFilesList
+
 
 class BlazingContext(object):
     """
@@ -2062,7 +2063,7 @@ class BlazingContext(object):
                             workers=[worker],
                             pure=False,
                         ),
-                        worker
+                        worker,
                     )
                 )
 
@@ -2090,10 +2091,10 @@ class BlazingContext(object):
                             return_object[key].update(result[key])
                     else:
                         if key in return_object:
-                            assert(return_object[key] == result[key])
+                            assert return_object[key] == result[key]
                         else:
                             return_object[key] = result[key]
-            return_object['files'] = list(return_object['files'])
+            return_object["files"] = list(return_object["files"])
             return return_object, all_files
         else:
             parsed_schema = cio.parseSchemaCaller(
@@ -2506,8 +2507,10 @@ class BlazingContext(object):
                     if single_gpu:
                         currentTableNodes = query_table.getSlices(1)
                     else:
-                        #currentTableNodes = query_table.getSlices(len(self.nodes))
-                        currentTableNodes = query_table.getSlicesByWorker(len(self.nodes), self.mapping_files)
+                        # currentTableNodes = query_table.getSlices(len(self.nodes))
+                        currentTableNodes = query_table.getSlicesByWorker(
+                            len(self.nodes), self.mapping_files
+                        )
             elif query_table.fileType == DataType.DASK_CUDF:
                 if single_gpu:
                     # TODO: repartition onto the node that does the work
@@ -2663,8 +2666,7 @@ class BlazingContext(object):
         if not self.logs_initialized:
             self.logs_table_name = logs_table_name
             log_files = [
-                os.path.join(log_path, "RAL.*.log")
-                for log_path in self.node_log_paths
+                os.path.join(log_path, "RAL.*.log") for log_path in self.node_log_paths
             ]
             dtypes = [
                 "date64",
@@ -2772,9 +2774,7 @@ class BlazingContext(object):
 
             for log_table_name in log_schemas:
                 log_files = [
-                    os.path.join(
-                        log_path, log_table_name + ".*.log"
-                    )
+                    os.path.join(log_path, log_table_name + ".*.log")
                     for log_path in self.node_log_paths
                 ]
 
