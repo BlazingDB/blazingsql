@@ -723,7 +723,7 @@ def distributed_initialize_server_directory(client, dir_path):
         # Let's group the workers by host_name
         host_worker_dict = {}
         for worker, worker_info in all_items:
-            host_name = re.findall( r'[0-9]+(?:\.[0-9]+){3}', worker)
+            host_name = re.findall( r'[0-9]+(?:\.[0-9]+){3}', worker)[0]
             if host_name not in host_worker_dict.keys():
                 host_worker_dict[host_name] = [worker]
             else:
@@ -758,7 +758,7 @@ def distributed_initialize_server_directory(client, dir_path):
         host_worker_dict = {}
         for worker_key, cwd in zip(all_items, current_working_dirs):
             worker = worker_key[0]
-            host_name = re.findall( r'[0-9]+(?:\.[0-9]+){3}', worker)
+            host_name = re.findall( r'[0-9]+(?:\.[0-9]+){3}', worker)[0]
             if host_name not in host_worker_dict.keys():
                 host_worker_dict[host_name] = {cwd: [worker]}
             else:
