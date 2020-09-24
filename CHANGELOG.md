@@ -10,6 +10,7 @@
 - #975 Fixed issue due to cudf orc api change 
 - #1021 removed an rmm include
 - #1020 Fixed build issues with latest rmm 0.16 and columnBasisTest due to deprecated drop_column() function
+- #1016 Removed workaround for parquet read schema
 
 
 # BlazingSQL 0.15.0 (August 31, 2020)
@@ -94,7 +95,6 @@
 - #973 Fix how we check the existence of the JAVA_HOME environment variable
 - #997 Add capacity to set the transport memory
 - #1007 Fix arrow and spdlog compilation issues
-- #1016 Removed workaround for parquet read schema
 
 # BlazingSQL 0.14.0 (June 9, 2020)
 
