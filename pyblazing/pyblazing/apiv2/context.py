@@ -821,11 +821,13 @@ def convert_friendly_dtype_to_string(list_types):
             list_types[i] = "str"
     return list_types
 
+
 # Utility function, returns True if all elements (even lists) are the same
 def all_same(items):
     it = iter(items)
     first = next(it, None)
     return all(x == first for x in it)
+
 
 class BlazingTable(object):
     def __init__(
@@ -1576,29 +1578,29 @@ class BlazingContext(object):
 
     def get_free_memory(self):
         """
-            This function returns a dictionary which contains as
-            key the gpuID and as value the free memory (bytes)
+        This function returns a dictionary which contains as
+        key the gpuID and as value the free memory (bytes)
 
-            Example
-            --------
-            # single-GPU
-            >>> from blazingsql import BlazingContext
-            >>> bc = BlazingContext()
-            >>> free_mem = bc.get_free_memory()
-            >>> print(free_mem)
-                    {0: 4234220154}
+        Example
+        --------
+        # single-GPU
+        >>> from blazingsql import BlazingContext
+        >>> bc = BlazingContext()
+        >>> free_mem = bc.get_free_memory()
+        >>> print(free_mem)
+                {0: 4234220154}
 
-            # multi-GPU (4 GPUs):
-            >>> from blazingsql import BlazingContext
-            >>> from dask_cuda import LocalCUDACluster
-            >>> from dask.distributed import Client
-            >>> cluster = LocalCUDACluster()
-            >>> client = Client(cluster)
-            >>> bc = BlazingContext(dask_client=client, network_interface='lo')
-            >>> free_mem = bc.get_free_memory()
-            >>> print(free_mem)
-                    {0: 4234220154, 1: 4104210987,
-                     2: 4197720291, 3: 3934320116}
+        # multi-GPU (4 GPUs):
+        >>> from blazingsql import BlazingContext
+        >>> from dask_cuda import LocalCUDACluster
+        >>> from dask.distributed import Client
+        >>> cluster = LocalCUDACluster()
+        >>> client = Client(cluster)
+        >>> bc = BlazingContext(dask_client=client, network_interface='lo')
+        >>> free_mem = bc.get_free_memory()
+        >>> print(free_mem)
+                {0: 4234220154, 1: 4104210987,
+                 2: 4197720291, 3: 3934320116}
         """
         if self.dask_client:
             dask_futures = []
@@ -2512,7 +2514,9 @@ class BlazingContext(object):
                     if single_gpu:
                         currentTableNodes = query_table.getSlices(1)
                     else:
-                        equal_files = all_same(self.mapping_files[query_table.name].values())
+                        equal_files = all_same(
+                            self.mapping_files[query_table.name].values()
+                        )
 
                         # If all files are accessible by all nodes,
                         # it is better to distribute them in the old way
@@ -2587,7 +2591,9 @@ class BlazingContext(object):
                     self.dask_client.submit(
                         collectPartitionsRunQuery,
                         masterIndex,
-                        [self.nodes[0],],
+                        [
+                            self.nodes[0],
+                        ],
                         nodeTableList[0],
                         table_scans,
                         fileTypes,
