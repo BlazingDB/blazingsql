@@ -165,8 +165,6 @@ def initializeBlazing(
         "existing",
         "cuda_memory_resource",
         "managed_memory_resource",
-        "cnmem_memory_resource",
-        "cnmem_managed_memory_resource",
     ]
     if allocator not in possible_allocators:
         print(
@@ -181,10 +179,6 @@ def initializeBlazing(
         allocator = "cuda_memory_resource"
     elif not pool and allocator == "managed":
         allocator = "managed_memory_resource"
-    elif pool and allocator == "default":
-        allocator = "cnmem_memory_resource"
-    elif pool and allocator == "managed":
-        allocator = "cnmem_managed_memory_resource"
 
     cio.blazingSetAllocatorCaller(allocator.encode(), initial_pool_size, config_options)
 
@@ -794,7 +788,7 @@ def initialize_server_directory(dir_path):
         try:
             os.mkdir(dir_path)
         except OSError as error:
-            logging.error("Could not create directory: " + error)
+            logging.error("Could not create directory: " + str(error))
             raise
         return True
     else:

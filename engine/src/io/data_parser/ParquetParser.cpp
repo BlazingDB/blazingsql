@@ -30,7 +30,7 @@ parquet_parser::~parquet_parser() {
 std::unique_ptr<ral::frame::BlazingTable> parquet_parser::parse_batch(
 	std::shared_ptr<arrow::io::RandomAccessFile> file,
 	const Schema & schema,
-	std::vector<size_t> column_indices,
+	std::vector<int> column_indices,
 	std::vector<cudf::size_type> row_groups)
 {
 	if(file == nullptr) {

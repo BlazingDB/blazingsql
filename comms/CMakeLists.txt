@@ -241,7 +241,6 @@ add_library(blazingdb-transport SHARED ${SRC_FILES})
 set_target_properties(blazingdb-transport PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_link_libraries(blazingdb-transport
     pthread
-    rmm
     cudart
     cuda
     zmq

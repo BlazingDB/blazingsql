@@ -35,7 +35,7 @@ cudf_io::table_with_metadata get_new_orc(cudf_io::orc_reader_options orc_opts,
 std::unique_ptr<ral::frame::BlazingTable> orc_parser::parse_batch(
 	std::shared_ptr<arrow::io::RandomAccessFile> file,
 	const Schema & schema,
-	std::vector<size_t> column_indices,
+	std::vector<int> column_indices,
 	std::vector<cudf::size_type> row_groups)
 {
 	if(file == nullptr) {
