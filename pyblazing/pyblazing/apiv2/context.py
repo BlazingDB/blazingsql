@@ -717,11 +717,13 @@ def distributed_initialize_server_directory(client, dir_path):
 
     is_absolute_path = os.path.isabs(dir_path)
 
+    import re
+
     if is_absolute_path:
         # Let's group the workers by host_name
         host_worker_dict = {}
         for worker, worker_info in all_items:
-            host_name = worker.split(":")[0]
+            host_name = re.findall( r'[0-9]+(?:\.[0-9]+){3}', worker)
             if host_name not in host_worker_dict.keys():
                 host_worker_dict[host_name] = [worker]
             else:
