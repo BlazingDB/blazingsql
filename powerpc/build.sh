@@ -207,6 +207,7 @@ set -e
 
 
 #BEGIN spdlog
+echo "BEGIN spdlog"
 cd $build_dir
 if [ ! -d spdlog ]; then
     spdlog_version=v1.7.0 # v1.8 has issues for us
@@ -227,21 +228,25 @@ if [ ! -d spdlog ]; then
     cp -rf $build_dir/spdlog/install/include/spdlog/* $env_prefix/include/spdlog
     cp -rf $build_dir/spdlog/install/lib64/* $env_prefix/lib64
 fi
+echo "END spdlog"
 #END spdlog
 
 
 cudf_version=0.16
 
 # BEGIN RMM
+echo "BEGIN RMM"
 cd $build_dir
 if [ ! -d rmm ]; then
     git clone --depth 1 https://github.com/rapidsai/rmm.git --branch "branch-$cudf_version" --single-branch
     cd rmm
     INSTALL_PREFIX=$tmp_dir CUDACXX=$CUDA_HOME/bin/nvcc ./build.sh  -v clean librmm rmm
 fi
+echo "END RMM"
 # END RMM
 
 # BEGIN DLPACK
+echo "BEGIN dlpack"
 cd $build_dir
 if [ ! -d dlpack ]; then
     dlpack_version=cudf
@@ -256,6 +261,7 @@ if [ ! -d dlpack ]; then
     cp -rf $build_dir/dlpack/myinstall/include/* $env_prefix/include/
     cp -rf $build_dir/dlpack/myinstall/lib64/* $env_prefix/lib64
 fi
+echo "END dlpack"
 # END DLPACK
 
 # BEGIN CUDF c++
@@ -268,6 +274,7 @@ export BUILD_DISABLE_DEPRECATION_WARNING=ON
 export BUILD_PER_THREAD_DEFAULT_STREAM=OFF
 export ARROW_ROOT=$tmp_dir
 
+echo "BEGIN cudf"
 if [ ! -d cudf ]; then
     cd $build_dir
     echo "### Cudf ###"
@@ -299,10 +306,12 @@ if [ ! -d cudf ]; then
           ..
     make -j$MAKEJ_CUDF install
 fi
+echo "END cudf"
 
 # END CUDF c++
 
 # BEGIN GOLD
+echo "BEGIN binutils"
 cd $build_dir
 if [ ! -d binutils ]; then
   # this hash was used to make this work
@@ -315,6 +324,7 @@ if [ ! -d binutils ]; then
   cp gold/ld-new $tmp_dir/bin/ld
   make -j$MAKEJ
 fi
+echo "END binutils"
 # END GOLD
 
 # NOTE LINKER: replace
@@ -327,6 +337,7 @@ cp binutils/nm-new $tmp_dir/bin/nm
 
 machine_processor_architecture=`uname -m`
 
+echo "BEGIN llvm-project"
 cd $build_dir
 if [ ! -d llvm-project ]; then
   llvm_target=""
@@ -354,6 +365,7 @@ if [ ! -d llvm-project ]; then
   cmake -D CMAKE_INSTALL_PREFIX=$tmp_dir -DLLVM_ENABLE_PROJECTS=clang -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD=$llvm_target -D LLVM_BINUTILS_INCDIR=$build_dir/binutils/include/ ../
   make -j1 install
 fi
+echo "END llvm-project"
 
 export LLVM_CONFIG=$tmp_dir/bin/llvm-config
 
@@ -364,6 +376,7 @@ export LLVM_CONFIG=$tmp_dir/bin/llvm-config
 # install LLVMgold.so as plugin to 'ar'
 cd $build_dir
 
+echo "BEGIN llvmlite"
 if [ "$machine_processor_architecture" = "ppc64le" ] || [ "$machine_processor_architecture" = "ppc64" ]; then
   if [ ! -d llvmlite ]; then
     mkdir -p $tmp_dir/lib/bfd-plugins
@@ -376,7 +389,7 @@ if [ "$machine_processor_architecture" = "ppc64le" ] || [ "$machine_processor_ar
     cd llvmlite/
     pip install .
 
-    echo "### Pip dependencies ###"
+    echo "### BEGIN Pip dependencies ###"
     # pip install -r requirements.txt
     #pip install --no-binary numpy numpy==1.13.3
 #    pip install --no-binary numpy numpy
@@ -408,9 +421,11 @@ if [ "$machine_processor_architecture" = "ppc64le" ] || [ "$machine_processor_ar
     pip install thrift==0.13.0
     pip install jpype1==1.0.2
     pip install netifaces==0.10.9
+    echo "### END Pip dependencies ###"
     echo "---->>> finished llvmlite"
  fi
 fi
+echo "END llvmlite"
 
 
 # END numba llvmlite
@@ -426,6 +441,7 @@ echo "---->>> install fsspec"
 pip install --no-binary fsspec fsspec
 
 # BEGIN CUPY
+echo "BEGIN CUPY"
 cd $build_dir
 if [ ! -d cupy ]; then
     cupy_version=v7.7.0
@@ -434,6 +450,7 @@ if [ ! -d cupy ]; then
     #python setup.py install --user
     pip install .
 fi
+echo "END CUPY"
 # END CUPY
 
 export CUDF_ROOT=$build_dir/cudf/cpp/build
@@ -451,17 +468,19 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib64/
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/
 
 # BEGIN cudf python
-if [ ! -d $build_dir/cudf ]; then
+echo "BEGIN cudf python"
+#if [ ! -d $build_dir/cudf ]; then
     cd $build_dir/cudf/python/cudf
     PARALLEL_LEVEL=$MAKEJ python setup.py build_ext --inplace
     python setup.py install --single-version-externally-managed --record=record.txt 
-fi
-
+#fi
+echo "END cudf python"
 # END cudf python
 
 dask_version=2.23.0
 
 # BEGIN dask distributed
+echo "BEGIN dask distributed"
 cd $build_dir
 if [ ! -d distributed ]; then
   git clone --depth 1 https://github.com/dask/distributed.git --branch $dask_version --single-branch
@@ -469,9 +488,11 @@ if [ ! -d distributed ]; then
   #python setup.py install --user
   pip install .
 fi
+echo "END dask distributed"
 # END dask distributed
 
 # BEGIN dask
+echo "BEGIN dask"
 cd $build_dir
 if [ ! -d dask ]; then
   git clone --depth 1 https://github.com/dask/dask.git --branch $dask_version --single-branch
@@ -479,9 +500,11 @@ if [ ! -d dask ]; then
   #python setup.py install --user
   pip install .
 fi
+echo "END dask"
 # END dask
 
 # BEGIN dask-cuda
+echo "BEGIN dask-cuda"
 cd $build_dir
 if [ ! -d dask-cuda ]; then
   git clone --depth 1 https://github.com/rapidsai/dask-cuda.git --branch "branch-$cudf_version" --single-branch
@@ -489,16 +512,19 @@ if [ ! -d dask-cuda ]; then
   #python setup.py install --user
   pip install .
 fi
+echo "END dask-cuda"
 # END dask-cuda
 
-#if [ ! -d $build_dir/cudf ]; then
+# if [ ! -d $build_dir/cudf ]; then
     # BEGIN dask-cudf
+    echo "BEGIN dask-cudf"
     cd $build_dir/cudf/python/dask_cudf
     python setup.py install --single-version-externally-managed --record=record.txt
+    echo "END dask-cudf"
     # END dask-cudf
-#fi
+# fi
 
-# BEGIN gtest
+echo "BEGIN gtest"
 # google test
 cd $build_dir
 if [ ! -d googletest ]; then
@@ -510,10 +536,11 @@ if [ ! -d googletest ]; then
   cmake -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=$tmp_dir ..
   make -j$MAKEJ install
 fi
-# END gtest
+echo "END gtest"
 
 # BEGIN zmq
 
+echo "BEGIN zmq"
 # zmq
 cd $build_dir
 if [ ! -d libzmq ]; then
@@ -526,7 +553,9 @@ if [ ! -d libzmq ]; then
   cmake -DCMAKE_INSTALL_PREFIX=$tmp_dir -D ZMQ_BUILD_TESTS=OFF ..
   make -j$MAKEJ install
 fi
+echo "END zmq"
 
+echo "BEGIN cppzmq"
 # cppzmq
 cd $build_dir
 if [ ! -d cppzmq ]; then
@@ -539,22 +568,28 @@ if [ ! -d cppzmq ]; then
   cmake -DCMAKE_INSTALL_PREFIX=$tmp_dir ..
   make -j$MAKEJ install
 fi
+echo "END cppzmq"
 
 # ENDzmq
 
-# BEGIN mvn
-#echo "BEING mvn"
-#cd $build_dir
-#wget http://public.dhe.ibm.com/ibmdl/export/pub/systems/cloud/runtimes/java/8.0.6.11/linux/ppc64le/ibm-java-sdk-8.0-6.11-ppc64le-archive.bin
-#chmod +x ibm-java-sdk-8.0-6.11-ppc64le-archive.bin
-#./ibm-java-sdk-8.0-6.11-ppc64le-archive.bin
-#export PATH=$PWD/ibm-java-ppc64le-80/bin:$PATH
-#export JAVA_HOME=$PWD/ibm-java-ppc64le-80/jre
+# BEGIN JAVA
+echo "BEGIN JAVA"
+cd $build_dir
+wget http://public.dhe.ibm.com/ibmdl/export/pub/systems/cloud/runtimes/java/8.0.6.11/linux/ppc64le/ibm-java-sdk-8.0-6.11-ppc64le-archive.bin
+chmod +x ibm-java-sdk-8.0-6.11-ppc64le-archive.bin
+./ibm-java-sdk-8.0-6.11-ppc64le-archive.bin
+export PATH=$PWD/ibm-java-ppc64le-80/bin:$PATH
+export JAVA_HOME=$PWD/ibm-java-ppc64le-80/jre
+echo "ENV JAVA"
+# ENV JAVA
 
+echo "BEGIN mvn"
+cd $build_dir
 wget https://downloads.apache.org/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz
 tar xvfz apache-maven-3.6.3-bin.tar.gz
 mv apache-maven-3.6.3 $VIRTUAL_ENV/
 export PATH=$VIRTUAL_ENV/apache-maven-3.6.3/bin:$PATH
+echo "ENV mvn"
 
 
 
