@@ -60,22 +60,11 @@ void set_min_max(
 	case parquet::ConvertedType::type::DATE:
 		physical = parquet::Type::type::INT32;
 		break;
-	case parquet::ConvertedType::type::TIMESTAMP_MILLIS: {
-		auto convertedStats =
-			std::static_pointer_cast<parquet::Int64Statistics>(statistics);
-		auto min = convertedStats->min();
-		auto max = convertedStats->max();
-		minmax_metadata_table[col_index].back() = min;
-		minmax_metadata_table[col_index + 1].back() = max;
-		break;
-	}
+	case parquet::ConvertedType::type::TIMESTAMP_MILLIS:
 	case parquet::ConvertedType::type::TIMESTAMP_MICROS: {
-		auto convertedStats =
-			std::static_pointer_cast<parquet::Int64Statistics>(statistics);
-		// gdf_dtype_extra_info{TIME_UNIT_us}
-		// TODO, review this case
-		auto min = convertedStats->min();
-		auto max = convertedStats->max();
+		auto convertedStats = std::static_pointer_cast<parquet::Int64Statistics>(statistics);
+		auto min = statistics->HasMinMax() ? convertedStats->min() : std::numeric_limits<int64_t>::min();
+		auto max = statistics->HasMinMax() ? convertedStats->max() : std::numeric_limits<int64_t>::max();
 		minmax_metadata_table[col_index].back() = min;
 		minmax_metadata_table[col_index + 1].back() = max;
 		break;
@@ -88,38 +77,34 @@ void set_min_max(
 	// format in combination with the encoding type.
 	switch (physical) {
 	case parquet::Type::type::BOOLEAN: {
-		auto convertedStats =
-			std::static_pointer_cast<parquet::BoolStatistics>(statistics);
-		auto min = convertedStats->min();
-		auto max = convertedStats->max();
+		auto convertedStats = std::static_pointer_cast<parquet::BoolStatistics>(statistics);
+		auto min = statistics->HasMinMax() ? convertedStats->min() : std::numeric_limits<int8_t>::min();
+		auto max = statistics->HasMinMax() ? convertedStats->max() : std::numeric_limits<int8_t>::max();
 		minmax_metadata_table[col_index].back() = min;
 		minmax_metadata_table[col_index + 1].back() = max;
 		break;
 	}
 	case parquet::Type::type::INT32: {
-		auto convertedStats =
-			std::static_pointer_cast<parquet::Int32Statistics>(statistics);
-		auto min = convertedStats->min();
-		auto max = convertedStats->max();
+		auto convertedStats = std::static_pointer_cast<parquet::Int32Statistics>(statistics);
+		auto min = statistics->HasMinMax() ? convertedStats->min() : std::numeric_limits<int32_t>::min();
+		auto max = statistics->HasMinMax() ? convertedStats->max() : std::numeric_limits<int32_t>::max();
 		minmax_metadata_table[col_index].back() = min;
 		minmax_metadata_table[col_index + 1].back() = max;
 
 		break;
 	}
 	case parquet::Type::type::INT64: {
-		auto convertedStats =
-			std::static_pointer_cast<parquet::Int64Statistics>(statistics);
-		auto min = convertedStats->min();
-		auto max = convertedStats->max();
+		auto convertedStats = std::static_pointer_cast<parquet::Int64Statistics>(statistics);
+		auto min = statistics->HasMinMax() ? convertedStats->min() : std::numeric_limits<int64_t>::min();
+		auto max = statistics->HasMinMax() ? convertedStats->max() : std::numeric_limits<int64_t>::max();
 		minmax_metadata_table[col_index].back() = min;
 		minmax_metadata_table[col_index + 1].back() = max;
 		break;
 	}
 	case parquet::Type::type::FLOAT: {
-		auto convertedStats =
-			std::static_pointer_cast<parquet::FloatStatistics>(statistics);
-		auto min = convertedStats->min();
-		auto max = convertedStats->max();
+		auto convertedStats = std::static_pointer_cast<parquet::FloatStatistics>(statistics);
+		auto min = statistics->HasMinMax() ? convertedStats->min() : std::numeric_limits<float>::min();
+		auto max = statistics->HasMinMax() ? convertedStats->max() : std::numeric_limits<float>::max();
 		// here we want to reinterpret cast minmax_metadata_table to be floats so that we can just use this same vector as if they were floats
 		size_t current_row_index = minmax_metadata_table[col_index].size() - 1;
 		float* casted_metadata_min = reinterpret_cast<float*>(&(minmax_metadata_table[col_index][0]));
@@ -129,10 +114,9 @@ void set_min_max(
 		break;
 	}
 	case parquet::Type::type::DOUBLE: {
-		auto convertedStats =
-			std::static_pointer_cast<parquet::DoubleStatistics>(statistics);
-		auto min = convertedStats->min();
-		auto max = convertedStats->max();
+		auto convertedStats = std::static_pointer_cast<parquet::DoubleStatistics>(statistics);
+		auto min = statistics->HasMinMax() ? convertedStats->min() : std::numeric_limits<double>::min();
+		auto max = statistics->HasMinMax() ? convertedStats->min() : std::numeric_limits<double>::max();
 		// here we want to reinterpret cast minmax_metadata_table to be double so that we can just use this same vector as if they were double
 		size_t current_row_index = minmax_metadata_table[col_index].size() - 1;
 		double* casted_metadata_min = reinterpret_cast<double*>(&(minmax_metadata_table[col_index][0]));
@@ -388,20 +372,16 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 			for (int row_group_index = 0; row_group_index < num_row_groups; row_group_index++) {
 				auto groupReader = parquet_readers[file_index]->RowGroup(row_group_index);
 				auto *rowGroupMetadata = groupReader->metadata();
-				for (int col_count = 0; col_count < columns_with_metadata.size();
-					col_count++) {
+				for (int col_count = 0; col_count < columns_with_metadata.size(); col_count++) {
 					const parquet::ColumnDescriptor *column = schema->Column(columns_with_metadata[col_count]);
 					auto columnMetaData = rowGroupMetadata->ColumnChunk(columns_with_metadata[col_count]);
 					if (columnMetaData->is_stats_set()) {
 						auto statistics = columnMetaData->statistics();
-						if (statistics->HasMinMax()) {
-							set_min_max(this_minmax_metadata_table,
-							col_count * 2,
-										column->physical_type(),
-										column->converted_type(),
-										statistics);
-
-						}
+						set_min_max(this_minmax_metadata_table,
+									col_count * 2,
+									column->physical_type(),
+									column->converted_type(),
+									statistics);
 					}
 				}
 				this_minmax_metadata_table[this_minmax_metadata_table.size() - 2].push_back(metadata_offset + file_index);
