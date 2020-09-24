@@ -2657,8 +2657,8 @@ class BlazingContext(object):
         if not self.logs_initialized:
             self.logs_table_name = logs_table_name
             log_files = [
-                os.path.join(self.node_log_paths[i], "RAL.*.log")
-                for i in range(0, len(self.node_log_paths))
+                os.path.join(log_path, "RAL.*.log")
+                for log_path in self.node_log_paths
             ]
             dtypes = [
                 "date64",
@@ -2767,9 +2767,9 @@ class BlazingContext(object):
             for log_table_name in log_schemas:
                 log_files = [
                     os.path.join(
-                        self.node_log_paths[i], log_table_name + ".*.log"
+                        log_path, log_table_name + ".*.log"
                     )
-                    for i in range(0, len(self.node_log_paths))
+                    for log_path in self.node_log_paths
                 ]
 
                 names, dtypes = log_schemas[log_table_name]
