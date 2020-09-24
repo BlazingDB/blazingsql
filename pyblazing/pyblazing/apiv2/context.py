@@ -1198,7 +1198,7 @@ class BlazingContext(object):
         self.nodes = []
         self.mapping_nodes = {}
         self.mapping_files = {}
-        self.node_log_paths = []
+        self.node_log_paths = set()
         self.finalizeCaller = lambda: NotImplemented
         self.config_options = {}
         for option in config_options:
@@ -1301,7 +1301,7 @@ class BlazingContext(object):
                 node["ip"] = ralIp
                 node["communication_port"] = ralPort
                 self.nodes.append(node)
-                self.node_log_paths.append(log_path)
+                self.node_log_paths.add(log_path)
                 i = i + 1
 
             # need to initialize this logging independently, in case its set
@@ -1330,7 +1330,7 @@ class BlazingContext(object):
             node["ip"] = ralIp
             node["communication_port"] = ralPort
             self.nodes.append(node)
-            self.node_log_paths.append(log_path)
+            self.node_log_paths.add(log_path)
 
         self.fs = FileSystem()
 
@@ -2657,7 +2657,7 @@ class BlazingContext(object):
         if not self.logs_initialized:
             self.logs_table_name = logs_table_name
             log_files = [
-                os.path.join(self.node_log_paths[i], "RAL." + str(i) + ".log")
+                os.path.join(self.node_log_paths[i], "RAL.*.log")
                 for i in range(0, len(self.node_log_paths))
             ]
             dtypes = [
@@ -2767,7 +2767,7 @@ class BlazingContext(object):
             for log_table_name in log_schemas:
                 log_files = [
                     os.path.join(
-                        self.node_log_paths[i], log_table_name + "." + str(i) + ".log"
+                        self.node_log_paths[i], log_table_name + ".*.log"
                     )
                     for i in range(0, len(self.node_log_paths))
                 ]
