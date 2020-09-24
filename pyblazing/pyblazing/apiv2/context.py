@@ -995,6 +995,33 @@ class BlazingTable(object):
 
         return nodeFilesList
 
+    def getSlicesByWorker(self, numSlices, mapping_files):
+        nodeFilesList = []
+        if self.files is None:
+            for i in range(0, numSlices):
+                nodeFilesList.append(BlazingTable(self.name, self.input, self.fileType))
+            return nodeFilesList
+
+        for target_files in mapping_files[self.name].values():
+            bt = BlazingTable(
+                self.name,
+                self.input,
+                self.fileType,
+                files=target_files,
+                calcite_to_file_indices=self.calcite_to_file_indices,
+                uri_values=self.uri_values, #TODO
+                args=self.args,
+                row_groups_ids=self.row_groups_ids, #TODO
+                in_file=self.in_file,
+            )
+
+            bt.offset = self.offset
+            bt.column_names = self.column_names
+            bt.file_column_names = self.file_column_names
+            bt.column_types = self.column_types
+            nodeFilesList.append(bt)
+
+        return nodeFilesList
 
 class BlazingContext(object):
     """
@@ -1167,6 +1194,8 @@ class BlazingContext(object):
         self.lock = Lock()
         self.finalizeCaller = ref(cio.finalizeCaller)
         self.nodes = []
+        self.mapping_nodes = {}
+        self.mapping_files = {}
         self.node_log_paths = []
         self.finalizeCaller = lambda: NotImplemented
         self.config_options = {}
@@ -1245,6 +1274,7 @@ class BlazingContext(object):
             ).encode()
 
             for worker in list(self.dask_client.scheduler_info()["workers"]):
+                self.mapping_nodes[worker] = i
                 dask_futures.append(
                     self.dask_client.submit(
                         initializeBlazing,
@@ -1812,9 +1842,10 @@ class BlazingContext(object):
             # if we are using user defined partitions without hive,
             # we want to ignore paths we dont find.
             ignore_missing_paths = user_partitions_schema is not None
-            parsedSchema = self._parseSchema(
+            parsedSchema, temp_mapping_files = self._parseSchema(
                 input, file_format_hint, kwargs, extra_columns, ignore_missing_paths
             )
+            self.mapping_files[table_name] = temp_mapping_files
 
             if is_hive_input or user_partitions is not None:
                 uri_values = get_uri_values(
@@ -2014,18 +2045,49 @@ class BlazingContext(object):
         self, input, file_format_hint, kwargs, extra_columns, ignore_missing_paths
     ):
         if self.dask_client:
-            worker = tuple(self.dask_client.scheduler_info()["workers"])[0]
-            connection = self.dask_client.submit(
-                cio.parseSchemaCaller,
-                input,
-                file_format_hint,
-                kwargs,
-                extra_columns,
-                ignore_missing_paths,
-                workers=[worker],
-                pure=False,
-            )
-            return connection.result()
+            dask_futures = []
+
+            for worker in list(self.dask_client.scheduler_info()["workers"]):
+                # worker = tuple(self.dask_client.scheduler_info()["workers"])[0]
+                dask_futures.append(
+                    (
+                        self.dask_client.submit(
+                            cio.parseSchemaCaller,
+                            input,
+                            file_format_hint,
+                            kwargs,
+                            extra_columns,
+                            ignore_missing_paths,
+                            workers=[worker],
+                            pure=False,
+                        ),
+                        worker
+                    )
+                )
+
+            return_object = {}
+            all_files = {}
+            for future, worker in dask_futures:
+                result = future.result()
+
+                for key in result:
+                    if key == "files":
+                        #all_files.append((worker, result[key]))
+                        # for file_item in result[key]:
+                        #     all_files[file_item] = worker
+                        all_files[worker] = result[key]
+                        if "files" in return_object:
+                            return_object[key].update(result[key])
+                        else:
+                            return_object[key] = set()
+                            return_object[key].update(result[key])
+                    else:
+                        if key in return_object:
+                            assert(return_object[key] == result[key])
+                        else:
+                            return_object[key] = result[key]
+            return_object['files'] = list(return_object['files'])
+            return return_object, all_files
         else:
             return cio.parseSchemaCaller(
                 input, file_format_hint, kwargs, extra_columns, ignore_missing_paths
@@ -2393,6 +2455,8 @@ class BlazingContext(object):
             print("Parsing Error")
             return
 
+        table_names = []
+
         if len(config_options) == 0:
             query_config_options = self.config_options
         else:
@@ -2434,7 +2498,8 @@ class BlazingContext(object):
                     if single_gpu:
                         currentTableNodes = query_table.getSlices(1)
                     else:
-                        currentTableNodes = query_table.getSlices(len(self.nodes))
+                        #currentTableNodes = query_table.getSlices(len(self.nodes))
+                        currentTableNodes = query_table.getSlicesByWorker(len(self.nodes), self.mapping_files)
             elif query_table.fileType == DataType.DASK_CUDF:
                 if single_gpu:
                     # TODO: repartition onto the node that does the work
