@@ -821,6 +821,11 @@ def convert_friendly_dtype_to_string(list_types):
             list_types[i] = "str"
     return list_types
 
+# Utility function, returns True if all elements (even lists) are the same
+def all_same(items):
+    it = iter(items)
+    first = next(it, None)
+    return all(x == first for x in it)
 
 class BlazingTable(object):
     def __init__(
@@ -2507,10 +2512,18 @@ class BlazingContext(object):
                     if single_gpu:
                         currentTableNodes = query_table.getSlices(1)
                     else:
-                        # currentTableNodes = query_table.getSlices(len(self.nodes))
-                        currentTableNodes = query_table.getSlicesByWorker(
-                            len(self.nodes), self.mapping_files
-                        )
+                        equal_files = all_same(self.mapping_files[query_table.name].values())
+
+                        # If all files are accessible by all nodes,
+                        # it is better to distribute them in the old way
+                        # otherwise, each node is responsible for the files
+                        # it has access to.
+                        if equal_files == True:
+                            currentTableNodes = query_table.getSlices(len(self.nodes))
+                        else:
+                            currentTableNodes = query_table.getSlicesByWorker(
+                                len(self.nodes), self.mapping_files
+                            )
             elif query_table.fileType == DataType.DASK_CUDF:
                 if single_gpu:
                     # TODO: repartition onto the node that does the work
