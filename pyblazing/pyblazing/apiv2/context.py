@@ -2050,7 +2050,6 @@ class BlazingContext(object):
             dask_futures = []
 
             for worker in list(self.dask_client.scheduler_info()["workers"]):
-                # worker = tuple(self.dask_client.scheduler_info()["workers"])[0]
                 dask_futures.append(
                     (
                         self.dask_client.submit(
@@ -2074,10 +2073,16 @@ class BlazingContext(object):
 
                 for key in result:
                     if key == "files":
-                        #all_files.append((worker, result[key]))
-                        # for file_item in result[key]:
-                        #     all_files[file_item] = worker
-                        all_files[worker] = result[key]
+                        # remove duplicates
+                        if key in return_object:
+                            all_files[worker] = []
+
+                            for file_item in result[key]:
+                                if file_item not in return_object[key]:
+                                    all_files[worker].append(file_item)
+                        else:
+                            all_files[worker] = result[key]
+
                         if "files" in return_object:
                             return_object[key].update(result[key])
                         else:
@@ -2091,9 +2096,10 @@ class BlazingContext(object):
             return_object['files'] = list(return_object['files'])
             return return_object, all_files
         else:
-            return cio.parseSchemaCaller(
+            parsed_schema = cio.parseSchemaCaller(
                 input, file_format_hint, kwargs, extra_columns, ignore_missing_paths
             )
+            return parsed_schema, {"localhost": parsed_schema["files"]}
 
     def _parseMetadata(self, file_format_hint, currentTableNodes, schema, kwargs):
         if self.dask_client:
