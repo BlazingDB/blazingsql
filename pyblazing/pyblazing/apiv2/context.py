@@ -2522,7 +2522,7 @@ class BlazingContext(object):
                         # it is better to distribute them in the old way
                         # otherwise, each node is responsible for the files
                         # it has access to.
-                        if equal_files == True:
+                        if equal_files is True:
                             currentTableNodes = query_table.getSlices(len(self.nodes))
                         else:
                             currentTableNodes = query_table.getSlicesByWorker(
