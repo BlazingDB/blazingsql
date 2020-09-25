@@ -840,6 +840,7 @@ class BlazingTable(object):
         force_conversion=False,
         metadata=None,
         row_groups_ids=[],
+        local_files=False,
     ):
         # row_groups_ids, vector<vector<int>> one vector
         # of row_groups per file
@@ -858,6 +859,11 @@ class BlazingTable(object):
 
         self.calcite_to_file_indices = calcite_to_file_indices
         self.files = files
+
+        # This flag allows to differentiate the accessibility of the files
+        # by the worker nodes. Set to True if the files are distributed,
+        # for example in the case of log files.
+        self.local_files = local_files
 
         self.datasource = datasource
 
@@ -1205,11 +1211,6 @@ class BlazingContext(object):
             self.config_options[option.encode()] = str(
                 config_options[option]
             ).encode()  # make sure all options are encoded strings
-
-        # This flag allows to differentiate the accessibility of the files
-        # by the worker nodes. Set to True if the files are distributed,
-        # for example in the case of log files.
-        self.local_files = False
 
         logging_dir_path = "blazing_log"
         # want to use config_options and not self.config_options
@@ -1668,8 +1669,7 @@ class BlazingContext(object):
         in_file = []
         is_hive_input = False
         extra_columns = []
-
-        self.local_files = kwargs.get("local_files", False)
+        local_files = kwargs.get("local_files", False)
 
         # See datasource.file_format
         file_format_hint = kwargs.get("file_format", "undefined")
@@ -1851,7 +1851,7 @@ class BlazingContext(object):
             # we want to ignore paths we dont find.
             ignore_missing_paths = user_partitions_schema is not None
             parsedSchema, temp_mapping_files = self._parseSchema(
-                input, file_format_hint, kwargs, extra_columns, ignore_missing_paths
+                input, file_format_hint, kwargs, extra_columns, ignore_missing_paths, local_files
             )
             self.mapping_files[table_name] = temp_mapping_files
 
@@ -1880,6 +1880,7 @@ class BlazingContext(object):
                 args=parsedSchema["args"],
                 uri_values=uri_values,
                 in_file=in_file,
+                local_files=local_files,
             )
 
             if is_hive_input:
@@ -2050,10 +2051,10 @@ class BlazingContext(object):
             raise ValueError("ERROR: Not found table: " + str(table_name))
 
     def _parseSchema(
-        self, input, file_format_hint, kwargs, extra_columns, ignore_missing_paths
+        self, input, file_format_hint, kwargs, extra_columns, ignore_missing_paths, local_files
     ):
         if self.dask_client:
-            if self.local_files is False:
+            if local_files is False:
                 # just the first worker parse the entire file schemas
                 worker = tuple(self.dask_client.scheduler_info()["workers"])[0]
                 connection = self.dask_client.submit(
@@ -2328,7 +2329,12 @@ class BlazingContext(object):
             if single_gpu:
                 return current_table.getSlices(1)
             else:
-                return current_table.getSlices(len(self.nodes))
+                if current_table.local_files is False:
+                    return current_table.getSlices(len(self.nodes))
+                else:
+                    return current_table.getSlicesByWorker(
+                        len(self.nodes), self.mapping_files
+                    )
 
     """
     Partition a dask_cudf DataFrame based on one or more columns.
@@ -2536,7 +2542,7 @@ class BlazingContext(object):
                         # it is better to distribute them in the old way
                         # otherwise, each node is responsible for the files
                         # it has access to.
-                        if self.local_files is False:
+                        if query_table.local_files is False:
                             currentTableNodes = query_table.getSlices(len(self.nodes))
                         else:
                             currentTableNodes = query_table.getSlicesByWorker(
