@@ -21,7 +21,7 @@ namespace io {
 
 class csv_parser : public data_parser {
 public:
-	csv_parser(cudf::io::csv_reader_options args);
+	csv_parser(std::map<std::string, std::string> args_map);
 
 	virtual ~csv_parser();
 
@@ -34,7 +34,7 @@ public:
 	void parse_schema(std::shared_ptr<arrow::io::RandomAccessFile> file, ral::io::Schema & schema);
 
 private:
-	cudf::io::csv_reader_options csv_args;
+	std::map<std::string, std::string> args_map;
 };
 
 } /* namespace io */
