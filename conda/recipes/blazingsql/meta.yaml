@@ -41,12 +41,14 @@ requirements:
         - netifaces
         - pyhive
         - thrift 0.13.0
-        - {{ pin_compatible('zeromq', max_pin='x.x') }}
+        - {{ pin_compatible('zeromq', max_pin='x.x.x') }}
         - {{ pin_compatible('gtest', max_pin='x.x') }}
         - dask-cudf {{ minor_version }}
         - dask-cuda {{ minor_version }}
 
 test:
+    requires:
+        - cudatoolkit {{ cuda_version }}
     imports:
         - cio
 

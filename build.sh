@@ -176,21 +176,6 @@ if buildAll || hasArg io || hasArg libengine || hasArg thirdparty || hasArg upda
                 -DCMAKE_BUILD_TYPE=Release \
                 ..
             ninja install
-
-            if [[ $CONDA_BUILD -eq 1 ]]; then
-                cd ${REPODIR}
-                # WARNING DO NOT TOUCH OR CHANGE THESE PATHS (william mario c.gonzales)
-                echo "==>> In conda build env: aws sdk cpp thirdparty"
-                echo "==>> Current working directory: $PWD"
-                conda_bld_dir=/conda/envs/gdf/conda-bld/
-                echo "==>> conda_bld_dir: $conda_bld_dir"
-                cp --remove-destination -rfu $conda_bld_dir/blazingsql_*/_h_env*/include/aws/* $conda_bld_dir/blazingsql_*/_build_env/include/aws/
-                cp --remove-destination -rfu $conda_bld_dir/blazingsql_*/_h_env*/lib/*aws* $conda_bld_dir/blazingsql_*/_build_env/lib/
-                cp --remove-destination -rfu $conda_bld_dir/blazingsql_*/_h_env*/lib/cmake/*aws* $conda_bld_dir/blazingsql_*/_build_env/lib/cmake/
-                cp --remove-destination -rfu $conda_bld_dir/blazingsql_*/_h_env*/lib/cmake/AWS* $conda_bld_dir/blazingsql_*/_build_env/lib/cmake/
-                cp --remove-destination -rfu $conda_bld_dir/blazingsql_*/_h_env*/lib/cmake/*Aws* $conda_bld_dir/blazingsql_*/_build_env/lib/cmake/
-                cp --remove-destination -rfu $conda_bld_dir/blazingsql_*/_h_env*/lib/pkgconfig/*aws* $conda_bld_dir/blazingsql_*/_build_env/lib/pkgconfig/
-            fi
         else
             echo "thirdparty/aws-cpp/ is already installed in ${INSTALL_PREFIX}"
         fi
