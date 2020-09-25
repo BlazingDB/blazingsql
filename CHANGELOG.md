@@ -4,7 +4,7 @@
 
 
 ## Improvements
-
+- #1040 Update conda recipe, remove cxx11 abi from cmake
 
 ## Bug Fixes
 - #975 Fixed issue due to cudf orc api change 
