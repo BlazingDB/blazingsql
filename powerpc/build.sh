@@ -127,7 +127,6 @@ if [ ! -d arrow ]; then
     # NOTE for the arrow cmake arguments:
     # -DARROW_IPC=ON \ # need ipc for blazingdb-ral (because cudf)
     # -DARROW_HDFS=ON \ # blazingdb-io use arrow for hdfs
-    # -DARROW_TENSORFLOW=ON \ # enable old ABI for C/C++
     
     export BOOST_ROOT=$env_prefix
 
@@ -256,7 +255,7 @@ if [ ! -d cudf ]; then
     #export CUDA_HOME=/usr/local/cuda/
     #export PARALLEL_LEVEL=$build_mode
     #CUDACXX=/usr/local/cuda/bin/nvcc ./build.sh
-    #cmake -D GPU_ARCHS=70 -DBUILD_TESTS=ON -DCMAKE_INSTALL_PREFIX=$tmp_dir -DCMAKE_CXX11_ABI=ON ./cpp
+    #cmake -D GPU_ARCHS=70 -DBUILD_TESTS=ON -DCMAKE_INSTALL_PREFIX=$tmp_dir ./cpp
     #echo "make"
     #make -j4 install
 
@@ -264,7 +263,6 @@ if [ ! -d cudf ]; then
     mkdir -p build
     cd build
     cmake -DCMAKE_INSTALL_PREFIX=$tmp_dir \
-          -DCMAKE_CXX11_ABI=ON \
           ${GPU_ARCH} \
           -DUSE_NVTX=${BUILD_NVTX} \
           -DBUILD_BENCHMARKS=${BUILD_BENCHMARKS} \

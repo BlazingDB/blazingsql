@@ -141,7 +141,7 @@ if buildAll || hasArg io || hasArg libengine || hasArg thirdparty || hasArg upda
             cd cudf/cpp
             mkdir build
             cd build
-            cmake -DCMAKE_CXX11_ABI=ON ..
+            cmake ..
         else
             cd ${REPODIR}/thirdparty/cudf
             if hasArg update; then
@@ -150,7 +150,7 @@ if buildAll || hasArg io || hasArg libengine || hasArg thirdparty || hasArg upda
                     mkdir cpp/build
                 fi
                 cd cpp/build
-                cmake -DCMAKE_CXX11_ABI=ON ..
+                cmake ..
             fi
         fi
         export CUDF_HOME=${REPODIR}/thirdparty/cudf/
