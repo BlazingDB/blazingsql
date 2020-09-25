@@ -46,7 +46,7 @@ DataType inferFileType(std::vector<std::string> files, DataType data_type_hint) 
 	return inferDataType(ext);
 }
 
-bool in(std::string key, std::map<std::string, std::string> args) { return !(args.find(key) == args.end()); }
+bool map_contains(std::string key, std::map<std::string, std::string> args) { return !(args.find(key) == args.end()); }
 
 bool to_bool(std::string value) {
 	if(value == "True")
@@ -80,19 +80,19 @@ cudf::io::json_reader_options getJsonReaderOptions(const std::map<std::string, s
 	
 	cudf::io::json_reader_options reader_opts = cudf::io::json_reader_options::builder(cudf::io::source_info{&arrow_source});
 	reader_opts.enable_lines(true);
-	if(in("dtype", args)) {
+	if(map_contains("dtype", args)) {
 		reader_opts.dtypes(to_vector_string(args.at("dtype")));
 	}
-	if(in("compression", args)) {
+	if(map_contains("compression", args)) {
 		reader_opts.compression(static_cast<cudf::io::compression_type>(to_int(args.at("compression"))));
 	}
-	if(in("lines", args)) {
+	if(map_contains("lines", args)) {
 		reader_opts.enable_lines(to_bool(args.at("lines")));
 	}
-	if(in("byte_range_offset", args)) {
+	if(map_contains("byte_range_offset", args)) {
 		reader_opts.set_byte_range_offset( (size_t) to_int(args.at("byte_range_offset")) );
 	}
-	if(in("byte_range_size", args)) {
+	if(map_contains("byte_range_size", args)) {
 		reader_opts.set_byte_range_size( (size_t) to_int(args.at("byte_range_size")) );
 	}
 	return reader_opts;
@@ -101,16 +101,16 @@ cudf::io::json_reader_options getJsonReaderOptions(const std::map<std::string, s
 cudf::io::orc_reader_options getOrcReaderOptions(const std::map<std::string, std::string> & args, cudf::io::arrow_io_source & arrow_source) {
 	
 	cudf::io::orc_reader_options reader_opts = cudf::io::orc_reader_options::builder(cudf::io::source_info{&arrow_source});
-	if(in("stripes", args)) {
+	if(map_contains("stripes", args)) {
 		reader_opts.set_stripes(to_vector_int(args.at("stripes")));
 	}
-	if(in("skip_rows", args)) {
+	if(map_contains("skip_rows", args)) {
 		reader_opts.set_skip_rows(to_int(args.at("skip_rows")));
 	}
-	if(in("num_rows", args)) {
+	if(map_contains("num_rows", args)) {
 		reader_opts.set_num_rows(to_int(args.at("num_rows")));
 	}
-	if(in("use_index", args)) {
+	if(map_contains("use_index", args)) {
 		reader_opts.enable_use_index(to_int(args.at("use_index")));
 	} else {
 		reader_opts.enable_use_index(true);
@@ -121,101 +121,101 @@ cudf::io::orc_reader_options getOrcReaderOptions(const std::map<std::string, std
 cudf::io::csv_reader_options getCsvReaderOptions(const std::map<std::string, std::string> & args, cudf::io::arrow_io_source & arrow_source) {
 
 	cudf::io::csv_reader_options reader_opts = cudf::io::csv_reader_options::builder(cudf::io::source_info{&arrow_source});
-	if(in("compression", args)) {
+	if(map_contains("compression", args)) {
 		reader_opts.set_compression((cudf::io::compression_type) to_int(args.at("compression")));
 	}
-	if(in("lineterminator", args)) {
+	if(map_contains("lineterminator", args)) {
 		reader_opts.set_lineterminator(ord(args.at("lineterminator")));
 	}
-	if(in("delimiter", args)) {
+	if(map_contains("delimiter", args)) {
 		reader_opts.set_delimiter(ord(args.at("delimiter")));
 	}
-	if(in("windowslinetermination", args)) {
+	if(map_contains("windowslinetermination", args)) {
 		reader_opts.enable_windowslinetermination(to_bool(args.at("windowslinetermination")));
 	}
-	if(in("delim_whitespace", args)) {
+	if(map_contains("delim_whitespace", args)) {
 		reader_opts.enable_delim_whitespace(to_bool(args.at("delim_whitespace")));
 	}
-	if(in("skipinitialspace", args)) {
+	if(map_contains("skipinitialspace", args)) {
 		reader_opts.enable_skipinitialspace(to_bool(args.at("skipinitialspace")));
 	}
-	if(in("skip_blank_lines", args)) {
+	if(map_contains("skip_blank_lines", args)) {
 		reader_opts.enable_skip_blank_lines(to_bool(args.at("skip_blank_lines")));
 	}
-	if(in("nrows", args)) {
+	if(map_contains("nrows", args)) {
 		reader_opts.set_nrows((cudf::size_type) to_int(args.at("nrows")));
 	}
-	if(in("skiprows", args)) {
+	if(map_contains("skiprows", args)) {
 		reader_opts.set_skiprows((cudf::size_type) to_int(args.at("skiprows")));
 	}
-	if(in("skipfooter", args)) {
+	if(map_contains("skipfooter", args)) {
 		reader_opts.set_skipfooter((cudf::size_type) to_int(args.at("skipfooter")));
 	}
-	if(in("header", args) && args.at("header") != "None" ) { // this is how it was in branch-0.14 at some point, but it makes testing fail
+	if(map_contains("header", args) && args.at("header") != "None" ) { // this is how it was in branch-0.14 at some point, but it makes testing fail
 		reader_opts.set_header((cudf::size_type) to_int(args.at("header")));
-	} else if((in("header", args) && args.at("header") == "None") || (!in("header", args) && in("names", args))) {
+	} else if((map_contains("header", args) && args.at("header") == "None") || (!map_contains("header", args) && map_contains("names", args))) {
 		reader_opts.set_header(-1);
 	}
-	if(in("names", args)) {
+	if(map_contains("names", args)) {
 		reader_opts.set_names(to_vector_string(args.at("names")));
 	}
-	if(in("dtype", args)) {
+	if(map_contains("dtype", args)) {
 		reader_opts.set_dtypes(to_vector_string(args.at("dtype")));
 	}
-	if(in("use_cols_indexes", args)) {
+	if(map_contains("use_cols_indexes", args)) {
 		reader_opts.set_use_cols_indexes(to_vector_int(args.at("use_cols_indexes")));
 	}
-	if(in("use_cols_names", args)) {
+	if(map_contains("use_cols_names", args)) {
 		reader_opts.set_use_cols_names(to_vector_string(args.at("use_cols_names")));
 	}
-	if(in("true_values", args)) {
+	if(map_contains("true_values", args)) {
 		reader_opts.set_true_values(to_vector_string(args.at("true_values")));
 	}
-	if(in("false_values", args)) {
+	if(map_contains("false_values", args)) {
 		reader_opts.set_false_values(to_vector_string(args.at("false_values")));
 	}
-	if(in("na_values", args)) {
+	if(map_contains("na_values", args)) {
 		reader_opts.set_na_values(to_vector_string(args.at("na_values")));
 	}
-	if(in("keep_default_na", args)) {
+	if(map_contains("keep_default_na", args)) {
 		reader_opts.enable_keep_default_na(to_bool(args.at("keep_default_na")));
 	}
-	if(in("na_filter", args)) {
+	if(map_contains("na_filter", args)) {
 		reader_opts.enable_na_filter(to_bool(args.at("na_filter")));
 	}
-	if(in("prefix", args)) {
+	if(map_contains("prefix", args)) {
 		reader_opts.set_prefix(args.at("prefix"));
 	}
-	if(in("mangle_dupe_cols", args)) {
+	if(map_contains("mangle_dupe_cols", args)) {
 		reader_opts.enable_mangle_dupe_cols(to_bool(args.at("mangle_dupe_cols")));
 	}
-	if(in("dayfirst", args)) {
+	if(map_contains("dayfirst", args)) {
 		reader_opts.enable_dayfirst(to_bool(args.at("dayfirst")));
 	}
-	if(in("thousands", args)) {
+	if(map_contains("thousands", args)) {
 		reader_opts.set_thousands(ord(args.at("thousands")));
 	}
-	if(in("decimal", args)) {
+	if(map_contains("decimal", args)) {
 		reader_opts.set_decimal(ord(args.at("decimal")));
 	}
-	if(in("comment", args)) {
+	if(map_contains("comment", args)) {
 		reader_opts.set_comment(ord(args.at("comment")));
 	}
-	if(in("quotechar", args)) {
+	if(map_contains("quotechar", args)) {
 		reader_opts.set_quotechar(ord(args.at("quotechar")));
 	}
-	// if (in("quoting", args)) {
+	// if (map_contains("quoting", args)) {
 	//    reader_opts.quoting = args.at("quoting"]
-	if(in("doublequote", args)) {
+	if(map_contains("doublequote", args)) {
 		reader_opts.enable_doublequote(to_bool(args.at("doublequote")));
 	}
-	if(in("byte_range_offset", args)) {
+	if(map_contains("byte_range_offset", args)) {
 		reader_opts.set_byte_range_offset((size_t) to_int(args.at("byte_range_offset")));
 	}
-	if(in("byte_range_size", args)) {
+	if(map_contains("byte_range_size", args)) {
 		reader_opts.set_byte_range_size((size_t) to_int(args.at("byte_range_size")));
 	}
-	if(in("out_time_unit", args)) {
+	if(map_contains("out_time_unit", args)) {
 		// TODO
 		// reader_opts.out_time_unit = args.at("out_time_unit");
 	}
