@@ -1851,7 +1851,12 @@ class BlazingContext(object):
             # we want to ignore paths we dont find.
             ignore_missing_paths = user_partitions_schema is not None
             parsedSchema, temp_mapping_files = self._parseSchema(
-                input, file_format_hint, kwargs, extra_columns, ignore_missing_paths, local_files
+                input,
+                file_format_hint,
+                kwargs,
+                extra_columns,
+                ignore_missing_paths,
+                local_files,
             )
             self.mapping_files[table_name] = temp_mapping_files
 
@@ -2051,7 +2056,13 @@ class BlazingContext(object):
             raise ValueError("ERROR: Not found table: " + str(table_name))
 
     def _parseSchema(
-        self, input, file_format_hint, kwargs, extra_columns, ignore_missing_paths, local_files
+        self,
+        input,
+        file_format_hint,
+        kwargs,
+        extra_columns,
+        ignore_missing_paths,
+        local_files,
     ):
         if self.dask_client:
             if local_files is False:
@@ -2611,7 +2622,9 @@ class BlazingContext(object):
                     self.dask_client.submit(
                         collectPartitionsRunQuery,
                         masterIndex,
-                        [self.nodes[0],],
+                        [
+                            self.nodes[0],
+                        ],
                         nodeTableList[0],
                         table_scans,
                         fileTypes,
