@@ -11,6 +11,7 @@
 - #1021 removed an rmm include
 - #1020 Fixed build issues with latest rmm 0.16 and columnBasisTest due to deprecated drop_column() function
 - #1030 Avoid read _metadata files
+- #1039 Fixed issues with parsers, in particular ORC parser was misbehaving
 
 
 # BlazingSQL 0.15.0 (August 31, 2020)
