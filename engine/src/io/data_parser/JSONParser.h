@@ -13,14 +13,14 @@ namespace io {
 
 class json_parser : public data_parser {
 public:
-	json_parser(cudf::io::json_reader_options args);
+	json_parser(std::map<std::string, std::string> args_map);
 
 	virtual ~json_parser();
 
 	void parse_schema(std::shared_ptr<arrow::io::RandomAccessFile> file, Schema & schema);
 
 private:
-	cudf::io::json_reader_options args;
+	std::map<std::string, std::string> args_map;
 };
 
 } /* namespace io */
