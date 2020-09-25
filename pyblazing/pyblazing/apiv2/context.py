@@ -822,13 +822,6 @@ def convert_friendly_dtype_to_string(list_types):
     return list_types
 
 
-# Utility function, returns True if all elements (even lists) are the same
-def all_same(items):
-    it = iter(items)
-    first = next(it, None)
-    return all(x == first for x in it)
-
-
 class BlazingTable(object):
     def __init__(
         self,
@@ -1204,7 +1197,6 @@ class BlazingContext(object):
         self.lock = Lock()
         self.finalizeCaller = ref(cio.finalizeCaller)
         self.nodes = []
-        self.mapping_nodes = {}
         self.mapping_files = {}
         self.node_log_paths = set()
         self.finalizeCaller = lambda: NotImplemented
@@ -1213,6 +1205,11 @@ class BlazingContext(object):
             self.config_options[option.encode()] = str(
                 config_options[option]
             ).encode()  # make sure all options are encoded strings
+
+        # This flag allows to differentiate the accessibility of the files
+        # by the worker nodes. Set to True if the files are distributed,
+        # for example in the case of log files.
+        self.local_files = False
 
         logging_dir_path = "blazing_log"
         # want to use config_options and not self.config_options
@@ -1284,7 +1281,6 @@ class BlazingContext(object):
             ).encode()
 
             for worker in list(self.dask_client.scheduler_info()["workers"]):
-                self.mapping_nodes[worker] = i
                 dask_futures.append(
                     self.dask_client.submit(
                         initializeBlazing,
@@ -1673,6 +1669,8 @@ class BlazingContext(object):
         is_hive_input = False
         extra_columns = []
 
+        self.local_files = kwargs.get("local_files", False)
+
         # See datasource.file_format
         file_format_hint = kwargs.get("file_format", "undefined")
         # these are user defined partitions should be a dictionary object
@@ -2055,54 +2053,74 @@ class BlazingContext(object):
         self, input, file_format_hint, kwargs, extra_columns, ignore_missing_paths
     ):
         if self.dask_client:
-            dask_futures = []
-
-            for worker in list(self.dask_client.scheduler_info()["workers"]):
-                dask_futures.append(
-                    (
-                        self.dask_client.submit(
-                            cio.parseSchemaCaller,
-                            input,
-                            file_format_hint,
-                            kwargs,
-                            extra_columns,
-                            ignore_missing_paths,
-                            workers=[worker],
-                            pure=False,
-                        ),
-                        worker,
-                    )
+            if self.local_files is False:
+                # just the first worker parse the entire file schemas
+                worker = tuple(self.dask_client.scheduler_info()["workers"])[0]
+                connection = self.dask_client.submit(
+                    cio.parseSchemaCaller,
+                    input,
+                    file_format_hint,
+                    kwargs,
+                    extra_columns,
+                    ignore_missing_paths,
+                    workers=[worker],
+                    pure=False,
                 )
+                parsed_schema = connection.result()
+                return parsed_schema, {"localhost": parsed_schema["files"]}
+            else:
+                # each worker parse all accesible files on the file path
+                dask_futures = []
 
-            return_object = {}
-            all_files = {}
-            for future, worker in dask_futures:
-                result = future.result()
+                for worker in list(self.dask_client.scheduler_info()["workers"]):
+                    dask_futures.append(
+                        (
+                            self.dask_client.submit(
+                                cio.parseSchemaCaller,
+                                input,
+                                file_format_hint,
+                                kwargs,
+                                extra_columns,
+                                ignore_missing_paths,
+                                workers=[worker],
+                                pure=False,
+                            ),
+                            worker,
+                        )
+                    )
 
-                for key in result:
-                    if key == "files":
-                        # remove duplicates
-                        if key in return_object:
-                            all_files[worker] = []
+                return_object = {}
+                all_files = {}
+                for future, worker in dask_futures:
+                    result = future.result()
 
-                            for file_item in result[key]:
-                                if file_item not in return_object[key]:
-                                    all_files[worker].append(file_item)
+                    for key in result:
+                        if key == "files":
+                            # Remove possible duplicated files
+                            # TODO: This duplicate removal mechanism must
+                            # be revisited, consider scenarios of very
+                            # varied topologies
+                            if key in return_object:
+                                all_files[worker] = []
+
+                                for file_item in result[key]:
+                                    if file_item not in return_object[key]:
+                                        all_files[worker].append(file_item)
+                            else:
+                                all_files[worker] = result[key]
+
+                            if "files" in return_object:
+                                return_object[key].update(result[key])
+                            else:
+                                return_object[key] = set()
+                                return_object[key].update(result[key])
                         else:
-                            all_files[worker] = result[key]
-
-                        if "files" in return_object:
-                            return_object[key].update(result[key])
-                        else:
-                            return_object[key] = set()
-                            return_object[key].update(result[key])
-                    else:
-                        if key in return_object:
-                            assert return_object[key] == result[key]
-                        else:
-                            return_object[key] = result[key]
-            return_object["files"] = list(return_object["files"])
-            return return_object, all_files
+                            if key in return_object:
+                                assert return_object[key] == result[key]
+                            else:
+                                return_object[key] = result[key]
+                return_object["files"] = list(return_object["files"])
+                return return_object, all_files
         else:
             parsed_schema = cio.parseSchemaCaller(
                 input, file_format_hint, kwargs, extra_columns, ignore_missing_paths
@@ -2514,15 +2532,11 @@ class BlazingContext(object):
                     if single_gpu:
                         currentTableNodes = query_table.getSlices(1)
                     else:
-                        equal_files = all_same(
-                            self.mapping_files[query_table.name].values()
-                        )
-
                         # If all files are accessible by all nodes,
                         # it is better to distribute them in the old way
                         # otherwise, each node is responsible for the files
                         # it has access to.
-                        if equal_files == True:
+                        if self.local_files is False:
                             currentTableNodes = query_table.getSlices(len(self.nodes))
                         else:
                             currentTableNodes = query_table.getSlicesByWorker(
@@ -2722,6 +2736,7 @@ class BlazingContext(object):
                 dtype=dtypes,
                 names=names,
                 file_format="csv",
+                local_files=True,
             )
 
             log_schemas = {
@@ -2805,6 +2820,7 @@ class BlazingContext(object):
                     dtype=dtypes,
                     names=names,
                     file_format="csv",
+                    local_files=True,
                 )
 
             self.logs_initialized = True
