@@ -8,6 +8,7 @@
 
 ## Bug Fixes
 - #975 Fixed issue due to cudf orc api change 
+- #1019 Fix hive string col 
 - #1021 removed an rmm include
 - #1020 Fixed build issues with latest rmm 0.16 and columnBasisTest due to deprecated drop_column() function
 - #1016 Removed workaround for parquet read schema
