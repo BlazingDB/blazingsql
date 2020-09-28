@@ -16,6 +16,7 @@ import collections
 from pyhive import hive
 from .hive import (
     convertTypeNameStrToCudfType,
+    cudfTypeToCsvType,
     getFolderListFromPartitions,
     getPartitionsFromUserPartitions,
     get_hive_table,
@@ -1922,6 +1923,22 @@ class BlazingContext(object):
                 # the file (may be different
                 table.file_column_names = parsedSchema["names"]
                 table.column_types = parsedSchema["types"]
+
+            # this is particularly important for csv files to ensure that if it was set to implicitly determine,
+            # it only did so for the first file. For the rest we want to guarantee that they are all returning
+            # the same types, so we are setting it in the args
+            table.args["names"] = table.column_names
+            table.args["names"] = [i.decode() for i in table.args["names"]]
+
+            dtypes_list = []
+            for i in range(0, len(table.column_types)):
+                dtype_str = cudfTypeToCsvType[table.column_types[i]]
+                # cudfTypeToCsvType uses: timestamp[s], timestamp[ms], timestamp[us], timestamp[ns]
+                if "timestamp" in dtype_str:
+                    dtypes_list.append("date64")
+                else:
+                    dtypes_list.append(dtype_str)
+            table.args["dtype"] = dtypes_list
 
             table.slices = table.getSlices(len(self.nodes))
 
