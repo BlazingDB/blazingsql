@@ -46,8 +46,9 @@ public:
     {
 		total_memory_size = ral::config::gpuTotalMemory();
 		used_memory = 0;
+        memory_limit = (double)custom_threshold * total_memory_size;
 
-        std::size_t pool_limit = std::numeric_limits<std::size_t>::max(); // TODO: make pool limit configurable
+        initial_pool_size = initial_pool_size - initial_pool_size % 256; //initial_pool_size required to be a multiple of 256 bytes 
 
         if (total_memory_size <= initial_pool_size) {
             throw std::runtime_error("Cannot allocate this Pool memory size on the GPU.");
@@ -61,20 +62,18 @@ public:
             memory_resource = memory_resource_owner.get();
         } else if (allocation_mode == "pool_memory_resource") {
             memory_resource_owner = rmm::mr::make_owning_wrapper<rmm::mr::pool_memory_resource>(
-                std::make_shared<rmm::mr::cuda_memory_resource>(), initial_pool_size, pool_limit);
+                std::make_shared<rmm::mr::cuda_memory_resource>(), initial_pool_size);
             memory_resource = memory_resource_owner.get();
         } else if (allocation_mode == "managed_pool_memory_resource") {
             memory_resource_owner = rmm::mr::make_owning_wrapper<rmm::mr::pool_memory_resource>(
-                std::make_shared<rmm::mr::managed_memory_resource>(), initial_pool_size, pool_limit);
+                std::make_shared<rmm::mr::managed_memory_resource>(), initial_pool_size);
             memory_resource = memory_resource_owner.get();
         } else if (allocation_mode == "existing"){
             memory_resource = rmm::mr::get_current_device_resource();        
         } else {
             throw std::runtime_error("ERROR creating internal_blazing_device_memory_resource: allocation_mode not recognized.");
         }
-        type = allocation_mode;
-
-        memory_limit = (double)custom_threshold * total_memory_size;
+        type = allocation_mode;        
 	}
 
 	virtual ~internal_blazing_device_memory_resource() = default;
