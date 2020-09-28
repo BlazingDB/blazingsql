@@ -4,6 +4,7 @@
 
 
 ## Improvements
+- #998 Update TPCH queries, become implicit joins into implicit joins to avoid random values.
 
 
 ## Bug Fixes
@@ -145,4 +146,3 @@
 - #785 Add script for Manual Testing Artifacts.
 - #931 Add script for error messages validation.
 - #932 Import pydrill and pyspark only when its generator or full mode.
-- #998 Update TPCH queries, become implicit joins into implicit joins to avoid random values.
