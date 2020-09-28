@@ -1017,9 +1017,9 @@ class BlazingTable(object):
                 self.fileType,
                 files=target_files,
                 calcite_to_file_indices=self.calcite_to_file_indices,
-                uri_values=self.uri_values,  # TODO
+                uri_values=self.uri_values,
                 args=self.args,
-                row_groups_ids=self.row_groups_ids,  # TODO
+                row_groups_ids=self.row_groups_ids,
                 in_file=self.in_file,
             )
 
@@ -2217,7 +2217,9 @@ class BlazingContext(object):
 
         return (all_sliced_files, all_sliced_uri_values, all_sliced_row_groups_ids)
 
-    def _sliceRowGroupsByWorker(self, numSlices, files, uri_values, row_groups_ids, mapping_files):
+    def _sliceRowGroupsByWorker(
+        self, numSlices, files, uri_values, row_groups_ids, mapping_files
+    ):
         dict_files = {}
         for i in range(len(files)):
             dict_files[files[i]] = row_groups_ids[i]
@@ -2343,7 +2345,11 @@ class BlazingContext(object):
                             all_sliced_uri_values,
                             all_sliced_row_groups_ids,
                         ) = self._sliceRowGroupsByWorker(
-                            len(self.nodes), actual_files, uri_values, row_groups_ids, self.mapping_files[current_table.name]
+                            len(self.nodes),
+                            actual_files,
+                            uri_values,
+                            row_groups_ids,
+                            self.mapping_files[current_table.name],
                         )
 
                     for i, node in enumerate(self.nodes):
