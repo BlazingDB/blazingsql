@@ -10,20 +10,19 @@ set -e
 alias python=python3
 
 # NOTE tmp_dir is the prefix (bin, lib, include, build)
-#tmp_dir=$working_directory/tmp
-# TODO mario
 tmp_dir=$env_prefix
 
 # if you want to build in other place just set BLAZINGSQL_POWERPC_TMP_BUILD_DIR before run
-
 if [ -z $BLAZINGSQL_POWERPC_TMP_BUILD_DIR ]; then
   BLAZINGSQL_POWERPC_TMP_BUILD_DIR=/tmp/blazingsql_powerpc_tmp_build_dir/
 fi
-
 build_dir=$BLAZINGSQL_POWERPC_TMP_BUILD_DIR
 
 MAKEJ=8
 MAKEJ_CUDF=2
+
+# use this if you want to skip the steps of building and installing python side of cudf and dask-cudf
+# export SKIP_CUDF=1
 
 export CC=$(which gcc)
 export CXX=$(which g++)
@@ -36,15 +35,15 @@ export BLAS=$OLCF_NETLIB_LAPACK_ROOT/lib64/libcblas.so
 export PARALLEL_LEVEL=$MAKEJ
 export LDFLAGS="-L$CUDA_HOME/lib64"
 export LIBRARY_PATH="$CUDA_HOME/lib64":$LIBRARY_PATH
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$tmp_dir/lib
 
 # add g++ libs to the lib path for arrow and pycudf
-# TODO: we need to be sure about /usr/local/lib64
+# TODO: we need to be sure about /usr/local/lib64. This may not be necessary
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib64/
-
 # add python libs
-# TODO: we need to be sure about /usr/local/lib
+# TODO: we need to be sure about /usr/local/lib. This may not be necessary
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/
+
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$tmp_dir/lib
 
 echo "### Vars ###"
 echo "CC="$CC
@@ -53,10 +52,7 @@ echo "CUDACXX="$CUDACXX
 echo "MAKEJ="$MAKEJ
 echo "MAKEJ_CUDF="$MAKEJ_CUDF
 echo "PATH="$PATH
-#export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib:/usr/local/lib64:/usr/local/nvidia/lib:/usr/local/nvidia/lib64
 echo "LD_LIBRARY_PATH="$LD_LIBRARY_PATH
-#C_INCLUDE_PATH=/app/tmp/include/
-#CPLUS_INCLUDE_PATH=/app/tmp/include/
 echo "CPLUS_INCLUDE_PATH="$CPLUS_INCLUDE_PATH
 echo "build_dir="$build_dir
 echo "blazingsql_project_root_dir=$blazingsql_project_root_dir"
@@ -144,6 +140,7 @@ if [ ! -d arrow ]; then
     echo "### Arrow - start ###"
     arrow_version=apache-arrow-1.0.1
  #   git clone --depth 1 https://github.com/apache/arrow.git --branch $arrow_version --single-branch
+    
     # patched version
     git clone -b fix/power9 --depth 1  https://github.com/williamBlazing/arrow 
     cd arrow/
@@ -400,13 +397,7 @@ if [ "$machine_processor_architecture" = "ppc64le" ] || [ "$machine_processor_ar
 
     echo "### BEGIN Pip dependencies ###"
     # pip install -r requirements.txt
-    #pip install --no-binary numpy numpy==1.13.3
-#    pip install --no-binary numpy numpy
     pip install numba==0.50.1
-    # test
-    #python -c "import numba"
-
-
     pip install scikit-learn==0.23.1
     pip install flake8==3.8.3
     pip install ipython==7.17.0
@@ -456,7 +447,6 @@ if [ ! -d cupy ]; then
     cupy_version=v7.7.0
     git clone --recurse-submodules --depth 1 https://github.com/cupy/cupy.git --branch $cupy_version --single-branch
     cd cupy
-    #python setup.py install --user
     pip install .
 fi
 echo "END CUPY"
@@ -466,11 +456,14 @@ export CUDF_ROOT=$build_dir/cudf/cpp/build
 
 # BEGIN cudf python
 echo "BEGIN cudf python"
+if [ -z ${SKIP_CUDF+x} ]; then
+# TODO: have better solution for detecting if this step needs to be executed
 #if [ ! -d $build_dir/cudf ]; then
     cd $build_dir/cudf/python/cudf
     PARALLEL_LEVEL=$MAKEJ python setup.py build_ext --inplace
     python setup.py install --single-version-externally-managed --record=record.txt 
 #fi
+fi
 echo "END cudf python"
 # END cudf python
 
@@ -482,7 +475,6 @@ cd $build_dir
 if [ ! -d distributed ]; then
   git clone --depth 1 https://github.com/dask/distributed.git --branch $dask_version --single-branch
   cd distributed
-  #python setup.py install --user
   pip install .
 fi
 echo "END dask distributed"
@@ -494,7 +486,6 @@ cd $build_dir
 if [ ! -d dask ]; then
   git clone --depth 1 https://github.com/dask/dask.git --branch $dask_version --single-branch
   cd dask
-  #python setup.py install --user
   pip install .
 fi
 echo "END dask"
@@ -506,12 +497,13 @@ cd $build_dir
 if [ ! -d dask-cuda ]; then
   git clone --depth 1 https://github.com/rapidsai/dask-cuda.git --branch "branch-$cudf_version" --single-branch
   cd dask-cuda
-  #python setup.py install --user
   pip install .
 fi
 echo "END dask-cuda"
 # END dask-cuda
 
+if [ -z ${SKIP_CUDF+x} ]; then
+# TODO: have better solution for detecting if this step needs to be executed
 #if [ ! -d $build_dir/cudf ]; then
     # BEGIN dask-cudf
     echo "BEGIN dask-cudf"
@@ -520,6 +512,7 @@ echo "END dask-cuda"
     echo "END dask-cudf"
     # END dask-cudf
 #fi
+fi
 
 echo "BEGIN gtest"
 # google test
@@ -600,7 +593,6 @@ cd $blazingsql_project_root_dir
 #cd $build_dir
 #git clone https://github.com/aucahuasi/blazingsql.git
 #cd blazingsql
-#git checkout feature/powerpc
 #git pull
 export INSTALL_PREFIX=$tmp_dir
 export BOOST_ROOT=$tmp_dir
@@ -612,7 +604,6 @@ export CUDF_HOME=$build_dir/cudf/
 export THRIFT_INSTALL_DIR=$build_dir/arrow/cpp/build/thrift_ep-install/lib
 export SNAPPY_INSTALL_DIR=$build_dir/arrow/cpp/build/snappy_ep/src/snappy_ep-install/lib
 export LZ4_INSTALL_DIR=$build_dir/arrow/cpp/build/lz4_ep-prefix/src/lz4_ep/lib
-export CONDA_PREFIX=$VIRTUAL_ENV
 
 ./build.sh -t disable-aws-s3 disable-google-gs
 

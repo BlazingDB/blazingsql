@@ -25,26 +25,46 @@ You need these dependencies, they can be provided by OS package system (e.g. apt
 - libcurl-devel
 - maven
 - lsf-tools 2.0
+
+If using lmod and your system has the necessary modules you can use:
+```shell
+module load gcc/7.4.0
+module load python/3.7.0
+module load cmake/3.17.3
+module load boost/1.66.0
+module load cuda/10.1.243
+module load zlib
+module load texinfo
+module load openblas
+module load netlib-lapack
+```
+
 ### Setup the environment
 Using regular python you just need to make sure that you have an environment.
+NOTE: if using Lmod, make sure you have loaded your python packages before creating or starting your python environment.
+First lets define an environment variable to keep track of the environment path:
+```shell
+export VIRTUAL_ENV=PATH_TO_YOUR_ENV_PREFIX
+mkdir $VIRTUAL_ENV
+```
 If you don't have an environment you can create it with:
 ```shell
-python -m venv PATH_TO_YOUR_ENV_PREFIX
+python -m venv $VIRTUAL_ENV
 ```
 Before run any command first you need to activate your environment with:
 ```shell
-source PATH_TO_YOUR_ENV_PREFIX/bin/activate
+source $VIRTUAL_ENV/bin/activate
 ```
-Then install the python dependencies in your environment:
-```shell
-pip install -r blazingsql/powerpc/requirements.txt
-```
-Note: All the python dependencies in *requirements.txt* are just simple python packages that doesn't need any gcc/c++ compilation, i.e. they are only pure python packages.
+
+
 ### Build & install BlazingSQL
+It is recommended you setup a build folder and export to the following variable before you begin building:
+`export BLAZINGSQL_POWERPC_TMP_BUILD_DIR=PATH_TO_A_BUILD_FOLDER`
+
 Run the build script and pass your environment folder (prefix path) as argument:
 ```shell
 cd blazingsql
-bash powerpc/build.sh PATH_TO_YOUR_ENV_PREFIX
+bash powerpc/build.sh $VIRTUAL_ENV
 ```
 Notes:
 * You need to run the build process from the root directory of the project: *blazingsql*
@@ -53,10 +73,10 @@ Notes:
 ## Use BlazingSQL
 For now we need to export some env vars before run python with blazingsql:
 ```shell
-export JAVA_HOME=/usr/lib/jvm/jre
-# optional
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib64/:/usr/local/lib
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:PATH_TO_YOUR_ENV_PREFIX/lib
-export CONDA_PREFIX=PATH_TO_YOUR_ENV_PREFIX
+export LD_LIBRARY_PATH=$VIRTUAL_ENV/lib:$LD_LIBRARY_PATH
+export CONDA_PREFIX=$VIRTUAL_ENV
+export PATH=$BLAZINGSQL_POWERPC_TMP_BUILD_DIR/ibm-java-ppc64le-80/bin:$PATH
+export JAVA_HOME=$BLAZINGSQL_POWERPC_TMP_BUILD_DIR/ibm-java-ppc64le-80/jre
 ```
 Note: We don't need conda, we just export CONDA_PREFIX because in some places blazingsql uses that env var as default prefix.
