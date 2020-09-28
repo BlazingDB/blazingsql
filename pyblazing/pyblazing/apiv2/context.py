@@ -842,6 +842,7 @@ class BlazingTable(object):
         metadata=None,
         row_groups_ids=[],
         local_files=False,
+        mapping_files={},
     ):
         # row_groups_ids, vector<vector<int>> one vector
         # of row_groups per file
@@ -865,6 +866,10 @@ class BlazingTable(object):
         # by the worker nodes. Set to True if the files are distributed,
         # for example in the case of log files.
         self.local_files = local_files
+
+        # When local_files is True, mapping_files allows to know
+        # which files reside in which nodes.
+        self.mapping_files = mapping_files
 
         self.datasource = datasource
 
@@ -1004,14 +1009,14 @@ class BlazingTable(object):
 
         return nodeFilesList
 
-    def getSlicesByWorker(self, numSlices, mapping_files):
+    def getSlicesByWorker(self, numSlices):
         nodeFilesList = []
         if self.files is None:
             for i in range(0, numSlices):
                 nodeFilesList.append(BlazingTable(self.name, self.input, self.fileType))
             return nodeFilesList
 
-        for target_files in mapping_files[self.name].values():
+        for target_files in self.mapping_files.values():
             bt = BlazingTable(
                 self.name,
                 self.input,
@@ -1204,7 +1209,6 @@ class BlazingContext(object):
         self.lock = Lock()
         self.finalizeCaller = ref(cio.finalizeCaller)
         self.nodes = []
-        self.mapping_files = {}
         self.node_log_paths = set()
         self.finalizeCaller = lambda: NotImplemented
         self.config_options = {}
@@ -1851,7 +1855,7 @@ class BlazingContext(object):
             # if we are using user defined partitions without hive,
             # we want to ignore paths we dont find.
             ignore_missing_paths = user_partitions_schema is not None
-            parsedSchema, temp_mapping_files = self._parseSchema(
+            parsedSchema, parsed_mapping_files = self._parseSchema(
                 input,
                 file_format_hint,
                 kwargs,
@@ -1859,7 +1863,6 @@ class BlazingContext(object):
                 ignore_missing_paths,
                 local_files,
             )
-            self.mapping_files[table_name] = temp_mapping_files
 
             if is_hive_input or user_partitions is not None:
                 uri_values = get_uri_values(
@@ -1887,6 +1890,7 @@ class BlazingContext(object):
                 uri_values=uri_values,
                 in_file=in_file,
                 local_files=local_files,
+                mapping_files=parsed_mapping_files,
             )
 
             if is_hive_input:
@@ -2118,6 +2122,12 @@ class BlazingContext(object):
                         )
                     )
 
+                # After listing the files accessible by each worker, it could
+                # happen that several workers that were started from the same
+                # node have more than one shared file.
+                # So, to avoid duplicate reads, we will group the files by node
+                # as long as the current file does not already exist in another
+                # group.
                 return_object = {}
                 all_files = {}
                 for future, worker in dask_futures:
@@ -2128,7 +2138,11 @@ class BlazingContext(object):
                             # Remove possible duplicated files
                             # TODO: This duplicate removal mechanism must
                             # be revisited, consider scenarios of very
-                            # varied topologies
+                            # varied topologies.
+                            # A possible improvement is that if it is detected
+                            # that several workers are effectively inside a node
+                            # and have access to the same files, the files
+                            # should be distributed evenly among all of them.
                             if key in return_object:
                                 all_files[worker] = []
 
@@ -2366,7 +2380,7 @@ class BlazingContext(object):
                             actual_files,
                             uri_values,
                             row_groups_ids,
-                            self.mapping_files[current_table.name],
+                            current_table.mapping_files,
                         )
 
                     for i, node in enumerate(self.nodes):
@@ -2395,9 +2409,7 @@ class BlazingContext(object):
                 if current_table.local_files is False:
                     return current_table.getSlices(len(self.nodes))
                 else:
-                    return current_table.getSlicesByWorker(
-                        len(self.nodes), self.mapping_files
-                    )
+                    return current_table.getSlicesByWorker(len(self.nodes))
 
     """
     Partition a dask_cudf DataFrame based on one or more columns.
@@ -2609,7 +2621,7 @@ class BlazingContext(object):
                             currentTableNodes = query_table.getSlices(len(self.nodes))
                         else:
                             currentTableNodes = query_table.getSlicesByWorker(
-                                len(self.nodes), self.mapping_files
+                                len(self.nodes)
                             )
             elif query_table.fileType == DataType.DASK_CUDF:
                 if single_gpu:
