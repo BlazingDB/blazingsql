@@ -16,20 +16,20 @@ namespace cudf_io = cudf::io;
 
 class orc_parser : public data_parser {
 public:
-	orc_parser(cudf::io::orc_reader_options orc_opts);
+	orc_parser(std::map<std::string, std::string> args_map);
 
 	virtual ~orc_parser();
 
 	std::unique_ptr<ral::frame::BlazingTable> parse_batch(
 		std::shared_ptr<arrow::io::RandomAccessFile> file,
 		const Schema & schema,
-		std::vector<size_t> column_indices,
+		std::vector<int> column_indices,
 		std::vector<cudf::size_type> row_groups);
 
 	void parse_schema(std::shared_ptr<arrow::io::RandomAccessFile> file, Schema & schema);
 
 private:
-	cudf::io::orc_reader_options orc_opts{cudf_io::orc_reader_options::builder(cudf_io::source_info(""))};
+	std::map<std::string, std::string> args_map;
 };
 
 } /* namespace io */

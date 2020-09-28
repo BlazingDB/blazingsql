@@ -377,14 +377,14 @@ std::string get_named_expression(const std::string & query_part, const std::stri
 	return query_part.substr(start_position, end_position - start_position);
 }
 
-std::vector<size_t> get_projections(const std::string & query_part) {
+std::vector<int> get_projections(const std::string & query_part) {
 	std::string project_string = get_named_expression(query_part, "projects");
 	std::vector<std::string> project_string_split =
 		get_expressions_from_expression_list(project_string, true);
 
-	std::vector<size_t> projections;
+	std::vector<int> projections;
 	for(int i = 0; i < project_string_split.size(); i++) {
-		projections.push_back(std::stoull(project_string_split[i]));
+		projections.push_back(std::stoi(project_string_split[i]));
 	}
 
 	// On Calcite, the select count(*) case is represented with

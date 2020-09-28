@@ -96,7 +96,7 @@ bool is_inequality(const std::string& token);
 
 std::string get_named_expression(const std::string & query_part, const std::string & expression_name);
 
-std::vector<size_t> get_projections(const std::string & query_part);
+std::vector<int> get_projections(const std::string & query_part);
 
 const std::string LOGICAL_JOIN_TEXT = "LogicalJoin";
 const std::string LOGICAL_PARTWISE_JOIN_TEXT = "PartwiseJoin";
