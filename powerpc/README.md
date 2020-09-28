@@ -68,8 +68,10 @@ bash powerpc/build.sh $VIRTUAL_ENV
 ```
 Notes:
 * You need to run the build process from the root directory of the project: *blazingsql*
-* After the process finish you will have BlazingSQL installed and ready in your environment.
+* Near the end of the process, you will be prompted to answer some questions for the installation of JAVA.
 * This build process will install cudf and its dependencies (dask-cudf, arrow, etc.), llvm, compiled python packages like (llvmlite, cupy, etc.) and blazingsql.
+
+
 ## Use BlazingSQL
 For now we need to export some env vars before run python with blazingsql:
 ```shell
