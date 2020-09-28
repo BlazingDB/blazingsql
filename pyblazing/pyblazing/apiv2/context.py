@@ -167,7 +167,7 @@ def initializeBlazing(
         "cuda_memory_resource",
         "managed_memory_resource",
         "pool_memory_resource",
-        "managed_pool_memory_resource"
+        "managed_pool_memory_resource",
     ]
     if allocator not in possible_allocators:
         print(
@@ -1545,29 +1545,29 @@ class BlazingContext(object):
 
     def get_free_memory(self):
         """
-            This function returns a dictionary which contains as
-            key the gpuID and as value the free memory (bytes)
+        This function returns a dictionary which contains as
+        key the gpuID and as value the free memory (bytes)
 
-            Example
-            --------
-            # single-GPU
-            >>> from blazingsql import BlazingContext
-            >>> bc = BlazingContext()
-            >>> free_mem = bc.get_free_memory()
-            >>> print(free_mem)
-                    {0: 4234220154}
+        Example
+        --------
+        # single-GPU
+        >>> from blazingsql import BlazingContext
+        >>> bc = BlazingContext()
+        >>> free_mem = bc.get_free_memory()
+        >>> print(free_mem)
+                {0: 4234220154}
 
-            # multi-GPU (4 GPUs):
-            >>> from blazingsql import BlazingContext
-            >>> from dask_cuda import LocalCUDACluster
-            >>> from dask.distributed import Client
-            >>> cluster = LocalCUDACluster()
-            >>> client = Client(cluster)
-            >>> bc = BlazingContext(dask_client=client, network_interface='lo')
-            >>> free_mem = bc.get_free_memory()
-            >>> print(free_mem)
-                    {0: 4234220154, 1: 4104210987,
-                     2: 4197720291, 3: 3934320116}
+        # multi-GPU (4 GPUs):
+        >>> from blazingsql import BlazingContext
+        >>> from dask_cuda import LocalCUDACluster
+        >>> from dask.distributed import Client
+        >>> cluster = LocalCUDACluster()
+        >>> client = Client(cluster)
+        >>> bc = BlazingContext(dask_client=client, network_interface='lo')
+        >>> free_mem = bc.get_free_memory()
+        >>> print(free_mem)
+                {0: 4234220154, 1: 4104210987,
+                 2: 4197720291, 3: 3934320116}
         """
         if self.dask_client:
             dask_futures = []
@@ -2521,7 +2521,9 @@ class BlazingContext(object):
                     self.dask_client.submit(
                         collectPartitionsRunQuery,
                         masterIndex,
-                        [self.nodes[0],],
+                        [
+                            self.nodes[0],
+                        ],
                         nodeTableList[0],
                         table_scans,
                         fileTypes,
