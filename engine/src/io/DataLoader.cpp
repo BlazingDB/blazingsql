@@ -36,13 +36,13 @@ data_loader::~data_loader() {}
 
 std::unique_ptr<ral::frame::BlazingTable> data_loader::load_batch(
 	Context * context,
-	const std::vector<size_t> & column_indices_in,
+	const std::vector<int> & column_indices_in,
 	const Schema & schema,
 	data_handle file_data_handle,
 	size_t file_index,
 	std::vector<cudf::size_type> row_group_ids) {
 
-	std::vector<size_t> column_indices = column_indices_in;
+	std::vector<int> column_indices = column_indices_in;
 	if (column_indices.size() == 0) {  // including all columns by default
 		column_indices.resize(schema.get_num_columns());
 		std::iota(column_indices.begin(), column_indices.end(), 0);
@@ -55,7 +55,7 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_batch(
 		std::unique_ptr<ral::frame::BlazingTable> loaded_table = parser->parse_batch(file_data_handle.fileHandle, fileSchema, column_indices, row_group_ids);
 		return std::move(loaded_table);
 	} else {
-		std::vector<size_t> column_indices_in_file;  // column indices that are from files
+		std::vector<int> column_indices_in_file;  // column indices that are from files
 		for (int i = 0; i < column_indices.size(); i++){
 			if(schema.get_in_file()[column_indices[i]]) {
 				column_indices_in_file.push_back(column_indices[i]);
@@ -74,7 +74,7 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_batch(
 			file_columns = current_table->release();
 		
 		} else { // all tables we are "loading" are from hive partitions, so we dont know how many rows we need unless we load something to get the number of rows
-			std::vector<size_t> temp_column_indices = {0};
+			std::vector<int> temp_column_indices = {0};
 			std::unique_ptr<ral::frame::BlazingTable> loaded_table = parser->parse_batch(file_data_handle.fileHandle, fileSchema, temp_column_indices, row_group_ids);
 			num_rows = loaded_table->num_rows();
 		}
