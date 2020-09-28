@@ -36,6 +36,15 @@ export BLAS=$OLCF_NETLIB_LAPACK_ROOT/lib64/libcblas.so
 export PARALLEL_LEVEL=$MAKEJ
 export LDFLAGS="-L$CUDA_HOME/lib64"
 export LIBRARY_PATH="$CUDA_HOME/lib64":$LIBRARY_PATH
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$tmp_dir/lib
+
+# add g++ libs to the lib path for arrow and pycudf
+# TODO: we need to be sure about /usr/local/lib64
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib64/
+
+# add python libs
+# TODO: we need to be sure about /usr/local/lib
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/
 
 echo "### Vars ###"
 echo "CC="$CC
@@ -395,7 +404,7 @@ if [ "$machine_processor_architecture" = "ppc64le" ] || [ "$machine_processor_ar
 #    pip install --no-binary numpy numpy
     pip install numba==0.50.1
     # test
-    python -c "import numba"
+    #python -c "import numba"
 
 
     pip install scikit-learn==0.23.1
@@ -455,18 +464,6 @@ echo "END CUPY"
 
 export CUDF_ROOT=$build_dir/cudf/cpp/build
 
-# TODO Mario percy the user will need to do this ... for now
-# add arrow libs to the lib path for arrow and pycudf
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$tmp_dir/lib
-
-# add g++ libs to the lib path for arrow and pycudf
-# TODO: we need to be sure about /usr/local/lib64
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib64/
-
-# add python libs
-# TODO: we need to be sure about /usr/local/lib
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/
-
 # BEGIN cudf python
 echo "BEGIN cudf python"
 #if [ ! -d $build_dir/cudf ]; then
@@ -515,14 +512,14 @@ fi
 echo "END dask-cuda"
 # END dask-cuda
 
-# if [ ! -d $build_dir/cudf ]; then
+#if [ ! -d $build_dir/cudf ]; then
     # BEGIN dask-cudf
     echo "BEGIN dask-cudf"
     cd $build_dir/cudf/python/dask_cudf
     python setup.py install --single-version-externally-managed --record=record.txt
     echo "END dask-cudf"
     # END dask-cudf
-# fi
+#fi
 
 echo "BEGIN gtest"
 # google test
@@ -575,9 +572,11 @@ echo "END cppzmq"
 # BEGIN JAVA
 echo "BEGIN JAVA"
 cd $build_dir
-wget http://public.dhe.ibm.com/ibmdl/export/pub/systems/cloud/runtimes/java/8.0.6.11/linux/ppc64le/ibm-java-sdk-8.0-6.11-ppc64le-archive.bin
-chmod +x ibm-java-sdk-8.0-6.11-ppc64le-archive.bin
-./ibm-java-sdk-8.0-6.11-ppc64le-archive.bin
+if [ ! -f ibm-java-sdk-8.0-6.11-ppc64le-archive.bin ]; then
+    wget http://public.dhe.ibm.com/ibmdl/export/pub/systems/cloud/runtimes/java/8.0.6.11/linux/ppc64le/ibm-java-sdk-8.0-6.11-ppc64le-archive.bin
+    chmod +x ibm-java-sdk-8.0-6.11-ppc64le-archive.bin
+    ./ibm-java-sdk-8.0-6.11-ppc64le-archive.bin
+fi
 export PATH=$PWD/ibm-java-ppc64le-80/bin:$PATH
 export JAVA_HOME=$PWD/ibm-java-ppc64le-80/jre
 echo "ENV JAVA"
@@ -585,9 +584,11 @@ echo "ENV JAVA"
 
 echo "BEGIN mvn"
 cd $build_dir
-wget https://downloads.apache.org/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz
-tar xvfz apache-maven-3.6.3-bin.tar.gz
-mv apache-maven-3.6.3 $VIRTUAL_ENV/
+if [ ! -d $VIRTUAL_ENV/apache-maven-3.6.3 ]; then
+    wget https://downloads.apache.org/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz
+    tar xvfz apache-maven-3.6.3-bin.tar.gz
+    mv apache-maven-3.6.3 $VIRTUAL_ENV/
+fi
 export PATH=$VIRTUAL_ENV/apache-maven-3.6.3/bin:$PATH
 echo "ENV mvn"
 
