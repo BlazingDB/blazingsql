@@ -12,6 +12,8 @@
 #include <parquet/column_writer.h>
 #include <parquet/file_writer.h>
 
+#include <cudf/io/parquet.hpp>
+
 namespace ral {
 namespace io {
 
@@ -28,7 +30,7 @@ parquet_parser::~parquet_parser() {
 std::unique_ptr<ral::frame::BlazingTable> parquet_parser::parse_batch(
 	std::shared_ptr<arrow::io::RandomAccessFile> file,
 	const Schema & schema,
-	std::vector<size_t> column_indices,
+	std::vector<int> column_indices,
 	std::vector<cudf::size_type> row_groups)
 {
 	if(file == nullptr) {
@@ -37,18 +39,22 @@ std::unique_ptr<ral::frame::BlazingTable> parquet_parser::parse_batch(
 	if(column_indices.size() > 0) {
 		// Fill data to pq_args
 		auto arrow_source = cudf_io::arrow_io_source{file};
-		cudf_io::read_parquet_args pq_args{cudf_io::source_info{&arrow_source}};
+		cudf_io::parquet_reader_options pq_args = cudf_io::parquet_reader_options::builder(cudf_io::source_info{&arrow_source});
 
-		pq_args.strings_to_categorical = false;
-		pq_args.columns.resize(column_indices.size());
+		pq_args.enable_convert_strings_to_categories(false);
+		pq_args.enable_use_pandas_metadata(false);
+		
+		std::vector<std::string> col_names(column_indices.size());
 
 		for(size_t column_i = 0; column_i < column_indices.size(); column_i++) {
-			pq_args.columns[column_i] = schema.get_name(column_indices[column_i]);
+			col_names[column_i] = schema.get_name(column_indices[column_i]);
 		}
 
-		pq_args.row_groups = std::vector<std::vector<cudf::size_type>>(1, row_groups);
+		pq_args.set_columns(col_names);
 
-		auto result = cudf_io::read_parquet(pq_args);
+		pq_args.set_row_groups(std::vector<std::vector<cudf::size_type>>(1, row_groups));
+
+		auto result = cudf::io::read_parquet(pq_args);
 
 		auto result_table = std::move(result.tbl);
 		if (result.metadata.column_names.size() > column_indices.size()) {
@@ -73,11 +79,12 @@ void parquet_parser::parse_schema(
 	}
 
 	auto arrow_source = cudf_io::arrow_io_source{file};
-	cudf_io::read_parquet_args pq_args{cudf_io::source_info{&arrow_source}};
+	cudf_io::parquet_reader_options pq_args = cudf_io::parquet_reader_options::builder(cudf_io::source_info{&arrow_source});
 
-	pq_args.strings_to_categorical = false;
-	pq_args.row_groups = std::vector<std::vector<cudf::size_type>>(1, std::vector<cudf::size_type>(1, 0));
-	pq_args.num_rows = 1;
+	pq_args.enable_convert_strings_to_categories(false);
+	pq_args.enable_use_pandas_metadata(false);
+	// pq_args.set_num_rows(1);  // we only need the metadata, so one row wopuld be fine, but there is a new issue https://github.com/rapidsai/cudf/issues/6200
+	pq_args.set_row_groups(std::vector<std::vector<cudf::size_type>>(1, std::vector<cudf::size_type>(1, 0))); // TODO remove this when above issue is resolved
 
 	cudf_io::table_with_metadata table_out = cudf_io::read_parquet(pq_args);
 

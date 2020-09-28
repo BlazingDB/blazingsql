@@ -1405,37 +1405,37 @@ def run_query(
                 # SUM(CASE WHEN info = 'evaluate_split_query load_data' THEN
                 # duration ELSE 0 END) AS load_time,
                 # MAX(load_time) AS load_time,
-                log_result = bc.log(
-                    """SELECT
-                        MAX(end_time) as end_time, query_id,
-                        MAX(total_time) AS total_time
-                    FROM (
-                        SELECT
-                            query_id, node_id,
-                            SUM(CASE WHEN info = 'Query Execution Done' THEN
-                            duration ELSE 0 END) AS total_time,
-                            MAX(log_time) AS end_time
-                        FROM
-                            bsql_logs
-                        WHERE
-                            info = 'evaluate_split_query load_data'
-                            OR info = 'Query Execution Done'
-                        GROUP BY
-                            node_id, query_id
-                        )
-                    GROUP BY
-                        query_id
-                    ORDER BY
-                        end_time DESC limit 1"""
-                )
+                # log_result = bc.log(
+                #     """SELECT
+                #         MAX(end_time) as end_time, query_id,
+                #         MAX(total_time) AS total_time
+                #     FROM (
+                #         SELECT
+                #             query_id, node_id,
+                #             SUM(CASE WHEN info = 'Query Execution Done' THEN
+                #             duration ELSE 0 END) AS total_time,
+                #             MAX(log_time) AS end_time
+                #         FROM
+                #             bsql_logs
+                #         WHERE
+                #             info = 'evaluate_split_query load_data'
+                #             OR info = 'Query Execution Done'
+                #         GROUP BY
+                #             node_id, query_id
+                #         )
+                #     GROUP BY
+                #         query_id
+                #     ORDER BY
+                #         end_time DESC limit 1"""
+                # )
 
-                if int(nRals) == 1:  # Single Node
-                    n_log = log_result
-                else:  # Simple Distribution
-                    n_log = log_result.compute()
+                # if int(nRals) == 1:  # Single Node
+                #     n_log = log_result
+                # else:  # Simple Distribution
+                #     n_log = log_result.compute()
 
                 load_time = 0  # n_log['load_time'][0]
-                engine_time = n_log["total_time"][0]
+                engine_time = 0 #n_log["total_time"][0]
         else:
             result_gdf = bc.sql(query_blz, algebra=algebra)
 

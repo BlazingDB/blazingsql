@@ -21,6 +21,8 @@ class PinnedBufferProvider {
 public:
   PinnedBufferProvider(std::size_t sizeBuffers, std::size_t numBuffers);
 
+  ~PinnedBufferProvider();
+
   PinnedBuffer *getBuffer();
 
   void freeBuffer(PinnedBuffer *buffer);
@@ -39,7 +41,10 @@ private:
   std::stack<PinnedBuffer *> buffers;
 
   std::size_t bufferSize;
+
+  int buffer_counter;
 };
+
 // Memory Pool
 PinnedBufferProvider &getPinnedBufferProvider();
 
