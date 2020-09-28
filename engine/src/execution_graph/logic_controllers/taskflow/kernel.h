@@ -132,7 +132,7 @@ public:
 	 * @param table The table that will be added to the output cache.
 	 * @param cache_id The cache identifier.
 	 */
-	bool add_to_output_cache(std::unique_ptr<ral::frame::BlazingTable> table, std::string cache_id = "") {
+	bool add_to_output_cache(std::unique_ptr<ral::frame::BlazingTable> table, std::string cache_id = "",bool always_add = false) {
 		CodeTimer cacheEventTimer(false);
 
 		auto num_rows = table->num_rows();
@@ -143,7 +143,7 @@ public:
 		std::string message_id = get_message_id();
 		message_id = !cache_id.empty() ? cache_id + "_" + message_id : message_id;
 		cache_id = cache_id.empty() ? std::to_string(this->get_id()) : cache_id;
-		bool added = this->output_.get_cache(cache_id)->addToCache(std::move(table), message_id);
+		bool added = this->output_.get_cache(cache_id)->addToCache(std::move(table), message_id,always_add);
 
 		cacheEventTimer.stop();
 

@@ -74,7 +74,7 @@ void handler(int sig) {
   exit(1);
 }
 
-std::string get_ip(const std::string & iface_name = "eth0") {
+std::string get_ip(const std::string & iface_name = "eno1") {
 	int fd;
 	struct ifreq ifr;
 
@@ -651,7 +651,7 @@ std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> > initiali
 			addressExchanger = AddressExchanger::MakeForSender(13337);
 		} else {
 			std::this_thread::sleep_for(std::chrono::seconds(1));
-			addressExchanger = AddressExchanger::MakeForReceiver(13337, "192.168.137.140");
+			addressExchanger = AddressExchanger::MakeForReceiver(13337, "10.0.0.232");
 		}
 
 		std::cout<<">>>>>> CREATED EXCHANGER"<<std::endl;
@@ -680,7 +680,7 @@ std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> > initiali
 		auto node_data = workers_ucp_info[0];
 		nodes_info_map.emplace(node_data.worker_id, comm::node(ralId, node_data.worker_id, ucp_ep, self_worker));
 
-		comm::blazing_protocol protocol = comm::blazing_protocol::tcp;
+		comm::blazing_protocol protocol = comm::blazing_protocol::ucx;
 		if(config_options.find("PROTOCOL") != config_options.end()){
 			if(config_options["PROTOCOL"] == "UCX"){
 				protocol = comm::blazing_protocol::ucx;

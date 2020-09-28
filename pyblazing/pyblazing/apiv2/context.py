@@ -174,10 +174,11 @@ def initializeBlazing(
 
     cio.blazingSetAllocatorCaller(allocator.encode(), initial_pool_size, config_options)
 
-    worker = dask.distributed.get_worker()
+   
 
     workers_ucp_info = []
     if singleNode is False:
+        worker = dask.distributed.get_worker()
         for dask_addr in worker.ucx_addresses:
             addr = worker.ucx_addresses[dask_addr]
             #ep = worker.ucp_endpoints[addr].handle.ep

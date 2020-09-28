@@ -10,6 +10,7 @@
 #include "distribution/primitives.h"
 #include "operators/OrderBy.h"
 #include "CodeTimer.h"
+#include <blazingdb/io/Util/StringUtil.h>
 
 namespace ral {
 namespace batch {
@@ -282,8 +283,10 @@ public:
 									"timestamp_end"_a=eventTimer.end_time());
 				}
 
-				this->add_to_output_cache(std::move(sortedTable), "output_a");
-				batch_count++;
+				if(this->add_to_output_cache(std::move(sortedTable), "output_a")){
+					batch_count++;
+				}
+
 			} catch(const std::exception& e) {
 				// TODO add retry here
 				// Note that we have to handle the collected samples in a special way. We need to compare to the current batch_count and perhaps evict one set of samples
@@ -343,7 +346,7 @@ public:
 		context->incrementQuerySubstep();
 
 		std::vector<std::string> messages_to_wait_for;
-		std::map<std::string, int> node_count;
+		std::map<std::string, std::map<int32_t, int> > node_count;
 		BlazingThread generator([input_cache = this->input_.get_cache("input_a"), &partitionPlan, &node_count, &messages_to_wait_for,this](){
 			bool ordered = false;
 			BatchSequence input(input_cache, this, ordered);
@@ -383,7 +386,7 @@ public:
 
 						bool added = output_cache->addCacheData(std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(table_view.clone(), metadata)),"",true);
 						if (added) {
-							node_count[dest_node.id()]++;
+							node_count[dest_node.id()][part_ids[i]]++;
 						}
 					}
 
@@ -391,9 +394,9 @@ public:
 						auto & partition = partitions[i];
 						if(partition.first == self_node) {
 							std::string cache_id = "output_" + std::to_string(part_ids[i]);
-							bool added = this->add_to_output_cache(partition.second.clone(), cache_id);
+							bool added = this->add_to_output_cache(partition.second.clone(), cache_id,true);
 							if (added) {
-								node_count[self_node.id()]++;
+								node_count[self_node.id()][part_ids[i]]++;
 							}
 						}
 					}
@@ -425,7 +428,14 @@ public:
 																										metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL] +	"_" +
 																										metadata.get_values()[ral::cache::SENDER_WORKER_ID_METADATA_LABEL]);
 					metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, nodes[i].id());
-					metadata.add_value(ral::cache::PARTITION_COUNT, std::to_string(node_count[nodes[i].id()]));
+					
+					std::string counts = "";
+					for( auto const& [part_id, count] : node_count[nodes[i].id()] ){
+						counts += std::to_string(part_id) + ":" + std::to_string(count) + "|";
+					}
+					counts.resize(counts.size() - 1); //remove the last |
+					std::cout<<"counts are "<<counts<<std::endl;
+					metadata.add_value(ral::cache::PARTITION_COUNT, counts);
 					messages_to_wait_for.push_back(metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL] + "_" +
 																				metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL] +	"_" +
 																				metadata.get_values()[ral::cache::WORKER_IDS_METADATA_LABEL]);
@@ -438,12 +448,27 @@ public:
 		generator.join();
 
 		auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
- 		int total_count = node_count[self_node.id()];
+ 		auto node_counts_accumulated = node_count[self_node.id()];
+
 		for (auto message : messages_to_wait_for){
 			auto meta_message = this->query_graph->get_input_message_cache()->pullCacheData(message);
-			total_count += std::stoi(static_cast<ral::cache::GPUCacheDataMetaData *>(meta_message.get())->getMetadata().get_values()[ral::cache::PARTITION_COUNT]);
+		
+			std::string part_counts = static_cast<ral::cache::GPUCacheDataMetaData *>(meta_message.get())->getMetadata().get_values()[ral::cache::PARTITION_COUNT];
+			std::cout<<part_counts<<" was partcoutns"<<std::endl;
+			auto split_parts = StringUtil::split(part_counts,"|");
+			for (auto string_part : split_parts){
+				auto partition_count_string = StringUtil::split(string_part,":");
+				node_counts_accumulated[std::stoi(partition_count_string[0])] += std::stoi(partition_count_string[1]); 
+			}
 		}
 
+		for( auto const& [part_id, count] : node_counts_accumulated ){
+			std::string output_cache_name = "output_" + std::to_string(part_id);
+			std::cout<<"getting_cache '"<<output_cache_name<<"'"<< " waiting on "<<count<<std::endl;
+			this->output_cache(output_cache_name)->wait_for_count(count);
+			std::cout<<"finished getting_cache '"<<output_cache_name<<"'"<<std::endl;
+		}
+		
 		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
 									"query_id"_a=context->getContextToken(),
 									"step"_a=context->getQueryStep(),
@@ -451,6 +476,8 @@ public:
 									"info"_a="Partition Kernel Completed",
 									"duration"_a=timer.elapsed_time(),
 									"kernel_id"_a=this->get_id());
+
+		
 
 		return kstatus::proceed;
 	}
