@@ -8,9 +8,11 @@
 
 ## Bug Fixes
 - #975 Fixed issue due to cudf orc api change 
+- #1019 Fix hive string col 
 - #1021 removed an rmm include
 - #1020 Fixed build issues with latest rmm 0.16 and columnBasisTest due to deprecated drop_column() function
 - #1029 Fix metadata mistmatch due to parsedMetadata
+- #1016 Removed workaround for parquet read schema
 - #1028 Match dtypes after create_table with multiple files
 - #1030 Avoid read _metadata files
 - #1039 Fixed issues with parsers, in particular ORC parser was misbehaving
