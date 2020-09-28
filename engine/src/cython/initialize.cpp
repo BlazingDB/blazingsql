@@ -694,15 +694,6 @@ std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> > initiali
 
 		std::cout<<">>>>>> GOT LOCAL WORKER ADDRESS"<<std::endl;
 
-<<<<<<< HEAD
-		std::unique_ptr<AddressExchanger> addressExchanger;
-		if (ralId == 0) {
-			addressExchanger = AddressExchanger::MakeForSender(13337);
-		} else {
-			std::this_thread::sleep_for(std::chrono::seconds(1));
-			addressExchanger = AddressExchanger::MakeForReceiver(13337, "10.0.0.232");
-		}
-=======
 		// std::unique_ptr<AddressExchanger> addressExchanger;
 		// if (ralId == 0) {
 		// 	addressExchanger = AddressExchanger::MakeForSender(13337);
@@ -710,7 +701,6 @@ std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> > initiali
 		// 	std::this_thread::sleep_for(std::chrono::seconds(1));
 		// 	addressExchanger = AddressExchanger::MakeForReceiver(13337, "192.168.137.140");
 		// }
->>>>>>> ea3a82aa5bc6e694ec5b80be6118cf14a7002d20
 
 		std::map<std::string, UcpWorkerAddress> peer_addresses_map;
 		auto th = std::thread([ralCommunicationPort, total_peers=workers_ucp_info.size(), &peer_addresses_map](){
