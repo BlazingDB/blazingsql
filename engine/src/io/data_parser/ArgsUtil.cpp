@@ -46,7 +46,7 @@ DataType inferFileType(std::vector<std::string> files, DataType data_type_hint) 
 	return inferDataType(ext);
 }
 
-bool in(std::string key, std::map<std::string, std::string> args) { return !(args.find(key) == args.end()); }
+bool map_contains(std::string key, std::map<std::string, std::string> args) { return !(args.find(key) == args.end()); }
 
 bool to_bool(std::string value) {
 	if(value == "True")
@@ -76,159 +76,150 @@ std::vector<int> to_vector_int(std::string value) {
 	return ret;
 }
 
-void getReaderArgJson(std::map<std::string, std::string> args, ReaderArgs & readerArg) {
-	std::vector<std::string> dtypes;
-	readerArg.jsonReaderArg.lines = true;
-	if(in("dtype", args)) {
-		readerArg.jsonReaderArg.dtype = to_vector_string(args["dtype"]);
+cudf::io::json_reader_options getJsonReaderOptions(const std::map<std::string, std::string> & args, cudf::io::arrow_io_source & arrow_source) {
+	
+	cudf::io::json_reader_options reader_opts = cudf::io::json_reader_options::builder(cudf::io::source_info{&arrow_source});
+	reader_opts.enable_lines(true);
+	if(map_contains("dtype", args)) {
+		reader_opts.dtypes(to_vector_string(args.at("dtype")));
 	}
-	if(in("compression", args)) {
-		readerArg.jsonReaderArg.compression = static_cast<cudf_io::compression_type>(to_int(args["compression"]));
+	if(map_contains("compression", args)) {
+		reader_opts.compression(static_cast<cudf::io::compression_type>(to_int(args.at("compression"))));
 	}
-	if(in("lines", args)) {
-		readerArg.jsonReaderArg.lines = to_bool(args["lines"]);
+	if(map_contains("lines", args)) {
+		reader_opts.enable_lines(to_bool(args.at("lines")));
 	}
-	if(in("byte_range_offset", args)) {
-		readerArg.jsonReaderArg.byte_range_offset = (size_t) to_int(args["byte_range_offset"]);
+	if(map_contains("byte_range_offset", args)) {
+		reader_opts.set_byte_range_offset( (size_t) to_int(args.at("byte_range_offset")) );
 	}
-	if(in("byte_range_size", args)) {
-		readerArg.jsonReaderArg.byte_range_size = (size_t) to_int(args["byte_range_size"]);
+	if(map_contains("byte_range_size", args)) {
+		reader_opts.set_byte_range_size( (size_t) to_int(args.at("byte_range_size")) );
 	}
+	return reader_opts;
 }
 
-void getReaderArgOrc(std::map<std::string, std::string> args, ReaderArgs & readerArg) {
-	if(in("stripes", args)) {
-		readerArg.orcReaderArg.stripes = to_vector_int(args["stripes"]);
+cudf::io::orc_reader_options getOrcReaderOptions(const std::map<std::string, std::string> & args, cudf::io::arrow_io_source & arrow_source) {
+	
+	cudf::io::orc_reader_options reader_opts = cudf::io::orc_reader_options::builder(cudf::io::source_info{&arrow_source});
+	if(map_contains("stripes", args)) {
+		reader_opts.set_stripes(to_vector_int(args.at("stripes")));
 	}
-	if(in("skip_rows", args)) {
-		readerArg.orcReaderArg.skip_rows = to_int(args["skip_rows"]);
+	if(map_contains("skip_rows", args)) {
+		reader_opts.set_skip_rows(to_int(args.at("skip_rows")));
 	}
-	if(in("num_rows", args)) {
-		readerArg.orcReaderArg.num_rows = to_int(args["num_rows"]);
+	if(map_contains("num_rows", args)) {
+		reader_opts.set_num_rows(to_int(args.at("num_rows")));
 	}
-	if(in("use_index", args)) {
-		readerArg.orcReaderArg.use_index = to_int(args["use_index"]);
+	if(map_contains("use_index", args)) {
+		reader_opts.enable_use_index(to_int(args.at("use_index")));
 	} else {
-		readerArg.orcReaderArg.use_index = true;
+		reader_opts.enable_use_index(true);
 	}
-	if(in("byte_range_size", args)) {
-		readerArg.jsonReaderArg.byte_range_size = (size_t) to_int(args["byte_range_size"]);
-	}
+	return reader_opts;
 }
 
-void getReaderArgCSV(std::map<std::string, std::string> args, ReaderArgs & readerArg) {
-	if(in("compression", args)) {
-		readerArg.csvReaderArg.compression = (cudf::io::compression_type) to_int(args["compression"]);
+cudf::io::csv_reader_options getCsvReaderOptions(const std::map<std::string, std::string> & args, cudf::io::arrow_io_source & arrow_source) {
+
+	cudf::io::csv_reader_options reader_opts = cudf::io::csv_reader_options::builder(cudf::io::source_info{&arrow_source});
+	if(map_contains("compression", args)) {
+		reader_opts.set_compression((cudf::io::compression_type) to_int(args.at("compression")));
 	}
-	if(in("lineterminator", args)) {
-		readerArg.csvReaderArg.lineterminator = ord(args["lineterminator"]);
+	if(map_contains("lineterminator", args)) {
+		reader_opts.set_lineterminator(ord(args.at("lineterminator")));
 	}
-	if(in("delimiter", args)) {
-		readerArg.csvReaderArg.delimiter = ord(args["delimiter"]);
+	if(map_contains("delimiter", args)) {
+		reader_opts.set_delimiter(ord(args.at("delimiter")));
 	}
-	if(in("windowslinetermination", args)) {
-		readerArg.csvReaderArg.windowslinetermination = to_bool(args["windowslinetermination"]);
+	if(map_contains("windowslinetermination", args)) {
+		reader_opts.enable_windowslinetermination(to_bool(args.at("windowslinetermination")));
 	}
-	if(in("delim_whitespace", args)) {
-		readerArg.csvReaderArg.delim_whitespace = to_bool(args["delim_whitespace"]);
+	if(map_contains("delim_whitespace", args)) {
+		reader_opts.enable_delim_whitespace(to_bool(args.at("delim_whitespace")));
 	}
-	if(in("skipinitialspace", args)) {
-		readerArg.csvReaderArg.skipinitialspace = to_bool(args["skipinitialspace"]);
+	if(map_contains("skipinitialspace", args)) {
+		reader_opts.enable_skipinitialspace(to_bool(args.at("skipinitialspace")));
 	}
-	if(in("skip_blank_lines", args)) {
-		readerArg.csvReaderArg.skip_blank_lines = to_bool(args["skip_blank_lines"]);
+	if(map_contains("skip_blank_lines", args)) {
+		reader_opts.enable_skip_blank_lines(to_bool(args.at("skip_blank_lines")));
 	}
-	if(in("nrows", args)) {
-		readerArg.csvReaderArg.nrows = (cudf::size_type) to_int(args["nrows"]);
+	if(map_contains("nrows", args)) {
+		reader_opts.set_nrows((cudf::size_type) to_int(args.at("nrows")));
 	}
-	if(in("skiprows", args)) {
-		readerArg.csvReaderArg.skiprows = (cudf::size_type) to_int(args["skiprows"]);
+	if(map_contains("skiprows", args)) {
+		reader_opts.set_skiprows((cudf::size_type) to_int(args.at("skiprows")));
 	}
-	if(in("skipfooter", args)) {
-		readerArg.csvReaderArg.skipfooter = (cudf::size_type) to_int(args["skipfooter"]);
+	if(map_contains("skipfooter", args)) {
+		reader_opts.set_skipfooter((cudf::size_type) to_int(args.at("skipfooter")));
 	}
-	if(in("header", args) && args["header"] != "None" ) { // this is how it was in branch-0.14 at some point, but it makes testing fail
-		readerArg.csvReaderArg.header = (cudf::size_type) to_int(args["header"]);
-	} else if((in("header", args) && args["header"] == "None") || (!in("header", args) && in("names", args))) {
-		readerArg.csvReaderArg.header = -1;
+	if(map_contains("header", args) && args.at("header") != "None" ) { // this is how it was in branch-0.14 at some point, but it makes testing fail
+		reader_opts.set_header((cudf::size_type) to_int(args.at("header")));
+	} else if((map_contains("header", args) && args.at("header") == "None") || (!map_contains("header", args) && map_contains("names", args))) {
+		reader_opts.set_header(-1);
 	}
-	if(in("names", args)) {
-		readerArg.csvReaderArg.names = to_vector_string(args["names"]);
+	if(map_contains("names", args)) {
+		reader_opts.set_names(to_vector_string(args.at("names")));
 	}
-	if(in("dtype", args)) {
-		readerArg.csvReaderArg.dtype = to_vector_string(args["dtype"]);
+	if(map_contains("dtype", args)) {
+		reader_opts.set_dtypes(to_vector_string(args.at("dtype")));
 	}
-	if(in("use_cols_indexes", args)) {
-		readerArg.csvReaderArg.use_cols_indexes = to_vector_int(args["use_cols_indexes"]);
+	if(map_contains("use_cols_indexes", args)) {
+		reader_opts.set_use_cols_indexes(to_vector_int(args.at("use_cols_indexes")));
 	}
-	if(in("use_cols_names", args)) {
-		readerArg.csvReaderArg.use_cols_names = to_vector_string(args["use_cols_names"]);
+	if(map_contains("use_cols_names", args)) {
+		reader_opts.set_use_cols_names(to_vector_string(args.at("use_cols_names")));
 	}
-	if(in("true_values", args)) {
-		readerArg.csvReaderArg.true_values = to_vector_string(args["true_values"]);
+	if(map_contains("true_values", args)) {
+		reader_opts.set_true_values(to_vector_string(args.at("true_values")));
 	}
-	if(in("false_values", args)) {
-		readerArg.csvReaderArg.false_values = to_vector_string(args["false_values"]);
+	if(map_contains("false_values", args)) {
+		reader_opts.set_false_values(to_vector_string(args.at("false_values")));
 	}
-	if(in("na_values", args)) {
-		readerArg.csvReaderArg.na_values = to_vector_string(args["na_values"]);
+	if(map_contains("na_values", args)) {
+		reader_opts.set_na_values(to_vector_string(args.at("na_values")));
 	}
-	if(in("keep_default_na", args)) {
-		readerArg.csvReaderArg.keep_default_na = to_bool(args["keep_default_na"]);
+	if(map_contains("keep_default_na", args)) {
+		reader_opts.enable_keep_default_na(to_bool(args.at("keep_default_na")));
 	}
-	if(in("na_filter", args)) {
-		readerArg.csvReaderArg.na_filter = to_bool(args["na_filter"]);
+	if(map_contains("na_filter", args)) {
+		reader_opts.enable_na_filter(to_bool(args.at("na_filter")));
 	}
-	if(in("prefix", args)) {
-		readerArg.csvReaderArg.prefix = args["prefix"];
+	if(map_contains("prefix", args)) {
+		reader_opts.set_prefix(args.at("prefix"));
 	}
-	if(in("mangle_dupe_cols", args)) {
-		readerArg.csvReaderArg.mangle_dupe_cols = to_bool(args["mangle_dupe_cols"]);
+	if(map_contains("mangle_dupe_cols", args)) {
+		reader_opts.enable_mangle_dupe_cols(to_bool(args.at("mangle_dupe_cols")));
 	}
-	if(in("dayfirst", args)) {
-		readerArg.csvReaderArg.dayfirst = to_bool(args["dayfirst"]);
+	if(map_contains("dayfirst", args)) {
+		reader_opts.enable_dayfirst(to_bool(args.at("dayfirst")));
 	}
-	if(in("thousands", args)) {
-		readerArg.csvReaderArg.thousands = ord(args["thousands"]);
+	if(map_contains("thousands", args)) {
+		reader_opts.set_thousands(ord(args.at("thousands")));
 	}
-	if(in("decimal", args)) {
-		readerArg.csvReaderArg.decimal = ord(args["decimal"]);
+	if(map_contains("decimal", args)) {
+		reader_opts.set_decimal(ord(args.at("decimal")));
 	}
-	if(in("comment", args)) {
-		readerArg.csvReaderArg.comment = ord(args["comment"]);
+	if(map_contains("comment", args)) {
+		reader_opts.set_comment(ord(args.at("comment")));
 	}
-	if(in("quotechar", args)) {
-		readerArg.csvReaderArg.quotechar = ord(args["quotechar"]);
+	if(map_contains("quotechar", args)) {
+		reader_opts.set_quotechar(ord(args.at("quotechar")));
 	}
-	// if (in("quoting", args)) {
-	//    readerArg.csvReaderArg.quoting = args["quoting"]
-	if(in("doublequote", args)) {
-		readerArg.csvReaderArg.doublequote = to_bool(args["doublequote"]);
+	// if (map_contains("quoting", args)) {
+	//    reader_opts.quoting = args.at("quoting"]
+	if(map_contains("doublequote", args)) {
+		reader_opts.enable_doublequote(to_bool(args.at("doublequote")));
 	}
-	if(in("byte_range_offset", args)) {
-		readerArg.csvReaderArg.byte_range_offset = (size_t) to_int(args["byte_range_offset"]);
+	if(map_contains("byte_range_offset", args)) {
+		reader_opts.set_byte_range_offset((size_t) to_int(args.at("byte_range_offset")));
 	}
-	if(in("byte_range_size", args)) {
-		readerArg.csvReaderArg.byte_range_size = (size_t) to_int(args["byte_range_size"]);
+	if(map_contains("byte_range_size", args)) {
+		reader_opts.set_byte_range_size((size_t) to_int(args.at("byte_range_size")));
 	}
-	if(in("out_time_unit", args)) {
+	if(map_contains("out_time_unit", args)) {
 		// TODO
-		// readerArg.csvReaderArg.out_time_unit = args["out_time_unit"]
+		// reader_opts.out_time_unit = args.at("out_time_unit");
 	}
-}
-
-ReaderArgs getReaderArgs(DataType fileType, std::map<std::string, std::string> args) {
-	ReaderArgs readerArg;
-
-	if(fileType == DataType::JSON) {
-		getReaderArgJson(args, readerArg);
-	} else if(fileType == DataType::CSV) {
-		getReaderArgCSV(args, readerArg);
-	} else if(fileType == DataType::ORC) {
-		getReaderArgOrc(args, readerArg);
-	}
-
-	return readerArg;
+	return reader_opts;
 }
 
 std::map<std::string, std::string> to_map(std::vector<std::string> arg_keys, std::vector<std::string> arg_values) {

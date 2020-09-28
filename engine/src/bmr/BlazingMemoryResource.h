@@ -2,15 +2,14 @@
 
 #include <cassert>
 #include <atomic>
+#include <set>
 
 #include <cuda_runtime_api.h>
 
 #include <rmm/mr/device/device_memory_resource.hpp>
 #include <rmm/mr/device/cuda_memory_resource.hpp>
 #include <rmm/mr/device/managed_memory_resource.hpp>
-#include <rmm/mr/device/cnmem_managed_memory_resource.hpp>
-#include <rmm/mr/device/cnmem_memory_resource.hpp>
-#include <rmm/mr/device/default_memory_resource.hpp>
+#include <rmm/mr/device/per_device_resource.hpp>
 
 #include "config/GPUManager.cuh"
 
@@ -55,12 +54,6 @@ public:
             memory_resource = memory_resource_owner.get();
         } else if (allocation_mode == "managed_memory_resource"){
             memory_resource_owner = std::make_unique<rmm::mr::managed_memory_resource>();
-            memory_resource = memory_resource_owner.get();
-        } else if (allocation_mode == "cnmem_memory_resource"){
-            memory_resource_owner = std::make_unique<rmm::mr::cnmem_memory_resource>(initial_pool_size);
-            memory_resource = memory_resource_owner.get();
-        } else if (allocation_mode == "cnmem_managed_memory_resource"){
-            memory_resource_owner = std::make_unique<rmm::mr::cnmem_managed_memory_resource>(initial_pool_size);
             memory_resource = memory_resource_owner.get();
         } else {  //(allocation_mode == "existing"){
             memory_resource = rmm::mr::get_current_device_resource();

@@ -8,6 +8,11 @@
 
 ## Bug Fixes
 - #975 Fixed issue due to cudf orc api change 
+- #1021 removed an rmm include
+- #1020 Fixed build issues with latest rmm 0.16 and columnBasisTest due to deprecated drop_column() function
+- #1028 Match dtypes after create_table with multiple files
+- #1030 Avoid read _metadata files
+- #1039 Fixed issues with parsers, in particular ORC parser was misbehaving
 
 
 # BlazingSQL 0.15.0 (August 31, 2020)
@@ -90,6 +95,8 @@
 - #965 Handle exceptions from pool_threads
 - #963 Set log_level when using LOGGING_LEVEL param
 - #973 Fix how we check the existence of the JAVA_HOME environment variable
+- #997 Add capacity to set the transport memory
+- #1007 Fix arrow and spdlog compilation issues
 
 # BlazingSQL 0.14.0 (June 9, 2020)
 
