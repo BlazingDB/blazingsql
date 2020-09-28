@@ -200,7 +200,6 @@ public:
   static std::unique_ptr<AddressExchanger>
   MakeForReceiver(const std::uint16_t port, const char *hostname);
 
-protected:
   virtual int fd() = 0;
 
 private:
@@ -217,27 +216,30 @@ private:
 
 class AddressExchangerForSender : public AddressExchanger {
 public:
-  ~AddressExchangerForSender() { CheckError(close(fd()), "close sender"); }
+  ~AddressExchangerForSender() {
+		closeCurrentConnection();
+		CheckError(close(lsock_), "close sender");
+	}
 
   AddressExchangerForSender(const std::uint16_t port) {
     struct sockaddr_in inaddr;
 
-    int lsock = -1;
-    int dsock = -1;
+    lsock_ = -1;
+    dsock_ = -1;
     int optval = 1;
     int ret;
 
-    lsock = socket(AF_INET, SOCK_STREAM, 0);
-    if (lsock < 0) {
+    lsock_ = socket(AF_INET, SOCK_STREAM, 0);
+    if (lsock_ < 0) {
       std::cerr << "open server socket" << std::endl;
       throw std::runtime_error("open server socket");
     }
 
     optval = 1;
-    ret = setsockopt(lsock, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
+    ret = setsockopt(lsock_, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
     if (ret < 0) {
       std::cerr << "server setsockopt()" << std::endl;
-      close(lsock);
+      close(lsock_);
       throw std::runtime_error("server setsockopt()");
     }
 
@@ -245,46 +247,93 @@ public:
     inaddr.sin_port = htons(port);
     inaddr.sin_addr.s_addr = INADDR_ANY;
     std::memset(inaddr.sin_zero, 0, sizeof(inaddr.sin_zero));
-    ret = bind(lsock, (struct sockaddr *) &inaddr, sizeof(inaddr));
+    ret = bind(lsock_, (struct sockaddr *) &inaddr, sizeof(inaddr));
     if (ret < 0) {
       std::cout << "bind server" << std::endl;
-      close(lsock);
+      close(lsock_);
       throw std::runtime_error("bind server");
     }
 
-    ret = listen(lsock, 0);
+    ret = listen(lsock_, 0);
     if (ret < 0) {
       std::cout << "listen server" << std::endl;
-      close(lsock);
+      close(lsock_);
       throw std::runtime_error("listen server");
     }
 
     std::cout << "[" << std::hex << std::this_thread::get_id()
               << "] Waiting for connection..." << std::endl;
 
-    dsock = accept(lsock, NULL, NULL);
-    if (dsock < 0) {
+    // dsock_ = accept(lsock_, NULL, NULL);
+    // if (dsock_ < 0) {
+    //   std::cout << "accept server" << std::endl;
+    //   close(lsock_);
+    //   throw std::runtime_error("accept server");
+    // }
+
+    // close(lsock_);
+
+    // CheckError(dsock_ < 0, "server_connect");
+  }
+
+	char *get_ip_str(const struct sockaddr *sa, char *s, size_t maxlen)
+	{
+			switch(sa->sa_family) {
+					case AF_INET:
+							inet_ntop(AF_INET, &(((struct sockaddr_in *)sa)->sin_addr),
+											s, maxlen);
+							break;
+
+					case AF_INET6:
+							inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)sa)->sin6_addr),
+											s, maxlen);
+							break;
+
+					default:
+							strncpy(s, "Unknown AF", maxlen);
+							return NULL;
+			}
+
+			return s;
+	}
+
+	bool acceptConnection() {
+		struct sockaddr address;
+    unsigned int addrlen = sizeof(address);
+    dsock_ = accept(lsock_, &address, (socklen_t*)&addrlen);
+    if (dsock_ < 0) {
       std::cout << "accept server" << std::endl;
-      close(lsock);
+      close(lsock_);
       throw std::runtime_error("accept server");
     }
 
-    close(lsock);
+    CheckError(dsock_ < 0, "server_connect");
 
-    CheckError(dsock < 0, "server_connect");
-    dsock_ = dsock;
-  }
+		char str_buffer[INET6_ADDRSTRLEN];
+		char * ip_str = get_ip_str(&address, str_buffer, INET6_ADDRSTRLEN);
 
-protected:
+		return true;
+	}
+
+	void closeCurrentConnection(){
+		if (dsock_ != -1) {
+			CheckError(close(dsock_), "close sender fd");
+			dsock_ = -1;
+		}
+	}
+
   int fd() final { return dsock_; }
 
 private:
   int dsock_;
+	int lsock_;
 };
 
 class AddressExchangerForReceiver : public AddressExchanger {
 public:
-  ~AddressExchangerForReceiver() { CheckError(close(fd()), "close receiver"); }
+  ~AddressExchangerForReceiver() {
+		CheckError(close(fd()), "close receiver");
+	}
 
   AddressExchangerForReceiver(const std::uint16_t port, const char *hostname) {
     struct sockaddr_in conn_addr;
@@ -325,7 +374,6 @@ public:
     connfd_ = connfd;
   }
 
-protected:
   int fd() final { return connfd_; }
 
 private:
@@ -646,6 +694,7 @@ std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> > initiali
 
 		std::cout<<">>>>>> GOT LOCAL WORKER ADDRESS"<<std::endl;
 
+<<<<<<< HEAD
 		std::unique_ptr<AddressExchanger> addressExchanger;
 		if (ralId == 0) {
 			addressExchanger = AddressExchanger::MakeForSender(13337);
@@ -653,32 +702,104 @@ std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> > initiali
 			std::this_thread::sleep_for(std::chrono::seconds(1));
 			addressExchanger = AddressExchanger::MakeForReceiver(13337, "10.0.0.232");
 		}
+=======
+		// std::unique_ptr<AddressExchanger> addressExchanger;
+		// if (ralId == 0) {
+		// 	addressExchanger = AddressExchanger::MakeForSender(13337);
+		// } else {
+		// 	std::this_thread::sleep_for(std::chrono::seconds(1));
+		// 	addressExchanger = AddressExchanger::MakeForReceiver(13337, "192.168.137.140");
+		// }
+>>>>>>> ea3a82aa5bc6e694ec5b80be6118cf14a7002d20
 
-		std::cout<<">>>>>> CREATED EXCHANGER"<<std::endl;
+		std::map<std::string, UcpWorkerAddress> peer_addresses_map;
+		auto th = std::thread([ralCommunicationPort, total_peers=workers_ucp_info.size(), &peer_addresses_map](){
+			AddressExchangerForSender exchanger(ralCommunicationPort);
+			for (size_t i = 0; i < total_peers; i++){
+				if (exchanger.acceptConnection()){
+					int ret;
 
-		UcpWorkerAddress peerUcpWorkerAddress =
-				addressExchanger->Exchange(ucpWorkerAddress);
+					// Receive worker_id size
+					size_t worker_id_buff_size;
+					ret = recv(exchanger.fd(), &worker_id_buff_size, sizeof(size_t), MSG_WAITALL);
+    			CheckError(ret != sizeof(size_t), "recv worker_id_buff_size");
+
+					// Receive worker_id
+					std::string worker_id(worker_id_buff_size, '\0');
+					ret = recv(exchanger.fd(), &worker_id[0], worker_id.size(), MSG_WAITALL);
+    			CheckError(ret != worker_id.size(), "recv worker_id");
+
+					// Receive ucp_worker_address size
+					size_t ucp_worker_address_size;
+					ret = recv(exchanger.fd(), &ucp_worker_address_size, sizeof(size_t), MSG_WAITALL);
+    			CheckError(ret != sizeof(size_t), "recv ucp_worker_address_size");
+
+					// Receive ucp_worker_address
+					std::uint8_t *data = new std::uint8_t[ucp_worker_address_size];
+					UcpWorkerAddress peerUcpWorkerAddress{
+							reinterpret_cast<ucp_address_t *>(data),
+							ucp_worker_address_size};
+
+					ret = recv(exchanger.fd(), peerUcpWorkerAddress.address, ucp_worker_address_size, MSG_WAITALL);
+    			CheckError(ret != ucp_worker_address_size, "recv ucp_worker_address");
+
+					peer_addresses_map.emplace(worker_id, peerUcpWorkerAddress);
+
+					exchanger.closeCurrentConnection();
+				}
+			}
+		});
+
+		std::this_thread::sleep_for(std::chrono::seconds(1));
+		for (auto &&worker_info : workers_ucp_info){
+			AddressExchangerForReceiver exchanger(worker_info.tcp_port, worker_info.ip.c_str());
+			int ret;
+
+			// Send worker_id size
+			size_t worker_id_buff_size = worker_id.size();
+			ret = send(exchanger.fd(), &worker_id_buff_size, sizeof(size_t), 0);
+    	CheckError(ret != sizeof(size_t), "send worker_id_buff_size");
+
+			// Send worker_id
+			ret = send(exchanger.fd(), worker_id.data(), worker_id.size(), 0);
+    	CheckError(ret != worker_id.size(), "send worker_id");
+
+			// Send ucp_worker_address size
+			ret = send(exchanger.fd(), &ucpWorkerAddress.length, sizeof(size_t), 0);
+    	CheckError(ret != sizeof(size_t), "send ucp_worker_address_size");
+
+			// Send ucp_worker_address
+			ret = send(exchanger.fd(), ucpWorkerAddress.address, ucpWorkerAddress.length, 0);
+    	CheckError(ret != ucpWorkerAddress.length, "send ucp_worker_address");
+		}
+
+		th.join();
+
+		// std::cout<<">>>>>> CREATED EXCHANGER"<<std::endl;
+
+		// UcpWorkerAddress peerUcpWorkerAddress =
+		// 		addressExchanger->Exchange(ucpWorkerAddress);
 
 		std::cout<<">>>>>> EXACHNAGE DONE"<<std::endl;
 
-  	ucp_ep_h ucp_ep = CreateUcpEp(self_worker, peerUcpWorkerAddress);
+		for (auto &&worker_info : workers_ucp_info){
+			UcpWorkerAddress peerUcpWorkerAddress = peer_addresses_map[worker_info.worker_id];
+			ucp_ep_h ucp_ep = CreateUcpEp(self_worker, peerUcpWorkerAddress);
 
-		std::cout<<">>>>>> CREATED ENDPOINT"<<std::endl;
+			std::cout<<">>>>>> CREATED ENDPOINT"<<std::endl;
 
-		std::cout << '[' << std::hex << std::this_thread::get_id()
-							<< "] local: " << std::hex
-							<< *reinterpret_cast<std::size_t *>(ucpWorkerAddress.address) << ' '
-							<< ucpWorkerAddress.length << std::endl
-							<< '[' << std::hex << std::this_thread::get_id()
-							<< "] peer: " << std::hex
-							<< *reinterpret_cast<std::size_t *>(peerUcpWorkerAddress.address)
-							<< ' ' << peerUcpWorkerAddress.length << std::endl;
+			std::cout << '[' << std::hex << std::this_thread::get_id()
+								<< "] local: " << std::hex
+								<< *reinterpret_cast<std::size_t *>(ucpWorkerAddress.address) << ' '
+								<< ucpWorkerAddress.length << std::endl
+								<< '[' << std::hex << std::this_thread::get_id()
+								<< "] peer: " << std::hex
+								<< *reinterpret_cast<std::size_t *>(peerUcpWorkerAddress.address)
+								<< ' ' << peerUcpWorkerAddress.length << std::endl;
 
-
-		std::cout<<">>>>>> WORKER INFO SIZE "<< workers_ucp_info.size()<<std::endl;
-
-		auto node_data = workers_ucp_info[0];
-		nodes_info_map.emplace(node_data.worker_id, comm::node(ralId, node_data.worker_id, ucp_ep, self_worker));
+			// auto worker_info = workers_ucp_info[0];
+			nodes_info_map.emplace(worker_info.worker_id, comm::node(ralId, worker_info.worker_id, ucp_ep, self_worker));
+		}
 
 		comm::blazing_protocol protocol = comm::blazing_protocol::ucx;
 		if(config_options.find("PROTOCOL") != config_options.end()){

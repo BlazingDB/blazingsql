@@ -188,6 +188,8 @@ cdef extern from "../include/engine/common.h" nogil:
 
     cdef struct NodeMetaDataUCP:
         string worker_id
+        string ip
+        int tcp_port
         uintptr_t ep_handle
         uintptr_t worker_handle
         uintptr_t context_handle
