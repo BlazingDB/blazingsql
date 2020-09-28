@@ -2217,6 +2217,26 @@ class BlazingContext(object):
 
         return (all_sliced_files, all_sliced_uri_values, all_sliced_row_groups_ids)
 
+    def _sliceRowGroupsByWorker(self, numSlices, files, uri_values, row_groups_ids, mapping_files):
+        dict_files = {}
+        for i in range(len(files)):
+            dict_files[files[i]] = row_groups_ids[i]
+
+        all_sliced_files = []
+        all_sliced_uri_values = []
+        all_sliced_row_groups_ids = []
+
+        for target_files in mapping_files.values():
+            sliced_files = target_files
+            sliced_uri_values = []
+            sliced_rowgroup_ids = [dict_files[file_name] for file_name in target_files]
+
+            all_sliced_files.append(sliced_files)
+            all_sliced_uri_values.append(sliced_uri_values)
+            all_sliced_row_groups_ids.append(sliced_rowgroup_ids)
+
+        return (all_sliced_files, all_sliced_uri_values, all_sliced_row_groups_ids)
+
     def _optimize_skip_data_getSlices(
         self, current_table, scan_table_query, single_gpu
     ):
@@ -2309,13 +2329,22 @@ class BlazingContext(object):
                     bt.column_types = current_table.column_types
                     nodeFilesList.append(bt)
                 else:
-                    (
-                        all_sliced_files,
-                        all_sliced_uri_values,
-                        all_sliced_row_groups_ids,
-                    ) = self._sliceRowGroups(
-                        len(self.nodes), actual_files, uri_values, row_groups_ids
-                    )
+                    if current_table.local_files is False:
+                        (
+                            all_sliced_files,
+                            all_sliced_uri_values,
+                            all_sliced_row_groups_ids,
+                        ) = self._sliceRowGroups(
+                            len(self.nodes), actual_files, uri_values, row_groups_ids
+                        )
+                    else:
+                        (
+                            all_sliced_files,
+                            all_sliced_uri_values,
+                            all_sliced_row_groups_ids,
+                        ) = self._sliceRowGroupsByWorker(
+                            len(self.nodes), actual_files, uri_values, row_groups_ids, self.mapping_files[current_table.name]
+                        )
 
                     for i, node in enumerate(self.nodes):
                         curr_calcite = current_table.calcite_to_file_indices
