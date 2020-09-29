@@ -1016,7 +1016,7 @@ def load_config_options_from_env(user_config_options: dict):
         "NUM_BYTES_PER_ORDER_BY_PARTITION": 400000000,
         "TABLE_SCAN_KERNEL_NUM_THREADS": 4,
         "MAX_DATA_LOAD_CONCAT_CACHE_BYTE_SIZE": 400000000,
-        "FLOW_CONTROL_BYTES_THRESHOLD": 18446744073709551615, # see https://en.cppreference.com/w/cpp/types/numeric_limits/max
+        "FLOW_CONTROL_BYTES_THRESHOLD": 18446744073709551615,  # see https://en.cppreference.com/w/cpp/types/numeric_limits/max
         "ORDER_BY_SAMPLES_RATIO": 0.1,
         "MAX_ORDER_BY_SAMPLES_PER_NODE": 10000,
         "BLAZING_DEVICE_MEM_CONSUMPTION_THRESHOLD": 0.95,
@@ -1026,9 +1026,9 @@ def load_config_options_from_env(user_config_options: dict):
         "MEMORY_MONITOR_PERIOD": 50,
         "MAX_KERNEL_RUN_THREADS": 16,
         "MAX_SEND_MESSAGE_THREADS": 20,
-        "LOGGING_LEVEL": 'trace',
-        "LOGGING_FLUSH_LEVEL": 'warn',
-        "TRANSPORT_BUFFER_BYTE_SIZE": 75
+        "LOGGING_LEVEL": "trace",
+        "LOGGING_FLUSH_LEVEL": "warn",
+        "TRANSPORT_BUFFER_BYTE_SIZE": 75,
     }
 
     # key: option_name, value: default_value
@@ -1036,10 +1036,17 @@ def load_config_options_from_env(user_config_options: dict):
         # if the user set this option in the Blazingcontext ctor
         if option_name in user_config_options:
             config_options[option_name] = user_config_options[option_name]
-        else: # else: the user didn't specify this option so we can load it from the its env var
-            config_options[option_name] = get_config_option_from_env(option_name, default_value)
+        else:  # else: the user didn't specify this option so we can load it from the its env var
+            config_options[option_name] = get_config_option_from_env(
+                option_name, default_value
+            )
 
-    return config_options
+    # make sure all options are encoded strings
+    encoded_config_options = {}
+    for option in config_options:
+        encoded_config_options[option.encode()] = str(config_options[option]).encode()
+
+    return encoded_config_options
 
 
 class BlazingContext(object):
@@ -1216,10 +1223,6 @@ class BlazingContext(object):
         self.node_log_paths = []
         self.finalizeCaller = lambda: NotImplemented
         self.config_options = load_config_options_from_env(config_options)
-        for option in config_options:
-            self.config_options[option.encode()] = str(
-                config_options[option]
-            ).encode()  # make sure all options are encoded strings
 
         logging_dir_path = "blazing_log"
         # want to use config_options and not self.config_options
