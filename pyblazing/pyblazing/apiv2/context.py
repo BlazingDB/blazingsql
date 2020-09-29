@@ -2686,9 +2686,7 @@ class BlazingContext(object):
                     self.dask_client.submit(
                         collectPartitionsRunQuery,
                         masterIndex,
-                        [
-                            self.nodes[0],
-                        ],
+                        [self.nodes[0],],
                         nodeTableList[0],
                         table_scans,
                         fileTypes,
