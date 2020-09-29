@@ -4,6 +4,7 @@
 
 
 ## Improvements
+- #998 Update TPCH queries, become implicit joins into implicit joins to avoid random values.
 
 
 ## Bug Fixes
