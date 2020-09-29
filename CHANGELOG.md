@@ -4,6 +4,7 @@
 
 
 ## Improvements
+- #1046 Make possible to read the system environment variables to set up BlazingContext
 
 
 ## Bug Fixes
@@ -55,7 +56,6 @@
 - #949 Implemented using threadpool for outgoing messages 
 - #961 Add list_tables() and describe_table() functions
 - #967 Add bc.get_free_memory() function
-- #1045 Make possible to read the system environment variables to set up BlazingContext
 
 ## Bug Fixes
 - #774 fixed build issues with latest cudf 0.15 including updating from_cudf
