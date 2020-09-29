@@ -345,6 +345,16 @@ public:
 			std::vector<int> sortColIndices;
 			std::tie(sortColIndices, sortOrderTypes, std::ignore) =	ral::operators::get_sort_vars(this->expression);
 			auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
+			auto nodes = context->getAllNodes();
+
+			std::map<int32_t, int> temp_partitions_map;
+			for (size_t i = 0; i < partitionPlan->num_rows() + 1; i++) {
+				temp_partitions_map[i] = 0;
+			}
+			for (auto &&node : nodes) {
+				node_count.emplace(node.id(), temp_partitions_map);
+			}
+
 			while (input.wait_for_next()) {
 				try {
 					auto batch = input.next();
@@ -404,8 +414,6 @@ public:
 				}
 			}
 
-
-			auto nodes = context->getAllNodes();
 			for(std::size_t i = 0; i < nodes.size(); ++i) {
 				if(!(nodes[i] == self_node)) {
 					ral::cache::MetadataDictionary metadata;
