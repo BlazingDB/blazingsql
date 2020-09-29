@@ -183,7 +183,7 @@ def initializeBlazing(
 
     cio.blazingSetAllocatorCaller(allocator.encode(), initial_pool_size, config_options)
 
-   
+
 
     workers_ucp_info = []
     if singleNode is False:
@@ -1302,6 +1302,7 @@ class BlazingContext(object):
                         workers=[worker],
                     )
                 )
+                i = i + 1
 
             for connection in dask_futures:
                 connection.result()
