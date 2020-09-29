@@ -37,10 +37,9 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 		auto tableSchema = tableSchemas[i];
 		auto files = filesAll[i];
 		auto fileType = fileTypes[i];
-
-		auto kwargs = ral::io::to_map(tableSchemaCppArgKeys[i], tableSchemaCppArgValues[i]);
-		ral::io::ReaderArgs args = ral::io::getReaderArgs((ral::io::DataType) fileType, kwargs);
-
+		
+		auto args_map = ral::io::to_map(tableSchemaCppArgKeys[i], tableSchemaCppArgValues[i]);
+		
 		std::vector<cudf::type_id> types;
 		for(int col = 0; col < tableSchemas[i].types.size(); col++) {
 			types.push_back(tableSchemas[i].types[col]);
@@ -58,11 +57,11 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 		} else if(fileType == gdfFileType || fileType == daskFileType) {
 			parser = std::make_shared<ral::io::gdf_parser>(tableSchema.blazingTableViews);
 		} else if(fileType == ral::io::DataType::ORC) {
-			parser = std::make_shared<ral::io::orc_parser>(args.orcReaderArg);
+			parser = std::make_shared<ral::io::orc_parser>(args_map);
 		} else if(fileType == ral::io::DataType::JSON) {
-			parser = std::make_shared<ral::io::json_parser>(args.jsonReaderArg);
+			parser = std::make_shared<ral::io::json_parser>(args_map);
 		} else if(fileType == ral::io::DataType::CSV) {
-			parser = std::make_shared<ral::io::csv_parser>(args.csvReaderArg);
+			parser = std::make_shared<ral::io::csv_parser>(args_map);
 		} else if(fileType == ral::io::DataType::ARROW){
 	     	parser = std::make_shared<ral::io::arrow_parser>(tableSchema.arrow_table);
 		}
@@ -295,45 +294,7 @@ TableScanInfo getTableScanInfo(std::string logicalPlan){
 	getTableScanInfo(logicalPlan, relational_algebra_steps, table_names, table_columns);
 	return TableScanInfo{relational_algebra_steps, table_names, table_columns};
 }
-/*
-std::pair<std::unique_ptr<PartitionedResultSet>, error_code_t> runQuery_C(int32_t masterIndex,
-	std::vector<NodeMetaDataTCP> tcpMetadata,
-	std::vector<std::string> tableNames,
-	std::vector<std::string> tableScans,
-	std::vector<TableSchema> tableSchemas,
-	std::vector<std::vector<std::string>> tableSchemaCppArgKeys,
-	std::vector<std::vector<std::string>> tableSchemaCppArgValues,
-	std::vector<std::vector<std::string>> filesAll,
-	std::vector<int> fileTypes,
-	int32_t ctxToken,
-	std::string query,
-	uint64_t accessToken,
-	std::vector<std::vector<std::map<std::string, std::string>>> uri_values,
-	std::map<std::string, std::string> config_options) {
 
-	std::unique_ptr<PartitionedResultSet> result = nullptr;
-
-	try {
-		result = std::move(runQuery(masterIndex,
-			tcpMetadata,
-			tableNames,
-			tableScans,
-			tableSchemas,
-			tableSchemaCppArgKeys,
-			tableSchemaCppArgValues,
-			filesAll,
-			fileTypes,
-			ctxToken,
-			query,
-			accessToken,
-			uri_values,
-			config_options));
-		return std::make_pair(std::move(result), E_SUCCESS);
-	} catch (std::exception& e) {
-		return std::make_pair(std::move(result), E_EXCEPTION);
-	}
-}
-*/
 std::pair<TableScanInfo, error_code_t> getTableScanInfo_C(std::string logicalPlan) {
 
 	TableScanInfo result;

@@ -135,7 +135,6 @@ def init_context():
                 # initial_pool_size=300000000,
                 allocator="default",
                 config_options={
-                    "BLAZING_LOGGING_DIRECTORY":"/mnt/nvmefiles/blazingdb/blazingsql/ucx_log",
                     "PROTOCOL":"UCX"
                 }
             )

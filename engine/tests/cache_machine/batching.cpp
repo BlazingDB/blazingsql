@@ -3,7 +3,7 @@
 #include "execution_graph/logic_controllers/CacheMachine.h"
 #include "io/DataLoader.h"
 #include <boost/property_tree/json_parser.hpp>
-#include <tests/utilities/base_fixture.hpp>
+#include <cudf_test/base_fixture.hpp>
 #include <src/io/data_parser/CSVParser.h>
 #include <src/io/data_parser/ParquetParser.h>
 #include <src/io/data_provider/UriDataProvider.h>

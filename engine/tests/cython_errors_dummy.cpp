@@ -12,7 +12,8 @@ PyObject *InitializeError_ = nullptr,
 		 		 *RegisterFileSystemS3Error_ = nullptr,
 				 *RegisterFileSystemLocalError_ = nullptr,
 				 *BlazingSetAllocatorError_ = nullptr,
-				 *GetProductDetailsError_ = nullptr;
+				 *GetProductDetailsError_ = nullptr,
+				 *GetFreeMemoryError_ = nullptr ;
 
 
 // PyErr_SetString

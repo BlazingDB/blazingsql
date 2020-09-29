@@ -33,7 +33,6 @@ function(configure_test TEST_NAME Tests_SRCS)
 
         cudf
 
-        rmm
         zmq
         cudart
         cuda

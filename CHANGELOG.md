@@ -1,21 +1,30 @@
 # BlazingSQL 0.16.0 (Date TBS)
 
 ## New Features
+- #912 Added UCX support to how the engine runs
 
 
 ## Improvements
+- #998 Update TPCH queries, become implicit joins into implicit joins to avoid random values.
 
 
 ## Bug Fixes
 - #975 Fixed issue due to cudf orc api change 
+- #1019 Fix hive string col 
+- #1021 removed an rmm include
+- #1020 Fixed build issues with latest rmm 0.16 and columnBasisTest due to deprecated drop_column() function
+- #1016 Removed workaround for parquet read schema
+- #1028 Match dtypes after create_table with multiple files
+- #1030 Avoid read _metadata files
+- #1039 Fixed issues with parsers, in particular ORC parser was misbehaving
 
 
-
-# BlazingSQL 0.15.0 (Date TBS)
+# BlazingSQL 0.15.0 (August 31, 2020)
 
 ## New Features
 - #835 Added a memory monitor for better memory management and added pull ordered from cache
 - #889 Added Sphinx based code architecture documentation
+- #968 Support PowerPC architecture
 
 ## Improvements
 - #777 Update Calcite to the most recent version 1.23
@@ -38,7 +47,6 @@
 - #904 Added doxygen comments to CacheMachine.h
 - #901 Added more documentation about memory management
 - #910 updated readme
-- #912 Added UCX support to how the engine runs
 - #915 Adding max kernel num threads pool
 - #921 Make AWS and GCS optional
 - #925 Replace random_generator with cudf::sample
@@ -46,10 +54,11 @@
 - #936 Adding extern C for include files
 - #941 Logging level (flush_on) can be configurable
 - #947 Use default client and network interface from Dask
-- #945 Added new separate thresh for concat cache
+- #945 Added new separate thresh for concat cache 
 - #939 Add unit test for Project kernel
-- #949 implemented using threadpool for outgoing messages
-
+- #949 Implemented using threadpool for outgoing messages 
+- #961 Add list_tables() and describe_table() functions
+- #967 Add bc.get_free_memory() function
 
 ## Bug Fixes
 - #774 fixed build issues with latest cudf 0.15 including updating from_cudf
@@ -83,10 +92,15 @@
 - #927 Fixed random segfault issue in parser
 - #929 Update the GPUManager functions
 - #942 Fix column names on sample function
-- #950 Introducing config param for max orderby samples and fixing oversampling
+- #950 Introducing config param for max orderby samples and fixing oversampling 
 - #952 Dummy PR
 - #957 Fixed issues caused by changes to timespamp in cudf
-
+- #962 Use new rmm API instead of get_device_resource() and set_device_resource() functions
+- #965 Handle exceptions from pool_threads
+- #963 Set log_level when using LOGGING_LEVEL param
+- #973 Fix how we check the existence of the JAVA_HOME environment variable
+- #997 Add capacity to set the transport memory
+- #1007 Fix arrow and spdlog compilation issues
 
 # BlazingSQL 0.14.0 (June 9, 2020)
 

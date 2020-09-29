@@ -3,6 +3,7 @@
 #include <random>
 #include <utilities/CommonOperations.h>
 #include <utilities/DebuggingUtils.h>
+#include <cudf/io/orc.hpp>
 #include "communication/CommunicationData.h"
 #include <stdio.h>
 
@@ -42,8 +43,8 @@ size_t CacheDataLocalFile::sizeInBytes() const {
 }
 
 std::unique_ptr<ral::frame::BlazingTable> CacheDataLocalFile::decache() {
-	cudf_io::read_orc_args in_args{cudf_io::source_info{this->filePath_}};
-	auto result = cudf_io::read_orc(in_args);
+	cudf::io::orc_reader_options read_opts = cudf::io::orc_reader_options::builder(cudf::io::source_info{this->filePath_});
+	auto result = cudf::io::read_orc(read_opts);
 
 	// Remove temp orc files
 	const char *orc_path_file = this->filePath_.c_str();
@@ -57,13 +58,15 @@ CacheDataLocalFile::CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable>
 	this->size_in_bytes = table->sizeInBytes();
 	this->filePath_ = orc_files_path + "/.blazing-temp-" + randomString(64) + ".orc";
 
-	cudf_io::table_metadata metadata;
+	cudf::io::table_metadata metadata;
 	for(auto name : table->names()) {
 		metadata.column_names.emplace_back(name);
 	}
-	cudf_io::write_orc_args out_args(cudf_io::sink_info{this->filePath_}, table->view(), &metadata);
 
-	cudf_io::write_orc(out_args);
+	cudf::io::orc_writer_options out_opts = cudf::io::orc_writer_options::builder(cudf::io::sink_info{this->filePath_}, table->view())
+		.metadata(&metadata);
+
+	cudf::io::write_orc(out_opts);
 }
 std::unique_ptr<GPUCacheDataMetaData> cast_cache_data_to_gpu_with_meta(std::unique_ptr<CacheData> base_pointer){
 	return std::unique_ptr<GPUCacheDataMetaData>(static_cast<GPUCacheDataMetaData *>(base_pointer.release()));
@@ -605,7 +608,7 @@ size_t CacheMachine::downgradeCacheData() {
 ConcatenatingCacheMachine::ConcatenatingCacheMachine(std::shared_ptr<Context> context)
 	: CacheMachine(context) {}
 
-ConcatenatingCacheMachine::ConcatenatingCacheMachine(std::shared_ptr<Context> context, std::size_t flow_control_bytes_threshold,
+ConcatenatingCacheMachine::ConcatenatingCacheMachine(std::shared_ptr<Context> context, std::size_t flow_control_bytes_threshold, 
 			std::size_t concat_cache_num_bytes, bool concat_all)
 	: CacheMachine(context, flow_control_bytes_threshold), concat_cache_num_bytes(concat_cache_num_bytes), concat_all(concat_all) {
 

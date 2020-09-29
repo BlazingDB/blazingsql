@@ -9,6 +9,7 @@
 #include <streambuf>
 
 #include <arrow/io/api.h>
+#include <arrow/result.h>
 #include "arrow/buffer.h"
 #include <arrow/memory_pool.h>
 
@@ -177,18 +178,18 @@ return arrow::Status::OK();
 		//}
 		//		results.GetResult().GetBody().read((char*)(out->get()->mutable_data()), bytesRead);
 
-		std::shared_ptr<arrow::ResizableBuffer> buffer;
-		AllocateResizableBuffer(arrow::default_memory_pool(), nbytes, &buffer);
+		arrow::Result<std::unique_ptr<arrow::ResizableBuffer>> buffer = AllocateResizableBuffer(nbytes, arrow::default_memory_pool());
 
-		results.read((char *) (buffer->mutable_data()), bytesRead);
+		results.read((char *) (buffer.ValueOrDie()->mutable_data()), bytesRead); 
 
 		// NOTE percy check for badbit also the user should never read more bytes than the result content size
 		if(results.bad()) {
 			bytesRead = 0;
 		} else {
-			out = buffer;
+			out = std::move(buffer.ValueOrDie());
 		}
 
+		
 		return out;
 	}
 }
@@ -293,16 +294,15 @@ arrow::Result<std::shared_ptr<arrow::Buffer>> GoogleCloudStorageReadableFile::Re
 		//}
 		//		results.GetResult().GetBody().read((char*)(out->get()->mutable_data()), bytesRead);
 
-		std::shared_ptr<arrow::ResizableBuffer> buffer;
-		AllocateResizableBuffer(arrow::default_memory_pool(), nbytes, &buffer);
+		arrow::Result<std::unique_ptr<arrow::ResizableBuffer>> buffer = AllocateResizableBuffer(nbytes, arrow::default_memory_pool());
 
-		results.read((char *) (buffer->mutable_data()), bytesRead);
-
+		results.read((char *) (buffer.ValueOrDie()->mutable_data()), bytesRead);  
+		
 		// NOTE percy check for badbit also the user should never read more bytes than the result content size
 		if(results.bad()) {
 			bytesRead = 0;
 		} else {
-			out = buffer;
+			out = std::move(buffer.ValueOrDie());
 		}
 
 		return out;

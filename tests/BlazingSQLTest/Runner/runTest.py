@@ -10,10 +10,8 @@ import time
 import blazingsql
 
 # import git
-import gspread
 import numpy as np
 import pandas as pd
-from oauth2client.service_account import ServiceAccountCredentials
 
 from BlazingLogging import loggingHandler as lhandler
 from Configuration import ExecutionMode
@@ -115,6 +113,17 @@ def compare_results(pdf1, pdf2, acceptable_difference, use_percentage, engine):
 
     if pdf1.size == 0 and pdf2.size == 0:
         return "Success"
+    
+    msg = ""
+    if not isinstance(engine, str):
+        if isinstance(engine, PyDrill):
+            msg = "PyDrill"
+        else:
+            msg = "PySpark"
+    elif engine=="drill":
+        msg = "PyDrill" 
+    else: 
+        msg = "PySpark" 
 
     msg = ""
     if not isinstance(engine, str):
@@ -180,7 +189,7 @@ def compare_results(pdf1, pdf2, acceptable_difference, use_percentage, engine):
                     "Fail: Different number of columns blzSQLresult: "
                     + str(pdf1.shape[1])
                     + " "
-                    + msg
+                    + msg 
                     + " result: "
                     + str(pdf2.shape[1])
                 )
@@ -361,7 +370,7 @@ def print_query_results(
             else:
                 print("#PYSPARK:")
             print(pdf2)
-        else:
+        else: 
             if engine=="drill":
                 print("#DRILL:")
             else:
@@ -709,6 +718,9 @@ def create_summary_detail(df, no_color):
 # TODO william kharoly felipe we should try to enable and use
 # this function in the future
 def _verify_prev_google_sheet_results(log_pdf):
+    import gspread
+    from oauth2client.service_account import ServiceAccountCredentials
+
     def get_the_data_from_sheet():
         # Use creds to create a client to interact with the Google Drive API
         scope = [
@@ -946,6 +958,9 @@ def _verify_prev_google_sheet_results(log_pdf):
 
 
 def saving_google_sheet_results(log_pdf):
+    import gspread
+    from oauth2client.service_account import ServiceAccountCredentials
+
     log_info = Settings.data["RunSettings"]["logInfo"]
 
     if log_info == "":
@@ -1363,7 +1378,7 @@ def run_query(
 
     message_validation = kwargs.get("message_validation", "")
     if message_validation is None:
-        message_validation = False
+        message_validation = False    
 
     data_type = cs.get_extension(input_type)
 
@@ -1391,7 +1406,6 @@ def run_query(
         query_blz = query  # get_blazingsql_query('main', query)
         if algebra == "":
             start_time = time.time()
-
             try:
                 result_gdf = bc.sql(query_blz)
             except Exception as e:
@@ -1403,37 +1417,37 @@ def run_query(
                 # SUM(CASE WHEN info = 'evaluate_split_query load_data' THEN
                 # duration ELSE 0 END) AS load_time,
                 # MAX(load_time) AS load_time,
-                log_result = bc.log(
-                    """SELECT
-                        MAX(end_time) as end_time, query_id,
-                        MAX(total_time) AS total_time
-                    FROM (
-                        SELECT
-                            query_id, node_id,
-                            SUM(CASE WHEN info = 'Query Execution Done' THEN
-                            duration ELSE 0 END) AS total_time,
-                            MAX(log_time) AS end_time
-                        FROM
-                            bsql_logs
-                        WHERE
-                            info = 'evaluate_split_query load_data'
-                            OR info = 'Query Execution Done'
-                        GROUP BY
-                            node_id, query_id
-                        )
-                    GROUP BY
-                        query_id
-                    ORDER BY
-                        end_time DESC limit 1"""
-                )
+                # log_result = bc.log(
+                #     """SELECT
+                #         MAX(end_time) as end_time, query_id,
+                #         MAX(total_time) AS total_time
+                #     FROM (
+                #         SELECT
+                #             query_id, node_id,
+                #             SUM(CASE WHEN info = 'Query Execution Done' THEN
+                #             duration ELSE 0 END) AS total_time,
+                #             MAX(log_time) AS end_time
+                #         FROM
+                #             bsql_logs
+                #         WHERE
+                #             info = 'evaluate_split_query load_data'
+                #             OR info = 'Query Execution Done'
+                #         GROUP BY
+                #             node_id, query_id
+                #         )
+                #     GROUP BY
+                #         query_id
+                #     ORDER BY
+                #         end_time DESC limit 1"""
+                # )
 
-                if int(nRals) == 1:  # Single Node
-                    n_log = log_result
-                else:  # Simple Distribution
-                    n_log = log_result.compute()
+                # if int(nRals) == 1:  # Single Node
+                #     n_log = log_result
+                # else:  # Simple Distribution
+                #     n_log = log_result.compute()
 
                 load_time = 0  # n_log['load_time'][0]
-                engine_time = n_log["total_time"][0]
+                engine_time = 0 #n_log["total_time"][0]
         else:
             result_gdf = bc.sql(query_blz, algebra=algebra)
 
@@ -1457,7 +1471,7 @@ def run_query(
                         queryType,
                         error_message,
                         message_validation
-                )
+                )   
     elif not isinstance(engine, str):
         if isinstance(engine, PyDrill):
             # Drill
@@ -1655,7 +1669,7 @@ def run_query(
                 print_query_results2(
                     query, queryId, queryType, result_gdf.error_message
                 )
-
+                                
 
 def run_query_performance(
     bc,
