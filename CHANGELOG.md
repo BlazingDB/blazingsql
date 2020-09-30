@@ -17,6 +17,7 @@
 - #1028 Match dtypes after create_table with multiple files
 - #1030 Avoid read _metadata files
 - #1039 Fixed issues with parsers, in particular ORC parser was misbehaving
+- #1038 Fixed issue with logging dirs in distributed envs
 - #1048 Pinned google cloud version to 1.16 
 
 
