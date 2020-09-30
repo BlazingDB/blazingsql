@@ -102,14 +102,6 @@ std::shared_ptr<ral::cache::graph> generate_graph(std::vector<ral::io::data_load
 
 			// useful when the Algebra Relacional only contains: ScanTable (or BindableScan) and Limit
 			query_graph->check_for_simple_scan_with_limit_query();
-
-			size_t max_kernel_run_threads = 16; //default
-			std::map<std::string, std::string> config_options = queryContext.getConfigOptions();
-			auto it = config_options.find("MAX_KERNEL_RUN_THREADS");
-			if (it != config_options.end()){
-				max_kernel_run_threads = std::stoi(config_options["MAX_KERNEL_RUN_THREADS"]);
-			}
-			
 		}
 		auto  mem_monitor = std::make_shared<ral::MemoryMonitor>(tree,config_options);
 		query_graph->set_memory_monitor(mem_monitor);
@@ -140,11 +132,7 @@ std::vector<std::unique_ptr<ral::frame::BlazingTable>> execute_graph(std::shared
 			max_kernel_run_threads = std::stoi(config_options["MAX_KERNEL_RUN_THREADS"]);
 		}
 
-		// TODO: need to be able to get the tree or somehow enable the MemoryMonitor here
-		// ral::MemoryMonitor mem_monitor(&tree, config_options);
-		// mem_monitor.start();
 		graph->execute(max_kernel_run_threads);
-		// mem_monitor.finalize();
 
 		auto output_frame = static_cast<ral::batch::OutputKernel&>(*(graph->get_last_kernel())).release();
 		assert(!output_frame.empty());
