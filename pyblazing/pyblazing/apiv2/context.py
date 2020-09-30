@@ -2065,7 +2065,12 @@ class BlazingContext(object):
                 metadata_ids = table.metadata[
                     ["file_handle_index", "row_group_index"]
                 ].to_pandas()
-                grouped = metadata_ids.groupby((metadata_ids["file_handle_index"].shift() != metadata_ids["file_handle_index"]).cumsum())
+                grouped = metadata_ids.groupby(
+                    (
+                        metadata_ids["file_handle_index"].shift()
+                        != metadata_ids["file_handle_index"]
+                    ).cumsum()
+                )
                 row_groups_ids = []
                 for group_id in grouped.groups:
                     row_indices = grouped.groups[group_id].values.tolist()
@@ -2234,12 +2239,9 @@ class BlazingContext(object):
                                         all_files[worker].append(file_item)
                             else:
                                 all_files[worker] = result[key]
+                                return_object[key] = {}
 
-                            if "files" in return_object:
-                                return_object[key].update(result[key])
-                            else:
-                                return_object[key] = set()
-                                return_object[key].update(result[key])
+                            return_object[key].update(dict.fromkeys(result[key], None))
                         else:
                             if key in return_object:
                                 assert return_object[key] == result[key]
@@ -2388,7 +2390,12 @@ class BlazingContext(object):
                 file_and_rowgroup_indices = (
                     file_indices_and_rowgroup_indices.to_pandas()
                 )
-                grouped = file_and_rowgroup_indices.groupby((file_and_rowgroup_indices["file_handle_index"].shift() != file_and_rowgroup_indices["file_handle_index"]).cumsum())
+                grouped = file_and_rowgroup_indices.groupby(
+                    (
+                        file_and_rowgroup_indices["file_handle_index"].shift()
+                        != file_and_rowgroup_indices["file_handle_index"]
+                    ).cumsum()
+                )
 
                 idx = 0
                 for group_id in grouped.groups:
