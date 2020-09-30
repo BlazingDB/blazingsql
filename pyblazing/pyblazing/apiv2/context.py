@@ -1029,7 +1029,7 @@ class BlazingTable(object):
                 in_file=self.in_file,
             )
 
-            bt.offset = (0, len(target_files))
+            bt.offset = self.offset
             bt.column_names = self.column_names
             bt.file_column_names = self.file_column_names
             bt.column_types = self.column_types
@@ -1992,10 +1992,7 @@ class BlazingContext(object):
                     dtypes_list.append(dtype_str)
             table.args["dtype"] = dtypes_list
 
-            if table.local_files is False:
-                table.slices = table.getSlices(len(self.nodes))
-            else:
-                table.slices = table.getSlicesByWorker(len(self.nodes))
+            table.slices = table.getSlices(len(self.nodes))
 
             if len(uri_values) > 0:
                 parsedMetadata = parseHiveMetadata(table, uri_values)
@@ -2033,12 +2030,7 @@ class BlazingContext(object):
                 metadata_ids = table.metadata[
                     ["file_handle_index", "row_group_index"]
                 ].to_pandas()
-                grouped = metadata_ids.groupby(
-                    (
-                        metadata_ids["file_handle_index"].shift()
-                        != metadata_ids["file_handle_index"]
-                    ).cumsum()
-                )
+                grouped = metadata_ids.groupby("file_handle_index")
                 row_groups_ids = []
                 for group_id in grouped.groups:
                     row_indices = grouped.groups[group_id].values.tolist()
@@ -2207,9 +2199,12 @@ class BlazingContext(object):
                                         all_files[worker].append(file_item)
                             else:
                                 all_files[worker] = result[key]
-                                return_object[key] = {}
 
-                            return_object[key].update(dict.fromkeys(result[key], None))
+                            if "files" in return_object:
+                                return_object[key].update(result[key])
+                            else:
+                                return_object[key] = set()
+                                return_object[key].update(result[key])
                         else:
                             if key in return_object:
                                 assert return_object[key] == result[key]
@@ -2358,25 +2353,18 @@ class BlazingContext(object):
                 file_and_rowgroup_indices = (
                     file_indices_and_rowgroup_indices.to_pandas()
                 )
-                grouped = file_and_rowgroup_indices.groupby(
-                    (
-                        file_and_rowgroup_indices["file_handle_index"].shift()
-                        != file_and_rowgroup_indices["file_handle_index"]
-                    ).cumsum()
-                )
+                grouped = file_and_rowgroup_indices.groupby("file_handle_index")
 
-                idx = 0
                 for group_id in grouped.groups:
                     row_indices = grouped.groups[group_id].values.tolist()
-                    actual_files.append(current_table.files[idx])
-                    if idx < len(current_table.uri_values):
-                        uri_values.append(current_table.uri_values[idx])
+                    actual_files.append(current_table.files[group_id])
+                    if group_id < len(current_table.uri_values):
+                        uri_values.append(current_table.uri_values[group_id])
                     row_groups_col = file_and_rowgroup_indices[
                         "row_group_index"
                     ].tolist()
                     row_group_ids = [row_groups_col[i] for i in row_indices]
                     row_groups_ids.append(row_group_ids)
-                    idx = idx + 1
 
             if self.dask_client is None:
                 curr_calcite = current_table.calcite_to_file_indices
