@@ -19,6 +19,7 @@
 - #1039 Fixed issues with parsers, in particular ORC parser was misbehaving
 - #1038 Fixed issue with logging dirs in distributed envs
 - #1048 Pinned google cloud version to 1.16 
+- #1052 Partial revert of some changes on parquet rowgroups flow with local_files=True
 
 
 # BlazingSQL 0.15.0 (August 31, 2020)
