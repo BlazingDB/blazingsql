@@ -559,8 +559,70 @@ if [ ! -d cppzmq ]; then
   make -j$MAKEJ install
 fi
 echo "END cppzmq"
-
 # ENDzmq
+
+
+#BEGIN UCX requirements
+echo "BEGIN UCX requirements"
+
+# BEGIN UCX
+echo "BEGIN UCX"
+# this assumes you have hwloc and gdrcopy
+# module load hwloc
+# module load gdrcopy
+cd $build_dir
+if [ ! -d ucx ]; then
+  git clone https://github.com/openucx/ucx
+  cd ucx
+  #git checkout v1.8.1
+  git checkout master
+  ./autogen.sh
+  mkdir build
+  cd build
+  # Performance build
+  ../contrib/configure-release --with-gdrcopy=$OLCF_GDRCOPY_ROOT --prefix=$tmp_dir --with-cuda=$OLCF_CUDA_ROOT --enable-mt CPPFLAGS="-I/$OLCF_CUDA_ROOT/include"
+  # Debug build
+  # ../contrib/configure-release --with-gdrcopy=$OLCF_GDRCOPY_ROOT --prefix=$VIRTUAL_ENV --with-cuda=$OLCF_CUDA_ROOT --enable-mt CPPFLAGS="-I/$OLCF_CUDA_ROOT/include"
+  make -j$MAKEJ install
+fi
+echo "END UCX"
+# END UCX
+
+# ucx-py
+echo "BEGIN UCX"
+cd $build_dir
+if [ ! -d ucx-py ]; then
+  git clone https://github.com/rapidsai/ucx-py.git
+  cd ucx-py
+  pip install .
+fi
+echo "END UCX"
+
+# lz4 bindings
+echo "BEGIN python-lz4"
+cd $build_dir
+if [ ! -d python-lz4 ]; then
+  git clone https://github.com/python-lz4/python-lz4
+  cd python-lz4
+  pip install .
+fi
+echo "END python-lz4"
+
+# bokeh for dask scheduler
+echo "BEGIN bokeh"
+pip install --no-binary bokeh bokeh
+echo "END bokeh"
+
+# forward dask dashboard
+echo "BEGIN dask dashboard"
+pip install --no-binary jupyter-server-proxy jupyter-server-proxy
+jupyter serverextension enable --sys-prefix jupyter_server_proxy
+echo "END dask dashboard"
+
+echo "END UCX requirements"
+#END UCX requirements
+
+
 
 # BEGIN JAVA
 echo "BEGIN JAVA"

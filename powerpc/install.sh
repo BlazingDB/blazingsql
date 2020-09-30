@@ -14,6 +14,10 @@ module load zlib
 module load texinfo
 module load openblas
 module load netlib-lapack
+# for UCX BEGIN
+module load hwloc
+module load gdrcopy
+# for UCX END
 module list
 
 echo "### Modules loading ###"

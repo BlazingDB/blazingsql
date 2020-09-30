@@ -25,6 +25,8 @@ You need these dependencies, they can be provided by OS package system (e.g. apt
 - libcurl-devel
 - maven
 - lsf-tools 2.0
+- hwloc
+- gdrcopy
 
 If using lmod and your system has the necessary modules you can use:
 ```shell
@@ -37,6 +39,8 @@ module load zlib
 module load texinfo
 module load openblas
 module load netlib-lapack
+module load hwloc
+module load gdrcopy
 ```
 
 ### Setup the environment
