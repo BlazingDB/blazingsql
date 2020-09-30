@@ -166,6 +166,8 @@ def initializeBlazing(
         "existing",
         "cuda_memory_resource",
         "managed_memory_resource",
+        "pool_memory_resource",
+        "managed_pool_memory_resource",
     ]
     if allocator not in possible_allocators:
         print(
@@ -180,6 +182,10 @@ def initializeBlazing(
         allocator = "cuda_memory_resource"
     elif not pool and allocator == "managed":
         allocator = "managed_memory_resource"
+    elif pool and allocator == "default":
+        allocator = "pool_memory_resource"
+    elif pool and allocator == "managed":
+        allocator = "managed_pool_memory_resource"
 
     cio.blazingSetAllocatorCaller(allocator.encode(), initial_pool_size, config_options)
 
