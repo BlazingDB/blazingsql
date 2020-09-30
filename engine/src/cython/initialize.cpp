@@ -285,6 +285,8 @@ void finalize() {
 void blazingSetAllocator(
 	std::string allocation_mode,
 	std::size_t initial_pool_size,
+	std::size_t maximum_pool_size, 
+	bool enable_logging, 
 	std::map<std::string, std::string> config_options) {
 
 	float device_mem_resouce_consumption_thresh = 0.95;
@@ -330,11 +332,15 @@ error_code_t finalize_C() {
 error_code_t blazingSetAllocator_C(
 	std::string allocation_mode,
 	std::size_t initial_pool_size,
+	std::size_t maximum_pool_size, 
+	bool enable_logging,
 	std::map<std::string, std::string> config_options) {
 
 	try {
 		blazingSetAllocator(allocation_mode,
 			initial_pool_size,
+			maximum_pool_size, 
+			enable_logging,
 			config_options);
 		return E_SUCCESS;
 	} catch (std::exception& e) {

@@ -128,9 +128,9 @@ cdef void finalizePython() nogil except *:
     with nogil:
         cio.finalize()
 
-cdef void blazingSetAllocatorPython(string allocation_mode, size_t initial_pool_size, map[string,string] config_options) nogil except *:
+cdef void blazingSetAllocatorPython(string allocation_mode, size_t initial_pool_size, size_t maximum_pool_size, bool enable_logging, map[string,string] config_options) nogil except *:
     with nogil:
-        cio.blazingSetAllocator(allocation_mode, initial_pool_size, config_options)
+        cio.blazingSetAllocator(allocation_mode, initial_pool_size, maximum_pool_size, enable_logging, config_options)
 
 cdef size_t getFreeMemoryPython() nogil except *:
     with nogil:
@@ -182,8 +182,8 @@ cpdef initializeCaller(int ralId, int gpuId, string network_iface_name, string r
 cpdef finalizeCaller():
     finalizePython()
 
-cpdef blazingSetAllocatorCaller(string allocation_mode, size_t initial_pool_size, map[string,string] config_options):
-    blazingSetAllocatorPython(allocation_mode, initial_pool_size, config_options)
+cpdef blazingSetAllocatorCaller(string allocation_mode, size_t initial_pool_size, size_t maximum_pool_size, bool enable_logging, map[string,string] config_options):
+    blazingSetAllocatorPython(allocation_mode, initial_pool_size, maximum_pool_size, enable_logging, config_options)
 
 cpdef getFreeMemoryCaller():
     return getFreeMemoryPython()

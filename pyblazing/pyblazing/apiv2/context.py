@@ -138,6 +138,8 @@ def initializeBlazing(
     allocator="managed",
     pool=False,
     initial_pool_size=None,
+    maximum_pool_size=None,
+    enable_logging=False,
     config_options={},
     logging_dir_path="blazing_log",
 ):
@@ -155,10 +157,16 @@ def initializeBlazing(
 
     if not pool:
         initial_pool_size = 0
+        maximum_pool_size = 0
     elif pool and initial_pool_size is None:
-        initial_pool_size = 0
+        initial_pool_size = 0        
     elif pool and initial_pool_size == 0:
         initial_pool_size = 1
+
+    if maximum_pool_size is None:
+        maximum_pool_size = 0
+    elif maximum_pool_size < initial_pool_size:
+        maximum_pool_size = initial_pool_size
 
     possible_allocators = [
         "default",
@@ -187,7 +195,8 @@ def initializeBlazing(
     elif pool and allocator == "managed":
         allocator = "managed_pool_memory_resource"
 
-    cio.blazingSetAllocatorCaller(allocator.encode(), initial_pool_size, config_options)
+    cio.blazingSetAllocatorCaller(allocator.encode(), initial_pool_size, maximum_pool_size, 
+        enable_logging, config_options)
 
     cio.initializeCaller(
         ralId,
@@ -1073,6 +1082,8 @@ class BlazingContext(object):
         allocator="managed",
         pool=False,
         initial_pool_size=None,
+        maximum_pool_size=None,
+        enable_logging=False,
         config_options={},
     ):
         """
@@ -1100,6 +1111,13 @@ class BlazingContext(object):
         initial_pool_size (optional) : initial size of memory pool in bytes
                     (if pool=True).
                     if None, and pool=True, defaults to 1/2 GPU memory.
+        maximum_pool_size (optional) :  size, in bytes, that the pool can 
+                    grow to (if pool=True). 
+                    if None, and pool=True, defaults to all the GPU memory.
+        enable_logging (optional) : If set to True the memory allocator 
+                    logging will be enabled, but can negatively impact 
+                    performance. Memory allocator logs will be placed
+                    in the same directory and BSQL logs.
         config_options (optional) : this is a dictionary for setting certain
                     parameters in the engine. These parameters will be used
                     for all queries except if overriden by setting these
@@ -1309,6 +1327,8 @@ class BlazingContext(object):
                         allocator=allocator,
                         pool=pool,
                         initial_pool_size=initial_pool_size,
+                        maximum_pool_size=maximum_pool_size,
+                        enable_logging=enable_logging,
                         config_options=self.config_options,
                         logging_dir_path=logging_dir_path,
                         workers=[worker],
@@ -1346,6 +1366,8 @@ class BlazingContext(object):
                 allocator=allocator,
                 pool=pool,
                 initial_pool_size=initial_pool_size,
+                maximum_pool_size=maximum_pool_size,
+                enable_logging=enable_logging,
                 config_options=self.config_options,
                 logging_dir_path=logging_dir_path,
             )
