@@ -46,11 +46,6 @@ public:
 				auto batch = input.next();
 				auto partitions = ral::operators::partition_table(partitionPlan->toBlazingTableView(), batch->toBlazingTableView(), this->expression);
 
-				// std::cout<<">>>>>>>>>>>>>>> PARTITIONS START"<< std::endl;
-				// for(auto& partition : partitions)
-				// 	ral::utilities::print_blazing_table_view(ral::frame::BlazingTableView(partition, batch->names()));
-				// std::cout<<">>>>>>>>>>>>>>> PARTITIONS START"<< std::endl;
-
 				for (auto i = 0; i < partitions.size(); i++) {
 					std::string cache_id = "output_" + std::to_string(i);
 					this->add_to_output_cache(
@@ -432,7 +427,6 @@ public:
 						counts += std::to_string(part_id) + ":" + std::to_string(count) + "|";
 					}
 					counts.resize(counts.size() - 1); //remove the last |
-					std::cout<<"counts are "<<counts<<std::endl;
 					metadata.add_value(ral::cache::PARTITION_COUNT, counts);
 					messages_to_wait_for.push_back(metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL] + "_" +
 																				metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL] +	"_" +
@@ -452,7 +446,6 @@ public:
 			auto meta_message = this->query_graph->get_input_message_cache()->pullCacheData(message);
 
 			std::string part_counts = static_cast<ral::cache::GPUCacheDataMetaData *>(meta_message.get())->getMetadata().get_values()[ral::cache::PARTITION_COUNT];
-			std::cout<<part_counts<<" was partcoutns"<<std::endl;
 			auto split_parts = StringUtil::split(part_counts,"|");
 			for (auto string_part : split_parts){
 				auto partition_count_string = StringUtil::split(string_part,":");
@@ -462,9 +455,7 @@ public:
 
 		for( auto const& [part_id, count] : node_counts_accumulated ){
 			std::string output_cache_name = "output_" + std::to_string(part_id);
-			std::cout<<"getting_cache '"<<output_cache_name<<"'"<< " waiting on "<<count<<std::endl;
 			this->output_cache(output_cache_name)->wait_for_count(count);
-			std::cout<<"finished getting_cache '"<<output_cache_name<<"'"<<std::endl;
 		}
 
 		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
@@ -545,16 +536,7 @@ public:
 				} else if(tableViews.size() == 1) {
 					this->add_to_output_cache(std::move(tables.front()));
 				} else {
-					// std::cout<<">>>>>>>>>>>>>>> MERGE PARTITIONS START"<< std::endl;
-					// for (auto view : tableViews)
-					// 	ral::utilities::print_blazing_table_view(view);
-
-					// std::cout<<">>>>>>>>>>>>>>> MERGE PARTITIONS END"<< std::endl;
-
 					auto output = ral::operators::merge(tableViews, this->expression);
-
-	//					ral::utilities::print_blazing_table_view(output->toBlazingTableView());
-
 					this->add_to_output_cache(std::move(output));
 				}
 				batch_count++;

@@ -91,7 +91,6 @@ public:
 			left_schema = std::make_unique<TableSchema>(table->get_schema(),  table->names());
 		}
 		if (table == nullptr) {
-			std::cout << ">>>>>>>>>>>> load_left_set  EMPTY"<<std::endl;
 			return ral::frame::createEmptyBlazingTable(left_schema->column_types, left_schema->column_names);
 		}
 		return std::move(table);
@@ -104,7 +103,6 @@ public:
 			right_schema = std::make_unique<TableSchema>(table->get_schema(),  table->names());
 		}
 		if (table == nullptr) {
-			std::cout << ">>>>>>>>>>>> load_right_set  EMPTY"<<std::endl;
 			return ral::frame::createEmptyBlazingTable(right_schema->column_types, right_schema->column_names);
 		}
 		return std::move(table);
@@ -147,7 +145,6 @@ public:
 			}
 			return std::make_tuple(-1, -1);
 		} else {
-			std::cout<<"ERROR out of range in check_for_another_set_to_do_with_data_we_already_have"<<std::endl;
 			return std::make_tuple(-1, -1);
 		}
 	}

@@ -37,9 +37,9 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 		auto tableSchema = tableSchemas[i];
 		auto files = filesAll[i];
 		auto fileType = fileTypes[i];
-		
+
 		auto args_map = ral::io::to_map(tableSchemaCppArgKeys[i], tableSchemaCppArgValues[i]);
-		
+
 		std::vector<cudf::type_id> types;
 		for(int col = 0; col < tableSchemas[i].types.size(); col++) {
 			types.push_back(tableSchemas[i].types[col]);
@@ -171,29 +171,20 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(int32_t masterIndex,
 
 std::unique_ptr<PartitionedResultSet> runExecuteGraph(std::shared_ptr<ral::cache::graph> graph) {
 	// Execute query
-	std::cout<<"executing"<<std::endl;
 	std::vector<std::unique_ptr<ral::frame::BlazingTable>> frames;
 	frames = execute_graph(graph);
-	std::cout<<"graph exceuted"<<std::endl;
 
 	std::unique_ptr<PartitionedResultSet> result = std::make_unique<PartitionedResultSet>();
-	std::cout<<"1"<<std::endl;
 
 	assert( frames.size()>0 );
-	std::cout<<"2"<<std::endl;
 
 	result->names = frames[0]->names();
-	std::cout<<"3"<<std::endl;
 
 	fix_column_names_duplicated(result->names);
-std::cout<<"4"<<std::endl;
 
 	for(auto& cudfTable : frames){
 		result->cudfTables.emplace_back(std::move(cudfTable->releaseCudfTable()));
-		std::cout<<"5"<<std::endl;
-
 	}
-	std::cout<<"6"<<std::endl;
 
 	result->skipdata_analysis_fail = false;
 	std::cout<<"pretty much done now deregistering graph is"<<graph <<" and instance is "<<&comm::graphs_info::getInstance()<<std::endl;
@@ -226,7 +217,7 @@ std::unique_ptr<ResultSet> performPartition(int32_t masterIndex,
 		}
 
 		Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], "", std::map<std::string, std::string>()};
-		
+
 		const std::vector<std::string> & table_col_names = table.names();
 
 		for(auto col_name:column_names){

@@ -80,21 +80,16 @@ void graphs_info::register_graph(int32_t ctx_token, std::shared_ptr<ral::cache::
 }
 
 void graphs_info::deregister_graph(int32_t ctx_token){
-	std::cout<<"erasing from map"<<std::endl;
-	if(_ctx_token_to_graph_map.find(ctx_token) == _ctx_token_to_graph_map.end()){
-		std::cout<<"token not found!"<<std::endl;
-	}else{
-		std::cout<<"erasing token"<<std::endl;
-			_ctx_token_to_graph_map.erase(ctx_token);
-
+	if(_ctx_token_to_graph_map.find(ctx_token) != _ctx_token_to_graph_map.end()){
+		_ctx_token_to_graph_map.erase(ctx_token);
 	}
 }
 std::shared_ptr<ral::cache::graph> graphs_info::get_graph(int32_t ctx_token) {
 	if(_ctx_token_to_graph_map.find(ctx_token) == _ctx_token_to_graph_map.end()){
-		std::cout<<"Graph with token"<<ctx_token<<" is not found!"<<std::endl;
 		throw std::runtime_error("Graph not found");
 	}
-	return _ctx_token_to_graph_map.at(ctx_token); }
+	return _ctx_token_to_graph_map.at(ctx_token);
+}
 
 
 ucx_buffer_transport::ucx_buffer_transport(size_t request_size,
@@ -114,17 +109,13 @@ ucx_buffer_transport::~ucx_buffer_transport() {
 std::atomic<int> atomic_message_id(0);
 
 ucp_tag_t ucx_buffer_transport::generate_message_tag() {
-	std::cout<<"generating tag"<<std::endl;
 	auto current_message_id = atomic_message_id.fetch_add(1);
 	blazing_ucp_tag blazing_tag = {current_message_id, ral_id, 0u};
 	this->message_id = blazing_tag.message_id;
-	std::cout<<"almost done"<<std::endl;
 	return *reinterpret_cast<ucp_tag_t *>(&blazing_tag);
 }
 
 void ucx_buffer_transport::send_begin_transmission() {
-
-	std::cout<<"sending begin transmission"<<std::endl;
 	std::vector<char> buffer_to_send = detail::serialize_metadata_and_transports_and_buffer_sizes(metadata, column_transports, buffer_sizes);
 
 	std::vector<char *> requests(destinations.size());
@@ -132,10 +123,6 @@ void ucx_buffer_transport::send_begin_transmission() {
 	for(auto const & node : destinations) {
 		requests[i] = new char[_request_size];
 		auto temp_tag = *reinterpret_cast<blazing_ucp_tag *>(&tag);
-		std::cout<<"sending begin transmission to "<<temp_tag.message_id
-						<<" "<<temp_tag.worker_origin_id
-						<<" "<<temp_tag.frame_id
-						<<" total bytes: "<< buffer_to_send.size() <<std::endl;
 		auto status = ucp_tag_send_nbr(
 			node.get_ucp_endpoint(), buffer_to_send.data(), buffer_to_send.size(), ucp_dt_make_contig(1), tag, requests[i] + _request_size);
 
@@ -145,19 +132,14 @@ void ucx_buffer_transport::send_begin_transmission() {
 		} while (status == UCS_INPROGRESS);
 
 		if(status != UCS_OK){
-			std::cout<<"Was not able to send begin transmission" << std::endl;
 			throw std::runtime_error("Was not able to send begin transmission to " + node.id());
 		}
-
-		std::cout<< "send begin transmition done" << std::endl;
 
 		ucp_tag_recv_info_t info_tag;
 		blazing_ucp_tag acknowledge_tag = *reinterpret_cast<blazing_ucp_tag *>(&tag);
 		acknowledge_tag.frame_id = 0xFFFF;
 
-		std::cout<< "recv_begin_transmission_ack recv_nb" << std::endl;
 		requests[i] = new char[_request_size];
-		std::cout<<"listening for "<<acknowledge_tag.message_id<<" "<<acknowledge_tag.worker_origin_id <<" "<<acknowledge_tag.frame_id<<std::endl;
 
 		status_code recv_begin_status = status_code::INVALID;
 		status = ucp_tag_recv_nbr(origin_node,
@@ -175,11 +157,9 @@ void ucx_buffer_transport::send_begin_transmission() {
 		} while (status == UCS_INPROGRESS);
 
 		if(status != UCS_OK){
-			std::cout<<"Was not able to receive acknowledgment of begin transmission" << std::endl;
 			throw std::runtime_error("Was not able to receive acknowledgment of begin transmission from " + node.id());
 		}
 
-		std::cout<<"received ack status : " << (int)(recv_begin_status) << std::endl;
 		if (recv_begin_status == status_code::OK) {
 			increment_begin_transmission();
 		}
@@ -203,7 +183,6 @@ void ucx_buffer_transport::send_impl(const char * buffer, size_t buffer_size) {
   std::vector<char *> requests;
   requests.reserve(destinations.size());
   for (auto const &node : destinations) {
-		std::cout <<"Sending frame size: "<< buffer_size << std::endl;
     char *request = reinterpret_cast<char *>(std::malloc(_request_size));
     ucp_tag_send_nbr(node.get_ucp_endpoint(),
                      buffer,
@@ -213,8 +192,6 @@ void ucx_buffer_transport::send_impl(const char * buffer, size_t buffer_size) {
                      request + _request_size);
     requests.push_back(request);
   }
-
-	std::cout <<"All frames send"<< std::endl;
 
   // TODO: add a max attempts
   std::vector<ucs_status_t> statuses;
@@ -229,8 +206,6 @@ void ucx_buffer_transport::send_impl(const char * buffer, size_t buffer_size) {
                    });
   } while (std::find(statuses.cbegin(), statuses.cend(), UCS_INPROGRESS) !=
            statuses.cend());
-
-	std::cout <<"After progress sending frame"<< std::endl;
 
   for (std::size_t i = 0; i < requests.size(); i++) {
     char *request = requests.at(i);

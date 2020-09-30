@@ -68,7 +68,6 @@ public:
   }
 
   void allocate_buffer(uint16_t index){
-    std::cout<< "allocate_buffer index : " << index << " total buffers : " << _raw_buffers.size()<<std::endl;
     if (index >= _raw_buffers.size()) {
       throw std::runtime_error("Invalid access to raw buffer");
     }
@@ -95,15 +94,9 @@ public:
   }
 
   void finish() {
-    if (_raw_buffers.size() == 0) {
-      std::cout << "NO GPU DATA TO RECEIVED"<<std::endl;
-    }
-
     std::unique_ptr<ral::frame::BlazingTable> table = deserialize_from_gpu_raw_buffers(_column_transports, _raw_buffers);
     _output_cache->addCacheData(
             std::make_unique<ral::cache::GPUCacheDataMetaData>(std::move(table), _metadata), _metadata.get_values()[ral::cache::MESSAGE_ID], true);
-
-    std::cout<< ">>>>>>>> TABLE ADDED TO CACHE: SUCCESS" << std::endl;
   }
 private:
 

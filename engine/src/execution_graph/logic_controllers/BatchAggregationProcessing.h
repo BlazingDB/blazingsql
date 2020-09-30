@@ -362,8 +362,6 @@ public:
         try {
             while (input.wait_for_next()) {
                 auto batch = input.next();
-                // std::cout<<"MergeAggregateKernel batch "<<batch_count<<std::endl;
-                // ral::utilities::print_blazing_table_view_schema(batch->toBlazingTableView(), "MergeAggregateKernel_batch" + std::to_string(batch_count));
                 batch_count++;
                 tableViewsToConcat.emplace_back(batch->toBlazingTableView());
                 tablesToConcat.emplace_back(std::move(batch));

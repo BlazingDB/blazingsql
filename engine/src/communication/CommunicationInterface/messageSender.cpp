@@ -19,8 +19,7 @@ void message_sender::initialize_instance(std::shared_ptr<ral::cache::CacheMachin
 		ucp_worker_h origin_node,
 		int ral_id,
 		comm::blazing_protocol protocol){
-			std::cout<<"calling message_sender constructor"<<std::endl;
-        message_sender::instance = new message_sender(
+	message_sender::instance = new message_sender(
             output_cache,node_address_map,num_threads,context,origin_node,ral_id,protocol);
 }
 
@@ -33,11 +32,9 @@ message_sender::message_sender(std::shared_ptr<ral::cache::CacheMachine> output_
 		comm::blazing_protocol protocol)
 		: ral_id{ral_id}, origin{origin}, output_cache{output_cache}, node_address_map{node_address_map}, pool{num_threads}, protocol{protocol}
 {
-	std::cout<<"getting context query1"<<std::endl;
 	request_size = 0;
 	if (protocol == blazing_protocol::ucx)	{
 		ucp_context_attr_t attr;
-		std::cout<<"getting context query2"<<std::endl;
 		attr.field_mask = UCP_ATTR_FIELD_REQUEST_SIZE;
 		ucs_status_t status = ucp_context_query(context, &attr);
 		if (status != UCS_OK)	{
@@ -45,8 +42,6 @@ message_sender::message_sender(std::shared_ptr<ral::cache::CacheMachine> output_
 		}
 
 		request_size = attr.request_size;
-
-		std::cout << "message_sender request_size: " << request_size << std::endl;
 	}else{
 		std::cout<<"Wroong protocol"<<std::endl;
 	}
