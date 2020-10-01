@@ -9,14 +9,13 @@ void initialize(int ralId,
 	std::string ralHost,
 	int ralCommunicationPort,
 	bool singleNode,
-	std::map<std::string, std::string> config_options);
-
-void finalize();
-
-void blazingSetAllocator(
+	std::map<std::string, std::string> config_options,
 	std::string allocation_mode,
 	std::size_t initial_pool_size,
-	std::map<std::string, std::string> config_options);
+	std::size_t maximum_pool_size,
+	bool enable_logging);
+
+void finalize();
 
 size_t getFreeMemory();
 
@@ -28,13 +27,12 @@ error_code_t initialize_C(int ralId,
 	std::string ralHost,
 	int ralCommunicationPort,
 	bool singleNode,
-	std::map<std::string, std::string> config_options);
-
-error_code_t finalize_C();
-
-error_code_t blazingSetAllocator_C(
+	std::map<std::string, std::string> config_options,
 	std::string allocation_mode,
 	std::size_t initial_pool_size,
-	std::map<std::string, std::string> config_options);
+	std::size_t maximum_pool_size,
+	bool enable_logging);
+
+error_code_t finalize_C();
 
 } // extern "C"

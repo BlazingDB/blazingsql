@@ -4,10 +4,14 @@
 
 
 ## Improvements
+- #977 Just one initialize() function at beginning and add logs related to allocation stuff
+- #1046 Make possible to read the system environment variables to set up BlazingContext
+- #998 Update TPCH queries, become implicit joins into implicit joins to avoid random values.
 
 
 ## Bug Fixes
 - #975 Fixed issue due to cudf orc api change 
+- #1017 Fixed issue parsing fixed with string literals
 - #1019 Fix hive string col 
 - #1021 removed an rmm include
 - #1020 Fixed build issues with latest rmm 0.16 and columnBasisTest due to deprecated drop_column() function
@@ -16,6 +20,11 @@
 - #1028 Match dtypes after create_table with multiple files
 - #1030 Avoid read _metadata files
 - #1039 Fixed issues with parsers, in particular ORC parser was misbehaving
+- #1038 Fixed issue with logging dirs in distributed envs
+- #1048 Pinned google cloud version to 1.16 
+- #1052 Partial revert of some changes on parquet rowgroups flow with local_files=True
+- #1054 Can set manually BLAZING_CHACHE_DIRECTORY
+- #1053 Fixed issue when loading paths with wildcards
 
 
 
