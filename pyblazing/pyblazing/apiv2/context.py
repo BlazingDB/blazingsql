@@ -644,8 +644,12 @@ def visit(lines):
 
 
 def get_plan(algebra):
-    algebra = algebra.replace("  ", "\t")
     lines = algebra.split("\n")
+    for i in range(len(lines) - 1):
+        lstrip_ = lines[i].lstrip()
+        index = len(lines[i]) - len(lstrip_)
+        lines[i] = ("\t" * (index // 2)) + lstrip_
+
     # algebra plan was provided and only contains one-line as logical plan
     if len(lines) == 1:
         algebra += "\n"
