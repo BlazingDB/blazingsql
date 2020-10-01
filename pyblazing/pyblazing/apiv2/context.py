@@ -201,22 +201,22 @@ def initializeBlazing(
 
     cio.blazingSetAllocatorCaller(allocator.encode(), initial_pool_size, config_options)
 
-
+    import ucp.core as ucp_core
 
     workers_ucp_info = []
     if singleNode is False:
         worker = dask.distributed.get_worker()
         for dask_addr in worker.ucx_addresses:
             addr = worker.ucx_addresses[dask_addr]
-            ep = UCX.get()._endpoints[addr].ep
+#            ep = UCX.get()._endpoints[addr].ep
             node_tcp_data = next(n for n in nodes if n['worker'] == dask_addr)
             workers_ucp_info.append({
                 'worker_id': dask_addr.encode(),
                 'ip': node_tcp_data['ip'].encode(),
                 'tcp_port': node_tcp_data['communication_port'],
-                'ep_handle' : ep.handle.ep.get_ucp_endpoint(),
-                'worker_handle': ep.handle.ep.get_ucp_worker(),
-                'context_handle': ep.handle.ep._ctx.context.handle
+                'ep_handle' : 0,
+                'worker_handle': 0,
+                'context_handle': ucp_core._get_ctx().context.handle
             })
 
     self_node_tcp_data = next(n for n in nodes if n['worker'] == worker_id)
