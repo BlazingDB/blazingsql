@@ -1153,11 +1153,11 @@ class BlazingContext(object):
         initial_pool_size (optional) : initial size of memory pool in bytes
                     (if pool=True).
                     if None, and pool=True, defaults to 1/2 GPU memory.
-         maximum_pool_size (optional) :  size, in bytes, that the pool can 
-                    grow to (if pool=True). 
+         maximum_pool_size (optional) :  size, in bytes, that the pool can
+                    grow to (if pool=True).
                     if None, and pool=True, defaults to all the GPU memory.
-        enable_logging (optional) : If set to True the memory allocator 
-                    logging will be enabled, but can negatively impact 
+        enable_logging (optional) : If set to True the memory allocator
+                    logging will be enabled, but can negatively impact
                     performance. Memory allocator logs will be placed
                     in the same directory and BSQL logs.
         config_options (optional) : this is a dictionary for setting certain
