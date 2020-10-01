@@ -22,6 +22,7 @@
 - #1048 Pinned google cloud version to 1.16 
 - #1052 Partial revert of some changes on parquet rowgroups flow with local_files=True
 - #1054 Can set manually BLAZING_CHACHE_DIRECTORY
+- #1053 Fixed issue when loading paths with wildcards
 
 
 # BlazingSQL 0.15.0 (August 31, 2020)

@@ -29,6 +29,7 @@ import pandas
 import numpy as np
 import pyarrow
 from pathlib import PurePath
+from glob import glob
 import cio
 import dask_cudf
 import dask
@@ -676,7 +677,9 @@ def resolve_relative_path(files):
                 files_out.append(file)
             else:  # if its not, lets see if its a relative path we can access
                 abs_file = os.path.abspath(os.path.join(os.getcwd(), file))
-                if os.path.exists(abs_file):
+                # we check if the file exists otherwise we try to expand the
+                # wildcard pattern with glob
+                if os.path.exists(abs_file) or glob(abs_file):
                     files_out.append(abs_file)
                 # if its not, lets just leave it and see if somehow
                 # the engine can access it
