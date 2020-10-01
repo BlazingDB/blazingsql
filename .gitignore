@@ -84,3 +84,10 @@ core
 .cupy/
 .jitify-cache/
 .nv/
+
+# powerpc
+powerpc/tmp/
+powerpc/blazingsql.tar.gz
+powerpc/developer/requirements.txt
+powerpc/developer/core
+powerpc/developer/blazingsql.tar.gz

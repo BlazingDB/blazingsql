@@ -1,7 +1,6 @@
 from blazingsql import BlazingContext
 from Configuration import Settings as Settings
 from DataBase import createSchema as cs
-from pydrill.client import PyDrill
 from Runner import runTest
 from Utils import Execution
 
@@ -685,10 +684,18 @@ if __name__ == "__main__":
 
     Execution.getArgs()
 
-    # Create Table Drill ------------------------------------------------
-    drill = PyDrill(host="localhost", port=8047)
-    cs.init_drill_schema(drill,
-                         Settings.data["TestSettings"]["dataDirectory"])
+    drill = "drill"
+
+    if ((Settings.execution_mode == ExecutionMode.FULL and
+         compareResults == "true") or
+            Settings.execution_mode == ExecutionMode.GENERATOR):
+
+        # Create Table Drill ------------------------------------------------
+        from pydrill.client import PyDrill
+
+        drill = PyDrill(host="localhost", port=8047)
+        cs.init_drill_schema(drill,
+                            Settings.data["TestSettings"]["dataDirectory"])
     nRals = Settings.data["RunSettings"]["nRals"]
     main(drill, Settings.data["TestSettings"]["dataDirectory"], nRals)
 

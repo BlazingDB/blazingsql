@@ -32,7 +32,7 @@ TableSchema parseSchema(std::vector<std::string> files,
 	
 	const DataType data_type_hint = ral::io::inferDataType(file_format_hint);
 	const DataType fileType = inferFileType(files, data_type_hint);
-	ral::io::ReaderArgs args = getReaderArgs(fileType, ral::io::to_map(arg_keys, arg_values));
+	auto args_map = ral::io::to_map(arg_keys, arg_values);
 	TableSchema tableSchema;
 	tableSchema.data_type = fileType;
 
@@ -40,11 +40,11 @@ TableSchema parseSchema(std::vector<std::string> files,
 	if(fileType == ral::io::DataType::PARQUET) {
 		parser = std::make_shared<ral::io::parquet_parser>();
 	} else if(fileType == ral::io::DataType::ORC) {
-		parser = std::make_shared<ral::io::orc_parser>(args.orcReaderArg);
+		parser = std::make_shared<ral::io::orc_parser>(args_map);
 	} else if(fileType == ral::io::DataType::JSON) {
-		parser = std::make_shared<ral::io::json_parser>(args.jsonReaderArg);
+		parser = std::make_shared<ral::io::json_parser>(args_map);
 	} else if(fileType == ral::io::DataType::CSV) {
-		parser = std::make_shared<ral::io::csv_parser>(args.csvReaderArg);
+		parser = std::make_shared<ral::io::csv_parser>(args_map);
 	}
 
 	std::vector<Uri> uris;
@@ -67,9 +67,6 @@ TableSchema parseSchema(std::vector<std::string> files,
 
 		throw;
 	}
-
-	std::vector<size_t> column_indices(schema.get_num_columns());
-	std::iota(column_indices.begin(), column_indices.end(), 0);
 
 	tableSchema.types = schema.get_dtypes();
 	tableSchema.names = schema.get_names();
@@ -124,17 +121,17 @@ std::unique_ptr<ResultSet> parseMetadata(std::vector<std::string> files,
 	}
 	const DataType data_type_hint = ral::io::inferDataType(file_format_hint);
 	const DataType fileType = inferFileType(files, data_type_hint);
-	ral::io::ReaderArgs args = getReaderArgs(fileType, ral::io::to_map(arg_keys, arg_values));
-
+	std::map<std::string, std::string> args_map = ral::io::to_map(arg_keys, arg_values);
+	
 	std::shared_ptr<ral::io::data_parser> parser;
 	if(fileType == ral::io::DataType::PARQUET) {
 		parser = std::make_shared<ral::io::parquet_parser>();
 	} else if(fileType == ral::io::DataType::ORC) {
-		parser = std::make_shared<ral::io::orc_parser>(args.orcReaderArg);
+		parser = std::make_shared<ral::io::orc_parser>(args_map);
 	} else if(fileType == ral::io::DataType::JSON) {
-		parser = std::make_shared<ral::io::json_parser>(args.jsonReaderArg);
+		parser = std::make_shared<ral::io::json_parser>(args_map);
 	} else if(fileType == ral::io::DataType::CSV) {
-		parser = std::make_shared<ral::io::csv_parser>(args.csvReaderArg);
+		parser = std::make_shared<ral::io::csv_parser>(args_map);
 	}
 	std::vector<Uri> uris;
 	for(auto file_path : files) {
@@ -155,8 +152,6 @@ std::unique_ptr<ResultSet> parseMetadata(std::vector<std::string> files,
 		throw e;
 	}
 }
-
-
 
 std::pair<bool, std::string> registerFileSystem(
 	FileSystemConnection fileSystemConnection, std::string root, std::string authority) {
@@ -191,6 +186,7 @@ std::pair<bool, std::string> registerFileSystemGCS(GCS gcs, std::string root, st
 		FileSystemConnection(gcs.projectId, gcs.bucketName, gcs.useDefaultAdcJsonFile, gcs.adcJsonFile);
 	return registerFileSystem(fileSystemConnection, root, authority);
 }
+
 std::pair<bool, std::string> registerFileSystemS3(S3 s3, std::string root, std::string authority) {
 	FileSystemConnection fileSystemConnection = FileSystemConnection(s3.bucketName,
 		(S3FileSystemConnection::EncryptionType) s3.encryptionType,
@@ -202,7 +198,96 @@ std::pair<bool, std::string> registerFileSystemS3(S3 s3, std::string root, std::
 		s3.region);
 	return registerFileSystem(fileSystemConnection, root, authority);
 }
+
 std::pair<bool, std::string> registerFileSystemLocal(std::string root, std::string authority) {
 	FileSystemConnection fileSystemConnection = FileSystemConnection(FileSystemType::LOCAL);
 	return registerFileSystem(fileSystemConnection, root, authority);
+}
+
+std::pair<TableSchema, error_code_t> parseSchema_C(std::vector<std::string> files,
+	std::string file_format_hint,
+	std::vector<std::string> arg_keys,
+	std::vector<std::string> arg_values,
+	std::vector<std::pair<std::string, cudf::type_id>> extra_columns,
+	bool ignore_missing_paths) {
+
+	TableSchema result;
+
+	try {
+		result = parseSchema(files,
+					file_format_hint,
+					arg_keys,
+					arg_values,
+					extra_columns,
+					ignore_missing_paths);
+		return std::make_pair(result, E_SUCCESS);
+	} catch (std::exception& e) {
+		return std::make_pair(result, E_EXCEPTION);
+	}
+}
+
+std::pair<std::unique_ptr<ResultSet>, error_code_t> parseMetadata_C(std::vector<std::string> files,
+	std::pair<int, int> offset,
+	TableSchema schema,
+	std::string file_format_hint,
+	std::vector<std::string> arg_keys,
+	std::vector<std::string> arg_values) {
+
+	std::unique_ptr<ResultSet> result = nullptr;
+
+	try {
+		result = std::move(parseMetadata(files,
+					offset,
+					schema,
+					file_format_hint,
+					arg_keys,
+					arg_values));
+		return std::make_pair(std::move(result), E_SUCCESS);
+	} catch (std::exception& e) {
+		return std::make_pair(std::move(result), E_EXCEPTION);
+	}
+}
+
+std::pair<std::pair<bool, std::string>, error_code_t> registerFileSystemHDFS_C(HDFS hdfs, std::string root, std::string authority) {
+	std::pair<bool, std::string> result;
+
+	try {
+		result = registerFileSystemHDFS(hdfs, root, authority);
+		return std::make_pair(result, E_SUCCESS);
+	} catch (std::exception& e) {
+		return std::make_pair(result, E_EXCEPTION);
+	}
+}
+
+std::pair<std::pair<bool, std::string>, error_code_t> registerFileSystemGCS_C(GCS gcs, std::string root, std::string authority) {
+	std::pair<bool, std::string> result;
+
+	try {
+		result = registerFileSystemGCS(gcs, root, authority);
+		return std::make_pair(result, E_SUCCESS);
+	} catch (std::exception& e) {
+		return std::make_pair(result, E_EXCEPTION);
+	}
+}
+
+std::pair<std::pair<bool, std::string>, error_code_t> registerFileSystemS3_C(S3 s3, std::string root, std::string authority) {
+	std::pair<bool, std::string> result;
+
+	try {
+		result = registerFileSystemS3(s3, root, authority);
+		return std::make_pair(result, E_SUCCESS);
+	} catch (std::exception& e) {
+		return std::make_pair(result, E_EXCEPTION);
+	}
+}
+
+std::pair<std::pair<bool, std::string>, error_code_t> registerFileSystemLocal_C(std::string root, std::string authority) {
+	std::pair<bool, std::string> result;
+
+	try {
+		result = registerFileSystemLocal(root, authority);
+		return std::make_pair(result, E_SUCCESS);
+	} catch (std::exception& e) {
+		return std::make_pair(result, E_EXCEPTION);
+	}
 }

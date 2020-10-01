@@ -61,7 +61,7 @@ TESTS="ON"
 #         CONDA_PREFIX, but there is no fallback from there!
 INSTALL_PREFIX=${INSTALL_PREFIX:=${PREFIX:=${CONDA_PREFIX}}}
 PARALLEL_LEVEL=${PARALLEL_LEVEL:=""}
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$INSTALL_PREFIX/lib
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$INSTALL_PREFIX/lib:$INSTALL_PREFIX/lib64
 export CXXFLAGS="-L$INSTALL_PREFIX/lib"
 export CFLAGS=$CXXFLAGS
 export CUDACXX=/usr/local/cuda/bin/nvcc
@@ -146,12 +146,12 @@ if buildAll || hasArg io || hasArg libengine || hasArg thirdparty || hasArg upda
             cd ${REPODIR}/thirdparty/cudf
             if hasArg update; then
                 git pull
+                if [ ! -d "${REPODIR}/thirdparty/cudf/cpp/build" ]; then
+                    mkdir cpp/build
+                fi
+                cd cpp/build
+                cmake -DCMAKE_CXX11_ABI=ON ..
             fi
-            if [ ! -d "${REPODIR}/thirdparty/cudf/cpp/build" ]; then
-                mkdir cpp/build
-            fi
-            cd cpp/build
-            cmake -DCMAKE_CXX11_ABI=ON ..
         fi
         export CUDF_HOME=${REPODIR}/thirdparty/cudf/
     fi

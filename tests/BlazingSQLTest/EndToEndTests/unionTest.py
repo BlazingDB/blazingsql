@@ -5,7 +5,6 @@ from DataBase import createSchema as cs
 from pynvml import nvmlInit
 from Runner import runTest
 from Utils import Execution, gpuMemory, init_context, skip_test
-from pyspark.sql import SparkSession
 
 queryType = "Union"
 
@@ -265,6 +264,8 @@ if __name__ == "__main__":
                              Settings.data["TestSettings"]["dataDirectory"])
 
         # Create Table Spark -------------------------------------------------
+        from pyspark.sql import SparkSession
+
         spark = SparkSession.builder.appName("timestampTest").getOrCreate()
         cs.init_spark_schema(spark,
                              Settings.data["TestSettings"]["dataDirectory"])

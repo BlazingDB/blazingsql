@@ -1,7 +1,6 @@
 from blazingsql import DataType
 from Configuration import Settings as Settings
 from DataBase import createSchema as cs
-from pydrill.client import PyDrill
 from pynvml import nvmlInit
 from Runner import runTest
 from Utils import Execution, gpuMemory, init_context, skip_test
@@ -676,6 +675,8 @@ if __name__ == "__main__":
     nvmlInit()
 
     # Create Table Drill ------------------------------------------------
+    from pydrill.client import PyDrill
+
     drill = PyDrill(host="localhost", port=8047)
     cs.init_drill_schema(drill,
                          Settings.data["TestSettings"]["dataDirectory"])

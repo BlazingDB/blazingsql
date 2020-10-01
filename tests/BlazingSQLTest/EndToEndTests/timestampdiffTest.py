@@ -3,7 +3,6 @@ from Configuration import ExecutionMode
 from Configuration import Settings as Settings
 from DataBase import createSchema as cs
 from pynvml import nvmlInit
-# from pyspark.sql import SparkSession
 from Runner import runTest
 from Utils import Execution, gpuMemory, init_context, skip_test
 

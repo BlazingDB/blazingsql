@@ -14,7 +14,8 @@ static std::shared_ptr<ral::cache::CacheMachine> create_cache_machine( const cac
 	if (config.type == CacheType::SIMPLE or config.type == CacheType::FOR_EACH) {
 		machine =  std::make_shared<ral::cache::CacheMachine>(config.context, config.flow_control_bytes_threshold);
 	} else if (config.type == CacheType::CONCATENATING) {
-		machine =  std::make_shared<ral::cache::ConcatenatingCacheMachine>(config.context, config.flow_control_bytes_threshold, config.concat_all);
+		machine =  std::make_shared<ral::cache::ConcatenatingCacheMachine>(config.context, config.flow_control_bytes_threshold, 
+			config.concat_cache_num_bytes, config.concat_all);
 	}
 	return machine;
 }

@@ -10,18 +10,21 @@ import time
 import blazingsql
 
 # import git
-import gspread
 import numpy as np
 import pandas as pd
-from oauth2client.service_account import ServiceAccountCredentials
-from pydrill.client import PyDrill
-from pyspark.sql.session import SparkSession
 
 from BlazingLogging import loggingHandler as lhandler
 from Configuration import ExecutionMode
 from Configuration import Settings as Settings
 from DataBase import createSchema as cs
 
+if ((Settings.execution_mode == ExecutionMode.FULL and
+     Settings.compare_res == "true") or
+            Settings.execution_mode == ExecutionMode.GENERATOR):
+    print(Settings.execution_mode)
+    print(Settings.compare_res)
+    from pydrill.client import PyDrill
+    from pyspark.sql.session import SparkSession
 
 class Result:
     def __init__(self, columns, resultSet, resultBlz):
@@ -110,6 +113,17 @@ def compare_results(pdf1, pdf2, acceptable_difference, use_percentage, engine):
 
     if pdf1.size == 0 and pdf2.size == 0:
         return "Success"
+    
+    msg = ""
+    if not isinstance(engine, str):
+        if isinstance(engine, PyDrill):
+            msg = "PyDrill"
+        else:
+            msg = "PySpark"
+    elif engine=="drill":
+        msg = "PyDrill" 
+    else: 
+        msg = "PySpark" 
 
     if pdf1.shape[0] == pdf2.shape[0]:
         if pdf1.shape[1] == pdf2.shape[1]:
@@ -161,19 +175,19 @@ def compare_results(pdf1, pdf2, acceptable_difference, use_percentage, engine):
                 return "Fail: Different values"
         else:
             return (
-                "Fail: Different number of columns blzSQLresult: "
-                + str(pdf1.shape[1])
-                + " "
-                + ("PyDrill" if isinstance(engine, PyDrill) else "PySpark")
-                + " result: "
-                + str(pdf2.shape[1])
-            )
+                    "Fail: Different number of columns blzSQLresult: "
+                    + str(pdf1.shape[1])
+                    + " "
+                    + msg 
+                    + " result: "
+                    + str(pdf2.shape[1])
+                )
     else:
         return (
             "Fail: Different number of rows blzSQLresult: "
             + str(pdf1.shape[0])
             + " "
-            + ("PyDrill" if isinstance(engine, PyDrill) else "PySpark")
+            + msg
             + " result: "
             + str(pdf2.shape[0])
         )
@@ -280,10 +294,10 @@ def get_codTest(test_name):
         "Where clause": "WHERE",
         "Wild Card": "WILDCARD",
         "Simple String": "SSTRING",
+        "Message Validation": "MESSAGEVAL"
     }
 
     return switcher.get(test_name)
-
 
 def print_fixed_log(
     logger,
@@ -339,11 +353,17 @@ def print_query_results(
     if print_result:
         print("#BLZ:")
         print(pdf1)
-        if isinstance(engine, PyDrill):
-            print("#DRILL:")
-        else:
-            print("#PYSPARK:")
-        print(pdf2)
+        if not isinstance(engine, str):
+            if isinstance(engine, PyDrill):
+                print("#DRILL:")
+            else:
+                print("#PYSPARK:")
+            print(pdf2)
+        else: 
+            if engine=="drill":
+                print("#DRILL:")
+            else:
+                print("#PYSPARK:")
     data_type = cs.get_extension(input_type)
     print(str(queryId) + " Test " + queryType + " - " + data_type)
     print("#QUERY:")
@@ -409,15 +429,18 @@ def print_query_results(
         total_time,
     )
 
-
-def print_query_results2(sql, queryId, queryType, error_message):
+def print_query_results2(sql, queryId, input_type, queryType, error_message, message_validation):
     print(queryId)
     print("#QUERY:")
     print(sql)
     print("RESULT:")
-    print("Crash")
+    result = validate_messages(error_message, message_validation)
+    print(result)
     print("ERROR:")
-    print(error_message)
+    if result=="Fail":
+        print(error_message)
+    else:
+        error_message=""
     print("CALCITE TIME: ")
     print("-")
     print("RAL TIME: ")
@@ -428,10 +451,10 @@ def print_query_results2(sql, queryId, queryType, error_message):
     print("===================================================")
 
     logger = logginghelper(name)
-    print_fixed_log(
-        logger, queryType, queryId, sql, "Crash", error_message, None, None, None
-    )
 
+    print_fixed_log(
+        logger, queryType, input_type, queryId, sql, result, error_message, None, None, None
+    )
 
 def print_query_results_performance(sql, queryId, queryType, resultgdf):
     print(queryId)
@@ -687,6 +710,9 @@ def create_summary_detail(df, no_color):
 # TODO william kharoly felipe we should try to enable and use
 # this function in the future
 def _verify_prev_google_sheet_results(log_pdf):
+    import gspread
+    from oauth2client.service_account import ServiceAccountCredentials
+
     def get_the_data_from_sheet():
         # Use creds to create a client to interact with the Google Drive API
         scope = [
@@ -924,6 +950,9 @@ def _verify_prev_google_sheet_results(log_pdf):
 
 
 def saving_google_sheet_results(log_pdf):
+    import gspread
+    from oauth2client.service_account import ServiceAccountCredentials
+
     log_info = Settings.data["RunSettings"]["logInfo"]
 
     if log_info == "":
@@ -994,6 +1023,18 @@ def saveLogInFile(df):
     filepath = getFileName(dir_log)
     df.to_excel(filepath, index=False)
 
+def validate_messages(error_message, message_validation):
+    error_message = error_message.replace('\n', ' ').replace('\r', ' ')
+    message_validation = message_validation.replace('\n', ' ').replace('\r', ' ')
+    error_message = error_message.replace(' ', '')
+    message_validation = message_validation.replace(' ', '')
+
+    if error_message == message_validation:
+        result = "Success"
+    else:
+        result = "Fail"
+
+    return result
 
 class bcolors:
     HEADER = "\033[95m"
@@ -1326,6 +1367,10 @@ def run_query(
     if print_result is None:
         print_result = False
 
+    message_validation = kwargs.get("message_validation", "")
+    if message_validation is None:
+        message_validation = False    
+
     data_type = cs.get_extension(input_type)
 
     if Settings.execution_mode != "Generator":
@@ -1345,48 +1390,55 @@ def run_query(
     if nested_query is None:
         nested_query = False
 
+    error_message = ""
+
     if not nested_query:
         # if int(nRals) == 1:  # Single Node
         query_blz = query  # get_blazingsql_query('main', query)
         if algebra == "":
             start_time = time.time()
-            result_gdf = bc.sql(query_blz)
-            end_time = time.time()
-            total_time = (end_time - start_time) * 1000
-            # SUM(CASE WHEN info = 'evaluate_split_query load_data' THEN
-            # duration ELSE 0 END) AS load_time,
-            # MAX(load_time) AS load_time,
-            log_result = bc.log(
-                """SELECT
-                    MAX(end_time) as end_time, query_id,
-                    MAX(total_time) AS total_time
-                FROM (
-                    SELECT
-                        query_id, node_id,
-                        SUM(CASE WHEN info = 'Query Execution Done' THEN
-                        duration ELSE 0 END) AS total_time,
-                        MAX(log_time) AS end_time
-                    FROM
-                        bsql_logs
-                    WHERE
-                        info = 'evaluate_split_query load_data'
-                        OR info = 'Query Execution Done'
-                    GROUP BY
-                        node_id, query_id
-                    )
-                GROUP BY
-                    query_id
-                ORDER BY
-                    end_time DESC limit 1"""
-            )
+            try:
+                result_gdf = bc.sql(query_blz)
+            except Exception as e:
+                error_message=str(e)
 
-            if int(nRals) == 1:  # Single Node
-                n_log = log_result
-            else:  # Simple Distribution
-                n_log = log_result.compute()
+            if not message_validation:
+                end_time = time.time()
+                total_time = (end_time - start_time) * 1000
+                # SUM(CASE WHEN info = 'evaluate_split_query load_data' THEN
+                # duration ELSE 0 END) AS load_time,
+                # MAX(load_time) AS load_time,
+                # log_result = bc.log(
+                #     """SELECT
+                #         MAX(end_time) as end_time, query_id,
+                #         MAX(total_time) AS total_time
+                #     FROM (
+                #         SELECT
+                #             query_id, node_id,
+                #             SUM(CASE WHEN info = 'Query Execution Done' THEN
+                #             duration ELSE 0 END) AS total_time,
+                #             MAX(log_time) AS end_time
+                #         FROM
+                #             bsql_logs
+                #         WHERE
+                #             info = 'evaluate_split_query load_data'
+                #             OR info = 'Query Execution Done'
+                #         GROUP BY
+                #             node_id, query_id
+                #         )
+                #     GROUP BY
+                #         query_id
+                #     ORDER BY
+                #         end_time DESC limit 1"""
+                # )
 
-            load_time = 0  # n_log['load_time'][0]
-            engine_time = n_log["total_time"][0]
+                # if int(nRals) == 1:  # Single Node
+                #     n_log = log_result
+                # else:  # Simple Distribution
+                #     n_log = log_result.compute()
+
+                load_time = 0  # n_log['load_time'][0]
+                engine_time = 0 #n_log["total_time"][0]
         else:
             result_gdf = bc.sql(query_blz, algebra=algebra)
 
@@ -1401,7 +1453,17 @@ def run_query(
     result_dir = Settings.data["TestSettings"]["fileResultsDirectory"]
     file_results_dir = str(result_dir)
 
-    if not isinstance(engine, str):
+
+    if not message_validation== "":
+        print_query_results2(
+                        query,
+                        queryId,
+                        input_type,
+                        queryType,
+                        error_message,
+                        message_validation
+                )   
+    elif not isinstance(engine, str):
         if isinstance(engine, PyDrill):
             # Drill
             query_drill = get_drill_query(query)
@@ -1598,7 +1660,7 @@ def run_query(
                 print_query_results2(
                     query, queryId, queryType, result_gdf.error_message
                 )
-
+                                
 
 def run_query_performance(
     bc,

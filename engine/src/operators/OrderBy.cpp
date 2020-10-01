@@ -7,7 +7,6 @@
 #include <cudf/copying.hpp>
 #include <cudf/sorting.hpp>
 #include <cudf/search.hpp>
-#include <cudf/strings/copying.hpp>
 #include <random>
 #include "parser/expression_utils.hpp"
 #include "utilities/CommonOperations.h"
@@ -57,26 +56,13 @@ std::unique_ptr<cudf::table> logicalLimit(const cudf::table_view& table, cudf::s
 
 	if (limitRows == 0) {
 		return cudf::empty_like(table);
+	} else if (limitRows < table.num_rows()) {
+		std::vector<cudf::size_type> splits = {limitRows};
+		std::vector<cudf::table_view> split_table = cudf::split(table, splits);
+		return std::make_unique<cudf::table>(split_table[0]);
+	} else {
+		return std::make_unique<cudf::table>(table);
 	}
-
-	std::vector<std::unique_ptr<cudf::column>> output_cols;
-	output_cols.reserve(table.num_columns());
-	for(auto i = 0; i < table.num_columns(); ++i) {
-		auto column = table.column(i);
-		cudf::data_type columnType = column.type();
-
-		std::unique_ptr<cudf::column> out_column;
-		if(cudf::is_fixed_width(columnType)) {
-			out_column = cudf::make_fixed_width_column(columnType, limitRows, column.has_nulls()?cudf::mask_state::UNINITIALIZED: cudf::mask_state::UNALLOCATED);
-			cudf::mutable_column_view out_column_mutable_view = out_column->mutable_view();
-			cudf::copy_range_in_place(column, out_column_mutable_view, 0, limitRows, 0);
-		} else {
-			out_column = cudf::strings::detail::slice(column, 0, limitRows);
-		}
-		output_cols.push_back(std::move(out_column));
-	}
-
-	return std::make_unique<cudf::table>(std::move(output_cols));
 }
 
 /**---------------------------------------------------------------------------*
@@ -168,7 +154,7 @@ std::unique_ptr<ral::frame::BlazingTable> sort(const ral::frame::BlazingTableVie
 	return logicalSort(table, sortColIndices, sortOrderTypes);
 }
 
-std::unique_ptr<ral::frame::BlazingTable> sample(const ral::frame::BlazingTableView & table, const std::string & query_part){
+std::unique_ptr<ral::frame::BlazingTable> sample(const ral::frame::BlazingTableView & table, const std::string & query_part, float samples_ratio){
 	std::vector<cudf::order> sortOrderTypes;
 	std::vector<int> sortColIndices;
 	cudf::size_type limitRows;
@@ -179,9 +165,9 @@ std::unique_ptr<ral::frame::BlazingTable> sample(const ral::frame::BlazingTableV
   std::transform(sortColIndices.begin(), sortColIndices.end(), sortColNames.begin(), [&](auto index) { return tableNames[index]; });
 
 	std::random_device rd;
-	auto samples = cudf::sample(table.view().select(sortColIndices), std::ceil(table.num_rows() * 0.1), cudf::sample_with_replacement::FALSE, rd());
+	auto samples = cudf::sample(table.view().select(sortColIndices), std::ceil(table.num_rows() * samples_ratio), cudf::sample_with_replacement::FALSE, rd());
 
-	return std::make_unique<ral::frame::BlazingTable>(std::move(samples), tableNames);
+	return std::make_unique<ral::frame::BlazingTable>(std::move(samples), sortColNames);
 }
 
 
