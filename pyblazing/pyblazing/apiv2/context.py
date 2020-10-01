@@ -1278,10 +1278,6 @@ class BlazingContext(object):
         if "BLAZING_CACHE_DIRECTORY" in config_options:
             cache_dir_path = config_options["BLAZING_CACHE_DIRECTORY"] + "tmp"
 
-        self.config_options[
-            "BLAZING_CACHE_DIRECTORY".encode()
-        ] = cache_dir_path.encode()
-
         if dask_client == "autocheck":
             try:
                 dask_client = dask.distributed.default_client()
