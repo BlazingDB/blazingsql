@@ -22,7 +22,7 @@ requirements:
     build:
         - gtest
         - gmock
-        - google-cloud-cpp
+        - google-cloud-cpp 1.16.0
         - cmake
         - cppzmq
         - python
@@ -39,7 +39,7 @@ requirements:
     host:
         - gtest
         - gmock
-        - google-cloud-cpp
+        - google-cloud-cpp 1.16.0
         - cmake
         - python
         - pip
@@ -54,7 +54,7 @@ requirements:
         - cudatoolkit {{ cuda_version }}.*
     run:
         - gtest
-        - google-cloud-cpp
+        - google-cloud-cpp 1.16.0
         - cppzmq
         - openjdk >=8.0
         - jpype1
