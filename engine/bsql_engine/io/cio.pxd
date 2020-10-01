@@ -163,7 +163,8 @@ cdef extern from "../include/engine/engine.h" nogil:
         TableScanInfo getTableScanInfo(string logicalPlan)
 
 cdef extern from "../include/engine/initialize.h" nogil:
-    cdef void initialize(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options,string allocation_mode, size_t initial_pool_size) except +raiseInitializeError
+    cdef void initialize(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options,
+                            string allocation_mode, size_t initial_pool_size, size_t maximum_pool_size, bool enable_logging) except +raiseInitializeError
     cdef void finalize() except +raiseFinalizeError
     cdef size_t getFreeMemory() except +raiseGetFreeMemoryError
 

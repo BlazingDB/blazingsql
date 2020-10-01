@@ -126,15 +126,34 @@ void initialize(int ralId,
 	bool singleNode,
 	std::map<std::string, std::string> config_options,
 	std::string allocation_mode,
-	std::size_t initial_pool_size) {
+	std::size_t initial_pool_size,
+	std::size_t maximum_pool_size, 
+	bool enable_logging) {
 
 	float device_mem_resouce_consumption_thresh = 0.95;
-	auto device_it = config_options.find("BLAZING_DEVICE_MEM_CONSUMPTION_THRESHOLD");
-	if (device_it != config_options.end()){
+	auto config_it = config_options.find("BLAZING_DEVICE_MEM_CONSUMPTION_THRESHOLD");
+	if (config_it != config_options.end()){
 		device_mem_resouce_consumption_thresh = std::stof(config_options["BLAZING_DEVICE_MEM_CONSUMPTION_THRESHOLD"]);
 	}
+	std::string logging_dir = "blazing_log";
+	config_it = config_options.find("BLAZING_LOGGING_DIRECTORY");
+	if (config_it != config_options.end()){
+		logging_dir = config_options["BLAZING_LOGGING_DIRECTORY"];
+	}
+	bool logging_directory_missing = false;
+	struct stat sb;
+	if (!(stat(logging_dir.c_str(), &sb) == 0 && S_ISDIR(sb.st_mode))){ // logging_dir does not exist
+	// we are assuming that this logging directory was created by the python layer, because only the python layer can only target on directory creation per server
+	// having all RALs independently trying to create a directory simulatenously can cause problems
+		logging_directory_missing = true;
+		logging_dir = "";
+	}
 
-	BlazingRMMInitialize(allocation_mode, initial_pool_size, device_mem_resouce_consumption_thresh);
+	std::string allocator_logging_file = "";
+	if (enable_logging && !logging_directory_missing){
+		allocator_logging_file = logging_dir + "/allocator." + std::to_string(ralId) + ".log";
+	}
+	BlazingRMMInitialize(allocation_mode, initial_pool_size, maximum_pool_size, allocator_logging_file, device_mem_resouce_consumption_thresh);
 
 	// ---------------------------------------------------------------------------
 	// DISCLAIMER
@@ -188,20 +207,6 @@ void initialize(int ralId,
 	spdlog::shutdown();
 
 	spdlog::init_thread_pool(8192, 1);
-
-	std::string logging_dir = "blazing_log";
-	auto config_it = config_options.find("BLAZING_LOGGING_DIRECTORY");
-	if (config_it != config_options.end()){
-		logging_dir = config_options["BLAZING_LOGGING_DIRECTORY"];
-	}
-	bool logging_directory_missing = false;
-	struct stat sb;
-	if (!(stat(logging_dir.c_str(), &sb) == 0 && S_ISDIR(sb.st_mode))){ // logging_dir does not exist
-	// we are assuming that this logging directory was created by the python layer, because only the python layer can only target on directory creation per server
-	// having all RALs independently trying to create a directory simulatenously can cause problems
-		logging_directory_missing = true;
-		logging_dir = "";
-	}
 
 	std::string flush_level = "warn";
 	auto log_it = config_options.find("LOGGING_FLUSH_LEVEL");
@@ -286,6 +291,9 @@ void initialize(int ralId,
 	alloc_info += ", total_memory: " + std::to_string(resource->get_total_memory());
 	alloc_info += ", memory_limit: " + std::to_string(resource->get_memory_limit());
 	alloc_info += ", type: " + resource->get_type();
+	alloc_info += ", initial_pool_size: " + std::to_string(initial_pool_size);
+	alloc_info += ", maximum_pool_size: " + std::to_string(maximum_pool_size);
+	alloc_info += ", allocator_logging_file: " + allocator_logging_file;
 
 	logger->debug("|||{info}|||||","info"_a=alloc_info);
 }
@@ -307,7 +315,9 @@ error_code_t initialize_C(int ralId,
 	bool singleNode,
 	std::map<std::string, std::string> config_options,
 	std::string allocation_mode,
-	std::size_t initial_pool_size) {
+	std::size_t initial_pool_size,
+	std::size_t maximum_pool_size,
+	bool enable_logging) {
 
 	try {
 		initialize(ralId,
@@ -318,7 +328,9 @@ error_code_t initialize_C(int ralId,
 			singleNode,
 			config_options,
 			allocation_mode,
-			initial_pool_size);
+			initial_pool_size,
+			maximum_pool_size,
+			enable_logging);
 		return E_SUCCESS;
 	} catch (std::exception& e) {
 		return E_EXCEPTION;
