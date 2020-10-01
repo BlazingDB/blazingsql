@@ -1,13 +1,20 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <memory>
+#include <cstdint>
 #include "../../src/error.hpp"
 
-void initialize(int ralId,
+#include "common.h"
+#include "execution_graph/logic_controllers/CacheMachine.h"
+
+std::pair<std::shared_ptr<ral::cache::CacheMachine>,std::shared_ptr<ral::cache::CacheMachine> > initialize(int ralId,
+	std::string worker_id,
 	int gpuId,
 	std::string network_iface_name,
 	std::string ralHost,
 	int ralCommunicationPort,
+	std::vector<NodeMetaDataUCP> workers_ucp_info,
 	bool singleNode,
 	std::map<std::string, std::string> config_options);
 
@@ -19,14 +26,15 @@ void blazingSetAllocator(
 	std::map<std::string, std::string> config_options);
 
 size_t getFreeMemory();
-
 extern "C" {
 
 error_code_t initialize_C(int ralId,
+	std::string worker_id,
 	int gpuId,
 	std::string network_iface_name,
 	std::string ralHost,
 	int ralCommunicationPort,
+	std::vector<NodeMetaDataUCP> workers_ucp_info,
 	bool singleNode,
 	std::map<std::string, std::string> config_options);
 

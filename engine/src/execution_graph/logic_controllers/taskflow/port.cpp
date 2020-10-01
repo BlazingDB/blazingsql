@@ -15,6 +15,7 @@ std::shared_ptr<CacheMachine> & port::get_cache(const std::string & port_name) {
 	auto it = cache_machines_.find(port_name);
 	if (it == cache_machines_.end())
 		std::cout<<"ERROR get_cache did not find cache "<<port_name<<std::endl;
+
 	return it->second;
 }
 

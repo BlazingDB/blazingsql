@@ -87,13 +87,14 @@ private:
             return nullptr;
 		}
 		used_memory += bytes;
+        
 		return memory_resource->allocate(bytes, stream);
 	}
 
 	void do_deallocate(void* p, size_t bytes, cudaStream_t stream) override {
 		if (nullptr == p || bytes == 0) return;
 		if (used_memory < bytes) {
-			std::cerr << "blazing_device_memory_resource: Deallocating more bytes than used right now, used_memory: " << used_memory << " less than " << bytes << " bytes." << std::endl;
+			std::cerr << "blazing_device_memory_resource: Deallocating more bytes than used right now, used_memory: " << used_memory.load() << " less than " << bytes << " bytes." << std::endl;
 			used_memory = 0;
 		} else {
 			used_memory -= bytes;

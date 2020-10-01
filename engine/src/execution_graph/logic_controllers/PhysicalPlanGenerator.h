@@ -40,6 +40,18 @@ struct tree_processor {
 	std::vector<std::string> table_scans;
 	const bool transform_operators_bigger_than_gpu = false;
 
+	tree_processor(	node root,
+	std::shared_ptr<Context> context,
+	std::vector<ral::io::data_loader> input_loaders,
+	std::vector<ral::io::Schema> schemas,
+	std::vector<std::string> table_names,
+	std::vector<std::string> table_scans,
+	const bool transform_operators_bigger_than_gpu) : root(root),context(context),
+	input_loaders(input_loaders),schemas(schemas),table_names(table_names),
+	table_scans(table_scans), transform_operators_bigger_than_gpu(transform_operators_bigger_than_gpu){
+
+	}
+
 	std::shared_ptr<kernel> make_kernel(std::size_t kernel_id, std::string expr, std::shared_ptr<ral::cache::graph> query_graph) {
 		std::shared_ptr<kernel> k;
 		auto kernel_context = this->context->clone();
@@ -264,7 +276,7 @@ struct tree_processor {
 		}
 
 		if (this->root.kernel_unit != nullptr) {
-			query_graph->add_node(this->root.kernel_unit.get()); // register first node
+			query_graph->add_node(this->root.kernel_unit); // register first node
 			visit(*query_graph, &this->root, this->root.children);
 		}
 		return std::make_tuple(query_graph,max_kernel_id);
@@ -307,16 +319,16 @@ struct tree_processor {
 					bool concat_all = index == 0 ? left_concat_all : right_concat_all;
 					cache_settings join_cache_machine_config = cache_settings{.type = CacheType::CONCATENATING, .num_partitions = 1, .context = context->clone(),
 						.flow_control_bytes_threshold = flow_control_bytes_threshold, .concat_cache_num_bytes = join_partition_size_thresh, .concat_all = concat_all};
-						
-					query_graph += link(*child->kernel_unit, (*parent->kernel_unit)[port_name], join_cache_machine_config);
+					query_graph.addPair(ral::cache::kpair(child->kernel_unit, parent->kernel_unit, port_name, join_cache_machine_config));					
+
 
 				} else if (parent->kernel_unit->can_you_throttle_my_input()){
-					query_graph += link(*child->kernel_unit, (*parent->kernel_unit)[port_name], default_throttled_cache_machine_config);
+					query_graph.addPair(ral::cache::kpair(child->kernel_unit, parent->kernel_unit, port_name, default_throttled_cache_machine_config));					
 				} else {
 					cache_settings cache_machine_config;
 					cache_machine_config.context = context->clone();
 
-					query_graph += link(*child->kernel_unit, (*parent->kernel_unit)[port_name], cache_machine_config);
+					query_graph.addPair(ral::cache::kpair(child->kernel_unit, parent->kernel_unit, port_name, cache_machine_config));
 				}
 			} else {
 				
@@ -337,22 +349,21 @@ struct tree_processor {
 					cache_settings right_cache_machine_config = cache_settings{.type = CacheType::CONCATENATING, .num_partitions = 1, .context = context->clone(),
 						.flow_control_bytes_threshold = flow_control_bytes_threshold, .concat_cache_num_bytes = join_partition_size_thresh, .concat_all = right_concat_all};
 					
-					query_graph += link((*(child->kernel_unit))["output_a"], (*(parent->kernel_unit))["input_a"], left_cache_machine_config);
-					query_graph += link((*(child->kernel_unit))["output_b"], (*(parent->kernel_unit))["input_b"], right_cache_machine_config);
-
+					query_graph.addPair(ral::cache::kpair(child->kernel_unit, "output_a", parent->kernel_unit, "input_a", left_cache_machine_config));
+					query_graph.addPair(ral::cache::kpair(child->kernel_unit, "output_b", parent->kernel_unit, "input_b", right_cache_machine_config));
 
 				} else if ((child_kernel_type == kernel_type::SortAndSampleKernel &&	parent_kernel_type == kernel_type::PartitionKernel)
 						|| (child_kernel_type == kernel_type::SortAndSampleKernel &&	parent_kernel_type == kernel_type::PartitionSingleNodeKernel)) {
 
 					if (parent->kernel_unit->can_you_throttle_my_input()){
-						query_graph += link((*(child->kernel_unit))["output_a"], (*(parent->kernel_unit))["input_a"], default_throttled_cache_machine_config);
-						query_graph += link((*(child->kernel_unit))["output_b"], (*(parent->kernel_unit))["input_b"], default_throttled_cache_machine_config);
+						query_graph.addPair(ral::cache::kpair(child->kernel_unit, "output_a", parent->kernel_unit, "input_a", default_throttled_cache_machine_config));
+						query_graph.addPair(ral::cache::kpair(child->kernel_unit, "output_b", parent->kernel_unit, "input_b", default_throttled_cache_machine_config));
 					} else {
 						cache_settings cache_machine_config;
 						cache_machine_config.context = context->clone();
 
-						query_graph += link((*(child->kernel_unit))["output_a"], (*(parent->kernel_unit))["input_a"], cache_machine_config);
-						query_graph += link((*(child->kernel_unit))["output_b"], (*(parent->kernel_unit))["input_b"], cache_machine_config);
+						query_graph.addPair(ral::cache::kpair(child->kernel_unit, "output_a", parent->kernel_unit, "input_a", cache_machine_config));
+						query_graph.addPair(ral::cache::kpair(child->kernel_unit, "output_b", parent->kernel_unit, "input_b", cache_machine_config));
 					}
 
 				} else if ((child_kernel_type == kernel_type::PartitionKernel && parent_kernel_type == kernel_type::MergeStreamKernel)
@@ -366,13 +377,14 @@ struct tree_processor {
 					if (parent->kernel_unit->can_you_throttle_my_input()){
 						cache_settings cache_machine_config = cache_settings{.type = CacheType::FOR_EACH, .num_partitions = max_num_order_by_partitions_per_node,
 								.context = context->clone(), .flow_control_bytes_threshold = flow_control_bytes_threshold};
-						query_graph += link(*child->kernel_unit, *parent->kernel_unit, cache_machine_config);
+						query_graph.addPair(ral::cache::kpair(child->kernel_unit, parent->kernel_unit, cache_machine_config));
+
 					} else {
 						ral::cache::cache_settings cache_machine_config;
 						cache_machine_config.type = ral::cache::CacheType::FOR_EACH;
 						cache_machine_config.num_partitions = max_num_order_by_partitions_per_node;
 						cache_machine_config.context = context->clone();
-						query_graph += link(*child->kernel_unit, *parent->kernel_unit, cache_machine_config);
+						query_graph.addPair(ral::cache::kpair(child->kernel_unit, parent->kernel_unit, cache_machine_config));
 					}
 				} else if(child_kernel_type == kernel_type::TableScanKernel || child_kernel_type == kernel_type::BindableTableScanKernel) {
 					std::size_t concat_cache_num_bytes = 400000000; // 400 MB
@@ -384,12 +396,11 @@ struct tree_processor {
 					
 					cache_settings cache_machine_config = cache_settings{.type = CacheType::CONCATENATING, .num_partitions = 1, .context = context->clone(),
 						.flow_control_bytes_threshold = flow_control_bytes_threshold, .concat_cache_num_bytes = concat_cache_num_bytes, .concat_all = false};
-					query_graph += link(*child->kernel_unit, *parent->kernel_unit, cache_machine_config);
-
+					query_graph.addPair(ral::cache::kpair(child->kernel_unit, parent->kernel_unit, cache_machine_config));
 				} else {
 					cache_settings cache_machine_config;
 					cache_machine_config.context = context->clone();
-					query_graph += link(*child->kernel_unit, *parent->kernel_unit, cache_machine_config);
+					query_graph.addPair(ral::cache::kpair(child->kernel_unit, parent->kernel_unit, cache_machine_config));
 				}
 			}
 		}

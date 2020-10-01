@@ -51,7 +51,7 @@ public:
        const std::vector<rmm::device_buffer> &raw_buffers) {
     Node node(
         Address::TCP(address_metadata.ip, address_metadata.comunication_port,
-                     address_metadata.protocol_port));
+                     address_metadata.protocol_port), "");
     return std::make_shared<ReceivedDeviceMessage>(
         message_metadata.contextToken, node, message_metadata.total_row_size);
   }
@@ -86,7 +86,7 @@ void ExecMaster(){
 void ExecWorker(){
 
   // Create message
-  auto node = std::make_shared<Node>(Address::TCP("localhost", 8000, 9999));
+  auto node = std::make_shared<Node>(Address::TCP("localhost", 8000, 9999), "");
   ComponentMessage message{context_token, *node, 0};
 
   auto client = blazingdb::transport::ClientTCP::Make("localhost", 8000);
@@ -99,7 +99,7 @@ void ExecWorker(){
       FAIL() << e.what();
     }
   }
-  client->notifyLastMessageEvent(message.metadata()); 
+  client->notifyLastMessageEvent(message.metadata());
 }
 
 // TEST(SendInBatches, MasterAndWorker) {

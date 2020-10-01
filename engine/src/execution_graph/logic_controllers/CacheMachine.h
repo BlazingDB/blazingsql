@@ -30,7 +30,7 @@
 #include "execution_graph/logic_controllers/BlazingColumnView.h"
 #include <bmr/BlazingMemoryResource.h>
 #include "communication/CommunicationData.h"
-
+#include <exception>
 
 
 using namespace std::chrono_literals;
@@ -195,7 +195,8 @@ public:
 	* Gets the map storing the metadata.
 	* @return the map storing all of the metadata.
 	*/
-	std::map<std::string,std::string> get_values(){
+
+	std::map<std::string,std::string> get_values() const {
 		return this->values;
 	}
 
@@ -205,7 +206,6 @@ public:
 	*/
 	void set_values(std::map<std::string,std::string> new_values){
 		this->values= new_values;
-		print();
 	}
 private:
 	std::map<std::string,std::string> values; /**< Stores the mapping of metdata label to metadata value */
@@ -562,7 +562,7 @@ public:
 
 		std::unique_lock<std::mutex> lock(mutex_);
 		condition_variable_.wait(lock, [&, this] () {
-			if (count > this->processed){
+			if (count < this->processed){
 				throw std::runtime_error("WaitingQueue::wait_for_count encountered " + std::to_string(this->processed) + " when expecting " + std::to_string(count));
 			}
 			return count == this->processed;
@@ -701,7 +701,7 @@ public:
 	size_t get_next_size_in_bytes(){
 		std::unique_lock<std::mutex> lock(mutex_);
 		if (message_queue_.size() > 0){
-			message_queue_[0]->get_data().sizeInBytes();
+			return message_queue_[0]->get_data().sizeInBytes();
 		} else {
 			return 0;
 		}
@@ -737,7 +737,9 @@ public:
 					}
 				}
 				return done_waiting;
-			})){}
+			})){
+
+			}
 		if(this->message_queue_.size() == 0) {
 			return nullptr;
 		}
@@ -876,11 +878,11 @@ public:
 
 	virtual void clear();
 
-	virtual void addToCache(std::unique_ptr<ral::frame::BlazingTable> table, const std::string & message_id = "", bool always_add = false);
+	virtual bool addToCache(std::unique_ptr<ral::frame::BlazingTable> table, const std::string & message_id = "", bool always_add = false);
 
-	virtual void addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, const std::string & message_id = "", bool always_add = false);
+	virtual bool addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, const std::string & message_id = "", bool always_add = false);
 
-	virtual void addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> table, const std::string & message_id = "");
+	virtual bool addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> table, const std::string & message_id = "");
 
 	virtual void finish();
 

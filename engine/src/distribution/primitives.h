@@ -18,8 +18,7 @@ namespace distribution {
 	using namespace ral::frame;
 
 	void sendSamplesToMaster(Context * context, const BlazingTableView & samples, std::size_t table_total_rows);
-	std::pair<std::vector<NodeColumn>, std::vector<std::size_t> > collectSamples(Context * context);
-
+	
 	std::unique_ptr<BlazingTable> generatePartitionPlans(
 				cudf::size_type number_partitions, const std::vector<BlazingTableView> & samples,
 				const std::vector<cudf::order> & sortOrderTypes);
@@ -43,9 +42,7 @@ namespace distribution {
 
 	void distributePartitions(Context * context, std::vector<NodeColumnView> & partitions);
 
-	std::vector<NodeColumn> collectPartitions(Context * context);
 
-	std::vector<NodeColumn> collectSomePartitions(Context * context, int num_partitions);
 
 	void scatterData(Context * context, const BlazingTableView & table);
 
@@ -60,7 +57,6 @@ namespace distribution {
 
 	void distributeNumRows(Context * context, int64_t num_rows);
 
-	std::vector<int64_t> collectNumRows(Context * context);
 
 	void distributeLeftRightTableSizeBytes(Context * context, int64_t bytes_left, int64_t bytes_right);
 

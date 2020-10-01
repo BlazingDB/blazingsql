@@ -248,13 +248,15 @@ public:
 	ExternalBatchColumnDataSequence(std::shared_ptr<Context> context, const std::string & message_id, const ral::cache::kernel * kernel = nullptr)
 		: context{context}, last_message_counter{context->getTotalNodes() - 1}, kernel{kernel}
 	{
+		throw std::exception();
 		host_cache = std::make_shared<ral::cache::HostCacheMachine>(context, 0); //todo assing right id
 		std::string context_comm_token = context->getContextCommunicationToken();
 		const uint32_t context_token = context->getContextToken();
 		std::string comms_message_token = MessageType::MessageID() + "_" + context_comm_token;
-
+		
 		BlazingMutableThread t([this, comms_message_token, context_token, message_id](){
 			while(true){
+				/*
 					auto message = Server::getInstance().getHostMessage(context_token, comms_message_token);
 					if(!message) {
 						--last_message_counter;
@@ -268,7 +270,7 @@ public:
 						auto host_table = concreteMessage->releaseBlazingHostTable();
 						host_table->setPartitionId(concreteMessage->getPartitionId());
 						this->host_cache->addToCache(std::move(host_table), message_id);
-					}
+					} */
 			}
 		});
 		t.detach();

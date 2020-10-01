@@ -110,7 +110,8 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
 
   	context->incrementQuerySubstep();
     ral::distribution::distributePartitions(context, partitions);
-    std::vector<NodeColumn> remote_node_columns = ral::distribution::collectPartitions(context);
+    //TODO: reimplement this with new comms
+    std::vector<NodeColumn> remote_node_columns;// = ral::distribution::collectPartitions(context);
 
     std::vector<ral::frame::BlazingTableView> partitions_to_concat;
     for (int i = 0; i < remote_node_columns.size(); i++){

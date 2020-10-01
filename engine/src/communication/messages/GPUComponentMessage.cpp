@@ -186,7 +186,7 @@ std::shared_ptr<ReceivedMessage> deserialize_from_gpu(const MessageMetadata & me
 		const std::vector<ColumnTransport> & columns_offsets,
 		const std::vector<rmm::device_buffer> & raw_buffers) {
 
-	auto node = Node(Address::TCP(address_metadata.ip, address_metadata.comunication_port, address_metadata.protocol_port));
+	auto node = Node(Address::TCP(address_metadata.ip, address_metadata.comunication_port, address_metadata.protocol_port), "");
 
 	auto received_table = deserialize_from_gpu_raw_buffers(columns_offsets, raw_buffers);
 

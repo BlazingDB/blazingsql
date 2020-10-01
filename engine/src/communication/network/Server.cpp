@@ -19,11 +19,8 @@ void Server::start(unsigned short port, bool use_batch_processing) {
 	servers_[port_] = new Server();
 }
 
-// [static]
-void Server::close() { getInstance().comm_server->Close(); }
 
-// [static]
-Server & Server::getInstance() { return *servers_[port_]; }
+
 
 Server::Server() {
 	if (use_batch_processing_ == true) {

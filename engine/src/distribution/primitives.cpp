@@ -54,39 +54,6 @@ void sendSamplesToMaster(Context * context, const BlazingTableView & samples, st
 	Client::send(master_node, *message);
 }
 
-std::pair<std::vector<NodeColumn>, std::vector<std::size_t> > collectSamples(Context * context) {
-
-	std::string context_comm_token = context->getContextCommunicationToken();
-	const uint32_t context_token = context->getContextToken();
-	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + context_comm_token;
-
-	std::vector<NodeColumn> nodeColumns;
-	std::vector<std::size_t> table_total_rows;
-
-	size_t size = context->getWorkerNodes().size();
-	std::vector<bool> received(context->getTotalNodes(), false);
-	for(int k = 0; k < size; ++k) {
-		auto message = Server::getInstance().getMessage(context_token, message_id);
-
-		auto node = message->getSenderNode();
-		int node_idx = context->getNodeIndex(node);
-		if(received[node_idx]) {
-			auto logger = spdlog::get("batch_logger");
-			logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
-							"query_id"_a=context->getContextToken(),
-							"step"_a=context->getQueryStep(),
-							"substep"_a=context->getQuerySubstep(),
-							"info"_a="Already received collectSamples from node " + std::to_string(node_idx),
-							"duration"_a="");
-		}
-		auto concreteMessage = std::static_pointer_cast<ReceivedDeviceMessage>(message);
-		table_total_rows.push_back(concreteMessage->getTotalRowSize());
-		nodeColumns.emplace_back(std::make_pair(node, std::move(concreteMessage->releaseBlazingTable())));
-		received[node_idx] = true;
-	}
-
-	return std::make_pair(std::move(nodeColumns), table_total_rows);
-}
 
 
 std::unique_ptr<BlazingTable> generatePartitionPlans(
@@ -94,6 +61,7 @@ std::unique_ptr<BlazingTable> generatePartitionPlans(
 				const std::vector<cudf::order> & sortOrderTypes) {
 
 	std::unique_ptr<BlazingTable> concatSamples = ral::utilities::concatTables(samples);
+	
 
 	std::vector<cudf::null_order> null_orders(sortOrderTypes.size(), cudf::null_order::AFTER);
 	// TODO this is just a default setting. Will want to be able to properly set null_order
@@ -109,6 +77,9 @@ std::unique_ptr<BlazingTable> generatePartitionPlans(
 			break;
 		}
 	}
+	if(names.size() == 0){
+		throw std::exception();
+	}
 
 	return getPivotPointsTable(number_partitions, BlazingTableView(sortedSamples->view(), names));
 }
@@ -123,19 +94,6 @@ void distributePartitionPlan(Context * context, const BlazingTableView & pivots)
 	auto message = Factory::createPartitionPivotsMessage(message_id, context_token, node, pivots);
 	broadcastMessage(context, context->getWorkerNodes(), message);
 }
-
-std::unique_ptr<BlazingTable> getPartitionPlan(Context * context) {
-
-	std::string context_comm_token = context->getContextCommunicationToken();
-	const uint32_t context_token = context->getContextToken();
-	const std::string message_id = PartitionPivotsMessage::MessageID() + "_" + context_comm_token;
-
-	auto message = Server::getInstance().getMessage(context_token, message_id);
-
-	auto concreteMessage = std::static_pointer_cast<ReceivedDeviceMessage>(message);
-	return concreteMessage->releaseBlazingTable();
-}
-
 
 // This function locates the pivots in the table and partitions the data on those pivot points.
 // IMPORTANT: This function expects data to aready be sorted according to the searchColIndices and sortOrderTypes
@@ -171,12 +129,13 @@ std::vector<NodeColumnView> partitionData(Context * context,
                                     pivots.view(),
                                     sortOrderTypes,
                                     null_orders);
+	
 
 	std::vector<cudf::size_type> host_data(pivot_indexes->view().size());
 	CUDA_TRY(cudaMemcpy(host_data.data(), pivot_indexes->view().data<cudf::size_type>(), pivot_indexes->view().size() * sizeof(cudf::size_type), cudaMemcpyDeviceToHost));
 
-	std::vector<CudfTableView> partitioned_data = cudf::split(table.view(), host_data);
 
+	std::vector<CudfTableView> partitioned_data = cudf::split(table.view(), host_data);
 	std::vector<Node> all_nodes = context->getAllNodes();
 
 	RAL_EXPECTS(all_nodes.size() <= partitioned_data.size(), "Number of table partitions is smalled than total nodes");
@@ -292,46 +251,7 @@ void distributePartitions(Context * context, std::vector<NodeColumnView> & parti
 	pool.stop(true);
 }
 
-std::vector<NodeColumn> collectPartitions(Context * context) {
-	int num_partitions = context->getTotalNodes() - 1;
-	return collectSomePartitions(context, num_partitions);
-}
 
-std::vector<NodeColumn> collectSomePartitions(Context * context, int num_partitions) {
-
-	// Get the numbers of rals in the query
-	int number_rals = context->getTotalNodes() - 1;
-	std::vector<bool> received(context->getTotalNodes(), false);
-
-	// Create return value
-	std::vector<NodeColumn> node_columns;
-
-	// Get message from the server
-	std::string context_comm_token = context->getContextCommunicationToken();
-	const uint32_t context_token = context->getContextToken();
-	const std::string message_id = ColumnDataMessage::MessageID() + "_" + context_comm_token;
-
-	while(0 < num_partitions) {
-		auto message = Server::getInstance().getMessage(context_token, message_id);
-		num_partitions--;
-
-		auto node = message->getSenderNode();
-		int node_idx = context->getNodeIndex(node);
-		if(received[node_idx]) {
-			auto logger = spdlog::get("batch_logger");
-			logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
-							"query_id"_a=context->getContextToken(),
-							"step"_a=context->getQueryStep(),
-							"substep"_a=context->getQuerySubstep(),
-							"info"_a="Already received collectSomePartitions from node " + std::to_string(node_idx),
-							"duration"_a="");
-		}
-		auto concreteMessage = std::static_pointer_cast<ReceivedDeviceMessage>(message);
-		node_columns.emplace_back(std::make_pair(node, std::move(concreteMessage->releaseBlazingTable())));
-		received[node_idx] = true;
-	}
-	return node_columns;
-}
 
 void scatterData(Context * context, const BlazingTableView & table) {
 
@@ -432,95 +352,97 @@ void distributeNumRows(Context * context, int64_t num_rows) {
 
 std::vector<int64_t> collectNumRows(Context * context) {
 
-	int num_nodes = context->getTotalNodes();
-	std::vector<int64_t> node_num_rows(num_nodes);
-	std::vector<bool> received(num_nodes, false);
+	// int num_nodes = context->getTotalNodes();
+	// std::vector<int64_t> node_num_rows(num_nodes);
+	// std::vector<bool> received(num_nodes, false);
 
-	std::string context_comm_token = context->getContextCommunicationToken();
-	const uint32_t context_token = context->getContextToken();
-	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + context_comm_token;
+	// std::string context_comm_token = context->getContextCommunicationToken();
+	// const uint32_t context_token = context->getContextToken();
+	// const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + context_comm_token;
 
-	int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
-	for(cudf::size_type i = 0; i < num_nodes - 1; ++i) {
-		auto message = Server::getInstance().getMessage(context_token, message_id);
-		auto concrete_message = std::static_pointer_cast<ReceivedDeviceMessage>(message);
-		auto node = concrete_message->getSenderNode();
-		int node_idx = context->getNodeIndex(node);
-		assert(node_idx >= 0);
-		if(received[node_idx]) {
-			auto logger = spdlog::get("batch_logger");
-			logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
-							"query_id"_a=context->getContextToken(),
-							"step"_a=context->getQueryStep(),
-							"substep"_a=context->getQuerySubstep(),
-							"info"_a="Already received collectNumRows from node " + std::to_string(node_idx),
-							"duration"_a="");
-		}
-		node_num_rows[node_idx] = concrete_message->getTotalRowSize();
-		received[node_idx] = true;
-	}
+	// int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
+	// for(cudf::size_type i = 0; i < num_nodes - 1; ++i) {
+	// 	auto message = Server::getInstance().getMessage(context_token, message_id);
+	// 	auto concrete_message = std::static_pointer_cast<ReceivedDeviceMessage>(message);
+	// 	auto node = concrete_message->getSenderNode();
+	// 	int node_idx = context->getNodeIndex(node);
+	// 	assert(node_idx >= 0);
+	// 	if(received[node_idx]) {
+	// 		auto logger = spdlog::get("batch_logger");
+	// 		logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+	// 						"query_id"_a=context->getContextToken(),
+	// 						"step"_a=context->getQueryStep(),
+	// 						"substep"_a=context->getQuerySubstep(),
+	// 						"info"_a="Already received collectNumRows from node " + std::to_string(node_idx),
+	// 						"duration"_a="");
+	// 	}
+	// 	node_num_rows[node_idx] = concrete_message->getTotalRowSize();
+	// 	received[node_idx] = true;
+	// }
 
-	return node_num_rows;
+	// return node_num_rows;
+	return {};
 }
 
 void distributeLeftRightTableSizeBytes(Context * context, int64_t bytes_left, int64_t bytes_right) {
 
-	const std::string context_comm_token = context->getContextCommunicationToken();
-	const uint32_t context_token = context->getContextToken();
-	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + context_comm_token;
+	// const std::string context_comm_token = context->getContextCommunicationToken();
+	// const uint32_t context_token = context->getContextToken();
+	// const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + context_comm_token;
 
-	auto self_node = CommunicationData::getInstance().getSelfNode();
-	std::vector<int64_t> num_bytes_col_vect{bytes_left, bytes_right};
-	auto num_bytes_col = ral::utilities::vector_to_column(num_bytes_col_vect, cudf::data_type(cudf::type_id::INT64));
+	// auto self_node = CommunicationData::getInstance().getSelfNode();
+	// std::vector<int64_t> num_bytes_col_vect{bytes_left, bytes_right};
+	// auto num_bytes_col = ral::utilities::vector_to_column(num_bytes_col_vect, cudf::data_type(cudf::type_id::INT64));
 
-	CudfTableView num_bytes_table{{num_bytes_col->view()}};
-	std::vector<std::string> names{"left_num_bytes", "right_num_bytes"};
-	BlazingTableView num_bytes_blz_table(num_bytes_table, names);
-	auto message = Factory::createSampleToNodeMaster(message_id, context_token, self_node, 0, num_bytes_blz_table);
+	// CudfTableView num_bytes_table{{num_bytes_col->view()}};
+	// std::vector<std::string> names{"left_num_bytes", "right_num_bytes"};
+	// BlazingTableView num_bytes_blz_table(num_bytes_table, names);
+	// auto message = Factory::createSampleToNodeMaster(message_id, context_token, self_node, 0, num_bytes_blz_table);
 
-	int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
-	broadcastMessage(context, context->getAllOtherNodes(self_node_idx), message);
+	//int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
+	//broadcastMessage(context, context->getAllOtherNodes(self_node_idx), message);
 }
 
 void collectLeftRightTableSizeBytes(Context * context,	std::vector<int64_t> & node_num_bytes_left,
 			std::vector<int64_t> & node_num_bytes_right) {
 
-	int num_nodes = context->getTotalNodes();
-	node_num_bytes_left.resize(num_nodes);
-	node_num_bytes_right.resize(num_nodes);
-	std::vector<bool> received(num_nodes, false);
+	// int num_nodes = context->getTotalNodes();
+	// node_num_bytes_left.resize(num_nodes);
+	// node_num_bytes_right.resize(num_nodes);
+	// std::vector<bool> received(num_nodes, false);
 
-	const std::string context_comm_token = context->getContextCommunicationToken();
-	const uint32_t context_token = context->getContextToken();
-	const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + context_comm_token;
+	// const std::string context_comm_token = context->getContextCommunicationToken();
+	// const uint32_t context_token = context->getContextToken();
+	// const std::string message_id = SampleToNodeMasterMessage::MessageID() + "_" + context_comm_token;
 
-	int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
-	for(cudf::size_type i = 0; i < num_nodes - 1; ++i) {
-		auto message = Server::getInstance().getMessage(context_token, message_id);
-		auto concrete_message = std::static_pointer_cast<ReceivedDeviceMessage>(message);
-		auto node = concrete_message->getSenderNode();
-		std::unique_ptr<BlazingTable> num_bytes_data = concrete_message->releaseBlazingTable();
-		assert(num_bytes_data->view().num_columns() == 1);
-		assert(num_bytes_data->view().num_rows() == 2);
+	// int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
+	// for(cudf::size_type i = 0; i < num_nodes - 1; ++i) {
+	// 	auto message = Server::getInstance().getMessage(context_token, message_id);
+	// 	auto concrete_message = std::static_pointer_cast<ReceivedDeviceMessage>(message);
+	// 	auto node = concrete_message->getSenderNode();
+	// 	std::unique_ptr<BlazingTable> num_bytes_data = concrete_message->releaseBlazingTable();
+	// 	assert(num_bytes_data->view().num_columns() == 1);
+	// 	assert(num_bytes_data->view().num_rows() == 2);
 
-		std::vector<int64_t> host_data(num_bytes_data->view().column(0).size());
-		CUDA_TRY(cudaMemcpy(host_data.data(), num_bytes_data->view().column(0).data<int64_t>(), num_bytes_data->view().column(0).size() * sizeof(int64_t), cudaMemcpyDeviceToHost));
+	// 	std::vector<int64_t> host_data(num_bytes_data->view().column(0).size());
+	// 	CUDA_TRY(cudaMemcpy(host_data.data(), num_bytes_data->view().column(0).data<int64_t>(), num_bytes_data->view().column(0).size() * sizeof(int64_t), cudaMemcpyDeviceToHost));
 
-		int node_idx = context->getNodeIndex(node);
-		assert(node_idx >= 0);
-		if(received[node_idx]) {
-			auto logger = spdlog::get("batch_logger");
-			logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
-							"query_id"_a=context->getContextToken(),
-							"step"_a=context->getQueryStep(),
-							"substep"_a=context->getQuerySubstep(),
-							"info"_a="Already received collectLeftRightTableSizeBytes from node " + std::to_string(node_idx),
-							"duration"_a="");
-		}
-		node_num_bytes_left[node_idx] = host_data[0];
-		node_num_bytes_right[node_idx] = host_data[1];
-		received[node_idx] = true;
-	}
+	// 	int node_idx = context->getNodeIndex(node);
+	// 	assert(node_idx >= 0);
+	// 	if(received[node_idx]) {
+	// 		auto logger = spdlog::get("batch_logger");
+	// 		logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+	// 						"query_id"_a=context->getContextToken(),
+	// 						"step"_a=context->getQueryStep(),
+	// 						"substep"_a=context->getQuerySubstep(),
+	// 						"info"_a="Already received collectLeftRightTableSizeBytes from node " + std::to_string(node_idx),
+	// 						"duration"_a="");
+	// 	}
+	// 	node_num_bytes_left[node_idx] = host_data[0];
+	// 	node_num_bytes_right[node_idx] = host_data[1];
+	// 	received[node_idx] = true;
+	// }
+
 }
 
 }  // namespace distribution

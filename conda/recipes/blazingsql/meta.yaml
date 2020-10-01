@@ -35,6 +35,8 @@ requirements:
         - ninja
         - dask-cudf {{ minor_version }}.*
         - dask-cuda {{ minor_version }}.*
+        - ucx-py {{ minor_version }}.*
+        - ucx-proc=*=gpu
         - cudatoolkit {{ cuda_version }}.*
     host:
         - gtest
@@ -51,6 +53,8 @@ requirements:
         - ninja
         - dask-cudf {{ minor_version }}.*
         - dask-cuda {{ minor_version }}.*
+        - ucx-py {{ minor_version }}.*
+        - ucx-proc=*=gpu
         - cudatoolkit {{ cuda_version }}.*
     run:
         - gtest
@@ -63,6 +67,8 @@ requirements:
         - thrift 0.13.0
         - dask-cudf {{ minor_version }}.*
         - dask-cuda {{ minor_version }}.*
+        - ucx-py {{ minor_version }}.*
+        - ucx-proc=*=gpu
         - cudatoolkit {{ cuda_version }}.*
 
 test:
