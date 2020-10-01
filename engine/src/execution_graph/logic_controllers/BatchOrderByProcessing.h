@@ -333,7 +333,6 @@ public:
 	}
 
 	virtual kstatus run() {
-		using ColumnDataPartitionMessage = ral::communication::messages::ColumnDataPartitionMessage;
 
 		CodeTimer timer;
 

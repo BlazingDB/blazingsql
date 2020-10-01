@@ -10,6 +10,7 @@ namespace comm {
 class node {
 public:
   node(int idx, std::string id, ucp_ep_h ucp_ep, ucp_worker_h ucp_worker);
+  node(int idx, std::string id, std::string ip, int port);
 
   int index() const;
   std::string id() const;

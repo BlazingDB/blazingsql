@@ -503,7 +503,6 @@ public:
 				spdlog::logger* logger,
 				int table_idx)
 	{
-		using ColumnDataPartitionMessage = ral::communication::messages::ColumnDataPartitionMessage;
 
 		bool done = false;
 		// num_partitions = context->getTotalNodes() will do for now, but may want a function to determine this in the future.
@@ -817,7 +816,7 @@ public:
 		std::unique_ptr<ral::frame::BlazingTable> right_batch,
 		BatchSequence left_sequence,
 		BatchSequence right_sequence){
-		using ColumnDataPartitionMessage = ral::communication::messages::ColumnDataPartitionMessage;
+
 
 		this->context->incrementQuerySubstep();
 
@@ -900,7 +899,6 @@ public:
 		BatchSequence small_table_sequence,
 		BatchSequenceBypass big_table_sequence,
 		const std::pair<bool, bool> & scatter_left_right){
-		using ColumnDataMessage = ral::communication::messages::ColumnDataMessage;
 
 		this->context->incrementQuerySubstep();
 
@@ -965,7 +963,6 @@ public:
 					throw;
 				}
 			}
-			// ral::distribution::notifyLastTablePartitions(this->context.get(), ColumnDataMessage::MessageID());
 
 			auto nodes = context->getAllNodes();
 			for(std::size_t i = 0; i < nodes.size(); ++i) {
@@ -993,14 +990,6 @@ public:
 			}
 		});
 
-		// BlazingThread collect_small_table_thread([this, small_output_cache_name](){
-		// 	ExternalBatchColumnDataSequence<ColumnDataMessage> external_input_left(this->context, this->get_message_id(), this);
-
-		// 	while (external_input_left.wait_for_next()) {
-		// 		std::unique_ptr<ral::frame::BlazingHostTable> host_table = external_input_left.next();
-		// 		this->add_to_output_cache(std::move(host_table), small_output_cache_name);
-		// 	}
-		// });
 		distribute_small_table_thread.join();
 		auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
  		int total_count = node_count[self_node.id()];

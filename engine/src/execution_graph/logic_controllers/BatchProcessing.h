@@ -6,9 +6,7 @@
 #include "io/DataLoader.h"
 #include "io/Schema.h"
 #include "utilities/CommonOperations.h"
-#include "communication/messages/ComponentMessages.h"
-#include "communication/network/Server.h"
-#include <src/communication/network/Client.h>
+
 #include "parser/expression_utils.hpp"
 
 #include <cudf/io/functions.hpp>
@@ -228,102 +226,7 @@ private:
 	const ral::cache::kernel * kernel; /**< Pointer to the kernel that will receive the cache data. */
 };
 
-using ral::communication::network::Server;
-using ral::communication::network::Client;
-using ral::communication::messages::ReceivedHostMessage;
 
-/**
- * @brief Connects a HostCacheMachine to a server receiving certain types of messages,
- * so that basically the data sequencer is effectively iterating through batches
- * received from another node via out communication layer.
- */
-template<class MessageType>
-class ExternalBatchColumnDataSequence {
-public:
-	/**
-	 * Constructor for the ExternalBatchColumnDataSequence
-	 * @param context Shared context associated to the running query.
-	 * @param message_id Message identifier which will be associated with the underlying cache.
-	 * @param kernel The kernel that will actually receive the pulled data.
-	 */
-	ExternalBatchColumnDataSequence(std::shared_ptr<Context> context, const std::string & message_id, const ral::cache::kernel * kernel = nullptr)
-		: context{context}, last_message_counter{context->getTotalNodes() - 1}, kernel{kernel}
-	{
-		throw std::exception();
-		host_cache = std::make_shared<ral::cache::HostCacheMachine>(context, 0); //todo assing right id
-		std::string context_comm_token = context->getContextCommunicationToken();
-		const uint32_t context_token = context->getContextToken();
-		std::string comms_message_token = MessageType::MessageID() + "_" + context_comm_token;
-		
-		BlazingMutableThread t([this, comms_message_token, context_token, message_id](){
-			while(true){
-				/*
-					auto message = Server::getInstance().getHostMessage(context_token, comms_message_token);
-					if(!message) {
-						--last_message_counter;
-						if (last_message_counter == 0 ){
-							this->host_cache->finish();
-							break;
-						}
-					}	else{
-						auto concreteMessage = std::static_pointer_cast<ReceivedHostMessage>(message);
-						assert(concreteMessage != nullptr);
-						auto host_table = concreteMessage->releaseBlazingHostTable();
-						host_table->setPartitionId(concreteMessage->getPartitionId());
-						this->host_cache->addToCache(std::move(host_table), message_id);
-					} */
-			}
-		});
-		t.detach();
-	}
-
-	/**
-	 * Blocks executing thread until a new message is ready or when the message queue is empty.
-	 * @return true A new message is ready.
-	 * @return false There are no more messages on the host cache.
-	 */
-	bool wait_for_next() {
-		return host_cache->wait_for_next();
-	}
-
-	/**
-	 * Get the next message as a BlazingHostTable.
-	 * @return BlazingHostTable containing the next released message.
-	 */
-	std::unique_ptr<ral::frame::BlazingHostTable> next() {
-		std::shared_ptr<spdlog::logger> cache_events_logger;
-		cache_events_logger = spdlog::get("cache_events_logger");
-
-		CodeTimer cacheEventTimer(false);
-
-		cacheEventTimer.start();
-		auto output = host_cache->pullFromCache(context.get());
-		cacheEventTimer.stop();
-
-		if(output){
-			auto num_rows = output->num_rows();
-			auto num_bytes = output->sizeInBytes();
-
-			cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-							"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-							"query_id"_a=context->getContextToken(),
-							"source"_a=host_cache->get_id(),
-							"sink"_a=kernel->get_id(),
-							"num_rows"_a=num_rows,
-							"num_bytes"_a=num_bytes,
-							"event_type"_a="removeCache",
-							"timestamp_begin"_a=cacheEventTimer.start_time(),
-							"timestamp_end"_a=cacheEventTimer.end_time());
-		}
-
-		return output;
-	}
-private:
-	std::shared_ptr<Context> context; /**< Pointer to the shared query context. */
-	std::shared_ptr<ral::cache::HostCacheMachine> host_cache; /**< Host cache machine from which the data will be pulled. */
-	const ral::cache::kernel * kernel; /**< Pointer to the kernel that will receive the cache data. */
-	int last_message_counter; /**< Allows to stop waiting for messages keeping track of the last message received from each other node. */
-};
 
 /**
  * @brief Gets data from a data source, such as a set of files or from a DataFrame.

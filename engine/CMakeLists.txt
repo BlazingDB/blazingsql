@@ -296,8 +296,6 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingH
               ${CMAKE_SOURCE_DIR}/src/distribution/primitives.cpp
 
               ${CMAKE_SOURCE_DIR}/src/communication/factory/MessageFactory.cpp
-              ${CMAKE_SOURCE_DIR}/src/communication/network/Client.cpp
-              ${CMAKE_SOURCE_DIR}/src/communication/network/Server.cpp
               ${CMAKE_SOURCE_DIR}/src/communication/CommunicationData.cpp
               ${CMAKE_SOURCE_DIR}/src/communication/messages/MessageUtil.cu
               ${CMAKE_SOURCE_DIR}/src/communication/messages/GPUComponentMessage.cpp

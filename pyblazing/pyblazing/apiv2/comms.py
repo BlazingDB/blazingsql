@@ -4,42 +4,8 @@ from dask.distributed import default_client
 from ucp.endpoint_reuse import EndpointReuse
 from distributed.comm.ucx import UCXListener
 from distributed.comm.ucx import UCXConnector
-"""
-def set_id_mappings_on_worker(mapping):
-    worker = get_worker()
-    worker.ucx_addresses = {}
-    for worker_address in mapping:
-        if worker_address != get_worker().address:
-            worker.ucx_addresses[worker_address] = mapping[worker_address]
+import netifaces as ni
 
-
-def initialize_listeners():
-    def callback_init(ep):
-        return 0
-    worker = get_worker()
-    ip, port = parse_host_port(get_worker().address)
-    worker.ucp_listener = EndpointReuse.create_listener(callback_init, port)
-
-    return "ucx://%s:%s" % (ip, port)
-
-
-async def initialize_endpoints():
-    worker = get_worker()
-    addresses = worker.ucx_addresses
-    worker.ucp_endpoints = {}
-    for address in addresses.values():
-        ip, port = parse_host_port(address)
-        worker.ucp_endpoints[address] = await EndpointReuse.create_endpoint(
-            ip, port)
-
-
-def listen(client=None):
-    client = client if client is not None else default_client()
-    worker_id_maps = client.run(initialize_listeners)
-    client.run(set_id_mappings_on_worker, worker_id_maps)
-    client.run(initialize_endpoints, wait=True)
-    return worker_id_maps
-"""
 
 def set_id_mappings_on_worker(mapping):
     worker = get_worker()
@@ -51,12 +17,41 @@ async def init_endpoints():
     for addr in get_worker().ucx_addresses.values():
         await UCX.get().get_endpoint(addr)
 
+def checkSocket(socketNum):
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    socket_free = False
+    try:
+        s.bind(("127.0.0.1", socketNum))
+        socket_free = True
+    except socket.error as e:
+        if e.errno == errno.EADDRINUSE:
+            socket_free = False
+        else:
+            # something else raised the socket.error exception
+            print("ERROR: Something happened when checking socket " + str(socketNum))
+    s.close()
+    return socket_free
 
-def listen(client=None):
-    client = client if client is not None else default_client()
-    worker_id_maps = client.run(UCX.start_listener_on_worker, None, wait=True)
-    client.run(set_id_mappings_on_worker, worker_id_maps, wait=True)
-    client.run(UCX.init_handlers, wait=True)
+def get_communication_port(network_interface):
+    ralCommunicationPort = random.randint(10000, 32000) + ralId
+    logging.info("Worker IP: %s   Port: %d", workerIp, ralCommunicationPort)
+    workerIp = ni.ifaddresses(network_interface)[ni.AF_INET][0]["addr"]
+    while checkSocket(ralCommunicationPort) is False:
+        ralCommunicationPort = random.randint(10000, 32000) + ralId
+    return {"port":ralCommunicationPort, "ip":workerIp}
+
+
+def listen(client, network_interface="", protocol="TCP"):
+    if protocol == "UCX":
+        worker_id_maps = client.run(UCX.start_listener_on_worker, None, wait=True)
+        client.run(set_id_mappings_on_worker, worker_id_maps, wait=True)
+        client.run(UCX.init_handlers, wait=True)
+    elif protocol == "TCP":
+        worker_id_maps = client.run(get_communication_port, network_interface, wait=True)
+        client.run(set_id_mappings_on_worker, worker_id_maps, wait=True)
+    else:
+        raise Exception('Unknown protocol specified.')
     return worker_id_maps
 
 

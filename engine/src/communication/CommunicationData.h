@@ -13,9 +13,7 @@ class CommunicationData {
 public:
 	static CommunicationData & getInstance();
 
-	void initialize(const std::string & worker_id,
-		const std::string & selfRalIp,
-		int16_t selfRalCommunicationPort);
+	void initialize(const std::string & worker_id);
 
 	const blazingdb::transport::Node & getSelfNode();
 

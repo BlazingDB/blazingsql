@@ -1,4 +1,4 @@
-
+/*
 #include "blazingdb/transport/Server.h"
 #include "blazingdb/concurrency/BlazingThread.h"
 #include "blazingdb/network/TCPSocket.h"
@@ -90,14 +90,7 @@ MetadataType read_metadata(void * fd) {
 
 namespace {
 
-/**
-	@brief  A clas that implements the Server interface. Here each data frames are processed as GPU Messages.
-	this class has special event names to specify the type of message.
-	"GPUS" this represent a dataframe Message
-	"LAST" this represent a last event used to indicate that there is 
-	not going to be more message with the same message_token
-	"" 
-*/ 
+
 class ServerTCP : public Server {
 public:
 	ServerTCP(unsigned short port) : server_socket{port} {}
@@ -117,9 +110,7 @@ public:
 	}
 
 protected:
-	/**
-	 * Simple-TPC-Server
-	 */
+
 	blazingdb::network::TCPServerSocket server_socket;
 
 	BlazingThread thread;
@@ -225,17 +216,7 @@ void ServerTCP::Run() {
 	std::this_thread::yield();
 }
 
-/**
-	@brief  A clas that extends a ServerTPC class. The difference is that this class enable the API client to decide when 
-	the BlazingTable is going to be materialized by maintaning its host representation as a HostMessage.
-	This class uses getHostDeserializationFunction method to decode the dataframe message as a BlazingHostTable.
 
-	This class has special event names to specify the type of message.
-	"GPUS" this represent a dataframe Message
-	"LAST" this represent a last event used to indicate that there is 
-	not going to be more message with the same message_token
-	"" 
-*/ 
 class ServerForBatchProcessing : public ServerTCP {
 public:
 	ServerForBatchProcessing(unsigned short port) : ServerTCP(port) {}
@@ -301,3 +282,4 @@ std::unique_ptr<Server> Server::BatchProcessing(unsigned short port) {
 
 }  // namespace transport
 }  // namespace blazingdb
+*/

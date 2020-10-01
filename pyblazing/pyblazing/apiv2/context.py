@@ -92,27 +92,15 @@ RelConversionExceptionClass = jpype.JClass(
 
 
 
-def checkSocket(socketNum):
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    socket_free = False
-    try:
-        s.bind(("127.0.0.1", socketNum))
-        socket_free = True
-    except socket.error as e:
-        if e.errno == errno.EADDRINUSE:
-            socket_free = False
-        else:
-            # something else raised the socket.error exception
-            print("ERROR: Something happened when checking socket " + str(socketNum))
-    s.close()
-    return socket_free
 
 
 class blazing_allocation_mode(IntEnum):
     CudaDefaultAllocation = (0,)
     PoolAllocation = (1,)
     CudaManagedMemory = (2,)
+
+
+
 
 
 def initializeBlazing(
@@ -125,18 +113,15 @@ def initializeBlazing(
     initial_pool_size=1000000000,
     config_options={},
     logging_dir_path="blazing_log",
+    ralCommunicationPort = 50000,
+    worker_addressses=[],
 ):
     last_str = '|%(levelname)s|||"%(message)s"||||||'
     FORMAT = "%(asctime)s|" + str(ralId) + last_str
     filename = os.path.join(logging_dir_path, "pyblazing." + str(ralId) + ".log")
     logging.basicConfig(filename=filename, format=FORMAT, level=logging.INFO)
-    workerIp = ni.ifaddresses(networkInterface)[ni.AF_INET][0]["addr"]
-    ralCommunicationPort = random.randint(10000, 32000) + ralId
-
-    logging.info("Worker IP: %s   Port: %d", workerIp, ralCommunicationPort)
-
-    while checkSocket(ralCommunicationPort) is False:
-        ralCommunicationPort = random.randint(10000, 32000) + ralId
+   
+    
 
     if not pool:
         initial_pool_size = 0
@@ -174,27 +159,41 @@ def initializeBlazing(
 
     cio.blazingSetAllocatorCaller(allocator.encode(), initial_pool_size, config_options)
 
-    worker = dask.distributed.get_worker()
 
     workers_ucp_info = []
     if singleNode is False:
+        worker = dask.distributed.get_worker()
+
         for dask_addr in worker.ucx_addresses:
-            addr = worker.ucx_addresses[dask_addr]
-            #ep = worker.ucp_endpoints[addr].handle.ep
-            ep = UCX.get()._endpoints[addr].ep
-            workers_ucp_info.append({
-                'worker_id': dask_addr.encode(),
-                'ep_handle' : ep.handle.ep.get_ucp_endpoint(),
-                'worker_handle': ep.handle.ep.get_ucp_worker(),
-                'context_handle': ep.handle.ep._ctx.context.handle
-            })
+            if config_options["PROTOCOL"] == "UCX":
+                addr = worker.ucx_addresses[dask_addr]
+
+                #ep = worker.ucp_endpoints[addr].handle.ep
+                ep = UCX.get()._endpoints[addr].ep
+                workers_ucp_info.append({
+                    'worker_id': dask_addr.encode(),
+                    'ep_handle' : ep.handle.ep.get_ucp_endpoint(),
+                    'worker_handle': ep.handle.ep.get_ucp_worker(),
+                    'context_handle': ep.handle.ep._ctx.context.handle,
+                    'ip': "".encode(),
+                    'port':0
+                })
+            else:
+                other_worker = worker_addressses[dask_addr]
+                workers_ucp_info.append({
+                    'worker_id': dask_addr.encode(),
+                    'ip': other_worker.ip,
+                    'port': other_worker.port,
+                    'ep_handle' : 0,
+                    'worker_handle': 0,
+                    'context_handle': 0
+                })
 
     output_cache, input_cache = cio.initializeCaller(
         ralId,
         worker_id.encode(),
         0,
         networkInterface.encode(),
-        workerIp.encode(),
         ralCommunicationPort,
         workers_ucp_info,
         singleNode,
@@ -210,7 +209,7 @@ def initializeBlazing(
     else:
         log_path = os.path.join(os.getcwd(), logging_dir_path)
     print("returning ral")
-    return ralCommunicationPort, workerIp, log_path
+    return ralCommunicationPort, ni.ifaddresses(networkInterface)[ni.AF_INET][0]["addr"], log_path
 
 
 def getNodePartitionKeys(df, client):
@@ -278,6 +277,7 @@ def generateGraphs(
     try:
         graph = cio.runGenerateGraphCaller(
                         masterIndex,
+
                         nodes,
                         tables,
                         table_scans,
@@ -808,7 +808,8 @@ def initialize_server_directory(dir_path):
         try:
             os.mkdir(dir_path)
         except OSError as error:
-            logging.error("Could not create directory: " + error)
+            
+            logging.error(f"Could not create directory: {dir_path}" + error)
             raise
         return True
     else:
@@ -1250,10 +1251,13 @@ class BlazingContext(object):
             self.config_options["BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD".encode()] = str(
                 host_memory_quota * len(set(host_list)) / len(workers_info)
             ).encode()
-
+            print("listening")
             # Start listener on each worker to send received messages to router
-            listen(client=self.dask_client)
-
+            if "PROTOCOL" in config_options:
+                worker_maps = listen(self.dask_client,network_interface=network_interface,protocol=config_options["PROTOCOL"])
+            else:
+                worker_maps = listen(self.dask_client,network_interface=network_interface,protocol="TCP")
+            print("listened")
             workers = list(self.dask_client.scheduler_info()["workers"])
             for worker in workers:
                 dask_futures.append(
@@ -1269,6 +1273,7 @@ class BlazingContext(object):
                         config_options=self.config_options,
                         logging_dir_path=logging_dir_path,
                         workers=[worker],
+                        ralCommunicationPort = worker_maps[worker]["port"]
                     )
                 )
                 worker_list.append(worker)
@@ -2388,7 +2393,7 @@ class BlazingContext(object):
             try:
                 graph = cio.runGenerateGraphCaller(
                                 masterIndex,
-                                self.nodes,
+                                [],
                                 nodeTableList[0],
                                 table_scans,
                                 fileTypes,
@@ -2413,6 +2418,7 @@ class BlazingContext(object):
                 graph_futures = [self.dask_client.submit(
                         generateGraphs,
                         masterIndex,
+                        ["self"],
                         [self.nodes[0],],
                         nodeTableList[0],
                         table_scans,
@@ -2429,6 +2435,9 @@ class BlazingContext(object):
                 dask_futures = [self.dask_client.submit(executeGraph, ctxToken,
                 pure=False)]
             else:
+                worker_ids = []
+                for worker in self.dask_client.scheduler_info()["workers"]:
+                    worker_ids.append(worker)
                 graph_futures = []
                 i = 0
                 for node in self.nodes:
@@ -2437,6 +2446,7 @@ class BlazingContext(object):
                         self.dask_client.submit(
                             generateGraphs,
                             masterIndex,
+                            worker_ids,
                             self.nodes,
                             nodeTableList[i],
                             table_scans,

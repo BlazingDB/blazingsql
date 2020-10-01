@@ -6,7 +6,7 @@
 
 #include "CalciteExpressionParsing.h"
 #include "CodeTimer.h"
-#include "communication/network/Server.h"
+
 #include "operators/OrderBy.h"
 #include "utilities/CommonOperations.h"
 #include "utilities/StringUtils.h"

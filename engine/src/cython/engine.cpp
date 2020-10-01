@@ -11,7 +11,7 @@
 #include "../io/data_provider/UriDataProvider.h"
 #include "../skip_data/SkipDataProcessor.h"
 #include "../execution_graph/logic_controllers/LogicalFilter.h"
-#include "communication/network/Server.h"
+
 #include <numeric>
 #include <map>
 #include "communication/CommunicationData.h"
@@ -121,7 +121,7 @@ void fix_column_names_duplicated(std::vector<std::string> & col_names){
 }
 
 std::shared_ptr<ral::cache::graph> runGenerateGraph(int32_t masterIndex,
-	std::vector<NodeMetaDataTCP> tcpMetadata,
+	std::vector<std::string> worker_ids,
 	std::vector<std::string> tableNames,
 	std::vector<std::string> tableScans,
 	std::vector<TableSchema> tableSchemas,
@@ -148,10 +148,8 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(int32_t masterIndex,
 	auto& communicationData = ral::communication::CommunicationData::getInstance();
 
 	std::vector<Node> contextNodes;
-	for(auto currentMetadata : tcpMetadata) {
-		auto address =
-			blazingdb::transport::Address::TCP(currentMetadata.ip, currentMetadata.communication_port, 0);
-		contextNodes.push_back(Node(address, currentMetadata.worker_id));
+	for(auto worker_id : worker_ids) {
+		contextNodes.push_back(Node( worker_id));
 	}
 
 	Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], "", config_options};
@@ -204,9 +202,9 @@ std::cout<<"4"<<std::endl;
 	std::cout<<"deregistered"<<std::endl;
 	return result;
 }
-
+/*
 std::unique_ptr<ResultSet> performPartition(int32_t masterIndex,
-	std::vector<NodeMetaDataTCP> tcpMetadata,
+	
 	int32_t ctxToken,
 	const ral::frame::BlazingTableView & table,
 	std::vector<std::string> column_names) {
@@ -256,7 +254,7 @@ std::unique_ptr<ResultSet> performPartition(int32_t masterIndex,
 		throw;
 	}
 }
-
+*/
 
 
 std::unique_ptr<ResultSet> runSkipData(ral::frame::BlazingTableView metadata,
@@ -297,7 +295,7 @@ TableScanInfo getTableScanInfo(std::string logicalPlan){
 }
 /*
 std::pair<std::unique_ptr<PartitionedResultSet>, error_code_t> runQuery_C(int32_t masterIndex,
-	std::vector<NodeMetaDataTCP> tcpMetadata,
+	
 	std::vector<std::string> tableNames,
 	std::vector<std::string> tableScans,
 	std::vector<TableSchema> tableSchemas,
@@ -362,10 +360,10 @@ std::pair<std::unique_ptr<ResultSet>, error_code_t> runSkipData_C(
 		return std::make_pair(std::move(result), E_EXCEPTION);
 	}
 }
-
+/*
 std::pair<std::unique_ptr<ResultSet>, error_code_t> performPartition_C(
 	int32_t masterIndex,
-	std::vector<NodeMetaDataTCP> tcpMetadata,
+
 	int32_t ctxToken,
 	const ral::frame::BlazingTableView & table,
 	std::vector<std::string> column_names) {
@@ -374,7 +372,6 @@ std::pair<std::unique_ptr<ResultSet>, error_code_t> performPartition_C(
 
 	try {
 		result = std::move(performPartition(masterIndex,
-					tcpMetadata,
 					ctxToken,
 					table,
 					column_names));
@@ -382,4 +379,4 @@ std::pair<std::unique_ptr<ResultSet>, error_code_t> performPartition_C(
 	} catch (std::exception& e) {
 		return std::make_pair(std::move(result), E_EXCEPTION);
 	}
-}
+}*/

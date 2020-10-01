@@ -1,3 +1,4 @@
+/*
 #pragma once
 
 #include <cassert>
@@ -96,3 +97,4 @@ private:
 
 }  // namespace transport
 }  // namespace blazingdb
+*/

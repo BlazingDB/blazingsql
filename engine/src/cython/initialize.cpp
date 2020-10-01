@@ -34,12 +34,10 @@
 #include "config/GPUManager.cuh"
 
 #include "communication/CommunicationData.h"
-#include "communication/network/Client.h"
-#include "communication/network/Server.h"
 
 #include <bmr/initializer.h>
 
-
+#include "cudf/detail/gather.hpp"
 #include "communication/CommunicationInterface/node.hpp"
 #include "communication/CommunicationInterface/protocols.hpp"
 #include "communication/CommunicationInterface/messageSender.hpp"
@@ -69,7 +67,7 @@ void handler(int sig) {
   exit(1);
 }
 
-std::string get_ip(const std::string & iface_name = "eth0") {
+std::string get_ip(const std::string & iface_name = "eno1") {
 	int fd;
 	struct ifreq ifr;
 
@@ -142,7 +140,7 @@ std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> > initiali
 	std::string worker_id,
 	int gpuId,
 	std::string network_iface_name,
-	std::string ralHost,
+
 	int ralCommunicationPort,
 	std::vector<NodeMetaDataUCP> workers_ucp_info,
 	bool singleNode,
@@ -156,7 +154,7 @@ std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> > initiali
 
 	signal(SIGSEGV, handler);   // install our handler
 
-	ralHost = get_ip(network_iface_name);
+	std::string ralHost = get_ip(network_iface_name);
 
 	std::string initLogMsg = "INITIALIZING RAL. RAL ID: " + std::to_string(ralId)  + ", ";
 	initLogMsg = initLogMsg + "RAL Host: " + ralHost + ":" + std::to_string(ralCommunicationPort) + ", ";
@@ -303,15 +301,11 @@ std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> > initiali
 
 	// start ucp servers
 
-	communicationData.initialize(worker_id, ralHost, ralCommunicationPort);
+	communicationData.initialize(worker_id);
 
 	std::cout<<"going to init comms!!!"<<std::endl;
 	if(! singleNode){
 		std::map<std::string, comm::node> nodes_info_map;
-		for (auto &&node_data : workers_ucp_info) {
-			std::cout<<"ep handle is "<< node_data.ep_handle<<" and worker handle is "<< node_data.worker_handle<<std::endl;
-			nodes_info_map.emplace(node_data.worker_id, comm::node(ralId, node_data.worker_id, reinterpret_cast<ucp_ep_h>(node_data.ep_handle), reinterpret_cast<ucp_worker_h>(node_data.worker_handle)));
-		}
 
 		std::cout<<"getting worker"<<worker_id<<std::endl;
 		std::cout<<"initializing listener"<<std::endl;
@@ -327,12 +321,17 @@ std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> > initiali
 		}
 
 		if(protocol == comm::blazing_protocol::ucx){
+			for (auto &&node_data : workers_ucp_info) {
+				std::cout<<"ep handle is "<< node_data.ep_handle<<" and worker handle is "<< node_data.worker_handle<<std::endl;
+				nodes_info_map.emplace(node_data.worker_id, comm::node(ralId, node_data.worker_id, reinterpret_cast<ucp_ep_h>(node_data.ep_handle), reinterpret_cast<ucp_worker_h>(node_data.worker_handle)));
+			}
+
 			comm::ucx_message_listener::initialize_message_listener(
 				ucp_context, self_worker,nodes_info_map,20);
 			std::cout<<"starting polling"<<std::endl;
 			comm::ucx_message_listener::get_instance()->poll_begin_message_tag(false);
 
-			std::cout<<"initializing sender"<<std::endl;
+			std::cout<<"initializing sender1"<<std::endl;
 
 			comm::message_sender::initialize_instance(output_input_caches.first,
 				nodes_info_map,
@@ -341,6 +340,10 @@ std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> > initiali
 
 
 		}else{
+
+			for (auto &&node_data : workers_ucp_info) {
+				nodes_info_map.emplace(node_data.worker_id, comm::node(ralId, node_data.worker_id, node_data.ip, node_data.port ));
+			}
 
 			comm::tcp_message_listener::initialize_message_listener(nodes_info_map,ralCommunicationPort,20);
 			std::cout<<"initializing sender"<<std::endl;
@@ -393,7 +396,7 @@ error_code_t initialize_C(int ralId,
 	std::string worker_id,
 	int gpuId,
 	std::string network_iface_name,
-	std::string ralHost,
+
 	int ralCommunicationPort,
 	std::vector<NodeMetaDataUCP> workers_ucp_info,
 	bool singleNode,
@@ -404,7 +407,7 @@ error_code_t initialize_C(int ralId,
 			worker_id,
 			gpuId,
 			network_iface_name,
-			ralHost,
+
 			ralCommunicationPort,
 			workers_ucp_info,
 			singleNode,
