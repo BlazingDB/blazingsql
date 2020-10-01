@@ -38,8 +38,7 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 		auto files = filesAll[i];
 		auto fileType = fileTypes[i];
 
-		auto kwargs = ral::io::to_map(tableSchemaCppArgKeys[i], tableSchemaCppArgValues[i]);
-		ral::io::ReaderArgs args = ral::io::getReaderArgs((ral::io::DataType) fileType, kwargs);
+		auto args_map = ral::io::to_map(tableSchemaCppArgKeys[i], tableSchemaCppArgValues[i]);
 
 		std::vector<cudf::type_id> types;
 		for(int col = 0; col < tableSchemas[i].types.size(); col++) {
@@ -58,11 +57,11 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 		} else if(fileType == gdfFileType || fileType == daskFileType) {
 			parser = std::make_shared<ral::io::gdf_parser>(tableSchema.blazingTableViews);
 		} else if(fileType == ral::io::DataType::ORC) {
-			parser = std::make_shared<ral::io::orc_parser>(args.orcReaderArg);
+			parser = std::make_shared<ral::io::orc_parser>(args_map);
 		} else if(fileType == ral::io::DataType::JSON) {
-			parser = std::make_shared<ral::io::json_parser>(args.jsonReaderArg);
+			parser = std::make_shared<ral::io::json_parser>(args_map);
 		} else if(fileType == ral::io::DataType::CSV) {
-			parser = std::make_shared<ral::io::csv_parser>(args.csvReaderArg);
+			parser = std::make_shared<ral::io::csv_parser>(args_map);
 		} else if(fileType == ral::io::DataType::ARROW){
 	     	parser = std::make_shared<ral::io::arrow_parser>(tableSchema.arrow_table);
 		}
@@ -170,29 +169,20 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(int32_t masterIndex,
 
 std::unique_ptr<PartitionedResultSet> runExecuteGraph(std::shared_ptr<ral::cache::graph> graph) {
 	// Execute query
-	std::cout<<"executing"<<std::endl;
 	std::vector<std::unique_ptr<ral::frame::BlazingTable>> frames;
 	frames = execute_graph(graph);
-	std::cout<<"graph exceuted"<<std::endl;
 
 	std::unique_ptr<PartitionedResultSet> result = std::make_unique<PartitionedResultSet>();
-	std::cout<<"1"<<std::endl;
 
 	assert( frames.size()>0 );
-	std::cout<<"2"<<std::endl;
 
 	result->names = frames[0]->names();
-	std::cout<<"3"<<std::endl;
 
 	fix_column_names_duplicated(result->names);
-std::cout<<"4"<<std::endl;
 
 	for(auto& cudfTable : frames){
 		result->cudfTables.emplace_back(std::move(cudfTable->releaseCudfTable()));
-		std::cout<<"5"<<std::endl;
-
 	}
-	std::cout<<"6"<<std::endl;
 
 	result->skipdata_analysis_fail = false;
 	std::cout<<"pretty much done now deregistering graph is"<<graph <<" and instance is "<<&comm::graphs_info::getInstance()<<std::endl;
@@ -225,7 +215,7 @@ std::unique_ptr<ResultSet> performPartition(int32_t masterIndex,
 		}
 
 		Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], "", std::map<std::string, std::string>()};
-		
+
 		const std::vector<std::string> & table_col_names = table.names();
 
 		for(auto col_name:column_names){
@@ -293,6 +283,7 @@ TableScanInfo getTableScanInfo(std::string logicalPlan){
 	getTableScanInfo(logicalPlan, relational_algebra_steps, table_names, table_columns);
 	return TableScanInfo{relational_algebra_steps, table_names, table_columns};
 }
+
 /*
 std::pair<std::unique_ptr<PartitionedResultSet>, error_code_t> runQuery_C(int32_t masterIndex,
 	
@@ -309,29 +300,7 @@ std::pair<std::unique_ptr<PartitionedResultSet>, error_code_t> runQuery_C(int32_
 	std::vector<std::vector<std::map<std::string, std::string>>> uri_values,
 	std::map<std::string, std::string> config_options) {
 
-	std::unique_ptr<PartitionedResultSet> result = nullptr;
 
-	try {
-		result = std::move(runQuery(masterIndex,
-			tcpMetadata,
-			tableNames,
-			tableScans,
-			tableSchemas,
-			tableSchemaCppArgKeys,
-			tableSchemaCppArgValues,
-			filesAll,
-			fileTypes,
-			ctxToken,
-			query,
-			accessToken,
-			uri_values,
-			config_options));
-		return std::make_pair(std::move(result), E_SUCCESS);
-	} catch (std::exception& e) {
-		return std::make_pair(std::move(result), E_EXCEPTION);
-	}
-}
-*/
 std::pair<TableScanInfo, error_code_t> getTableScanInfo_C(std::string logicalPlan) {
 
 	TableScanInfo result;

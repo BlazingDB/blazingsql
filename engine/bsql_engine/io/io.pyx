@@ -60,6 +60,10 @@ class BlazingSetAllocatorError(BlazingError):
     """BlazingSetAllocator Error."""
 cdef public PyObject * BlazingSetAllocatorError_ = <PyObject *>BlazingSetAllocatorError
 
+class GetFreeMemoryError(BlazingError):
+    """GetFreeMemory Error."""
+cdef public PyObject * GetFreeMemoryError_ = <PyObject *>GetFreeMemoryError
+
 class GetProductDetailsError(BlazingError):
     """GetProductDetails Error."""
 cdef public PyObject * GetProductDetailsError_ = <PyObject *>GetProductDetailsError
@@ -141,7 +145,11 @@ cdef void blazingSetAllocatorPython(string allocation_mode, size_t initial_pool_
     with nogil:
         cio.blazingSetAllocator(allocation_mode, initial_pool_size, config_options)
 
-cdef map[string, string] getProductDetailsPython() nogil except +:
+cdef size_t getFreeMemoryPython() nogil except *:
+    with nogil:
+        return cio.getFreeMemory()
+
+cdef map[string, string] getProductDetailsPython() nogil except *:
     with nogil:
         return cio.getProductDetails()
 
@@ -273,6 +281,8 @@ cpdef finalizeCaller():
 cpdef blazingSetAllocatorCaller(string allocation_mode, size_t initial_pool_size, map[string,string] config_options):
     blazingSetAllocatorPython(allocation_mode, initial_pool_size, config_options)
 
+cpdef getFreeMemoryCaller():
+    return getFreeMemoryPython()
 
 cpdef getProductDetailsCaller():
     my_map = getProductDetailsPython()

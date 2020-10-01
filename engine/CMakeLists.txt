@@ -170,6 +170,9 @@ elseif (DEFINED ENV{CONDA_PREFIX})
     link_directories($ENV{CONDA_PREFIX}/lib64/)
 
 endif ()
+
+link_directories(${CMAKE_CUDA_IMPLICIT_LINK_DIRECTORIES})
+
 message(WARNING "BSQL_BLD_PREFIX set to: ${BSQL_BLD_PREFIX}")
 message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 
@@ -183,16 +186,36 @@ include(CTest)
 
 find_package(CURL REQUIRED)
 
-find_package(Threads)
+# this breaks powerpc custom compiler
+#find_package(Threads)
+
 find_package(PythonLibs)
 # TODO jp mario c.gonzales we must use find here!
 #find_package(spdlog REQUIRED)
 
 find_package(GTest REQUIRED)
 
+# BEGIN UCX
 set(UCX_INSTALL_DIR $ENV{CONDA_PREFIX})
 set(UCX_INCLUDE_DIR $ENV{CONDA_PREFIX}/include)
 find_package(UCX REQUIRED)
+# END UCX
+
+# BEGIN find arrow
+find_path(ARROW_INCLUDE_DIR "arrow" HINTS "$ENV{ARROW_ROOT}/include")
+find_library(ARROW_LIB "arrow" NAMES libarrow HINTS "$ENV{ARROW_ROOT}/lib" "$ENV{ARROW_ROOT}/build")
+find_library(ARROW_CUDA_LIB "arrow_cuda" NAMES libarrow_cuda HINTS "$ENV{ARROW_ROOT}/lib" "$ENV{ARROW_ROOT}/build")
+message(STATUS "ARROW: ARROW_INCLUDE_DIR set to ${ARROW_INCLUDE_DIR}")
+message(STATUS "ARROW: ARROW_LIB set to ${ARROW_LIB}")
+message(STATUS "ARROW: ARROW_CUDA_LIB set to ${ARROW_CUDA_LIB}")
+add_library(arrow SHARED IMPORTED ${ARROW_LIB})
+add_library(arrow_cuda SHARED IMPORTED ${ARROW_CUDA_LIB})
+
+if(ARROW_INCLUDE_DIR AND ARROW_LIB AND ARROW_CUDA_LIB)
+  set_target_properties(arrow PROPERTIES IMPORTED_LOCATION ${ARROW_LIB})
+  set_target_properties(arrow_cuda PROPERTIES IMPORTED_LOCATION ${ARROW_CUDA_LIB})
+endif(ARROW_INCLUDE_DIR AND ARROW_LIB AND ARROW_CUDA_LIB)
+# END find arrow
 
 # BEGIN MAIN #
 
@@ -247,6 +270,7 @@ include_directories(
     $ENV{INSTALL_PREFIX}/include/blazingdb/io
     ${PYTHON_INCLUDE_DIRS}
     ${CUDF_TEST_INCLUDE}
+    "${ARROW_INCLUDE_DIR}"
     )
 
 ## Target source files
@@ -310,6 +334,11 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingH
 
 link_directories(${BSQL_BLD_PREFIX}/lib)
 
+# These new var are for custom build process (powerpc)
+link_directories($ENV{THRIFT_INSTALL_DIR})
+link_directories($ENV{SNAPPY_INSTALL_DIR})
+link_directories($ENV{LZ4_INSTALL_DIR})
+
 add_library(blazingsql-engine SHARED ${SRC_FILES})
 
 if(GCS_SUPPORT)
@@ -324,11 +353,11 @@ endif()
 set_target_properties(blazingsql-engine PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_link_libraries(blazingsql-engine
     blazingdb-io
-    Threads::Threads
+    #Threads::Threads
+    pthread
     blazingdb-transport
 
     cudf
-    rmm
     zmq
     cudart
     cuda

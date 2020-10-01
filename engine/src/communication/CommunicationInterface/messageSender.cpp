@@ -19,7 +19,7 @@ void message_sender::initialize_instance(std::shared_ptr<ral::cache::CacheMachin
 		ucp_worker_h origin_node,
 		int ral_id,
 		comm::blazing_protocol protocol){
-        message_sender::instance = new message_sender(
+	message_sender::instance = new message_sender(
             output_cache,node_address_map,num_threads,context,origin_node,ral_id,protocol);
 }
 
@@ -42,8 +42,8 @@ message_sender::message_sender(std::shared_ptr<ral::cache::CacheMachine> output_
 		}
 
 		request_size = attr.request_size;
-
-		std::cout << "message_sender request_size: " << request_size << std::endl;
+	}else{
+		std::cout<<"Wroong protocol"<<std::endl;
 	}
 }
 

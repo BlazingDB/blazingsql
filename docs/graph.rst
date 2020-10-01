@@ -189,7 +189,7 @@ There are three implementations `blazing_device_memory_resource`, `blazing_host_
 to manange to keep track of GPU, HOST and DISK memory consumption.
 
 The `blazing_device_memory_resource` internally has a `internal_blazing_device_memory_resource` which implements the `rmm::mr::device_memory_resource` interface.
-When a BlazingContext() is first created it will create a new `internal_blazing_device_memory_resource` and set it as the default resource using `rmm::mr::set_default_resource`.
+When a BlazingContext() is first created it will create a new `internal_blazing_device_memory_resource` and set it as the default resource using `rmm::mr::set_current_device_resource`.
 
 What form the `internal_blazing_device_memory_resource` takes is dependent on what parameters are passed to `BlazingContext()` parameters **allocator** and **pool**. 
 Different allocators settings can make the allocator use different underlying RMM allocator types. If the allocator is set to **existing**, then it will take the current

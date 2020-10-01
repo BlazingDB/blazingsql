@@ -178,16 +178,19 @@ public:
                     auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
                     if (group_column_indices.size() == 0) {
                         if(this->context->isMasterNode(self_node)) {
-                            this->output_.get_cache()->addToCache(std::move(batch),"",true);
-
-							node_count[self_node.id()]++;
+                            bool added = this->output_.get_cache()->addToCache(std::move(batch),"",true);
+                            if (added) {
+							    node_count[self_node.id()]++;
+                            }
                         } else {
                             if (!set_empty_part_for_non_master_node){ // we want to keep in the non-master nodes something, so that the cache is not empty
                                 std::unique_ptr<ral::frame::BlazingTable> empty =
                                     ral::utilities::create_empty_table(batch->toBlazingTableView());
-                                this->add_to_output_cache(std::move(empty));
+                                bool added = this->add_to_output_cache(std::move(empty));
                                 set_empty_part_for_non_master_node = true;
-                                node_count[self_node.id()]++;
+                                if (added) {
+                                    node_count[self_node.id()]++;
+                                }
                             }
 
                             ral::cache::MetadataDictionary metadata;
@@ -198,8 +201,11 @@ public:
                             metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, self_node.id());
                             metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, this->context->getMasterNode().id());
                             auto output_cache = this->query_graph->get_output_message_cache();
-                            output_cache->addCacheData(std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(std::move(batch), metadata)));
-							node_count[this->context->getMasterNode().id()]++;
+                            bool added = output_cache->addCacheData(std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(std::move(batch), metadata)));
+                            if (added) {
+							    node_count[this->context->getMasterNode().id()]++;
+                            }
+
 						}
                     } else {
                         CudfTableView batch_view = batch->view();
@@ -245,12 +251,16 @@ public:
                             auto partition = std::make_unique<ral::frame::BlazingTable>(partitioned[i], batch->names());
 							partition->ensureOwnership();
                             if (this->context->getNode(i) == self_node){
-                                this->add_to_output_cache(std::move(partition));
-                                node_count[self_node.id()]++;
+                                bool added = this->add_to_output_cache(std::move(partition));
+                                if (added) {
+                                    node_count[self_node.id()]++;
+                                }
                             } else {
                                 metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, this->context->getNode(i).id());
-								node_count[this->context->getNode(i).id()]++;
-                                output_cache->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(std::move(partition), metadata),"",true);
+                                bool added = output_cache->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(std::move(partition), metadata),"",true);
+                                if (added) {
+								    node_count[this->context->getNode(i).id()]++;
+                                }
 							}
                         }
                     }
@@ -352,8 +362,6 @@ public:
         try {
             while (input.wait_for_next()) {
                 auto batch = input.next();
-                // std::cout<<"MergeAggregateKernel batch "<<batch_count<<std::endl;
-                // ral::utilities::print_blazing_table_view_schema(batch->toBlazingTableView(), "MergeAggregateKernel_batch" + std::to_string(batch_count));
                 batch_count++;
                 tableViewsToConcat.emplace_back(batch->toBlazingTableView());
                 tablesToConcat.emplace_back(std::move(batch));

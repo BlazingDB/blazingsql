@@ -3,6 +3,7 @@
 #include <random>
 #include <utilities/CommonOperations.h>
 #include <utilities/DebuggingUtils.h>
+#include <cudf/io/orc.hpp>
 #include "communication/CommunicationData.h"
 #include <stdio.h>
 
@@ -42,8 +43,8 @@ size_t CacheDataLocalFile::sizeInBytes() const {
 }
 
 std::unique_ptr<ral::frame::BlazingTable> CacheDataLocalFile::decache() {
-	cudf_io::read_orc_args in_args{cudf_io::source_info{this->filePath_}};
-	auto result = cudf_io::read_orc(in_args);
+	cudf::io::orc_reader_options read_opts = cudf::io::orc_reader_options::builder(cudf::io::source_info{this->filePath_});
+	auto result = cudf::io::read_orc(read_opts);
 
 	// Remove temp orc files
 	const char *orc_path_file = this->filePath_.c_str();
@@ -57,13 +58,15 @@ CacheDataLocalFile::CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable>
 	this->size_in_bytes = table->sizeInBytes();
 	this->filePath_ = orc_files_path + "/.blazing-temp-" + randomString(64) + ".orc";
 
-	cudf_io::table_metadata metadata;
+	cudf::io::table_metadata metadata;
 	for(auto name : table->names()) {
 		metadata.column_names.emplace_back(name);
 	}
-	cudf_io::write_orc_args out_args(cudf_io::sink_info{this->filePath_}, table->view(), &metadata);
 
-	cudf_io::write_orc(out_args);
+	cudf::io::orc_writer_options out_opts = cudf::io::orc_writer_options::builder(cudf::io::sink_info{this->filePath_}, table->view())
+		.metadata(&metadata);
+
+	cudf::io::write_orc(out_opts);
 }
 std::unique_ptr<GPUCacheDataMetaData> cast_cache_data_to_gpu_with_meta(std::unique_ptr<CacheData> base_pointer){
 	return std::unique_ptr<GPUCacheDataMetaData>(static_cast<GPUCacheDataMetaData *>(base_pointer.release()));
@@ -166,7 +169,7 @@ uint64_t CacheMachine::get_num_rows_added(){
 	return num_rows_added.load();
 }
 
-void CacheMachine::addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> host_table, const std::string & message_id) {
+bool CacheMachine::addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> host_table, const std::string & message_id) {
 
 	// we dont want to add empty tables to a cache, unless we have never added anything
 	if (!this->something_added || host_table->num_rows() > 0){
@@ -191,7 +194,11 @@ void CacheMachine::addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTa
 		auto item =	std::make_unique<message>(std::move(cache_data), message_id);
 		this->waitingCache->put(std::move(item));
 		this->something_added = true;
+
+		return true;
 	}
+
+	return false;
 }
 
 void CacheMachine::put(size_t message_id, std::unique_ptr<ral::frame::BlazingTable> table) {
@@ -207,7 +214,7 @@ void CacheMachine::clear() {
 	this->waitingCache->finish();
 }
 
-void CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, const std::string & message_id, bool always_add){
+bool CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, const std::string & message_id, bool always_add){
 
 	// we dont want to add empty tables to a cache, unless we have never added anything
 	if ((!this->something_added || cache_data->num_rows() > 0) || always_add){
@@ -236,7 +243,7 @@ void CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_dat
 					"info"_a="Add to CacheMachine general CacheData object into GPU cache ",
 					"duration"_a="",
 					"kernel_id"_a=message_id,
-					"rows"_a=cache_data->num_rows()); 
+					"rows"_a=cache_data->num_rows());
 
 			}
 
@@ -275,10 +282,14 @@ void CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_dat
 			// }); t.detach();
 		}
 		this->something_added = true;
+
+		return true;
 	}
+
+	return false;
 }
 
-void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, const std::string & message_id, bool always_add) {
+bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, const std::string & message_id, bool always_add) {
 	// we dont want to add empty tables to a cache, unless we have never added anything
 	if (!this->something_added || table->num_rows() > 0 || always_add){
 		for (auto col_ind = 0; col_ind < table->num_columns(); col_ind++){
@@ -312,7 +323,7 @@ void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, c
 
 					// before we put into a cache, we need to make sure we fully own the table
 					table->ensureOwnership();
-					
+
 					auto cache_data = std::make_unique<GPUCacheData>(std::move(table));
 					auto item =	std::make_unique<message>(std::move(cache_data), message_id);
 					this->waitingCache->put(std::move(item));
@@ -365,7 +376,11 @@ void CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, c
 			cacheIndex++;
 		}
 		this->something_added = true;
+
+		return true;
 	}
+
+	return false;
 }
 
 void CacheMachine::wait_until_finished() {
@@ -576,8 +591,8 @@ size_t CacheMachine::downgradeCacheData() {
 						}
 						auto cache_data = std::make_unique<CacheDataLocalFile>(std::move(table), orc_files_path);
 						auto new_message = std::make_unique<message>(std::move(cache_data), message_id);
-						all_messages[i] = std::move(new_message);						
-					}					
+						all_messages[i] = std::move(new_message);
+					}
 					break;
 				}
 				cacheIndex++;
@@ -585,7 +600,7 @@ size_t CacheMachine::downgradeCacheData() {
 			break;
 		}
 	}
-	
+
 	this->waitingCache->put_all_unsafe(std::move(all_messages));
 	return bytes_downgraded;
 }
@@ -669,7 +684,7 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 					this->waitingCache->put(std::move(collected_messages[i]));
 				}
 				flow_control_condition_variable.notify_all();
-				break;				
+				break;
 			}
 		}
 

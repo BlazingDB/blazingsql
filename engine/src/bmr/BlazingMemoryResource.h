@@ -2,15 +2,14 @@
 
 #include <cassert>
 #include <atomic>
+#include <set>
 
 #include <cuda_runtime_api.h>
 
 #include <rmm/mr/device/device_memory_resource.hpp>
 #include <rmm/mr/device/cuda_memory_resource.hpp>
 #include <rmm/mr/device/managed_memory_resource.hpp>
-#include <rmm/mr/device/cnmem_managed_memory_resource.hpp>
-#include <rmm/mr/device/cnmem_memory_resource.hpp>
-#include <rmm/mr/device/default_memory_resource.hpp>
+#include <rmm/mr/device/per_device_resource.hpp>
 
 #include "config/GPUManager.cuh"
 
@@ -56,14 +55,8 @@ public:
         } else if (allocation_mode == "managed_memory_resource"){
             memory_resource_owner = std::make_unique<rmm::mr::managed_memory_resource>();
             memory_resource = memory_resource_owner.get();
-        } else if (allocation_mode == "cnmem_memory_resource"){
-            memory_resource_owner = std::make_unique<rmm::mr::cnmem_memory_resource>(initial_pool_size);
-            memory_resource = memory_resource_owner.get();
-        } else if (allocation_mode == "cnmem_managed_memory_resource"){
-            memory_resource_owner = std::make_unique<rmm::mr::cnmem_managed_memory_resource>(initial_pool_size);
-            memory_resource = memory_resource_owner.get();
         } else {  //(allocation_mode == "existing"){
-            memory_resource = rmm::mr::get_default_resource();
+            memory_resource = rmm::mr::get_current_device_resource();
         } 
 
         memory_limit = custom_threshold * total_memory_size;
@@ -94,13 +87,14 @@ private:
             return nullptr;
 		}
 		used_memory += bytes;
+        
 		return memory_resource->allocate(bytes, stream);
 	}
 
 	void do_deallocate(void* p, size_t bytes, cudaStream_t stream) override {
 		if (nullptr == p || bytes == 0) return;
 		if (used_memory < bytes) {
-			std::cerr << "blazing_device_memory_resource: Deallocating more bytes than used right now, used_memory: " << used_memory << " less than " << bytes << " bytes." << std::endl;
+			std::cerr << "blazing_device_memory_resource: Deallocating more bytes than used right now, used_memory: " << used_memory.load() << " less than " << bytes << " bytes." << std::endl;
 			used_memory = 0;
 		} else {
 			used_memory -= bytes;
@@ -188,7 +182,7 @@ public:
         initialized_resource.reset(new internal_blazing_device_memory_resource(
                 allocation_mode, initial_pool_size, device_mem_resouce_consumption_thresh));
         
-        rmm::mr::set_default_resource(initialized_resource.get());
+        rmm::mr::set_current_device_resource(initialized_resource.get());
         
         is_initialized = true;
     }

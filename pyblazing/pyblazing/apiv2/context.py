@@ -23,6 +23,7 @@ import collections
 from pyhive import hive
 from .hive import (
     convertTypeNameStrToCudfType,
+    cudfTypeToCsvType,
     getFolderListFromPartitions,
     getPartitionsFromUserPartitions,
     get_hive_table,
@@ -48,6 +49,8 @@ import logging
 
 from enum import IntEnum
 
+import platform
+
 jpype.addClassPath(
     os.path.join(os.getenv("CONDA_PREFIX"), "lib/blazingsql-algebra.jar")
 )
@@ -55,14 +58,37 @@ jpype.addClassPath(
     os.path.join(os.getenv("CONDA_PREFIX"), "lib/blazingsql-algebra-core.jar")
 )
 
+machine_processor = platform.processor()
+
+if machine_processor in ("x86_64", "x64"):
+    machine_processor = "amd64"
+
+the_java_home = "CONDA_PREFIX"
+
+if "JAVA_HOME" in os.environ:
+    the_java_home = "JAVA_HOME"
+
 # NOTE felipe try first with CONDA_PREFIX/jre/lib/amd64/server/libjvm.so
 # (for older Java versions e.g. 8.x)
-jvm_path = os.environ["CONDA_PREFIX"] + "/jre/lib/amd64/server/libjvm.so"
+java_home_path = os.environ[the_java_home]
+jvm_path = java_home_path + "/lib/" + machine_processor + "/server/libjvm.so"
 
 if not os.path.isfile(jvm_path):
     # NOTE felipe try a second time using CONDA_PREFIX/lib/server/
     # (for newer java versions e.g. 11.x)
-    jvm_path = os.environ["CONDA_PREFIX"] + "/lib/server/libjvm.so"
+    jvm_path = os.environ[the_java_home] + "/lib/server/libjvm.so"
+    if machine_processor == "amd64":
+        if not os.path.isfile(jvm_path):
+            jvm_path = (
+                java_home_path + "/jre/lib/" + machine_processor + "/server/libjvm.so"
+            )
+    elif machine_processor in ("ppc64", "ppc64le"):
+        jvm_path = (
+            os.environ[the_java_home]
+            + "/lib/"
+            + machine_processor
+            + "/default/libjvm.so"
+        )
 
 #jpype.startJVM("-ea", convertStrings=False, jvmpath=jvm_path)
 jpype.startJVM()
@@ -92,8 +118,6 @@ RelConversionExceptionClass = jpype.JClass(
 
 
 
-
-
 class blazing_allocation_mode(IntEnum):
     CudaDefaultAllocation = (0,)
     PoolAllocation = (1,)
@@ -101,21 +125,7 @@ class blazing_allocation_mode(IntEnum):
 
 
 
-
-
-def initializeBlazing(
-    ralId=0,
-    worker_id='',
-    networkInterface="lo",
-    singleNode=False,
-    allocator="default",
-    pool=True,
-    initial_pool_size=1000000000,
-    config_options={},
-    logging_dir_path="blazing_log",
-    ralCommunicationPort = 50000,
-    worker_addressses=[],
-):
+def getWorkerCommData(ralId=0, networkInterface="lo", logging_dir_path="blazing_log"):
     last_str = '|%(levelname)s|||"%(message)s"||||||'
     FORMAT = "%(asctime)s|" + str(ralId) + last_str
     filename = os.path.join(logging_dir_path, "pyblazing." + str(ralId) + ".log")
@@ -123,6 +133,28 @@ def initializeBlazing(
    
     
 
+    if (os.path.isabs(logging_dir_path)):
+        log_path = logging_dir_path
+    else:
+        log_path = os.path.join(os.getcwd(), logging_dir_path)
+
+    return ralCommunicationPort, workerIp, log_path
+
+
+def initializeBlazing(
+    ralId=0,
+    worker_id='',
+    networkInterface="lo",
+    singleNode=False,
+    nodes=[],
+    allocator="default",
+    pool=True,
+    initial_pool_size=1000000000,
+    config_options={},
+    logging_dir_path="blazing_log",
+    ralCommunicationPort = 50000,
+    worker_addressses=[
+):
     if not pool:
         initial_pool_size = 0
     elif pool and initial_pool_size is None:
@@ -136,8 +168,6 @@ def initializeBlazing(
         "existing",
         "cuda_memory_resource",
         "managed_memory_resource",
-        "cnmem_memory_resource",
-        "cnmem_managed_memory_resource",
     ]
     if allocator not in possible_allocators:
         print(
@@ -152,18 +182,14 @@ def initializeBlazing(
         allocator = "cuda_memory_resource"
     elif not pool and allocator == "managed":
         allocator = "managed_memory_resource"
-    elif pool and allocator == "default":
-        allocator = "cnmem_memory_resource"
-    elif pool and allocator == "managed":
-        allocator = "cnmem_managed_memory_resource"
 
     cio.blazingSetAllocatorCaller(allocator.encode(), initial_pool_size, config_options)
+
 
 
     workers_ucp_info = []
     if singleNode is False:
         worker = dask.distributed.get_worker()
-
         for dask_addr in worker.ucx_addresses:
             if config_options["PROTOCOL"] == "UCX":
                 addr = worker.ucx_addresses[dask_addr]
@@ -189,6 +215,7 @@ def initializeBlazing(
                     'context_handle': 0
                 })
 
+    self_node_tcp_data = next(n for n in nodes if n['worker'] == worker_id)
     output_cache, input_cache = cio.initializeCaller(
         ralId,
         worker_id.encode(),
@@ -210,6 +237,7 @@ def initializeBlazing(
         log_path = os.path.join(os.getcwd(), logging_dir_path)
     print("returning ral")
     return ralCommunicationPort, ni.ifaddresses(networkInterface)[ni.AF_INET][0]["addr"], log_path
+
 
 
 def getNodePartitionKeys(df, client):
@@ -807,9 +835,8 @@ def initialize_server_directory(dir_path):
     if not os.path.exists(dir_path):
         try:
             os.mkdir(dir_path)
-        except OSError as error:
-            
-            logging.error(f"Could not create directory: {dir_path}" + error)
+        except OSError as error:            
+            logging.error(f"Could not create directory: {dir_path}" + str(error))
             raise
         return True
     else:
@@ -832,6 +859,14 @@ def remove_orc_files_from_disk(data_dir):
                 creation_time = os.path.getctime(full_path_file)
                 if (current_time - creation_time) // (1 * 60 * 60) >= 1:
                     os.remove(full_path_file)
+
+
+# Updates the dtype from `object` to `str` to be more friendly
+def convert_friendly_dtype_to_string(list_types):
+    for i in range(len(list_types)):
+        if list_types[i] == "object":
+            list_types[i] = "str"
+    return list_types
 
 
 class BlazingTable(object):
@@ -1132,12 +1167,21 @@ class BlazingContext(object):
             MAX_SEND_MESSAGE_THREADS : The number of threads available to send
                     outgoing messages.
                     default: 20
-            LOGGING_LEVEL : Set the level (as string) of the current tool for
-                    logging. Log levels have order of priority:
-                    {trace, debug, info, warn, error, critical}
+            LOGGING_LEVEL : Set the level (as string) to register into the logs
+                    for the current tool of logging. Log levels have order of priority:
+                    {trace, debug, info, warn, err, critical, off}. Using 'trace' will
+                    registers all info.
+                    NOTE: This parameter only works when used in the
+                    BlazingContext
+                    default: 'trace'
+            LOGGING_FLUSH_LEVEL : Set the level (as string) of the flush for
+                    the current tool of logging. Log levels have order of priority:
+                    {trace, debug, info, warn, err, critical, off}
                     NOTE: This parameter only works when used in the
                     BlazingContext
                     default: 'warn'
+            TRANSPORT_BUFFER_BYTE_SIZE : The size in bytes about the pinned buffer memory
+                    default: 75 MBs
 
         Examples
         --------
@@ -1259,18 +1303,15 @@ class BlazingContext(object):
                 worker_maps = listen(self.dask_client,network_interface=network_interface,protocol="TCP")
             print("listened")
             workers = list(self.dask_client.scheduler_info()["workers"])
+            worker_list = []
+            i = 0
+            dask_futures = []
             for worker in workers:
                 dask_futures.append(
                     self.dask_client.submit(
-                        initializeBlazing,
+                        getWorkerCommData,
                         ralId=i,
-                        worker_id=worker,
                         networkInterface=network_interface,
-                        singleNode=False,
-                        allocator=allocator,
-                        pool=pool,
-                        initial_pool_size=initial_pool_size,
-                        config_options=self.config_options,
                         logging_dir_path=logging_dir_path,
                         workers=[worker],
                         ralCommunicationPort = worker_maps[worker]["port"]
@@ -1278,8 +1319,8 @@ class BlazingContext(object):
                 )
                 worker_list.append(worker)
                 i = i + 1
+
             i = 0
-            print("collecting dask futures of initialize")
             for connection in dask_futures:
                 ralPort, ralIp, log_path = connection.result()
                 node = {}
@@ -1290,6 +1331,28 @@ class BlazingContext(object):
                 self.node_log_paths.append(log_path)
                 i = i + 1
 
+            i = 0
+            dask_futures = []
+            for worker in workers:
+                dask_futures.append(
+                    self.dask_client.submit(
+                        initializeBlazing,
+                        ralId=i,
+                        worker_id=worker,
+                        networkInterface=network_interface,
+                        singleNode=False,
+                        nodes=self.nodes,
+                        allocator=allocator,
+                        pool=pool,
+                        initial_pool_size=initial_pool_size,
+                        config_options=self.config_options,
+                        workers=[worker],
+                    )
+                )
+                i = i + 1
+
+            for connection in dask_futures:
+                connection.result()
 
             # need to initialize this logging independently, in case its set as a relative path
             # and the location from where the python script is running is different
@@ -1305,22 +1368,30 @@ class BlazingContext(object):
             initialize_server_directory(logging_dir_path)
             initialize_server_directory(cache_dir_path)
 
-            ralPort, ralIp, log_path = initializeBlazing(
+            ralPort, ralIp, log_path = getWorkerCommData(
                 ralId=0,
-                worker_id='',
                 networkInterface="lo",
-                singleNode=True,
-                allocator=allocator,
-                pool=pool,
-                initial_pool_size=initial_pool_size,
-                config_options=self.config_options,
-                logging_dir_path=logging_dir_path,
+                logging_dir_path=logging_dir_path
             )
+
             node = {}
+            node["worker"] = ''
             node["ip"] = ralIp
             node["communication_port"] = ralPort
             self.nodes.append(node)
             self.node_log_paths.append(log_path)
+
+            initializeBlazing(
+                ralId=0,
+                worker_id='',
+                networkInterface="lo",
+                singleNode=True,
+                nodes=self.nodes,
+                allocator=allocator,
+                pool=pool,
+                initial_pool_size=initial_pool_size,
+                config_options=self.config_options,
+            )
 
         self.fs = FileSystem()
 
@@ -1557,6 +1628,50 @@ class BlazingContext(object):
                 del self.tables[tableName]
         finally:
             self.lock.release()
+
+    def get_free_memory(self):
+        """
+            This function returns a dictionary which contains as
+            key the gpuID and as value the free memory (bytes)
+
+            Example
+            --------
+            # single-GPU
+            >>> from blazingsql import BlazingContext
+            >>> bc = BlazingContext()
+            >>> free_mem = bc.get_free_memory()
+            >>> print(free_mem)
+                    {0: 4234220154}
+
+            # multi-GPU (4 GPUs):
+            >>> from blazingsql import BlazingContext
+            >>> from dask_cuda import LocalCUDACluster
+            >>> from dask.distributed import Client
+            >>> cluster = LocalCUDACluster()
+            >>> client = Client(cluster)
+            >>> bc = BlazingContext(dask_client=client, network_interface='lo')
+            >>> free_mem = bc.get_free_memory()
+            >>> print(free_mem)
+                    {0: 4234220154, 1: 4104210987,
+                     2: 4197720291, 3: 3934320116}
+        """
+        if self.dask_client:
+            dask_futures = []
+            workers_id = []
+            workers = tuple(self.dask_client.scheduler_info()["workers"])
+            for worker_id, worker in enumerate(workers):
+                free_memory = self.dask_client.submit(
+                    cio.getFreeMemoryCaller, workers=[worker], pure=False
+                )
+                dask_futures.append(free_memory)
+                workers_id.append(worker_id)
+            aslist = self.dask_client.gather(dask_futures)
+            free_memory_dictionary = dict(zip(workers_id, aslist))
+            return free_memory_dictionary
+        else:
+            free_memory_dictionary = {}
+            free_memory_dictionary[0] = cio.getFreeMemoryCaller()
+            return free_memory_dictionary
 
     def create_table(self, table_name, input, **kwargs):
         """
@@ -1856,6 +1971,22 @@ class BlazingContext(object):
                 table.file_column_names = parsedSchema["names"]
                 table.column_types = parsedSchema["types"]
 
+            # this is particularly important for csv files to ensure that if it was set to implicitly determine,
+            # it only did so for the first file. For the rest we want to guarantee that they are all returning
+            # the same types, so we are setting it in the args
+            table.args["names"] = table.column_names
+            table.args["names"] = [i.decode() for i in table.args["names"]]
+
+            dtypes_list = []
+            for i in range(0, len(table.column_types)):
+                dtype_str = cudfTypeToCsvType[table.column_types[i]]
+                # cudfTypeToCsvType uses: timestamp[s], timestamp[ms], timestamp[us], timestamp[ns]
+                if "timestamp" in dtype_str:
+                    dtypes_list.append("date64")
+                else:
+                    dtypes_list.append(dtype_str)
+            table.args["dtype"] = dtypes_list
+
             table.slices = table.getSlices(len(self.nodes))
 
             if len(uri_values) > 0:
@@ -1934,6 +2065,60 @@ class BlazingContext(object):
         """
         self.add_remove_table(table_name, False)
 
+    def list_tables(self):
+        """
+        Returns a list with the names of all created tables.
+
+        Example
+        --------
+
+        >>> from blazingsql import BlazingContext
+        >>> bc = BlazingContext()
+        >>> bc.create_table('product_reviews', "product_reviews/*.parquet")
+        >>> bc.create_table('store_sales', "store_sales/*.parquet")
+        >>> bc.create_table('nation', "nation/*.parquet")
+        >>> tables = bc.list_tables()
+        >>> print(tables)
+                  ['product_reviews', 'store_sales', 'nation']
+        """
+        return list(self.tables.keys())
+
+    def describe_table(self, table_name):
+        """
+        Returns a dictionary with the names of all the columns and their types
+        for the specified table. A ValueError is thrown if the table is not found.
+
+        Parameters
+        ----------
+
+        table_name : string of the table name to describe
+
+        Example
+        --------
+
+        >>> from blazingsql import BlazingContext
+        >>> bc = BlazingContext()
+        >>> bc.create_table('nation', "nation/*.parquet")
+        >>> info_table = bc.describe_table("nation")
+        >>> print(info_table)
+                  {'n_nationkey': 'int32', 'n_name': 'str',
+                   'n_regionkey': 'int32', 'n_comment': 'str'}
+        """
+        all_table_names = self.list_tables()
+        if table_name in all_table_names:
+            column_names_bytes = self.tables[table_name].column_names
+            column_names = [x.decode("utf-8") for x in column_names_bytes]
+            column_types_int = self.tables[table_name].column_types
+            column_types_np = [
+                cio.cudf_type_int_to_np_types(t) for t in column_types_int
+            ]
+            column_types = [t.name for t in column_types_np]
+            column_types_friendly = convert_friendly_dtype_to_string(column_types)
+            name_type_dictionary = dict(zip(column_names, column_types_friendly))
+            return name_type_dictionary
+        else:
+            raise ValueError("ERROR: Not found table: " + str(table_name))
+
     def _parseSchema(
         self, input, file_format_hint, kwargs, extra_columns, ignore_missing_paths
     ):
@@ -1947,6 +2132,7 @@ class BlazingContext(object):
                 extra_columns,
                 ignore_missing_paths,
                 workers=[worker],
+                pure=False,
             )
             return connection.result()
         else:
@@ -1970,6 +2156,7 @@ class BlazingContext(object):
                         file_format_hint,
                         kwargs,
                         workers=[worker],
+                        pure=False,
                     )
                     dask_futures.append(connection)
             return dask.dataframe.from_delayed(dask_futures)

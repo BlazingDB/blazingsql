@@ -60,7 +60,6 @@ std::unique_ptr<BlazingTable> generatePartitionPlans(
 }
 
 
-
 // This function locates the pivots in the table and partitions the data on those pivot points.
 // IMPORTANT: This function expects data to aready be sorted according to the searchColIndices and sortOrderTypes
 // IMPORTANT: The TableViews of the data returned point to the same data that was input.
@@ -115,6 +114,7 @@ std::vector<NodeColumnView> partitionData(Context * context,
 
 	return partitioned_node_column_views;
 }
+
 
 
 

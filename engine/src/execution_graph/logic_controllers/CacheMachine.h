@@ -20,7 +20,6 @@
 #include "cudf/column/column_view.hpp"
 #include "cudf/table/table.hpp"
 #include "cudf/table/table_view.hpp"
-#include <cudf/io/functions.hpp>
 
 #include "error.hpp"
 #include "CodeTimer.h"
@@ -723,7 +722,6 @@ public:
 		CodeTimer blazing_timer;
 		std::unique_lock<std::mutex> lock(mutex_);
 		while(!condition_variable_.wait_for(lock, timeout*1ms, [message_id, &blazing_timer, this] {
-
 				auto result = std::any_of(this->message_queue_.cbegin(),
 							this->message_queue_.cend(), [&](auto &e) {
 								return e->get_message_id() == message_id;
@@ -880,11 +878,11 @@ public:
 
 	virtual void clear();
 
-	virtual void addToCache(std::unique_ptr<ral::frame::BlazingTable> table, const std::string & message_id = "", bool always_add = false);
+	virtual bool addToCache(std::unique_ptr<ral::frame::BlazingTable> table, const std::string & message_id = "", bool always_add = false);
 
-	virtual void addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, const std::string & message_id = "", bool always_add = false);
+	virtual bool addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, const std::string & message_id = "", bool always_add = false);
 
-	virtual void addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> table, const std::string & message_id = "");
+	virtual bool addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> table, const std::string & message_id = "");
 
 	virtual void finish();
 
@@ -1055,7 +1053,7 @@ class ConcatenatingCacheMachine : public CacheMachine {
 public:
 	ConcatenatingCacheMachine(std::shared_ptr<Context> context);
 
-	ConcatenatingCacheMachine(std::shared_ptr<Context> context, std::size_t flow_control_bytes_threshold,
+	ConcatenatingCacheMachine(std::shared_ptr<Context> context, std::size_t flow_control_bytes_threshold, 
 			std::size_t concat_cache_num_bytes, bool concat_all);
 
 	~ConcatenatingCacheMachine() = default;

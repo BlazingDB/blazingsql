@@ -53,7 +53,6 @@ public:
 
 			while(true) {
 				std::unique_ptr<ral::cache::CacheData> cache_data = output_cache->pullCacheData();
-				std::cout<<"pulled cache data"<<std::endl;
 				auto * gpu_cache_data = static_cast<ral::cache::GPUCacheDataMetaData *>(cache_data.get());
 				auto data_and_metadata = gpu_cache_data->decacheWithMetaData();
 
@@ -71,36 +70,23 @@ public:
 						serialize_gpu_message_to_gpu_containers(table->toBlazingTableView());
 
 					try {
-						// Initializes the sender with information needed for communicating the function that begins
-						// transmission This constructor will make a ucx call iwth all the metadata and wait for it to
-						// complete
-						// if(/* condition */) {
-						// 	/* code */
-						// }
-
 						// tcp / ucp
-						std::cout<<"beging begin transmission"<<std::endl;
 						auto metadata_map = metadata.get_values();
-						std::cout<<"beging begin transmission2"<<std::endl;
 
-						std::cout<<"beging begin transmission3"<<std::endl;
 						std::vector<node> destinations;
 						for(auto worker_id : StringUtil::split(metadata_map.at(ral::cache::WORKER_IDS_METADATA_LABEL), ",")) {
-													std::cout<<"beging begin transmission4"<<std::endl;
 							if(node_address_map.find(worker_id) == node_address_map.end()) {
-													std::cout<<"couldnt find "<<worker_id<<std::endl;
 								throw std::exception();	 // TODO: make a real exception here
 							}
 							destinations.push_back(node_address_map.at(worker_id));
 						}
-						std::cout<<"beging begin transmission5"<<std::endl;
+
 						std::shared_ptr<buffer_transport> transport;
 						if(blazing_protocol::ucx == protocol){
 							transport = std::make_shared<ucx_buffer_transport>(
 								request_size, origin, destinations, metadata,
 								buffer_sizes, column_transports,ral_id);
 						}else{
-						std::cout<<"wrong protocol"<<std::endl;
 							throw std::exception();
 						}
 
@@ -108,13 +94,8 @@ public:
 						transport->wait_for_begin_transmission();
 						for(size_t i = 0; i < raw_buffers.size(); i++) {
 							transport->send(raw_buffers[i], buffer_sizes[i]);
-							// temp_scope_holder[buffer_index] = nullptr;	// TODO: allow the device_vector to go out of
-							// scope
 						}
-						std::cout<<"waiting for complete"<<std::endl;
-						transport->wait_until_complete();  // ensures that the message has been sent before returning the thread
-													// to the pool
-						std::cout<<"completed"<<std::endl;
+						transport->wait_until_complete();  // ensures that the message has been sent before returning the thread to the pool
 					} catch(const std::exception&) {
 						throw;
 					}

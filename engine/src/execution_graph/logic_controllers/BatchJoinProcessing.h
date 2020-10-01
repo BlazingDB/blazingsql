@@ -91,7 +91,6 @@ public:
 			left_schema = std::make_unique<TableSchema>(table->get_schema(),  table->names());
 		}
 		if (table == nullptr) {
-			std::cout << ">>>>>>>>>>>> load_left_set  EMPTY"<<std::endl;
 			return ral::frame::createEmptyBlazingTable(left_schema->column_types, left_schema->column_names);
 		}
 		return std::move(table);
@@ -104,7 +103,6 @@ public:
 			right_schema = std::make_unique<TableSchema>(table->get_schema(),  table->names());
 		}
 		if (table == nullptr) {
-			std::cout << ">>>>>>>>>>>> load_right_set  EMPTY"<<std::endl;
 			return ral::frame::createEmptyBlazingTable(right_schema->column_types, right_schema->column_names);
 		}
 		return std::move(table);
@@ -147,7 +145,6 @@ public:
 			}
 			return std::make_tuple(-1, -1);
 		} else {
-			std::cout<<"ERROR out of range in check_for_another_set_to_do_with_data_we_already_have"<<std::endl;
 			return std::make_tuple(-1, -1);
 		}
 	}
@@ -263,18 +260,10 @@ public:
 					this->left_sequence.wait_for_next();
 					this->right_sequence.wait_for_next();
 
-					std::cout << ">>>>>>>>>>>> JOIN BEGIN "<<std::endl;
-
 					left_batch = load_left_set();
 					right_batch = load_right_set();
 					this->max_left_ind = 0; // we have loaded just once. This is the highest index for now
 					this->max_right_ind = 0; // we have loaded just once. This is the highest index for now
-
-
-
-					ral::utilities::print_blazing_table_view(left_batch->toBlazingTableView(), "LEFT");
-					ral::utilities::print_blazing_table_view(right_batch->toBlazingTableView(), "RIGHT");
-
 
 					// parsing more of the expression here because we need to have the number of columns of the tables
 					std::vector<int> column_indices;
@@ -361,12 +350,6 @@ public:
 
 					std::unique_ptr<ral::frame::BlazingTable> joined = join_set(left_batch->toBlazingTableView(), right_batch->toBlazingTableView());
 
-					std::cout << ">>>>>>>>>>>> JOIN left idx : "<< left_ind << "  right idx : " << right_ind <<std::endl;
-					ral::utilities::print_blazing_table_view(left_batch->toBlazingTableView(), "LEFT");
-					ral::utilities::print_blazing_table_view(right_batch->toBlazingTableView(), "RIGHT");
-					ral::utilities::print_blazing_table_view(joined->toBlazingTableView(), "JOIN");
-
-
 					auto log_output_num_rows = joined->num_rows();
 					auto log_output_num_bytes = joined->sizeInBytes();
 
@@ -380,8 +363,6 @@ public:
 
 						this->add_to_output_cache(std::move(filter_table));
 					} else{
-						// printf("joined table\n");
-						// ral::utilities::print_blazing_table_view(joined->toBlazingTableView());
 						eventTimer.stop();
 						this->add_to_output_cache(std::move(joined));
 					}
@@ -547,11 +528,10 @@ public:
 						// also we need a BlazingTable to put into the cache, we cant cache views.
 						std::unique_ptr<ral::frame::BlazingTable> partition_table_clone = partition_table_view.clone();
 
-							std::cout << ">>>>>>>>>>>> LOCAL PARTITION " << cache_id <<std::endl;
-						ral::utilities::print_blazing_table_view(partition_table_clone->toBlazingTableView(), "LOCAL PARITION " + cache_id);
-
-						output->addToCache(std::move(partition_table_clone), cache_id + "_" + kernel_id,true);
-						node_count[self_node.id()]++;
+						bool added = output->addToCache(std::move(partition_table_clone), cache_id + "_" + kernel_id,true);
+						if (added) {
+							node_count[self_node.id()]++;
+						}
 					} else {
 						partitions_to_send.emplace_back(
 							std::make_pair(local_context->getNode(nodeIndex), partition_table_view));
@@ -574,8 +554,10 @@ public:
 					metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, dest_node.id());
 					metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, cache_id);
 
-					node_count[dest_node.id()]++;
-					graph_output->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(table_view.clone(), metadata),"",true);
+					bool added = graph_output->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(table_view.clone(), metadata),"",true);
+					if (added) {
+						node_count[dest_node.id()]++;
+					}
 				}
 
 				if (sequence.wait_for_next()){
@@ -682,33 +664,27 @@ public:
 		auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
 		int self_node_idx = context->getNodeIndex(self_node);
 		auto nodes_to_send = context->getAllOtherNodes(self_node_idx);
-		std::string worker_ids_metadata;
+		auto output_cache = this->query_graph->get_output_message_cache();
 		std::vector<std::string> messages_to_wait_for;
 		for (auto i = 0; i < nodes_to_send.size(); i++)	{
-			worker_ids_metadata += nodes_to_send[i].id();
 			messages_to_wait_for.push_back(
 				"determine_if_we_are_scattering_a_small_table_" + std::to_string(this->context->getContextToken()) + "_" +	std::to_string(this->get_id()) +	"_" +	nodes_to_send[i].id());
 
-			if (i < nodes_to_send.size() - 1) {
-				worker_ids_metadata += ",";
-			}
+			ral::cache::MetadataDictionary metadata;
+			metadata.add_value(ral::cache::KERNEL_ID_METADATA_LABEL, std::to_string(this->get_id()));
+			metadata.add_value(ral::cache::QUERY_ID_METADATA_LABEL, std::to_string(this->context->getContextToken()));
+			metadata.add_value(ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL, "false");
+			metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, "");
+			metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, self_node.id() );
+			metadata.add_value(ral::cache::MESSAGE_ID, "determine_if_we_are_scattering_a_small_table_" +
+																								metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL] + "_" +
+																								metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL] +	"_" +
+																								metadata.get_values()[ral::cache::SENDER_WORKER_ID_METADATA_LABEL]);
+			metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, nodes_to_send[i].id());
+			metadata.add_value(ral::cache::JOIN_LEFT_BYTES_METADATA_LABEL, std::to_string(left_bytes_estimate));
+			metadata.add_value(ral::cache::JOIN_RIGHT_BYTES_METADATA_LABEL, std::to_string(right_bytes_estimate));
+			output_cache->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(ral::utilities::create_empty_table({}, {}), metadata),"",true);
 		}
-
-		ral::cache::MetadataDictionary metadata;
-		metadata.add_value(ral::cache::KERNEL_ID_METADATA_LABEL, std::to_string(this->get_id()));
-		metadata.add_value(ral::cache::QUERY_ID_METADATA_LABEL, std::to_string(this->context->getContextToken()));
-		metadata.add_value(ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL, "false");
-		metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, "");
-		metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, self_node.id() );
-		metadata.add_value(ral::cache::MESSAGE_ID, "determine_if_we_are_scattering_a_small_table_" +
-																							metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL] + "_" +
-																							metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL] +	"_" +
-																							metadata.get_values()[ral::cache::SENDER_WORKER_ID_METADATA_LABEL]);
-		metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, worker_ids_metadata);
-		metadata.add_value(ral::cache::JOIN_LEFT_BYTES_METADATA_LABEL, std::to_string(left_bytes_estimate));
-		metadata.add_value(ral::cache::JOIN_RIGHT_BYTES_METADATA_LABEL, std::to_string(right_bytes_estimate));
-		auto output_cache = this->query_graph->get_output_message_cache();
-		output_cache->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(ral::utilities::create_empty_table({}, {}), metadata),"",true);
 
 		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
 									"query_id"_a=context->getContextToken(),
@@ -921,29 +897,25 @@ public:
 
 						int self_node_idx = context->getNodeIndex(self_node);
 						auto nodes_to_send = context->getAllOtherNodes(self_node_idx);
-						std::string worker_ids_metadata;
+						auto output_cache = this->query_graph->get_output_message_cache();
 						for (auto i = 0; i < nodes_to_send.size(); i++)	{
-							if(nodes_to_send[i].id() != self_node.id()){
-								worker_ids_metadata += nodes_to_send[i].id();
-								if (i < nodes_to_send.size() - 1) {
-									worker_ids_metadata += ",";
-								}
+							ral::cache::MetadataDictionary metadata;
+							metadata.add_value(ral::cache::KERNEL_ID_METADATA_LABEL, std::to_string(this->get_id()));
+							metadata.add_value(ral::cache::QUERY_ID_METADATA_LABEL, std::to_string(this->context->getContextToken()));
+							metadata.add_value(ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL, "true");
+							metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, small_output_cache_name);
+							metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, self_node.id());
+							metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, nodes_to_send[i].id());
+							bool added = output_cache->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(small_table_batch->toBlazingTableView().clone(), metadata),"",true);
+							if (added) {
 								node_count[nodes_to_send[i].id()]++;
 							}
-
 						}
-						node_count[self_node.id()]++;
 
-						ral::cache::MetadataDictionary metadata;
-						metadata.add_value(ral::cache::KERNEL_ID_METADATA_LABEL, std::to_string(this->get_id()));
-						metadata.add_value(ral::cache::QUERY_ID_METADATA_LABEL, std::to_string(this->context->getContextToken()));
-						metadata.add_value(ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL, "true");
-						metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, small_output_cache_name);
-						metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, self_node.id());
-						metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, worker_ids_metadata);
-						auto output_cache = this->query_graph->get_output_message_cache();
-						output_cache->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(small_table_batch->toBlazingTableView().clone(), metadata),"",true);
-						this->output_.get_cache(small_output_cache_name).get()->addToCache(std::move(small_table_batch),"",true);
+						bool added = this->output_.get_cache(small_output_cache_name).get()->addToCache(std::move(small_table_batch),"",true);
+						if (added) {
+							node_count[self_node.id()]++;
+						}
 					}
 					if (small_table_sequence.wait_for_next()){
 						small_table_batch = small_table_sequence.next();

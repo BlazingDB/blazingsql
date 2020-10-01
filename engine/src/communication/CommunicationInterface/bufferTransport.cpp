@@ -42,12 +42,11 @@ get_metadata_and_transports_and_buffer_sizes_from_bytes(std::vector<char> data){
     size_t ptr_offset = 0;
 	size_t metadata_buffer_size = from_byte_vector<size_t>(data.data());
 	ptr_offset += sizeof(size_t);
-std::cout<<"before metadata_buffer: " <<data.size() << " ptr_offset:  "<< ptr_offset<< " metadata_buffer_size "<< metadata_buffer_size <<std::endl;
+
 	std::string metadata_buffer(
 		data.data() + ptr_offset,
 		data.data() + ptr_offset + metadata_buffer_size);
 
-  std::cout<<"metadata buffer size is : "<<metadata_buffer.size()<<std::endl;
 	ptr_offset += metadata_buffer_size;
 	ral::cache::MetadataDictionary dictionary;
 	for(auto metadata_item : StringUtil::split(metadata_buffer,"\n")){
@@ -93,7 +92,7 @@ buffer_transport::buffer_transport(ral::cache::MetadataDictionary metadata,
 }
 
 buffer_transport::~buffer_transport(){
-	
+
 }
 
 void buffer_transport::send(const char * buffer, size_t buffer_size){
@@ -105,14 +104,12 @@ void buffer_transport::send(const char * buffer, size_t buffer_size){
 
 void buffer_transport::increment_frame_transmission() {
 	transmitted_frames++;
-	std::cout<<"Increment begin transmission"<<std::endl;
 	completion_condition_variable.notify_all();
 }
 
 void buffer_transport::increment_begin_transmission() {
 	transmitted_begin_frames++;
 	completion_condition_variable.notify_all();
-	std::cout<<"Increment begin transmission"<<std::endl;
 }
 
 void buffer_transport::wait_for_begin_transmission() {
@@ -124,7 +121,6 @@ void buffer_transport::wait_for_begin_transmission() {
 			return false;
 		}
 	});
-	std::cout<< "FINISHED WAITING wait_for_begin_transmission"<<std::endl;
 }
 
 
@@ -137,7 +133,6 @@ void buffer_transport::wait_until_complete() {
 			return false;
 		}
 	});
-  std::cout<< "FINISHED WAITING wait_until_complete"<<std::endl;
 }
 
 } // namespace comm

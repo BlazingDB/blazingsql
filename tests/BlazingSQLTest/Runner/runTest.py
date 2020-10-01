@@ -10,10 +10,8 @@ import time
 import blazingsql
 
 # import git
-import gspread
 import numpy as np
 import pandas as pd
-from oauth2client.service_account import ServiceAccountCredentials
 
 from BlazingLogging import loggingHandler as lhandler
 from Configuration import ExecutionMode
@@ -127,6 +125,17 @@ def compare_results(pdf1, pdf2, acceptable_difference, use_percentage, engine):
     else: 
         msg = "PySpark" 
 
+    msg = ""
+    if not isinstance(engine, str):
+        if isinstance(engine, PyDrill):
+            msg = "PyDrill"
+        else:
+            msg = "PySpark"
+    elif engine=="drill":
+        msg = "PyDrill"
+    else:
+        msg = "PySpark"
+
     if pdf1.shape[0] == pdf2.shape[0]:
         if pdf1.shape[1] == pdf2.shape[1]:
 
@@ -157,7 +166,7 @@ def compare_results(pdf1, pdf2, acceptable_difference, use_percentage, engine):
             tmp_pdf1 = pdf1.select_dtypes(include=np.inexact)
             tmp_pdf2 = pdf2.select_dtypes(include=np.inexact)
 
-            
+
             if use_percentage:
                 relative_tolerance = acceptable_difference
                 absolute_tolerance = 0
@@ -168,7 +177,7 @@ def compare_results(pdf1, pdf2, acceptable_difference, use_percentage, engine):
             #    absolute(a - b) <= (absolute_tolerance + relative_tolerance * absolute(b))
 
             res = np.all(exac_comp) and np.allclose(
-                tmp_pdf1.values, tmp_pdf2.values, relative_tolerance, 
+                tmp_pdf1.values, tmp_pdf2.values, relative_tolerance,
                 absolute_tolerance, equal_nan=True
             )
             if res:
@@ -552,7 +561,7 @@ class Test:
         self.fail_ids = []
 
 
-def save_log(gpu_ci_mode):
+def save_log(gpu_ci_mode=False):
 
     c = 1
     cadena = []
@@ -709,6 +718,9 @@ def create_summary_detail(df, no_color):
 # TODO william kharoly felipe we should try to enable and use
 # this function in the future
 def _verify_prev_google_sheet_results(log_pdf):
+    import gspread
+    from oauth2client.service_account import ServiceAccountCredentials
+
     def get_the_data_from_sheet():
         # Use creds to create a client to interact with the Google Drive API
         scope = [
@@ -946,6 +958,9 @@ def _verify_prev_google_sheet_results(log_pdf):
 
 
 def saving_google_sheet_results(log_pdf):
+    import gspread
+    from oauth2client.service_account import ServiceAccountCredentials
+
     log_info = Settings.data["RunSettings"]["logInfo"]
 
     if log_info == "":
@@ -1350,7 +1365,7 @@ def run_query(
     **kwargs
 ):
     print(query)
-    
+
     query_spark = kwargs.get("query_spark", query)
 
     algebra = kwargs.get("algebra", "")
@@ -1391,7 +1406,6 @@ def run_query(
         query_blz = query  # get_blazingsql_query('main', query)
         if algebra == "":
             start_time = time.time()
-
             try:
                 result_gdf = bc.sql(query_blz)
             except Exception as e:
@@ -1403,37 +1417,37 @@ def run_query(
                 # SUM(CASE WHEN info = 'evaluate_split_query load_data' THEN
                 # duration ELSE 0 END) AS load_time,
                 # MAX(load_time) AS load_time,
-                log_result = bc.log(
-                    """SELECT
-                        MAX(end_time) as end_time, query_id,
-                        MAX(total_time) AS total_time
-                    FROM (
-                        SELECT
-                            query_id, node_id,
-                            SUM(CASE WHEN info = 'Query Execution Done' THEN
-                            duration ELSE 0 END) AS total_time,
-                            MAX(log_time) AS end_time
-                        FROM
-                            bsql_logs
-                        WHERE
-                            info = 'evaluate_split_query load_data'
-                            OR info = 'Query Execution Done'
-                        GROUP BY
-                            node_id, query_id
-                        )
-                    GROUP BY
-                        query_id
-                    ORDER BY
-                        end_time DESC limit 1"""
-                )
+                # log_result = bc.log(
+                #     """SELECT
+                #         MAX(end_time) as end_time, query_id,
+                #         MAX(total_time) AS total_time
+                #     FROM (
+                #         SELECT
+                #             query_id, node_id,
+                #             SUM(CASE WHEN info = 'Query Execution Done' THEN
+                #             duration ELSE 0 END) AS total_time,
+                #             MAX(log_time) AS end_time
+                #         FROM
+                #             bsql_logs
+                #         WHERE
+                #             info = 'evaluate_split_query load_data'
+                #             OR info = 'Query Execution Done'
+                #         GROUP BY
+                #             node_id, query_id
+                #         )
+                #     GROUP BY
+                #         query_id
+                #     ORDER BY
+                #         end_time DESC limit 1"""
+                # )
 
-                if int(nRals) == 1:  # Single Node
-                    n_log = log_result
-                else:  # Simple Distribution
-                    n_log = log_result.compute()
+                # if int(nRals) == 1:  # Single Node
+                #     n_log = log_result
+                # else:  # Simple Distribution
+                #     n_log = log_result.compute()
 
                 load_time = 0  # n_log['load_time'][0]
-                engine_time = n_log["total_time"][0]
+                engine_time = 0 #n_log["total_time"][0]
         else:
             result_gdf = bc.sql(query_blz, algebra=algebra)
 
