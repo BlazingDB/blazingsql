@@ -4,6 +4,7 @@
 
 
 ## Improvements
+- #977 Just one initialize() function at beginning and add logs related to allocation stuff
 - #1046 Make possible to read the system environment variables to set up BlazingContext
 - #998 Update TPCH queries, become implicit joins into implicit joins to avoid random values.
 
