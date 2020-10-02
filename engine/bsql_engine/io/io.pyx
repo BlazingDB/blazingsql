@@ -54,10 +54,6 @@ class FinalizeError(BlazingError):
     """Finalize Error."""
 cdef public PyObject * FinalizeError_ = <PyObject *>FinalizeError
 
-class BlazingSetAllocatorError(BlazingError):
-    """BlazingSetAllocator Error."""
-cdef public PyObject * BlazingSetAllocatorError_ = <PyObject *>BlazingSetAllocatorError
-
 class GetFreeMemoryError(BlazingError):
     """GetFreeMemory Error."""
 cdef public PyObject * GetFreeMemoryError_ = <PyObject *>GetFreeMemoryError
@@ -116,17 +112,14 @@ cdef cio.TableScanInfo getTableScanInfoPython(string logicalPlan) nogil:
         temp = cio.getTableScanInfo(logicalPlan)
     return temp
 
-cdef void initializePython(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options) nogil except *:
+cdef void initializePython(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options, 
+                            string allocation_mode, size_t initial_pool_size, size_t maximum_pool_size, bool enable_logging) nogil except *:
     with nogil:
-        cio.initialize( ralId,  gpuId, network_iface_name,  ralHost,  ralCommunicationPort, singleNode, config_options)
+        cio.initialize(ralId, gpuId, network_iface_name, ralHost, ralCommunicationPort, singleNode, config_options, allocation_mode, initial_pool_size, maximum_pool_size, enable_logging)
 
 cdef void finalizePython() nogil except *:
     with nogil:
         cio.finalize()
-
-cdef void blazingSetAllocatorPython(string allocation_mode, size_t initial_pool_size, map[string,string] config_options) nogil except *:
-    with nogil:
-        cio.blazingSetAllocator(allocation_mode, initial_pool_size, config_options)
 
 cdef size_t getFreeMemoryPython() nogil except *:
     with nogil:
@@ -172,14 +165,12 @@ cpdef pair[bool, string] registerFileSystemCaller(fs, root, authority):
     if fs['type'] == 'local':
         return cio.registerFileSystemLocal( str.encode( root), str.encode(authority))
 
-cpdef initializeCaller(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options):
-    initializePython( ralId,  gpuId, network_iface_name,  ralHost,  ralCommunicationPort, singleNode, config_options)
+cpdef initializeCaller(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options, 
+        string allocation_mode, size_t initial_pool_size, size_t maximum_pool_size, bool enable_logging):
+    initializePython(ralId, gpuId, network_iface_name, ralHost, ralCommunicationPort, singleNode, config_options, allocation_mode, initial_pool_size, maximum_pool_size, enable_logging)
 
 cpdef finalizeCaller():
     finalizePython()
-
-cpdef blazingSetAllocatorCaller(string allocation_mode, size_t initial_pool_size, map[string,string] config_options):
-    blazingSetAllocatorPython(allocation_mode, initial_pool_size, config_options)
 
 cpdef getFreeMemoryCaller():
     return getFreeMemoryPython()

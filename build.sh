@@ -22,7 +22,7 @@ VALIDARGS="clean update thirdparty io comms libengine engine pyblazing algebra d
 HELP="$0 [-v] [-g] [-n] [-h] [-t]
    clean                - remove all existing build artifacts and configuration (start
                           over) Use 'clean thirdparty' to delete thirdparty folder
-   update               - update cudf thirdparty code and update cudf conda packages
+   update               - update cudf conda packages
    thirdparty           - build the Thirdparty C++ code only
    io                   - build the IO C++ code only
    comms                - build the communications C++ code only
@@ -61,7 +61,7 @@ TESTS="ON"
 #         CONDA_PREFIX, but there is no fallback from there!
 INSTALL_PREFIX=${INSTALL_PREFIX:=${PREFIX:=${CONDA_PREFIX}}}
 PARALLEL_LEVEL=${PARALLEL_LEVEL:=""}
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$INSTALL_PREFIX/lib
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$INSTALL_PREFIX/lib:$INSTALL_PREFIX/lib64
 export CXXFLAGS="-L$INSTALL_PREFIX/lib"
 export CFLAGS=$CXXFLAGS
 export CUDACXX=/usr/local/cuda/bin/nvcc
@@ -122,7 +122,6 @@ if hasArg clean; then
     done
 
     if hasArg thirdparty; then
-        rm -rf ${REPODIR}/thirdparty/cudf/
         rm -rf ${REPODIR}/thirdparty/aws-cpp/
     fi
 
@@ -132,30 +131,6 @@ fi
 ################################################################################
 
 if buildAll || hasArg io || hasArg libengine || hasArg thirdparty || hasArg update; then
-    if [ -d "${CUDF_HOME}" ]; then
-	echo "CUDF_HOME env var set to path that exists - using cuDF from ${CUDF_HOME}"
-    else
-        if [ ! -d "${REPODIR}/thirdparty/cudf/" ]; then
-            cd ${REPODIR}/thirdparty/
-            git clone https://github.com/rapidsai/cudf.git
-            cd cudf/cpp
-            mkdir build
-            cd build
-            cmake -DCMAKE_CXX11_ABI=ON ..
-        else
-            cd ${REPODIR}/thirdparty/cudf
-            if hasArg update; then
-                git pull
-                if [ ! -d "${REPODIR}/thirdparty/cudf/cpp/build" ]; then
-                    mkdir cpp/build
-                fi
-                cd cpp/build
-                cmake -DCMAKE_CXX11_ABI=ON ..
-            fi
-        fi
-        export CUDF_HOME=${REPODIR}/thirdparty/cudf/
-    fi
-
     if hasArg disable-aws-s3; then
         echo "AWS S3 thirdparty won't be downloaded"
     else

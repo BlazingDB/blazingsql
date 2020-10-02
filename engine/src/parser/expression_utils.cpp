@@ -258,6 +258,7 @@ operator_type map_to_operator_type(const std::string & operator_token) {
 		{"CAST_DATE", operator_type::BLZ_CAST_DATE},
 		{"CAST_TIMESTAMP", operator_type::BLZ_CAST_TIMESTAMP},
 		{"CAST_VARCHAR", operator_type::BLZ_CAST_VARCHAR},
+		{"CAST_CHAR", operator_type::BLZ_CAST_VARCHAR},
 		{"CHAR_LENGTH", operator_type::BLZ_CHAR_LENGTH},
 
 		// Binary operators
@@ -283,7 +284,10 @@ operator_type map_to_operator_type(const std::string & operator_token) {
 		{"||", operator_type::BLZ_STR_CONCAT}
 	};
 
-	RAL_EXPECTS(OPERATOR_MAP.find(operator_token) != OPERATOR_MAP.end(), "Unsupported operator");
+	if(OPERATOR_MAP.find(operator_token) == OPERATOR_MAP.end()){
+		std::cout<<operator_token<<" is not a valid operator."<<std::endl;
+	}
+	RAL_EXPECTS(OPERATOR_MAP.find(operator_token) != OPERATOR_MAP.end(), "Unsupported operator: " + operator_token);
 
 	return OPERATOR_MAP[operator_token];
 }
@@ -373,14 +377,14 @@ std::string get_named_expression(const std::string & query_part, const std::stri
 	return query_part.substr(start_position, end_position - start_position);
 }
 
-std::vector<size_t> get_projections(const std::string & query_part) {
+std::vector<int> get_projections(const std::string & query_part) {
 	std::string project_string = get_named_expression(query_part, "projects");
 	std::vector<std::string> project_string_split =
 		get_expressions_from_expression_list(project_string, true);
 
-	std::vector<size_t> projections;
+	std::vector<int> projections;
 	for(int i = 0; i < project_string_split.size(); i++) {
-		projections.push_back(std::stoull(project_string_split[i]));
+		projections.push_back(std::stoi(project_string_split[i]));
 	}
 
 	// On Calcite, the select count(*) case is represented with
@@ -553,6 +557,11 @@ std::string replace_calcite_regex(const std::string & expression) {
 	static const std::regex decimal_re{
 		R""(DECIMAL\(\d+, \d+\))"", std::regex_constants::icase};
 	ret = std::regex_replace(ret, decimal_re, "DOUBLE");
+
+	static const std::regex char_re{
+		R""(CHAR\(\d+\))"", std::regex_constants::icase};
+	ret = std::regex_replace(ret, char_re, "VARCHAR");
+	
 
 	StringUtil::findAndReplaceAll(ret, "IS NOT NULL", "IS_NOT_NULL");
 	StringUtil::findAndReplaceAll(ret, "IS NULL", "IS_NULL");

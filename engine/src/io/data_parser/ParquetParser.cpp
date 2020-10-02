@@ -30,7 +30,7 @@ parquet_parser::~parquet_parser() {
 std::unique_ptr<ral::frame::BlazingTable> parquet_parser::parse_batch(
 	std::shared_ptr<arrow::io::RandomAccessFile> file,
 	const Schema & schema,
-	std::vector<size_t> column_indices,
+	std::vector<int> column_indices,
 	std::vector<cudf::size_type> row_groups)
 {
 	if(file == nullptr) {
@@ -83,8 +83,7 @@ void parquet_parser::parse_schema(
 
 	pq_args.enable_convert_strings_to_categories(false);
 	pq_args.enable_use_pandas_metadata(false);
-	// pq_args.set_num_rows(1);  // we only need the metadata, so one row wopuld be fine, but there is a new issue https://github.com/rapidsai/cudf/issues/6200
-	pq_args.set_row_groups(std::vector<std::vector<cudf::size_type>>(1, std::vector<cudf::size_type>(1, 0))); // TODO remove this when above issue is resolved
+	pq_args.set_num_rows(1);  // we only need the metadata, so one row is fine
 
 	cudf_io::table_with_metadata table_out = cudf_io::read_parquet(pq_args);
 

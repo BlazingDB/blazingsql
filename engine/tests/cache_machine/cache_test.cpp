@@ -6,7 +6,7 @@
 #include <src/execution_graph/logic_controllers/CacheMachine.h>
 #include <src/utilities/DebuggingUtils.h>
 
-#include <tests/utilities/column_wrapper.hpp>
+#include <cudf_test/column_wrapper.hpp>
 
 using blazingdb::manager::Context;
 using blazingdb::transport::Address;
