@@ -97,6 +97,7 @@
 - #909 Fixed issue caused by using now arrow_io_source
 - #913 Fixed issues caused by cudf adding DECIMAL data type
 - #916 Fix e2e string comparison
+- #918 Activate validation for GPU_CI tests results.
 - #927 Fixed random segfault issue in parser
 - #929 Update the GPUManager functions
 - #942 Fix column names on sample function
