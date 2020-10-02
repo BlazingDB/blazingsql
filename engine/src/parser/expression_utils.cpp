@@ -287,7 +287,7 @@ operator_type map_to_operator_type(const std::string & operator_token) {
 	if(OPERATOR_MAP.find(operator_token) == OPERATOR_MAP.end()){
 		std::cout<<operator_token<<" is not a valid operator."<<std::endl;
 	}
-	RAL_EXPECTS(OPERATOR_MAP.find(operator_token) != OPERATOR_MAP.end(), "Unsupported operator");
+	RAL_EXPECTS(OPERATOR_MAP.find(operator_token) != OPERATOR_MAP.end(), "Unsupported operator: " + operator_token);
 
 	return OPERATOR_MAP[operator_token];
 }
@@ -377,14 +377,14 @@ std::string get_named_expression(const std::string & query_part, const std::stri
 	return query_part.substr(start_position, end_position - start_position);
 }
 
-std::vector<size_t> get_projections(const std::string & query_part) {
+std::vector<int> get_projections(const std::string & query_part) {
 	std::string project_string = get_named_expression(query_part, "projects");
 	std::vector<std::string> project_string_split =
 		get_expressions_from_expression_list(project_string, true);
 
-	std::vector<size_t> projections;
+	std::vector<int> projections;
 	for(int i = 0; i < project_string_split.size(); i++) {
-		projections.push_back(std::stoull(project_string_split[i]));
+		projections.push_back(std::stoi(project_string_split[i]));
 	}
 
 	// On Calcite, the select count(*) case is represented with

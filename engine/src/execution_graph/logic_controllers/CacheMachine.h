@@ -20,7 +20,6 @@
 #include "cudf/column/column_view.hpp"
 #include "cudf/table/table.hpp"
 #include "cudf/table/table_view.hpp"
-#include <cudf/io/functions.hpp>
 
 #include "error.hpp"
 #include "CodeTimer.h"

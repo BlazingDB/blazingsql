@@ -6,31 +6,11 @@
 #pass the dependency libraries as optional arguments using ${ARGN}
 #NOTE the order of libraries matter, so try to link first with the most high level lib
 function(configure_test TEST_NAME Tests_SRCS)
-    ###################################################################################################
-    # - common test utils -----------------------------------------------------------------------------
-
-    set(CUDF_TEST_INCLUDE "$ENV{CUDF_HOME}/cpp")
-
-    find_library(CUDFTESTUTIL_LIBRARY "libcudftestutil.a"
-                HINTS "$ENV{CUDF_ROOT}/lib")
-
-    message(STATUS "CUDFTESTUTIL: CUDFTESTUTIL_LIBRARY set to ${CUDFTESTUTIL_LIBRARY}")
-    message(STATUS "CUDFTESTUTIL: CUDF_TEST_INCLUDE set to ${CUDF_TEST_INCLUDE}")
-
-    add_library(cudftestutil STATIC IMPORTED ${CUDFTESTUTIL_LIBRARY})
-
-    if (CUDF_TEST_INCLUDE AND CUDFTESTUTIL_LIBRARY)
-        set_target_properties(cudftestutil PROPERTIES IMPORTED_LOCATION ${CUDFTESTUTIL_LIBRARY})
-    endif (CUDF_TEST_INCLUDE AND CUDFTESTUTIL_LIBRARY)
-
-    ###################################################################################################
-    
     include_directories(
         ${CMAKE_SOURCE_DIR}/src
         ${CMAKE_SOURCE_DIR}/tests/utils
         ${CMAKE_SOURCE_DIR}/thirdparty/jitify
         $ENV{PREFIX}/include
-        ${CUDF_TEST_INCLUDE}
     )
 
     add_executable(${TEST_NAME}
@@ -45,7 +25,6 @@ function(configure_test TEST_NAME Tests_SRCS)
         blazingdb-transport
 
         Threads::Threads
-        rmm
         cudart
         cuda
         zmq
