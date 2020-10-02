@@ -25,6 +25,7 @@
 - #1052 Partial revert of some changes on parquet rowgroups flow with local_files=True
 - #1054 Can set manually BLAZING_CHACHE_DIRECTORY
 - #1053 Fixed issue when loading paths with wildcards
+- #1058 Fixed avg_bytes_per_row value when node 0 has no rows
 
 
 # BlazingSQL 0.15.0 (August 31, 2020)

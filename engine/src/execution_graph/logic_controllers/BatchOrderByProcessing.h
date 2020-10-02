@@ -285,7 +285,6 @@ public:
 			while (input.wait_for_next()) {
 				try {
 					auto batch = input.next();
-					// AGREGAR LOGS por aca para ver los tamanos de los partitions ... no deben ser muy grande (menor al pool)
 					auto self_partitions = ral::operators::distribute_table_partitions(partitionPlan->toBlazingTableView(), batch->toBlazingTableView(), this->expression, this->context.get());
 
 					for (auto && self_part : self_partitions) {
