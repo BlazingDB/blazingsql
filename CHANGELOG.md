@@ -16,6 +16,7 @@
 - #1019 Fix hive string col 
 - #1021 removed an rmm include
 - #1020 Fixed build issues with latest rmm 0.16 and columnBasisTest due to deprecated drop_column() function
+- #1029 Fix metadata mistmatch due to parsedMetadata
 - #1016 Removed workaround for parquet read schema
 - #1028 Match dtypes after create_table with multiple files
 - #1030 Avoid read _metadata files
@@ -25,6 +26,8 @@
 - #1052 Partial revert of some changes on parquet rowgroups flow with local_files=True
 - #1054 Can set manually BLAZING_CHACHE_DIRECTORY
 - #1053 Fixed issue when loading paths with wildcards
+
+
 
 
 # BlazingSQL 0.15.0 (August 31, 2020)
