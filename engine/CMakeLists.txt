@@ -49,9 +49,6 @@ message(STATUS "CUDA_VERSION_MAJOR: ${CUDA_VERSION_MAJOR}")
 message(STATUS "CUDA_VERSION_MINOR: ${CUDA_VERSION_MINOR}")
 message(STATUS "CUDA_VERSION: ${CUDA_VERSION}")
 
-find_library(CUDFTESTUTIL_LIBRARY "libcudftestutil.a"
-             HINTS "$ENV{CUDF_ROOT}/lib")
-
 # Always set this convenience variable
 set(CUDA_VERSION_STRING "${CUDA_VERSION}")
 
@@ -219,26 +216,6 @@ get_directory_property(CXX_COMPILE_DEFINITIONS DIRECTORY ${CMAKE_SOURCE_DIR} COM
 message(STATUS "C++ compiler definitions: ${CXX_COMPILE_DEFINITIONS}")
 
 
-###################################################################################################
-# - common test utils -----------------------------------------------------------------------------
-
-set(CUDF_TEST_INCLUDE "$ENV{CUDF_HOME}/cpp")
-
-find_library(CUDFTESTUTIL_LIBRARY "libcudftestutil.a"
-             HINTS "$ENV{CUDF_ROOT}/lib")
-
-message(STATUS "CUDFTESTUTIL: CUDFTESTUTIL_LIBRARY set to ${CUDFTESTUTIL_LIBRARY}")
-message(STATUS "CUDFTESTUTIL: CUDF_TEST_INCLUDE set to ${CUDF_TEST_INCLUDE}")
-
-add_library(cudftestutil STATIC IMPORTED ${CUDFTESTUTIL_LIBRARY})
-
-if (CUDF_TEST_INCLUDE AND CUDFTESTUTIL_LIBRARY)
-    set_target_properties(cudftestutil PROPERTIES IMPORTED_LOCATION ${CUDFTESTUTIL_LIBRARY})
-endif (CUDF_TEST_INCLUDE AND CUDFTESTUTIL_LIBRARY)
-
-###################################################################################################
-
-
 include_directories(
     ${PROJECT_BINARY_DIR}
     ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR}
@@ -263,7 +240,6 @@ include_directories(
     $ENV{INSTALL_PREFIX}/include/libcudf/libcudacxx/
     $ENV{INSTALL_PREFIX}/include/blazingdb/io
     ${PYTHON_INCLUDE_DIRS}
-    ${CUDF_TEST_INCLUDE}
     "${ARROW_INCLUDE_DIR}"
     )
 
