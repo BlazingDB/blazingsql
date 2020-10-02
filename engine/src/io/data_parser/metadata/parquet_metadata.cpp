@@ -114,8 +114,8 @@ void set_min_max(
 		}
 		case parquet::Type::type::FLOAT: {
 			auto convertedStats = std::static_pointer_cast<parquet::FloatStatistics>(statistics);
-			auto min = statistics->HasMinMax() ? convertedStats->min() : std::numeric_limits<float>::min();
-			auto max = statistics->HasMinMax() ? convertedStats->max() : std::numeric_limits<float>::max();
+			float min = statistics->HasMinMax() ? convertedStats->min() : std::numeric_limits<float>::min();
+			float max = statistics->HasMinMax() ? convertedStats->max() : std::numeric_limits<float>::max();
 			// here we want to reinterpret cast minmax_metadata_table to be floats so that we can just use this same vector as if they were floats
 			size_t current_row_index = minmax_metadata_table[col_index].size() - 1;
 			float* casted_metadata_min = reinterpret_cast<float*>(&(minmax_metadata_table[col_index][0]));
@@ -126,8 +126,8 @@ void set_min_max(
 		}
 		case parquet::Type::type::DOUBLE: {
 			auto convertedStats = std::static_pointer_cast<parquet::DoubleStatistics>(statistics);
-			auto min = statistics->HasMinMax() ? convertedStats->min() : std::numeric_limits<double>::min();
-			auto max = statistics->HasMinMax() ? convertedStats->min() : std::numeric_limits<double>::max();
+			double min = statistics->HasMinMax() ? convertedStats->min() : std::numeric_limits<double>::min();
+			double max = statistics->HasMinMax() ? convertedStats->max() : std::numeric_limits<double>::max();
 			// here we want to reinterpret cast minmax_metadata_table to be double so that we can just use this same vector as if they were double
 			size_t current_row_index = minmax_metadata_table[col_index].size() - 1;
 			double* casted_metadata_min = reinterpret_cast<double*>(&(minmax_metadata_table[col_index][0]));
