@@ -64,7 +64,9 @@ PARALLEL_LEVEL=${PARALLEL_LEVEL:=""}
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$INSTALL_PREFIX/lib:$INSTALL_PREFIX/lib64
 export CXXFLAGS="-L$INSTALL_PREFIX/lib"
 export CFLAGS=$CXXFLAGS
-export CUDACXX=/usr/local/cuda/bin/nvcc
+if [ -z $CUDACXX ]; then
+    export CUDACXX=/usr/local/cuda/bin/nvcc
+fi
 
 function hasArg {
     (( ${NUMARGS} != 0 )) && (echo " ${ARGS} " | grep -q " $1 ")

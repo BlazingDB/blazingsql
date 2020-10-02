@@ -19,6 +19,7 @@
 #include <cuda_runtime.h>
 #include <memory>
 #include <chrono>
+#include <thread>         // std::this_thread::sleep_for
 #include <fstream>
 #include <utility>
 #include <memory>
@@ -382,12 +383,23 @@ public:
     std::memcpy(&conn_addr.sin_addr, he->h_addr_list[0], he->h_length);
     std::memset(conn_addr.sin_zero, 0, sizeof(conn_addr.sin_zero));
 
-    ret = connect(connfd, (struct sockaddr *) &conn_addr, sizeof(conn_addr));
-    if (ret < 0) {
-      const std::string message = "connect client";
-      std::cout << message << std::endl;
-      close(connfd);
-      throw std::runtime_error(message);
+  
+    int num_attempts = 50;
+    int attempt = 0;    
+    while (attempt < num_attempts){
+        ret = connect(connfd, (struct sockaddr *) &conn_addr, sizeof(conn_addr));
+        if (ret < 0) {
+            attempt++;
+		std::this_thread::sleep_for (std::chrono::seconds(1));
+        } else {
+		break;
+	}
+	if (attempt == num_attempts){
+	      const std::string message = "could not connect to client";
+	      std::cout << message << std::endl;
+	      close(connfd);
+	      throw std::runtime_error(message);
+	}
     }
 
     CheckError(connfd < 0, "server_connect");

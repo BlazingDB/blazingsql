@@ -56,7 +56,7 @@ def listen(client=None):
     client = client if client is not None else default_client()
     worker_id_maps = client.run(UCX.start_listener_on_worker, None, wait=True)
     client.run(set_id_mappings_on_worker, worker_id_maps, wait=True)
-    client.run(UCX.init_handlers, wait=True)
+#    client.run(UCX.init_handlers, wait=True)
     return worker_id_maps
 
 

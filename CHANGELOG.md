@@ -1,6 +1,7 @@
 # BlazingSQL 0.16.0 (Date TBS)
 
 ## New Features
+- #981 Added powerPC building script and instructions
 - #912 Added UCX support to how the engine runs
 
 
