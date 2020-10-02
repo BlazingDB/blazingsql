@@ -118,6 +118,19 @@ public:
 		return true;
 	}
 
+	// If Node 0 have no rows we want to stimate the `avg_bytes_per_row using its dtypes
+	size_t stimate_avg_bytes_per_row_using_dtypes(std::vector<cudf::data_type> dtypes) {
+		size_t avg_bytes_per_row = 0;
+		for (cudf::size_type i = 0; i < dtypes.size(); ++i) {
+			if (dtypes[i].id() == cudf::type_id::STRING) {
+				// TODO: we are assuming an average value for STRING columns
+				avg_bytes_per_row += 250;
+			} else {
+				avg_bytes_per_row += cudf::size_of(dtypes[i]);
+			}
+		}
+	}
+
 	virtual kstatus run() {
 		CodeTimer timer;
 		CodeTimer eventTimer(false);
@@ -148,6 +161,7 @@ public:
 		std::size_t localTotalNumRows = 0;
 		std::size_t localTotalBytes = 0;
 		int batch_count = 0;
+		std::unique_ptr<ral::frame::BlazingTable> sortedTable;
 		while (input.wait_for_next()) {
 			try {
 				this->output_cache("output_a")->wait_if_cache_is_saturated();
@@ -157,7 +171,7 @@ public:
 				auto log_input_num_rows = batch ? batch->num_rows() : 0;
 				auto log_input_num_bytes = batch ? batch->sizeInBytes() : 0;
 
-				auto sortedTable = ral::operators::sort(batch->toBlazingTableView(), this->expression);
+				sortedTable = ral::operators::sort(batch->toBlazingTableView(), this->expression);
 				if (get_samples) {
 					auto sampledTable = ral::operators::sample(batch->toBlazingTableView(), this->expression, order_by_samples_ratio);
 					sampledTableViews.push_back(sampledTable->toBlazingTableView());
@@ -174,8 +188,8 @@ public:
 					try_num_rows_estimation = false;
 				}
 				population_sampled += batch->num_rows();
-				if (estimate_samples && population_sampled > population_to_sample)	{
-					size_t avg_bytes_per_row = localTotalNumRows == 0 ? 1 : localTotalBytes/localTotalNumRows;
+				if (estimate_samples && population_sampled > population_to_sample) {
+					size_t avg_bytes_per_row = localTotalNumRows == 0 ? stimate_avg_bytes_per_row_using_dtypes(sortedTable->get_schema()) : localTotalBytes/localTotalNumRows;
 					partition_plan_thread = BlazingThread(&SortAndSampleKernel::compute_partition_plan, this, sampledTableViews, avg_bytes_per_row, num_rows_estimate);
 					estimate_samples = false;
 					get_samples = false;
@@ -219,7 +233,11 @@ public:
 		if (partition_plan_thread.joinable()){
 			partition_plan_thread.join();
 		} else {
-			size_t avg_bytes_per_row = localTotalNumRows == 0 ? 1 : localTotalBytes/localTotalNumRows;
+			size_t bytes_of_empty_schema = 1;
+			if (sortedTable && sortedTable->num_rows() == 0) {
+				bytes_of_empty_schema = stimate_avg_bytes_per_row_using_dtypes(sortedTable->get_schema());
+			}
+			size_t avg_bytes_per_row = localTotalNumRows == 0 ? bytes_of_empty_schema : localTotalBytes/localTotalNumRows;
 			compute_partition_plan(sampledTableViews, avg_bytes_per_row, localTotalNumRows);
 		}
 
@@ -267,6 +285,7 @@ public:
 			while (input.wait_for_next()) {
 				try {
 					auto batch = input.next();
+					// AGREGAR LOGS por aca para ver los tamanos de los partitions ... no deben ser muy grande (menor al pool)
 					auto self_partitions = ral::operators::distribute_table_partitions(partitionPlan->toBlazingTableView(), batch->toBlazingTableView(), this->expression, this->context.get());
 
 					for (auto && self_part : self_partitions) {
