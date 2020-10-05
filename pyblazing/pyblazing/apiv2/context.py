@@ -2186,7 +2186,7 @@ class BlazingContext(object):
                 # each worker parse all accesible files on the file path
                 dask_futures = []
 
-                for worker in [node["worker"] for node in self.nodes]):
+                for worker in [node["worker"] for node in self.nodes]:
                     dask_futures.append(
                         (
                             self.dask_client.submit(
@@ -2529,7 +2529,9 @@ class BlazingContext(object):
             if not isinstance(input, dask_cudf.core.DataFrame):
                 print("Not supported...")
             else:
-                partition_keys_mapping = getNodePartitionKeys(input, self.dask_client, self.nodes)
+                partition_keys_mapping = getNodePartitionKeys(
+                    input, self.dask_client, self.nodes
+                )
                 df_schema = input._meta
 
                 dask_futures = []
