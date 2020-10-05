@@ -9,6 +9,21 @@
 #include "arrow/io/interfaces.h"
 #include "arrow/status.h"
 
+// BEGIN UGLY PATCH william jp c.gonzales if we don't do this we get a compile error: Mismatched major version (always before of the 1sr google header)
+#define GOOGLE_CLOUD_CPP_GOOGLE_CLOUD_STORAGE_VERSION_INFO_H 1
+
+#define STORAGE_CLIENT_VERSION_MAJOR 1
+#define STORAGE_CLIENT_VERSION_MINOR 14
+#define STORAGE_CLIENT_VERSION_PATCH 0
+
+#define GOOGLE_CLOUD_CPP_GOOGLE_CLOUD_INTERNAL_VERSION_INFO_H 1
+
+#define GOOGLE_CLOUD_CPP_VERSION_MAJOR 1
+#define GOOGLE_CLOUD_CPP_VERSION_MINOR 14
+#define GOOGLE_CLOUD_CPP_VERSION_PATCH 0
+
+// END UGLY PATCH
+
 #include "google/cloud/storage/client.h"
 
 namespace gcs = google::cloud::storage;
@@ -19,10 +34,10 @@ public:
 		const std::string & bucketName, const std::string & objectKey, std::shared_ptr<gcs::Client> gcsClient);
 	~GoogleCloudStorageOutputStream();
 
-	arrow::Status Close() override;
+    arrow::Status Close() override;
 	arrow::Status Write(const void * buffer, int64_t nbytes) override;
 	arrow::Status Flush() override;
-	arrow::Status Tell(int64_t * position) const override;
+    arrow::Result<int64_t> Tell() const override;
 
 	bool closed() const override;
 

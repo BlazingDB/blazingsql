@@ -14,6 +14,7 @@
 #include <cudf/strings/convert/convert_datetime.hpp>
 #include <cudf/strings/convert/convert_floats.hpp>
 #include <cudf/strings/convert/convert_integers.hpp>
+#include <cudf/unary.hpp>
 #include <regex>
 #include <algorithm>
 
@@ -29,7 +30,7 @@ namespace ral {
 namespace processor {
 
 // forward declaration
-std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(std::vector<std::unique_ptr<ral::frame::BlazingColumn>> blazing_columns_in, const std::vector<std::string> & expressions);
+std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(const cudf::table_view & table, const std::vector<std::string> & expressions);
 
 namespace strings {
 
@@ -57,6 +58,11 @@ struct cast_to_str_functor {
         return cudf::strings::from_booleans(col);
     }
 
+    template<typename T, std::enable_if_t<cudf::is_fixed_point<T>()> * = nullptr>
+    std::unique_ptr<cudf::column> operator()(const cudf::column_view & col) {
+        return cudf::strings::from_floats(col);
+    }
+
     template<typename T, std::enable_if_t<std::is_integral<T>::value && !cudf::is_boolean<T>()> * = nullptr>
     std::unique_ptr<cudf::column> operator()(const cudf::column_view & col) {
         return cudf::strings::from_integers(col);
@@ -72,7 +78,7 @@ struct cast_to_str_functor {
         return cudf::strings::from_timestamps(col, std::is_same<cudf::timestamp_D, T>::value ? "%Y-%m-%d" : "%Y-%m-%d %H:%M:%S");
     }
 
-    template<typename T, std::enable_if_t<cudf::is_compound<T>()> * = nullptr>
+    template<typename T, std::enable_if_t<cudf::is_compound<T>() or cudf::is_duration<T>()> * = nullptr>
     std::unique_ptr<cudf::column> operator()(const cudf::column_view & col) {
         return nullptr;
     }
@@ -96,7 +102,7 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         if (is_var_column(arg_tokens[0])) {
             column = table.column(get_index(arg_tokens[0]));
         } else {
-            auto evaluated_col = evaluate_expressions(ral::frame::cudfTableViewToBlazingColumns(table), {arg_tokens[0]});
+            auto evaluated_col = evaluate_expressions(table, {arg_tokens[0]});
             assert(evaluated_col.size() == 1);
             computed_column = evaluated_col[0]->release();
             column = computed_column->view();
@@ -118,7 +124,7 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
             int32_t length = arg_tokens.size() == 3 ? std::stoi(arg_tokens[2]) : -1;
             int32_t end = length >= 0 ? start + length : 0;
 
-            computed_col = cudf::strings::slice_strings(column, start, cudf::numeric_scalar<int32_t>(end, length >= 0));
+            computed_col = cudf::strings::slice_strings(column, start, cudf::numeric_scalar<int32_t>(end, length >= 0));            
         } else {
             // TODO: create a version of cudf::strings::slice_strings that uses start and length columns
             // so we can remove all the calculations for start and end
@@ -126,13 +132,13 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
             std::unique_ptr<cudf::column> computed_string_column;
             cudf::column_view column;
             if (is_var_column(arg_tokens[0])) {
-                column = table.column(get_index(arg_tokens[0]));
+                column = table.column(get_index(arg_tokens[0]));                
             } else {
-                auto evaluated_col = evaluate_expressions(ral::frame::cudfTableViewToBlazingColumns(table), {arg_tokens[0]});
+                auto evaluated_col = evaluate_expressions(table, {arg_tokens[0]});
                 RAL_EXPECTS(evaluated_col.size() == 1 && evaluated_col[0]->view().type().id() == cudf::type_id::STRING, "Expression does not evaluate to a string column");
 
                 computed_string_column = evaluated_col[0]->release();
-                column = computed_string_column->view();
+                column = computed_string_column->view();                
             }
 
             std::unique_ptr<cudf::column> computed_start_column;
@@ -145,7 +151,7 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
                 cudf::numeric_scalar<int32_t> start_scalar(start);
                 computed_start_column = cudf::make_column_from_scalar(start_scalar, table.num_rows());
             } else {
-                auto evaluated_col = evaluate_expressions(ral::frame::cudfTableViewToBlazingColumns(table), {arg_tokens[1]});
+                auto evaluated_col = evaluate_expressions(table, {arg_tokens[1]});
                 RAL_EXPECTS(evaluated_col.size() == 1 && is_type_integer(evaluated_col[0]->view().type().id()), "Expression does not evaluate to an integer column");
 
                 computed_start_column = evaluated_col[0]->release();
@@ -160,25 +166,35 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
                 if (is_var_column(arg_tokens[2])) {
                     computed_end_column = std::make_unique<cudf::column>(table.column(get_index(arg_tokens[2])));
                 } else if(is_literal(arg_tokens[2])) {
-                    int32_t length = std::stoi(arg_tokens[2]);
-
-                    cudf::numeric_scalar<int32_t> end_scalar(length);
-                    computed_end_column = cudf::make_column_from_scalar(end_scalar, table.num_rows());
+                    std::unique_ptr<cudf::scalar> end_scalar = get_scalar_from_string(arg_tokens[2], start_column.type());
+                    computed_end_column = cudf::make_column_from_scalar(*end_scalar, table.num_rows());
                 } else {
-                    auto evaluated_col = evaluate_expressions(ral::frame::cudfTableViewToBlazingColumns(table), {arg_tokens[2]});
+                    auto evaluated_col = evaluate_expressions(table, {arg_tokens[2]});
                     RAL_EXPECTS(evaluated_col.size() == 1 && is_type_integer(evaluated_col[0]->view().type().id()), "Expression does not evaluate to an integer column");
 
                     computed_end_column = evaluated_col[0]->release();
+                }
+
+                // lets make sure that the start and end are the same type
+                if (!(start_column.type() == computed_end_column->type())){
+                    cudf::data_type common_type = ral::utilities::get_common_type(start_column.type(), computed_end_column->type(), true);
+                    if (!(start_column.type() == common_type)){
+                        computed_start_column = cudf::cast(start_column, common_type);
+                        start_column = computed_start_column->view();
+                    }
+                    if (!(computed_end_column->type() == common_type)){
+                        computed_end_column = cudf::cast(computed_end_column->view(), common_type);
+                    }
                 }
                 cudf::mutable_column_view mutable_view = computed_end_column->mutable_view();
                 ral::utilities::transform_length_to_end(mutable_view, start_column);
                 end_column = computed_end_column->view();
             } else {
-                cudf::numeric_scalar<int32_t> end_scalar(0, false);
-                computed_end_column = cudf::make_column_from_scalar(end_scalar, table.num_rows());
+                std::unique_ptr<cudf::scalar> end_scalar = get_max_integer_scalar(start_column.type());
+                computed_end_column = cudf::make_column_from_scalar(*end_scalar, table.num_rows());
                 end_column = computed_end_column->view();
             }
-
+            
             computed_col = cudf::strings::slice_strings(column, start_column, end_column);
         }
         break;
@@ -204,7 +220,7 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
                 temp_col1 = cudf::make_column_from_scalar(str_scalar, table.num_rows());
                 column1 = temp_col1->view();
             } else {
-                auto evaluated_col = evaluate_expressions(ral::frame::cudfTableViewToBlazingColumns(table), {arg_tokens[0]});
+                auto evaluated_col = evaluate_expressions(table, {arg_tokens[0]});
                 assert(evaluated_col.size() == 1);
                 temp_col1 = evaluated_col[0]->release();
                 column1 = temp_col1->view();
@@ -220,7 +236,7 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
                 temp_col2 = cudf::make_column_from_scalar(str_scalar, table.num_rows());
                 column2 = temp_col2->view();
             } else {
-                auto evaluated_col = evaluate_expressions(ral::frame::cudfTableViewToBlazingColumns(table), {arg_tokens[1]});
+                auto evaluated_col = evaluate_expressions(table, {arg_tokens[1]});
                 assert(evaluated_col.size() == 1);
                 temp_col2 = evaluated_col[0]->release();
                 column2 = temp_col2->view();
@@ -240,13 +256,17 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         if (is_var_column(arg_tokens[0])) {
             column = table.column(get_index(arg_tokens[0]));
         } else {
-            auto evaluated_col = evaluate_expressions(ral::frame::cudfTableViewToBlazingColumns(table), {arg_tokens[0]});
+            auto evaluated_col = evaluate_expressions(table, {arg_tokens[0]});
             assert(evaluated_col.size() == 1);
             computed_column = evaluated_col[0]->release();
             column = computed_column->view();
         }
-
-        computed_col = cudf::type_dispatcher(column.type(), cast_to_str_functor{}, column);
+        if (column.type() == cudf::data_type{cudf::type_id::STRING}){
+            // this should not happen, but sometimes calcite produces inefficient plans that ask to cast a string column to a "VARCHAR NOT NULL"
+            computed_col = std::make_unique<cudf::column>(column);
+        } else {
+            computed_col = cudf::type_dispatcher(column.type(), cast_to_str_functor{}, column);
+        }        
         break;
     }
     case operator_type::BLZ_CAST_TINYINT:
@@ -395,7 +415,7 @@ std::unique_ptr<cudf::column> evaluate_string_case_when_else(const cudf::table_v
     if (is_var_column(condition_expr)) {
         boolean_mask_view = table.column(get_index(condition_expr));
     } else {
-        evaluated_table = evaluate_expressions(ral::frame::cudfTableViewToBlazingColumns(table), {condition_expr});
+        evaluated_table = evaluate_expressions(table, {condition_expr});
         RAL_EXPECTS(evaluated_table.size() == 1 && evaluated_table[0]->view().type().id() == cudf::type_id::BOOL8, "Expression does not evaluate to a boolean mask");
 
         boolean_mask_view = evaluated_table[0]->view();
@@ -520,9 +540,11 @@ public:
 		operator_type op = map_to_operator_type(node.value);
 		if(is_binary_operator(op)) {
 			output_type = cudf::data_type{get_output_type(op, node_to_type_map_.at(node.children[0].get()).id(), node_to_type_map_.at(node.children[1].get()).id())};
-		} else {
+		} else if (is_unary_operator(op)) {
 			output_type = cudf::data_type{get_output_type(op, node_to_type_map_.at(node.children[0].get()).id())};
-		}
+		}else{
+            output_type = cudf::data_type{get_output_type(op)};
+        }
 
 		node_to_type_map_.insert({&node, output_type});
 		expr_output_type_ = output_type;
@@ -541,21 +563,14 @@ private:
 };
 
 std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
-    std::vector<std::unique_ptr<ral::frame::BlazingColumn>> blazing_columns,
+    const cudf::table_view & table,
     const std::vector<std::string> & expressions) {
     using interops::column_index_type;
-
-    std::vector<CudfColumnView> cudf_column_views_in(blazing_columns.size());
-    std::transform(blazing_columns.begin(), blazing_columns.end(), cudf_column_views_in.begin(), [](auto & col){
-        return col->view();
-    });
-    cudf::table_view table(cudf_column_views_in);
 
     std::vector<std::unique_ptr<ral::frame::BlazingColumn>> out_columns(expressions.size());
 
     std::vector<bool> column_used(table.num_columns(), false);
     std::vector<std::pair<int, int>> out_idx_computed_idx_pair;
-    std::vector<std::pair<int, int>> out_idx_input_idx_pair;
 
     std::vector<parser::parse_tree> expr_tree_vector;
     std::vector<cudf::mutable_column_view> interpreter_out_column_views;
@@ -576,15 +591,7 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
         } else if (tree.root().type == parser::node_type::VARIABLE) {
             cudf::size_type idx = static_cast<const ral::parser::variable_node&>(tree.root()).index();
             if (idx < table.num_columns()) {
-                // if the output is just the input, we want to see if its a BlazingColumnView or a BlazingColumnOwner
-                // if its a BlazingColumnView, then we just copy the view (no-memcopy)
-                // if its a BlazingColumnOwner, then we want to move it OR copy it if we need to make more than one move. (more than one output for the same input)
-                // the BlazingColumnOwner moves would have to happen at the end, after all transformations have happened
-                if (blazing_columns[idx]->type() == ral::frame::blazing_column_type::VIEW){
-                    out_columns[i] = std::make_unique<ral::frame::BlazingColumnView>(blazing_columns[idx]->view());
-                } else {
-                    out_idx_input_idx_pair.push_back({i, idx});
-                }
+                out_columns[i] = std::make_unique<ral::frame::BlazingColumnOwner>(std::make_unique<cudf::column>(table.column(idx)));
             } else {
                 out_idx_computed_idx_pair.push_back({i, idx - table.num_columns()});
             }
@@ -614,18 +621,6 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
         out_columns[p.first] = std::make_unique<ral::frame::BlazingColumnOwner>(std::move(computed_columns[p.second]));
     }
 
-    // this is a vector to keep track of if a column has already been moved from input to output. -1 means not moved, otherwise its the index of the output where it went to
-    std::vector<int> already_moved(blazing_columns.size(), -1);
-    for (auto &&p : out_idx_input_idx_pair) {
-        if (already_moved[p.second] >= 0){ // have to make a copy
-            out_columns[p.first] = std::move(std::make_unique<ral::frame::BlazingColumnOwner>(
-                    std::make_unique<cudf::column>(out_columns[already_moved[p.second]]->view())));
-        } else {
-            out_columns[p.first] = std::move(blazing_columns[p.second]);
-            already_moved[p.second] = p.first;
-        }
-    }
-
     // Get the needed columns indices in order and keep track of the mapped indices
     std::map<column_index_type, column_index_type> col_idx_map;
     std::vector<cudf::size_type> input_col_indices;
@@ -637,19 +632,16 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
     }
 
     std::vector<std::unique_ptr<cudf::column>> filtered_computed_columns;
+    std::vector<cudf::column_view> filtered_computed_views;
     for(size_t i = 0; i < computed_columns.size(); i++) {
         if(computed_columns[i]) {
             // If computed_columns[i] has not been moved to out_columns
             // then it will be used as input in interops
             col_idx_map.insert({table.num_columns() + i, col_idx_map.size()});
+            filtered_computed_views.push_back(computed_columns[i]->view());
             filtered_computed_columns.push_back(std::move(computed_columns[i]));
         }
     }
-
-    std::vector<cudf::column_view> filtered_computed_views(filtered_computed_columns.size());
-    std::transform(std::cbegin(filtered_computed_columns), std::cend(filtered_computed_columns), filtered_computed_views.begin(), [](auto & col){
-        return col->view();
-    });
 
     cudf::table_view interops_input_table{{table.select(input_col_indices), cudf::table_view{filtered_computed_views}}};
 
@@ -676,6 +668,25 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
                                                     right_scalars);
     }
 
+    // TODO: Find a proper solution for plan with input or output index greater than 63
+	auto max_left_it = std::max_element(left_inputs.begin(), left_inputs.end());
+	auto max_right_it = std::max_element(right_inputs.begin(), right_inputs.end());
+	auto max_out_it = std::max_element(outputs.begin(), outputs.end());
+    if (!expr_tree_vector.empty() && std::max(std::max(*max_left_it, *max_right_it), *max_out_it) >= 64) {
+        out_columns.clear();
+        computed_columns.clear();
+
+        size_t const half_size = expressions.size() / 2;
+        std::vector<std::string> split_lo(expressions.begin(), expressions.begin() + half_size);
+        std::vector<std::string> split_hi(expressions.begin() + half_size, expressions.end());
+        auto out_cols_lo = evaluate_expressions(table, split_lo);
+        auto out_cols_hi = evaluate_expressions(table, split_hi);
+
+        std::move(out_cols_hi.begin(), out_cols_hi.end(), std::back_inserter(out_cols_lo));
+        return std::move(out_cols_lo);
+    }
+    // END
+
     if(!expr_tree_vector.empty()){
         cudf::mutable_table_view out_table_view(interpreter_out_column_views);
 
@@ -687,7 +698,8 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
                                                 final_output_positions,
                                                 operators,
                                                 left_scalars,
-                                                right_scalars);
+                                                right_scalars,
+                                                table.num_rows());
     }
 
     return std::move(out_columns);
@@ -716,7 +728,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
         out_column_names[i] = name;
     }
 
-    return std::make_unique<ral::frame::BlazingTable>(evaluate_expressions(blazing_table_in->releaseBlazingColumns(), expressions), out_column_names);
+    return std::make_unique<ral::frame::BlazingTable>(evaluate_expressions(blazing_table_in->view(), expressions), out_column_names);
 }
 
 } // namespace processor

@@ -34,14 +34,6 @@ arrow_parser::~arrow_parser() {}
 // 	}
 // }
 
-std::unique_ptr<ral::frame::BlazingTable> arrow_parser::parse(
-	std::shared_ptr<arrow::io::RandomAccessFile> file,
-	const Schema & schema,
-	std::vector<size_t> column_indices) {
-		// TODO: cordova Implements the new ARROW parser with 0.12 API
-	return nullptr;
-}	
-
 void arrow_parser::parse_schema(std::shared_ptr<arrow::io::RandomAccessFile> file,
 		ral::io::Schema & schema){
 	std::vector<std::string> names;

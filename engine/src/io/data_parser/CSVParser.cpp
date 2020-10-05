@@ -11,6 +11,7 @@
 #include <numeric>
 
 #include <blazingdb/io/Library/Logging/Logger.h>
+#include "ArgsUtil.h"
 
 #define checkError(error, txt)                                                                                         \
 	if(error != GDF_SUCCESS) {                                                                                         \
@@ -21,54 +22,29 @@
 namespace ral {
 namespace io {
 
-csv_parser::csv_parser(cudf_io::read_csv_args args_) : csv_args{args_} {}
+csv_parser::csv_parser(std::map<std::string, std::string> args_map_) : args_map{args_map_} {}
 
 csv_parser::~csv_parser() {}
 
-cudf_io::table_with_metadata read_csv_arg_arrow(cudf_io::read_csv_args new_csv_args,
-	std::shared_ptr<arrow::io::RandomAccessFile> arrow_file_handle,
-	bool first_row_only = false) {
-
-	int64_t num_bytes;
-	arrow_file_handle->GetSize(&num_bytes);
-
-	// lets only read up to 48192 bytes. We are assuming that a full row will always be less than that
-	if(first_row_only && num_bytes > 48192) {
-		new_csv_args.byte_range_size = 48192;
-		new_csv_args.nrows = 1;
-		new_csv_args.skipfooter = 0;
-	}
-
-	new_csv_args.source = cudf_io::source_info(arrow_file_handle);
-
-	if(new_csv_args.nrows != -1)
-		new_csv_args.skipfooter = 0;
-
-	cudf_io::table_with_metadata table_out = cudf_io::read_csv(new_csv_args);
-
-	arrow_file_handle->Close();
-
-	return std::move(table_out);
-}
-
-
-std::unique_ptr<ral::frame::BlazingTable> csv_parser::parse(
+std::unique_ptr<ral::frame::BlazingTable> csv_parser::parse_batch(
 	std::shared_ptr<arrow::io::RandomAccessFile> file,
 	const Schema & schema,
-	std::vector<size_t> column_indices) {
+	std::vector<int> column_indices,
+	std::vector<cudf::size_type> row_groups) {
 
 	if(file == nullptr) {
-		// return create_empty_table(schema.get_names(), schema.get_dtypes(), column_indices);  // do we need to create an empty table that has metadata?
-		return nullptr;
+		return schema.makeEmptyBlazingTable(column_indices);
 	}
 
-	cudf_io::read_csv_args new_csv_arg = this->csv_args;
 	if(column_indices.size() > 0) {
-		// copy column_indices into use_col_indexes (at the moment is ordered only)
-		new_csv_arg.use_cols_indexes.resize(column_indices.size());
-		new_csv_arg.use_cols_indexes.assign(column_indices.begin(), column_indices.end());
 
-		cudf_io::table_with_metadata csv_table = read_csv_arg_arrow(new_csv_arg, file);
+		// copy column_indices into use_col_indexes (at the moment is ordered only)
+		auto arrow_source = cudf::io::arrow_io_source{file};
+		cudf::io::csv_reader_options args = getCsvReaderOptions(args_map, arrow_source);
+		args.set_use_cols_indexes(column_indices);
+
+		cudf::io::table_with_metadata csv_table = cudf::io::read_csv(args);
+		file->Close();
 
 		if(csv_table.tbl->num_columns() <= 0)
 			Library::Logging::Logger().logWarn("csv_parser::parse no columns were read");
@@ -102,20 +78,21 @@ std::unique_ptr<ral::frame::BlazingTable> csv_parser::parse(
 }
 
 
-std::unique_ptr<ral::frame::BlazingTable> csv_parser::parse_batch(
-	std::shared_ptr<arrow::io::RandomAccessFile> file,
-	const Schema & schema,
-	std::vector<size_t> column_indices,
-	std::vector<cudf::size_type> row_groups) {
-
-	return parse(file, schema, column_indices);
-}
-
-
 void csv_parser::parse_schema(
 	std::shared_ptr<arrow::io::RandomAccessFile> file, ral::io::Schema & schema) {
 
-	cudf_io::table_with_metadata table_out = read_csv_arg_arrow(csv_args, file, true);
+	auto arrow_source = cudf::io::arrow_io_source{file};
+	cudf::io::csv_reader_options args = getCsvReaderOptions(args_map, arrow_source);
+
+	int64_t num_bytes = file->GetSize().ValueOrDie();
+
+	// lets only read up to 48192 bytes. We are assuming that a full row will always be less than that
+	if(num_bytes > 48192) {
+		args.set_nrows(1);
+		args.set_skipfooter(0);
+	}
+	cudf::io::table_with_metadata table_out = cudf::io::read_csv(args);
+	file->Close();
 
 	for(size_t i = 0; i < table_out.tbl->num_columns(); i++) {
 		cudf::type_id type = table_out.tbl->get_column(i).type().id();

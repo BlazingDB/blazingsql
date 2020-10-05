@@ -1,6 +1,5 @@
-set(source_files
-    sort.cu
-    ${CMAKE_SOURCE_DIR}/src/from_cudf/cpp_tests/utilities/table_utilities.cu    
+set(sort_test_sources
+    sort.cpp
 )
 
-configure_test(sort-test "${source_files}")
+configure_test(sort-test "${sort_test_sources}")

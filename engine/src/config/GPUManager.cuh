@@ -7,7 +7,8 @@
 namespace ral {
 namespace config {
 
-size_t gpuMemorySize();
+size_t gpuFreeMemory();
+size_t gpuTotalMemory();
 size_t gpuUsedMemory();
 
 } // namespace config

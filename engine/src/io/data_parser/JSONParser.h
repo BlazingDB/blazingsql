@@ -1,7 +1,8 @@
 #pragma once
 
 #include <arrow/io/interfaces.h>
-#include <cudf/io/functions.hpp>
+#include <cudf/io/datasource.hpp>
+#include <cudf/io/json.hpp>
 #include <memory>
 #include <vector>
 
@@ -12,19 +13,14 @@ namespace io {
 
 class json_parser : public data_parser {
 public:
-	json_parser(cudf::io::read_json_args args);
+	json_parser(std::map<std::string, std::string> args_map);
 
 	virtual ~json_parser();
-
-	std::unique_ptr<ral::frame::BlazingTable> parse(
-		std::shared_ptr<arrow::io::RandomAccessFile> file,
-		const Schema & schema,
-		std::vector<size_t> column_indices);
 
 	void parse_schema(std::shared_ptr<arrow::io::RandomAccessFile> file, Schema & schema);
 
 private:
-	cudf::io::read_json_args args;
+	std::map<std::string, std::string> args_map;
 };
 
 } /* namespace io */

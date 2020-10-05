@@ -4,7 +4,6 @@ import sysconfig
 from distutils.sysconfig import get_python_lib
 
 import numpy as np
-
 from Cython.Build import cythonize
 from setuptools import find_packages, setup
 from setuptools.extension import Extension
@@ -13,7 +12,7 @@ install_requires = ["cudf", "numba", "cython"]
 
 conda_env_dir = os.environ["CONDA_PREFIX"]
 
-if os.environ.get('CONDA_BUILD') is not None:
+if os.environ.get("CONDA_BUILD") is not None:
     if os.environ["CONDA_BUILD"] == "1":
         conda_env_dir = os.environ["BUILD_PREFIX"]
 
@@ -21,11 +20,14 @@ conda_env_inc = os.path.join(conda_env_dir, "include")
 
 conda_env_inc_cudf = os.path.join(conda_env_inc, "cudf")
 conda_env_inc_cub = os.path.join(conda_env_inc, "bsql-rapids-thirdparty/cub")
-conda_env_inc_libcudacxx = os.path.join(conda_env_inc, "bsql-rapids-thirdparty/libcudacxx/include")
+conda_env_inc_libcudacxx = os.path.join(
+    conda_env_inc, "bsql-rapids-thirdparty/libcudacxx/include"
+)
 
 # TODO percy c.gonzales fix blazingdb-io headers
 conda_env_inc_io = os.path.join(conda_env_inc, "blazingdb/io")
-conda_env_inc_communication = os.path.join(conda_env_inc, "blazingdb/communication")
+conda_env_inc_communication = os.path.join(conda_env_inc,
+                                           "blazingdb/communication")
 
 conda_env_lib = os.path.join(conda_env_dir, "lib")
 
@@ -47,20 +49,19 @@ extensions = [
             conda_env_inc_io,
             conda_env_inc_communication,
             "/usr/local/cuda/include",
-            os.path.dirname(
-                sysconfig.get_path("include")),
+            os.path.dirname(sysconfig.get_path("include")),
             np.get_include(),
         ],
         library_dirs=[
             get_python_lib(),
             conda_env_lib,
-            os.path.join(
-                os.sys.prefix,
-                "lib")],
-        libraries=["blazingsql-engine"],
+            os.path.join(os.sys.prefix, "lib"),
+        ],
+        libraries=["blazingsql-engine", "gtest"],
         language="c++",
         extra_compile_args=["-std=c++14"],
-    )]
+    )
+]
 
 setup(
     name="bsql_engine",
@@ -82,11 +83,10 @@ setup(
     setup_requires=["cython"],
     ext_modules=cythonize(extensions),
     packages=find_packages(include=["bsql_engine", "bsql_engine.*"]),
+    # TODO: force comment to pass style issue
     package_data={
-        "bsql_engine.io": ["bsql_engine/io/cio.pxd"],
-        "bsql_engine.io": ["*.pxd"],
         "bsql_engine.io": ["cio.pxd"],
-        "bsql_engine": ["bsql_engine/io/cio.pxd"]
+        "bsql_engine": ["bsql_engine/io/cio.pxd"],
     },
     install_requires=install_requires,
     zip_safe=False,

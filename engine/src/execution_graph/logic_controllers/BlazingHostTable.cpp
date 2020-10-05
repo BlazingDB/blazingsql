@@ -15,12 +15,12 @@ BlazingHostTable::BlazingHostTable(const std::vector<ColumnTransport> &columns_o
                                    std::vector<std::basic_string<char>> &&raw_buffers)
         : columns_offsets{columns_offsets}, raw_buffers{std::move(raw_buffers)} {
     auto size = sizeInBytes();
-    blazing_host_memory_mesource::getInstance().allocate(size);
+    blazing_host_memory_resource::getInstance().allocate(size);
 }
 
 BlazingHostTable::~BlazingHostTable() {
     auto size = sizeInBytes();
-    blazing_host_memory_mesource::getInstance().deallocate(size);
+    blazing_host_memory_resource::getInstance().deallocate(size);
 }
 
 std::vector<cudf::data_type> BlazingHostTable::get_schema() const {

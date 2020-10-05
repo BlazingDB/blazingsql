@@ -7,6 +7,7 @@
 
 #include <iostream>
 
+#include <arrow/io/api.h>
 #include "arrow/buffer.h"
 #include "arrow/status.h"
 
@@ -53,8 +54,10 @@ bool HadoopFileSystem::Private::connect(const FileSystemConnection & fileSystemC
 	hdfsConfig.host = host;
 	hdfsConfig.port = port;
 	hdfsConfig.user = user;
-	hdfsConfig.driver = driver == DriverType::LIBHDFS ? arrow::io::HdfsDriver::LIBHDFS
-													  : arrow::io::HdfsDriver::LIBHDFS3;  // TODO better code
+    
+    // TODO william jp new arrow-0.17 API seems detects automagically the driver
+	//hdfsConfig.driver = driver == DriverType::LIBHDFS ? arrow::io::HdfsDriver::LIBHDFS : arrow::io::HdfsDriver::LIBHDFS3;  // TODO better code
+    
 	hdfsConfig.kerb_ticket = kerberosTicket;
 
 	const arrow::Status connectionStat = arrow::io::HadoopFileSystem::Connect(&hdfsConfig, &this->hdfs);
@@ -438,11 +441,14 @@ bool HadoopFileSystem::Private::truncateFile(const Uri & uri, long long length) 
 		// from object [         ] get [******|  ]
 		const long long nbytes = length;
 
-		std::shared_ptr<arrow::Buffer> buffer;
-		file->Read(nbytes, &buffer);
+		auto bufferReturn = file->Read(nbytes);
 
 		const auto closeFileOk = file->Close();
 
+        if (!bufferReturn.status().ok()) {
+            return false;
+        }
+        
 		if(closeFileOk.ok() == false) {
 			// TODO percy error handling
 			// TODO rollback changes
@@ -466,6 +472,8 @@ bool HadoopFileSystem::Private::truncateFile(const Uri & uri, long long length) 
 			return false;
 		}
 
+        auto buffer = bufferReturn.ValueOrDie();
+                
 		const auto writeOk = outFile->Write(buffer->data(), buffer->size());
 
 		if(writeOk.ok() == false) {
@@ -529,7 +537,7 @@ std::shared_ptr<arrow::io::OutputStream> HadoopFileSystem::Private::openWriteabl
 	std::shared_ptr<arrow::io::HdfsOutputStream> out_file;
 
 	// path is the location on hdfs
-	arrow::Status stat = hdfs->OpenWriteable(path.toString(), false, &out_file);
+	arrow::Status stat = hdfs->OpenWritable(path.toString(), false, &out_file);
 
 	// TODO check stat and thrown FileSystemException
 

@@ -4,6 +4,7 @@
 #include <spdlog/async.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
+using namespace fmt::literals;
 
 #include <cudf/table/table_view.hpp>
 #include <cudf/join.hpp>
@@ -20,7 +21,6 @@
 #include "distribution/primitives.h"
 #include "communication/CommunicationData.h"
 #include "utilities/CommonOperations.h"
-#include "utilities/DebuggingUtils.h"
 #include "utilities/StringUtils.h"
 #include "error.hpp"
 
@@ -64,7 +64,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
 		conditional_expression = get_named_expression(query_part, "filters");
 	}
 
-  std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluated_table = evaluate_expressions(table_view.toBlazingColumns(), {conditional_expression});
+  std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluated_table = evaluate_expressions(table_view.view(), {conditional_expression});
 
   RAL_EXPECTS(evaluated_table.size() == 1 && evaluated_table[0]->view().type().id() == cudf::type_id::BOOL8, "Expression does not evaluate to a boolean mask");
 
@@ -125,6 +125,13 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
       }
     }
     assert(found_self_partition);
+
+    if( ral::utilities::checkIfConcatenatingStringsWillOverflow(partitions_to_concat) ) {
+      auto logger = spdlog::get("batch_logger");
+      logger->warn("|||{info}|||||",
+                  "info"_a="In process_distribution_table Concatenating will overflow strings length");
+    }
+
     return ral::utilities::concatTables(partitions_to_concat);
   }
 

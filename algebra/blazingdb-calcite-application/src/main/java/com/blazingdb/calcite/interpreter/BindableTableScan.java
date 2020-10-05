@@ -1,7 +1,7 @@
 /*
  * This file is a copy with some modifications of the BindableTableScan from
  * the Apache Calcite project. The original code can be found at:
- * https://github.com/apache/calcite/blob/branch-1.21/core/src/main/java/org/apache/calcite/interpreter/Bindables.java
+ * https://github.com/apache/calcite/blob/branch-1.23/core/src/main/java/org/apache/calcite/interpreter/Bindables.java
  * The changes are about expecting a new parameter that will hold the column aliases.
  */
 package com.blazingdb.calcite.interpreter;
@@ -47,18 +47,16 @@ public class BindableTableScan extends TableScan implements BindableRel {
 	public final ImmutableIntList projects;
 	public final ImmutableList<String> aliases;
 
-	/**
-	 * Creates a BindableTableScan.
+	/** Creates a BindableTableScan.
 	 *
-	 * <p>Use {@link #create} unless you know what you are doing.
-	 */
+	 * <p>Use {@link #create} unless you know what you are doing. */
 	BindableTableScan(RelOptCluster cluster,
 		RelTraitSet traitSet,
 		RelOptTable table,
 		ImmutableList<RexNode> filters,
 		ImmutableIntList projects,
 		ImmutableList<String> aliases) {
-		super(cluster, traitSet, table);
+		super(cluster, traitSet, ImmutableList.of(), table);
 		this.filters = Objects.requireNonNull(filters);
 		this.projects = Objects.requireNonNull(projects);
 		this.aliases = Objects.requireNonNull(aliases);
@@ -122,6 +120,10 @@ public class BindableTableScan extends TableScan implements BindableRel {
 	@Override
 	public RelOptCost
 	computeSelfCost(RelOptPlanner planner, RelMetadataQuery mq) {
+		boolean noPushing = filters.isEmpty() && projects.size() == table.getRowType().getFieldCount();
+		if(noPushing) {
+			return super.computeSelfCost(planner, mq);
+		}
 		// Cost factor for pushing filters
 		double f = filters.isEmpty() ? 1d : 0.5d;
 

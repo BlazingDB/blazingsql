@@ -6,7 +6,9 @@
 
 bool is_type_float(cudf::type_id type);
 bool is_type_integer(cudf::type_id type);
-bool is_date_type(cudf::type_id type);
+bool is_type_bool(cudf::type_id type) ;
+bool is_type_timestamp(cudf::type_id type);
+bool is_type_string(cudf::type_id type);
 
 cudf::size_type get_index(const std::string & operand_string);
 
@@ -21,6 +23,8 @@ std::string get_aggregation_operation_string(std::string operator_expression);
 
 std::string get_string_between_outer_parentheses(std::string operator_string);
 
-std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_string, cudf::data_type type);
+std::unique_ptr<cudf::scalar> get_max_integer_scalar(cudf::data_type type);
+
+std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_string, cudf::data_type type, bool strings_have_quotes = true);
 
 int count_string_occurrence(std::string haystack, std::string needle);

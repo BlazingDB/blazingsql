@@ -220,7 +220,7 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_without_groupby(
 			if(is_var_column(aggregation_input_expressions[i]) || is_number(aggregation_input_expressions[i])) {
 				aggregation_input = table.view().column(get_index(aggregation_input_expressions[i]));
 			} else {
-				aggregation_input_scope_holder = ral::processor::evaluate_expressions(table.toBlazingColumns(), {aggregation_input_expressions[i]});
+				aggregation_input_scope_holder = ral::processor::evaluate_expressions(table.view(), {aggregation_input_expressions[i]});
 				aggregation_input = aggregation_input_scope_holder[0]->view();
 			}
 
@@ -297,7 +297,7 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
 						column_index = get_index(expression);
 						aggregation_input = table.view().column(column_index);
 					} else {
-						std::vector< std::unique_ptr<ral::frame::BlazingColumn> > computed_columns = ral::processor::evaluate_expressions(table.toBlazingColumns(), {expression});
+						std::vector< std::unique_ptr<ral::frame::BlazingColumn> > computed_columns = ral::processor::evaluate_expressions(table.view(), {expression});
 						aggregation_inputs_scope_holder.insert(aggregation_inputs_scope_holder.end(), std::make_move_iterator(computed_columns.begin()), std::make_move_iterator(computed_columns.end()));
 						aggregation_input = aggregation_inputs_scope_holder.back()->view();
 					}

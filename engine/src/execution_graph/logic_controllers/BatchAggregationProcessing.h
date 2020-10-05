@@ -9,7 +9,6 @@
 #include "communication/CommunicationData.h"
 #include "operators/GroupBy.h"
 #include "distribution/primitives.h"
-#include "utilities/DebuggingUtils.h"
 #include <cudf/partitioning.hpp>
 #include "CodeTimer.h"
 
@@ -23,8 +22,8 @@ using namespace fmt::literals;
 
 class ComputeAggregateKernel : public kernel {
 public:
-	ComputeAggregateKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: kernel{queryString, context, kernel_type::ComputeAggregateKernel} {
+	ComputeAggregateKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
+		: kernel{kernel_id, queryString, context, kernel_type::ComputeAggregateKernel} {
         this->query_graph = query_graph;
 	}
 
@@ -37,10 +36,11 @@ public:
         CodeTimer eventTimer(false);
 
         std::vector<std::string> aggregation_input_expressions, aggregation_column_assigned_aliases;
-        std::tie(this->group_column_indices, aggregation_input_expressions, this->aggregation_types, 
+        std::tie(this->group_column_indices, aggregation_input_expressions, this->aggregation_types,
             aggregation_column_assigned_aliases) = ral::operators::parseGroupByExpression(this->expression);
 
-        BatchSequence input(this->input_cache(), this);
+        bool ordered = false; // If we start using sort based aggregations this may need to change
+        BatchSequence input(this->input_cache(), this, ordered);
         int batch_count = 0;
         while (input.wait_for_next()) {
 
@@ -59,7 +59,7 @@ public:
                             batch->toBlazingTableView(), this->group_column_indices);
                 } else if (this->group_column_indices.size() == 0) {
                     output = ral::operators::compute_aggregations_without_groupby(
-                            batch->toBlazingTableView(), aggregation_input_expressions, this->aggregation_types, aggregation_column_assigned_aliases);                
+                            batch->toBlazingTableView(), aggregation_input_expressions, this->aggregation_types, aggregation_column_assigned_aliases);
                 } else {
                     output = ral::operators::compute_aggregations_with_groupby(
                         batch->toBlazingTableView(), aggregation_input_expressions, this->aggregation_types, aggregation_column_assigned_aliases, group_column_indices);
@@ -118,7 +118,7 @@ public:
                 double out_so_far = (double)this->output_.total_rows_added();
                 double in_so_far = (double)this->input_.total_rows_added();
                 if (in_so_far == 0){
-                    return std::make_pair(false, 0);    
+                    return std::make_pair(false, 0);
                 } else {
                     return std::make_pair(true, (uint64_t)( ((double)total_in.second) *out_so_far/in_so_far) );
                 }
@@ -135,8 +135,8 @@ private:
 
 class DistributeAggregateKernel : public kernel {
 public:
-	DistributeAggregateKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: kernel{queryString, context, kernel_type::DistributeAggregateKernel} {
+	DistributeAggregateKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
+		: kernel{kernel_id, queryString, context, kernel_type::DistributeAggregateKernel} {
         this->query_graph = query_graph;
 	}
 
@@ -146,26 +146,27 @@ public:
 
 	virtual kstatus run() {
         using ColumnDataPartitionMessage = ral::communication::messages::ColumnDataPartitionMessage;
-        
+
         CodeTimer timer;
-		
+
         std::vector<int> group_column_indices;
         std::vector<std::string> aggregation_input_expressions, aggregation_column_assigned_aliases; // not used in this kernel
         std::vector<AggregateKind> aggregation_types; // not used in this kernel
-        std::tie(group_column_indices, aggregation_input_expressions, aggregation_types, 
+        std::tie(group_column_indices, aggregation_input_expressions, aggregation_types,
             aggregation_column_assigned_aliases) = ral::operators::parseGroupByExpression(this->expression);
 
         std::vector<cudf::size_type> columns_to_hash;
         std::transform(group_column_indices.begin(), group_column_indices.end(), std::back_inserter(columns_to_hash), [](int index) { return (cudf::size_type)index; });
-        
+
 
         BlazingThread producer_thread([this, group_column_indices, columns_to_hash](){
-            // num_partitions = context->getTotalNodes() will do for now, but may want a function to determine this in the future. 
+            // num_partitions = context->getTotalNodes() will do for now, but may want a function to determine this in the future.
             // If we do partition into something other than the number of nodes, then we have to use part_ids and change up more of the logic
-            int num_partitions = this->context->getTotalNodes(); 
+            int num_partitions = this->context->getTotalNodes();
             bool set_empty_part_for_non_master_node = false; // this is only for aggregation without group by
 
-            BatchSequence input(this->input_cache(), this);
+            bool ordered = false; // If we start using sort based aggregations this may need to change
+            BatchSequence input(this->input_cache(), this, ordered);
             int batch_count = 0;
             while (input.wait_for_next()) {
                 auto batch = input.next();
@@ -177,9 +178,9 @@ public:
                     if (group_column_indices.size() == 0) {
                         if(this->context->isMasterNode(ral::communication::CommunicationData::getInstance().getSelfNode())) {
                             this->add_to_output_cache(std::move(batch));
-                        } else {  
+                        } else {
                             if (!set_empty_part_for_non_master_node){ // we want to keep in the non-master nodes something, so that the cache is not empty
-                                std::unique_ptr<ral::frame::BlazingTable> empty = 
+                                std::unique_ptr<ral::frame::BlazingTable> empty =
                                     ral::utilities::create_empty_table(batch->toBlazingTableView());
                                 this->add_to_output_cache(std::move(empty));
                                 set_empty_part_for_non_master_node = true;
@@ -219,7 +220,7 @@ public:
                                     std::make_pair(this->context->getNode(nodeIndex), partition_table_view));
                             }
                         }
-                        ral::distribution::distributeTablePartitions(this->context.get(), partitions_to_send);			
+                        ral::distribution::distributeTablePartitions(this->context.get(), partitions_to_send);
                     }
                     batch_count++;
                 } catch(const std::exception& e) {
@@ -240,10 +241,10 @@ public:
                 ral::distribution::notifyLastTablePartitions(this->context.get(), ColumnDataPartitionMessage::MessageID());
             }
         });
-        
+
         BlazingThread consumer_thread([this, group_column_indices](){
             // Lets put the server listener to feed the output, but not if its aggregations without group by and its not the master
-            if(group_column_indices.size() > 0 || 
+            if(group_column_indices.size() > 0 ||
                         this->context->isMasterNode(ral::communication::CommunicationData::getInstance().getSelfNode())) {
                 ExternalBatchColumnDataSequence<ColumnDataPartitionMessage> external_input(context, this->get_message_id(), this);
                 std::unique_ptr<ral::frame::BlazingHostTable> host_table;
@@ -254,7 +255,7 @@ public:
         });
         producer_thread.join();
         consumer_thread.join();
-        
+
         logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
                     "query_id"_a=context->getContextToken(),
                     "step"_a=context->getQueryStep(),
@@ -273,8 +274,8 @@ private:
 
 class MergeAggregateKernel : public kernel {
 public:
-	MergeAggregateKernel(const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: kernel{queryString, context, kernel_type::MergeAggregateKernel} {
+	MergeAggregateKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
+		: kernel{kernel_id, queryString, context, kernel_type::MergeAggregateKernel} {
         this->query_graph = query_graph;
 	}
 
@@ -292,7 +293,8 @@ public:
         // This Kernel needs all of the input before it can do any output. So lets wait until all the input is available
         this->input_cache()->wait_until_finished();
 
-        BatchSequence input(this->input_cache(), this);
+        bool ordered = false; // If we start using sort based aggregations this may need to change
+        BatchSequence input(this->input_cache(), this, ordered);
         int batch_count=0;
         try {
             while (input.wait_for_next()) {
@@ -305,6 +307,13 @@ public:
             }
             eventTimer.start();
 
+			if( ral::utilities::checkIfConcatenatingStringsWillOverflow(tableViewsToConcat)) {
+				logger->warn("{query_id}|{step}|{substep}|{info}",
+								"query_id"_a=(context ? std::to_string(context->getContextToken()) : ""),
+								"step"_a=(context ? std::to_string(context->getQueryStep()) : ""),
+								"substep"_a=(context ? std::to_string(context->getQuerySubstep()) : ""),
+								"info"_a="In MergeAggregateKernel::run Concatenating Strings will overflow strings length");
+			}
             auto concatenated = ral::utilities::concatTables(tableViewsToConcat);
 
             auto log_input_num_rows = concatenated ? concatenated->num_rows() : 0;
@@ -313,13 +322,13 @@ public:
             std::vector<int> group_column_indices;
             std::vector<std::string> aggregation_input_expressions, aggregation_column_assigned_aliases;
             std::vector<AggregateKind> aggregation_types;
-            std::tie(group_column_indices, aggregation_input_expressions, aggregation_types, 
+            std::tie(group_column_indices, aggregation_input_expressions, aggregation_types,
                 aggregation_column_assigned_aliases) = ral::operators::parseGroupByExpression(this->expression);
 
             std::vector<int> mod_group_column_indices;
             std::vector<std::string> mod_aggregation_input_expressions, mod_aggregation_column_assigned_aliases, merging_column_names;
             std::vector<AggregateKind> mod_aggregation_types;
-            std::tie(mod_group_column_indices, mod_aggregation_input_expressions, mod_aggregation_types, 
+            std::tie(mod_group_column_indices, mod_aggregation_input_expressions, mod_aggregation_types,
                 mod_aggregation_column_assigned_aliases) = ral::operators::modGroupByParametersForMerge(
                 group_column_indices, aggregation_types, concatenated->names());
 
@@ -331,7 +340,7 @@ public:
                 // aggregations without groupby are only merged on the master node
                 if(context->isMasterNode(ral::communication::CommunicationData::getInstance().getSelfNode())) {
                     output = ral::operators::compute_aggregations_without_groupby(
-                            concatenated->toBlazingTableView(), mod_aggregation_input_expressions, mod_aggregation_types, 
+                            concatenated->toBlazingTableView(), mod_aggregation_input_expressions, mod_aggregation_types,
                             mod_aggregation_column_assigned_aliases);
                 } else {
                     // with aggregations without groupby the distribution phase should deposit an empty dataframe with the right schema into the cache, which is then output here
@@ -371,8 +380,8 @@ public:
                         "duration"_a="");
             throw;
         }
-        
-		
+
+
         logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
                     "query_id"_a=context->getContextToken(),
                     "step"_a=context->getQueryStep(),

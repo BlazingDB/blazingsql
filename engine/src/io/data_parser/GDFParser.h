@@ -7,9 +7,6 @@
 #include "arrow/io/interfaces.h"
 #include <memory>
 #include <vector>
-//#include "cudf.h"
-
-#include <cudf/io/functions.hpp>
 
 #include "execution_graph/logic_controllers/LogicPrimitives.h"
 
@@ -24,14 +21,10 @@ public:
 
 	virtual ~gdf_parser();
 
-	std::unique_ptr<ral::frame::BlazingTable> parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
-		const Schema & schema,
-		std::vector<std::size_t> column_indices);
-
 	std::unique_ptr<ral::frame::BlazingTable> parse_batch(
 		std::shared_ptr<arrow::io::RandomAccessFile> file,
 		const Schema & schema,
-		std::vector<size_t> column_indices,
+		std::vector<int> column_indices,
 		std::vector<cudf::size_type> row_groups);
 
 	void parse_schema(std::shared_ptr<arrow::io::RandomAccessFile> file, ral::io::Schema & schema);

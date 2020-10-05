@@ -23,6 +23,10 @@ cmake_minimum_required(VERSION 3.11)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/" ${CMAKE_MODULE_PATH})
 message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+option(GCS_SUPPORT "Enables support for GCS fileSystem" ON)
+option(S3_SUPPORT "Enables support for S3 fileSystem" ON)
+
 ###################################################################################################
 # - conda environment -----------------------------------------------------------------------------
 
@@ -65,12 +69,25 @@ include(CheckIncludeFiles)
 include(CheckLibraryExists)
 include(CTest)
 
+# TODO percy jp mario we don't need curl unless we use the storages
 add_definitions( -DCURL_STATICLIB )
+find_package(CURL REQUIRED)
 
-# NOTE Do not change the inclusion order
-# Configure dependencies
-include(ConfigureAWSSDK)
-include(ConfigureGoogleCloudCPP)
+# BEGIN find arrow
+find_path(ARROW_INCLUDE_DIR "arrow" HINTS "$ENV{ARROW_ROOT}/include")
+find_library(ARROW_LIB "arrow" NAMES libarrow HINTS "$ENV{ARROW_ROOT}/lib" "$ENV{ARROW_ROOT}/build")
+find_library(ARROW_CUDA_LIB "arrow_cuda" NAMES libarrow_cuda HINTS "$ENV{ARROW_ROOT}/lib" "$ENV{ARROW_ROOT}/build")
+message(STATUS "ARROW: ARROW_INCLUDE_DIR set to ${ARROW_INCLUDE_DIR}")
+message(STATUS "ARROW: ARROW_LIB set to ${ARROW_LIB}")
+message(STATUS "ARROW: ARROW_CUDA_LIB set to ${ARROW_CUDA_LIB}")
+add_library(arrow SHARED IMPORTED ${ARROW_LIB})
+add_library(arrow_cuda SHARED IMPORTED ${ARROW_CUDA_LIB})
+
+if(ARROW_INCLUDE_DIR AND ARROW_LIB AND ARROW_CUDA_LIB)
+  set_target_properties(arrow PROPERTIES IMPORTED_LOCATION ${ARROW_LIB})
+  set_target_properties(arrow_cuda PROPERTIES IMPORTED_LOCATION ${ARROW_CUDA_LIB})
+endif(ARROW_INCLUDE_DIR AND ARROW_LIB AND ARROW_CUDA_LIB)
+# END find arrow
 
 set(FILESYSTEM_SRC_FILES
     ${CMAKE_SOURCE_DIR}/src/FileSystem/FileSystemType.cpp
@@ -82,19 +99,11 @@ set(FILESYSTEM_SRC_FILES
     ${CMAKE_SOURCE_DIR}/src/FileSystem/FileSystemException.cpp
     ${CMAKE_SOURCE_DIR}/src/FileSystem/LocalFileSystem.cpp
     ${CMAKE_SOURCE_DIR}/src/FileSystem/HadoopFileSystem.cpp
-    ${CMAKE_SOURCE_DIR}/src/FileSystem/S3FileSystem.cpp
-    ${CMAKE_SOURCE_DIR}/src/FileSystem/GoogleCloudStorage.cpp
     ${CMAKE_SOURCE_DIR}/src/FileSystem/FileSystemManager.cpp
     ${CMAKE_SOURCE_DIR}/src/FileSystem/FileSystemEntity.cpp
     ${CMAKE_SOURCE_DIR}/src/FileSystem/FileSystemRepository.cpp
-    ${CMAKE_SOURCE_DIR}/src/FileSystem/private/S3ReadableFile.cpp
-    ${CMAKE_SOURCE_DIR}/src/FileSystem/private/S3OutputStream.cpp
-    ${CMAKE_SOURCE_DIR}/src/FileSystem/private/GoogleCloudStorageReadableFile.cpp
-    ${CMAKE_SOURCE_DIR}/src/FileSystem/private/GoogleCloudStorageOutputStream.cpp
     ${CMAKE_SOURCE_DIR}/src/FileSystem/private/LocalFileSystem_p.cpp
     ${CMAKE_SOURCE_DIR}/src/FileSystem/private/HadoopFileSystem_p.cpp
-    ${CMAKE_SOURCE_DIR}/src/FileSystem/private/S3FileSystem_p.cpp
-    ${CMAKE_SOURCE_DIR}/src/FileSystem/private/GoogleCloudStorage_p.cpp
     ${CMAKE_SOURCE_DIR}/src/FileSystem/private/FileSystemManager_p.cpp
     ${CMAKE_SOURCE_DIR}/src/FileSystem/private/FileSystemFactory.cpp
     ${CMAKE_SOURCE_DIR}/src/FileSystem/private/FileSystemRepository_p.cpp)
@@ -119,17 +128,40 @@ set(UTIL_SRC_FILES
     ${CMAKE_SOURCE_DIR}/src/Util/FileUtil.cpp
     ${CMAKE_SOURCE_DIR}/src/Config/BlazingContext.cpp)
 
-include_directories(blazingdb-io ${CMAKE_SOURCE_DIR}/src $ENV{CONDA_PREFIX}/include)
+if(GCS_SUPPORT)
+    add_definitions(-DGCS_SUPPORT)
+    find_package(storage_client REQUIRED)
+    set(GCS_FILESYSTEM_SRC_FILES
+        ${CMAKE_SOURCE_DIR}/src/FileSystem/GoogleCloudStorage.cpp
+        ${CMAKE_SOURCE_DIR}/src/FileSystem/private/GoogleCloudStorageReadableFile.cpp
+        ${CMAKE_SOURCE_DIR}/src/FileSystem/private/GoogleCloudStorageOutputStream.cpp
+        ${CMAKE_SOURCE_DIR}/src/FileSystem/private/GoogleCloudStorage_p.cpp)
+    set(GCS_LIBRARY storage_client)
+endif()
+
+if(S3_SUPPORT)
+    add_definitions(-DS3_SUPPORT)
+    set(S3_FILESYSTEM_SRC_FILES
+        ${CMAKE_SOURCE_DIR}/src/FileSystem/S3FileSystem.cpp
+        ${CMAKE_SOURCE_DIR}/src/FileSystem/private/S3ReadableFile.cpp
+        ${CMAKE_SOURCE_DIR}/src/FileSystem/private/S3OutputStream.cpp
+        ${CMAKE_SOURCE_DIR}/src/FileSystem/private/S3FileSystem_p.cpp)
+    set(S3_LIBRARY aws-cpp-sdk-core aws-cpp-sdk-s3 aws-cpp-sdk-s3-encryption)
+endif()
+
+include_directories(blazingdb-io ${CMAKE_SOURCE_DIR}/src $ENV{CONDA_PREFIX}/include "${ARROW_INCLUDE_DIR}")
 link_directories($ENV{CONDA_PREFIX}/lib)
 
 add_library(blazingdb-io SHARED
     ${FILESYSTEM_SRC_FILES}
+    ${GCS_FILESYSTEM_SRC_FILES}
+    ${S3_FILESYSTEM_SRC_FILES}
     ${UTIL_SRC_FILES}
     ${LOGGING_SRC_FILES}
     ${EXCEPTION_SRC_FILES}
 )
 
-target_link_libraries(blazingdb-io ${CURL_LIBRARIES} arrow aws-cpp-sdk-s3 aws-cpp-sdk-s3-encryption storage_client)
+target_link_libraries(blazingdb-io ${CURL_LIBRARIES} ${GCS_LIBRARY} ${S3_LIBRARY} arrow)
 
 # Install target and headers
 install(TARGETS blazingdb-io DESTINATION lib)

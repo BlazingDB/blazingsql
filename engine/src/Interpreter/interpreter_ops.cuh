@@ -17,10 +17,13 @@
 #include <simt/chrono>
 #include <type_traits>
 
+#include <curand_kernel.h>
+
 #include "interpreter_cpp.h"
 #include "error.hpp"
 
 namespace interops {
+
 
 typedef int64_t temp_gdf_valid_type;  // until its an int32 in cudf
 typedef int16_t column_index_type;
@@ -40,7 +43,25 @@ CUDA_DEVICE_CALLABLE double getMagicNumber<double>() {
 	return 1.7976931348623123e+308;
 }
 
-using cudf::datetime::detail::datetime_component;
+__global__ void setup_rand_kernel(curandState *state, unsigned long long seed )
+{
+    int id = threadIdx.x + blockIdx.x * blockDim.x;
+    /* Each thread gets same seed, a different sequence
+       number, no offset */
+    curand_init(seed, id, 0, &state[id]);
+}
+
+enum class datetime_component {
+  INVALID = 0,
+  YEAR,
+  MONTH,
+  DAY,
+  WEEKDAY,
+  HOUR,
+  MINUTE,
+  SECOND,
+};
+
 template <typename Timestamp, datetime_component Component>
 struct extract_component_operator {
 	static_assert(cudf::is_timestamp<Timestamp>(), "");
@@ -83,7 +104,7 @@ struct launch_extract_component {
 
 	template <typename Timestamp, std::enable_if_t<cudf::is_timestamp<Timestamp>()> * = nullptr>
 	CUDA_DEVICE_CALLABLE int16_t operator()(int64_t val) {
-		return extract_component_operator<Timestamp, Component>{}(Timestamp{static_cast<typename Timestamp::rep>(val)});
+		return extract_component_operator<Timestamp, Component>{}(Timestamp{static_cast<typename Timestamp::duration>(val)});
 	}
 };
 
@@ -96,9 +117,10 @@ struct cast_to_timestamp_ns {
 
 	template <typename Timestamp, std::enable_if_t<cudf::is_timestamp<Timestamp>()> * = nullptr>
 	CUDA_DEVICE_CALLABLE cudf::timestamp_ns operator()(int64_t val) {
-		return cudf::timestamp_ns{Timestamp{static_cast<typename Timestamp::rep>(val)}};
+		return cudf::timestamp_ns{Timestamp{static_cast<typename Timestamp::duration>(val)}};
 	}
 };
+
 
 CUDA_DEVICE_CALLABLE bool is_float_type(cudf::type_id type) {
 	return (cudf::type_id::FLOAT32 == type || cudf::type_id::FLOAT64 == type);
@@ -135,7 +157,6 @@ public:
 		const column_index_type * final_output_positions,
 		const cudf::type_id * input_types_left,
 		const cudf::type_id * input_types_right,
-		const cudf::type_id * output_types,
 		const operator_type * operations,
 		cudf::detail::scalar_device_view_base ** scalars_left,
 		cudf::detail::scalar_device_view_base ** scalars_right,
@@ -150,7 +171,6 @@ public:
 			final_output_positions{final_output_positions},
 			input_types_left{input_types_left},
 			input_types_right{input_types_right},
-			output_types{output_types},
 			operations{operations},
 			scalars_left{scalars_left},
 			scalars_right{scalars_right},
@@ -160,7 +180,7 @@ public:
 	}
 
 	CUDA_DEVICE_CALLABLE void operator()(
-		cudf::size_type row_index, int64_t total_buffer[], cudf::size_type size) {
+		cudf::size_type row_index, int64_t total_buffer[], cudf::size_type size, curandState & state) {
 		cudf::bitmask_type * valids_in_buffer =
 			temp_valids_in_buffer + (blockIdx.x * blockDim.x + threadIdx.x) * table.num_columns();
 		cudf::bitmask_type * valids_out_buffer =
@@ -181,7 +201,7 @@ public:
 			}
 
 			for(int16_t op_index = 0; op_index < num_operations; op_index++) {
-				process_operator(op_index, total_buffer, row_index + row, cur_row_valids);
+				process_operator(op_index, total_buffer, row_index + row, cur_row_valids,state );
 			}
 
 			// copy data and row valids into buffer
@@ -231,6 +251,15 @@ private:
 			*(buffer + (col_index * blockDim.x + threadIdx.x)) = static_cast<int64_t>(table.column(col_index).element<ColType>(row));
 		}
 
+		template <typename ColType, std::enable_if_t<cudf::is_fixed_point<ColType>()> * = nullptr>
+		CUDA_DEVICE_CALLABLE void operator() (cudf::table_device_view& table,
+																					cudf::size_type col_index,
+																					cudf::size_type row,
+																					int64_t * buffer) {
+			//TODO: implement fixed point
+			//*(buffer + (col_index * blockDim.x + threadIdx.x)) = static_cast<int64_t>(table.column(col_index).element<ColType>(row));
+		}
+
 		template <typename ColType, std::enable_if_t<std::is_floating_point<ColType>::value> * = nullptr>
 		CUDA_DEVICE_CALLABLE void operator() (cudf::table_device_view& table,
 																					cudf::size_type col_index,
@@ -247,7 +276,7 @@ private:
 			*(buffer + (col_index * blockDim.x + threadIdx.x)) = static_cast<int64_t>(table.column(col_index).element<ColType>(row).time_since_epoch().count());
 		}
 
-		template <typename ColType, std::enable_if_t<cudf::is_compound<ColType>()> * = nullptr>
+		template <typename ColType, std::enable_if_t<cudf::is_compound<ColType>() or cudf::is_duration<ColType>()> * = nullptr>
 		CUDA_DEVICE_CALLABLE void operator() (cudf::table_device_view& table,
 																					cudf::size_type col_index,
 																					cudf::size_type row,
@@ -277,6 +306,16 @@ private:
 			out_table.column(col_index).element<ColType>(row) =	static_cast<ColType>(*(buffer + (position * blockDim.x + threadIdx.x)));
 		}
 
+		template <typename ColType, std::enable_if_t<cudf::is_fixed_point<ColType>()> * = nullptr>
+		CUDA_DEVICE_CALLABLE void operator() (cudf::mutable_table_device_view & out_table,
+																					cudf::size_type col_index,
+																					cudf::size_type row,
+																					int64_t * buffer,
+																					int position) {
+			//TODO: implement fixed point
+			//out_table.column(col_index).element<ColType>(row) =	static_cast<ColType>(*(buffer + (position * blockDim.x + threadIdx.x)));
+		}
+
 		template <typename ColType, std::enable_if_t<std::is_floating_point<ColType>::value> * = nullptr>
 		CUDA_DEVICE_CALLABLE void operator() (cudf::mutable_table_device_view & out_table,
 																					cudf::size_type col_index,
@@ -292,10 +331,10 @@ private:
 																					cudf::size_type row,
 																					int64_t * buffer,
 																					int position) {
-			out_table.column(col_index).element<ColType>(row) =	static_cast<typename ColType::rep>(*(buffer + (position * blockDim.x + threadIdx.x)));
+			out_table.column(col_index).element<ColType>(row) =	ColType{typename ColType::duration{*(buffer + (position * blockDim.x + threadIdx.x))}};
 		}
 
-		template <typename ColType, std::enable_if_t<cudf::is_compound<ColType>()> * = nullptr>
+		template <typename ColType, std::enable_if_t<cudf::is_compound<ColType>() or cudf::is_duration<ColType>()> * = nullptr>
 		CUDA_DEVICE_CALLABLE void operator() (cudf::mutable_table_device_view & out_table,
 																					cudf::size_type col_index,
 																					cudf::size_type row,
@@ -379,35 +418,35 @@ private:
 	}
 
 	CUDA_DEVICE_CALLABLE void process_operator(
-		size_t op_index, int64_t * buffer, cudf::size_type row_index, uint64_t & row_valids) {
+		size_t op_index, int64_t * buffer, cudf::size_type row_index, uint64_t & row_valids, curandState & state) {
 		cudf::type_id type = input_types_left[op_index];
 		if(is_float_type(type)) {
-			process_operator_1<double>(op_index, buffer, row_index, row_valids);
+			process_operator_1<double>(op_index, buffer, row_index, row_valids,state);
 		} else {
-			process_operator_1<int64_t>(op_index, buffer, row_index, row_valids);
+			process_operator_1<int64_t>(op_index, buffer, row_index, row_valids,state);
 		}
 	}
 
 	template <typename LeftType>
 	CUDA_DEVICE_CALLABLE void process_operator_1(
-		size_t op_index, int64_t * buffer, cudf::size_type row_index, uint64_t & row_valids) {
+		size_t op_index, int64_t * buffer, cudf::size_type row_index, uint64_t & row_valids, curandState & state) {
 		cudf::type_id type = input_types_right[op_index];
 		if(is_float_type(type)) {
-			process_operator_2<LeftType, double>(op_index, buffer, row_index, row_valids);
+			process_operator_2<LeftType, double>(op_index, buffer, row_index, row_valids,state);
 		} else {
-			process_operator_2<LeftType, int64_t>(op_index, buffer, row_index, row_valids);
+			process_operator_2<LeftType, int64_t>(op_index, buffer, row_index, row_valids,state);
 		}
 	}
 
 	template <typename LeftType, typename RightType>
 	CUDA_DEVICE_CALLABLE void process_operator_2(
-		size_t op_index, int64_t * buffer, cudf::size_type row_index, uint64_t & row_valids) {
+		size_t op_index, int64_t * buffer, cudf::size_type row_index, uint64_t & row_valids, curandState & state) {
 		column_index_type left_position = left_input_positions[op_index];
 		column_index_type right_position = right_input_positions[op_index];
 		column_index_type output_position = output_positions[op_index];
 		operator_type oper = operations[op_index];
 
-		if(right_position != UNARY_INDEX) {
+		if(right_position != UNARY_INDEX && right_position != NULLARY_INDEX) {
 			// It's a binary operation
 
 			cudf::type_id left_type_id = input_types_left[op_index];
@@ -592,7 +631,7 @@ private:
 			} else {
 				setColumnValid(row_valids, output_position, false);
 			}
-		} else {
+		} else if( right_position != NULLARY_INDEX) {
 			// It's a unary operation, scalar inputs are not allowed
 			assert(left_position >= 0);
 
@@ -687,65 +726,68 @@ private:
 				} else if(oper == operator_type::BLZ_CAST_FLOAT || oper == operator_type::BLZ_CAST_DOUBLE) {
 					store_data_in_buffer(static_cast<double>(left_value), buffer, output_position);
 				} else if(oper == operator_type::BLZ_CAST_DATE) {
+					int64_t val = static_cast<int64_t>(left_value);
 					cudf::timestamp_D computed;
 					switch (left_type_id)
 					{
-					case cudf::type_id::INT8:
-					case cudf::type_id::INT16:
-					case cudf::type_id::INT32:
-					case cudf::type_id::INT64:
-					case cudf::type_id::FLOAT32:
-					case cudf::type_id::FLOAT64:
-					case cudf::type_id::TIMESTAMP_DAYS:
-						computed = cudf::timestamp_D{static_cast<cudf::timestamp_D::rep>(left_value)};
-						break;
-					case cudf::type_id::TIMESTAMP_SECONDS:
-						computed = cudf::timestamp_D{cudf::timestamp_s{static_cast<cudf::timestamp_s::rep>(left_value)}};
-						break;
-					case cudf::type_id::TIMESTAMP_MILLISECONDS:
-						computed = cudf::timestamp_D{cudf::timestamp_ms{static_cast<cudf::timestamp_ms::rep>(left_value)}};
-						break;
-					case cudf::type_id::TIMESTAMP_MICROSECONDS:
-						computed = cudf::timestamp_D{cudf::timestamp_us{static_cast<cudf::timestamp_us::rep>(left_value)}};
-						break;
-					case cudf::type_id::TIMESTAMP_NANOSECONDS:
-						computed = cudf::timestamp_D{cudf::timestamp_ns{static_cast<cudf::timestamp_ns::rep>(left_value)}};
-						break;
-					default:
-						// should not reach here, invalid conversion
-						assert(false);
-						break;
-					}
+						case cudf::type_id::INT8:
+						case cudf::type_id::INT16:
+						case cudf::type_id::INT32:
+						case cudf::type_id::INT64:
+						case cudf::type_id::FLOAT32:
+						case cudf::type_id::FLOAT64:
+						case cudf::type_id::TIMESTAMP_DAYS:
+							computed = cudf::timestamp_D{static_cast<cudf::timestamp_D::duration>(val)};
+							break;
+						case cudf::type_id::TIMESTAMP_SECONDS:
+							computed = simt::std::chrono::time_point_cast<simt::std::chrono::days>(cudf::timestamp_s{static_cast<cudf::timestamp_s::duration>(val)});
+							break;
+						case cudf::type_id::TIMESTAMP_MILLISECONDS:
+							computed = simt::std::chrono::time_point_cast<simt::std::chrono::days>(cudf::timestamp_ms{static_cast<cudf::timestamp_ms::duration>(val)});
+							break;
+						case cudf::type_id::TIMESTAMP_MICROSECONDS:
+							computed = simt::std::chrono::time_point_cast<simt::std::chrono::days>(cudf::timestamp_us{static_cast<cudf::timestamp_us::duration>(val)});
+							break;
+						case cudf::type_id::TIMESTAMP_NANOSECONDS:
+							computed = simt::std::chrono::time_point_cast<simt::std::chrono::days>(cudf::timestamp_ns{static_cast<cudf::timestamp_ns::duration>(val)});
+							break;
+						default:
+							// should not reach here, invalid conversion
+							assert(false);
+							break;
+					}	
+
 					store_data_in_buffer(static_cast<int64_t>(computed.time_since_epoch().count()), buffer, output_position);
 				} else if(oper == operator_type::BLZ_CAST_TIMESTAMP) {
+					int64_t val = static_cast<int64_t>(left_value);
 					cudf::timestamp_ns computed;
 					switch (left_type_id)
 					{
-					case cudf::type_id::INT8:
-					case cudf::type_id::INT16:
-					case cudf::type_id::INT32:
-					case cudf::type_id::INT64:
-					case cudf::type_id::FLOAT32:
-					case cudf::type_id::FLOAT64:
-					case cudf::type_id::TIMESTAMP_NANOSECONDS:
-						computed = cudf::timestamp_ns{static_cast<cudf::timestamp_ns::rep>(left_value)};
-						break;
-					case cudf::type_id::TIMESTAMP_DAYS:
-						computed = cudf::timestamp_ns{cudf::timestamp_D{static_cast<cudf::timestamp_D::rep>(left_value)}};
-						break;
-					case cudf::type_id::TIMESTAMP_SECONDS:
-						computed = cudf::timestamp_ns{cudf::timestamp_s{static_cast<cudf::timestamp_s::rep>(left_value)}};
-						break;
-					case cudf::type_id::TIMESTAMP_MILLISECONDS:
-						computed = cudf::timestamp_ns{cudf::timestamp_ms{static_cast<cudf::timestamp_ms::rep>(left_value)}};
-						break;
-					case cudf::type_id::TIMESTAMP_MICROSECONDS:
-						computed = cudf::timestamp_ns{cudf::timestamp_us{static_cast<cudf::timestamp_us::rep>(left_value)}};
-						break;
-					default:
-						// should not reach here, invalid conversion
-						assert(false);
-						break;
+						case cudf::type_id::INT8:
+						case cudf::type_id::INT16:
+						case cudf::type_id::INT32:
+						case cudf::type_id::INT64:
+						case cudf::type_id::FLOAT32:
+						case cudf::type_id::FLOAT64:
+						case cudf::type_id::TIMESTAMP_NANOSECONDS:
+							computed = cudf::timestamp_ns{static_cast<cudf::timestamp_ns::duration>(val)};
+							break;
+						case cudf::type_id::TIMESTAMP_DAYS:
+							computed = simt::std::chrono::time_point_cast<simt::std::chrono::nanoseconds>(cudf::timestamp_D{static_cast<cudf::timestamp_D::duration>(val)});
+							break;
+						case cudf::type_id::TIMESTAMP_SECONDS:
+							computed = simt::std::chrono::time_point_cast<simt::std::chrono::nanoseconds>(cudf::timestamp_s{static_cast<cudf::timestamp_s::duration>(val)});
+							break;
+						case cudf::type_id::TIMESTAMP_MILLISECONDS:
+							computed = simt::std::chrono::time_point_cast<simt::std::chrono::nanoseconds>(cudf::timestamp_ms{static_cast<cudf::timestamp_ms::duration>(val)});
+							break;
+						case cudf::type_id::TIMESTAMP_MICROSECONDS:
+							computed = simt::std::chrono::time_point_cast<simt::std::chrono::nanoseconds>(cudf::timestamp_us{static_cast<cudf::timestamp_us::duration>(val)});
+							break;
+						default:
+							// should not reach here, invalid conversion
+							assert(false);
+							break;
 					}
 					store_data_in_buffer(static_cast<int64_t>(computed.time_since_epoch().count()), buffer, output_position);
 				} else if(oper == operator_type::BLZ_CHAR_LENGTH) {
@@ -756,6 +798,12 @@ private:
 
 			bool out_valid = (oper == operator_type::BLZ_IS_NULL || oper == operator_type::BLZ_IS_NOT_NULL) ? true : left_valid;
 			setColumnValid(row_valids, output_position, out_valid);
+		}else{
+			if(oper == operator_type::BLZ_RAND) {
+				double out = curand_uniform_double(&state);
+				store_data_in_buffer(out, buffer, output_position);
+			}
+			setColumnValid(row_valids, output_position, true);
 		}
 	}
 
@@ -772,7 +820,6 @@ private:
 
 	const cudf::type_id * input_types_left;
 	const cudf::type_id * input_types_right;
-	const cudf::type_id * output_types;
 
 	const operator_type * operations;
 
@@ -783,12 +830,20 @@ private:
 	cudf::bitmask_type * temp_valids_out_buffer;
 };
 
-__global__ void transformKernel(InterpreterFunctor op, cudf::size_type size) {
+
+__global__ void transformKernel(InterpreterFunctor op, cudf::size_type size, curandState *state) {
 	extern __shared__ int64_t total_buffer[];
 
+    int id = threadIdx.x + blockIdx.x * blockDim.x;
+    
+
+    curandState localState = state[id];
+ 
+
 	for(cudf::size_type i = (blockIdx.x * blockDim.x + threadIdx.x) * 32; i < size; i += blockDim.x * gridDim.x * 32) {
-		op(i, total_buffer, size);
+		op(i, total_buffer, size, localState);
 	}
+	state[id] = localState;
 }
 
 } // namespace interops

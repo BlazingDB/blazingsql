@@ -4,7 +4,6 @@
 #include "cudf/column/column_view.hpp"
 #include "cudf/table/table.hpp"
 #include "cudf/table/table_view.hpp"
-#include <cudf/io/functions.hpp>
 #include <future>
 #include <memory>
 #include <mutex>
@@ -24,7 +23,6 @@ typedef cudf::table CudfTable;
 typedef cudf::table_view CudfTableView;
 typedef cudf::column CudfColumn;
 typedef cudf::column_view CudfColumnView;
-namespace cudf_io = cudf::io;
 
 namespace ral {
 namespace frame {
@@ -58,6 +56,7 @@ public:
 	std::vector<std::unique_ptr<BlazingColumn>> releaseBlazingColumns();
 
 	unsigned long long sizeInBytes();
+	void ensureOwnership();
 
 private:
 	std::vector<std::string> columnNames;
@@ -79,7 +78,7 @@ public:
 	cudf::column_view const & column(cudf::size_type column_index) const { return table.column(column_index); }
 	std::vector<std::unique_ptr<BlazingColumn>> toBlazingColumns() const;
 
-	std::vector<cudf::data_type> get_schema();
+	std::vector<cudf::data_type> get_schema() const;
 
 	std::vector<std::string> names() const;
 	void setNames(const std::vector<std::string> & names) { this->columnNames = names; }

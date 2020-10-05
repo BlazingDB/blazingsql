@@ -87,15 +87,19 @@ public class BlazingTable implements ProjectableFilterableTable {
 		RelDataType temp = null;
 		switch(dataType) {
 			case INT8:
+			case UINT8:
 				temp = typeFactory.createSqlType(SqlTypeName.TINYINT);
 				break;
 			case INT16:
+			case UINT16:
 				temp = typeFactory.createSqlType(SqlTypeName.SMALLINT);
 				break;
 			case INT32:
+			case UINT32:
 				temp = typeFactory.createSqlType(SqlTypeName.INTEGER);
 				break;
 			case INT64:
+			case UINT64:
 				temp = typeFactory.createSqlType(SqlTypeName.BIGINT);
 				break;
 			case FLOAT32:

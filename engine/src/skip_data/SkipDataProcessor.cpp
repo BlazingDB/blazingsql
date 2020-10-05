@@ -257,7 +257,7 @@ std::pair<std::unique_ptr<ral::frame::BlazingTable>, bool> process_skipdata_for_
         std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
         logger->error("|||{info}|||||",
                                     "info"_a="In process_skipdata_for_table. What: {}"_format(e.what()));
-        
+
         return std::make_pair(nullptr, true);
     }
     filter_string = replace_calcite_regex(filter_string);
@@ -328,7 +328,12 @@ std::pair<std::unique_ptr<ral::frame::BlazingTable>, bool> process_skipdata_for_
     }
 
     // then we follow a similar pattern to process_filter
-    std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluated_table = ral::processor::evaluate_expressions(std::move(projected_metadata_cols), {filter_string});
+    std::vector<cudf::column_view> projected_metadata_col_views;
+    projected_metadata_col_views.reserve(projected_metadata_cols.size());
+    for (auto &&c : projected_metadata_cols) {
+        projected_metadata_col_views.push_back(c->view());
+    }
+    std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluated_table = ral::processor::evaluate_expressions(cudf::table_view{projected_metadata_col_views}, {filter_string});
 
     RAL_EXPECTS(evaluated_table.size() == 1 && evaluated_table[0]->view().type().id() == cudf::type_id::BOOL8, "Expression in skip_data processing did not evaluate to a boolean mask");
 

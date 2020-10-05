@@ -15,7 +15,6 @@
 #include <memory>
 #include <numeric>
 #include <thread>
-#include "rmm/rmm.h"
 #include <rmm/device_buffer.hpp>
 
 namespace blazingdb {
@@ -385,7 +384,6 @@ auto GPU_MEMORY_SIZE = 100;
 
 static void ExecMaster() {
   cuInit(0);
-  ASSERT_EQ(rmmInitialize(nullptr), RMM_SUCCESS);
   // Run server
   RalServer::start(8000);
 
@@ -408,7 +406,6 @@ static void ExecMaster() {
 
 static void ExecWorker() {
   cuInit(0);
-  ASSERT_EQ(rmmInitialize(nullptr), RMM_SUCCESS);
   // todo get GPU_MEMORY_SIZE
   auto sizeBuffer = GPU_MEMORY_SIZE / 4;
   auto nthread = 4;

@@ -70,29 +70,42 @@ bc.sql('SELECT passenger_count, trip_distance FROM taxi LIMIT 2')
 ## Documentation
 You can find our full documentation at [docs.blazingdb.com](https://docs.blazingdb.com/docs).
 
+# Prerequisites 
+* [Anaconda or Miniconda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html) installed
+* OS Support
+  * Ubuntu 16.04/18.04 LTS
+  * CentOS 7
+* GPU Support
+  * Pascal or Better
+  * Compute Capability >= 6.0
+* CUDA Support
+  * 10.1.2
+  * 10.2
+* Python Support
+  * 3.7
+  * 3.8
+
 # Install Using Conda
 BlazingSQL can be installed with conda ([miniconda](https://conda.io/miniconda.html), or the full [Anaconda distribution](https://www.anaconda.com/download)) from the [blazingsql](https://anaconda.org/blazingsql/) channel:
 
-Note: BlazingSQL is supported only on Linux, and with Python version 3.6 and 3.7.
-
 ## Stable Version
 ```bash
-conda install -c blazingsql/label/cuda$CUDA_VERSION -c blazingsql -c rapidsai -c nvidia -c conda-forge -c defaults blazingsql python=$PYTHON_VERSION
+conda install -c blazingsql/label/cuda$CUDA_VERSION -c rapidsai -c nvidia -c conda-forge -c defaults blazingsql python=$PYTHON_VERSION
 ```
-Where $CUDA_VERSION is 10.0, 10.1 or 10.2 and $PYTHON_VERSION is 3.6 or 3.7
-*For example for CUDA 10.0 and Python 3.7:*
+Where $CUDA_VERSION is 10.1, 10.2 or 11.0  and $PYTHON_VERSION is 3.7 or 3.8
+*For example for CUDA 10.1 and Python 3.7:*
 ```bash
-conda install -c blazingsql/label/cuda10.0 -c blazingsql -c rapidsai -c nvidia -c conda-forge -c defaults blazingsql python=3.7
+conda install -c blazingsql/label/cuda10.1 -c rapidsai -c nvidia -c conda-forge -c defaults blazingsql python=3.7
 ``` 
 
 ## Nightly Version
 ```bash
-conda install -c blazingsql-nightly/label/cuda$CUDA_VERSION -c blazingsql-nightly -c rapidsai-nightly -c nvidia -c conda-forge -c defaults blazingsql python=$PYTHON_VERSION
+conda install -c blazingsql-nightly/label/cuda$CUDA_VERSION -c rapidsai-nightly -c nvidia -c conda-forge -c defaults blazingsql python=$PYTHON_VERSION
 ```
-Where $CUDA_VERSION is 10.0, 10.1 or 10.2 and $PYTHON_VERSION is 3.6 or 3.7
-*For example for CUDA 10.0 and Python 3.7:*
+Where $CUDA_VERSION is 10.1, 10.2 or 11.0 and $PYTHON_VERSION is 3.7 or 3.8
+*For example for CUDA 10.1 and Python 3.7:*
 ```bash
-conda install -c blazingsql-nightly/label/cuda10.0 -c blazingsql-nightly -c rapidsai-nightly -c nvidia -c conda-forge -c defaults blazingsql python=3.7
+conda install -c blazingsql-nightly/label/cuda10.1 -c rapidsai-nightly -c nvidia -c conda-forge -c defaults blazingsql python=3.7
 ```
 
 # Build/Install from Source (Conda Environment)
@@ -105,17 +118,15 @@ This is the recommended way of building all of the BlazingSQL components and dep
 conda create -n bsql python=$PYTHON_VERSION
 conda activate bsql
 conda install --yes -c conda-forge openjdk=8.0 maven cmake gtest gmock rapidjson cppzmq cython=0.29 jpype1 netifaces pyhive
-conda install --yes -c conda-forge -c blazingsql bsql-toolchain
-conda install --yes -c rapidsai -c nvidia -c conda-forge -c defaults cudf=0.13 dask-cudf=0.13 dask-cuda=0.13 cudatoolkit=$CUDA_VERSION
+conda install --yes -c rapidsai -c nvidia -c conda-forge -c defaults cudf=0.15 dask-cudf=0.15 dask-cuda=0.15 cudatoolkit=$CUDA_VERSION
 ```
-Where $CUDA_VERSION is 10.0, 10.1 or 10.2 and $PYTHON_VERSION is 3.6 or 3.7
-*For example for CUDA 10.0 and Python 3.7:*
+Where $CUDA_VERSION is is 10.1, 10.2 or 11.0 and $PYTHON_VERSION is 3.7 or 3.8
+*For example for CUDA 10.1 and Python 3.7:*
 ```bash
 conda create -n bsql python=3.7
 conda activate bsql
 conda install --yes -c conda-forge openjdk=8.0 maven cmake gtest gmock rapidjson cppzmq cython=0.29 jpype1 netifaces pyhive
-conda install --yes -c conda-forge -c blazingsql bsql-toolchain
-conda install --yes -c rapidsai -c nvidia -c conda-forge -c defaults cudf=0.13 dask-cudf=0.13 dask-cuda=0.13 cudatoolkit=10.0
+conda install --yes -c rapidsai -c nvidia -c conda-forge -c defaults cudf=0.15 dask-cudf=0.15 dask-cuda=0.15 cudatoolkit=10.1
 ```
 
 ### Build
@@ -139,18 +150,19 @@ $CONDA_PREFIX now has a folder for the blazingsql repository.
 ```bash
 conda create -n bsql python=$PYTHON_VERSION
 conda activate bsql
-conda install --yes -c conda-forge openjdk=8.0 maven cmake gtest gmock rapidjson cppzmq cython=0.29 jpype1 netifaces pyhive
-conda install --yes -c conda-forge -c blazingsql-nightly bsql-toolchain=0.14
-conda install --yes -c rapidsai-nightly -c nvidia -c conda-forge -c defaults libcudf=0.14 cudf=0.14 dask-cudf=0.14 dask-cuda=0.14 cudatoolkit=$CUDA_VERSION
+
+conda install --yes -c conda-forge spdlog=1.7.0 google-cloud-cpp=1.16 ninja
+conda install --yes -c rapidsai-nightly -c nvidia -c conda-forge -c defaults dask-cuda=0.16 dask-cudf=0.16 cudf=0.16 python=3.7 cudatoolkit=$CUDA_VERSION
+conda install --yes -c conda-forge cmake gtest gmock cppzmq cython=0.29 openjdk=8.0 maven thrift=0.13.0 jpype1 netifaces pyhive
 ```
-Where $CUDA_VERSION is 10.0, 10.1 or 10.2 and $PYTHON_VERSION is 3.6 or 3.7
-*For example for CUDA 10.0 and Python 3.7:*
+Where $CUDA_VERSION is is 10.1, 10.2 or 11.0 and $PYTHON_VERSION is 3.7 or 3.8
+*For example for CUDA 10.1 and Python 3.7:*
 ```bash
 conda create -n bsql python=3.7
 conda activate bsql
-conda install --yes -c conda-forge openjdk=8.0 maven cmake gtest gmock rapidjson cppzmq cython=0.29 jpype1 netifaces pyhive
-conda install --yes -c conda-forge -c blazingsql-nightly bsql-toolchain=0.14
-conda install --yes -c rapidsai-nightly -c nvidia -c conda-forge -c defaults libcudf=0.14 cudf=0.14 dask-cudf=0.14 dask-cuda=0.14 cudatoolkit=10.0
+conda install --yes -c conda-forge spdlog=1.7.0 google-cloud-cpp=1.16 ninja
+conda install --yes -c rapidsai-nightly -c nvidia -c conda-forge -c defaults dask-cuda=0.16 dask-cudf=0.16 cudf=0.16 python=3.7 cudatoolkit=10.1
+conda install --yes -c conda-forge cmake gtest gmock cppzmq cython=0.29 openjdk=8.0 maven thrift=0.13.0 jpype1 netifaces pyhive
 ```
 
 ### Build
@@ -166,6 +178,34 @@ export CUDACXX=/usr/local/cuda/bin/nvcc
 NOTE: You can do `./build.sh -h` to see more build options.
 
 $CONDA_PREFIX now has a folder for the blazingsql repository.
+
+#### Storage plugins
+To build without the storage plugins (AWS S3, Google Cloud Storage) use the next arguments:
+```bash
+# Disable all storage plugins
+./build.sh disable-aws-s3 disable-google-gs
+
+# Disable AWS S3 storage plugin
+./build.sh disable-aws-s3
+
+# Disable Google Cloud Storage plugin
+./build.sh disable-google-gs
+```
+NOTE: By disabling the storage plugins you don't need to install previously AWS SDK C++ or Google Cloud Storage (neither any of its dependencies).
+
+# Documentation
+User guides and public APIs documentation can be found at [here](https://docs.blazingdb.com/docs)
+
+Our internal code architecture can be built using Spinx.
+```bash
+pip install recommonmark exhale
+conda install -c conda-forge doxygen
+cd $CONDA_PREFIX
+cd blazingsql/docs
+make html
+```
+The generated documentation can be viewed in a browser at `blazingsql/docs/_build/html/index.html`
+
 
 # Community
 ## Contributing

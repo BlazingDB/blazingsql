@@ -41,15 +41,9 @@ public:
 	/**
 	 * returns data into a std::unique_ptr<ral::frame::BlazingTable>
 	 */
-	std::unique_ptr<ral::frame::BlazingTable>  load_data(
-		Context * context,
-		const std::vector<size_t> & column_indices,
-		const Schema & schema,
-	  std::string filterQuery);
-
 	std::unique_ptr<ral::frame::BlazingTable>  load_batch(
 		Context * context,
-		const std::vector<size_t> & column_indices_in,
+		const std::vector<int> & column_indices_in,
 		const Schema & schema,
 		data_handle file_data_handle,
 		size_t file_index,

@@ -3,80 +3,68 @@
 #include <numeric>
 
 #include "JSONParser.h"
+#include "ArgsUtil.h"
 
 namespace ral {
 namespace io {
 
-json_parser::json_parser(cudf::io::read_json_args args) : args(args) {}
+json_parser::json_parser(std::map<std::string, std::string> args_map_) : args_map{args_map_} {}
 
 json_parser::~json_parser() {
 	// TODO Auto-generated destructor stub
 }
 
-cudf::io::table_with_metadata read_json_file(
-	cudf::io::read_json_args args,
-	std::shared_ptr<arrow::io::RandomAccessFile> arrow_file_handle,
-	bool first_row_only = false)
-{
-	args.source = cudf::io::source_info(arrow_file_handle);
 
-	if(first_row_only) {
-		int64_t num_bytes;
-		arrow_file_handle->GetSize(&num_bytes);
-		
-		if(num_bytes > 48192) {
-			// lets only read up to 8192 bytes. We are assuming that a full row will always be less than that
-			num_bytes = 48192;
-		}
+// std::unique_ptr<ral::frame::BlazingTable> json_parser::parse(
+// 	std::shared_ptr<arrow::io::RandomAccessFile> file,
+// 	const Schema & schema,
+// 	std::vector<size_t> column_indices) {
 
-		args.byte_range_offset = 0;
-		args.byte_range_size = num_bytes;
-	}
+// 	if(file == nullptr) {
+// 		return nullptr;
+// 	}
 
-	auto table_and_metadata = cudf::io::read_json(args);
+// 	cudf::io::read_json_args new_json_args = args;
 
-	arrow_file_handle->Close();
+// 	// All json columns are be read
+// 	auto table_and_metadata = read_json_file(args, file);
 
-	return std::move(table_and_metadata);
-}
+// 	if(table_and_metadata.tbl->num_columns() <= 0)
+// 		Library::Logging::Logger().logWarn("json_parser::parse no columns were read");
 
-std::unique_ptr<ral::frame::BlazingTable> json_parser::parse(
-	std::shared_ptr<arrow::io::RandomAccessFile> file,
-	const Schema & schema,
-	std::vector<size_t> column_indices) {
+// 	auto columns = table_and_metadata.tbl->release();
+// 	auto column_names = std::move(table_and_metadata.metadata.column_names);
 
-	if(file == nullptr) {
-		return nullptr;
-	}
+// 	// We just need the columns in column_indices
+// 	std::vector<std::unique_ptr<cudf::column>> selected_columns;
+// 	selected_columns.reserve(column_indices.size());
+// 	std::vector<std::string> selected_column_names;
+// 	selected_column_names.reserve(column_indices.size());
+// 	for (auto &&i : column_indices) {
+// 		selected_columns.push_back(std::move(columns[i]));
+// 		selected_column_names.push_back(std::move(column_names[i]));
+// 	}
 
-	cudf::io::read_json_args new_json_args = args;
-
-	// All json columns are be read
-	auto table_and_metadata = read_json_file(args, file);
-
-	if(table_and_metadata.tbl->num_columns() <= 0)
-		Library::Logging::Logger().logWarn("json_parser::parse no columns were read");
-
-	auto columns = table_and_metadata.tbl->release();
-	auto column_names = std::move(table_and_metadata.metadata.column_names);
-
-	// We just need the columns in column_indices
-	std::vector<std::unique_ptr<cudf::column>> selected_columns;
-	selected_columns.reserve(column_indices.size());
-	std::vector<std::string> selected_column_names;
-	selected_column_names.reserve(column_indices.size());
-	for (auto &&i : column_indices) {
-		selected_columns.push_back(std::move(columns[i]));
-		selected_column_names.push_back(std::move(column_names[i]));
-	}
-
-	return std::make_unique<ral::frame::BlazingTable>(std::make_unique<cudf::table>(std::move(selected_columns)), selected_column_names);	
-}
+// 	return std::make_unique<ral::frame::BlazingTable>(std::make_unique<cudf::table>(std::move(selected_columns)), selected_column_names);	
+// }
 
 void json_parser::parse_schema(
 	std::shared_ptr<arrow::io::RandomAccessFile> file, ral::io::Schema & schema) {
 
-	auto table_and_metadata = read_json_file(args, file, true);
+	auto arrow_source = cudf::io::arrow_io_source{file};
+	cudf::io::json_reader_options args = getJsonReaderOptions(args_map, arrow_source);
+
+	int64_t num_bytes = file->GetSize().ValueOrDie();
+
+	// lets only read up to 48192 bytes. We are assuming that a full row will always be less than that
+	if(num_bytes > 48192) {
+		num_bytes = 48192;
+	}
+	args.set_byte_range_offset(0);
+	args.set_byte_range_size(num_bytes);
+
+	cudf::io::table_with_metadata table_and_metadata = cudf::io::read_json(args);
+	file->Close();
 	
 	for(auto i = 0; i < table_and_metadata.tbl->num_columns(); i++) {
 		std::string name = table_and_metadata.metadata.column_names[i];

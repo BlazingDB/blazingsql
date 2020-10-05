@@ -17,6 +17,7 @@
 #include "communication/CommunicationData.h"
 #include <spdlog/spdlog.h>
 #include "CodeTimer.h"
+#include "error.hpp"
 
 using namespace fmt::literals;
 
@@ -36,9 +37,8 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 		auto files = filesAll[i];
 		auto fileType = fileTypes[i];
 		
-		auto kwargs = ral::io::to_map(tableSchemaCppArgKeys[i], tableSchemaCppArgValues[i]);
-		ral::io::ReaderArgs args = ral::io::getReaderArgs((ral::io::DataType) fileType, kwargs);
-
+		auto args_map = ral::io::to_map(tableSchemaCppArgKeys[i], tableSchemaCppArgValues[i]);
+		
 		std::vector<cudf::type_id> types;
 		for(int col = 0; col < tableSchemas[i].types.size(); col++) {
 			types.push_back(tableSchemas[i].types[col]);
@@ -56,11 +56,11 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 		} else if(fileType == gdfFileType || fileType == daskFileType) {
 			parser = std::make_shared<ral::io::gdf_parser>(tableSchema.blazingTableViews);
 		} else if(fileType == ral::io::DataType::ORC) {
-			parser = std::make_shared<ral::io::orc_parser>(args.orcReaderArg);
+			parser = std::make_shared<ral::io::orc_parser>(args_map);
 		} else if(fileType == ral::io::DataType::JSON) {
-			parser = std::make_shared<ral::io::json_parser>(args.jsonReaderArg);
+			parser = std::make_shared<ral::io::json_parser>(args_map);
 		} else if(fileType == ral::io::DataType::CSV) {
-			parser = std::make_shared<ral::io::csv_parser>(args.csvReaderArg);
+			parser = std::make_shared<ral::io::csv_parser>(args_map);
 		} else if(fileType == ral::io::DataType::ARROW){
 	     	parser = std::make_shared<ral::io::arrow_parser>(tableSchema.arrow_table);
 		}
@@ -118,9 +118,10 @@ void fix_column_names_duplicated(std::vector<std::string> & col_names){
 	}
 }
 
-std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
+std::unique_ptr<PartitionedResultSet> runQuery(int32_t masterIndex,
 	std::vector<NodeMetaDataTCP> tcpMetadata,
 	std::vector<std::string> tableNames,
+	std::vector<std::string> tableScans,
 	std::vector<TableSchema> tableSchemas,
 	std::vector<std::vector<std::string>> tableSchemaCppArgKeys,
 	std::vector<std::vector<std::string>> tableSchemaCppArgValues,
@@ -162,13 +163,18 @@ std::unique_ptr<ResultSet> runQuery(int32_t masterIndex,
 									"plan"_a=query);
 
 		// Execute query
-		std::unique_ptr<ral::frame::BlazingTable> frame;
-		frame = execute_plan(input_loaders, schemas, tableNames, query, accessToken, queryContext);
-		
-		std::unique_ptr<ResultSet> result = std::make_unique<ResultSet>();
-		result->names = frame->names();
+		std::vector<std::unique_ptr<ral::frame::BlazingTable>> frames;
+		frames = execute_plan(input_loaders, schemas, tableNames, tableScans, query, accessToken, queryContext);
+
+		std::unique_ptr<PartitionedResultSet> result = std::make_unique<PartitionedResultSet>();
+		assert( frames.size()>0 );
+		result->names = frames[0]->names();
 		fix_column_names_duplicated(result->names);
-		result->cudfTable = frame->releaseCudfTable();
+
+		for(auto& cudfTable : frames){
+			result->cudfTables.emplace_back(std::move(cudfTable->releaseCudfTable()));
+		}
+
 		result->skipdata_analysis_fail = false;
 		return result;
 	} catch(const std::exception & e) {
@@ -275,4 +281,92 @@ TableScanInfo getTableScanInfo(std::string logicalPlan){
 	std::vector<std::vector<int>> table_columns;
 	getTableScanInfo(logicalPlan, relational_algebra_steps, table_names, table_columns);
 	return TableScanInfo{relational_algebra_steps, table_names, table_columns};
+}
+
+std::pair<std::unique_ptr<PartitionedResultSet>, error_code_t> runQuery_C(int32_t masterIndex,
+	std::vector<NodeMetaDataTCP> tcpMetadata,
+	std::vector<std::string> tableNames,
+	std::vector<std::string> tableScans,
+	std::vector<TableSchema> tableSchemas,
+	std::vector<std::vector<std::string>> tableSchemaCppArgKeys,
+	std::vector<std::vector<std::string>> tableSchemaCppArgValues,
+	std::vector<std::vector<std::string>> filesAll,
+	std::vector<int> fileTypes,
+	int32_t ctxToken,
+	std::string query,
+	uint64_t accessToken,
+	std::vector<std::vector<std::map<std::string, std::string>>> uri_values,
+	std::map<std::string, std::string> config_options) {
+
+	std::unique_ptr<PartitionedResultSet> result = nullptr;
+
+	try {
+		result = std::move(runQuery(masterIndex,
+			tcpMetadata,
+			tableNames,
+			tableScans,
+			tableSchemas,
+			tableSchemaCppArgKeys,
+			tableSchemaCppArgValues,
+			filesAll,
+			fileTypes,
+			ctxToken,
+			query,
+			accessToken,
+			uri_values,
+			config_options));
+		return std::make_pair(std::move(result), E_SUCCESS);
+	} catch (std::exception& e) {
+		return std::make_pair(std::move(result), E_EXCEPTION);
+	}
+}
+
+std::pair<TableScanInfo, error_code_t> getTableScanInfo_C(std::string logicalPlan) {
+
+	TableScanInfo result;
+
+	try {
+		result = getTableScanInfo(logicalPlan);
+		return std::make_pair(result, E_SUCCESS);
+	} catch (std::exception& e) {
+		return std::make_pair(result, E_EXCEPTION);
+	}
+}
+
+std::pair<std::unique_ptr<ResultSet>, error_code_t> runSkipData_C(
+	ral::frame::BlazingTableView metadata,
+	std::vector<std::string> all_column_names,
+	std::string query) {
+
+	std::unique_ptr<ResultSet> result = nullptr;
+
+	try {
+		result = std::move(runSkipData(metadata,
+					all_column_names,
+					query));
+		return std::make_pair(std::move(result), E_SUCCESS);
+	} catch (std::exception& e) {
+		return std::make_pair(std::move(result), E_EXCEPTION);
+	}
+}
+
+std::pair<std::unique_ptr<ResultSet>, error_code_t> performPartition_C(
+	int32_t masterIndex,
+	std::vector<NodeMetaDataTCP> tcpMetadata,
+	int32_t ctxToken,
+	const ral::frame::BlazingTableView & table,
+	std::vector<std::string> column_names) {
+
+	std::unique_ptr<ResultSet> result = nullptr;
+
+	try {
+		result = std::move(performPartition(masterIndex,
+					tcpMetadata,
+					ctxToken,
+					table,
+					column_names));
+		return std::make_pair(std::move(result), E_SUCCESS);
+	} catch (std::exception& e) {
+		return std::make_pair(std::move(result), E_EXCEPTION);
+	}
 }

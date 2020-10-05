@@ -24,90 +24,99 @@ using ral::cache::kernel_type;
 using ral::cache::cache_settings;
 using ral::cache::CacheType;
 
+struct node {
+	std::string expr;               // expr
+	int level;                      // level
+	std::shared_ptr<kernel>            kernel_unit;
+	std::vector<std::shared_ptr<node>> children;  // children nodes
+};
 struct tree_processor {
-	struct node {
-		std::string expr;               // expr
-		int level;                      // level
-		std::shared_ptr<kernel>            kernel_unit;
-		std::vector<std::shared_ptr<node>> children;  // children nodes
-
-	} root;
+	
+	node root;
 	std::shared_ptr<Context> context;
 	std::vector<ral::io::data_loader> input_loaders;
 	std::vector<ral::io::Schema> schemas;
 	std::vector<std::string> table_names;
+	std::vector<std::string> table_scans;
 	const bool transform_operators_bigger_than_gpu = false;
 
-	std::shared_ptr<kernel> make_kernel(std::string expr, std::shared_ptr<ral::cache::graph> query_graph) {
+	std::shared_ptr<kernel> make_kernel(std::size_t kernel_id, std::string expr, std::shared_ptr<ral::cache::graph> query_graph) {
 		std::shared_ptr<kernel> k;
 		auto kernel_context = this->context->clone();
 		this->context->incrementQueryStep();
 		if ( is_project(expr) ) {
-			k = std::make_shared<Projection>(expr, kernel_context, query_graph);
-			kernel_context->setKernelId(k->get_id());
+			k = std::make_shared<Projection>(kernel_id,expr, kernel_context, query_graph);
 		} else if ( is_filter(expr) ) {
-			k = std::make_shared<Filter>(expr, kernel_context, query_graph);
-			kernel_context->setKernelId(k->get_id());
+			k = std::make_shared<Filter>(kernel_id,expr, kernel_context, query_graph);
+
 		} else if ( is_logical_scan(expr) ) {
-			size_t table_index = get_table_index(table_names, extract_table_name(expr));
-			auto loader = this->input_loaders[table_index].clone(); // NOTE: this is required if the same loader is used next time
-			auto schema = this->schemas[table_index];
-			k = std::make_shared<TableScan>(expr, *loader, schema, kernel_context, query_graph);
-			kernel_context->setKernelId(k->get_id());
+			size_t table_index = get_table_index(table_scans, expr);
+			k = std::make_shared<TableScan>(kernel_id, expr, this->input_loaders[table_index], this->schemas[table_index], kernel_context, query_graph);
+			// lets erase the input_loaders and corresponding table_name and table_scan so that if we have a repeated table_scan, we dont reuse it
+			input_loaders.erase(input_loaders.begin() + table_index);
+			table_names.erase(table_names.begin() + table_index);
+			table_scans.erase(table_scans.begin() + table_index);
+			schemas.erase(schemas.begin() + table_index);
+
 		} else if (is_bindable_scan(expr)) {
-			size_t table_index = get_table_index(table_names, extract_table_name(expr));
-			auto loader = this->input_loaders[table_index].clone(); // NOTE: this is required if the same loader is used next time
-			auto schema = this->schemas[table_index];
-			k = std::make_shared<BindableTableScan>(expr, *loader, schema, kernel_context, query_graph);
-			kernel_context->setKernelId(k->get_id());
+			size_t table_index = get_table_index(table_scans, expr);
+			k = std::make_shared<BindableTableScan>(kernel_id, expr, this->input_loaders[table_index], this->schemas[table_index], kernel_context, query_graph);
+			// lets erase the input_loaders and corresponding table_name and table_scan so that if we have a repeated table_scan, we dont reuse it
+			input_loaders.erase(input_loaders.begin() + table_index);
+			table_names.erase(table_names.begin() + table_index);
+			table_scans.erase(table_scans.begin() + table_index);
+			schemas.erase(schemas.begin() + table_index);
+
 		}  else if (is_single_node_partition(expr)) {
-			k = std::make_shared<PartitionSingleNodeKernel>(expr, kernel_context, query_graph);
-			kernel_context->setKernelId(k->get_id());			
+			k = std::make_shared<PartitionSingleNodeKernel>(kernel_id,expr, kernel_context, query_graph);
+
 		} else if (is_partition(expr)) {
-			k = std::make_shared<PartitionKernel>(expr, kernel_context, query_graph);
-			kernel_context->setKernelId(k->get_id());
+			k = std::make_shared<PartitionKernel>(kernel_id,expr, kernel_context, query_graph);
+
 		} else if (is_sort_and_sample(expr)) {
-			k = std::make_shared<SortAndSampleKernel>(expr, kernel_context, query_graph);
-			kernel_context->setKernelId(k->get_id());
+			k = std::make_shared<SortAndSampleKernel>(kernel_id,expr, kernel_context, query_graph);
+
 		} else if (is_merge(expr)) {
-			k = std::make_shared<MergeStreamKernel>(expr, kernel_context, query_graph);
-			kernel_context->setKernelId(k->get_id());
+			k = std::make_shared<MergeStreamKernel>(kernel_id,expr, kernel_context, query_graph);
+
 		} else if (is_limit(expr)) {
-			k = std::make_shared<LimitKernel>(expr, kernel_context, query_graph);
-			kernel_context->setKernelId(k->get_id());
+			k = std::make_shared<LimitKernel>(kernel_id,expr, kernel_context, query_graph);
+
 		}  else if (is_compute_aggregate(expr)) {
-			k = std::make_shared<ComputeAggregateKernel>(expr, kernel_context, query_graph);
-			kernel_context->setKernelId(k->get_id());
+			k = std::make_shared<ComputeAggregateKernel>(kernel_id,expr, kernel_context, query_graph);
+
 		}  else if (is_distribute_aggregate(expr)) {
-			k = std::make_shared<DistributeAggregateKernel>(expr, kernel_context, query_graph);
-			kernel_context->setKernelId(k->get_id());
+			k = std::make_shared<DistributeAggregateKernel>(kernel_id,expr, kernel_context, query_graph);
+
 		}  else if (is_merge_aggregate(expr)) {
-			k = std::make_shared<MergeAggregateKernel>(expr, kernel_context, query_graph);
-			kernel_context->setKernelId(k->get_id());
+			k = std::make_shared<MergeAggregateKernel>(kernel_id,expr, kernel_context, query_graph);
+
 		}  else if (is_pairwise_join(expr)) {
-			k = std::make_shared<PartwiseJoin>(expr, kernel_context, query_graph);
-			kernel_context->setKernelId(k->get_id());
+			k = std::make_shared<PartwiseJoin>(kernel_id,expr, kernel_context, query_graph);
+
 		} else if (is_join_partition(expr)) {
-			k = std::make_shared<JoinPartitionKernel>(expr, kernel_context, query_graph);
-			kernel_context->setKernelId(k->get_id());
+			k = std::make_shared<JoinPartitionKernel>(kernel_id,expr, kernel_context, query_graph);
+
 		} else if (is_union(expr)) {
-			k = std::make_shared<UnionKernel>(expr, kernel_context, query_graph);
-			kernel_context->setKernelId(k->get_id());
+			k = std::make_shared<UnionKernel>(kernel_id,expr, kernel_context, query_graph);
+
 		} else {
 			RAL_FAIL("Invalid expression in the logical plan");
 		}
 		return k;
 	}
-	void expr_tree_from_json(boost::property_tree::ptree const& p_tree, node * root_ptr, int level, std::shared_ptr<ral::cache::graph> query_graph) {
+	std::size_t expr_tree_from_json(std::size_t kernel_id, boost::property_tree::ptree const& p_tree, node * root_ptr, int level, std::shared_ptr<ral::cache::graph> query_graph) {
 		auto expr = p_tree.get<std::string>("expr", "");
 		root_ptr->expr = expr;
 		root_ptr->level = level;
-		root_ptr->kernel_unit = make_kernel(expr, query_graph);
+		root_ptr->kernel_unit = make_kernel(kernel_id,expr, query_graph);
+		kernel_id++;
 		for (auto &child : p_tree.get_child("children")) {
 			auto child_node_ptr = std::make_shared<node>();
 			root_ptr->children.push_back(child_node_ptr);
-			expr_tree_from_json(child.second, child_node_ptr.get(), level + 1, query_graph);
+			kernel_id = expr_tree_from_json(kernel_id,child.second, child_node_ptr.get(), level + 1, query_graph);
 		}
+		return kernel_id;
 	}
 
 	boost::property_tree::ptree create_array_tree(boost::property_tree::ptree child){
@@ -237,15 +246,16 @@ struct tree_processor {
 		return str;
 	}
 
-	std::shared_ptr<ral::cache::graph> build_batch_graph(std::string json) {
+	std::tuple<std::shared_ptr<ral::cache::graph>,std::size_t> build_batch_graph(std::string json) {
 		auto query_graph = std::make_shared<ral::cache::graph>();
+		std::size_t max_kernel_id = 0;
 		try {
 			std::istringstream input(json);
 			boost::property_tree::ptree p_tree;
 			boost::property_tree::read_json(input, p_tree);
 			transform_json_tree(p_tree);
 
-			expr_tree_from_json(p_tree, &this->root, 0, query_graph);
+			max_kernel_id = expr_tree_from_json(0,p_tree, &this->root, 0, query_graph);
 		} catch (std::exception & e) {
 			std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
 			logger->error("|||{info}|||||",
@@ -257,7 +267,7 @@ struct tree_processor {
 			query_graph->add_node(this->root.kernel_unit.get()); // register first node
 			visit(*query_graph, &this->root, this->root.children);
 		}
-		return query_graph;
+		return std::make_tuple(query_graph,max_kernel_id);
 	}
 
 	void visit(ral::cache::graph& query_graph, node * parent, std::vector<std::shared_ptr<node>>& children) {
@@ -266,34 +276,41 @@ struct tree_processor {
 			visit(query_graph, child.get(), child->children);
 			std::string port_name = "input";
 
-			std::uint32_t flow_control_batches_threshold = std::numeric_limits<std::uint32_t>::max();
 			std::size_t flow_control_bytes_threshold = std::numeric_limits<std::size_t>::max();
 			std::map<std::string, std::string> config_options = context->getConfigOptions();
-			auto it = config_options.find("FLOW_CONTROL_BATCHES_THRESHOLD");
-			if (it != config_options.end()){
-				flow_control_batches_threshold = std::stoi(config_options["FLOW_CONTROL_BATCHES_THRESHOLD"]);
-			}
-			it = config_options.find("FLOW_CONTROL_BYTES_THRESHOLD");
+			auto it = config_options.find("FLOW_CONTROL_BYTES_THRESHOLD");
 			if (it != config_options.end()){
 				flow_control_bytes_threshold = std::stoull(config_options["FLOW_CONTROL_BYTES_THRESHOLD"]);
 			}
-			// if only one of these is set, we need to set the other one to 0
-			if (flow_control_batches_threshold != std::numeric_limits<std::uint32_t>::max() || flow_control_bytes_threshold != std::numeric_limits<std::size_t>::max()){
-				if (flow_control_batches_threshold == std::numeric_limits<std::uint32_t>::max()){
-					flow_control_batches_threshold = 0;
-				}
-				if (flow_control_bytes_threshold == std::numeric_limits<std::size_t>::max()){
-					flow_control_bytes_threshold = 0;
-				}
-			}
 			cache_settings default_throttled_cache_machine_config = cache_settings{.type = CacheType::SIMPLE, .num_partitions = 1, .context = context->clone(),
-						.flow_control_batches_threshold = flow_control_batches_threshold, .flow_control_bytes_threshold = flow_control_bytes_threshold};
+						.flow_control_bytes_threshold = flow_control_bytes_threshold};
 
+			auto child_kernel_type = child->kernel_unit->get_type_id();
+			auto parent_kernel_type = parent->kernel_unit->get_type_id();
 			if (children.size() > 1) {
 				char index_char = 'a' + index;
 				port_name = std::string("input_");
 				port_name.push_back(index_char);
-				if (parent->kernel_unit->can_you_throttle_my_input()){
+
+				if (parent_kernel_type == kernel_type::PartwiseJoinKernel) {
+
+					std::size_t join_partition_size_thresh = 400000000; // 400 MB
+					config_options = context->getConfigOptions();
+					it = config_options.find("JOIN_PARTITION_SIZE_THRESHOLD");
+					if (it != config_options.end()){
+						join_partition_size_thresh = std::stoull(config_options["JOIN_PARTITION_SIZE_THRESHOLD"]);
+					}
+
+					auto join_type = static_cast<PartwiseJoin*>(parent->kernel_unit.get())->get_join_type();
+					bool left_concat_all = join_type == ral::batch::RIGHT_JOIN || join_type == ral::batch::OUTER_JOIN || join_type == ral::batch::CROSS_JOIN;
+					bool right_concat_all = join_type == ral::batch::LEFT_JOIN || join_type == ral::batch::OUTER_JOIN || join_type == ral::batch::CROSS_JOIN;
+					bool concat_all = index == 0 ? left_concat_all : right_concat_all;
+					cache_settings join_cache_machine_config = cache_settings{.type = CacheType::CONCATENATING, .num_partitions = 1, .context = context->clone(),
+						.flow_control_bytes_threshold = flow_control_bytes_threshold, .concat_cache_num_bytes = join_partition_size_thresh, .concat_all = concat_all};
+						
+					query_graph += link(*child->kernel_unit, (*parent->kernel_unit)[port_name], join_cache_machine_config);
+
+				} else if (parent->kernel_unit->can_you_throttle_my_input()){
 					query_graph += link(*child->kernel_unit, (*parent->kernel_unit)[port_name], default_throttled_cache_machine_config);
 				} else {
 					cache_settings cache_machine_config;
@@ -302,12 +319,31 @@ struct tree_processor {
 					query_graph += link(*child->kernel_unit, (*parent->kernel_unit)[port_name], cache_machine_config);
 				}
 			} else {
-				auto child_kernel_type = child->kernel_unit->get_type_id();
-				auto parent_kernel_type = parent->kernel_unit->get_type_id();
-				if ((child_kernel_type == kernel_type::JoinPartitionKernel && parent_kernel_type == kernel_type::PartwiseJoinKernel)
-					    || (child_kernel_type == kernel_type::SortAndSampleKernel &&	parent_kernel_type == kernel_type::PartitionKernel)
-						|| (child_kernel_type == kernel_type::SortAndSampleKernel &&	parent_kernel_type == kernel_type::PartitionSingleNodeKernel)) {
+				
+				if (child_kernel_type == kernel_type::JoinPartitionKernel && parent_kernel_type == kernel_type::PartwiseJoinKernel) {
+
+					std::size_t join_partition_size_thresh = 400000000; // 400 MB
+					config_options = context->getConfigOptions();
+					it = config_options.find("JOIN_PARTITION_SIZE_THRESHOLD");
+					if (it != config_options.end()){
+						join_partition_size_thresh = std::stoull(config_options["JOIN_PARTITION_SIZE_THRESHOLD"]);
+					}
+
+					auto join_type = static_cast<PartwiseJoin*>(parent->kernel_unit.get())->get_join_type();
+					bool left_concat_all = join_type == ral::batch::RIGHT_JOIN || join_type == ral::batch::OUTER_JOIN || join_type == ral::batch::CROSS_JOIN;
+					bool right_concat_all = join_type == ral::batch::LEFT_JOIN || join_type == ral::batch::OUTER_JOIN || join_type == ral::batch::CROSS_JOIN;
+					cache_settings left_cache_machine_config = cache_settings{.type = CacheType::CONCATENATING, .num_partitions = 1, .context = context->clone(),
+						.flow_control_bytes_threshold = flow_control_bytes_threshold, .concat_cache_num_bytes = join_partition_size_thresh, .concat_all = left_concat_all};
+					cache_settings right_cache_machine_config = cache_settings{.type = CacheType::CONCATENATING, .num_partitions = 1, .context = context->clone(),
+						.flow_control_bytes_threshold = flow_control_bytes_threshold, .concat_cache_num_bytes = join_partition_size_thresh, .concat_all = right_concat_all};
 					
+					query_graph += link((*(child->kernel_unit))["output_a"], (*(parent->kernel_unit))["input_a"], left_cache_machine_config);
+					query_graph += link((*(child->kernel_unit))["output_b"], (*(parent->kernel_unit))["input_b"], right_cache_machine_config);
+
+
+				} else if ((child_kernel_type == kernel_type::SortAndSampleKernel &&	parent_kernel_type == kernel_type::PartitionKernel)
+						|| (child_kernel_type == kernel_type::SortAndSampleKernel &&	parent_kernel_type == kernel_type::PartitionSingleNodeKernel)) {
+
 					if (parent->kernel_unit->can_you_throttle_my_input()){
 						query_graph += link((*(child->kernel_unit))["output_a"], (*(parent->kernel_unit))["input_a"], default_throttled_cache_machine_config);
 						query_graph += link((*(child->kernel_unit))["output_b"], (*(parent->kernel_unit))["input_b"], default_throttled_cache_machine_config);
@@ -329,8 +365,7 @@ struct tree_processor {
 					}
 					if (parent->kernel_unit->can_you_throttle_my_input()){
 						cache_settings cache_machine_config = cache_settings{.type = CacheType::FOR_EACH, .num_partitions = max_num_order_by_partitions_per_node,
-								.context = context->clone(), .flow_control_batches_threshold = flow_control_batches_threshold,
-								.flow_control_bytes_threshold = flow_control_bytes_threshold};
+								.context = context->clone(), .flow_control_bytes_threshold = flow_control_bytes_threshold};
 						query_graph += link(*child->kernel_unit, *parent->kernel_unit, cache_machine_config);
 					} else {
 						ral::cache::cache_settings cache_machine_config;
@@ -340,19 +375,15 @@ struct tree_processor {
 						query_graph += link(*child->kernel_unit, *parent->kernel_unit, cache_machine_config);
 					}
 				} else if(child_kernel_type == kernel_type::TableScanKernel || child_kernel_type == kernel_type::BindableTableScanKernel) {
-					std::size_t max_data_load_concat_cache_bytes_size = 400000000; // 400 MB
+					std::size_t concat_cache_num_bytes = 400000000; // 400 MB
 					config_options = context->getConfigOptions();
-					it = config_options.find("MAX_DATA_LOAD_CONCAT_CACHE_BYTES_SIZE");
+					it = config_options.find("MAX_DATA_LOAD_CONCAT_CACHE_BYTE_SIZE");
 					if (it != config_options.end()){
-						max_data_load_concat_cache_bytes_size = std::stoull(config_options["MAX_DATA_LOAD_CONCAT_CACHE_BYTES_SIZE"]);
+						concat_cache_num_bytes = std::stoull(config_options["MAX_DATA_LOAD_CONCAT_CACHE_BYTE_SIZE"]);
 					}
-					// if flow_control_batches_threshold is set then lets use it. Otherwise lets use 0 so that only MAX_DATA_LOAD_CONCAT_CACHE_BYTES_SIZE applies
-					std::uint32_t loading_flow_control_batches_threshold = 0;
-					if (flow_control_batches_threshold != std::numeric_limits<std::uint32_t>::max()){
-						loading_flow_control_batches_threshold = flow_control_batches_threshold;
-					}
+					
 					cache_settings cache_machine_config = cache_settings{.type = CacheType::CONCATENATING, .num_partitions = 1, .context = context->clone(),
-						.flow_control_batches_threshold = loading_flow_control_batches_threshold, .flow_control_bytes_threshold = max_data_load_concat_cache_bytes_size};
+						.flow_control_bytes_threshold = flow_control_bytes_threshold, .concat_cache_num_bytes = concat_cache_num_bytes, .concat_all = false};
 					query_graph += link(*child->kernel_unit, *parent->kernel_unit, cache_machine_config);
 
 				} else {

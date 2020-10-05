@@ -11,20 +11,21 @@
 #include "operators/OrderBy.h"
 #include "utilities/CommonOperations.h"
 #include "utilities/StringUtils.h"
-#include "utilities/DebuggingUtils.h"
 
 #include "execution_graph/logic_controllers/LogicalFilter.h"
 #include "execution_graph/logic_controllers/LogicalProject.h"
 #include "execution_graph/logic_controllers/BatchProcessing.h"
 #include "execution_graph/logic_controllers/PhysicalPlanGenerator.h"
+#include "bmr/MemoryMonitor.h"
 
 
 
 using namespace fmt::literals;
 
-std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data_loader> input_loaders,
+std::vector<std::unique_ptr<ral::frame::BlazingTable>> execute_plan(std::vector<ral::io::data_loader> input_loaders,
 	std::vector<ral::io::Schema> schemas,
 	std::vector<std::string> table_names,
+	std::vector<std::string> table_scans,
 	std::string logicalPlan,
 	int64_t connection,
 	Context & queryContext)  {
@@ -35,19 +36,22 @@ std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data
 	try {
 		assert(input_loaders.size() == table_names.size());
 
-		std::unique_ptr<ral::frame::BlazingTable> output_frame;
+		std::vector<std::unique_ptr<ral::frame::BlazingTable>> output_frame;
 		ral::batch::tree_processor tree{
 			.root = {},
 			.context = queryContext.clone(),
 			.input_loaders = input_loaders,
 			.schemas = schemas,
 			.table_names = table_names,
+			.table_scans = table_scans,
 			.transform_operators_bigger_than_gpu = true
 		};
-		ral::batch::OutputKernel output(queryContext.clone());
-
-		auto query_graph = tree.build_batch_graph(logicalPlan);
-
+			
+		auto query_graph_and_max_kernel_id = tree.build_batch_graph(logicalPlan);
+		auto query_graph = std::get<0>(query_graph_and_max_kernel_id);
+		auto max_kernel_id = std::get<1>(query_graph_and_max_kernel_id);
+		ral::batch::OutputKernel output(max_kernel_id, queryContext.clone());
+		
 		logger->info("{query_id}|{step}|{substep}|{info}|||||",
 									"query_id"_a=queryContext.getContextToken(),
 									"step"_a=queryContext.getQueryStep(),
@@ -92,8 +96,9 @@ std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data
 
 		if (query_graph->num_nodes() > 0) {
 			ral::cache::cache_settings cache_machine_config;
-			cache_machine_config.type = ral::cache::CacheType::CONCATENATING;
+			cache_machine_config.type = queryContext.getTotalNodes() == 1 ? ral::cache::CacheType::CONCATENATING : ral::cache::CacheType::SIMPLE;
 			cache_machine_config.context = queryContext.clone();
+			cache_machine_config.concat_all = true;
 
 			*query_graph += link(query_graph->get_last_kernel(), output, cache_machine_config);
 			// query_graph.show();
@@ -101,7 +106,17 @@ std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data
 			// useful when the Algebra Relacional only contains: ScanTable (or BindableScan) and Limit
 			query_graph->check_for_simple_scan_with_limit_query();
 
-			query_graph->execute();
+			size_t max_kernel_run_threads = 16; //default
+			std::map<std::string, std::string> config_options = queryContext.getConfigOptions();
+			auto it = config_options.find("MAX_KERNEL_RUN_THREADS");
+			if (it != config_options.end()){
+				max_kernel_run_threads = std::stoi(config_options["MAX_KERNEL_RUN_THREADS"]);
+			}
+
+			ral::MemoryMonitor mem_monitor(&tree, config_options);
+			mem_monitor.start();
+			query_graph->execute(max_kernel_run_threads);
+			mem_monitor.finalize();
 			output_frame = output.release();
 		}
 
@@ -112,7 +127,7 @@ std::unique_ptr<ral::frame::BlazingTable> execute_plan(std::vector<ral::io::data
 									"info"_a="Query Execution Done",
 									"duration"_a=blazing_timer.elapsed_time());
 
-		assert(output_frame != nullptr);
+		assert(!output_frame.empty());
 
 		logger->flush();
 

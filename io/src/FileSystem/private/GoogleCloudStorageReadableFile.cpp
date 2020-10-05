@@ -8,6 +8,8 @@
 #include <istream>
 #include <streambuf>
 
+#include <arrow/io/api.h>
+#include <arrow/result.h>
 #include "arrow/buffer.h"
 #include <arrow/memory_pool.h>
 
@@ -34,9 +36,8 @@ arrow::Status GoogleCloudStorageReadableFile::Seek(int64_t position) {
 	this->position = position;
 	return arrow::Status::OK();
 }
-arrow::Status GoogleCloudStorageReadableFile::Tell(int64_t * position) const {
-	*position = this->position;
-	return arrow::Status::OK();
+arrow::Result<int64_t> GoogleCloudStorageReadableFile::Tell() const {
+	return this->position;
 }
 
 arrow::Status GoogleCloudStorageReadableFile::Close() {
@@ -44,16 +45,17 @@ arrow::Status GoogleCloudStorageReadableFile::Close() {
 	return arrow::Status::OK();
 }
 
-arrow::Status GoogleCloudStorageReadableFile::GetSize(int64_t * size) {
+arrow::Result<int64_t> GoogleCloudStorageReadableFile::GetSize() {
+    int64_t size = -1;
 	using ::google::cloud::StatusOr;
 
 	StatusOr<gcs::ObjectMetadata> objectMetadata = this->gcsClient->GetObjectMetadata(this->bucketName, this->key);
 
 	if(objectMetadata) {  // if success
 		const long long contentLength = objectMetadata->size();
-		*size = contentLength;
+		size = contentLength;
 	} else {
-		*size = -1;
+		size = -1;
 		Logging::Logger().logWarn("GoogleCloudStorageReadableFile::GetSize, HeadObject failed");
 
 		// TODO percy
@@ -66,13 +68,17 @@ arrow::Status GoogleCloudStorageReadableFile::GetSize(int64_t * size) {
 		//            results.GetError().GetMessage() + "  SHOULD NOT RETRY");
 		//        }
 
-		return arrow::Status::IOError("Error: " + objectMetadata.status().message() + " with " + this->key);
+        // TODO william jp errors for new arrow-0.17 API
+		//return arrow::Status::IOError("Error: " + objectMetadata.status().message() + " with " + this->key);
+        
+        return size;
 	}
 
-	return arrow::Status::OK();
+	return size;
 }
 
-arrow::Status GoogleCloudStorageReadableFile::Read(int64_t nbytes, int64_t * bytesRead, void * buffer) {
+arrow::Result<int64_t> GoogleCloudStorageReadableFile::Read(int64_t nbytes, void* buffer) {
+    int64_t bytesRead = -1;
 	auto results = this->gcsClient->ReadObject(this->bucketName, key, gcs::ReadRange(position, position + nbytes));
 
 	if(!results.status().ok()) {
@@ -92,7 +98,10 @@ arrow::Status GoogleCloudStorageReadableFile::Read(int64_t nbytes, int64_t * byt
 		//            results.GetError().GetMessage() + "  SHOULD NOT RETRY");
 		//        }
 
-		return arrow::Status::IOError("Error: " + results.status().message() + " with " + this->key);
+        // TODO william jp errors for new arrow-0.17 API
+		//return arrow::Status::IOError("Error: " + results.status().message() + " with " + this->key);
+        
+        return bytesRead;
 	} else {
 		// TODO percy this doesnt work so we would need to read all the content in order to get the size ... costly!
 		// results.seekg (0, results.end);
@@ -102,21 +111,25 @@ arrow::Status GoogleCloudStorageReadableFile::Read(int64_t nbytes, int64_t * byt
 
 		// TODO percy will asume gsc can read all the content
 		// so we avoid read first all the stuff only to get its size (results.gcount() doesnt work)
-		*bytesRead = nbytes;
+		bytesRead = nbytes;
 		//*bytesRead = nbytes < *bytesRead ? nbytes : *bytesRead;
-		results.read((char *) buffer, *bytesRead);
+		results.read((char *) buffer, bytesRead);
 
 		// NOTE percy check for badbit also the user should never read more bytes than the result content size
 		if(results.bad()) {
-			*bytesRead = 0;
+			bytesRead = 0;
 		}
 
-		position += *bytesRead;
-		return arrow::Status::OK();
+		position += bytesRead;
+		return bytesRead;
 	}
+    
+    return bytesRead;
 }
 
-arrow::Status GoogleCloudStorageReadableFile::Read(int64_t nbytes, std::shared_ptr<arrow::Buffer> * out) {
+arrow::Result<std::shared_ptr<arrow::Buffer>> GoogleCloudStorageReadableFile::Read(int64_t nbytes) {
+    std::shared_ptr<arrow::Buffer> out = nullptr;
+    
 	//	std::cout<<"GoogleCloudStorageReadableFile::Read " + std::to_string(nbytes)<<std::endl;
 	auto results = this->gcsClient->ReadObject(this->bucketName, key, gcs::ReadRange(position, position + nbytes));
 
@@ -135,7 +148,10 @@ arrow::Status GoogleCloudStorageReadableFile::Read(int64_t nbytes, std::shared_p
 		//            results.GetError().GetMessage() + "  SHOULD NOT RETRY");
 		//        }
 
-		return arrow::Status::IOError("Error: " + results.status().message() + " with " + this->key);
+        // TODO william jp errors for new arrow-0.17 API
+		//return arrow::Status::IOError("Error: " + results.status().message() + " with " + this->key);
+        
+        return out;
 	} else {
 		// old implementation
 		/*
@@ -162,24 +178,25 @@ return arrow::Status::OK();
 		//}
 		//		results.GetResult().GetBody().read((char*)(out->get()->mutable_data()), bytesRead);
 
-		std::shared_ptr<arrow::ResizableBuffer> buffer;
-		AllocateResizableBuffer(arrow::default_memory_pool(), nbytes, &buffer);
+		arrow::Result<std::unique_ptr<arrow::ResizableBuffer>> buffer = AllocateResizableBuffer(nbytes, arrow::default_memory_pool());
 
-		results.read((char *) (buffer->mutable_data()), bytesRead);
+		results.read((char *) (buffer.ValueOrDie()->mutable_data()), bytesRead); 
 
 		// NOTE percy check for badbit also the user should never read more bytes than the result content size
 		if(results.bad()) {
 			bytesRead = 0;
 		} else {
-			*out = buffer;
+			out = std::move(buffer.ValueOrDie());
 		}
 
-		return arrow::Status::OK();
+		
+		return out;
 	}
 }
 
-arrow::Status GoogleCloudStorageReadableFile::ReadAt(
-	int64_t position, int64_t nbytes, int64_t * bytesRead, void * buffer) {
+arrow::Result<int64_t> GoogleCloudStorageReadableFile::ReadAt(int64_t position, int64_t nbytes, void* buffer) {
+    int64_t bytesRead = -1;
+    
 	//	std::cout<<"GoogleCloudStorageReadableFile::ReadAt " + std::to_string(nbytes)<<std::endl;
 
 	auto results = this->gcsClient->ReadObject(this->bucketName, key, gcs::ReadRange(position, position + nbytes));
@@ -201,26 +218,32 @@ arrow::Status GoogleCloudStorageReadableFile::ReadAt(
 		//            results.GetError().GetMessage() + "  SHOULD NOT RETRY");
 		//        }
 
-		return arrow::Status::IOError("Error: " + results.status().message() + " with " + this->key);
+        // TODO william jp errors for new arrow-0.17 API
+		//return arrow::Status::IOError("Error: " + results.status().message() + " with " + this->key);
+        
+        return bytesRead;
 	} else {
 		// TODO percy will asume gsc can read all the content
 		// so we avoid read first all the stuff only to get its size (results.gcount() doesnt work)
-		*bytesRead = nbytes;
+		bytesRead = nbytes;
 		//*bytesRead = nbytes < *bytesRead ? nbytes : *bytesRead;
-		this->position = position + *bytesRead;
-		results.read((char *) buffer, *bytesRead);
+		this->position = position + bytesRead;
+		results.read((char *) buffer, bytesRead);
 
 		// NOTE percy check for badbit also the user should never read more bytes than the result content size
 		if(results.bad()) {
-			*bytesRead = 0;
+			bytesRead = 0;
 		}
 
-		return arrow::Status::OK();
+		return bytesRead;
 	}
+    
+    return bytesRead;
 }
 
-arrow::Status GoogleCloudStorageReadableFile::ReadAt(
-	int64_t position, int64_t nbytes, std::shared_ptr<arrow::Buffer> * out) {
+arrow::Result<std::shared_ptr<arrow::Buffer>> GoogleCloudStorageReadableFile::ReadAt(int64_t position, int64_t nbytes) {
+    std::shared_ptr<arrow::Buffer> out = nullptr;
+
 	//	std::cout<<"GoogleCloudStorageReadableFile::ReadAt " + std::to_string(nbytes)<<std::endl;
 
 	auto results = this->gcsClient->ReadObject(this->bucketName, key, gcs::ReadRange(position, position + nbytes));
@@ -240,7 +263,10 @@ arrow::Status GoogleCloudStorageReadableFile::ReadAt(
 		//            results.GetError().GetMessage() + "  SHOULD NOT RETRY");
 		//        }
 
-		return arrow::Status::IOError("Error: " + results.status().message() + " with " + this->key);
+        // TODO william jp errors for new arrow-0.17 API
+        //return arrow::Status::IOError("Error: " + results.status().message() + " with " + this->key);		
+        
+        return out;
 	} else {
 		// old implementation
 		/*
@@ -268,19 +294,18 @@ arrow::Status GoogleCloudStorageReadableFile::ReadAt(
 		//}
 		//		results.GetResult().GetBody().read((char*)(out->get()->mutable_data()), bytesRead);
 
-		std::shared_ptr<arrow::ResizableBuffer> buffer;
-		AllocateResizableBuffer(arrow::default_memory_pool(), nbytes, &buffer);
+		arrow::Result<std::unique_ptr<arrow::ResizableBuffer>> buffer = AllocateResizableBuffer(nbytes, arrow::default_memory_pool());
 
-		results.read((char *) (buffer->mutable_data()), bytesRead);
-
+		results.read((char *) (buffer.ValueOrDie()->mutable_data()), bytesRead);  
+		
 		// NOTE percy check for badbit also the user should never read more bytes than the result content size
 		if(results.bad()) {
 			bytesRead = 0;
 		} else {
-			*out = buffer;
+			out = std::move(buffer.ValueOrDie());
 		}
 
-		return arrow::Status::OK();
+		return out;
 	}
 }
 

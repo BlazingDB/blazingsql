@@ -50,7 +50,8 @@ enum class ConnectionProperty : char {
 	ACCESS_KEY_ID,
 	SECRET_KEY,
 	SESSION_TOKEN,
-	ENDPOINT_OVERRIDE  // if url:port is given then we can connect to different S3 provider (e.g. Apache MinIO)
+	ENDPOINT_OVERRIDE,  // if url:port is given then we can connect to different S3 provider (e.g. Apache MinIO)
+	REGION // in case the user wants to point to a specific region (this may solve some issues)
 };
 
 const std::string encryptionTypeName(EncryptionType encryptionType);
@@ -107,7 +108,8 @@ public:
 		const std::string & accessKeyId,
 		const std::string & secretKey,
 		const std::string & sessionToken,
-		const std::string & endpointOverride = "");
+		const std::string & endpointOverride = "",
+		const std::string & region = "");
 
 	/**
 	 * @brief Constructs a GoogleCloudStorage connection

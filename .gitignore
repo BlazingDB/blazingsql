@@ -69,3 +69,25 @@ configurationFile.json
 *logs*
 
 # END gitignore from e2e repo
+
+thirdparty/aws-cpp
+thirdparty/rapids/
+thirdparty/cudf/
+
+.condarc
+.conda/
+core
+
+# stuff from our docker utils
+.cache/
+.config/
+.cupy/
+.jitify-cache/
+.nv/
+
+# powerpc
+powerpc/tmp/
+powerpc/blazingsql.tar.gz
+powerpc/developer/requirements.txt
+powerpc/developer/core
+powerpc/developer/blazingsql.tar.gz
