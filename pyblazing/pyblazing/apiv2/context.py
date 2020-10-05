@@ -1417,7 +1417,6 @@ class BlazingContext(object):
                 logging_dir_path=logging_dir_path,
             )
             node = {}
-            node["worker"] = worker_list[i]
             node["ip"] = ralIp
             node["communication_port"] = ralPort
             self.nodes.append(node)
