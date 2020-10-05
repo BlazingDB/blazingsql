@@ -1160,6 +1160,13 @@ class BlazingContext(object):
         initial_pool_size (optional) : initial size of memory pool in bytes
                     (if pool=True).
                     if None, and pool=True, defaults to 1/2 GPU memory.
+         maximum_pool_size (optional) :  size, in bytes, that the pool can
+                    grow to (if pool=True).
+                    if None, and pool=True, defaults to all the GPU memory.
+        enable_logging (optional) : If set to True the memory allocator
+                    logging will be enabled, but can negatively impact
+                    performance. Memory allocator logs will be placed
+                    in the same directory and BSQL logs.
         config_options (optional) : this is a dictionary for setting certain
                     parameters in the engine. These parameters will be used
                     for all queries except if overriden by setting these
@@ -1318,7 +1325,7 @@ class BlazingContext(object):
             ).encode()
 
         if dask_client is not None:
-            distributed_initialize_server_directory(self.dask_client, logging_dir_path)
+            distributed_initialize_server_directory(self.dask_client, self.logging_dir_path)
             distributed_initialize_server_directory(self.dask_client, cache_dir_path)
 
             if network_interface is None:
@@ -1337,9 +1344,9 @@ class BlazingContext(object):
                     network_interface = "eth0"
 
             if "BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD" in config_options:
-            host_memory_quota = float(
-                self.config_options["BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD".encode()]
-            )
+                host_memory_quota = float(
+                    self.config_options["BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD".encode()]
+                )
 
             # If all workers are on the same machine, the memory threshold is
             # split between the workers, here we are assuming that there are
@@ -1350,7 +1357,7 @@ class BlazingContext(object):
                 host_memory_quota * len(set(host_list)) / len(workers_info)
             ).encode()
         else:
-            initialize_server_directory(logging_dir_path)
+            initialize_server_directory(self.logging_dir_path)
             initialize_server_directory(cache_dir_path)
 
         self.network_interface = network_interface
@@ -1419,10 +1426,10 @@ class BlazingContext(object):
             # need to initialize this logging independently, in case its set
             # as a relative path and the location from where the python script
             # is running is different than the local dask workers
-            initialize_server_directory(logging_dir_path)
+            initialize_server_directory(self.logging_dir_path)
             # this one is for the non dask side
             FORMAT = '%(asctime)s||%(levelname)s|||"%(message)s"||||||'
-            filename = os.path.join(logging_dir_path, "pyblazing.log")
+            filename = os.path.join(self.logging_dir_path, "pyblazing.log")
             logging.basicConfig(filename=filename, format=FORMAT, level=logging.INFO)
         else:
             ralPort, ralIp, log_path = initializeBlazing(

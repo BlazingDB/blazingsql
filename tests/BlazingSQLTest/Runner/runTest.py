@@ -643,7 +643,10 @@ def save_log(gpu_ci_mode):
         if result is True and saveLog == "true":
             saving_google_sheet_results(df1)
     else:
-        result, error_msgs = True, []
+        if countPass < total:
+            result, error_msgs = False, []
+        else:
+            result, error_msgs = True, []
 
     loggingClose(name)
     return result, error_msgs

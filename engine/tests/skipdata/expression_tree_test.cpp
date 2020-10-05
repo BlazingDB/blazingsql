@@ -129,6 +129,27 @@ TEST_F(ExpressionTreeTest, expr_test_9) {
   process(prefix, expected, valid_expr);
 }
 
+TEST_F(ExpressionTreeTest, expr_test_10) {
+  std::string prefix = "IS NULL($0)";
+  std::string expected = "NONE";
+  bool valid_expr = true;
+  process(prefix, expected, valid_expr);
+}
+
+TEST_F(ExpressionTreeTest, expr_test_11) {
+  std::string prefix = "AND(IS NOT NULL($0), =($1, 500))";
+  std::string expected = "AND <= $2 500 >= $3 500";
+  bool valid_expr = true;
+  process(prefix, expected, valid_expr);
+}
+
+TEST_F(ExpressionTreeTest, expr_test_12) {
+  std::string prefix = "OR(IS NOT NULL($0), =($1, 500))";
+  std::string expected = "NONE";
+  bool valid_expr = true;
+  process(prefix, expected, valid_expr);
+}
+
 TEST_F(ExpressionTreeTest, drop_test1) {
   std::string prefix = "OR(AND(AND(>($0, 100), =(+($0, $1), 123)), <($1, 10)), =($0, 500))";
   std::string expected = "OR > $1 100 AND <= $0 500 >= $1 500";
