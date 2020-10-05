@@ -33,6 +33,7 @@ requirements:
         - openjdk >=8.0
         - maven
         - cudf {{ minor_version }}
+        - dlpack
         - cudatoolkit {{ cuda_version }}
     run:
         - python
