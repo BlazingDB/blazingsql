@@ -129,6 +129,7 @@ public:
 				avg_bytes_per_row += cudf::size_of(dtypes[i]);
 			}
 		}
+		return avg_bytes_per_row;
 	}
 
 	virtual kstatus run() {
