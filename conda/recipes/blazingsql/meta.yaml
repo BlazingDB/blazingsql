@@ -24,7 +24,7 @@ requirements:
         - ninja
         - gtest
         - aws-sdk-cpp
-        - google-cloud-cpp 1.16.0
+        - google-cloud-cpp
         - cppzmq
         - python
         - setuptools
