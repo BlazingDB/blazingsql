@@ -218,8 +218,8 @@ def initializeBlazing(
     return ralCommunicationPort, workerIp, log_path
 
 
-def getNodePartitionKeys(df, client):
-    workers = client.scheduler_info()["workers"]
+def getNodePartitionKeys(df, client, nodes):
+    workers = [node["worker"] for node in nodes]
 
     worker_partitions = {}
     for worker in workers:
@@ -974,7 +974,7 @@ class BlazingTable(object):
         import copy
 
         nodeFilesList = []
-        partition_keys_mapping = getNodePartitionKeys(self.input, client)
+        partition_keys_mapping = getNodePartitionKeys(self.input, client, nodes)
         for node in nodes:
             # here we are making a shallow copy of the table and getting rid
             # of the reference for the dask.cudf.DataFrame since we dont want
@@ -1362,7 +1362,7 @@ class BlazingContext(object):
                 host_memory_quota * len(set(host_list)) / len(workers_info)
             ).encode()
 
-            for worker in list(self.dask_client.scheduler_info()["workers"]):
+            for worker in list(workers_info):
                 dask_futures.append(
                     self.dask_client.submit(
                         initializeBlazing,
@@ -1417,6 +1417,7 @@ class BlazingContext(object):
                 logging_dir_path=logging_dir_path,
             )
             node = {}
+            node["worker"] = worker_list[i]
             node["ip"] = ralIp
             node["communication_port"] = ralPort
             self.nodes.append(node)
@@ -1687,7 +1688,7 @@ class BlazingContext(object):
         if self.dask_client:
             dask_futures = []
             workers_id = []
-            workers = tuple(self.dask_client.scheduler_info()["workers"])
+            workers = [node["worker"] for node in self.nodes]
             for worker_id, worker in enumerate(workers):
                 free_memory = self.dask_client.submit(
                     cio.getFreeMemoryCaller, workers=[worker], pure=False
@@ -2168,7 +2169,7 @@ class BlazingContext(object):
         if self.dask_client:
             if local_files is False:
                 # just the first worker parse the entire file schemas
-                worker = tuple(self.dask_client.scheduler_info()["workers"])[0]
+                worker = self.nodes[0]["worker"]
                 connection = self.dask_client.submit(
                     cio.parseSchemaCaller,
                     input,
@@ -2185,7 +2186,7 @@ class BlazingContext(object):
                 # each worker parse all accesible files on the file path
                 dask_futures = []
 
-                for worker in list(self.dask_client.scheduler_info()["workers"]):
+                for worker in [node["worker"] for node in self.nodes]):
                     dask_futures.append(
                         (
                             self.dask_client.submit(
@@ -2253,7 +2254,7 @@ class BlazingContext(object):
     def _parseMetadata(self, file_format_hint, currentTableNodes, schema, kwargs):
         if self.dask_client:
             dask_futures = []
-            workers = tuple(self.dask_client.scheduler_info()["workers"])
+            workers = [node["worker"] for node in self.nodes]
             for worker_id, worker in enumerate(workers):
                 all_files = currentTableNodes[worker_id].files
                 file_subset = [file.decode() for file in all_files]
@@ -2528,7 +2529,7 @@ class BlazingContext(object):
             if not isinstance(input, dask_cudf.core.DataFrame):
                 print("Not supported...")
             else:
-                partition_keys_mapping = getNodePartitionKeys(input, self.dask_client)
+                partition_keys_mapping = getNodePartitionKeys(input, self.dask_client, self.nodes)
                 df_schema = input._meta
 
                 dask_futures = []
@@ -2665,7 +2666,7 @@ class BlazingContext(object):
         if self.dask_client is None or single_gpu is True:
             table_names, table_scans = cio.getTableScanInfoCaller(algebra)
         else:
-            worker = tuple(self.dask_client.scheduler_info()["workers"])[0]
+            worker = self.nodes[0]["worker"]
             connection = self.dask_client.submit(
                 cio.getTableScanInfoCaller, algebra, workers=[worker]
             )
