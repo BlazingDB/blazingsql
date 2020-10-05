@@ -161,7 +161,7 @@ public:
 		std::size_t localTotalNumRows = 0;
 		std::size_t localTotalBytes = 0;
 		int batch_count = 0;
-		std::unique_ptr<ral::frame::BlazingTable> sortedTable;
+		std::vector<cudf::data_type> dtypes_when_no_rows;
 		while (input.wait_for_next()) {
 			try {
 				this->output_cache("output_a")->wait_if_cache_is_saturated();
@@ -171,7 +171,7 @@ public:
 				auto log_input_num_rows = batch ? batch->num_rows() : 0;
 				auto log_input_num_bytes = batch ? batch->sizeInBytes() : 0;
 
-				sortedTable = ral::operators::sort(batch->toBlazingTableView(), this->expression);
+				auto sortedTable = ral::operators::sort(batch->toBlazingTableView(), this->expression);
 				if (get_samples) {
 					auto sampledTable = ral::operators::sample(batch->toBlazingTableView(), this->expression, order_by_samples_ratio);
 					sampledTableViews.push_back(sampledTable->toBlazingTableView());
@@ -215,6 +215,8 @@ public:
 									"timestamp_end"_a=eventTimer.end_time());
 				}
 
+				dtypes_when_no_rows = sortedTable->get_schema();
+
 				this->add_to_output_cache(std::move(sortedTable), "output_a");
 				batch_count++;
 			} catch(const std::exception& e) {
@@ -233,11 +235,7 @@ public:
 		if (partition_plan_thread.joinable()){
 			partition_plan_thread.join();
 		} else {
-			size_t bytes_of_empty_schema = 1;
-			if (sortedTable && sortedTable->num_rows() == 0) {
-				bytes_of_empty_schema = stimate_avg_bytes_per_row_using_dtypes(sortedTable->get_schema());
-			}
-			size_t avg_bytes_per_row = localTotalNumRows == 0 ? bytes_of_empty_schema : localTotalBytes/localTotalNumRows;
+			size_t avg_bytes_per_row = localTotalNumRows == 0 ? stimate_avg_bytes_per_row_using_dtypes(dtypes_when_no_rows) : localTotalBytes/localTotalNumRows;
 			compute_partition_plan(sampledTableViews, avg_bytes_per_row, localTotalNumRows);
 		}
 
