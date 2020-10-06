@@ -24,7 +24,8 @@ requirements:
         - ninja
         - gtest
         - aws-sdk-cpp
-        - google-cloud-cpp
+        - google-cloud-cpp 1.16.0.*
+        #- nlohmann_json
         - cppzmq
         - python
         - setuptools
@@ -41,7 +42,7 @@ requirements:
         - jpype1
         - netifaces
         - pyhive
-        - thrift 0.13.0
+        - thrift 0.13.0.*
         - {{ pin_compatible('zeromq', max_pin='x.x.x') }}
         - {{ pin_compatible('gtest', max_pin='x.x') }}
         - dask-cudf {{ minor_version }}
