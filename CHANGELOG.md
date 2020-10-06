@@ -27,6 +27,7 @@
 - #1054 Can set manually BLAZING_CHACHE_DIRECTORY
 - #1053 Fixed issue when loading paths with wildcards
 - #1057 Fixed issue with concat all in concatenating cache
+- #1064 Fixed issue when loading parquet files with local_files=True
 
 
 

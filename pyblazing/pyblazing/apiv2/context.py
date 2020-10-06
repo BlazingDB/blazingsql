@@ -2400,7 +2400,13 @@ class BlazingContext(object):
                 idx = 0
                 for group_id in grouped.groups:
                     row_indices = grouped.groups[group_id].values.tolist()
-                    actual_files.append(current_table.files[file_and_rowgroup_indices["file_handle_index"][grouped.indices[group_id][0]]])
+                    actual_files.append(
+                        current_table.files[
+                            file_and_rowgroup_indices["file_handle_index"][
+                                grouped.indices[group_id][0]
+                            ]
+                        ]
+                    )
                     if idx < len(current_table.uri_values):
                         uri_values.append(current_table.uri_values[idx])
                     row_groups_col = file_and_rowgroup_indices[
