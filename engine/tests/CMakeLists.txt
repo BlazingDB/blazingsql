@@ -38,7 +38,6 @@ function(configure_test TEST_NAME Tests_SRCS)
 
         parquet
         arrow
-        thrift
         snappy
 
         zstd

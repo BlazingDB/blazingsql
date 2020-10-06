@@ -488,7 +488,6 @@ export RMM_ROOT=$tmp_dir
 export DLPACK_ROOT=$tmp_dir
 export CONDA_PREFIX=$tmp_dir
 export CUDF_HOME=$build_dir/cudf/
-export THRIFT_INSTALL_DIR=$build_dir/arrow/cpp/build/thrift_ep-install/lib
 export SNAPPY_INSTALL_DIR=$build_dir/arrow/cpp/build/snappy_ep/src/snappy_ep-install/lib
 export LZ4_INSTALL_DIR=$build_dir/arrow/cpp/build/lz4_ep-prefix/src/lz4_ep/lib
 
