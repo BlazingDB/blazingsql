@@ -30,10 +30,10 @@ if [ ! -f $boost_install_dir/include/boost/version.hpp ]; then
         echo "Boost package boost_1_66_0.tar.gz was decompressed at $boost_dir"
     fi
 
-    # NOTE build Boost with old C++ ABI _GLIBCXX_USE_CXX11_ABI=0 and with -fPIC
+    # NOTE build Boost with -fPIC
     cd boost_1_66_0
     ./bootstrap.sh --with-libraries=system,filesystem,regex,atomic,chrono,container,context,thread --with-icu --prefix=$boost_install_dir
-    ./b2 install variant=release define=_GLIBCXX_USE_CXX11_ABI=0 stage threading=multi --exec-prefix=$boost_install_dir --prefix=$boost_install_dir -a
+    ./b2 install variant=release stage threading=multi --exec-prefix=$boost_install_dir --prefix=$boost_install_dir -a
     if [ $? != 0 ]; then
       echo "Error during b2 install"
       exit 1
