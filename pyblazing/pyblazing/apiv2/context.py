@@ -2514,6 +2514,10 @@ class BlazingContext(object):
                     print('ERROR: "partition_by" parameter cannot be empty')
                     return input
                 else:
+                    # if partition_by is a string, lets put it in a list
+                    if isinstance(partition_by, str):
+                        partition_by = [partition_by]
+
                     for by_col_ind, by_col in enumerate(partition_by):
                         if isinstance(by_col, str):
                             if by_col in column_names:
