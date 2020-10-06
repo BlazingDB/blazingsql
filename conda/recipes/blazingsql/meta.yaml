@@ -25,7 +25,6 @@ requirements:
         - gtest
         - aws-sdk-cpp
         - google-cloud-cpp 1.16.0.*
-        #- nlohmann_json
         - cppzmq
         - python
         - setuptools
@@ -33,9 +32,9 @@ requirements:
         - cython >=0.29,<0.30
         - openjdk >=8.0
         - maven
-        - cudf {{ minor_version }}
+        - cudf {{ minor_version }}.*
         - dlpack
-        - cudatoolkit {{ cuda_version }}
+        - cudatoolkit {{ cuda_version }}.*
     run:
         - python
         - openjdk >=8.0
@@ -45,12 +44,12 @@ requirements:
         - thrift 0.13.0.*
         - {{ pin_compatible('zeromq', max_pin='x.x.x') }}
         - {{ pin_compatible('gtest', max_pin='x.x') }}
-        - dask-cudf {{ minor_version }}
-        - dask-cuda {{ minor_version }}
+        - dask-cudf {{ minor_version }}.*
+        - dask-cuda {{ minor_version }}.*
 
 test:
     requires:
-        - cudatoolkit {{ cuda_version }}
+        - cudatoolkit {{ cuda_version }}.*
     imports:
         - cio
 
