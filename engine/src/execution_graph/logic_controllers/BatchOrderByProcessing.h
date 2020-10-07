@@ -119,7 +119,7 @@ public:
 	}
 
 	// If Node 0 have no rows we want to stimate the `avg_bytes_per_row using its dtypes
-	size_t stimate_avg_bytes_per_row_using_dtypes(std::vector<cudf::data_type> dtypes) {
+	size_t estimate_avg_bytes_per_row_using_dtypes(std::vector<cudf::data_type> dtypes) {
 		size_t avg_bytes_per_row = 0;
 		for (cudf::size_type i = 0; i < dtypes.size(); ++i) {
 			if (dtypes[i].id() == cudf::type_id::STRING) {
@@ -140,8 +140,8 @@ public:
 		bool get_samples = true;
 		bool estimate_samples = false;
 		uint64_t num_rows_estimate = 0;
-		uint64_t population_to_sample = 0;
-		uint64_t population_sampled = 0;
+		uint64_t samples_to_collect = 0;
+		uint64_t samples_collected = 0;
 		BlazingThread partition_plan_thread;
 		float order_by_samples_ratio = 0.1;
 		std::map<std::string, std::string> config_options = context->getConfigOptions();
@@ -175,6 +175,7 @@ public:
 				auto sortedTable = ral::operators::sort(batch->toBlazingTableView(), this->expression);
 				if (get_samples) {
 					auto sampledTable = ral::operators::sample(batch->toBlazingTableView(), this->expression, order_by_samples_ratio);
+					samples_collected += sampledTable->num_rows();
 					sampledTableViews.push_back(sampledTable->toBlazingTableView());
 					sampledTables.push_back(std::move(sampledTable));
 				}
@@ -184,13 +185,13 @@ public:
 				// Try samples estimation
 				if(try_num_rows_estimation) {
 					std::tie(estimate_samples, num_rows_estimate) = this->query_graph->get_estimated_input_rows_to_cache(this->get_id(), std::to_string(this->get_id()));
-					population_to_sample = static_cast<uint64_t>(num_rows_estimate * order_by_samples_ratio);
-					population_to_sample = (population_to_sample > max_order_by_samples) ? (max_order_by_samples) : population_to_sample;
+					samples_to_collect = static_cast<uint64_t>(num_rows_estimate * order_by_samples_ratio);
+					samples_to_collect = (samples_to_collect > max_order_by_samples) ? (max_order_by_samples) : samples_to_collect;
 					try_num_rows_estimation = false;
 				}
-				population_sampled += batch->num_rows();
-				if (estimate_samples && population_sampled > population_to_sample) {
-					size_t avg_bytes_per_row = localTotalNumRows == 0 ? stimate_avg_bytes_per_row_using_dtypes(sortedTable->get_schema()) : localTotalBytes/localTotalNumRows;
+				
+				if (estimate_samples && samples_collected > samples_to_collect) {
+					size_t avg_bytes_per_row = localTotalNumRows == 0 ? estimate_avg_bytes_per_row_using_dtypes(sortedTable->get_schema()) : localTotalBytes/localTotalNumRows;
 					partition_plan_thread = BlazingThread(&SortAndSampleKernel::compute_partition_plan, this, sampledTableViews, avg_bytes_per_row, num_rows_estimate);
 					estimate_samples = false;
 					get_samples = false;
@@ -236,7 +237,7 @@ public:
 		if (partition_plan_thread.joinable()){
 			partition_plan_thread.join();
 		} else {
-			size_t avg_bytes_per_row = localTotalNumRows == 0 ? stimate_avg_bytes_per_row_using_dtypes(dtypes_when_no_rows) : localTotalBytes/localTotalNumRows;
+			size_t avg_bytes_per_row = localTotalNumRows == 0 ? estimate_avg_bytes_per_row_using_dtypes(dtypes_when_no_rows) : localTotalBytes/localTotalNumRows;
 			compute_partition_plan(sampledTableViews, avg_bytes_per_row, localTotalNumRows);
 		}
 
