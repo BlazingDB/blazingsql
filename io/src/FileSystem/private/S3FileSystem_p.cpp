@@ -4,7 +4,7 @@
  *     Copyright 2018-2020 Percy Camilo Triveño Aucahuasi <percy@blazingdb.com>
  *     Copyright 2018 William Malpica <william@blazingdb.com>
  */
-
+// docs: https://docs.aws.amazon.com/AmazonS3/latest/dev/using-with-s3-actions.html
 #include "S3FileSystem_p.h"
 
 #include <iostream>
@@ -1138,6 +1138,7 @@ bool S3FileSystem::Private::truncateFile(const Uri & uri, long long length) cons
 }
 
 bool S3FileSystem::Private::openReadable(const Uri & uri, std::shared_ptr<S3ReadableFile> * file) const {
+	std::cout << "S3FileSystem::Private::openReadable: "<<std::endl;
 	if(uri.isValid() == false) {
 		throw BlazingInvalidPathException(uri);
 	}
