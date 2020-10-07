@@ -28,6 +28,5 @@ statsmodels==0.11.1
 #dask==2.23.0
 #distributed==2.23.0
 pyhive==0.6.2
-thrift==0.13.0
 jpype1==1.0.2
 netifaces==0.10.9
