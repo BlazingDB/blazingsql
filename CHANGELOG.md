@@ -28,7 +28,7 @@
 - #1054 Can set manually BLAZING_CHACHE_DIRECTORY
 - #1053 Fixed issue when loading paths with wildcards
 - #1057 Fixed issue with concat all in concatenating cache
-
+- #1068 Just adds a docs important links and avoid the message about filesystem authority not found
 
 
 
