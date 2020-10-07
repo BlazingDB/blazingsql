@@ -5,12 +5,13 @@ from ucp.endpoint_reuse import EndpointReuse
 from distributed.comm.ucx import UCXListener
 from distributed.comm.ucx import UCXConnector
 import netifaces as ni
+import random
+import socket
 
 
 def set_id_mappings_on_worker(mapping):
     worker = get_worker()
     worker.ucx_addresses = mapping
-    del worker.ucx_addresses[worker.address]
 
 
 async def init_endpoints():
@@ -34,25 +35,19 @@ def checkSocket(socketNum):
     return socket_free
 
 def get_communication_port(network_interface):
-    ralCommunicationPort = random.randint(10000, 32000) + ralId
-    logging.info("Worker IP: %s   Port: %d", workerIp, ralCommunicationPort)
+    ralCommunicationPort = random.randint(10000, 32000)
     workerIp = ni.ifaddresses(network_interface)[ni.AF_INET][0]["addr"]
     while checkSocket(ralCommunicationPort) is False:
-        ralCommunicationPort = random.randint(10000, 32000) + ralId
+        ralCommunicationPort = random.randint(10000, 32000)
     return {"port":ralCommunicationPort, "ip":workerIp}
 
 
-def listen(client, network_interface="", protocol="TCP"):
-    if protocol == "UCX":
-        worker_id_maps = client.run(UCX.start_listener_on_worker, None, wait=True)
-        client.run(set_id_mappings_on_worker, worker_id_maps, wait=True)
-        client.run(UCX.init_handlers, wait=True)
-    elif protocol == "TCP":
-        worker_id_maps = client.run(get_communication_port, network_interface, wait=True)
-        client.run(set_id_mappings_on_worker, worker_id_maps, wait=True)
-    else:
-        raise Exception('Unknown protocol specified.')
+def listen(client, network_interface=""):
+    worker_id_maps = client.run(get_communication_port, network_interface, wait=True)
+    print(worker_id_maps)
+    client.run(set_id_mappings_on_worker, worker_id_maps, wait=True)
     return worker_id_maps
+
 
 
 def cleanup(client=None):

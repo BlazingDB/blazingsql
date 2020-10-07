@@ -483,8 +483,11 @@ cpdef runGenerateGraphCaller(int masterIndex, worker_ids, tables,  table_scans, 
 
       tableSchemaCpp.push_back(currentTableSchemaCpp)
 
+    cdef vector[string] worker_ids_c
+    for worker_id in worker_ids:
+        worker_ids_c.push_back(worker_id.encode())
 
-    pyGraph.ptr = runGenerateGraphPython(masterIndex, worker_ids, tableNames, tableScans, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query,accessToken,uri_values_cpp_all, config_options)
+    pyGraph.ptr = runGenerateGraphPython(masterIndex, worker_ids_c, tableNames, tableScans, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query,accessToken,uri_values_cpp_all, config_options)
     return pyGraph
 
 cpdef runExecuteGraphCaller(PyBlazingGraph graph, bool is_single_node):

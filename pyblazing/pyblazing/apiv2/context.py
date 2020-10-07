@@ -125,7 +125,7 @@ class blazing_allocation_mode(IntEnum):
 
 
 
-def getWorkerCommData(ralId=0, networkInterface="lo", logging_dir_path="blazing_log"):
+def initialize_logs(ralId=0, networkInterface="lo", logging_dir_path="blazing_log"):
     last_str = '|%(levelname)s|||"%(message)s"||||||'
     FORMAT = "%(asctime)s|" + str(ralId) + last_str
     filename = os.path.join(logging_dir_path, "pyblazing." + str(ralId) + ".log")
@@ -138,7 +138,7 @@ def getWorkerCommData(ralId=0, networkInterface="lo", logging_dir_path="blazing_
     else:
         log_path = os.path.join(os.getcwd(), logging_dir_path)
 
-    return ralCommunicationPort, workerIp, log_path
+    return log_path
 
 
 def initializeBlazing(
@@ -152,8 +152,7 @@ def initializeBlazing(
     initial_pool_size=1000000000,
     config_options={},
     logging_dir_path="blazing_log",
-    ralCommunicationPort = 50000,
-    worker_addressses=[
+
 ):
     if not pool:
         initial_pool_size = 0
@@ -185,35 +184,25 @@ def initializeBlazing(
 
     cio.blazingSetAllocatorCaller(allocator.encode(), initial_pool_size, config_options)
 
-
+    import ucp.core as ucp_core
 
     workers_ucp_info = []
+    self_port = 0
     if singleNode is False:
         worker = dask.distributed.get_worker()
+        print("am here!!!!!!")
+        print(ucp_core._get_ctx().context.handle)
         for dask_addr in worker.ucx_addresses:
-            if config_options["PROTOCOL"] == "UCX":
-                addr = worker.ucx_addresses[dask_addr]
-
-                #ep = worker.ucp_endpoints[addr].handle.ep
-                ep = UCX.get()._endpoints[addr].ep
+                other_worker = worker.ucx_addresses[dask_addr]
                 workers_ucp_info.append({
                     'worker_id': dask_addr.encode(),
-                    'ep_handle' : ep.handle.ep.get_ucp_endpoint(),
-                    'worker_handle': ep.handle.ep.get_ucp_worker(),
-                    'context_handle': ep.handle.ep._ctx.context.handle,
-                    'ip': "".encode(),
-                    'port':0
-                })
-            else:
-                other_worker = worker_addressses[dask_addr]
-                workers_ucp_info.append({
-                    'worker_id': dask_addr.encode(),
-                    'ip': other_worker.ip,
-                    'port': other_worker.port,
+                    'ip': other_worker["ip"].encode(),
+                    'port': other_worker["port"],
                     'ep_handle' : 0,
                     'worker_handle': 0,
-                    'context_handle': 0
+                    'context_handle': ucp_core._get_ctx().context.handle,
                 })
+        self_port = worker.ucx_addresses[worker_id]["port"]
 
     self_node_tcp_data = next(n for n in nodes if n['worker'] == worker_id)
     output_cache, input_cache = cio.initializeCaller(
@@ -221,7 +210,7 @@ def initializeBlazing(
         worker_id.encode(),
         0,
         networkInterface.encode(),
-        ralCommunicationPort,
+        self_port,
         workers_ucp_info,
         singleNode,
         config_options,
@@ -236,7 +225,7 @@ def initializeBlazing(
     else:
         log_path = os.path.join(os.getcwd(), logging_dir_path)
     print("returning ral")
-    return ralCommunicationPort, ni.ifaddresses(networkInterface)[ni.AF_INET][0]["addr"], log_path
+    return  self_port, ni.ifaddresses(networkInterface)[ni.AF_INET][0]["addr"], log_path
 
 
 
@@ -305,8 +294,7 @@ def generateGraphs(
     try:
         graph = cio.runGenerateGraphCaller(
                         masterIndex,
-
-                        nodes,
+                        worker.ucx_addresses.keys(),
                         tables,
                         table_scans,
                         fileTypes,
@@ -1297,39 +1285,36 @@ class BlazingContext(object):
             ).encode()
             print("listening")
             # Start listener on each worker to send received messages to router
-            if "PROTOCOL" in config_options:
-                worker_maps = listen(self.dask_client,network_interface=network_interface,protocol=config_options["PROTOCOL"])
-            else:
-                worker_maps = listen(self.dask_client,network_interface=network_interface,protocol="TCP")
+            worker_maps = listen(self.dask_client,network_interface=network_interface)
             print("listened")
             workers = list(self.dask_client.scheduler_info()["workers"])
-            worker_list = []
             i = 0
             dask_futures = []
             for worker in workers:
                 dask_futures.append(
                     self.dask_client.submit(
-                        getWorkerCommData,
+                        initialize_logs,
                         ralId=i,
-                        networkInterface=network_interface,
                         logging_dir_path=logging_dir_path,
                         workers=[worker],
-                        ralCommunicationPort = worker_maps[worker]["port"]
-                    )
+                     )
                 )
-                worker_list.append(worker)
+
                 i = i + 1
 
             i = 0
             for connection in dask_futures:
-                ralPort, ralIp, log_path = connection.result()
-                node = {}
-                node["worker"] = worker_list[i]
-                node["ip"] = ralIp
-                node["communication_port"] = ralPort
-                self.nodes.append(node)
+                log_path = connection.result()
                 self.node_log_paths.append(log_path)
                 i = i + 1
+
+            self.nodes = []            
+            for node_name in worker_maps:
+                node = {}
+                node["worker"] = node_name
+                node["ip"] = worker_maps[node_name]["ip"]
+                node["communication_port"] = worker_maps[node_name]["port"]
+                self.nodes.append(node)
 
             i = 0
             dask_futures = []
@@ -1368,7 +1353,7 @@ class BlazingContext(object):
             initialize_server_directory(logging_dir_path)
             initialize_server_directory(cache_dir_path)
 
-            ralPort, ralIp, log_path = getWorkerCommData(
+            log_path = initialize_logs(
                 ralId=0,
                 networkInterface="lo",
                 logging_dir_path=logging_dir_path
@@ -1376,8 +1361,6 @@ class BlazingContext(object):
 
             node = {}
             node["worker"] = ''
-            node["ip"] = ralIp
-            node["communication_port"] = ralPort
             self.nodes.append(node)
             self.node_log_paths.append(log_path)
 
@@ -2580,7 +2563,7 @@ class BlazingContext(object):
             try:
                 graph = cio.runGenerateGraphCaller(
                                 masterIndex,
-                                [],
+                                ["self"],
                                 nodeTableList[0],
                                 table_scans,
                                 fileTypes,
@@ -2605,7 +2588,6 @@ class BlazingContext(object):
                 graph_futures = [self.dask_client.submit(
                         generateGraphs,
                         masterIndex,
-                        ["self"],
                         [self.nodes[0],],
                         nodeTableList[0],
                         table_scans,
@@ -2633,7 +2615,6 @@ class BlazingContext(object):
                         self.dask_client.submit(
                             generateGraphs,
                             masterIndex,
-                            worker_ids,
                             self.nodes,
                             nodeTableList[i],
                             table_scans,
