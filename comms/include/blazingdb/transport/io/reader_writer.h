@@ -42,6 +42,8 @@ private:
 
   std::size_t bufferSize;
 
+  std::size_t numBuffers;
+
   int buffer_counter;
 
   int allocation_counter;

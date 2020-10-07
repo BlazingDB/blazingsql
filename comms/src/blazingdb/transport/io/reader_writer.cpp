@@ -26,23 +26,23 @@ namespace blazingdb {
 namespace transport {
 namespace io {
 
-// numBuffers should be equal to number of threads
 PinnedBufferProvider::PinnedBufferProvider(std::size_t sizeBuffers,
                                            std::size_t numBuffers) {
+  this->numBuffers = numBuffers;
   this->bufferSize = sizeBuffers;
   this->buffer_counter = numBuffers;
   this->allocations = std::vector<char *>(1);
-  cudaError_t err = cudaMallocHost((void **)&allocations[0], numBuffers * sizeBuffers * 5);
+  cudaError_t err = cudaMallocHost((void **)&allocations[0], this->numBuffers * sizeBuffers);
   if (err != cudaSuccess) {
     throw std::exception();
   }
-  for (int bufferIndex = 0; bufferIndex < numBuffers * 5; bufferIndex++) {
+  for (int bufferIndex = 0; bufferIndex < this->numBuffers; bufferIndex++) {
     PinnedBuffer *buffer = new PinnedBuffer();
     buffer->size = this->bufferSize;
     buffer->data = allocations[0] + bufferIndex * this->bufferSize;
     this->buffers.push(buffer);
   }
-  this->buffer_counter =  numBuffers * 5;
+  this->buffer_counter =  this->numBuffers;
 }
 
 PinnedBufferProvider::~PinnedBufferProvider(){
@@ -66,15 +66,17 @@ PinnedBuffer *PinnedBufferProvider::getBuffer() {
   return temp;
 }
 
+
+// Will create a new allocation and grow the buffer pool with this->numBuffers/2 new buffers
 void PinnedBufferProvider::grow() {
   std::unique_lock<std::mutex> lock(inUseMutex);
-    
-
+   
   PinnedBuffer *buffer = new PinnedBuffer();
   buffer->size = this->bufferSize;
   allocations.resize(allocations.size() + 1);
-  cudaError_t err = cudaMallocHost((void **)&allocations[allocations.size() -1], this->bufferSize * 100);
-  for (int bufferIndex = 0; bufferIndex < 100; bufferIndex++) {
+  std::size_t num_new_buffers = this->numBuffers/2;
+  cudaError_t err = cudaMallocHost((void **)&allocations[allocations.size() -1], this->bufferSize * num_new_buffers);
+  for (int bufferIndex = 0; bufferIndex < num_new_buffers; bufferIndex++) {
     PinnedBuffer *buffer = new PinnedBuffer();
     buffer->size = this->bufferSize;
     buffer->data = allocations[allocations.size() -1] + bufferIndex * this->bufferSize;

@@ -394,8 +394,6 @@ def modifyAlgebraForDataframesWithOnlyWantedColumns(
 
 
 def get_uri_values(files, partitions, base_folder):
-    print("partitions: " + str(partitions))
-    print("base: " + str(base_folder))
     if base_folder[-1] != "/":
         base_folder = base_folder + "/"
 
@@ -1094,7 +1092,8 @@ def load_config_options_from_env(user_config_options: dict):
         "MAX_SEND_MESSAGE_THREADS": 20,
         "LOGGING_LEVEL": "trace",
         "LOGGING_FLUSH_LEVEL": "warn",
-        "TRANSPORT_BUFFER_BYTE_SIZE": 78643200,  # 75 MB in bytes
+        "TRANSPORT_BUFFER_BYTE_SIZE": 1048576,  # 10 MB in bytes
+        "TRANSPORT_POOL_NUM_BUFFERS": 100,
     }
 
     # key: option_name, value: default_value
@@ -1260,7 +1259,9 @@ class BlazingContext(object):
                     BlazingContext
                     default: 'warn'
             TRANSPORT_BUFFER_BYTE_SIZE : The size in bytes about the pinned buffer memory
-                    default: 75 MBs
+                    default: 10 MBs
+            TRANSPORT_POOL_NUM_BUFFERS: The number of buffers in the punned buffer memory pool.
+                    default: 100 buffers
 
         Examples
         --------
