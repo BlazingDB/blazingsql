@@ -9,7 +9,7 @@
 - #1046 Make possible to read the system environment variables to set up BlazingContext
 - #998 Update TPCH queries, become implicit joins into implicit joins to avoid random values.
 - #1055 Removing cudf source code dependency as some cudf utilities headers were exposed
-
+- #1065 Remove thrift from build prodcess as its no longer used
 
 ## Bug Fixes
 - #975 Fixed issue due to cudf orc api change 
