@@ -1039,6 +1039,7 @@ class BlazingTable(object):
                 nodeFilesList.append(BlazingTable(self.name, self.input, self.fileType))
             return nodeFilesList
 
+        offset_x = 0
         for target_files in self.mapping_files.values():
             bt = BlazingTable(
                 self.name,
@@ -1052,7 +1053,8 @@ class BlazingTable(object):
                 in_file=self.in_file,
             )
 
-            bt.offset = (0, len(target_files))
+            bt.offset = (offset_x, len(target_files))
+            offset_x = offset_x + len(target_files)
             bt.column_names = self.column_names
             bt.file_column_names = self.file_column_names
             bt.column_types = self.column_types
@@ -2065,12 +2067,8 @@ class BlazingContext(object):
                 metadata_ids = table.metadata[
                     ["file_handle_index", "row_group_index"]
                 ].to_pandas()
-                grouped = metadata_ids.groupby(
-                    (
-                        metadata_ids["file_handle_index"].shift()
-                        != metadata_ids["file_handle_index"]
-                    ).cumsum()
-                )
+
+                grouped = metadata_ids.groupby(metadata_ids["file_handle_index"])
                 row_groups_ids = []
                 for group_id in grouped.groups:
                     row_indices = grouped.groups[group_id].values.tolist()
@@ -2390,31 +2388,20 @@ class BlazingContext(object):
                 file_and_rowgroup_indices = (
                     file_indices_and_rowgroup_indices.to_pandas()
                 )
-                grouped = file_and_rowgroup_indices.groupby(
-                    (
-                        file_and_rowgroup_indices["file_handle_index"].shift()
-                        != file_and_rowgroup_indices["file_handle_index"]
-                    ).cumsum()
-                )
 
-                idx = 0
+                grouped = file_and_rowgroup_indices.groupby(
+                    file_and_rowgroup_indices["file_handle_index"]
+                )
                 for group_id in grouped.groups:
                     row_indices = grouped.groups[group_id].values.tolist()
-                    actual_files.append(
-                        current_table.files[
-                            file_and_rowgroup_indices["file_handle_index"][
-                                grouped.indices[group_id][0]
-                            ]
-                        ]
-                    )
-                    if idx < len(current_table.uri_values):
-                        uri_values.append(current_table.uri_values[idx])
+                    actual_files.append(current_table.files[group_id])
+                    if group_id < len(current_table.uri_values):
+                        uri_values.append(current_table.uri_values[group_id])
                     row_groups_col = file_and_rowgroup_indices[
                         "row_group_index"
                     ].tolist()
                     row_group_ids = [row_groups_col[i] for i in row_indices]
                     row_groups_ids.append(row_group_ids)
-                    idx = idx + 1
 
             if self.dask_client is None:
                 curr_calcite = current_table.calcite_to_file_indices
