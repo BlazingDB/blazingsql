@@ -26,11 +26,7 @@ function(configure_test TEST_NAME Tests_SRCS)
 
         Threads::Threads
         cudart
-        cuda
         zmq
-        ${CUDA_CUDA_LIBRARY}
-        ${CUDA_NVRTC_LIBRARY}
-        ${CUDA_NVTX_LIBRARY}
 
         # Library needed for blazing communication repository (debug)
         gcov
