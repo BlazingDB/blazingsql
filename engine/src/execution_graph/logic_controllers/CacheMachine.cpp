@@ -629,7 +629,7 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 		flow_control_bytes_count -= cache_data.sizeInBytes();
 		flow_control_condition_variable.notify_all();
 
-	} while ((total_bytes + waitingCache->get_next_size_in_bytes()) <= this->concat_cache_num_bytes);
+	} while (concat_all || (total_bytes + waitingCache->get_next_size_in_bytes()) <= this->concat_cache_num_bytes);
 
 	std::unique_ptr<ral::frame::BlazingTable> output;
 	size_t num_rows = 0;

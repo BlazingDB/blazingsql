@@ -4,11 +4,12 @@
 
 
 ## Improvements
+- #1040 Update conda recipe, remove cxx11 abi from cmake
 - #977 Just one initialize() function at beginning and add logs related to allocation stuff
 - #1046 Make possible to read the system environment variables to set up BlazingContext
 - #998 Update TPCH queries, become implicit joins into implicit joins to avoid random values.
 - #1055 Removing cudf source code dependency as some cudf utilities headers were exposed
-
+- #1065 Remove thrift from build prodcess as its no longer used
 
 ## Bug Fixes
 - #975 Fixed issue due to cudf orc api change 
@@ -16,6 +17,7 @@
 - #1019 Fix hive string col 
 - #1021 removed an rmm include
 - #1020 Fixed build issues with latest rmm 0.16 and columnBasisTest due to deprecated drop_column() function
+- #1029 Fix metadata mistmatch due to parsedMetadata
 - #1016 Removed workaround for parquet read schema
 - #1022 Fix pinned buffer pool
 - #1028 Match dtypes after create_table with multiple files
@@ -26,6 +28,9 @@
 - #1052 Partial revert of some changes on parquet rowgroups flow with local_files=True
 - #1054 Can set manually BLAZING_CHACHE_DIRECTORY
 - #1053 Fixed issue when loading paths with wildcards
+- #1057 Fixed issue with concat all in concatenating cache
+
+
 
 
 # BlazingSQL 0.15.0 (August 31, 2020)
