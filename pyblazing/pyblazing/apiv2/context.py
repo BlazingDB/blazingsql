@@ -1092,7 +1092,8 @@ def load_config_options_from_env(user_config_options: dict):
         "MAX_SEND_MESSAGE_THREADS": 20,
         "LOGGING_LEVEL": "trace",
         "LOGGING_FLUSH_LEVEL": "warn",
-        "TRANSPORT_BUFFER_BYTE_SIZE": 78643200,  # 75 MB in bytes
+        "TRANSPORT_BUFFER_BYTE_SIZE": 1048576,  # 10 MB in bytes
+        "TRANSPORT_POOL_NUM_BUFFERS": 100,
     }
 
     # key: option_name, value: default_value
@@ -1258,7 +1259,9 @@ class BlazingContext(object):
                     BlazingContext
                     default: 'warn'
             TRANSPORT_BUFFER_BYTE_SIZE : The size in bytes about the pinned buffer memory
-                    default: 75 MBs
+                    default: 10 MBs
+            TRANSPORT_POOL_NUM_BUFFERS: The number of buffers in the punned buffer memory pool.
+                    default: 100 buffers
 
         Examples
         --------
@@ -2025,7 +2028,7 @@ class BlazingContext(object):
             table.args["dtype"] = dtypes_list
 
             table.slices = table.getSlices(len(self.nodes))
-
+            parsedMetadata = None
             if len(uri_values) > 0:
                 parsedMetadata = parseHiveMetadata(table, uri_values)
                 table.metadata = parsedMetadata

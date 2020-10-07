@@ -4,6 +4,7 @@
 
 
 ## Improvements
+- #997 Add capacity to set the transport memory
 - #1040 Update conda recipe, remove cxx11 abi from cmake
 - #977 Just one initialize() function at beginning and add logs related to allocation stuff
 - #1046 Make possible to read the system environment variables to set up BlazingContext
@@ -12,6 +13,7 @@
 - #1065 Remove thrift from build prodcess as its no longer used
 
 ## Bug Fixes
+- #918 Activate validation for GPU_CI tests results.
 - #975 Fixed issue due to cudf orc api change 
 - #1017 Fixed issue parsing fixed with string literals
 - #1019 Fix hive string col 
@@ -19,6 +21,7 @@
 - #1020 Fixed build issues with latest rmm 0.16 and columnBasisTest due to deprecated drop_column() function
 - #1029 Fix metadata mistmatch due to parsedMetadata
 - #1016 Removed workaround for parquet read schema
+- #1022 Fix pinned buffer pool
 - #1028 Match dtypes after create_table with multiple files
 - #1030 Avoid read _metadata files
 - #1039 Fixed issues with parsers, in particular ORC parser was misbehaving
@@ -28,7 +31,7 @@
 - #1054 Can set manually BLAZING_CHACHE_DIRECTORY
 - #1053 Fixed issue when loading paths with wildcards
 - #1057 Fixed issue with concat all in concatenating cache
-
+- #1007 Fix arrow and spdlog compilation issues
 
 
 
@@ -102,7 +105,6 @@
 - #909 Fixed issue caused by using now arrow_io_source
 - #913 Fixed issues caused by cudf adding DECIMAL data type
 - #916 Fix e2e string comparison
-- #918 Activate validation for GPU_CI tests results.
 - #927 Fixed random segfault issue in parser
 - #929 Update the GPUManager functions
 - #942 Fix column names on sample function
@@ -113,8 +115,6 @@
 - #965 Handle exceptions from pool_threads
 - #963 Set log_level when using LOGGING_LEVEL param
 - #973 Fix how we check the existence of the JAVA_HOME environment variable
-- #997 Add capacity to set the transport memory
-- #1007 Fix arrow and spdlog compilation issues
 
 # BlazingSQL 0.14.0 (June 9, 2020)
 
