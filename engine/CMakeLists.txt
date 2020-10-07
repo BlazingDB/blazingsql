@@ -289,7 +289,6 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingH
 link_directories(${BSQL_BLD_PREFIX}/lib)
 
 # These new var are for custom build process (powerpc)
-link_directories($ENV{THRIFT_INSTALL_DIR})
 link_directories($ENV{SNAPPY_INSTALL_DIR})
 link_directories($ENV{LZ4_INSTALL_DIR})
 
@@ -317,7 +316,6 @@ target_link_libraries(blazingsql-engine
 
     parquet
     arrow
-    thrift
     snappy
 
     zstd
