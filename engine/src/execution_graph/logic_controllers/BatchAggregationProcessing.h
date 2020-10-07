@@ -216,7 +216,7 @@ public:
                             std::tie(hashed_data, hased_data_offsets) = cudf::hash_partition(batch->view(), columns_to_hash, num_partitions);
                             // the offsets returned by hash_partition will always start at 0, which is a value we want to ignore for cudf::split
                             std::vector<cudf::size_type> split_indexes(hased_data_offsets.begin() + 1, hased_data_offsets.end());
-                            partitioned = cudf::slice(hashed_data->view(), split_indexes);
+                            partitioned = cudf::split(hashed_data->view(), split_indexes);
                         } else {
                             //  copy empty view
                             for (auto i = 0; i < num_partitions; i++) {
