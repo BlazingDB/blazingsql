@@ -121,18 +121,15 @@ void ucx_buffer_transport::send_begin_transmission() {
 	std::vector<char *> requests(destinations.size());
 	int i = 0;
 	for(auto const & node : destinations) {
-        std::cout<<"1"<<std::endl;
-		requests[i] = new char[_request_size];
+        requests[i] = new char[_request_size];
 		auto temp_tag = *reinterpret_cast<blazing_ucp_tag *>(&tag);
 		auto status = ucp_tag_send_nbr(
 			node.get_ucp_endpoint(), buffer_to_send.data(), buffer_to_send.size(), ucp_dt_make_contig(1), tag, requests[i] + _request_size);
-        std::cout<<"2 "<<origin_node<<std::endl;
-		do {
+        do {
 			ucp_worker_progress(origin_node);
 			status = ucp_request_check_status(requests[i] + _request_size);
 		} while (status == UCS_INPROGRESS);
-        std::cout<<"3"<<std::endl;
-		if(status != UCS_OK){
+        if(status != UCS_OK){
 			throw std::runtime_error("Was not able to send begin transmission to " + node.id());
 		}
 
@@ -150,14 +147,12 @@ void ucx_buffer_transport::send_begin_transmission() {
 									*reinterpret_cast<ucp_tag_t *>(&acknowledge_tag),
 									acknownledge_tag_mask,
 									requests[i] + _request_size);
-        std::cout<<"4"<<std::endl;
-		do {
+        do {
 			ucp_worker_progress(origin_node);
 			ucp_tag_recv_info_t info_tag;
 			status = ucp_tag_recv_request_test(requests[i] + _request_size, &info_tag);
 		} while (status == UCS_INPROGRESS);
-        std::cout<<"5"<<std::endl;
-		if(status != UCS_OK){
+        if(status != UCS_OK){
 			throw std::runtime_error("Was not able to receive acknowledgment of begin transmission from " + node.id());
 		}
 

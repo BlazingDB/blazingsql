@@ -150,9 +150,7 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(int32_t masterIndex,
 	for(auto worker_id : worker_ids) {
 		contextNodes.push_back(Node( worker_id));
 	}
-	std::cout<<"about to create context"<<std::endl;
 	Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], "", config_options};
-	std::cout<<"created context"<<std::endl;
 	CodeTimer eventTimer(true);
 	logger->info("{ral_id}|{query_id}|{start_time}|{plan}",
 									"ral_id"_a=queryContext.getNodeIndex(communicationData.getSelfNode()),
@@ -160,17 +158,14 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(int32_t masterIndex,
 									"start_time"_a=eventTimer.start_time(),
 									"plan"_a=query);
 
-	std::cout<<"about to generate graph"<<std::endl;
 	auto graph = generate_graph(input_loaders, schemas, tableNames, tableScans, query, accessToken, queryContext);
 
 	comm::graphs_info::getInstance().register_graph(ctxToken, graph);
-	std::cout<<"graph ptr is"<<graph<<"and token is " << ctxToken<<std::endl;
 	return graph;
 }
 
 std::unique_ptr<PartitionedResultSet> runExecuteGraph(std::shared_ptr<ral::cache::graph> graph) {
 	// Execute query
-	std::cout<<"made it to execute"<<std::endl;
 	std::vector<std::unique_ptr<ral::frame::BlazingTable>> frames;
 	frames = execute_graph(graph);
 
@@ -187,11 +182,8 @@ std::unique_ptr<PartitionedResultSet> runExecuteGraph(std::shared_ptr<ral::cache
 	}
 
 	result->skipdata_analysis_fail = false;
-	std::cout<<"pretty much done now deregistering graph is"<<graph <<" and instance is "<<&comm::graphs_info::getInstance()<<std::endl;
 	auto token = graph->get_context_token();
-	std::cout<<"token is"<<token<<std::endl;
 	//comm::graphs_info::getInstance().deregister_graph(token);
-	std::cout<<"deregistered"<<std::endl;
 	return result;
 }
 /*

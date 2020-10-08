@@ -87,7 +87,6 @@ CacheMachine::CacheMachine(std::shared_ptr<Context> context): ctx(context), cach
 	this->flow_control_bytes_count = 0;
 
 	logger = spdlog::get("batch_logger");
-	std::cout<<"logger is "<<logger<<std::endl;
 	cache_events_logger = spdlog::get("cache_events_logger");
 
 	something_added = false;

@@ -120,7 +120,6 @@ std::shared_ptr<ral::cache::graph> generate_graph(std::vector<ral::io::data_load
 std::vector<std::unique_ptr<ral::frame::BlazingTable>> execute_graph(std::shared_ptr<ral::cache::graph> graph) {
 	CodeTimer blazing_timer;
 	auto logger = spdlog::get("batch_logger");
-	std::cout<<logger<<std::endl;
 	uint32_t context_token = graph->get_last_kernel()->get_context()->getContextToken();
 
 	try {
