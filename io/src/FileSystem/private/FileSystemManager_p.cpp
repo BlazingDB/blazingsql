@@ -78,7 +78,7 @@ bool FileSystemManager::Private::deregisterFileSystem(const std::string & author
 		}
 	}
 
-	if(found == false and authority.size() == 0) {
+	if(found == false) {
 		return false;
 	}
 
