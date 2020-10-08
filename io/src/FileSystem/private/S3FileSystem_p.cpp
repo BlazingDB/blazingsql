@@ -1138,7 +1138,6 @@ bool S3FileSystem::Private::truncateFile(const Uri & uri, long long length) cons
 }
 
 bool S3FileSystem::Private::openReadable(const Uri & uri, std::shared_ptr<S3ReadableFile> * file) const {
-	std::cout << "S3FileSystem::Private::openReadable: "<<std::endl;
 	if(uri.isValid() == false) {
 		throw BlazingInvalidPathException(uri);
 	}
