@@ -32,6 +32,7 @@
 - #1053 Fixed issue when loading paths with wildcards
 - #1057 Fixed issue with concat all in concatenating cache
 - #1007 Fix arrow and spdlog compilation issues
+- #1071 Fix crash when loading an empty folder
 
 
 
