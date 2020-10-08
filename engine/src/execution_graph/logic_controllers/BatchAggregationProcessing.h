@@ -79,7 +79,7 @@ public:
                                     "input_num_bytes"_a=log_input_num_bytes,
                                     "output_num_rows"_a=log_output_num_rows,
                                     "output_num_bytes"_a=log_output_num_bytes,
-                                    "event_type"_a="compute",
+                                    "event_type"_a="ComputeAggregateKernel",
                                     "timestamp_begin"_a=eventTimer.start_time(),
                                     "timestamp_end"_a=eventTimer.end_time());
                 }
@@ -365,7 +365,7 @@ public:
                             "input_num_bytes"_a=log_input_num_bytes,
                             "output_num_rows"_a=log_output_num_rows,
                             "output_num_bytes"_a=log_output_num_bytes,
-                            "event_type"_a="compute",
+                            "event_type"_a="MergeAggregateKernel",
                             "timestamp_begin"_a=eventTimer.start_time(),
                             "timestamp_end"_a=eventTimer.end_time());
 
