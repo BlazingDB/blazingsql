@@ -18,22 +18,25 @@ ARGS=$*
 # script, and that this script resides in the repo dir!
 REPODIR=$(cd $(dirname $0); pwd)
 
-VALIDARGS="clean thirdparty io comms libengine engine pyblazing algebra -t -v -g -n -h"
+VALIDARGS="clean update thirdparty io comms libengine engine pyblazing algebra disable-aws-s3 disable-google-gs -t -v -g -n -h"
 HELP="$0 [-v] [-g] [-n] [-h] [-t]
-   clean        - remove all existing build artifacts and configuration (start
-                  over) Use 'clean thirdparty' to delete thirdparty folder
-   thirdparty   - build the Thirdparty C++ code only
-   io           - build the IO C++ code only
-   comms        - build the communications C++ code only
-   libengine    - build the engine C++ code only
-   engine       - build the engine Python package
-   pyblazing    - build the pyblazing Python package
-   algebra      - build the algebra Python package
-   -t           - skip tests
-   -v           - verbose build mode
-   -g           - build for debug
-   -n           - no install step
-   -h           - print this text
+   clean                - remove all existing build artifacts and configuration (start
+                          over) Use 'clean thirdparty' to delete thirdparty folder
+   update               - update cudf conda packages
+   thirdparty           - build the Thirdparty C++ code only
+   io                   - build the IO C++ code only
+   comms                - build the communications C++ code only
+   libengine            - build the engine C++ code only
+   engine               - build the engine Python package
+   pyblazing            - build the pyblazing Python package
+   algebra              - build the algebra Python package
+   disable-aws-s3       - flag to disable AWS S3 support for libengine
+   disable-google-gs    - flag to disable Google Cloud Storage support for libengine
+   -t                   - skip tests
+   -v                   - verbose build mode
+   -g                   - build for debug
+   -n                   - no install step
+   -h                   - print this text
    default action (no args) is to build and install all code and packages
 "
 
@@ -58,7 +61,7 @@ TESTS="ON"
 #         CONDA_PREFIX, but there is no fallback from there!
 INSTALL_PREFIX=${INSTALL_PREFIX:=${PREFIX:=${CONDA_PREFIX}}}
 PARALLEL_LEVEL=${PARALLEL_LEVEL:=""}
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$INSTALL_PREFIX/lib
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$INSTALL_PREFIX/lib:$INSTALL_PREFIX/lib64
 export CXXFLAGS="-L$INSTALL_PREFIX/lib"
 export CFLAGS=$CXXFLAGS
 export CUDACXX=/usr/local/cuda/bin/nvcc
@@ -85,6 +88,10 @@ if (( ${NUMARGS} != 0 )); then
     fi
     done
 fi
+
+# Get version number
+export GIT_DESCRIBE_TAG=`git describe --tags`
+export MINOR_VERSION=`echo $GIT_DESCRIBE_TAG | grep -o -E '([0-9]+\.[0-9]+)'`
 
 # Process flags
 if hasArg -v; then
@@ -115,7 +122,6 @@ if hasArg clean; then
     done
 
     if hasArg thirdparty; then
-        rm -rf ${REPODIR}/thirdparty/cudf/
         rm -rf ${REPODIR}/thirdparty/aws-cpp/
     fi
 
@@ -124,75 +130,59 @@ fi
 
 ################################################################################
 
-if buildAll || hasArg io || hasArg libengine || hasArg thirdparty; then
-    if [ -d "${CUDF_HOME}" ]; then
-	echo "CUDF_HOME env var set to path that exists - using cuDF from ${CUDF_HOME}"
+if buildAll || hasArg io || hasArg libengine || hasArg thirdparty || hasArg update; then
+    if hasArg disable-aws-s3; then
+        echo "AWS S3 thirdparty won't be downloaded"
     else
-        if [ ! -d "${REPODIR}/thirdparty/cudf/" ]; then
+        if [ ! -d "${REPODIR}/thirdparty/aws-cpp/" ]; then
             cd ${REPODIR}/thirdparty/
-            git clone https://github.com/rapidsai/cudf.git
-            cd cudf/cpp
-            mkdir build
-            cd build
-            cmake -DCMAKE_CXX11_ABI=ON ..
+            aws_cpp_version=$(conda list | grep aws-sdk-cpp|tail -n 1|awk '{print $2}')
+            echo "aws_cpp_version for aws cpp sdk 3rdparty is: $aws_cpp_version"
+
+            git clone -b $aws_cpp_version --depth=1 https://github.com/aws/aws-sdk-cpp.git ${REPODIR}/thirdparty/aws-cpp/
+            mkdir -p ${THIRDPARTY_BUILD_DIR}
+            cd ${THIRDPARTY_BUILD_DIR}
+            cmake -GNinja \
+                -DCMAKE_INSTALL_PREFIX="${INSTALL_PREFIX}" \
+                -DCMAKE_INSTALL_LIBDIR=lib \
+                -DBUILD_ONLY='s3-encryption' \
+                -DENABLE_UNITY_BUILD=on \
+                -DENABLE_TESTING=off \
+                -DCMAKE_BUILD_TYPE=Release \
+                ..
+            ninja install
         else
-            cd ${REPODIR}/thirdparty/cudf
-            git pull
-            if [ ! -d "${REPODIR}/thirdparty/cudf/cpp/build" ]; then
-                mkdir cpp/build
-            fi
-            cd cpp/build
-            cmake -DCMAKE_CXX11_ABI=ON ..
+            echo "thirdparty/aws-cpp/ is already installed in ${INSTALL_PREFIX}"
         fi
-        export CUDF_HOME=${REPODIR}/thirdparty/cudf/
-    fi
-
-    if [ ! -d "${REPODIR}/thirdparty/aws-cpp/" ]; then
-        cd ${REPODIR}/thirdparty/
-        aws_cpp_version=$(conda list | grep aws-sdk-cpp|tail -n 1|awk '{print $2}')
-        echo "aws_cpp_version for aws cpp sdk 3rdparty is: $aws_cpp_version"
-
-        git clone -b $aws_cpp_version --depth=1 https://github.com/aws/aws-sdk-cpp.git ${REPODIR}/thirdparty/aws-cpp/
-        mkdir -p ${THIRDPARTY_BUILD_DIR}
-        cd ${THIRDPARTY_BUILD_DIR}
-        cmake -GNinja \
-            -DCMAKE_INSTALL_PREFIX="${INSTALL_PREFIX}" \
-            -DCMAKE_INSTALL_LIBDIR=lib \
-            -DBUILD_ONLY='s3-encryption' \
-            -DENABLE_UNITY_BUILD=on \
-            -DENABLE_TESTING=off \
-            -DCMAKE_BUILD_TYPE=Release \
-            ..
-        ninja install
-
-        if [[ $CONDA_BUILD -eq 1 ]]; then
-            cd ${REPODIR}
-            # WARNING DO NOT TOUCH OR CHANGE THESE PATHS (william mario c.gonzales)
-            echo "==>> In conda build env: aws sdk cpp thirdparty"
-            echo "==>> Current working directory: $PWD"
-            conda_bld_dir=/conda/envs/gdf/conda-bld/
-            echo "==>> conda_bld_dir: $conda_bld_dir"
-            cp --remove-destination -rfu $conda_bld_dir/blazingsql_*/_h_env*/include/aws/* $conda_bld_dir/blazingsql_*/_build_env/include/aws/
-            cp --remove-destination -rfu $conda_bld_dir/blazingsql_*/_h_env*/lib/*aws* $conda_bld_dir/blazingsql_*/_build_env/lib/
-            cp --remove-destination -rfu $conda_bld_dir/blazingsql_*/_h_env*/lib/cmake/*aws* $conda_bld_dir/blazingsql_*/_build_env/lib/cmake/
-            cp --remove-destination -rfu $conda_bld_dir/blazingsql_*/_h_env*/lib/cmake/AWS* $conda_bld_dir/blazingsql_*/_build_env/lib/cmake/
-            cp --remove-destination -rfu $conda_bld_dir/blazingsql_*/_h_env*/lib/cmake/*Aws* $conda_bld_dir/blazingsql_*/_build_env/lib/cmake/
-            cp --remove-destination -rfu $conda_bld_dir/blazingsql_*/_h_env*/lib/pkgconfig/*aws* $conda_bld_dir/blazingsql_*/_build_env/lib/pkgconfig/
-        fi
-    else
-        echo "thirdparty/aws-cpp/ is already installed in ${INSTALL_PREFIX}"
     fi
 fi
 
 ################################################################################
 
+if hasArg update; then
+    conda install --yes -c rapidsai-nightly -c nvidia -c conda-forge -c defaults librmm=$MINOR_VERSION rmm=$MINOR_VERSION libcudf=$MINOR_VERSION cudf=$MINOR_VERSION dask-cudf=$MINOR_VERSION dask-cuda=$MINOR_VERSION
+fi
+
+################################################################################
+
 if buildAll || hasArg io; then
+    disabled_aws_s3_flag=""
+    if hasArg disable-aws-s3; then
+        disabled_aws_s3_flag="-DS3_SUPPORT=OFF"
+        echo "AWS S3 support disabled for io"
+    fi
+
+    disabled_google_gs_flag=""
+    if hasArg disable-google-gs; then
+        disabled_google_gs_flag="-DGCS_SUPPORT=OFF"
+        echo "Google Cloud Storage support disabled for io"
+    fi
 
     mkdir -p ${IO_BUILD_DIR}
     cd ${IO_BUILD_DIR}
     cmake -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} \
           -DBUILD_TESTING=${TESTS} \
-          -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ..
+          -DCMAKE_BUILD_TYPE=${BUILD_TYPE} $disabled_aws_s3_flag $disabled_google_gs_flag ..
 
     if [[ ${TESTS} == "ON" ]]; then
         make -j${PARALLEL_LEVEL} all
@@ -225,6 +215,18 @@ if buildAll || hasArg comms; then
 fi
 
 if buildAll || hasArg libengine; then
+    disabled_aws_s3_flag=""
+    if hasArg disable-aws-s3; then
+        disabled_aws_s3_flag="-DS3_SUPPORT=OFF"
+        echo "AWS S3 support disabled for libengine"
+    fi
+
+    disabled_google_gs_flag=""
+    if hasArg disable-google-gs; then
+        disabled_google_gs_flag="-DGCS_SUPPORT=OFF"
+        echo "Google Cloud Storage support disabled for libengine"
+    fi
+
     echo "Building libengine"
     mkdir -p ${LIBENGINE_BUILD_DIR}
     cd ${LIBENGINE_BUILD_DIR}
@@ -232,7 +234,9 @@ if buildAll || hasArg libengine; then
     cmake -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} \
           -DBUILD_TESTING=${TESTS} \
           -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
-          -DCMAKE_EXE_LINKER_FLAGS="$CXXFLAGS" ..
+          -DCMAKE_EXE_LINKER_FLAGS="$CXXFLAGS" \
+          $disabled_aws_s3_flag \
+          $disabled_google_gs_flag ..
 
     echo "Building libengine: make step"
     if [[ ${TESTS} == "ON" ]]; then
@@ -317,4 +321,3 @@ if buildAll || hasArg algebra; then
         cp blazingdb-calcite-core/target/blazingdb-calcite-core.jar $INSTALL_PREFIX/lib/blazingsql-algebra-core.jar
     fi
 fi
-

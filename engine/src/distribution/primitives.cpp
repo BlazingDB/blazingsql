@@ -9,12 +9,11 @@
 #include <cudf/search.hpp>
 #include <cudf/sorting.hpp>
 #include <cudf/merge.hpp>
+#include <cudf/utilities/traits.hpp>
 
 #include "utilities/CommonOperations.h"
-#include "utilities/random_generator.cuh"
 #include "error.hpp"
-
-#include "tests/utilities/column_wrapper.hpp"
+#include "utilities/ctpl_stl.h"
 
 #include <spdlog/spdlog.h>
 using namespace fmt::literals;
@@ -35,7 +34,6 @@ typedef ral::communication::messages::ReceivedDeviceMessage ReceivedDeviceMessag
 typedef ral::communication::CommunicationData CommunicationData;
 typedef ral::communication::network::Server Server;
 typedef ral::communication::network::Client Client;
-
 
 void sendSamplesToMaster(Context * context, const BlazingTableView & samples, std::size_t table_total_rows) {
   // Get master node
@@ -79,7 +77,7 @@ std::pair<std::vector<NodeColumn>, std::vector<std::size_t> > collectSamples(Con
 							"step"_a=context->getQueryStep(),
 							"substep"_a=context->getQuerySubstep(),
 							"info"_a="Already received collectSamples from node " + std::to_string(node_idx),
-							"duration"_a="");			
+							"duration"_a="");
 		}
 		auto concreteMessage = std::static_pointer_cast<ReceivedDeviceMessage>(message);
 		table_total_rows.push_back(concreteMessage->getTotalRowSize());
@@ -123,7 +121,7 @@ void distributePartitionPlan(Context * context, const BlazingTableView & pivots)
 
 	auto node = CommunicationData::getInstance().getSelfNode();
 	auto message = Factory::createPartitionPivotsMessage(message_id, context_token, node, pivots);
-	broadcastMessage(context->getWorkerNodes(), message);
+	broadcastMessage(context, context->getWorkerNodes(), message);
 }
 
 std::unique_ptr<BlazingTable> getPartitionPlan(Context * context) {
@@ -200,7 +198,15 @@ void distributeTablePartitions(Context * context, std::vector<NodeColumnView> & 
 	const std::string message_id = ColumnDataPartitionMessage::MessageID() + "_" + context_comm_token;
 
 	auto self_node = CommunicationData::getInstance().getSelfNode();
-	std::vector<BlazingThread> threads;
+
+	int max_message_threads = 20;
+	std::map<std::string, std::string> config_options = context->getConfigOptions();
+	auto it = config_options.find("MAX_SEND_MESSAGE_THREADS");
+	if (it != config_options.end()){
+		max_message_threads = std::stoi(config_options["MAX_SEND_MESSAGE_THREADS"]);
+	}
+	ctpl::thread_pool<BlazingThread> pool(max_message_threads);
+	std::vector<std::future<void>> futures;
 	for (auto i = 0; i < partitions.size(); i++){
 		auto & nodeColumn = partitions[i];
 		if(nodeColumn.first == self_node) {
@@ -212,15 +218,22 @@ void distributeTablePartitions(Context * context, std::vector<NodeColumnView> & 
 			auto destination_node = nodeColumn.first;
 			int partition_id = part_ids.size() > i ? part_ids[i] : 0; // if part_ids is not set, then it does not matter and we can just use 0 as the partition_id
 
-			threads.push_back(BlazingThread([message_id, context_token, self_node, destination_node, columns, partition_id]() mutable {
+			futures.push_back(pool.push(([message_id, context_token, self_node, destination_node, columns, partition_id](int thread_id) mutable {
 				auto message = Factory::createColumnDataPartitionMessage(message_id, context_token, self_node, partition_id, columns);
 				Client::send(destination_node, *message);
-			}));
+			})));
+		}
+	}	
+	// Lets iterate through the futures to check for exceptions
+	for(int i = 0; i < futures.size(); i++){
+		try {
+			futures[i].get();
+		} catch (const std::exception& e) {
+			throw;		
 		}
 	}
-	for(size_t i = 0; i < threads.size(); i++) {
-		threads[i].join();
-	}
+	// lets wait untill all tasks are done
+	pool.stop(true);
 }
 
 void notifyLastTablePartitions(Context * context, std::string message_id) {
@@ -247,21 +260,36 @@ void distributePartitions(Context * context, std::vector<NodeColumnView> & parti
 	const std::string message_id = ColumnDataMessage::MessageID() + "_" + context_comm_token;
 
 	auto self_node = CommunicationData::getInstance().getSelfNode();
-	std::vector<BlazingThread> threads;
+	
+	int max_message_threads = 20;
+	std::map<std::string, std::string> config_options = context->getConfigOptions();
+	auto it = config_options.find("MAX_SEND_MESSAGE_THREADS");
+	if (it != config_options.end()){
+		max_message_threads = std::stoi(config_options["MAX_SEND_MESSAGE_THREADS"]);
+	}
+	ctpl::thread_pool<BlazingThread> pool(max_message_threads);
+	std::vector<std::future<void>> futures;
 	for(auto & nodeColumn : partitions) {
 		if(nodeColumn.first == self_node) {
 			continue;
 		}
 		BlazingTableView columns = nodeColumn.second;
 		auto destination_node = nodeColumn.first;
-		threads.push_back(BlazingThread([message_id, context_token, self_node, destination_node, columns]() mutable {
+		futures.push_back(pool.push(([message_id, context_token, self_node, destination_node, columns](int thread_id) mutable {
 			auto message = Factory::createColumnDataMessage(message_id, context_token, self_node, columns);
 			Client::send(destination_node, *message);
-		}));
+		})));
 	}
-	for(size_t i = 0; i < threads.size(); i++) {
-		threads[i].join();
+	// Lets iterate through the futures to check for exceptions
+	for(int i = 0; i < futures.size(); i++){
+		try {
+			futures[i].get();
+		} catch (const std::exception& e) {
+			throw;		
+		}
 	}
+	// lets wait untill all tasks are done
+	pool.stop(true);
 }
 
 std::vector<NodeColumn> collectPartitions(Context * context) {
@@ -360,18 +388,33 @@ std::unique_ptr<BlazingTable> getPivotPointsTable(cudf::size_type number_partiti
 	return std::make_unique<BlazingTable>(std::move(pivots), sortedSamples.names());
 }
 
-void broadcastMessage(std::vector<Node> nodes,
-			std::shared_ptr<communication::messages::Message> message) {
-	std::vector<BlazingThread> threads(nodes.size());
+void broadcastMessage(Context * context, std::vector<Node> nodes,
+	std::shared_ptr<communication::messages::Message> message) {
+	
+	int max_message_threads = 20;
+	std::map<std::string, std::string> config_options = context->getConfigOptions();
+	auto it = config_options.find("MAX_SEND_MESSAGE_THREADS");
+	if (it != config_options.end()){
+		max_message_threads = std::stoi(config_options["MAX_SEND_MESSAGE_THREADS"]);
+	}
+	ctpl::thread_pool<BlazingThread> pool(max_message_threads);
+	std::vector<std::future<void>> futures;
 	for(size_t i = 0; i < nodes.size(); i++) {
 		Node node = nodes[i];
-		threads[i] = BlazingThread([node, message]() {
+		futures.push_back(pool.push([node, message](int thread_id) {
 			Client::send(node, *message);
-		});
+		}));
 	}
-	for(size_t i = 0; i < threads.size(); i++) {
-		threads[i].join();
+	// Lets iterate through the futures to check for exceptions
+	for(int i = 0; i < futures.size(); i++){
+		try {
+			futures[i].get();
+		} catch (const std::exception& e) {
+			throw;		
+		}
 	}
+	// lets wait untill all tasks are done
+	pool.stop(true);
 }
 
 void distributeNumRows(Context * context, int64_t num_rows) {
@@ -384,7 +427,7 @@ void distributeNumRows(Context * context, int64_t num_rows) {
 	auto message = Factory::createSampleToNodeMaster(message_id, context_token, self_node, num_rows, {});
 
 	int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
-	broadcastMessage(context->getAllOtherNodes(self_node_idx), message);
+	broadcastMessage(context, context->getAllOtherNodes(self_node_idx), message);
 }
 
 std::vector<int64_t> collectNumRows(Context * context) {
@@ -411,7 +454,7 @@ std::vector<int64_t> collectNumRows(Context * context) {
 							"step"_a=context->getQueryStep(),
 							"substep"_a=context->getQuerySubstep(),
 							"info"_a="Already received collectNumRows from node " + std::to_string(node_idx),
-							"duration"_a="");			
+							"duration"_a="");
 		}
 		node_num_rows[node_idx] = concrete_message->getTotalRowSize();
 		received[node_idx] = true;
@@ -436,7 +479,7 @@ void distributeLeftRightTableSizeBytes(Context * context, int64_t bytes_left, in
 	auto message = Factory::createSampleToNodeMaster(message_id, context_token, self_node, 0, num_bytes_blz_table);
 
 	int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
-	broadcastMessage(context->getAllOtherNodes(self_node_idx), message);
+	broadcastMessage(context, context->getAllOtherNodes(self_node_idx), message);
 }
 
 void collectLeftRightTableSizeBytes(Context * context,	std::vector<int64_t> & node_num_bytes_left,
@@ -472,7 +515,7 @@ void collectLeftRightTableSizeBytes(Context * context,	std::vector<int64_t> & no
 							"step"_a=context->getQueryStep(),
 							"substep"_a=context->getQuerySubstep(),
 							"info"_a="Already received collectLeftRightTableSizeBytes from node " + std::to_string(node_idx),
-							"duration"_a="");				
+							"duration"_a="");
 		}
 		node_num_bytes_left[node_idx] = host_data[0];
 		node_num_bytes_right[node_idx] = host_data[1];
@@ -480,26 +523,5 @@ void collectLeftRightTableSizeBytes(Context * context,	std::vector<int64_t> & no
 	}
 }
 
-}  // namespace distribution
-}  // namespace ral
-
-
-
-namespace ral {
-namespace distribution {
-namespace sampling {
-
-std::unique_ptr<ral::frame::BlazingTable> generateSamplesFromRatio(
-	const ral::frame::BlazingTableView & table, const double ratio) {
-	return generateSamples(table, std::ceil(table.view().num_rows() * ratio));
-}
-
-std::unique_ptr<ral::frame::BlazingTable> generateSamples(
-	const ral::frame::BlazingTableView & table, const size_t quantile) {
-
-	return ral::generator::generate_sample(table, quantile);
-}
-
-}  // namespace sampling
 }  // namespace distribution
 }  // namespace ral

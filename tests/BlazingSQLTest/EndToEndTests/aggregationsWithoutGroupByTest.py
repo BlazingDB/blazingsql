@@ -42,7 +42,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
 
             queryId = "TEST_01"
             query = """select count(p_partkey), sum(p_partkey),
-                    avg(p_partkey), max(p_partkey), min(p_partkey)
+                    avg(CAST(p_partkey AS DOUBLE)), max(p_partkey), min(p_partkey)
                     from part"""
             runTest.run_query(
                 bc,

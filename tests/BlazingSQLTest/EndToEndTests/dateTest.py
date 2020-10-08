@@ -3,7 +3,6 @@ from Configuration import ExecutionMode
 from Configuration import Settings as Settings
 from DataBase import createSchema as cs
 from pynvml import nvmlInit
-from pyspark.sql import SparkSession
 from Runner import runTest
 from Utils import Execution, gpuMemory, init_context, skip_test
 
@@ -80,18 +79,32 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             query = """select o_orderkey as okey, o_custkey as ckey,
                     (EXTRACT(YEAR FROM o_orderdate) - 5) from orders
                     where o_orderstatus = 'O' order by okey"""
-            runTest.run_query(
-                bc,
-                drill,
-                query,
-                queryId,
-                queryType,
-                worder,
-                "",
-                acceptable_difference,
-                use_percentage,
-                fileSchemaType,
-            )
+            if fileSchemaType == DataType.ORC:
+                runTest.run_query(
+                    bc,
+                    spark,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
+            else:
+                runTest.run_query(
+                    bc,
+                    drill,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
 
             queryId = "TEST_03"
             query = """select orders.o_orderkey, orders.o_orderdate,
@@ -207,6 +220,8 @@ if __name__ == "__main__":
                              Settings.data["TestSettings"]["dataDirectory"])
 
         # Create Table Spark -------------------------------------------------
+        from pyspark.sql import SparkSession
+        
         spark = SparkSession.builder.appName("timestampTest").getOrCreate()
         cs.init_spark_schema(spark,
                              Settings.data["TestSettings"]["dataDirectory"])

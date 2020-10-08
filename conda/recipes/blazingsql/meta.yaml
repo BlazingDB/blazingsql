@@ -1,4 +1,4 @@
-{% set cuda_version='.'.join(environ.get('CUDA_VERSION', '9.2').split('.')[:2]) %}
+{% set cuda_version='.'.join(environ.get('CUDA_VERSION', '10.1').split('.')[:2]) %}
 {% set version = environ.get('GIT_DESCRIBE_TAG', '0.0.0.dev').lstrip('v') %}
 {% set minor_version =  version.split('.')[0] + '.' + version.split('.')[1] %}
 {% set git_revision_count=environ.get('GIT_DESCRIBE_NUMBER', '0') %}
@@ -20,52 +20,37 @@ source:
 
 requirements:
     build:
-        - gtest
-        - gmock
-        - google-cloud-cpp
         - cmake
+        - ninja
+        - gtest
+        - aws-sdk-cpp
+        - google-cloud-cpp 1.16.0
         - cppzmq
         - python
-        - pip
         - setuptools
+        - spdlog >=1.7.0,<1.8.0
         - cython >=0.29,<0.30
         - openjdk >=8.0
         - maven
-        - ninja
-        - dask-cudf {{ minor_version }}.*
-        - dask-cuda {{ minor_version }}.*
-        - cudatoolkit {{ cuda_version }}.*
-    host:
-        - gtest
-        - gmock
-        - google-cloud-cpp
-        - cmake
-        - python
-        - pip
-        - setuptools
-        - cython >=0.29,<0.30
-        - openjdk >=8.0
-        - maven
-        - ninja
-        - dask-cudf {{ minor_version }}.*
-        - dask-cuda {{ minor_version }}.*
+        - cudf {{ minor_version }}.*
+        - dlpack
         - cudatoolkit {{ cuda_version }}.*
     run:
-        - gtest
-        - google-cloud-cpp
-        - cppzmq
+        - python
         - openjdk >=8.0
         - jpype1
         - netifaces
         - pyhive
-        - thrift 0.13.0
+        - {{ pin_compatible('zeromq', max_pin='x.x.x') }}
+        - {{ pin_compatible('gtest', max_pin='x.x') }}
         - dask-cudf {{ minor_version }}.*
         - dask-cuda {{ minor_version }}.*
-        - cudatoolkit {{ cuda_version }}.*
 
 test:
-    commands:
-        python -c "import cio"
+    requires:
+        - cudatoolkit {{ cuda_version }}.*
+    imports:
+        - cio
 
 about:
     home: http://www.blazingsql.com/

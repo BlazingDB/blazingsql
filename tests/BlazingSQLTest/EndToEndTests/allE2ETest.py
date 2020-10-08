@@ -56,8 +56,8 @@ from EndToEndTests import unionTest as unionTest
 from EndToEndTests import useLimitTest
 from EndToEndTests import whereClauseTest as whereClauseTest
 from EndToEndTests import wildCardTest
+from EndToEndTests import messageValidationTest
 from pynvml import nvmlInit
-from pyspark.sql import SparkSession
 from Runner import runTest
 from Utils import Execution, init_context
 
@@ -71,7 +71,6 @@ def main():
 
     drill = "drill"
     spark = "spark"
-
     compareResults = True
     if "compare_results" in Settings.data["RunSettings"]:
         compareResults = Settings.data["RunSettings"]["compare_results"]
@@ -89,6 +88,8 @@ def main():
         )
 
         # Create Table Spark -------------------------------------------------
+        from pyspark.sql import SparkSession
+
         spark = SparkSession.builder.appName("allE2ETest").getOrCreate()
         createSchema.init_spark_schema(
             spark, Settings.data["TestSettings"]["dataDirectory"]
@@ -231,6 +232,9 @@ def main():
     if runAllTests or ("fileSystemLocalTest" in targetTestGroups):
         fileSystemLocalTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
+    if runAllTests or ("messageValidationTest" in targetTestGroups):
+        messageValidationTest.main(dask_client, drill, dir_data_file, bc, nRals) 
+
     if Settings.execution_mode != ExecutionMode.GPUCI:
         if runAllTests or ("fileSystemS3Test" in targetTestGroups):
             fileSystemS3Test.main(dask_client, drill, dir_data_file, bc, nRals)
@@ -286,11 +290,10 @@ if __name__ == "__main__":
         # an error comparing with historic results
         # TODO william kharoly felipe we should try to enable and
         # use this function in the future
-        result = True
         if result is False:
             for error_msg in error_msgs:
                 print(error_msg)
-            # import sys
+            import sys
 
             end = time.time()  # in seconds
             elapsed = end - start  # in seconds
@@ -309,4 +312,4 @@ if __name__ == "__main__":
             # TODO percy kharo willian: uncomment this line
             # when gpuci has all the env vars set
             # return error exit status to the command prompt (shell)
-            # sys.exit(1)
+            sys.exit(1)

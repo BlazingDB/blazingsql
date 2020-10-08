@@ -250,11 +250,13 @@ public class RelationalAlgebraGenerator {
 		}catch(SqlValidationException ex){
 			//System.out.println(ex.getMessage());
 			//System.out.println("Found validation err!");
-			return "fail: \n " + ex.getMessage();
+			throw ex;
+			//return "fail: \n " + ex.getMessage();
 		}catch(SqlSyntaxException ex){
 			//System.out.println(ex.getMessage());
 			//System.out.println("Found syntax err!");
-			return "fail: \n " + ex.getMessage();
+			throw ex;
+			//return "fail: \n " + ex.getMessage();
 		} catch(Exception ex) {
 			//System.out.println(ex.toString());
 			//System.out.println(ex.getMessage());

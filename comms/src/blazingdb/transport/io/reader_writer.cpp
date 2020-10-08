@@ -26,19 +26,27 @@ namespace blazingdb {
 namespace transport {
 namespace io {
 
-// numBuffers should be equal to number of threads
 PinnedBufferProvider::PinnedBufferProvider(std::size_t sizeBuffers,
                                            std::size_t numBuffers) {
-  for (int bufferIndex = 0; bufferIndex < numBuffers; bufferIndex++) {
+  this->numBuffers = numBuffers;
+  this->bufferSize = sizeBuffers;
+  this->buffer_counter = numBuffers;
+  this->allocations = std::vector<char *>(1);
+  cudaError_t err = cudaMallocHost((void **)&allocations[0], this->numBuffers * sizeBuffers);
+  if (err != cudaSuccess) {
+    throw std::exception();
+  }
+  for (int bufferIndex = 0; bufferIndex < this->numBuffers; bufferIndex++) {
     PinnedBuffer *buffer = new PinnedBuffer();
-    buffer->size = sizeBuffers;
-    this->bufferSize = sizeBuffers;
-    cudaError_t err = cudaMallocManaged((void **)&buffer->data, sizeBuffers);
-    if (err != cudaSuccess) {
-      throw std::exception();
-    }
+    buffer->size = this->bufferSize;
+    buffer->data = allocations[0] + bufferIndex * this->bufferSize;
     this->buffers.push(buffer);
   }
+  this->buffer_counter =  this->numBuffers;
+}
+
+PinnedBufferProvider::~PinnedBufferProvider(){
+  getPinnedBufferProvider().freeAll();
 }
 
 // TODO: consider adding some kind of priority
@@ -46,23 +54,46 @@ PinnedBufferProvider::PinnedBufferProvider(std::size_t sizeBuffers,
 PinnedBuffer *PinnedBufferProvider::getBuffer() {
   std::unique_lock<std::mutex> lock(inUseMutex);
   if (this->buffers.empty()) {
-    // cv.wait(lock, [this] { return !this->buffers.empty(); });
-    // if wait fail use:
-    this->grow();
+    //if (this->buffer_counter >= 100){
+    //    cv.wait(lock, [this] { return !this->buffers.empty(); });        
+    //}else{
+        this->grow();
+    //}
+    
   }
   PinnedBuffer *temp = this->buffers.top();
   this->buffers.pop();
   return temp;
 }
 
+
+// Will create a new allocation and grow the buffer pool with this->numBuffers/2 new buffers
 void PinnedBufferProvider::grow() {
+  std::unique_lock<std::mutex> lock(inUseMutex);
+   
   PinnedBuffer *buffer = new PinnedBuffer();
   buffer->size = this->bufferSize;
-  cudaError_t err = cudaMallocManaged((void **)&buffer->data, this->bufferSize);
+  allocations.resize(allocations.size() + 1);
+  std::size_t num_new_buffers = this->numBuffers/2;
+  cudaError_t err = cudaMallocHost((void **)&allocations[allocations.size() -1], this->bufferSize * num_new_buffers);
+  for (int bufferIndex = 0; bufferIndex < num_new_buffers; bufferIndex++) {
+    PinnedBuffer *buffer = new PinnedBuffer();
+    buffer->size = this->bufferSize;
+    buffer->data = allocations[allocations.size() -1] + bufferIndex * this->bufferSize;
+    this->buffers.push(buffer);
+    this->buffer_counter++;
+  }
+
+  auto logger = spdlog::get("batch_logger");
+  std::string log_detail = "PinnedBufferProvider::grow() now buffer_counter = ";
+  log_detail += std::to_string(this->buffer_counter);
+  log_detail += ", bufferSize: " + std::to_string(this->bufferSize);
+  logger->debug("|||{info}|||||","info"_a=log_detail);
+
   if (err != cudaSuccess) {
     throw std::exception();
   }
-  this->buffers.push(buffer);
+
 }
 
 void PinnedBufferProvider::freeBuffer(PinnedBuffer *buffer) {
@@ -73,11 +104,14 @@ void PinnedBufferProvider::freeBuffer(PinnedBuffer *buffer) {
 
 void PinnedBufferProvider::freeAll() {
   std::unique_lock<std::mutex> lock(inUseMutex);
+  this->buffer_counter = 0;
   while (false == this->buffers.empty()) {
     PinnedBuffer *buffer = this->buffers.top();
-    cudaFree(buffer->data);
     delete buffer;
     this->buffers.pop();
+  }
+  for(auto allocation : allocations){
+    cudaFreeHost(allocation);
   }
 }
 
@@ -240,7 +274,6 @@ void writeBuffersFromGPUTCP(std::vector<ColumnTransport> &column_transport,
   writeThread.join();
   PinnedBuffer *buffer = getPinnedBufferProvider().getBuffer();
   getPinnedBufferProvider().freeBuffer(buffer);
-  getPinnedBufferProvider().freeAll();
 }
 
 void readBuffersIntoGPUTCP(std::vector<std::size_t> bufferSizes,

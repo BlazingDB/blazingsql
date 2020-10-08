@@ -7,6 +7,16 @@
 #include "CalciteExpressionParsing.h"
 #include "error.hpp"
 
+bool is_nullary_operator(operator_type op){
+switch (op)
+	{
+	case operator_type::BLZ_RAND:
+		return true;
+	default:
+		return false;
+	}	
+}
+
 bool is_unary_operator(operator_type op) {
 	switch (op)
 	{
@@ -80,6 +90,17 @@ bool is_binary_operator(operator_type op) {
 		return true;
 	default:
 		return false;
+	}
+}
+
+cudf::type_id get_output_type(operator_type op) {
+	switch (op)
+	{
+	case operator_type::BLZ_RAND:
+		return cudf::type_id::FLOAT64;
+	default:
+	 	assert(false);
+		return cudf::type_id::EMPTY;
 	}
 }
 
@@ -203,6 +224,9 @@ cudf::type_id get_output_type(operator_type op, cudf::type_id input_left_type, c
 
 operator_type map_to_operator_type(const std::string & operator_token) {
 	static std::map<std::string, operator_type> OPERATOR_MAP = {
+		// Nullary operators
+		{"BLZ_RND", operator_type::BLZ_RAND},
+
 		// Unary operators
 		{"NOT", operator_type::BLZ_NOT},
 		{"IS NOT TRUE", operator_type::BLZ_NOT},
@@ -234,6 +258,7 @@ operator_type map_to_operator_type(const std::string & operator_token) {
 		{"CAST_DATE", operator_type::BLZ_CAST_DATE},
 		{"CAST_TIMESTAMP", operator_type::BLZ_CAST_TIMESTAMP},
 		{"CAST_VARCHAR", operator_type::BLZ_CAST_VARCHAR},
+		{"CAST_CHAR", operator_type::BLZ_CAST_VARCHAR},
 		{"CHAR_LENGTH", operator_type::BLZ_CHAR_LENGTH},
 
 		// Binary operators
@@ -259,7 +284,10 @@ operator_type map_to_operator_type(const std::string & operator_token) {
 		{"||", operator_type::BLZ_STR_CONCAT}
 	};
 
-	RAL_EXPECTS(OPERATOR_MAP.find(operator_token) != OPERATOR_MAP.end(), "Unsupported operator");
+	if(OPERATOR_MAP.find(operator_token) == OPERATOR_MAP.end()){
+		std::cout<<operator_token<<" is not a valid operator."<<std::endl;
+	}
+	RAL_EXPECTS(OPERATOR_MAP.find(operator_token) != OPERATOR_MAP.end(), "Unsupported operator: " + operator_token);
 
 	return OPERATOR_MAP[operator_token];
 }
@@ -349,14 +377,31 @@ std::string get_named_expression(const std::string & query_part, const std::stri
 	return query_part.substr(start_position, end_position - start_position);
 }
 
-std::vector<size_t> get_projections(const std::string & query_part) {
+std::vector<int> get_projections(const std::string & query_part) {
 	std::string project_string = get_named_expression(query_part, "projects");
 	std::vector<std::string> project_string_split =
 		get_expressions_from_expression_list(project_string, true);
 
-	std::vector<size_t> projections;
+	std::vector<int> projections;
 	for(int i = 0; i < project_string_split.size(); i++) {
-		projections.push_back(std::stoull(project_string_split[i]));
+		projections.push_back(std::stoi(project_string_split[i]));
+	}
+
+	// On Calcite, the select count(*) case is represented with
+	// the projection list empty and the aliases list containing
+	// only one element as follows:
+	//
+	// ...
+	//   BindableTableScan(table=[[main, big_taxi]], projects=[[]], aliases=[[$f0]])
+	//
+	// So, in such a scenario, we will load only the first column.
+
+	std::string aliases_string = get_named_expression(query_part, "aliases");
+	std::vector<std::string> aliases_string_split =
+		get_expressions_from_expression_list(aliases_string, true);
+
+	if(projections.size() == 0 && aliases_string_split.size() == 1) {
+		projections.push_back(0);
 	}
 
 	return projections;
@@ -511,10 +556,15 @@ std::string replace_calcite_regex(const std::string & expression) {
 		R""(DECIMAL\(\d+, \d+\))"", std::regex_constants::icase};
 	ret = std::regex_replace(ret, decimal_re, "DOUBLE");
 
+	static const std::regex char_re{
+		R""(CHAR\(\d+\))"", std::regex_constants::icase};
+	ret = std::regex_replace(ret, char_re, "VARCHAR");
+	
+
 	StringUtil::findAndReplaceAll(ret, "IS NOT NULL", "IS_NOT_NULL");
 	StringUtil::findAndReplaceAll(ret, "IS NULL", "IS_NULL");
 	StringUtil::findAndReplaceAll(ret, " NOT NULL", "");
-
+	StringUtil::findAndReplaceAll(ret, "RAND()", "BLZ_RND()");
 	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(YEAR), ", "BL_YEAR(");
 	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(MONTH), ", "BL_MONTH(");
 	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(DAY), ", "BL_DAY(");

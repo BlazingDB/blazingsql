@@ -1,5 +1,4 @@
 from DataBase import createSchema as cs
-from pyspark.sql import SparkSession
 from Configuration import Settings as Settings
 from Runner import runTest
 from Utils import Execution
@@ -129,6 +128,8 @@ if __name__ == '__main__':
          and compareResults == "true")
             or Settings.execution_mode == ExecutionMode.GENERATOR):
         # Create Table Spark --------------------------------------------------
+        from pyspark.sql import SparkSession
+
         spark = SparkSession.builder.appName("timestampTest").getOrCreate()
         cs.init_spark_schema(spark,
                              Settings.data['TestSettings']['dataDirectory'])
@@ -145,3 +146,5 @@ if __name__ == '__main__':
     if Settings.execution_mode != ExecutionMode.GENERATOR:
         runTest.save_log()
         gpuMemory.print_log_gpu_memory()
+
+        

@@ -5,10 +5,16 @@
 
 #include "FileSystemFactory.h"
 
-#include "FileSystem/GoogleCloudStorage.h"
 #include "FileSystem/HadoopFileSystem.h"
 #include "FileSystem/LocalFileSystem.h"
+
+#ifdef GCS_SUPPORT
+#include "FileSystem/GoogleCloudStorage.h"
+#endif
+
+#ifdef S3_SUPPORT
 #include "FileSystem/S3FileSystem.h"
+#endif
 
 std::unique_ptr<FileSystemInterface> FileSystemFactory::createFileSystem(
 	const FileSystemConnection & fileSystemConnection, const Path & root) {
@@ -26,7 +32,9 @@ std::unique_ptr<FileSystemInterface> FileSystemFactory::createFileSystem(
 	} break;
 
 	case FileSystemType::S3: {
+#ifdef S3_SUPPORT
 		fileSystem = std::unique_ptr<S3FileSystem>(new S3FileSystem(fileSystemConnection, root));
+#endif
 	} break;
 
 	case FileSystemType::NFS4: {
@@ -34,7 +42,9 @@ std::unique_ptr<FileSystemInterface> FileSystemFactory::createFileSystem(
 	} break;
 
 	case FileSystemType::GOOGLE_CLOUD_STORAGE: {
+#ifdef GCS_SUPPORT
 		fileSystem = std::unique_ptr<GoogleCloudStorage>(new GoogleCloudStorage(fileSystemConnection, root));
+#endif
 	} break;
 
 	default: {

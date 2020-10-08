@@ -12,8 +12,6 @@
 #include "io/io.h"
 #include <arrow/table.h>
 
-#include <cudf/io/functions.hpp>
-
 namespace ral {
 namespace io {
 

@@ -47,14 +47,16 @@ logger "Check GPU usage..."
 nvidia-smi
 
 logger "Activate conda env..."
-conda create python=$PYTHON -y -n bsql
+conda create python=$PYTHON_VER -y -n bsql
 source activate bsql
 
 echo "Installing BlazingSQL dev environment"
 
+# NOTE: needing to manually install spdlog here because v1.8 is causing issues https://github.com/gabime/spdlog/issues/1662
+
 # install deps
-echo "conda install --yes -c conda-forge google-cloud-cpp ninja"
-conda install --yes -c conda-forge google-cloud-cpp ninja
+echo "conda install --yes -c conda-forge spdlog=1.7.0 google-cloud-cpp=1.16 ninja"
+conda install --yes -c conda-forge spdlog=1.7.0 google-cloud-cpp=1.16 ninja
 echo "BlazingSQL dev basic deps installed"
 
 # NOTE cython must be the same of cudf (for 0.11 and 0.12 cython is >=0.29,<0.30)
@@ -63,16 +65,14 @@ conda install --yes openjdk=8.0 maven cmake gtest gmock rapidjson cppzmq cython=
 echo "BlazingSQL deps installed"
 
 # install cudf
-echo "conda install --yes dask-cuda=${MINOR_VERSION} dask-cudf=${MINOR_VERSION} cudf=${MINOR_VERSION} python=$PYTHON cudatoolkit=$CUDA_REL"
-conda install --yes dask-cuda=${MINOR_VERSION} dask-cudf=${MINOR_VERSION} cudf=${MINOR_VERSION} python=$PYTHON cudatoolkit=$CUDA_REL
+echo "conda install --yes dask-cuda=${MINOR_VERSION} dask-cudf=${MINOR_VERSION} cudf=${MINOR_VERSION} python=$PYTHON_VER cudatoolkit=$CUDA_REL"
+conda install --yes dask-cuda=${MINOR_VERSION} dask-cudf=${MINOR_VERSION} cudf=${MINOR_VERSION} python=$PYTHON_VER cudatoolkit=$CUDA_REL
 echo "cudf and other rapids dependencies installed"
 
 # install end to end tests dependencies
-echo "conda install --yes openjdk=8.0 maven pyspark=2.4.3 pytest"
-conda install --yes openjdk=8.0 maven pyspark=2.4.3 pytest
 
-echo "pip install pydrill openpyxl pymysql gitpython pynvml gspread oauth2client"
-pip install pydrill openpyxl pymysql gitpython pynvml gspread oauth2client
+echo "pip install openpyxl pymysql gitpython pynvml gspread oauth2client"
+pip install openpyxl pymysql gitpython pynvml gspread oauth2client
 echo "BlazingSQL end to end tests dependencies installed"
 
 logger "Check versions..."
@@ -97,7 +97,7 @@ if hasArg --skip-tests; then
     logger "Skipping Tests..."
 else
     INSTALL_PREFIX=${INSTALL_PREFIX:=${PREFIX:=${CONDA_PREFIX}}}
-    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$INSTALL_PREFIX/lib
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$INSTALL_PREFIX/lib:$INSTALL_PREFIX/lib64
 
     logger "Check GPU usage..."
     nvidia-smi

@@ -1,7 +1,7 @@
 void raiseInitializeError();
 void raiseFinalizeError();
-void raiseBlazingSetAllocatorError();
 void raiseGetProductDetailsError();
+void raiseGetFreeMemoryError();
 void raiseRunQueryError();
 void raiseRunSkipDataError();
 void raiseParseSchemaError();

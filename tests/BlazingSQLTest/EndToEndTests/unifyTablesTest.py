@@ -2,7 +2,6 @@ from blazingsql import DataType
 from Configuration import ExecutionMode
 from Configuration import Settings as Settings
 from DataBase import createSchema as cs
-from pydrill.client import PyDrill
 from pynvml import nvmlInit
 from Runner import runTest
 from Utils import Execution,  gpuMemory, init_context, skip_test
@@ -113,7 +112,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             )
 
             queryId = "TEST_02"
-            query = """select avg(c.c_custkey),
+            query = """select avg(CAST(c.c_custkey AS DOUBLE)),
                     avg(CAST(c.c_nationkey AS DOUBLE)), n.n_regionkey
                     from customer as c
                     inner join nation as n
@@ -152,7 +151,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             )
 
             queryId = "TEST_04"
-            query = """select avg(c.c_custkey), avg(c.c_acctbal),
+            query = """select avg(CAST(c.c_custkey AS DOUBLE)), avg(c.c_acctbal),
                     n.n_nationkey, r.r_regionkey
                     from customer as c
                     inner join nation as n on c.c_nationkey = n.n_nationkey
@@ -225,6 +224,7 @@ if __name__ == "__main__":
             Settings.execution_mode == ExecutionMode.GENERATOR):
         # Create Table Drill ------------------------------------------------
         print("starting drill")
+        from pydrill.client import PyDrill
 
         drill = PyDrill(host="localhost", port=8047)
         cs.init_drill_schema(drill,

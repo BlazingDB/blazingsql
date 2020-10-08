@@ -9,7 +9,7 @@ Testing Automation Framework for BlazingSQL
 Inside a conda environment:
 
 ```shell-script
-conda install --yes -c conda-forge openjdk=8.0 maven pyspark=2.4.3 pytest
+conda install --yes -c conda-forge openjdk=8.0 maven pyspark=3.0.0 pytest
 pip install pydrill openpyxl pymysql gitpython pynvml gspread oauth2client
 ```
 
@@ -120,6 +120,8 @@ Finally, there are sensible data that never must be public so to get the values 
 
 ### Unit tests
 
+
+
 ```shell-script
 cd blazingsql
 
@@ -132,6 +134,32 @@ cd blazingsql
 # communication tests
 cd blazingsql
 ./test.sh comms
+```
+
+### Testing artifacts
+
+The values ​​of the following variables must be set.
+
+```shell-script
+
+# AWS S3 env vars
+export BLAZINGSQL_E2E_AWS_S3_BUCKET_NAME=''
+export BLAZINGSQL_E2E_AWS_S3_ACCESS_KEY_ID=''
+export BLAZINGSQL_E2E_AWS_S3_SECRET_KEY=''
+
+# Google Storage env vars
+export BLAZINGSQL_E2E_GOOGLE_STORAGE_PROJECT_ID=''
+export BLAZINGSQL_E2E_GOOGLE_STORAGE_BUCKET_NAME=''
+export BLAZINGSQL_E2E_GOOGLE_STORAGE_ADC_JSON_FILE=""
+
+```
+
+Then you have to execute the next sentence.
+
+```shell-script
+cd blazingsql/tests/BlazingSQLTest
+
+python manualTesting.py
 ```
 
 ## Advanced usage

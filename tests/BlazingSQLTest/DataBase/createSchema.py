@@ -10,8 +10,6 @@ import dask_cudf
 import numpy as np
 import pandas as pd
 import pyblazing
-# from pyblazing import get_dtype_values
-import pyspark.sql.types as st
 from blazingsql import DataType
 from pyhive import hive
 

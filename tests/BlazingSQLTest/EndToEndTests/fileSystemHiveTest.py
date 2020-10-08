@@ -3,7 +3,6 @@ import os
 from blazingsql import DataType
 from Configuration import Settings as Settings
 from DataBase import createSchema as cs
-from pydrill.client import PyDrill
 from pyhive import hive
 from pynvml import nvmlInit
 from Runner import runTest
@@ -358,6 +357,7 @@ if __name__ == "__main__":
 
     if compare_results:
         # Create Table Drill ------------------------------------------------
+        from pydrill.client import PyDrill
 
         drill = PyDrill(host="localhost", port=8047)
         cs.init_drill_schema(drill,

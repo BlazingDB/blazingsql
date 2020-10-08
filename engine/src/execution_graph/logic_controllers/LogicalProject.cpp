@@ -58,6 +58,11 @@ struct cast_to_str_functor {
         return cudf::strings::from_booleans(col);
     }
 
+    template<typename T, std::enable_if_t<cudf::is_fixed_point<T>()> * = nullptr>
+    std::unique_ptr<cudf::column> operator()(const cudf::column_view & col) {
+        return cudf::strings::from_floats(col);
+    }
+
     template<typename T, std::enable_if_t<std::is_integral<T>::value && !cudf::is_boolean<T>()> * = nullptr>
     std::unique_ptr<cudf::column> operator()(const cudf::column_view & col) {
         return cudf::strings::from_integers(col);
@@ -535,9 +540,11 @@ public:
 		operator_type op = map_to_operator_type(node.value);
 		if(is_binary_operator(op)) {
 			output_type = cudf::data_type{get_output_type(op, node_to_type_map_.at(node.children[0].get()).id(), node_to_type_map_.at(node.children[1].get()).id())};
-		} else {
+		} else if (is_unary_operator(op)) {
 			output_type = cudf::data_type{get_output_type(op, node_to_type_map_.at(node.children[0].get()).id())};
-		}
+		}else{
+            output_type = cudf::data_type{get_output_type(op)};
+        }
 
 		node_to_type_map_.insert({&node, output_type});
 		expr_output_type_ = output_type;
@@ -691,7 +698,8 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
                                                 final_output_positions,
                                                 operators,
                                                 left_scalars,
-                                                right_scalars);
+                                                right_scalars,
+                                                table.num_rows());
     }
 
     return std::move(out_columns);

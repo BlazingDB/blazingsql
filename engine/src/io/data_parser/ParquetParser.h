@@ -13,6 +13,8 @@
 #include <memory>
 #include <vector>
 
+#include <cudf/io/datasource.hpp>
+
 namespace ral {
 namespace io {
 
@@ -24,7 +26,7 @@ public:
 	std::unique_ptr<ral::frame::BlazingTable> parse_batch(
 		std::shared_ptr<arrow::io::RandomAccessFile> file,
 		const Schema & schema,
-		std::vector<size_t> column_indices,
+		std::vector<int> column_indices,
 		std::vector<cudf::size_type> row_groups);
 
 	void parse_schema(std::shared_ptr<arrow::io::RandomAccessFile> file, Schema & schema);

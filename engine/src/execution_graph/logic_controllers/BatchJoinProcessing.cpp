@@ -1,9 +1,27 @@
+#include "BatchJoinProcessing.h"
 #include <string>
 #include "parser/expression_tree.hpp"
 #include "error.hpp"
 
 namespace ral {
 namespace batch {
+
+
+std::tuple<std::string, std::string, std::string, std::string> parseExpressionToGetTypeAndCondition(const std::string & expression) {
+	std::string modified_expression, condition, filter_statement, join_type, new_join_statement;
+	modified_expression = expression;
+	StringUtil::findAndReplaceAll(modified_expression, "IS NOT DISTINCT FROM", "=");
+	split_inequality_join_into_join_and_filter(modified_expression, new_join_statement, filter_statement);
+
+	// Getting the condition and type of join
+	condition = get_named_expression(new_join_statement, "condition");
+	join_type = get_named_expression(new_join_statement, "joinType");
+
+	if (condition == "true") {
+		join_type = CROSS_JOIN;
+	}		
+	return std::make_tuple(modified_expression, condition, filter_statement, join_type);
+}
 
 void parseJoinConditionToColumnIndices(const std::string & condition, std::vector<int> & columnIndices) {
 	// TODO: right now this only works for equijoins
