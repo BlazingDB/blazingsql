@@ -268,21 +268,17 @@ public:
     std::memset(inaddr.sin_zero, 0, sizeof(inaddr.sin_zero));
     ret = bind(lsock_, (struct sockaddr *) &inaddr, sizeof(inaddr));
     if (ret < 0) {
-      std::cout << "bind server" << std::endl;
       close(lsock_);
       throw std::runtime_error("bind server");
     }
 
     ret = listen(lsock_, 0);
     if (ret < 0) {
-      std::cout << "listen server" << std::endl;
       close(lsock_);
       throw std::runtime_error("listen server");
     }
 
-    std::cout << "[" << std::hex << std::this_thread::get_id()
-              << "] Waiting for connection..." << std::endl;
-
+   
     // dsock_ = accept(lsock_, NULL, NULL);
     // if (dsock_ < 0) {
     //   std::cout << "accept server" << std::endl;
@@ -321,7 +317,6 @@ public:
     unsigned int addrlen = sizeof(address);
     dsock_ = accept(lsock_, &address, (socklen_t*)&addrlen);
     if (dsock_ < 0) {
-      std::cout << "accept server" << std::endl;
       close(lsock_);
       throw std::runtime_error("accept server");
     }
@@ -363,14 +358,12 @@ public:
     connfd = socket(AF_INET, SOCK_STREAM, 0);
     if (connfd < 0) {
       const std::string message = "open client socket";
-      std::cout << message << std::endl;
       throw std::runtime_error(message);
     }
 
     he = gethostbyname(hostname);
     if (he == NULL || he->h_addr_list == NULL) {
       const std::string message = "found a host";
-      std::cout << message << std::endl;
       close(connfd);
       throw std::runtime_error(message);
     }
@@ -394,7 +387,6 @@ public:
 	}
 	if (attempt == num_attempts){
 	      const std::string message = "could not connect to client";
-	      std::cout << message << std::endl;
 	      close(connfd);
 	      throw std::runtime_error(message);
 	}
@@ -667,7 +659,6 @@ std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> > initiali
 	}
 
 	logger->debug("|||{info}|||||","info"_a=initLogMsg);
-	std::cout<<"getting product details!!!"<<std::endl;
 	std::map<std::string, std::string> product_details = getProductDetails();
 	std::string product_details_str = "Product Details: ";
 	std::map<std::string, std::string>::iterator it = product_details.begin();
@@ -685,63 +676,26 @@ std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> > initiali
 	// start ucp servers
 
 	communicationData.initialize(worker_id);
-
-	std::cout<<"going to init comms!!!"<<std::endl;
 	
-if(! singleNode){
-	std::map<std::string, comm::node> nodes_info_map;
-		// for (auto &&node_data : workers_ucp_info) {
-		// 	std::cout<<"ep handle is "<< node_data.ep_handle<<" and worker handle is "<< node_data.worker_handle<<std::endl;
-		// 	nodes_info_map.emplace(node_data.worker_id, comm::node(ralId, node_data.worker_id, reinterpret_cast<ucp_ep_h>(node_data.ep_handle), reinterpret_cast<ucp_worker_h>(node_data.worker_handle)));
-		// }
-
-		std::cout<<"getting worker"<<worker_id<<std::endl;
-		std::cout<<"initializing listener"<<std::endl;
-
-		// ucp_context_h ucp_context = reinterpret_cast<ucp_context_h>(workers_ucp_info[0].context_handle);
-		// ucp_worker_h self_worker = reinterpret_cast<ucp_worker_h>(workers_ucp_info[0].worker_handle);
-
-
-		
-
+	
+	if(! singleNode){
+		std::map<std::string, comm::node> nodes_info_map;
+	
 		comm::blazing_protocol protocol = comm::blazing_protocol::tcp;
 		if(config_options.find("PROTOCOL") != config_options.end()){
-			std::cout<<config_options["PROTOCOL"]<<std::endl;
 			if(config_options["PROTOCOL"] == "UCX"){
 				protocol = comm::blazing_protocol::ucx;
-				std::cout<<"phew!"<<std::endl;
-			}else{
-				std::cout<<"jesus really?"<<std::endl;
 			}
-		}else{
-			std::cout<<"Protocol not defined defaulting to tcp"<<std::endl;
 		}
 		ucp_context_h ucp_context = nullptr;
 		ucp_worker_h self_worker = nullptr;
 		if(protocol == comm::blazing_protocol::ucx){
 
-
-			// ucp_context_h ucp_context = CreateUcpContext();
 			ucp_context = reinterpret_cast<ucp_context_h>(workers_ucp_info[0].context_handle);
-			std::cout<<ucp_context<<" was context pointer"<<std::endl;
-
-			std::cout<<">>>>>> CREATED CONTEXT"<<std::endl;
-
+			
 			self_worker = CreatetUcpWorker(ucp_context);
 
-			std::cout<<">>>>>> CREATED WORKER"<<std::endl;
-
 			UcpWorkerAddress ucpWorkerAddress = GetUcpWorkerAddress(self_worker);
-
-			std::cout<<">>>>>> GOT LOCAL WORKER ADDRESS"<<std::endl;
-
-			// std::unique_ptr<AddressExchanger> addressExchanger;
-			// if (ralId == 0) {
-			// 	addressExchanger = AddressExchanger::MakeForSender(13337);
-			// } else {
-			// 	std::this_thread::sleep_for(std::chrono::seconds(1));
-			// 	addressExchanger = AddressExchanger::MakeForReceiver(13337, "192.168.137.140");
-			// }
 
 			std::map<std::string, UcpWorkerAddress> peer_addresses_map;
 			auto th = std::thread([ralCommunicationPort, total_peers=workers_ucp_info.size(), &peer_addresses_map, worker_id, workers_ucp_info](){
@@ -756,17 +710,17 @@ if(! singleNode){
 						// Receive worker_id size
 						size_t worker_id_buff_size;
 						ret = recv(exchanger.fd(), &worker_id_buff_size, sizeof(size_t), MSG_WAITALL);
-					CheckError(ret != sizeof(size_t), "recv worker_id_buff_size");
+						CheckError(ret != sizeof(size_t), "recv worker_id_buff_size");
 
 						// Receive worker_id
 						std::string worker_id(worker_id_buff_size, '\0');
 						ret = recv(exchanger.fd(), &worker_id[0], worker_id.size(), MSG_WAITALL);
-					CheckError(ret != worker_id.size(), "recv worker_id");
+						CheckError(ret != worker_id.size(), "recv worker_id");
 
 						// Receive ucp_worker_address size
 						size_t ucp_worker_address_size;
 						ret = recv(exchanger.fd(), &ucp_worker_address_size, sizeof(size_t), MSG_WAITALL);
-					CheckError(ret != sizeof(size_t), "recv ucp_worker_address_size");
+						CheckError(ret != sizeof(size_t), "recv ucp_worker_address_size");
 
 						// Receive ucp_worker_address
 						std::uint8_t *data = new std::uint8_t[ucp_worker_address_size];
@@ -775,7 +729,7 @@ if(! singleNode){
 								ucp_worker_address_size};
 
 						ret = recv(exchanger.fd(), peerUcpWorkerAddress.address, ucp_worker_address_size, MSG_WAITALL);
-					CheckError(ret != ucp_worker_address_size, "recv ucp_worker_address");
+						CheckError(ret != ucp_worker_address_size, "recv ucp_worker_address");
 
 						peer_addresses_map.emplace(worker_id, peerUcpWorkerAddress);
 
@@ -795,29 +749,22 @@ if(! singleNode){
 				// Send worker_id size
 				size_t worker_id_buff_size = worker_id.size();
 				ret = send(exchanger.fd(), &worker_id_buff_size, sizeof(size_t), 0);
-			CheckError(ret != sizeof(size_t), "send worker_id_buff_size");
+				CheckError(ret != sizeof(size_t), "send worker_id_buff_size");
 
 				// Send worker_id
 				ret = send(exchanger.fd(), worker_id.data(), worker_id.size(), 0);
-			CheckError(ret != worker_id.size(), "send worker_id");
+				CheckError(ret != worker_id.size(), "send worker_id");
 
 				// Send ucp_worker_address size
 				ret = send(exchanger.fd(), &ucpWorkerAddress.length, sizeof(size_t), 0);
-			CheckError(ret != sizeof(size_t), "send ucp_worker_address_size");
+				CheckError(ret != sizeof(size_t), "send ucp_worker_address_size");
 
 				// Send ucp_worker_address
 				ret = send(exchanger.fd(), ucpWorkerAddress.address, ucpWorkerAddress.length, 0);
-			CheckError(ret != ucpWorkerAddress.length, "send ucp_worker_address");
+				CheckError(ret != ucpWorkerAddress.length, "send ucp_worker_address");
 			}
 
 			th.join();
-
-			// std::cout<<">>>>>> CREATED EXCHANGER"<<std::endl;
-
-			// UcpWorkerAddress peerUcpWorkerAddress =
-			// 		addressExchanger->Exchange(ucpWorkerAddress);
-
-			std::cout<<">>>>>> EXACHNAGE DONE"<<std::endl;
 
 			for (auto &&worker_info : workers_ucp_info){
 				if(worker_info.worker_id == worker_id){
@@ -826,16 +773,14 @@ if(! singleNode){
 				UcpWorkerAddress peerUcpWorkerAddress = peer_addresses_map[worker_info.worker_id];
 				ucp_ep_h ucp_ep = CreateUcpEp(self_worker, peerUcpWorkerAddress);
 
-				std::cout<<">>>>>> CREATED ENDPOINT"<<std::endl;
-
-				std::cout << '[' << std::hex << std::this_thread::get_id()
-									<< "] local: " << std::hex
-									<< *reinterpret_cast<std::size_t *>(ucpWorkerAddress.address) << ' '
-									<< ucpWorkerAddress.length << std::endl
-									<< '[' << std::hex << std::this_thread::get_id()
-									<< "] peer: " << std::hex
-									<< *reinterpret_cast<std::size_t *>(peerUcpWorkerAddress.address)
-									<<' ' << peerUcpWorkerAddress.length << std::endl;
+				// std::cout << '[' << std::hex << std::this_thread::get_id()
+				// 					<< "] local: " << std::hex
+				// 					<< *reinterpret_cast<std::size_t *>(ucpWorkerAddress.address) << ' '
+				// 					<< ucpWorkerAddress.length << std::endl
+				// 					<< '[' << std::hex << std::this_thread::get_id()
+				// 					<< "] peer: " << std::hex
+				// 					<< *reinterpret_cast<std::size_t *>(peerUcpWorkerAddress.address)
+				// 					<<' ' << peerUcpWorkerAddress.length << std::endl;
 
 				// auto worker_info = workers_ucp_info[0];
 				nodes_info_map.emplace(worker_info.worker_id, comm::node(ralId, worker_info.worker_id, ucp_ep, self_worker));
@@ -843,38 +788,23 @@ if(! singleNode){
 
 			comm::ucx_message_listener::initialize_message_listener(
 				ucp_context, self_worker,nodes_info_map,20);
-			std::cout<<"starting polling"<<std::endl;
 			comm::ucx_message_listener::get_instance()->poll_begin_message_tag(true);
 
-			std::cout<<"initializing sender"<<std::endl;
-
-
 		}else{
-
 			comm::tcp_message_listener::initialize_message_listener(nodes_info_map,ralCommunicationPort,20);
-			std::cout<<"initializing sender"<<std::endl;
 			comm::tcp_message_listener::get_instance()->start_polling();
-
-
-
 		}
 		comm::message_sender::initialize_instance(output_input_caches.first,
 			nodes_info_map,
 			20, ucp_context, self_worker, ralId,protocol);
-		std::cout<<"starting polling sender"<<std::endl;
 		comm::message_sender::get_instance()->run_polling();
 
 
 	}
 
-	std::cout<<"finish comms init!!!"<<std::endl;
-
 	//TODO: make this number configurable in options
 
-
-
 	return output_input_caches;
-
 }
 
 void finalize() {
