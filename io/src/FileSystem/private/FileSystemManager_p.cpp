@@ -79,8 +79,6 @@ bool FileSystemManager::Private::deregisterFileSystem(const std::string & author
 	}
 
 	if(found == false and authority.size() == 0) {
-		Logging::Logger().logTrace("deregisterFileSystem: filesystem authority not found");
-		// TODO percy notify error: not found
 		return false;
 	}
 
