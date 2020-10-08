@@ -160,8 +160,22 @@ data_handle uri_data_provider::get_next(bool open_file) {
 				}
 			}
 			this->directory_uris = new_uris;
-
 			this->directory_current_file = 0;
+
+			// If this->directory_uris is empty,
+			// the folder is empty, we just skip it
+			if(this->directory_uris.size()==0){
+				this->current_file++;
+
+				auto logger = spdlog::get("batch_logger");
+				if(logger != nullptr) {
+					logger->warn("|||{info}|||||", "info"_a="Folder is empty");
+				}
+
+				data_handle empty_handle;
+				return empty_handle;
+			}
+
 			return get_next(open_file);
 
 		} else if(fileStatus.isFile()) {
