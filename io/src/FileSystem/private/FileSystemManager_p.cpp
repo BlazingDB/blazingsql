@@ -79,7 +79,7 @@ bool FileSystemManager::Private::deregisterFileSystem(const std::string & author
 	}
 
 	if(found == false) {
-		return false;
+		return found;
 	}
 
 	const int fileSystemId = this->fileSystemIds[authority];
