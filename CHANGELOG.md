@@ -11,6 +11,7 @@
 - #998 Update TPCH queries, become implicit joins into implicit joins to avoid random values.
 - #1055 Removing cudf source code dependency as some cudf utilities headers were exposed
 - #1065 Remove thrift from build prodcess as its no longer used
+- #878 Adding calcite rule for window functions. (Window functions not supported yet)
 
 ## Bug Fixes
 - #918 Activate validation for GPU_CI tests results.
