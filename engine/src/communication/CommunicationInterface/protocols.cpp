@@ -347,19 +347,20 @@ void tcp_buffer_transport::send_impl(const char * buffer, size_t buffer_size){
     std::cout<<"sending data "<<2<<std::endl;
     std::vector<std::future<blazingdb::transport::io::PinnedBuffer *> > buffers;
     for( size_t chunk = 0; chunk < num_chunks; chunk++ ){
-            std::cout<<"sending data "<<3<<std::endl;
+        
         size_t chunk_size = pinned_buffer_size;
-        auto buffer_chunk = buffer + (chunk * pinned_buffer_size);
-        if(( chunk + 1) == num_chunks){
+        if(( chunk + 1) == num_chunks){ // if its the last chunk, we chunk_size is different
             chunk_size = buffer_size - (chunk * pinned_buffer_size);
         }
+        auto buffer_chunk_start = buffer + (chunk * pinned_buffer_size);
+        
             std::cout<<"sending data "<<4<<std::endl;
         buffers.push_back(
             std::move(allocate_copy_buffer_pool->push(
                 [buffer_chunk,chunk_size](int thread_id) {
                     auto pinned_buffer = blazingdb::transport::io::getPinnedBufferProvider().getBuffer();
                     pinned_buffer->use_size = chunk_size;
-                    cudaMemcpyAsync(pinned_buffer->data,buffer_chunk,chunk_size,cudaMemcpyDeviceToHost,pinned_buffer->stream);
+                    cudaMemcpyAsync(pinned_buffer->data,buffer_chunk_start,chunk_size,cudaMemcpyDeviceToHost,pinned_buffer->stream);
                     return pinned_buffer;
             }))
         );
