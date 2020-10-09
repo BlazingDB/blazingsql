@@ -42,6 +42,8 @@ message_sender::message_sender(std::shared_ptr<ral::cache::CacheMachine> output_
 		}
 
 		request_size = attr.request_size;
+	}else if (protocol == blazing_protocol::tcp){
+
 	}else{
 		std::cout<<"Wroong protocol"<<std::endl;
 	}

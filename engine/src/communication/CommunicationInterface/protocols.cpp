@@ -47,10 +47,12 @@ namespace io{
 		int count_invalids = 0;
 		while (amount_written < write_size && count_invalids < NUMBER_RETRIES) {
 			bytes_written = write(socket_fd, data + amount_written, write_size - amount_written);
+            std::cout<<"wrote "<<bytes_written<<" bytes of"<<write_size<<std::endl;
 			if (bytes_written != -1) {
 				amount_written += bytes_written;
 				count_invalids = 0;
 			} else {
+                std::cout<<errno<<" is errno"<<std::endl;
 				if (errno == 9) { // Bad socket number
 					std::cerr << "Bad socket writing to " << socket_fd << std::endl;
 					throw std::runtime_error("Bad socket");
@@ -88,7 +90,7 @@ std::shared_ptr<ral::cache::graph> graphs_info::get_graph(int32_t ctx_token) {
 	if(_ctx_token_to_graph_map.find(ctx_token) == _ctx_token_to_graph_map.end()){
 		throw std::runtime_error("Graph not found");
 	}
-	return _ctx_token_to_graph_map.at(ctx_token);
+    return _ctx_token_to_graph_map.at(ctx_token);
 }
 
 
@@ -274,37 +276,49 @@ void tcp_buffer_transport::send_impl(const char * buffer, size_t buffer_size){
 
     //allocate pinned + copy from gpu
     //transmit
+    std::cout<<"sending data "<<1<<std::endl;
     size_t pinned_buffer_size = blazingdb::transport::io::getPinnedBufferProvider().sizeBuffers();
     size_t num_chunks = (buffer_size +(pinned_buffer_size - 1))/ pinned_buffer_size;
-
+    std::cout<<"sending data "<<2<<std::endl;
     std::vector<std::future<blazingdb::transport::io::PinnedBuffer *> > buffers;
     for( size_t chunk = 0; chunk < num_chunks; chunk++ ){
+            std::cout<<"sending data "<<3<<std::endl;
         size_t chunk_size = pinned_buffer_size;
         auto buffer_chunk = buffer + (chunk * pinned_buffer_size);
         if(( chunk + 1) == num_chunks){
             chunk_size = buffer_size - (chunk * pinned_buffer_size);
         }
+            std::cout<<"sending data "<<4<<std::endl;
         buffers.push_back(
             std::move(allocate_copy_buffer_pool->push(
                 [buffer_chunk,chunk_size](int thread_id) {
                     auto pinned_buffer = blazingdb::transport::io::getPinnedBufferProvider().getBuffer();
-                    pinned_buffer->use_size =
+                    pinned_buffer->use_size = chunk_size;
                     cudaMemcpyAsync(pinned_buffer->data,buffer_chunk,chunk_size,cudaMemcpyDeviceToHost,pinned_buffer->stream);
                     return pinned_buffer;
             }))
         );
+            std::cout<<"sending data "<<5<<std::endl;
     }
     size_t chunk = 0;
     try{
+            std::cout<<"sending data "<<6<<std::endl;
         while(chunk < num_chunks){
+    std::cout<<"sending data "<<7<<std::endl;
             auto pinned_buffer = buffers[chunk].get();
+            std::cout<<"sending data "<<7.5<<std::endl;
             cudaStreamSynchronize(pinned_buffer->stream);
             for (auto socket_fd : socket_fds){
-                io::write_to_socket(socket_fd, &pinned_buffer->use_size,sizeof(pinned_buffer->use_size));
+               // io::write_to_socket(socket_fd, &pinned_buffer->use_size,sizeof(pinned_buffer->use_size));
                 io::write_to_socket(socket_fd, pinned_buffer->data,pinned_buffer->use_size);
-                increment_frame_transmission();
             }
+                std::cout<<"sending data "<<8<<std::endl;
             blazingdb::transport::io::getPinnedBufferProvider().freeBuffer(pinned_buffer);
+            chunk++;
+        }
+
+        for (auto socket_fd : socket_fds){
+            increment_frame_transmission();
         }
     }catch(const std::exception & e ){
         throw;

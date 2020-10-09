@@ -52,7 +52,9 @@ public:
 			 cudaSetDevice(0);
 
 			while(true) {
+				std::cout<<"goignt to pull"<<std::endl;
 				std::unique_ptr<ral::cache::CacheData> cache_data = output_cache->pullCacheData();
+				std::cout<<"pulled "<<cache_data.get()<<std::endl;
 				auto * gpu_cache_data = static_cast<ral::cache::GPUCacheDataMetaData *>(cache_data.get());
 				auto data_and_metadata = gpu_cache_data->decacheWithMetaData();
 
@@ -62,40 +64,65 @@ public:
 							output_cache = output_cache,
 								protocol=this->protocol,
 								this](int thread_id) {
+					std::cout<<"in the pool!"<<std::endl;
 					std::vector<std::size_t> buffer_sizes;
 					std::vector<const char *> raw_buffers;
 					std::vector<blazingdb::transport::ColumnTransport> column_transports;
 					std::vector<std::unique_ptr<rmm::device_buffer>> temp_scope_holder;
+					std::cout<<"starting serialize"<<std::endl;
 					std::tie(buffer_sizes, raw_buffers, column_transports, temp_scope_holder) =
 						serialize_gpu_message_to_gpu_containers(table->toBlazingTableView());
-
+					std::cout<<"finished serialized"<<std::endl;
 					try {
 						// tcp / ucp
 						auto metadata_map = metadata.get_values();
 
 						std::vector<node> destinations;
-						for(auto worker_id : StringUtil::split(metadata_map.at(ral::cache::WORKER_IDS_METADATA_LABEL), ",")) {
+						std::cout<<"1"<<std::endl;
+						auto worker_ids = StringUtil::split(metadata_map.at(ral::cache::WORKER_IDS_METADATA_LABEL), ",");
+						for(auto worker_id : worker_ids) {
+							std::cout<<"im here"<<std::endl;
 							if(node_address_map.find(worker_id) == node_address_map.end()) {
+								std::cout<<"Worker id not found!"<<worker_id<<std::endl;
 								throw std::exception();	 // TODO: make a real exception here
 							}
 							destinations.push_back(node_address_map.at(worker_id));
 						}
-
+						std::cout<<"2"<<std::endl;
 						std::shared_ptr<buffer_transport> transport;
 						if(blazing_protocol::ucx == protocol){
+							std::cout<<"in ucx"<<std::endl;
 							transport = std::make_shared<ucx_buffer_transport>(
 								request_size, origin, destinations, metadata,
 								buffer_sizes, column_transports,ral_id);
-						}else{
+						}else if (blazing_protocol::tcp == protocol){
+							std::cout<<"in tcp"<<std::endl;
+							transport = std::make_shared<tcp_buffer_transport>(
+							destinations,
+							metadata,
+							buffer_sizes,
+							column_transports,
+							ral_id,
+							&this->pool
+							);
+						}
+						else{
+							std::cout<<"how!?"<<std::endl;
 							throw std::exception();
 						}
-
+						std::cout<<"sending begin transmission"<<std::endl;
 						transport->send_begin_transmission();
+						std::cout<<"waiting for send"<<std::endl;
 						transport->wait_for_begin_transmission();
+						std::cout<<"sent begin"<<std::endl;
 						for(size_t i = 0; i < raw_buffers.size(); i++) {
+							std::cout<<"sending "<<i<<std::endl;
 							transport->send(raw_buffers[i], buffer_sizes[i]);
+						std::cout<<"sent "<<i<<std::endl;
 						}
+						std::cout<<"waiting complete"<<std::endl;
 						transport->wait_until_complete();  // ensures that the message has been sent before returning the thread to the pool
+						std::cout<<"complete"<<std::endl;
 					} catch(const std::exception&) {
 						throw;
 					}

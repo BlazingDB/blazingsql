@@ -118,9 +118,11 @@ void recv_begin_callback_c(ucp_tag_recv_info_t *info, size_t request_size) {
 
 
 void tcp_message_listener::start_polling(){
-    int socket_fd, connection_fd;
-    socklen_t len;
-    struct sockaddr_in server_address, client_address;
+    
+	
+	int socket_fd;
+    
+    struct sockaddr_in server_address;
 
     // socket create and verification
     socket_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -144,32 +146,35 @@ void tcp_message_listener::start_polling(){
     if (listen(socket_fd, 4096) != 0) {
         throw std::runtime_error("Could not listen on socket.");
     }
+    auto thread = std::thread([ this,socket_fd]{
+		struct sockaddr_in client_address;
+		socklen_t len;
+		int connection_fd;
+		while((connection_fd = accept(socket_fd, (struct sockaddr *)&client_address, &len)) != -1){
 
-    while((connection_fd = accept(socket_fd, (struct sockaddr *)&client_address, &len)) != -1){
-        auto thread = std::thread([connection_fd, this]{
-            size_t message_size;
-            io::read_from_socket(connection_fd,&message_size,sizeof(message_size));
+				size_t message_size;
+				io::read_from_socket(connection_fd,&message_size,sizeof(message_size));
 
-            std::vector<char> data(message_size);
-            io::read_from_socket(connection_fd,data.data(),message_size);
-            status_code success = status_code::OK;
-            io::write_to_socket(connection_fd,&success,sizeof(success));
+				std::vector<char> data(message_size);
+				io::read_from_socket(connection_fd,data.data(),message_size);
+				status_code success = status_code::OK;
+				io::write_to_socket(connection_fd,&success,sizeof(success));
 
-           	// auto receiver = std::make_shared<message_receiver>(data);
+				auto receiver = std::make_shared<message_receiver>(_nodes_info_map,data);
 
-            // auto fwd = pool.push([receiver, connection_fd](int thread_num){
-            //     size_t buffer_size;
-            //     size_t buffer_position = 0;
-            //     while(buffer_position < receiver->num_buffers()){
-            //         receiver->allocate_buffer(buffer_position);
-            //         io::read_from_socket(connection_fd,receiver->get_buffer(buffer_position),receiver->buffer_size(buffer_position));
-            //         buffer_position++;
-            //     }
-            // });
-        });
-        thread.detach();
-    }
+				auto fwd = pool.push([receiver, connection_fd](int thread_num){
+				     size_t buffer_size;
+				     size_t buffer_position = 0;
+				     while(buffer_position < receiver->num_buffers()){
+				         receiver->allocate_buffer(buffer_position);
+				         io::read_from_socket(connection_fd,receiver->get_buffer(buffer_position),receiver->buffer_size(buffer_position));
+				         buffer_position++;
+				     }
+				 });
+		}
 
+	});
+	thread.detach();
 }
 
 void ucx_message_listener::poll_begin_message_tag(bool running_from_unit_test){

@@ -791,6 +791,16 @@ std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> > initiali
 			comm::ucx_message_listener::get_instance()->poll_begin_message_tag(true);
 
 		}else{
+
+
+			for (auto &&worker_info : workers_ucp_info){
+				if(worker_info.worker_id == worker_id){
+					continue;
+				}
+			
+				nodes_info_map.emplace(worker_info.worker_id, comm::node(ralId, worker_info.worker_id, worker_info.ip, worker_info.port));
+			}
+
 			comm::tcp_message_listener::initialize_message_listener(nodes_info_map,ralCommunicationPort,20);
 			comm::tcp_message_listener::get_instance()->start_polling();
 		}
