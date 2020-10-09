@@ -153,7 +153,12 @@ data_handle uri_data_provider::get_next(bool open_file) {
 			// sometimes parquet directories have somes files that
 			// have not the same schema as the *.parquet files
 			// we don't want the data provider handle this ones
-			std::vector<std::string> ignored_suffixes{".crc", "_metadata", "_SUCCESS"};
+			std::vector<std::string> ignored_suffixes {
+				".crc",
+				"_metadata",
+				"_SUCCESS",
+				".ipynb_checkpoints"
+			};
 
 			std::vector<Uri> new_uris;
 			for(int i = 0; i < this->directory_uris.size(); i++) {
