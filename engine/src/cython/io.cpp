@@ -165,6 +165,9 @@ std::pair<bool, std::string> registerFileSystem(
 	try {
 		bool ok = BlazingContext::getInstance()->getFileSystemManager()->deregisterFileSystem(authority);
 		ok = BlazingContext::getInstance()->getFileSystemManager()->registerFileSystem(fileSystemEntity);
+		if (ok == false) {
+			return std::make_pair(false, "Filesystem failed to register");
+		}
 	} catch(const std::exception & e) {
 		return std::make_pair(false, std::string(e.what()));
 	} catch(...) {
