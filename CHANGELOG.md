@@ -34,6 +34,7 @@
 - #1007 Fix arrow and spdlog compilation issues
 - #1068 Just adds a docs important links and avoid the message about filesystem authority not found
 - #1074: Remove lock inside grow() method from PinnedBufferProvider
+- #1071 Fix crash when loading an empty folder
 
 
 # BlazingSQL 0.15.0 (August 31, 2020)
