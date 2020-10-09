@@ -4,7 +4,7 @@
  *     Copyright 2018-2020 Percy Camilo Triveño Aucahuasi <percy@blazingdb.com>
  *     Copyright 2018 William Malpica <william@blazingdb.com>
  */
-
+// docs: https://docs.aws.amazon.com/AmazonS3/latest/dev/using-with-s3-actions.html
 #include "S3FileSystem_p.h"
 
 #include <iostream>

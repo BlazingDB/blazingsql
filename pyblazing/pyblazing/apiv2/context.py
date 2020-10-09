@@ -139,6 +139,8 @@ def initializeBlazing(
     allocator="managed",
     pool=False,
     initial_pool_size=None,
+    maximum_pool_size=None,
+    enable_logging=False,
     config_options={},
     logging_dir_path="blazing_log",
 ):
@@ -156,10 +158,16 @@ def initializeBlazing(
 
     if not pool:
         initial_pool_size = 0
+        maximum_pool_size = 0
     elif pool and initial_pool_size is None:
         initial_pool_size = 0
     elif pool and initial_pool_size == 0:
         initial_pool_size = 1
+
+    if maximum_pool_size is None:
+        maximum_pool_size = 0
+    elif maximum_pool_size < initial_pool_size:
+        maximum_pool_size = initial_pool_size
 
     possible_allocators = [
         "default",
@@ -167,6 +175,8 @@ def initializeBlazing(
         "existing",
         "cuda_memory_resource",
         "managed_memory_resource",
+        "pool_memory_resource",
+        "managed_pool_memory_resource",
     ]
     if allocator not in possible_allocators:
         print(
@@ -181,8 +191,10 @@ def initializeBlazing(
         allocator = "cuda_memory_resource"
     elif not pool and allocator == "managed":
         allocator = "managed_memory_resource"
-
-    cio.blazingSetAllocatorCaller(allocator.encode(), initial_pool_size, config_options)
+    elif pool and allocator == "default":
+        allocator = "pool_memory_resource"
+    elif pool and allocator == "managed":
+        allocator = "managed_pool_memory_resource"
 
     cio.initializeCaller(
         ralId,
@@ -192,6 +204,10 @@ def initializeBlazing(
         ralCommunicationPort,
         singleNode,
         config_options,
+        allocator.encode(),
+        initial_pool_size,
+        maximum_pool_size,
+        enable_logging,
     )
 
     if os.path.isabs(logging_dir_path):
@@ -1076,7 +1092,8 @@ def load_config_options_from_env(user_config_options: dict):
         "MAX_SEND_MESSAGE_THREADS": 20,
         "LOGGING_LEVEL": "trace",
         "LOGGING_FLUSH_LEVEL": "warn",
-        "TRANSPORT_BUFFER_BYTE_SIZE": 78643200,  # 75 MB in bytes
+        "TRANSPORT_BUFFER_BYTE_SIZE": 1048576,  # 10 MB in bytes
+        "TRANSPORT_POOL_NUM_BUFFERS": 100,
     }
 
     # key: option_name, value: default_value
@@ -1115,6 +1132,8 @@ class BlazingContext(object):
         allocator="managed",
         pool=False,
         initial_pool_size=None,
+        maximum_pool_size=None,
+        enable_logging=False,
         config_options={},
     ):
         """
@@ -1142,6 +1161,13 @@ class BlazingContext(object):
         initial_pool_size (optional) : initial size of memory pool in bytes
                     (if pool=True).
                     if None, and pool=True, defaults to 1/2 GPU memory.
+         maximum_pool_size (optional) :  size, in bytes, that the pool can
+                    grow to (if pool=True).
+                    if None, and pool=True, defaults to all the GPU memory.
+        enable_logging (optional) : If set to True the memory allocator
+                    logging will be enabled, but can negatively impact
+                    performance. Memory allocator logs will be placed
+                    in the same directory and BSQL logs.
         config_options (optional) : this is a dictionary for setting certain
                     parameters in the engine. These parameters will be used
                     for all queries except if overriden by setting these
@@ -1233,7 +1259,9 @@ class BlazingContext(object):
                     BlazingContext
                     default: 'warn'
             TRANSPORT_BUFFER_BYTE_SIZE : The size in bytes about the pinned buffer memory
-                    default: 75 MBs
+                    default: 10 MBs
+            TRANSPORT_POOL_NUM_BUFFERS: The number of buffers in the punned buffer memory pool.
+                    default: 100 buffers
 
         Examples
         --------
@@ -1347,6 +1375,8 @@ class BlazingContext(object):
                         allocator=allocator,
                         pool=pool,
                         initial_pool_size=initial_pool_size,
+                        maximum_pool_size=maximum_pool_size,
+                        enable_logging=enable_logging,
                         config_options=self.config_options,
                         logging_dir_path=logging_dir_path,
                         workers=[worker],
@@ -1384,6 +1414,8 @@ class BlazingContext(object):
                 allocator=allocator,
                 pool=pool,
                 initial_pool_size=initial_pool_size,
+                maximum_pool_size=maximum_pool_size,
+                enable_logging=enable_logging,
                 config_options=self.config_options,
                 logging_dir_path=logging_dir_path,
             )
@@ -1996,7 +2028,7 @@ class BlazingContext(object):
             table.args["dtype"] = dtypes_list
 
             table.slices = table.getSlices(len(self.nodes))
-
+            parsedMetadata = None
             if len(uri_values) > 0:
                 parsedMetadata = parseHiveMetadata(table, uri_values)
                 table.metadata = parsedMetadata

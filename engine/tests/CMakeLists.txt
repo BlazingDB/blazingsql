@@ -35,14 +35,9 @@ function(configure_test TEST_NAME Tests_SRCS)
 
         zmq
         cudart
-        cuda
-        ${CUDA_CUDA_LIBRARY}
-        ${CUDA_NVRTC_LIBRARY}
-        ${CUDA_NVTX_LIBRARY}
 
         parquet
         arrow
-        thrift
         snappy
 
         zstd
