@@ -1,14 +1,15 @@
 #include <fstream>
 #include "tests/utilities/BlazingUnitTest.h"
 #include "io/data_provider/UriDataProvider.h"
+#include "FileSystem/LocalFileSystem.h"
+#include "Util/StringUtil.h"
 
 struct ProviderTest : public BlazingUnitTest {};
 
 TEST_F(ProviderTest, non_existent_directory) {
     
     std::string filename = "/fake/";
-	std::vector<Uri> uris;
-	uris.push_back(Uri{filename});
+	std::vector<Uri> uris = {Uri{filename}};
 
 	auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
 
@@ -45,8 +46,7 @@ TEST_F(ProviderTest, ignoring_dummy_files) {
     create_dummy_file("some meta", test_files[2]);
     create_dummy_file("a|b\n0|0", test_files[3]);
 
-    std::vector<Uri> uris;
-    uris.push_back(Uri{"/tmp/file*"});
+    std::vector<Uri> uris = {Uri{"/tmp/file*"}};
 
 	auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
 
@@ -62,4 +62,31 @@ TEST_F(ProviderTest, ignoring_dummy_files) {
 
     EXPECT_EQ(result.size(), 1);
     EXPECT_EQ(result[0], "/tmp/file.csv");
+}
+
+TEST_F(ProviderTest, empty_dir) {
+
+    std::unique_ptr<LocalFileSystem> localFileSystem(new LocalFileSystem(Path("/")));
+
+    const int length = 10;
+    std::string dirname = "/tmp/" + randomString(length);
+
+    bool dir_create_ok = localFileSystem->makeDirectory(Uri{dirname});
+    ASSERT_TRUE(dir_create_ok);
+
+    std::vector<Uri> uris = {Uri{dirname}};
+	auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
+
+    bool open_file = false;
+
+    std::vector<std::string> result;
+
+    if(provider->has_next()){
+        ral::io::data_handle new_handle = provider->get_next(open_file);
+        // an empty folder must return an empty handle
+        EXPECT_EQ(new_handle.uri.isEmpty(), true);
+    }
+
+    bool dir_remove_ok = localFileSystem->remove(Uri{dirname});
+    ASSERT_TRUE(dir_remove_ok);
 }
