@@ -86,5 +86,6 @@ add_subdirectory(skipdata)
 add_subdirectory(sort)
 add_subdirectory(waiting_queue)
 add_subdirectory(kernel_tests)
+add_subdirectory(provider)
 
 message(STATUS "******** Tests are ready ********")

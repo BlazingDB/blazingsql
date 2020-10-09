@@ -32,8 +32,10 @@
 - #1053 Fixed issue when loading paths with wildcards
 - #1057 Fixed issue with concat all in concatenating cache
 - #1007 Fix arrow and spdlog compilation issues
+- #1068 Just adds a docs important links and avoid the message about filesystem authority not found
+- #1074: Remove lock inside grow() method from PinnedBufferProvider
+- #1071 Fix crash when loading an empty folder
 - #1064 Fixed issue when loading parquet files with local_files=True
-
 
 
 # BlazingSQL 0.15.0 (August 31, 2020)
