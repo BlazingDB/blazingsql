@@ -68,6 +68,7 @@ PinnedBuffer *PinnedBufferProvider::getBuffer() {
 
 
 // Will create a new allocation and grow the buffer pool with this->numBuffers/2 new buffers
+// Its not threadsafe and the lock needs to be applied before calling it
 void PinnedBufferProvider::grow() {
   PinnedBuffer *buffer = new PinnedBuffer();
   buffer->size = this->bufferSize;
