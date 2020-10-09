@@ -1,6 +1,8 @@
 #include "messageListener.hpp"
 #include <sys/socket.h>
 
+#include "blazingdb/transport/io/reader_writer.h"
+
 namespace comm {
 
 std::map<ucp_tag_t, std::pair<std::vector<char>, std::shared_ptr<ucp_tag_recv_info_t> > > tag_to_begin_buffer_and_info;
@@ -146,39 +148,60 @@ void tcp_message_listener::start_polling(){
     if (listen(socket_fd, 4096) != 0) {
         throw std::runtime_error("Could not listen on socket.");
     }
-    auto thread = std::thread([ this,socket_fd]{
+	auto thread = std::thread([this, socket_fd] {
 		struct sockaddr_in client_address;
 		socklen_t len;
 		int connection_fd;
-		//TODO: be able to stop this thread from running when the engine is killed
-		while((connection_fd = accept(socket_fd, (struct sockaddr *)&client_address, &len)) != -1){
+		// TODO: be able to stop this thread from running when the engine is killed
+		while((connection_fd = accept(socket_fd, (struct sockaddr *) &client_address, &len)) != -1) {
+			auto fwd = pool.push([this, connection_fd](int thread_num) {
 
-
-				//TODO: put this code into the pool below
 				size_t message_size;
-				io::read_from_socket(connection_fd,&message_size,sizeof(message_size));
+				io::read_from_socket(connection_fd, &message_size, sizeof(message_size));
 
 				std::vector<char> data(message_size);
-				io::read_from_socket(connection_fd,data.data(),message_size);
+				io::read_from_socket(connection_fd, data.data(), message_size);
+
 				status_code success = status_code::OK;
-				io::write_to_socket(connection_fd,&success,sizeof(success));
+				io::write_to_socket(connection_fd, &success, sizeof(success));
 
-				auto receiver = std::make_shared<message_receiver>(_nodes_info_map,data);
-				//TODO: william!!!!! Copy here into pinned buffers for later copying into gpu
-				auto fwd = pool.push([receiver, connection_fd](int thread_num){
-				     size_t buffer_size;
-				     size_t buffer_position = 0;
-				     while(buffer_position < receiver->num_buffers()){
-				         receiver->allocate_buffer(buffer_position);
-				         io::read_from_socket(connection_fd,receiver->get_buffer(buffer_position),receiver->buffer_size(buffer_position));
-				         buffer_position++;
-				     }
-				 });
+				auto receiver = std::make_shared<message_receiver>(_nodes_info_map, data);
 
+				size_t pinned_buffer_size = blazingdb::transport::io::getPinnedBufferProvider().sizeBuffers();
+				size_t buffer_position = 0;
+				while(buffer_position < receiver->num_buffers()) {
+					size_t buffer_size = receiver->buffer_size(buffer_position);
+					size_t num_chunks = (buffer_size +(pinned_buffer_size - 1))/ pinned_buffer_size;
+					std::vector<blazingdb::transport::io::PinnedBuffer*> pinned_buffers(num_chunks);
 
-				 //as pinned buffers are collected copy them to the appropriate place in gpu memory
+					receiver->allocate_buffer(buffer_position);
+					void * buffer = receiver->get_buffer(buffer_position);
+					
+					for( size_t chunk = 0; chunk < num_chunks; chunk++ ){
+						size_t chunk_size = pinned_buffer_size;
+						if(( chunk + 1) == num_chunks){ // if its the last chunk, we chunk_size is different
+							chunk_size = buffer_size - (chunk * pinned_buffer_size);
+						}
+						auto pinned_buffer = blazingdb::transport::io::getPinnedBufferProvider().getBuffer();
+						pinned_buffer->use_size = chunk_size;
+
+						io::read_from_socket(connection_fd, pinned_buffer->data, chunk_size);
+
+						auto buffer_chunk_start = buffer + (chunk * pinned_buffer_size);
+						cudaMemcpyAsync(buffer_chunk_start, pinned_buffer->data, chunk_size, cudaMemcpyHostToDevice, pinned_buffer->stream);
+						pinned_buffers[chunk] = pinned_buffer;
+					}
+					// TODO: Do we want to do this synchronize and free after all the receiver->num_buffers() or for each one?
+					for( size_t chunk = 0; chunk < num_chunks; chunk++ ){
+						cudaStreamSynchronize(pinned_buffers[chunk]->stream);
+						blazingdb::transport::io::getPinnedBufferProvider().freeBuffer(pinned_buffers[chunk]);
+					}
+					buffer_position++;
+				}
+				receiver->finish();
+			});
+			
 		}
-
 	});
 	thread.detach();
 }
