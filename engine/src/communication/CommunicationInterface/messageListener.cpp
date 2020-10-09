@@ -150,8 +150,11 @@ void tcp_message_listener::start_polling(){
 		struct sockaddr_in client_address;
 		socklen_t len;
 		int connection_fd;
+		//TODO: be able to stop this thread from running when the engine is killed
 		while((connection_fd = accept(socket_fd, (struct sockaddr *)&client_address, &len)) != -1){
 
+
+				//TODO: put this code into the pool below
 				size_t message_size;
 				io::read_from_socket(connection_fd,&message_size,sizeof(message_size));
 
@@ -161,7 +164,7 @@ void tcp_message_listener::start_polling(){
 				io::write_to_socket(connection_fd,&success,sizeof(success));
 
 				auto receiver = std::make_shared<message_receiver>(_nodes_info_map,data);
-
+				//Copy here into pinned buffers for later copying into gpu
 				auto fwd = pool.push([receiver, connection_fd](int thread_num){
 				     size_t buffer_size;
 				     size_t buffer_position = 0;
@@ -171,6 +174,9 @@ void tcp_message_listener::start_polling(){
 				         buffer_position++;
 				     }
 				 });
+
+
+				 //as pinned buffers are collected copy them to the appropriate place in gpu memory
 		}
 
 	});
