@@ -164,7 +164,7 @@ void tcp_message_listener::start_polling(){
 				io::write_to_socket(connection_fd,&success,sizeof(success));
 
 				auto receiver = std::make_shared<message_receiver>(_nodes_info_map,data);
-				//Copy here into pinned buffers for later copying into gpu
+				//TODO: william!!!!! Copy here into pinned buffers for later copying into gpu
 				auto fwd = pool.push([receiver, connection_fd](int thread_num){
 				     size_t buffer_size;
 				     size_t buffer_position = 0;
