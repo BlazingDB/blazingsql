@@ -18,6 +18,27 @@ namespace io{
 
 namespace comm {
 
+class ucp_progress_manager{
+
+public:
+
+   	static ucp_progress_manager * getInstance();
+    void add_recv_request(char * request);
+    void add_send_request(char * request);
+private:
+    ucp_progress_manager(size_t request_size);
+   	ucp_progress_manager(ucp_progress_manager &&) = delete;
+	ucp_progress_manager(const ucp_progress_manager &) = delete;
+	ucp_progress_manager & operator=(ucp_progress_manager &&) = delete;
+	ucp_progress_manager & operator=(const ucp_progress_manager &) = delete;
+    size_t request_size;
+    std::mutex request_mutex;
+    std::condition_variable cv;
+    std::set<std::vector<char> > send_requests;
+    std::set<std::vector<char> > recv_requests; 
+
+    void check_progress();
+}
 
 enum class status_code {
 	INVALID = -1,

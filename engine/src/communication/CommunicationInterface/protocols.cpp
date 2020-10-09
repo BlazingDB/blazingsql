@@ -77,6 +77,71 @@ graphs_info & graphs_info::getInstance() {
 	return instance;
 }
 
+ucp_progress_manager * instance = nullptr;
+ucp_progress_manager * ucp_progress_manager::getInstance(size_t request_size) {
+	if(instance == nullptr){
+        instance = new ucp_progress_manager(request_size);
+    }
+	return instance;
+}
+
+ucp_progress_manager::ucp_progress_manager(size_t requet_size) :
+ request_size{request_size} {
+    std::thread t([this]{
+        this->check_progress();
+    });
+    t.detach();
+}
+
+void ucp_progress_manager::add_recv_request(char * request){
+    std::lock_guard<std::mutex> lock(request_mutex);
+    recv_requets.push_back(request);
+    cv.notify_one();
+}
+
+void ucp_progress_manager::add_send_request(char * request){
+    std::lock_guard<std::mutex> lock(request_mutex);
+    send_requets.push_back(request);
+    cv.notify_one();
+}
+
+void ucp_progress_manager::check_progress(){
+    while(true){
+        std::set<char *> cur_send_requests;
+        std::set<char *> cur_recv_requests;
+        {
+            std::unique_lock<std::mutex> lock(request_mutex);
+            cv.wait(lock,[]{
+                return (send_requests.size() + recv_requests.size()) > 0;
+            });
+            cur_send_requests = send_requests;
+            cur_recv_requests = recv_requests;
+        }
+    	ucp_worker_progress(ucp_worker);
+
+        for(auto request : cur_send_requests){
+            auto status = ucp_request_check_status(request + request_size);
+            if (status == UCS_OK){
+                this->send_requests.erase(request)
+            }else if (status != UCS_INPROGRESS){
+                throw std::runtime_error("Communication error.");
+            }
+        }
+
+        for(auto request : cur_recv_requests){
+            auto status = ucp_request_check_status(request + request_size);
+            if (status == UCS_OK){
+                this->recv_requests.erase(request)
+            }else if (status != UCS_INPROGRESS){
+                throw std::runtime_error("Communication error.");
+            }
+        }
+
+    }
+}
+
+
+
 void graphs_info::register_graph(int32_t ctx_token, std::shared_ptr<ral::cache::graph> graph){
 	_ctx_token_to_graph_map.insert({ctx_token, graph});
 }
