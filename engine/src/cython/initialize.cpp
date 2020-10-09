@@ -338,7 +338,7 @@ public:
 
   int fd() final { return dsock_; }
 
-private:s
+private:
   int dsock_;
 	int lsock_;
 };
@@ -425,7 +425,10 @@ static void request_init(void *request)
 ucp_context_h CreateUcpContext() {
   ucp_config_t *config;
   ucs_status_t status = ucp_config_read(NULL, NULL, &config);
-  CheckError(status != UCS_OK, "ucp_config_read");s
+  CheckError(status != UCS_OK, "ucp_config_read");
+
+  ucp_params_t ucp_params;
+  std::memset(&ucp_params, 0, sizeof(ucp_params));
   ucp_params.field_mask = UCP_PARAM_FIELD_FEATURES |
                           UCP_PARAM_FIELD_REQUEST_SIZE |
                           UCP_PARAM_FIELD_REQUEST_INIT;
