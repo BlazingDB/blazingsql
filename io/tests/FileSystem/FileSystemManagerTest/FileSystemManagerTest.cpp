@@ -5,7 +5,7 @@
 #include "gtest/gtest.h"
 
 #include "FileSystem/FileSystemManager.h"
-#include <blazingdb/io/Config/BlazingContext.h>
+#include "Config/BlazingContext.h"
 
 class FileSystemManagerTest : public testing::Test {
 protected:
