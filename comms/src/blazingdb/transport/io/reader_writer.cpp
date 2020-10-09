@@ -69,8 +69,6 @@ PinnedBuffer *PinnedBufferProvider::getBuffer() {
 
 // Will create a new allocation and grow the buffer pool with this->numBuffers/2 new buffers
 void PinnedBufferProvider::grow() {
-  std::unique_lock<std::mutex> lock(inUseMutex);
-   
   PinnedBuffer *buffer = new PinnedBuffer();
   buffer->size = this->bufferSize;
   allocations.resize(allocations.size() + 1);
