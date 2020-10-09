@@ -150,15 +150,28 @@ data_handle uri_data_provider::get_next(bool open_file) {
 				this->directory_uris = BlazingContext::getInstance()->getFileSystemManager()->list(target_uri);
 			}
 
-			std::string ender = ".crc";
+			// sometimes parquet directories have somes files that
+			// have not the same schema as the *.parquet files
+			// we don't want the data provider handle this ones
+			std::vector<std::string> ignored_suffixes{".crc", "_metadata", "_SUCCESS"};
+
 			std::vector<Uri> new_uris;
 			for(int i = 0; i < this->directory_uris.size(); i++) {
 				std::string fileName = this->directory_uris[i].getPath().toString();
 
-				if(!StringUtil::endsWith(fileName, ender)) { 
+				bool is_valid=true;
+				for(std::string ender : ignored_suffixes) {
+					if(StringUtil::endsWith(fileName, ender)) {
+						is_valid=false;
+						break;
+					}
+				}
+
+				if(is_valid){
 					new_uris.push_back(this->directory_uris[i]);
 				}
 			}
+
 			this->directory_uris = new_uris;
 			this->directory_current_file = 0;
 
