@@ -1938,8 +1938,10 @@ class BlazingContext(object):
             input = resolve_relative_path(input)
 
             # if we are using user defined partitions without hive,
-            # we want to ignore paths we dont find.
-            ignore_missing_paths = user_partitions_schema is not None
+            # we want to ignore paths we dont find. Also, we should
+            # ignore missing files in case some worker hasn't any
+            # partition file when local_files is True
+            ignore_missing_paths = (user_partitions_schema is not None) or (local_files is True)
             parsedSchema, parsed_mapping_files = self._parseSchema(
                 input,
                 file_format_hint,
