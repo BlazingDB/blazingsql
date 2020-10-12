@@ -1718,6 +1718,13 @@ class BlazingContext(object):
         input : data source for table.
                 cudf.Dataframe, dask_cudf.DataFrame, pandas.DataFrame,
                 filepath for csv, orc, parquet, etc...
+        file_format (optional) : string describing the file format
+                      (e.g. "csv", "orc", "parquet") this field must
+                      only be set if the files do not have an extension.
+        local_files (optional) : boolean, must be set to True if workers
+                      only have access to a subset of the parquet files
+                      belonging to the same table. In such a case,
+                      each worker will load their corresponding partitions.
 
         Examples
         --------
@@ -1941,7 +1948,9 @@ class BlazingContext(object):
             # we want to ignore paths we dont find. Also, we should
             # ignore missing files in case some worker hasn't any
             # partition file when local_files is True
-            ignore_missing_paths = (user_partitions_schema is not None) or (local_files is True)
+            ignore_missing_paths = (user_partitions_schema is not None) or (
+                local_files is True
+            )
             parsedSchema, parsed_mapping_files = self._parseSchema(
                 input,
                 file_format_hint,
@@ -2247,9 +2256,7 @@ class BlazingContext(object):
 
                             return_object[key].update(dict.fromkeys(result[key], None))
                         else:
-                            if key in return_object:
-                                assert return_object[key] == result[key]
-                            else:
+                            if key not in return_object:
                                 return_object[key] = result[key]
                 return_object["files"] = list(return_object["files"])
                 return return_object, all_files
