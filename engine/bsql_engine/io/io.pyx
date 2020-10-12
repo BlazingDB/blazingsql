@@ -19,7 +19,7 @@ from libc.stdlib cimport malloc, free
 from libc.string cimport strcpy, strlen
 from pyarrow.lib cimport *
 
-import enum
+from enum import IntEnum
 
 import numpy as np
 import pandas as pd
@@ -31,6 +31,7 @@ from cudf._lib cimport *
 from cudf._lib.types import np_to_cudf_types, cudf_to_np_types
 from cudf._lib.cpp.types cimport type_id
 from cudf._lib.types cimport underlying_type_t_type_id
+from cudf._lib.cpp.io.types cimport compression_type
 
 from bsql_engine.io cimport cio
 from bsql_engine.io.cio cimport *
@@ -40,6 +41,31 @@ from cython.operator cimport dereference, postincrement
 from cudf._lib.table cimport Table as CudfXxTable
 
 import logging
+
+ctypedef int32_t underlying_type_t_compression
+
+class Compression(IntEnum):
+    INFER = (
+        <underlying_type_t_compression> compression_type.AUTO
+    )
+    SNAPPY = (
+        <underlying_type_t_compression> compression_type.SNAPPY
+    )
+    GZIP = (
+        <underlying_type_t_compression> compression_type.GZIP
+    )
+    BZ2 = (
+        <underlying_type_t_compression> compression_type.BZIP2
+    )
+    BROTLI = (
+        <underlying_type_t_compression> compression_type.BROTLI
+    )
+    ZIP = (
+        <underlying_type_t_compression> compression_type.ZIP
+    )
+    XZ = (
+        <underlying_type_t_compression> compression_type.XZ
+    )
 
 # TODO: module for errors and move pyerrors to cpyerrors
 class BlazingError(Exception):
@@ -116,7 +142,7 @@ cdef cio.TableScanInfo getTableScanInfoPython(string logicalPlan) nogil:
         temp = cio.getTableScanInfo(logicalPlan)
     return temp
 
-cdef void initializePython(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options, 
+cdef void initializePython(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options,
                             string allocation_mode, size_t initial_pool_size, size_t maximum_pool_size, bool enable_logging) nogil except *:
     with nogil:
         cio.initialize(ralId, gpuId, network_iface_name, ralHost, ralCommunicationPort, singleNode, config_options, allocation_mode, initial_pool_size, maximum_pool_size, enable_logging)
@@ -169,7 +195,7 @@ cpdef pair[bool, string] registerFileSystemCaller(fs, root, authority):
     if fs['type'] == 'local':
         return cio.registerFileSystemLocal( str.encode( root), str.encode(authority))
 
-cpdef initializeCaller(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options, 
+cpdef initializeCaller(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options,
         string allocation_mode, size_t initial_pool_size, size_t maximum_pool_size, bool enable_logging):
     initializePython(ralId, gpuId, network_iface_name, ralHost, ralCommunicationPort, singleNode, config_options, allocation_mode, initial_pool_size, maximum_pool_size, enable_logging)
 
@@ -199,11 +225,19 @@ cpdef getProductDetailsCaller():
 
 cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns, ignore_missing_paths):
     cdef vector[string] files
-    for file in fileList:
-      files.push_back(str.encode(file))
-
     cdef vector[string] arg_keys
     cdef vector[string] arg_values
+    cdef underlying_type_t_compression c_compression
+
+    if 'compression' in args:
+        if args['compression'] is None:
+            c_compression = <underlying_type_t_compression> compression_type.NONE
+        else:
+            c_compression = <underlying_type_t_compression> Compression[args['compression'].upper()]
+        args.update(compression=c_compression)
+
+    for file in fileList:
+      files.push_back(str.encode(file))
 
     for key, value in args.items():
       arg_keys.push_back(str.encode(key))
