@@ -36,12 +36,6 @@ struct data_handle {
 	Uri uri;										  // in case the data was loaded from a file
 
 	bool is_valid(){
-		// sometimes parquet directories have a `_metadata` file that have not the same schema as the *.parquet files
-		// we don't want the data provider handle this one.
-		std::string file_name = uri.toString(true);
-		std::string metadata_str = file_name.substr(file_name.size() - 9);
-		if (metadata_str == "_metadata") return false;
-
 		return fileHandle != nullptr || !uri.isEmpty() ;
 	}
 };
