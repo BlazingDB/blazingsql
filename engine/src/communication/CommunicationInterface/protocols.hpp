@@ -18,15 +18,26 @@ namespace io{
 
 namespace comm {
 
+ 
+
 class ucp_progress_manager{
 
 public:
 
-   	static ucp_progress_manager * getInstance();
+   	static ucp_progress_manager * get_instance(ucp_worker_h ucp_worker, size_t request_size);
+    static ucp_progress_manager * get_instance();
     void add_recv_request(char * request);
-    void add_send_request(char * request);
+    void add_send_request(char * request,std::atomic<size_t> * counter,std::condition_variable * counter_cv);
 private:
-    ucp_progress_manager(size_t request_size);
+   struct request_counter{
+        char * request;
+        std::atomic<size_t> * counter;
+        std::condition_variable * cv;
+        bool operator <(const request_counter & other) const{
+            return request < other.request;
+        }
+    };
+    ucp_progress_manager(ucp_worker_h ucp_worker,size_t request_size);
    	ucp_progress_manager(ucp_progress_manager &&) = delete;
 	ucp_progress_manager(const ucp_progress_manager &) = delete;
 	ucp_progress_manager & operator=(ucp_progress_manager &&) = delete;
@@ -34,11 +45,13 @@ private:
     size_t request_size;
     std::mutex request_mutex;
     std::condition_variable cv;
-    std::set<std::vector<char> > send_requests;
-    std::set<std::vector<char> > recv_requests; 
-
+    std::set<request_counter > send_requests;
+    std::set<char * > recv_requests; 
+    ucp_worker_h ucp_worker;
     void check_progress();
-}
+};
+
+
 
 enum class status_code {
 	INVALID = -1,

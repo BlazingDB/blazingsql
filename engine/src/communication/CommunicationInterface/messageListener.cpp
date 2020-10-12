@@ -44,7 +44,7 @@ void poll_for_frames(std::shared_ptr<message_receiver> receiver,
 
 		message_tag.frame_id = buffer_id + 1;
 
-    char *request = reinterpret_cast<char *>(std::malloc(request_size));
+    char *request = new char[request_size];
     ucs_status_t status = ucp_tag_recv_nbr(ucp_worker,
                                            receiver->get_buffer(buffer_id),
                                            receiver->buffer_size(buffer_id),
@@ -65,7 +65,7 @@ void poll_for_frames(std::shared_ptr<message_receiver> receiver,
       // TODO: decide how to do cleanup i think we just throw an
       // initialization exception
     }
-    std::free(request);
+    delete request;
 
 		++buffer_id;
   }
@@ -83,6 +83,7 @@ void recv_begin_callback_c(ucp_tag_recv_info_t *info, size_t request_size) {
 		auto receiver = std::make_shared<message_receiver>(message_listener->get_node_map(), buffer);
 		message_listener->add_receiver(info->sender_tag, receiver);
 		//TODO: if its a specific cache get that cache adn put it here else put the general iput cache from the graph
+/*
 		auto node = receiver->get_sender_node();
 
 		auto acknowledge_tag = *reinterpret_cast<blazing_ucp_tag *>(&info->sender_tag);
@@ -107,7 +108,7 @@ void recv_begin_callback_c(ucp_tag_recv_info_t *info, size_t request_size) {
 		if(status != UCS_OK){
 			throw std::runtime_error("Was not able to send transmission ack");
 		}
-
+*/
 		poll_for_frames(receiver, info->sender_tag, message_listener->get_worker(), request_size);
 	});
 	try{
@@ -281,8 +282,8 @@ ucx_message_listener::ucx_message_listener(ucp_context_h context, ucp_worker_h w
 	if (status != UCS_OK)	{
 		throw std::runtime_error("Error calling ucp_context_query");
 	}
-
 	_request_size = attr.request_size;
+	ucp_progress_manager::get_instance(worker,_request_size);
 }
 
 tcp_message_listener::tcp_message_listener(const std::map<std::string, comm::node>& nodes,int port, int num_threads) : _port{port} , message_listener{nodes,num_threads}{

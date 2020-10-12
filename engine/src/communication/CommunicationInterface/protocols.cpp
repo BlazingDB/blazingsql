@@ -78,15 +78,22 @@ graphs_info & graphs_info::getInstance() {
 }
 
 ucp_progress_manager * instance = nullptr;
-ucp_progress_manager * ucp_progress_manager::getInstance(size_t request_size) {
+ucp_progress_manager * ucp_progress_manager::get_instance(ucp_worker_h ucp_worker, size_t request_size) {
 	if(instance == nullptr){
-        instance = new ucp_progress_manager(request_size);
+        instance = new ucp_progress_manager(ucp_worker,request_size);
     }
 	return instance;
 }
 
-ucp_progress_manager::ucp_progress_manager(size_t requet_size) :
- request_size{request_size} {
+ucp_progress_manager * ucp_progress_manager::get_instance() {
+	if(instance == nullptr){
+        throw std::runtime_error("ucp_progress_manager (in blazing) not initialized.");
+    }
+	return instance;
+}
+
+ucp_progress_manager::ucp_progress_manager(ucp_worker_h ucp_worker,size_t requet_size) :
+ ucp_worker{ucp_worker}, request_size{request_size} {
     std::thread t([this]{
         this->check_progress();
     });
@@ -95,43 +102,53 @@ ucp_progress_manager::ucp_progress_manager(size_t requet_size) :
 
 void ucp_progress_manager::add_recv_request(char * request){
     std::lock_guard<std::mutex> lock(request_mutex);
-    recv_requets.push_back(request);
+    recv_requests.insert(request);
     cv.notify_one();
 }
 
-void ucp_progress_manager::add_send_request(char * request){
+
+void ucp_progress_manager::add_send_request(char * request, std::atomic<size_t> * counter,std::condition_variable * counter_cv){
     std::lock_guard<std::mutex> lock(request_mutex);
-    send_requets.push_back(request);
+    send_requests.insert({request,counter,counter_cv});
     cv.notify_one();
 }
 
 void ucp_progress_manager::check_progress(){
     while(true){
-        std::set<char *> cur_send_requests;
+        std::set<request_counter> cur_send_requests;
         std::set<char *> cur_recv_requests;
         {
             std::unique_lock<std::mutex> lock(request_mutex);
-            cv.wait(lock,[]{
+            cv.wait(lock,[this]{
                 return (send_requests.size() + recv_requests.size()) > 0;
             });
             cur_send_requests = send_requests;
             cur_recv_requests = recv_requests;
         }
+        std::cout<<"calling progress on"<<ucp_worker<<std::endl;
     	ucp_worker_progress(ucp_worker);
-
+        std::cout<<"called progress"<<std::endl;
         for(auto request : cur_send_requests){
-            auto status = ucp_request_check_status(request + request_size);
+            std::cout<<"checking status of "<<(void *) request.request<<std::endl;
+            auto status = ucp_request_check_status(request.request + request_size);
+            std::cout<<"checked status of "<<(void *) request.request<<" it was "<<status <<std::endl;
             if (status == UCS_OK){
-                this->send_requests.erase(request)
+                std::unique_lock<std::mutex> lock(request_mutex);
+                this->send_requests.erase(request);
+                (*(request.counter))++;
+                request.cv->notify_one();
+                delete request.request;
             }else if (status != UCS_INPROGRESS){
                 throw std::runtime_error("Communication error.");
             }
         }
 
         for(auto request : cur_recv_requests){
-            auto status = ucp_request_check_status(request + request_size);
+            auto status = ucp_request_check_status(request);
             if (status == UCS_OK){
-                this->recv_requests.erase(request)
+                std::unique_lock<std::mutex> lock(request_mutex);
+                this->recv_requests.erase(request);
+                delete request;
             }else if (status != UCS_INPROGRESS){
                 throw std::runtime_error("Communication error.");
             }
@@ -188,18 +205,29 @@ void ucx_buffer_transport::send_begin_transmission() {
 	std::vector<char *> requests(destinations.size());
 	int i = 0;
 	for(auto const & node : destinations) {
-        requests[i] = new char[_request_size];
+        char * request = new char[_request_size];
 		auto temp_tag = *reinterpret_cast<blazing_ucp_tag *>(&tag);
 		auto status = ucp_tag_send_nbr(
-			node.get_ucp_endpoint(), buffer_to_send.data(), buffer_to_send.size(), ucp_dt_make_contig(1), tag, requests[i] + _request_size);
+			node.get_ucp_endpoint(), buffer_to_send.data(), buffer_to_send.size(), ucp_dt_make_contig(1), tag, request + _request_size);
+        if(status == UCS_INPROGRESS){
+            std::cout<<"adding to manager "<<(void *) request<<std::endl;
+            ucp_progress_manager::get_instance()->add_send_request(request,&this->transmitted_begin_frames,&this->completion_condition_variable);
+        }else if (status != UCS_OK){
+            throw std::runtime_error("Immediate Communication error.");
+        }else{
+            this->increment_begin_transmission();
+        }
+        /*
         do {
-			ucp_worker_progress(origin_node);
+			ucp_worker_progress(origin_node);)
 			status = ucp_request_check_status(requests[i] + _request_size);
 		} while (status == UCS_INPROGRESS);
         if(status != UCS_OK){
 			throw std::runtime_error("Was not able to send begin transmission to " + node.id());
 		}
+        */
 
+        /*
 		ucp_tag_recv_info_t info_tag;
 		blazing_ucp_tag acknowledge_tag = *reinterpret_cast<blazing_ucp_tag *>(&tag);
 		acknowledge_tag.frame_id = 0xFFFF;
@@ -225,10 +253,11 @@ void ucx_buffer_transport::send_begin_transmission() {
 
 		if (recv_begin_status == status_code::OK) {
 			increment_begin_transmission();
-		}
-
+		}*/
+        
 		i++;
 	}
+    wait_for_begin_transmission();
 }
 
 void ucx_buffer_transport::increment_frame_transmission() {
@@ -246,7 +275,7 @@ void ucx_buffer_transport::send_impl(const char * buffer, size_t buffer_size) {
   std::vector<char *> requests;
   requests.reserve(destinations.size());
   for (auto const &node : destinations) {
-    char *request = reinterpret_cast<char *>(std::malloc(_request_size));
+    char *request = new char[_request_size];
     ucp_tag_send_nbr(node.get_ucp_endpoint(),
                      buffer,
                      buffer_size,
@@ -275,7 +304,7 @@ void ucx_buffer_transport::send_impl(const char * buffer, size_t buffer_size) {
     ucs_status_t status = statuses.at(i);
 
     if (status == UCS_OK) {
-      std::free(request);
+      delete request;
       increment_frame_transmission();
     } else {
 			std::cout<<"Something went wrong while sending frame data"<<std::endl;
@@ -357,7 +386,7 @@ void tcp_buffer_transport::send_impl(const char * buffer, size_t buffer_size){
             std::cout<<"sending data "<<4<<std::endl;
         buffers.push_back(
             std::move(allocate_copy_buffer_pool->push(
-                [buffer_chunk,chunk_size](int thread_id) {
+                [buffer_chunk_start,chunk_size](int thread_id) {
                     auto pinned_buffer = blazingdb::transport::io::getPinnedBufferProvider().getBuffer();
                     pinned_buffer->use_size = chunk_size;
                     cudaMemcpyAsync(pinned_buffer->data,buffer_chunk_start,chunk_size,cudaMemcpyDeviceToHost,pinned_buffer->stream);
