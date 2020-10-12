@@ -26,10 +26,16 @@ public:
 	 * @brief Constructs a message_sender
 	 *
 	 * @param output_cache The cache machine from where to obtain the data to send
+	 * @param input_cache The cache machine there the node receives data (not acutally used by this class, but this class maintains its scope)
 	 * @param node_address_map A map from node id to Node
 	 * @param num_threads Number of threads the message_sender will use to send data concurrently
+	 * @param context The ucp_context_h
+	 * @param origin The ucp_worker_h
+	 * @param ral_id The ral_id
+	 * @param protocol The comm::blazing_protocol 
 	 */
 	message_sender(std::shared_ptr<ral::cache::CacheMachine> output_cache,
+		std::shared_ptr<ral::cache::CacheMachine> input_cache,
 		const std::map<std::string, node> & node_address_map,
 		int num_threads,
 		ucp_context_h context,
@@ -38,12 +44,21 @@ public:
 		comm::blazing_protocol protocol);
 
 	static void initialize_instance(std::shared_ptr<ral::cache::CacheMachine> output_cache,
+		std::shared_ptr<ral::cache::CacheMachine> input_cache,
 		std::map<std::string, node> node_address_map,
 		int num_threads,
 		ucp_context_h context,
 		ucp_worker_h origin_node,
 		int ral_id,
 		comm::blazing_protocol protocol);
+
+	std::shared_ptr<ral::cache::CacheMachine> get_output_cache(){
+		return output_cache;
+	}
+	std::shared_ptr<ral::cache::CacheMachine> get_input_cache(){
+		return input_cache;
+	}
+
 	/**
 	 * @brief A polling function that listens on a cache for data and send it off via some protocol
 	 */
@@ -143,6 +158,7 @@ private:
 
 	ctpl::thread_pool<BlazingThread> pool;
 	std::shared_ptr<ral::cache::CacheMachine> output_cache;
+	std::shared_ptr<ral::cache::CacheMachine> input_cache;
 	std::map<std::string, node> node_address_map;
 	blazing_protocol protocol;
 	ucp_worker_h origin;

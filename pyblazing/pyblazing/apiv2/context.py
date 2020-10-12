@@ -205,7 +205,7 @@ def initializeBlazing(
         self_port = worker.ucx_addresses[worker_id]["port"]
 
     self_node_tcp_data = next(n for n in nodes if n['worker'] == worker_id)
-    output_cache, input_cache = cio.initializeCaller(
+    output_cache, input_cache, self_port = cio.initializeCaller(
         ralId,
         worker_id.encode(),
         0,
