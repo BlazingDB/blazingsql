@@ -356,10 +356,10 @@ void tcp_buffer_transport::send_begin_transmission(){
         //write out begin_message_size
         io::write_to_socket(socket_fd, &size_to_send ,sizeof(size_to_send));
         io::write_to_socket(socket_fd, buffer_to_send.data(),buffer_to_send.size());
-        io::read_from_socket(socket_fd,&status, sizeof(status_code));
-        if(status != status_code::OK){
-            throw std::runtime_error("Could not send begin transmission");
-        }
+        //io::read_from_socket(socket_fd,&status, sizeof(status_code));
+        //if(status != status_code::OK){
+         //   throw std::runtime_error("Could not send begin transmission");
+        //}
         increment_begin_transmission();
     }
 

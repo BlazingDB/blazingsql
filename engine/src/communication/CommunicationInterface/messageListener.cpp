@@ -163,8 +163,8 @@ void tcp_message_listener::start_polling(){
 				std::vector<char> data(message_size);
 				io::read_from_socket(connection_fd, data.data(), message_size);
 
-				status_code success = status_code::OK;
-				io::write_to_socket(connection_fd, &success, sizeof(success));
+				//status_code success = status_code::OK;
+				//io::write_to_socket(connection_fd, &success, sizeof(success));
 
 				auto receiver = std::make_shared<message_receiver>(_nodes_info_map, data);
 
