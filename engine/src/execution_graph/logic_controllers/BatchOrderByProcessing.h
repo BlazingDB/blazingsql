@@ -28,10 +28,6 @@ public:
 		this->input_.add_port("input_a", "input_b");
 	}
 
-	bool can_you_throttle_my_input() {
-		return true;
-	}
-
 	virtual kstatus run() {
 		CodeTimer timer;
 
@@ -180,10 +176,6 @@ public:
 		}
 	}
 
-	bool can_you_throttle_my_input() {
-		return true;
-	}
-
 	virtual kstatus run() {
 		CodeTimer timer;
 		CodeTimer eventTimer(false);
@@ -217,7 +209,6 @@ public:
 		int batch_count = 0;
 		while (input.wait_for_next()) {
 			try {
-				this->output_cache("output_a")->wait_if_cache_is_saturated();
 				auto batch = input.next();
 
 				eventTimer.start();
@@ -315,10 +306,6 @@ public:
 		: kernel{kernel_id, queryString, context, kernel_type::PartitionKernel} {
 		this->query_graph = query_graph;
 		this->input_.add_port("input_a", "input_b");
-	}
-
-	bool can_you_throttle_my_input() {
-		return true;
 	}
 
 	virtual kstatus run() {
@@ -487,10 +474,6 @@ public:
 		this->query_graph = query_graph;
 	}
 
-	bool can_you_throttle_my_input() {
-		return false;
-	}
-
 	virtual kstatus run() {
 		CodeTimer timer;
 
@@ -578,10 +561,7 @@ public:
 		this->query_graph = query_graph;
 	}
 
-	bool can_you_throttle_my_input() {
-		return false;
-	}
-
+	
 	virtual kstatus run() {
 		CodeTimer timer;
 		CodeTimer eventTimer(false);
