@@ -181,7 +181,6 @@ std::vector<cudf::table_view> partition_table(const ral::frame::BlazingTableView
 												sortOrderTypes, null_orders);
 
 	std::vector<cudf::size_type> split_indexes = ral::utilities::vector_to_column<cudf::size_type>(pivot_indexes->view());
-	std::cout<<"partition_table split_indexes.size(): "<<split_indexes.size()<<std::endl;
 	return cudf::split(sortedTable.view(), split_indexes);
 }
 
