@@ -581,7 +581,7 @@ public:
 
 		CodeTimer blazing_timer;
 		std::unique_lock<std::mutex> lock(mutex_);
-		while(!condition_variable_.wait_for(lock, timeout*1ms, [&, this] {
+		/*while(!condition_variable_.wait_for(lock, timeout*1ms, [&, this] {
 				bool done_waiting = this->finished.load(std::memory_order_seq_cst) or !this->empty();
 				if (!done_waiting && blazing_timer.elapsed_time() > 59000){
 					auto logger = spdlog::get("batch_logger");
@@ -592,8 +592,11 @@ public:
 					}
 				}
 				return done_waiting;
-			})){}
+			})){}*/
 
+		condition_variable.wait(lock,[&, this] {
+				return this->finished.load(std::memory_order_seq_cst) or !this->empty();
+		});
 		if(this->message_queue_.size() == 0) {
 			return nullptr;
 		}
