@@ -307,7 +307,7 @@ public:
             }
         }
 
-        auto self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
+      
         int total_count = node_count[self_node.id()];
         for (auto message : messages_to_wait_for){
             auto meta_message = this->query_graph->get_input_message_cache()->pullCacheData(message);
