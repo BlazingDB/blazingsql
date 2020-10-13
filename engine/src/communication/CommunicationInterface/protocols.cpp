@@ -370,10 +370,8 @@ void tcp_buffer_transport::send_impl(const char * buffer, size_t buffer_size){
 
     //allocate pinned + copy from gpu
     //transmit
-    std::cout<<"sending data "<<1<<std::endl;
     size_t pinned_buffer_size = blazingdb::transport::io::getPinnedBufferProvider().sizeBuffers();
     size_t num_chunks = (buffer_size +(pinned_buffer_size - 1))/ pinned_buffer_size;
-    std::cout<<"sending data "<<2<<std::endl;
     std::vector<blazingdb::transport::io::PinnedBuffer *> buffers(num_chunks);
     for( size_t chunk = 0; chunk < num_chunks; chunk++ ){
         
