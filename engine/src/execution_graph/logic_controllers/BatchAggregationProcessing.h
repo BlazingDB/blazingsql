@@ -178,7 +178,7 @@ public:
                 auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
                 if (group_column_indices.size() == 0) {
                     if(this->context->isMasterNode(self_node)) {
-                        bool added = this->output_.get_cache()->addToCache(std::move(batch),"",true);
+                        bool added = this->output_.get_cache()->addToCache(std::move(batch),"",false);
                         if (added) {
                             node_count[self_node.id()]++;
                         }
@@ -257,7 +257,7 @@ public:
                             }
                         } else {
                             metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, this->context->getNode(i).id());
-                            bool added = output_cache->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(std::move(partition), metadata),"",true);
+                            bool added = output_cache->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(std::move(partition), metadata),"",false);
                             if (added) {
                                 node_count[this->context->getNode(i).id()]++;
                             }

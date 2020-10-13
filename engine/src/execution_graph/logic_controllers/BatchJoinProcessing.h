@@ -528,7 +528,7 @@ public:
 						// also we need a BlazingTable to put into the cache, we cant cache views.
 						std::unique_ptr<ral::frame::BlazingTable> partition_table_clone = partition_table_view.clone();
 
-						bool added = output->addToCache(std::move(partition_table_clone), cache_id + "_" + kernel_id,true);
+						bool added = output->addToCache(std::move(partition_table_clone), cache_id + "_" + kernel_id,false);
 						if (added) {
 							node_count[self_node.id()]++;
 						}
@@ -554,7 +554,7 @@ public:
 					metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, dest_node.id());
 					metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, cache_id);
 
-					bool added = graph_output->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(table_view.clone(), metadata),"",true);
+					bool added = graph_output->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(table_view.clone(), metadata),"",false);
 					if (added) {
 						node_count[dest_node.id()]++;
 					}
@@ -906,13 +906,13 @@ public:
 							metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, small_output_cache_name);
 							metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, self_node.id());
 							metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, nodes_to_send[i].id());
-							bool added = output_cache->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(small_table_batch->toBlazingTableView().clone(), metadata),"",true);
+							bool added = output_cache->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(small_table_batch->toBlazingTableView().clone(), metadata),"",false);
 							if (added) {
 								node_count[nodes_to_send[i].id()]++;
 							}
 						}
 
-						bool added = this->output_.get_cache(small_output_cache_name).get()->addToCache(std::move(small_table_batch),"",true);
+						bool added = this->output_.get_cache(small_output_cache_name).get()->addToCache(std::move(small_table_batch),"",false);
 						if (added) {
 							node_count[self_node.id()]++;
 						}
