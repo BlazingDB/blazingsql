@@ -1722,7 +1722,7 @@ class BlazingContext(object):
                       (e.g. "csv", "orc", "parquet") this field must
                       only be set if the files do not have an extension.
         local_files (optional) : boolean, must be set to True if workers
-                      only have access to a subset of the parquet files
+                      only have access to a subset of the files
                       belonging to the same table. In such a case,
                       each worker will load their corresponding partitions.
 
@@ -2083,7 +2083,7 @@ class BlazingContext(object):
                     ["file_handle_index", "row_group_index"]
                 ].to_pandas()
 
-                grouped = metadata_ids.groupby(metadata_ids["file_handle_index"])
+                grouped = metadata_ids.groupby("file_handle_index")
                 row_groups_ids = []
                 for group_id in grouped.groups:
                     row_indices = grouped.groups[group_id].values.tolist()
@@ -2402,9 +2402,7 @@ class BlazingContext(object):
                     file_indices_and_rowgroup_indices.to_pandas()
                 )
 
-                grouped = file_and_rowgroup_indices.groupby(
-                    file_and_rowgroup_indices["file_handle_index"]
-                )
+                grouped = file_and_rowgroup_indices.groupby("file_handle_index")
                 for group_id in grouped.groups:
                     row_indices = grouped.groups[group_id].values.tolist()
                     actual_files.append(current_table.files[group_id])
