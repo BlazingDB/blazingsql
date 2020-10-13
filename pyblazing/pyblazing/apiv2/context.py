@@ -2201,6 +2201,8 @@ class BlazingContext(object):
                     pure=False,
                 )
                 parsed_schema = connection.result()
+                if(len(parsed_schema["files"]) == 0):
+                    raise Exception("ERROR: The file pattern specified did not match any files")
                 return parsed_schema, {"localhost": parsed_schema["files"]}
             else:
                 # each worker parse all accesible files on the file path
@@ -2256,8 +2258,10 @@ class BlazingContext(object):
 
                             return_object[key].update(dict.fromkeys(result[key], None))
                         else:
-                            if key not in return_object:
+                            if key not in return_object or (key in return_object and len(result["files"])>0):
                                 return_object[key] = result[key]
+                if(len(return_object["files"]) == 0):
+                    raise Exception("ERROR: The file pattern specified did not match any files")
                 return_object["files"] = list(return_object["files"])
                 return return_object, all_files
         else:
