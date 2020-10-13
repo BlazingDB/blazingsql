@@ -327,8 +327,7 @@ public:
 
 		BatchSequence input_partitionPlan(this->input_.get_cache("input_b"), this);
 		auto partitionPlan = std::move(input_partitionPlan.next());
-		std::cout<<"PartitionKernel partitionPlan->num_rows(): "<<partitionPlan->num_rows()<<std::endl;
-
+		
 		context->incrementQuerySubstep();
 
 		std::vector<std::string> messages_to_wait_for;
@@ -343,8 +342,10 @@ public:
 			auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
 			auto nodes = context->getAllNodes();
 
+			int num_partitions_per_node = (partitionPlan->num_rows() + 1) / this->context->getTotalNodes();
+		
 			std::map<int32_t, int> temp_partitions_map;
-			for (size_t i = 0; i < partitionPlan->num_rows() + 1; i++) {
+			for (size_t i = 0; i < num_partitions_per_node; i++) {
 				temp_partitions_map[i] = 0;
 			}
 			for (auto &&node : nodes) {
@@ -358,7 +359,6 @@ public:
 					std::vector<ral::distribution::NodeColumnView> partitions = ral::distribution::partitionData(this->context.get(), batch->toBlazingTableView(), partitionPlan->toBlazingTableView(), sortColIndices, sortOrderTypes);
 
 					std::vector<int32_t> part_ids(partitions.size());
-					int num_partitions_per_node = partitions.size() / this->context->getTotalNodes();
 					std::generate(part_ids.begin(), part_ids.end(), [count=0, num_partitions_per_node] () mutable { return (count++) % (num_partitions_per_node); });
 
 					// ral::distribution::distributeTablePartitions(context, partitions, part_ids);
@@ -379,7 +379,7 @@ public:
 
 						metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, dest_node.id());
 						metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, "output_" + std::to_string(part_ids[i]) );
-
+		
 						bool added = output_message_cache->addCacheData(std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(table_view.clone(), metadata)),"",false);
 						if (added) {
 							node_count[dest_node.id()][part_ids[i]]++;

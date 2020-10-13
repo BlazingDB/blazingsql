@@ -218,8 +218,6 @@ std::unique_ptr<ral::frame::BlazingTable> generate_partition_plan(const std::vec
 							" NUM_BYTES_PER_ORDER_BY_PARTITION: " + std::to_string(num_bytes_per_order_by_partition) +
 							" MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE: " + std::to_string(max_num_order_by_partitions_per_node);
 	
-	std::cout<<"Determining Number of Order By Partitions " + info<<std::endl;
-
 	auto logger = spdlog::get("batch_logger");
 	logger->debug("{query_id}|{step}|{substep}|{info}|||||",
 								"query_id"_a=context->getContextToken(),
@@ -236,7 +234,6 @@ std::unique_ptr<ral::frame::BlazingTable> generate_partition_plan(const std::vec
 	}
 
 	partitionPlan = generatePartitionPlans(total_num_partitions, samples, sortOrderTypes);
-	std::cout<<"partitionPlan num_rows: "<<partitionPlan->num_rows()<<std::endl;
 	context->incrementQuerySubstep();
 	return partitionPlan;
 }

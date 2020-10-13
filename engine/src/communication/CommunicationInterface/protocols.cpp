@@ -47,7 +47,6 @@ namespace io{
 		int count_invalids = 0;
 		while (amount_written < write_size && count_invalids < NUMBER_RETRIES) {
 			bytes_written = write(socket_fd, data + amount_written, write_size - amount_written);
-            std::cout<<"wrote "<<bytes_written<<" bytes of"<<write_size<<std::endl;
 			if (bytes_written != -1) {
 				amount_written += bytes_written;
 				count_invalids = 0;
