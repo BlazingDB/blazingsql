@@ -374,7 +374,7 @@ void tcp_buffer_transport::send_impl(const char * buffer, size_t buffer_size){
     size_t pinned_buffer_size = blazingdb::transport::io::getPinnedBufferProvider().sizeBuffers();
     size_t num_chunks = (buffer_size +(pinned_buffer_size - 1))/ pinned_buffer_size;
     std::cout<<"sending data "<<2<<std::endl;
-    std::vector<std::future<blazingdb::transport::io::PinnedBuffer *> > buffers;
+    std::vector<blazingdb::transport::io::PinnedBuffer *> buffers(num_chunks);
     for( size_t chunk = 0; chunk < num_chunks; chunk++ ){
         
         size_t chunk_size = pinned_buffer_size;
@@ -383,31 +383,20 @@ void tcp_buffer_transport::send_impl(const char * buffer, size_t buffer_size){
         }
         auto buffer_chunk_start = buffer + (chunk * pinned_buffer_size);
         
-            std::cout<<"sending data "<<4<<std::endl;
-        buffers.push_back(
-            std::move(allocate_copy_buffer_pool->push(
-                [buffer_chunk_start,chunk_size](int thread_id) {
-                    auto pinned_buffer = blazingdb::transport::io::getPinnedBufferProvider().getBuffer();
-                    pinned_buffer->use_size = chunk_size;
-                    cudaMemcpyAsync(pinned_buffer->data,buffer_chunk_start,chunk_size,cudaMemcpyDeviceToHost,pinned_buffer->stream);
-                    return pinned_buffer;
-            }))
-        );
-            std::cout<<"sending data "<<5<<std::endl;
+        auto pinned_buffer = blazingdb::transport::io::getPinnedBufferProvider().getBuffer();
+        pinned_buffer->use_size = chunk_size;
+        cudaMemcpyAsync(pinned_buffer->data,buffer_chunk_start,chunk_size,cudaMemcpyDeviceToHost,pinned_buffer->stream);
+        buffers[chunk] = pinned_buffer;
     }
     size_t chunk = 0;
     try{
-            std::cout<<"sending data "<<6<<std::endl;
         while(chunk < num_chunks){
-    std::cout<<"sending data "<<7<<std::endl;
-            auto pinned_buffer = buffers[chunk].get();
-            std::cout<<"sending data "<<7.5<<std::endl;
+            auto pinned_buffer = buffers[chunk];
             cudaStreamSynchronize(pinned_buffer->stream);
             for (auto socket_fd : socket_fds){
                // io::write_to_socket(socket_fd, &pinned_buffer->use_size,sizeof(pinned_buffer->use_size));
                 io::write_to_socket(socket_fd, pinned_buffer->data,pinned_buffer->use_size);
             }
-                std::cout<<"sending data "<<8<<std::endl;
             blazingdb::transport::io::getPinnedBufferProvider().freeBuffer(pinned_buffer);
             chunk++;
         }
