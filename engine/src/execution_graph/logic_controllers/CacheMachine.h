@@ -594,7 +594,7 @@ public:
 				return done_waiting;
 			})){}*/
 
-		condition_variable.wait(lock,[&, this] {
+		condition_variable_.wait(lock,[&, this] {
 				return this->finished.load(std::memory_order_seq_cst) or !this->empty();
 		});
 		if(this->message_queue_.size() == 0) {
