@@ -8,6 +8,7 @@ from urllib.parse import urlparse
 from threading import Lock
 from weakref import ref
 from pyblazing.apiv2.filesystem import FileSystem
+from pyblazing.apiv2.validation import kwargs_validation
 from pyblazing.apiv2 import DataType
 
 import json
@@ -1749,6 +1750,8 @@ class BlazingContext(object):
 
         Docs: https://docs.blazingdb.com/docs/create_table
         """
+
+        kwargs_validation(kwargs, "create_table")
 
         logging.info("create_table start for " + table_name)
 
