@@ -2,6 +2,7 @@
 #include <sys/socket.h>
 
 #include "blazingdb/transport/io/reader_writer.h"
+#include "CodeTimer.h"
 
 namespace comm {
 
@@ -156,7 +157,7 @@ void tcp_message_listener::start_polling(){
 		// TODO: be able to stop this thread from running when the engine is killed
 		while((connection_fd = accept(socket_fd, (struct sockaddr *) &client_address, &len)) != -1) {
 			auto fwd = pool.push([this, connection_fd](int thread_num) {
-
+				CodeTimer timer;
 				size_t message_size;
 				io::read_from_socket(connection_fd, &message_size, sizeof(message_size));
 
@@ -170,8 +171,10 @@ void tcp_message_listener::start_polling(){
 
 				size_t pinned_buffer_size = blazingdb::transport::io::getPinnedBufferProvider().sizeBuffers();
 				size_t buffer_position = 0;
+				size_t total_size = 0;
 				while(buffer_position < receiver->num_buffers()) {
 					size_t buffer_size = receiver->buffer_size(buffer_position);
+					total_size += buffer_size;
 					size_t num_chunks = (buffer_size +(pinned_buffer_size - 1))/ pinned_buffer_size;
 					std::vector<blazingdb::transport::io::PinnedBuffer*> pinned_buffers(num_chunks);
 
@@ -200,6 +203,9 @@ void tcp_message_listener::start_polling(){
 					buffer_position++;
 				}
 				receiver->finish();
+				auto duration = timer.elapsed_time();
+				std::cout<<"Transfer duration was "<<duration <<" Throughput was "<<
+				(( (float) total_size) / 1000000.0)/(((float) duration)/1000.0)<<" MB/s"<<std::endl;
 			});
 			
 		}
