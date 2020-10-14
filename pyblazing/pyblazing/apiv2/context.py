@@ -1318,8 +1318,6 @@ class BlazingContext(object):
 
             i = 0
             dask_futures = []
-            print("about to initialize")
-            print(workers)
             for worker in workers:
                 dask_futures.append(
                     self.dask_client.submit(

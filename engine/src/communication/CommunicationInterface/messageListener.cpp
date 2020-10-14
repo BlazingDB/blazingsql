@@ -121,9 +121,7 @@ void recv_begin_callback_c(ucp_tag_recv_info_t *info, size_t request_size) {
 
 void tcp_message_listener::start_polling(){
     
-	std::cout<<"WWWWWWWWWWWWWWW   tcp_message_listener::start_polling() start"<<std::endl;
 	if (!polling_started){
-		std::cout<<"WWWWWWWWWWWWWWW   tcp_message_listener::start_polling() actual start"<<std::endl;
 		int socket_fd;
 		
 		struct sockaddr_in server_address;
@@ -283,7 +281,6 @@ tcp_message_listener * tcp_message_listener::instance = nullptr;
 ucx_message_listener::ucx_message_listener(ucp_context_h context, ucp_worker_h worker, const std::map<std::string, comm::node>& nodes, int num_threads) :
 	message_listener(nodes, num_threads), ucp_worker{worker}
 {
-	std::cout<<"WWWWWWWWWWW ucx_message_listener::ucx_message_listener"<<std::endl;
   ucp_context_attr_t attr;
   attr.field_mask = UCP_ATTR_FIELD_REQUEST_SIZE;
   ucs_status_t status = ucp_context_query(context, &attr);
@@ -295,7 +292,6 @@ ucx_message_listener::ucx_message_listener(ucp_context_h context, ucp_worker_h w
 }
 
 tcp_message_listener::tcp_message_listener(const std::map<std::string, comm::node>& nodes,int port, int num_threads) : _port{port} , message_listener{nodes,num_threads}{
-	std::cout<<"WWWWWWWWWWW tcp_message_listener::tcp_message_listener"<<std::endl;
 
 }
 

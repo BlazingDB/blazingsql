@@ -63,9 +63,7 @@ public:
 	 * @brief A polling function that listens on a cache for data and send it off via some protocol
 	 */
 	void run_polling() {
-		std::cout<<"WWWWWWWWWWWWWWW   message_sender run_polling start"<<std::endl;
 		if (!polling_started){
-			std::cout<<"WWWWWWWWWWWWWWW   message_sender run_polling start actually going to start"<<std::endl;
 			polling_started = true;
 		
 			auto thread = std::thread([this]{

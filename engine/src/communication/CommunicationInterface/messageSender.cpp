@@ -38,8 +38,6 @@ message_sender::message_sender(std::shared_ptr<ral::cache::CacheMachine> output_
 		: ral_id{ral_id}, origin{origin}, output_cache{output_cache}, input_cache{input_cache}, node_address_map{node_address_map}, pool{num_threads}, protocol{protocol}
 {
 
-	std::cout<<"WWWWWWWWWWW message_sender::message_sender"<<std::endl;
-
 	request_size = 0;
 	if (protocol == blazing_protocol::ucx)	{
 		ucp_context_attr_t attr;
