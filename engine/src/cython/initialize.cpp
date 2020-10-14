@@ -521,7 +521,7 @@ ucp_ep_h CreateUcpEp(ucp_worker_h ucp_worker,
 * and the cache we use for receiving messages
 *
 */
-std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> > initialize(int ralId,
+std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> >, int> initialize(int ralId,
 	std::string worker_id,
 	int gpuId,
 	std::string network_iface_name,
@@ -555,12 +555,12 @@ std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> > initiali
 	if (iter != config_options.end()){
 		buffers_size = std::stoi(config_options["TRANSPORT_BUFFER_BYTE_SIZE"]);
 	}
-	int num_buffers = 20;
+	int num_comm_threads = 20;
 	iter = config_options.find("MAX_SEND_MESSAGE_THREADS");
 	if (iter != config_options.end()){
-		num_buffers = std::stoi(config_options["MAX_SEND_MESSAGE_THREADS"]);
+		num_comm_threads = std::stoi(config_options["MAX_SEND_MESSAGE_THREADS"]);
 	}	
-	blazingdb::transport::io::setPinnedBufferProvider(buffers_size, num_buffers);
+	blazingdb::transport::io::setPinnedBufferProvider(buffers_size, num_comm_threads);
 
 	//to avoid redundancy the default value or user defined value for this parameter is placed on the pyblazing side
 	assert( config_options.find("BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD") != config_options.end() );
@@ -677,9 +677,7 @@ std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> > initiali
 
 	communicationData.initialize(worker_id);
 	
-	//TODO: detect if initialized if initialized then skip over all this stuff
-	bool initialized = false;
-	if(!singleNode && !initialized){
+	if(!singleNode){
 		std::map<std::string, comm::node> nodes_info_map;
 	
 		comm::blazing_protocol protocol = comm::blazing_protocol::tcp;
@@ -802,20 +800,20 @@ std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> > initiali
 				nodes_info_map.emplace(worker_info.worker_id, comm::node(ralId, worker_info.worker_id, worker_info.ip, worker_info.port));
 			}
 
-			comm::tcp_message_listener::initialize_message_listener(nodes_info_map,ralCommunicationPort,20);
+			comm::tcp_message_listener::initialize_message_listener(nodes_info_map,ralCommunicationPort,num_comm_threads);
 			comm::tcp_message_listener::get_instance()->start_polling();
+			ralCommunicationPort = comm::tcp_message_listener::get_instance()->get_port(); // if the listener was already initialized, we want to get the port that was originally set and send that back to python side
 		}
-		comm::message_sender::initialize_instance(output_input_caches.first,
+		comm::message_sender::initialize_instance(output_input_caches.first, output_input_caches.second,
 			nodes_info_map,
-			20, ucp_context, self_worker, ralId,protocol);
+			num_comm_threads, ucp_context, self_worker, ralId,protocol);
 		comm::message_sender::get_instance()->run_polling();
 
-
+		output_input_caches.first = comm::message_sender::get_instance()->get_output_cache();
+		output_input_caches.second = comm::message_sender::get_instance()->get_input_cache();
 	}
 
-	//TODO: make this number configurable in options
-
-	return output_input_caches;
+	return std::make_pair(output_input_caches, ralCommunicationPort);
 }
 
 void finalize() {

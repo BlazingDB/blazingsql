@@ -208,7 +208,7 @@ cdef extern from "../include/engine/engine.h" nogil:
         TableScanInfo getTableScanInfo(string logicalPlan)
 
 cdef extern from "../include/engine/initialize.h":
-    cdef pair[shared_ptr[CacheMachine], shared_ptr[CacheMachine] ] initialize(int ralId, string worker_id, int gpuId, string network_iface_name, int ralCommunicationPort, vector[NodeMetaDataUCP] workers_ucp_info, bool singleNode, map[string,string] config_options) nogil except +raiseInitializeError
+    cdef pair[pair[shared_ptr[CacheMachine], shared_ptr[CacheMachine] ], int] initialize(int ralId, string worker_id, int gpuId, string network_iface_name, int ralCommunicationPort, vector[NodeMetaDataUCP] workers_ucp_info, bool singleNode, map[string,string] config_options) nogil except +raiseInitializeError
     cdef void finalize() nogil except +raiseFinalizeError
     cdef void blazingSetAllocator(string allocation_mode, size_t initial_pool_size, map[string,string] config_options) nogil except +raiseBlazingSetAllocatorError
     cdef size_t getFreeMemory() nogil except +raiseGetFreeMemoryError

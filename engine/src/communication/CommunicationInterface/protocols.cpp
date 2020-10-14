@@ -47,11 +47,13 @@ namespace io{
 		int count_invalids = 0;
 		while (amount_written < write_size && count_invalids < NUMBER_RETRIES) {
 			bytes_written = write(socket_fd, data + amount_written, write_size - amount_written);
+
 			if (bytes_written != -1) {
 				amount_written += bytes_written;
 				count_invalids = 0;
 			} else {
-                std::cout<<errno<<" is errno"<<std::endl;
+            //    std::cout<<errno<<" is errno"<<std::endl;
+            std::cout<<"could not send"<<std::endl;
 				if (errno == 9) { // Bad socket number
 					std::cerr << "Bad socket writing to " << socket_fd << std::endl;
 					throw std::runtime_error("Bad socket");
@@ -372,6 +374,7 @@ void tcp_buffer_transport::send_impl(const char * buffer, size_t buffer_size){
     size_t pinned_buffer_size = blazingdb::transport::io::getPinnedBufferProvider().sizeBuffers();
     size_t num_chunks = (buffer_size +(pinned_buffer_size - 1))/ pinned_buffer_size;
     std::vector<blazingdb::transport::io::PinnedBuffer *> buffers(num_chunks);
+
     for( size_t chunk = 0; chunk < num_chunks; chunk++ ){
         
         size_t chunk_size = pinned_buffer_size;
@@ -380,6 +383,7 @@ void tcp_buffer_transport::send_impl(const char * buffer, size_t buffer_size){
         }
         auto buffer_chunk_start = buffer + (chunk * pinned_buffer_size);
         
+
         auto pinned_buffer = blazingdb::transport::io::getPinnedBufferProvider().getBuffer();
         pinned_buffer->use_size = chunk_size;
         cudaMemcpyAsync(pinned_buffer->data,buffer_chunk_start,chunk_size,cudaMemcpyDeviceToHost,pinned_buffer->stream);
@@ -388,6 +392,7 @@ void tcp_buffer_transport::send_impl(const char * buffer, size_t buffer_size){
     size_t chunk = 0;
     try{
         while(chunk < num_chunks){
+
             auto pinned_buffer = buffers[chunk];
             cudaStreamSynchronize(pinned_buffer->stream);
             for (auto socket_fd : socket_fds){

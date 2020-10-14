@@ -24,6 +24,7 @@ public:
 protected:
     ctpl::thread_pool<BlazingThread> pool;
     std::map<std::string, comm::node> _nodes_info_map;
+    bool polling_started{false};
 };
 
 class tcp_message_listener : public message_listener {
@@ -32,6 +33,9 @@ public:
     static void initialize_message_listener(const std::map<std::string, comm::node>& nodes, int port, int num_threads);
     static tcp_message_listener * get_instance();
     void start_polling() override;
+    int get_port() {
+        return _port;
+    }
     virtual ~tcp_message_listener(){
 
     }
