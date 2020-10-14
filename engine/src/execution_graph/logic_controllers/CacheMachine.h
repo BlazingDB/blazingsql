@@ -840,6 +840,7 @@ public:
 	void put_all(std::vector<message_ptr> messages){
 		std::unique_lock<std::mutex> lock(mutex_);
 		put_all_unsafe(std::move(messages));
+		condition_variable_.notify_all();
 	}
 private:
 	/**
