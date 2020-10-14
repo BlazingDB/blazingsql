@@ -209,11 +209,16 @@ void tcp_message_listener::start_polling(){
 					}
 					buffer_position++;
 				}
-				cudaStreamDestroy(stream);
-				receiver->finish();
 				auto duration = timer.elapsed_time();
-				std::cout<<"Transfer duration was "<<duration <<" Throughput was "<<
+				std::cout<<"Transfer duration before finish "<<duration <<" Throughput was "<<
 				(( (float) total_size) / 1000000.0)/(((float) duration)/1000.0)<<" MB/s"<<std::endl;
+
+				receiver->finish();
+				duration = timer.elapsed_time();
+				std::cout<<"Transfer duration with finish "<<duration <<" Throughput was "<<
+				(( (float) total_size) / 1000000.0)/(((float) duration)/1000.0)<<" MB/s"<<std::endl;
+				cudaStreamDestroy(stream);
+
 			});
 			
 		}
