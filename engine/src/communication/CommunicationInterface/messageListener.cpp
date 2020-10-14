@@ -165,17 +165,19 @@ void tcp_message_listener::start_polling(){
 
 				std::vector<char> data(message_size);
 				io::read_from_socket(connection_fd, data.data(), message_size);
-				std::cout<<"elapsed time read metadata message "<<timer.elapsed_time()<<std::endl;
-
+				auto meta_read_time = timer.elapsed_time();
 				//status_code success = status_code::OK;
 				//io::write_to_socket(connection_fd, &success, sizeof(success));
 
 				auto receiver = std::make_shared<message_receiver>(_nodes_info_map, data);
 
-				std::cout<<"elapsed time make receiver done "<<timer.elapsed_time()<<std::endl;
+			//	std::cout<<"elapsed time make receiver done "<<timer.elapsed_time()<<std::endl;
+				auto receiver_time = timer.elapsed_time() - meta_read_time;
 				size_t pinned_buffer_size = blazingdb::transport::io::getPinnedBufferProvider().sizeBuffers();
 				size_t buffer_position = 0;
 				size_t total_size = 0;
+				size_t total_allocate_time = 0 ;
+				size_t total_read_time = 0 ;
 				while(buffer_position < receiver->num_buffers()) {
 					size_t buffer_size = receiver->buffer_size(buffer_position);
 					total_size += buffer_size;
@@ -183,7 +185,8 @@ void tcp_message_listener::start_polling(){
 					std::vector<blazingdb::transport::io::PinnedBuffer*> pinned_buffers(num_chunks);
 					CodeTimer timer_2;
 					receiver->allocate_buffer(buffer_position);
-					std::cout<<"elapsed allocate buffers "<<timer_2.elapsed_time()<<std::endl;
+					auto prev_timer_2 = timer_2.elapsed_time();
+					total_allocate_time += timer_2.elapsed_time();
 					void * buffer = receiver->get_buffer(buffer_position);
 					timer_2.reset();
 					for( size_t chunk = 0; chunk < num_chunks; chunk++ ){
@@ -200,11 +203,11 @@ void tcp_message_listener::start_polling(){
 						cudaMemcpyAsync(buffer_chunk_start, pinned_buffer->data, chunk_size, cudaMemcpyHostToDevice, stream);
 						pinned_buffers[chunk] = pinned_buffer;
 					}
-					std::cout<<"elapsed copy from gpu before synch "<<timer_2.elapsed_time()<<std::endl;
-
+					//std::cout<<"elapsed copy from gpu before synch "<<timer_2.elapsed_time()<<std::endl;
+					total_read_time += timer_2.elapsed_time() - prev_timer_2;
 					// TODO: Do we want to do this synchronize and free after all the receiver->num_buffers() or for each one?
 					cudaStreamSynchronize(stream);
-					std::cout<<"elapsed copy from gpu after synch "<<timer_2.elapsed_time()<<std::endl;
+					//std::cout<<"elapsed copy from gpu after synch "<<timer_2.elapsed_time()<<std::endl;
 
 					for( size_t chunk = 0; chunk < num_chunks; chunk++ ){
 						blazingdb::transport::io::getPinnedBufferProvider().freeBuffer(pinned_buffers[chunk]);
@@ -212,6 +215,8 @@ void tcp_message_listener::start_polling(){
 					buffer_position++;
 				}
 				auto duration = timer.elapsed_time();
+				std::cout<<"META, Recevier, allocate, read\n"<<
+				meta_read_time<<", "<<receiver_time<<", "<<total_allocate_time<<", "<<total_read_time<<std::endl;
 				std::cout<<"Transfer duration before finish "<<duration <<" Throughput was "<<
 				(( (float) total_size) / 1000000.0)/(((float) duration)/1000.0)<<" MB/s"<<std::endl;
 
