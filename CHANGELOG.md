@@ -1,3 +1,14 @@
+# BlazingSQL 0.17.0 (Date TBS)
+
+## New Features
+
+
+## Improvements
+- #1082 Validate s3 bucket
+
+## Bug Fixes
+
+
 # BlazingSQL 0.16.0 (Date TBS)
 
 ## New Features
