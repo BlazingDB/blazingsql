@@ -154,7 +154,7 @@ std::unique_ptr<ral::frame::BlazingTable> sort(const ral::frame::BlazingTableVie
 	return logicalSort(table, sortColIndices, sortOrderTypes);
 }
 
-std::unique_ptr<ral::frame::BlazingTable> sample(const ral::frame::BlazingTableView & table, const std::string & query_part, float samples_ratio){
+std::unique_ptr<ral::frame::BlazingTable> sample(const ral::frame::BlazingTableView & table, const std::string & query_part, Context * context, float samples_ratio){
 	std::vector<cudf::order> sortOrderTypes;
 	std::vector<int> sortColIndices;
 	cudf::size_type limitRows;
@@ -162,10 +162,16 @@ std::unique_ptr<ral::frame::BlazingTable> sample(const ral::frame::BlazingTableV
 
 	auto tableNames = table.names();
 	std::vector<std::string> sortColNames(sortColIndices.size());
-  std::transform(sortColIndices.begin(), sortColIndices.end(), sortColNames.begin(), [&](auto index) { return tableNames[index]; });
+  	std::transform(sortColIndices.begin(), sortColIndices.end(), sortColNames.begin(), [&](auto index) { return tableNames[index]; });
 
 	std::random_device rd;
-	auto samples = cudf::sample(table.view().select(sortColIndices), std::ceil(table.num_rows() * samples_ratio), cudf::sample_with_replacement::FALSE, rd());
+	// more homogeneus when we have many workers
+	int num_nodes = context->getTotalNodes();
+	int total_samples = std::ceil(table.num_rows() * samples_ratio);
+	if (total_samples < num_nodes && num_nodes < table.num_rows()) {
+		total_samples = num_nodes;
+	}
+	auto samples = cudf::sample(table.view().select(sortColIndices), total_samples, cudf::sample_with_replacement::FALSE, rd());
 
 	return std::make_unique<ral::frame::BlazingTable>(std::move(samples), sortColNames);
 }
@@ -258,7 +264,7 @@ std::unique_ptr<ral::frame::BlazingTable> generate_distributed_partition_plan(co
 		std::pair<std::vector<NodeColumn>, std::vector<std::size_t> > samples_pair = collectSamples(context);
 		std::vector<ral::frame::BlazingTableView> samples;
 		for (int i = 0; i < samples_pair.first.size(); i++){
-		samples.push_back(samples_pair.first[i].second->toBlazingTableView());
+			samples.push_back(samples_pair.first[i].second->toBlazingTableView());
 		}
 		samples.push_back(selfSamples);
 		std::vector<size_t> total_rows_tables = samples_pair.second;

@@ -174,7 +174,7 @@ public:
 
 				auto sortedTable = ral::operators::sort(batch->toBlazingTableView(), this->expression);
 				if (get_samples) {
-					auto sampledTable = ral::operators::sample(batch->toBlazingTableView(), this->expression, order_by_samples_ratio);
+					auto sampledTable = ral::operators::sample(batch->toBlazingTableView(), this->expression, this->context.get(), order_by_samples_ratio);
 					samples_collected += sampledTable->num_rows();
 					sampledTableViews.push_back(sampledTable->toBlazingTableView());
 					sampledTables.push_back(std::move(sampledTable));

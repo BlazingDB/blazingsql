@@ -88,7 +88,6 @@ std::pair<std::vector<NodeColumn>, std::vector<std::size_t> > collectSamples(Con
 	return std::make_pair(std::move(nodeColumns), table_total_rows);
 }
 
-
 std::unique_ptr<BlazingTable> generatePartitionPlans(
 				cudf::size_type number_partitions, const std::vector<BlazingTableView> & samples,
 				const std::vector<cudf::order> & sortOrderTypes) {
@@ -179,7 +178,7 @@ std::vector<NodeColumnView> partitionData(Context * context,
 
 	std::vector<Node> all_nodes = context->getAllNodes();
 
-	RAL_EXPECTS(all_nodes.size() <= partitioned_data.size(), "Number of table partitions is smalled than total nodes");
+	RAL_EXPECTS(all_nodes.size() <= partitioned_data.size(), "Number of table partitions is smaller than total nodes");
 
 	int step = static_cast<int>(partitioned_data.size() / all_nodes.size());
 	std::vector<NodeColumnView> partitioned_node_column_views;
@@ -368,7 +367,6 @@ std::unique_ptr<BlazingTable> sortedMerger(std::vector<BlazingTableView> & table
 	}
 	return std::make_unique<BlazingTable>(std::move(merged_table), names);
 }
-
 
 std::unique_ptr<BlazingTable> getPivotPointsTable(cudf::size_type number_partitions, const BlazingTableView & sortedSamples){
 
