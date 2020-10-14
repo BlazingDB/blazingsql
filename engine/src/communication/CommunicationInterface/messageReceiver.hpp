@@ -94,7 +94,6 @@ public:
   }
 
   void finish() {
-    std::cout<<"calling finish"<<std::endl;
     std::unique_ptr<ral::frame::BlazingTable> table = deserialize_from_gpu_raw_buffers(_column_transports, _raw_buffers);
     _output_cache->addCacheData(
             std::make_unique<ral::cache::GPUCacheDataMetaData>(std::move(table), _metadata), _metadata.get_values()[ral::cache::MESSAGE_ID], true);

@@ -47,7 +47,7 @@ namespace io{
 		int count_invalids = 0;
 		while (amount_written < write_size && count_invalids < NUMBER_RETRIES) {
 			bytes_written = write(socket_fd, data + amount_written, write_size - amount_written);
-          //  std::cout<<"wrote "<<bytes_written<<" bytes of"<<write_size<<std::endl;
+
 			if (bytes_written != -1) {
 				amount_written += bytes_written;
 				count_invalids = 0;
@@ -373,7 +373,7 @@ void tcp_buffer_transport::send_impl(const char * buffer, size_t buffer_size){
     //transmit
     size_t pinned_buffer_size = blazingdb::transport::io::getPinnedBufferProvider().sizeBuffers();
     size_t num_chunks = (buffer_size +(pinned_buffer_size - 1))/ pinned_buffer_size;
-    std::vector<std::future<blazingdb::transport::io::PinnedBuffer *> > buffers;
+    std::vector<blazingdb::transport::io::PinnedBuffer *> buffers(num_chunks);
 
     for( size_t chunk = 0; chunk < num_chunks; chunk++ ){
         

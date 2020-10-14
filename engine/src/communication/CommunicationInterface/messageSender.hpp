@@ -72,8 +72,6 @@ public:
 
 			while(true) {
 
-
-
 				std::vector<std::unique_ptr<ral::cache::CacheData> > cache_datas = output_cache->pull_all_cache_data();
 				for(auto & cache_data : cache_datas){
 					pool.push([cache_data{std::move(cache_data)},
