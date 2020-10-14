@@ -187,7 +187,7 @@ void tcp_message_listener::start_polling(){
             size_t num_chunks = (buffer_size +(pinned_buffer_size - 1))/ pinned_buffer_size;
             std::vector<blazingdb::transport::io::PinnedBuffer*> pinned_buffers(num_chunks);
             CodeTimer timer_2;
-            receiver->allocate_buffer(buffer_position);
+            receiver->allocate_buffer(buffer_position,stream);
             void * buffer = receiver->get_buffer(buffer_position);
             auto prev_timer_2 = timer_2.elapsed_time();
             total_allocate_time += timer_2.elapsed_time();
@@ -224,7 +224,7 @@ void tcp_message_listener::start_polling(){
           std::cout<<"Transfer duration before finish "<<duration <<" Throughput was "<<
           (( (float) total_size) / 1000000.0)/(((float) duration)/1000.0)<<" MB/s"<<std::endl;
 
-          receiver->finish();
+          receiver->finish(stream);
           auto duration_2 = timer.elapsed_time();
           std::cout<<"Transfer duration with finish "<<duration <<" Throughput was "<<
           (( (float) total_size) / 1000000.0)/(((float) duration)/1000.0)<<" MB/s"<<std::endl;
