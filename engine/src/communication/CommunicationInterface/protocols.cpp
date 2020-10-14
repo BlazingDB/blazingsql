@@ -371,11 +371,10 @@ void tcp_buffer_transport::send_impl(const char * buffer, size_t buffer_size){
 
     //allocate pinned + copy from gpu
     //transmit
-   // std::cout<<"sending data "<<1<<std::endl;
     size_t pinned_buffer_size = blazingdb::transport::io::getPinnedBufferProvider().sizeBuffers();
     size_t num_chunks = (buffer_size +(pinned_buffer_size - 1))/ pinned_buffer_size;
-   // std::cout<<"sending data "<<2<<std::endl;
-    std::vector<blazingdb::transport::io::PinnedBuffer *> buffers(num_chunks);
+    std::vector<std::future<blazingdb::transport::io::PinnedBuffer *> > buffers;
+
     for( size_t chunk = 0; chunk < num_chunks; chunk++ ){
         
         size_t chunk_size = pinned_buffer_size;
@@ -384,6 +383,7 @@ void tcp_buffer_transport::send_impl(const char * buffer, size_t buffer_size){
         }
         auto buffer_chunk_start = buffer + (chunk * pinned_buffer_size);
         
+
         auto pinned_buffer = blazingdb::transport::io::getPinnedBufferProvider().getBuffer();
         pinned_buffer->use_size = chunk_size;
         cudaMemcpyAsync(pinned_buffer->data,buffer_chunk_start,chunk_size,cudaMemcpyDeviceToHost,pinned_buffer->stream);
@@ -392,6 +392,7 @@ void tcp_buffer_transport::send_impl(const char * buffer, size_t buffer_size){
     size_t chunk = 0;
     try{
         while(chunk < num_chunks){
+
             auto pinned_buffer = buffers[chunk];
             cudaStreamSynchronize(pinned_buffer->stream);
             for (auto socket_fd : socket_fds){
