@@ -378,7 +378,7 @@ public:
 						metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, dest_node.id());
 						metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, "output_" + std::to_string(part_ids[i]) );
 
-						bool added = output_cache->addCacheData(std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(table_view.clone(), metadata)),"",true);
+						bool added = output_cache->addCacheData(std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(table_view.clone(), metadata)),"",false);
 						if (added) {
 							node_count[dest_node.id()][part_ids[i]]++;
 						}
@@ -388,7 +388,7 @@ public:
 						auto & partition = partitions[i];
 						if(partition.first == self_node) {
 							std::string cache_id = "output_" + std::to_string(part_ids[i]);
-							bool added = this->add_to_output_cache(partition.second.clone(), cache_id,true);
+							bool added = this->add_to_output_cache(partition.second.clone(), cache_id,false);
 							if (added) {
 								node_count[self_node.id()][part_ids[i]]++;
 							}

@@ -2,6 +2,7 @@
 #include <sys/socket.h>
 
 #include "blazingdb/transport/io/reader_writer.h"
+#include "CodeTimer.h"
 
 namespace comm {
 
@@ -44,7 +45,7 @@ void poll_for_frames(std::shared_ptr<message_receiver> receiver,
 
 		message_tag.frame_id = buffer_id + 1;
 
-    char *request = reinterpret_cast<char *>(std::malloc(request_size));
+    char *request = new char[request_size];
     ucs_status_t status = ucp_tag_recv_nbr(ucp_worker,
                                            receiver->get_buffer(buffer_id),
                                            receiver->buffer_size(buffer_id),
@@ -65,7 +66,7 @@ void poll_for_frames(std::shared_ptr<message_receiver> receiver,
       // TODO: decide how to do cleanup i think we just throw an
       // initialization exception
     }
-    std::free(request);
+    delete request;
 
 		++buffer_id;
   }
@@ -83,6 +84,7 @@ void recv_begin_callback_c(ucp_tag_recv_info_t *info, size_t request_size) {
 		auto receiver = std::make_shared<message_receiver>(message_listener->get_node_map(), buffer);
 		message_listener->add_receiver(info->sender_tag, receiver);
 		//TODO: if its a specific cache get that cache adn put it here else put the general iput cache from the graph
+/*
 		auto node = receiver->get_sender_node();
 
 		auto acknowledge_tag = *reinterpret_cast<blazing_ucp_tag *>(&info->sender_tag);
@@ -107,7 +109,7 @@ void recv_begin_callback_c(ucp_tag_recv_info_t *info, size_t request_size) {
 		if(status != UCS_OK){
 			throw std::runtime_error("Was not able to send transmission ack");
 		}
-
+*/
 		poll_for_frames(receiver, info->sender_tag, message_listener->get_worker(), request_size);
 	});
 	try{
@@ -121,6 +123,7 @@ void recv_begin_callback_c(ucp_tag_recv_info_t *info, size_t request_size) {
 
 void tcp_message_listener::start_polling(){
     
+
 	if (!polling_started){
 		int socket_fd;
 		
@@ -134,6 +137,7 @@ void tcp_message_listener::start_polling(){
 
 		bzero(&server_address, sizeof(server_address));
 
+
 		server_address.sin_family = AF_INET;
 		server_address.sin_addr.s_addr = htonl(INADDR_ANY);
 		server_address.sin_port = htons(_port);
@@ -144,68 +148,97 @@ void tcp_message_listener::start_polling(){
 			throw std::runtime_error("Could not bind to socket.");
 		}
 
-		// Now server is ready to listen and verification
-		if (listen(socket_fd, 4096) != 0) {
-			throw std::runtime_error("Could not listen on socket.");
-		}
-		polling_started = true;
-		auto thread = std::thread([this, socket_fd] {
-			struct sockaddr_in client_address;
-			socklen_t len;
-			int connection_fd;
-			// TODO: be able to stop this thread from running when the engine is killed
-			while((connection_fd = accept(socket_fd, (struct sockaddr *) &client_address, &len)) != -1) {
-				auto fwd = pool.push([this, connection_fd](int thread_num) {
+    // Now server is ready to listen and verification
+    if (listen(socket_fd, 4096) != 0) {
+        throw std::runtime_error("Could not listen on socket.");
+    }
+    auto thread = std::thread([this, socket_fd] {
+      struct sockaddr_in client_address;
+      socklen_t len;
+      int connection_fd;
+      // TODO: be able to stop this thread from running when the engine is killed
+      while((connection_fd = accept(socket_fd, (struct sockaddr *) &client_address, &len)) != -1) {
+        auto fwd = pool.push([this, connection_fd](int thread_num) {
+          CodeTimer timer;
+          cudaStream_t stream;
+          cudaStreamCreate(&stream);
+          size_t message_size;
+          io::read_from_socket(connection_fd, &message_size, sizeof(message_size));
 
-					size_t message_size;
-					io::read_from_socket(connection_fd, &message_size, sizeof(message_size));
+          std::vector<char> data(message_size);
+          io::read_from_socket(connection_fd, data.data(), message_size);
+          auto meta_read_time = timer.elapsed_time();
+          //status_code success = status_code::OK;
+          //io::write_to_socket(connection_fd, &success, sizeof(success));
 
-					std::vector<char> data(message_size);
-					io::read_from_socket(connection_fd, data.data(), message_size);
+          auto receiver = std::make_shared<message_receiver>(_nodes_info_map, data);
 
-					status_code success = status_code::OK;
-					io::write_to_socket(connection_fd, &success, sizeof(success));
+        //	std::cout<<"elapsed time make receiver done "<<timer.elapsed_time()<<std::endl;
+          auto receiver_time = timer.elapsed_time() - meta_read_time;
+          size_t pinned_buffer_size = blazingdb::transport::io::getPinnedBufferProvider().sizeBuffers();
+          size_t buffer_position = 0;
+          size_t total_size = 0;
+          size_t total_allocate_time = 0 ;
+          size_t total_read_time = 0 ;
+          size_t total_sync_time = 0;
+          while(buffer_position < receiver->num_buffers()) {
+            size_t buffer_size = receiver->buffer_size(buffer_position);
+            total_size += buffer_size;
+            size_t num_chunks = (buffer_size +(pinned_buffer_size - 1))/ pinned_buffer_size;
+            std::vector<blazingdb::transport::io::PinnedBuffer*> pinned_buffers(num_chunks);
+            CodeTimer timer_2;
+            receiver->allocate_buffer(buffer_position);
+            void * buffer = receiver->get_buffer(buffer_position);
+            auto prev_timer_2 = timer_2.elapsed_time();
+            total_allocate_time += timer_2.elapsed_time();
+            timer_2.reset();
+            for( size_t chunk = 0; chunk < num_chunks; chunk++ ){
+              size_t chunk_size = pinned_buffer_size;
+              if(( chunk + 1) == num_chunks){ // if its the last chunk, we chunk_size is different
+                chunk_size = buffer_size - (chunk * pinned_buffer_size);
+              }
+              auto pinned_buffer = blazingdb::transport::io::getPinnedBufferProvider().getBuffer();
+              pinned_buffer->use_size = chunk_size;
 
-					auto receiver = std::make_shared<message_receiver>(_nodes_info_map, data);
+              io::read_from_socket(connection_fd, pinned_buffer->data, chunk_size);
 
-					size_t pinned_buffer_size = blazingdb::transport::io::getPinnedBufferProvider().sizeBuffers();
-					size_t buffer_position = 0;
-					while(buffer_position < receiver->num_buffers()) {
-						size_t buffer_size = receiver->buffer_size(buffer_position);
-						size_t num_chunks = (buffer_size +(pinned_buffer_size - 1))/ pinned_buffer_size;
-						std::vector<blazingdb::transport::io::PinnedBuffer*> pinned_buffers(num_chunks);
+              auto buffer_chunk_start = buffer + (chunk * pinned_buffer_size);
+              cudaMemcpyAsync(buffer_chunk_start, pinned_buffer->data, chunk_size, cudaMemcpyHostToDevice, stream);
+              pinned_buffers[chunk] = pinned_buffer;
+            }
+            //std::cout<<"elapsed copy from gpu before synch "<<timer_2.elapsed_time()<<std::endl;
+            total_read_time += timer_2.elapsed_time();
+            timer_2.reset();
+            // TODO: Do we want to do this synchronize and free after all the receiver->num_buffers() or for each one?
+            cudaStreamSynchronize(stream);
 
-						receiver->allocate_buffer(buffer_position);
-						void * buffer = receiver->get_buffer(buffer_position);
-						
-						for( size_t chunk = 0; chunk < num_chunks; chunk++ ){
-							size_t chunk_size = pinned_buffer_size;
-							if(( chunk + 1) == num_chunks){ // if its the last chunk, we chunk_size is different
-								chunk_size = buffer_size - (chunk * pinned_buffer_size);
-							}
-							auto pinned_buffer = blazingdb::transport::io::getPinnedBufferProvider().getBuffer();
-							pinned_buffer->use_size = chunk_size;
+            total_sync_time += timer_2.elapsed_time();
+            //std::cout<<"elapsed copy from gpu after synch "<<timer_2.elapsed_time()<<std::endl;
 
-							io::read_from_socket(connection_fd, pinned_buffer->data, chunk_size);
+            for( size_t chunk = 0; chunk < num_chunks; chunk++ ){
+              blazingdb::transport::io::getPinnedBufferProvider().freeBuffer(pinned_buffers[chunk]);
+            }
+            buffer_position++;
+          }
+          auto duration = timer.elapsed_time();
+          std::cout<<"Transfer duration before finish "<<duration <<" Throughput was "<<
+          (( (float) total_size) / 1000000.0)/(((float) duration)/1000.0)<<" MB/s"<<std::endl;
 
-							auto buffer_chunk_start = buffer + (chunk * pinned_buffer_size);
-							cudaMemcpyAsync(buffer_chunk_start, pinned_buffer->data, chunk_size, cudaMemcpyHostToDevice, pinned_buffer->stream);
-							pinned_buffers[chunk] = pinned_buffer;
-						}
-						// TODO: Do we want to do this synchronize and free after all the receiver->num_buffers() or for each one?
-						for( size_t chunk = 0; chunk < num_chunks; chunk++ ){
-							cudaStreamSynchronize(pinned_buffers[chunk]->stream);
-							blazingdb::transport::io::getPinnedBufferProvider().freeBuffer(pinned_buffers[chunk]);
-						}
-						buffer_position++;
-					}
-					receiver->finish();
-				});
-				
-			}
-		});
-		thread.detach();
-	}
+          receiver->finish();
+          auto duration_2 = timer.elapsed_time();
+          std::cout<<"Transfer duration with finish "<<duration <<" Throughput was "<<
+          (( (float) total_size) / 1000000.0)/(((float) duration)/1000.0)<<" MB/s"<<std::endl;
+          cudaStreamDestroy(stream);
+          std::cout<<"META, Recevier, allocate, read, synchronize, total_before_finish, total_after_finish,bytes\n"<<
+          meta_read_time<<", "<<receiver_time<<", "<<total_allocate_time<<", "<<total_read_time<<","<<total_sync_time<<", "<<duration<<","<<duration_2<<", "<<total_size<<std::endl;
+
+        });
+
+      }
+    });
+    thread.detach();
+  }
+
 }
 
 void ucx_message_listener::poll_begin_message_tag(bool running_from_unit_test){
@@ -287,8 +320,8 @@ ucx_message_listener::ucx_message_listener(ucp_context_h context, ucp_worker_h w
 	if (status != UCS_OK)	{
 		throw std::runtime_error("Error calling ucp_context_query");
 	}
-
 	_request_size = attr.request_size;
+	ucp_progress_manager::get_instance(worker,_request_size);
 }
 
 tcp_message_listener::tcp_message_listener(const std::map<std::string, comm::node>& nodes,int port, int num_threads) : _port{port} , message_listener{nodes,num_threads}{

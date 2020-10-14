@@ -581,7 +581,7 @@ public:
 
 		CodeTimer blazing_timer;
 		std::unique_lock<std::mutex> lock(mutex_);
-		while(!condition_variable_.wait_for(lock, timeout*1ms, [&, this] {
+		/*while(!condition_variable_.wait_for(lock, timeout*1ms, [&, this] {
 				bool done_waiting = this->finished.load(std::memory_order_seq_cst) or !this->empty();
 				if (!done_waiting && blazing_timer.elapsed_time() > 59000){
 					auto logger = spdlog::get("batch_logger");
@@ -592,8 +592,11 @@ public:
 					}
 				}
 				return done_waiting;
-			})){}
+			})){}*/
 
+		condition_variable_.wait(lock,[&, this] {
+				return this->finished.load(std::memory_order_seq_cst) or !this->empty();
+		});
 		if(this->message_queue_.size() == 0) {
 			return nullptr;
 		}
@@ -769,6 +772,14 @@ public:
 	}
 
 	/**
+	 * gets all the messages
+	 */
+	std::vector<message_ptr> get_all(){
+		std::unique_lock<std::mutex> lock(mutex_);
+		return get_all_unsafe();
+	}
+
+	/**
 	* Waits until all messages are ready then returns all of them.
 	* You should never call this function more than once on a WaitingQueue else
 	* race conditions can occur.
@@ -826,6 +837,11 @@ public:
 	}
 
 
+	void put_all(std::vector<message_ptr> messages){
+		std::unique_lock<std::mutex> lock(mutex_);
+		put_all_unsafe(std::move(messages));
+		condition_variable_.notify_all();
+	}
 private:
 	/**
 	* Checks if the WaitingQueue is empty.
@@ -907,6 +923,11 @@ public:
 	}
 	virtual std::unique_ptr<ral::frame::BlazingTable> pullFromCache();
 
+	std::vector<std::unique_ptr<ral::cache::CacheData> > pull_all_cache_data();
+
+	void put_all_cache_data( std::vector<std::unique_ptr<ral::cache::CacheData> > messages, std::vector<std::string> message_ids);
+
+	
 
 	virtual std::unique_ptr<ral::cache::CacheData> pullCacheData(std::string message_id);
 

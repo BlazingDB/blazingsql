@@ -213,6 +213,28 @@ void CacheMachine::clear() {
 	this->waitingCache->finish();
 }
 
+
+std::vector<std::unique_ptr<ral::cache::CacheData> > CacheMachine::pull_all_cache_data(){
+
+	auto messages = this->waitingCache->get_all();
+	std::vector<std::unique_ptr<ral::cache::CacheData> > new_messages(messages.size());
+	int i = 0;
+	for (auto & message_data : messages){
+		new_messages[i] = message_data->release_data();
+		i++;
+	}
+	return std::move(new_messages);
+}
+void CacheMachine::put_all_cache_data( std::vector<std::unique_ptr<ral::cache::CacheData> > messages,std::vector<std::string > message_ids){
+	std::vector<std::unique_ptr<message > > wrapped_messages(messages.size());
+	int i = 0;
+	for(int i = 0; i < messages.size();i++){
+		wrapped_messages[i] = 
+			std::make_unique<message>(std::move(messages[i]), message_ids[i]);
+	}
+	this->waitingCache->put_all(std::move(wrapped_messages));
+}
+
 bool CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, const std::string & message_id, bool always_add){
 
 	// we dont want to add empty tables to a cache, unless we have never added anything
