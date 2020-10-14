@@ -12,6 +12,7 @@
 - #1055 Removing cudf source code dependency as some cudf utilities headers were exposed
 - #1065 Remove thrift from build prodcess as its no longer used
 - #1067 Upload conda packages to both rapidsai and blazingsql conda channels
+- #1081 Add validation for the kwargs when bc API is called
 
 ## Bug Fixes
 - #918 Activate validation for GPU_CI tests results.
