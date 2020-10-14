@@ -133,7 +133,10 @@ void tcp_message_listener::start_polling(){
     if (socket_fd == -1){
         throw std::runtime_error("Couldn't allocate socket.");
     }
-
+    //ret = setsockopt(lsock_, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
+	//if(ret == -1){
+//		std::cerr<<"Could no tset sock options"<<std::endl;
+//	}
     bzero(&server_address, sizeof(server_address));
 
     server_address.sin_family = AF_INET;
@@ -178,6 +181,7 @@ void tcp_message_listener::start_polling(){
 				size_t total_size = 0;
 				size_t total_allocate_time = 0 ;
 				size_t total_read_time = 0 ;
+				size_t total_sync_time = 0;
 				while(buffer_position < receiver->num_buffers()) {
 					size_t buffer_size = receiver->buffer_size(buffer_position);
 					total_size += buffer_size;
@@ -185,9 +189,9 @@ void tcp_message_listener::start_polling(){
 					std::vector<blazingdb::transport::io::PinnedBuffer*> pinned_buffers(num_chunks);
 					CodeTimer timer_2;
 					receiver->allocate_buffer(buffer_position);
+					void * buffer = receiver->get_buffer(buffer_position);
 					auto prev_timer_2 = timer_2.elapsed_time();
 					total_allocate_time += timer_2.elapsed_time();
-					void * buffer = receiver->get_buffer(buffer_position);
 					timer_2.reset();
 					for( size_t chunk = 0; chunk < num_chunks; chunk++ ){
 						size_t chunk_size = pinned_buffer_size;
@@ -205,8 +209,11 @@ void tcp_message_listener::start_polling(){
 					}
 					//std::cout<<"elapsed copy from gpu before synch "<<timer_2.elapsed_time()<<std::endl;
 					total_read_time += timer_2.elapsed_time();
+					timer_2.reset();
 					// TODO: Do we want to do this synchronize and free after all the receiver->num_buffers() or for each one?
 					cudaStreamSynchronize(stream);
+
+					total_sync_time += timer_2.elapsed_time();
 					//std::cout<<"elapsed copy from gpu after synch "<<timer_2.elapsed_time()<<std::endl;
 
 					for( size_t chunk = 0; chunk < num_chunks; chunk++ ){
@@ -215,16 +222,16 @@ void tcp_message_listener::start_polling(){
 					buffer_position++;
 				}
 				auto duration = timer.elapsed_time();
-				std::cout<<"META, Recevier, allocate, read\n"<<
-				meta_read_time<<", "<<receiver_time<<", "<<total_allocate_time<<", "<<total_read_time<<std::endl;
 				std::cout<<"Transfer duration before finish "<<duration <<" Throughput was "<<
 				(( (float) total_size) / 1000000.0)/(((float) duration)/1000.0)<<" MB/s"<<std::endl;
 
 				receiver->finish();
-				duration = timer.elapsed_time();
+				auto duration_2 = timer.elapsed_time();
 				std::cout<<"Transfer duration with finish "<<duration <<" Throughput was "<<
 				(( (float) total_size) / 1000000.0)/(((float) duration)/1000.0)<<" MB/s"<<std::endl;
 				cudaStreamDestroy(stream);
+				std::cout<<"META, Recevier, allocate, read, synchronize, total_before_finish, total_after_finish,bytes\n"<<
+				meta_read_time<<", "<<receiver_time<<", "<<total_allocate_time<<", "<<total_read_time<<","<<total_sync_time<<", "<<duration<<","<<duration_2<<", "<<total_size<<std::endl;
 
 			});
 			
