@@ -2366,9 +2366,11 @@ class BlazingContext(object):
         all_sliced_row_groups_ids = []
 
         for target_files in mapping_files.values():
-            sliced_files = target_files
+            sliced_files = [
+                file_name for file_name in target_files if file_name in dict_files
+            ]
             sliced_uri_values = []
-            sliced_rowgroup_ids = [dict_files[file_name] for file_name in target_files]
+            sliced_rowgroup_ids = [dict_files[file_name] for file_name in sliced_files]
 
             all_sliced_files.append(sliced_files)
             all_sliced_uri_values.append(sliced_uri_values)
