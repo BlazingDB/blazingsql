@@ -165,12 +165,14 @@ void tcp_message_listener::start_polling(){
 
 				std::vector<char> data(message_size);
 				io::read_from_socket(connection_fd, data.data(), message_size);
+				std::cout<<"elapsed time read metadata message "<<timer.elapsed_time()<<std::endl;
 
 				//status_code success = status_code::OK;
 				//io::write_to_socket(connection_fd, &success, sizeof(success));
 
 				auto receiver = std::make_shared<message_receiver>(_nodes_info_map, data);
 
+				std::cout<<"elapsed time make receiver done "<<timer.elapsed_time()<<std::endl;
 				size_t pinned_buffer_size = blazingdb::transport::io::getPinnedBufferProvider().sizeBuffers();
 				size_t buffer_position = 0;
 				size_t total_size = 0;
