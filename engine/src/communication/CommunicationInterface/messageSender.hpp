@@ -143,13 +143,16 @@ public:
 							throw;
 						}
 				});
-				output_cache->wait_for_next();
+
 			
 			}
-		 });
-		 thread.detach();
-    }
+			output_cache->wait_for_next();
+			}
+		});
+		thread.detach();
+		
 
+		}
 	}
 private:
 	static message_sender * instance;
