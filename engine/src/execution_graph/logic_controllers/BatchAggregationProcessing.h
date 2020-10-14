@@ -283,7 +283,9 @@ public:
         auto nodes = context->getAllNodes();
         std::string worker_ids = "";
 
-
+        std::vector<std::unique_ptr<ral::cache::CacheData> > metadata_messages(nodes.size() - 1);
+        std::vector<std::string > metadata_message_ids(nodes.size() - 1);
+        int metadata_message_count = 0;
         for(std::size_t i = 0; i < nodes.size(); ++i) {
             if(!(nodes[i] == self_node)) {
 
@@ -302,12 +304,14 @@ public:
                                         metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL] +	"_" +
                                         metadata.get_values()[ral::cache::WORKER_IDS_METADATA_LABEL]);
 
-                this->query_graph->get_output_message_cache()->addCacheData(
-                    std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(ral::utilities::create_empty_table({}, {}), metadata)),"",true);
+                metadata_messages[metadata_message_count] = std::make_unique<ral::cache::GPUCacheDataMetaData>(
+                    ral::utilities::create_empty_table({}, {}), metadata);
+                metadata_message_ids[metadata_message_count] = metadata.get_values()[ral::cache::MESSAGE_ID];
+                metadata_message_count++;
             }
         }
 
-      
+        this->query_graph->get_output_message_cache()->put_all_cache_data(std::move(metadata_messages),metadata_message_ids);
         int total_count = node_count[self_node.id()];
         for (auto message : messages_to_wait_for){
             auto meta_message = this->query_graph->get_input_message_cache()->pullCacheData(message);
