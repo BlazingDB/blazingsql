@@ -204,7 +204,7 @@ void tcp_message_listener::start_polling(){
 						pinned_buffers[chunk] = pinned_buffer;
 					}
 					//std::cout<<"elapsed copy from gpu before synch "<<timer_2.elapsed_time()<<std::endl;
-					total_read_time += timer_2.elapsed_time() - prev_timer_2;
+					total_read_time += timer_2.elapsed_time();
 					// TODO: Do we want to do this synchronize and free after all the receiver->num_buffers() or for each one?
 					cudaStreamSynchronize(stream);
 					//std::cout<<"elapsed copy from gpu after synch "<<timer_2.elapsed_time()<<std::endl;
