@@ -73,7 +73,7 @@ std::unique_ptr<GPUCacheDataMetaData> cast_cache_data_to_gpu_with_meta(std::uniq
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CacheMachine::CacheMachine(std::shared_ptr<Context> context) : ctx(context), cache_id(CacheMachine::cache_count)
+CacheMachine::CacheMachine(std::shared_ptr<Context> context): ctx(context), cache_id(CacheMachine::cache_count)
 {
 	CacheMachine::cache_count++;
 
@@ -83,7 +83,7 @@ CacheMachine::CacheMachine(std::shared_ptr<Context> context) : ctx(context), cac
 	this->memory_resources.push_back( &blazing_disk_memory_resource::getInstance() );
 	this->num_bytes_added = 0;
 	this->num_rows_added = 0;
-	
+
 	logger = spdlog::get("batch_logger");
 	cache_events_logger = spdlog::get("cache_events_logger");
 
@@ -94,7 +94,7 @@ CacheMachine::CacheMachine(std::shared_ptr<Context> context) : ctx(context), cac
 
 	if(kernels_logger != nullptr) {
 		kernels_logger->info("{ral_id}|{query_id}|{kernel_id}|{is_kernel}|{kernel_type}",
-							"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+							"ral_id"_a=(context ? context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()) : -1 ),
 							"query_id"_a=(context ? std::to_string(context->getContextToken()) : "null"),
 							"kernel_id"_a=cache_id,
 							"is_kernel"_a=0, //false
