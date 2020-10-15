@@ -228,6 +228,7 @@ void tcp_message_listener::start_polling(){
           auto duration_2 = timer.elapsed_time();
           std::cout<<"Transfer duration with finish "<<duration <<" Throughput was "<<
           (( (float) total_size) / 1000000.0)/(((float) duration)/1000.0)<<" MB/s"<<std::endl;
+		  cudaStreamSynchronize(stream);
           cudaStreamDestroy(stream);
           std::cout<<"META, Recevier, allocate, read, synchronize, total_before_finish, total_after_finish,bytes\n"<<
           meta_read_time<<", "<<receiver_time<<", "<<total_allocate_time<<", "<<total_read_time<<","<<total_sync_time<<", "<<duration<<","<<duration_2<<", "<<total_size<<std::endl;
