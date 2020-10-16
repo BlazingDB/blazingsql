@@ -166,6 +166,7 @@ void graphs_info::register_graph(int32_t ctx_token, std::shared_ptr<ral::cache::
 
 void graphs_info::deregister_graph(int32_t ctx_token){
 	if(_ctx_token_to_graph_map.find(ctx_token) != _ctx_token_to_graph_map.end()){
+        _ctx_token_to_graph_map[ctx_token]->clear_kernels();
 		_ctx_token_to_graph_map.erase(ctx_token);
 	}
 }

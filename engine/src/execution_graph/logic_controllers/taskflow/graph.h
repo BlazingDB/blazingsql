@@ -107,6 +107,7 @@ public:
 
 	void check_for_simple_scan_with_limit_query();
 	void set_memory_monitor(std::shared_ptr<ral::MemoryMonitor> mem_monitor);
+	void clear_kernels(); 
 private:
 	const std::int32_t head_id_{-1};
 	std::vector<kernel *> kernels_;
