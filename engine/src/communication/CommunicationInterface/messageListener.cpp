@@ -39,8 +39,15 @@ void poll_for_frames(std::shared_ptr<message_receiver> receiver,
                      ucp_worker_h ucp_worker,
                      const std::size_t request_size){
 	blazing_ucp_tag message_tag = *reinterpret_cast<blazing_ucp_tag *>(&tag);
-	int buffer_id = 0;
-  while (!receiver->is_finished()) {
+	// int buffer_id = 0;
+  // while (!receiver->is_finished()) {
+
+	if (receiver->num_buffers() == 0) {
+		receiver->finish();
+		return;
+	}
+
+	for (int buffer_id = 0; buffer_id < receiver->num_buffers(); buffer_id++) {
     receiver->allocate_buffer(buffer_id);
 
 		message_tag.frame_id = buffer_id + 1;
@@ -54,27 +61,35 @@ void poll_for_frames(std::shared_ptr<message_receiver> receiver,
                                            message_tag_mask,
                                            request + request_size);
 
-    do {
-      ucp_worker_progress(ucp_worker);
-      status = ucp_request_check_status(request + request_size);
-    } while (status == UCS_INPROGRESS);
+		if (status == UCS_OK)	{
+			ucx_message_listener::get_instance()->increment_frame_receiver(tag & message_tag_mask);
+		} else if (status == UCS_INPROGRESS) {
+			ucp_progress_manager::get_instance()->add_recv_request(request, [tag](){ ucx_message_listener::get_instance()->increment_frame_receiver(tag & message_tag_mask); });
+		} else {
+			throw std::runtime_error("Immediate Communication error.");
+		}
 
-    if (status == UCS_OK) {
-      auto message_listener = ucx_message_listener::get_instance();
-      message_listener->increment_frame_receiver(tag & message_tag_mask);
-    } else {
-      // TODO: decide how to do cleanup i think we just throw an
-      // initialization exception
-    }
-    delete request;
+    // do {
+    //   ucp_worker_progress(ucp_worker);
+    //   status = ucp_request_check_status(request + request_size);
+    // } while (status == UCS_INPROGRESS);
 
-		++buffer_id;
+    // if (status == UCS_OK) {
+    //   auto message_listener = ucx_message_listener::get_instance();
+    //   message_listener->increment_frame_receiver(tag & message_tag_mask);
+    // } else {
+    //   // TODO: decide how to do cleanup i think we just throw an
+    //   // initialization exception
+    // }
+    // delete request;
+
+		// ++buffer_id;
   }
-  receiver->finish();
+  // receiver->finish();
 }
 
 
-void recv_begin_callback_c(ucp_tag_recv_info_t *info, size_t request_size) {
+void recv_begin_callback_c(std::shared_ptr<ucp_tag_recv_info_t> info, size_t request_size) {
 
 	auto message_listener = ucx_message_listener::get_instance();
 
@@ -122,11 +137,11 @@ void recv_begin_callback_c(ucp_tag_recv_info_t *info, size_t request_size) {
 
 
 void tcp_message_listener::start_polling(){
-    
+
 
 	if (!polling_started){
 		int socket_fd;
-		
+
 		struct sockaddr_in server_address;
 
 		// socket create and verification
@@ -228,7 +243,7 @@ void tcp_message_listener::start_polling(){
 		auto duration_2 = timer.elapsed_time();
 		std::cout<<"Transfer duration with finish "<<duration <<" Throughput was "<<
 		(( (float) total_size) / 1000000.0)/(((float) duration)/1000.0)<<" MB/s"<<std::endl;
-		
+
 		std::cout<<"META, Recevier, allocate, read, synchronize, total_before_finish, total_after_finish,bytes\n"<<
 		meta_read_time<<", "<<receiver_time<<", "<<total_allocate_time<<", "<<total_read_time<<","<<total_sync_time<<", "<<duration<<","<<duration_2<<", "<<total_size<<std::endl;
 
@@ -245,7 +260,7 @@ void tcp_message_listener::start_polling(){
 }
 
 void ucx_message_listener::poll_begin_message_tag(bool running_from_unit_test){
-	
+
 	if (!polling_started){
 		polling_started = true;
 		auto thread = std::thread([running_from_unit_test, this]{
@@ -278,17 +293,25 @@ void ucx_message_listener::poll_begin_message_tag(bool running_from_unit_test){
 						begin_tag_mask,
 						request + _request_size);
 
-					do {
-						ucp_worker_progress(ucp_worker);
-						ucp_tag_recv_info_t info_tag_;
-						status = ucp_tag_recv_request_test(request + _request_size, &info_tag_);
-					} while (status == UCS_INPROGRESS);
-
-					if(status != UCS_OK){
-						throw std::runtime_error("Was not able to receive begin message");
+					if (status == UCS_OK)	{
+						recv_begin_callback_c(info_tag, _request_size);
+					} else if (status == UCS_INPROGRESS) {
+						ucp_progress_manager::get_instance()->add_recv_request(request, [info_tag, request_size=_request_size](){ recv_begin_callback_c(info_tag, request_size); });
+					} else {
+						throw std::runtime_error("Immediate Communication error.");
 					}
 
-					recv_begin_callback_c( info_tag.get(), _request_size);
+					// do {
+					// 	ucp_worker_progress(ucp_worker);
+					// 	ucp_tag_recv_info_t info_tag_;
+					// 	status = ucp_tag_recv_request_test(request + _request_size, &info_tag_);
+					// } while (status == UCS_INPROGRESS);
+
+					// if(status != UCS_OK){
+					// 	throw std::runtime_error("Was not able to receive begin message");
+					// }
+
+					// recv_begin_callback_c( info_tag, _request_size);
 		}
 
 		});

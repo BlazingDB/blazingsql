@@ -82,6 +82,9 @@ public:
   }
   void confirm_transmission(){
     ++_buffer_counter;
+    if (_buffer_counter == _raw_buffers.size()) {
+      finish();
+    }
   }
 
   void * get_buffer(uint16_t index){
@@ -89,9 +92,9 @@ public:
   }
 
 
-  bool is_finished(){
-    return (_buffer_counter == _raw_buffers.size());
-  }
+  // bool is_finished(){
+  //   return (_buffer_counter == _raw_buffers.size());
+  // }
 
   void finish(cudaStream_t stream = 0) {
     std::unique_ptr<ral::frame::BlazingTable> table = deserialize_from_gpu_raw_buffers(_column_transports, _raw_buffers,stream);
