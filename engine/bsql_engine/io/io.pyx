@@ -499,7 +499,9 @@ cpdef runGenerateGraphCaller(int masterIndex, worker_ids, tables,  table_scans, 
 
 cpdef runExecuteGraphCaller(PyBlazingGraph graph, bool is_single_node):
 
-    resultSet = blaz_move(runExecuteGraphPython(graph.ptr))
+    cdef shared_ptr[cio.graph] ptr = graph.ptr
+    graph = None
+    resultSet = blaz_move(runExecuteGraphPython(blaz_move(ptr)))
     names = dereference(resultSet).names
     decoded_names = []
     for i in range(names.size()):
