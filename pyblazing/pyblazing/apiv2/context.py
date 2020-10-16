@@ -317,6 +317,7 @@ def executeGraph(ctxToken):
     worker = dask.distributed.get_worker()
 
     graph = worker.query_graphs[ctxToken]
+    del worker.query_graphs[ctxToken]
     with worker._lock:
         dfs = cio.runExecuteGraphCaller(graph, is_single_node=False, ctxToken = ctxToken, worker=worker)
         meta = dask.dataframe.utils.make_meta(dfs[0])

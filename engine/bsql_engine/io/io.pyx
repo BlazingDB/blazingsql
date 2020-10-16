@@ -492,11 +492,9 @@ cpdef runGenerateGraphCaller(int masterIndex, worker_ids, tables,  table_scans, 
     pyGraph.ptr = runGenerateGraphPython(masterIndex, worker_ids_c, tableNames, tableScans, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query,accessToken,uri_values_cpp_all, config_options)
     return pyGraph
 
-cpdef runExecuteGraphCaller(PyBlazingGraph graph, bool is_single_node,ctxToken = None, worker = None):
+cpdef runExecuteGraphCaller(PyBlazingGraph graph, bool is_single_node):
 
     resultSet = blaz_move(runExecuteGraphPython(graph.ptr))
-    if worker is not None:
-        del worker.query_graphs[ctxToken]
     names = dereference(resultSet).names
     decoded_names = []
     for i in range(names.size()):
