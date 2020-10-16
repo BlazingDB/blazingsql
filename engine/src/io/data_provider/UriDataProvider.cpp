@@ -106,6 +106,13 @@ data_handle uri_data_provider::get_next(bool open_file) {
 		try {
 			auto fs_manager = BlazingContext::getInstance()->getFileSystemManager();
 
+			const bool hasParentWildcard = current_uri.getPath().getParentPath().hasWildcard();
+
+			if(hasParentWildcard) {
+				throw std::runtime_error(
+					"ERROR: Wildcards on directories are not currently supported.");
+			}
+
 			if(hasWildcard) {
 				const Path final_path = current_uri.getPath().getParentPath();
 				target_uri = Uri(current_uri.getScheme(), current_uri.getAuthority(), final_path);
