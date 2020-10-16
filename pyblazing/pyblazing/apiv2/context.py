@@ -317,6 +317,7 @@ def executeGraph(ctxToken):
     worker = dask.distributed.get_worker()
 
     graph = worker.query_graphs[ctxToken]
+    del worker.query_graphs[ctxToken]
     with worker._lock:
         dfs = cio.runExecuteGraphCaller(graph, is_single_node=False)
         meta = dask.dataframe.utils.make_meta(dfs[0])
@@ -331,7 +332,7 @@ def executeGraph(ctxToken):
         )  # query_partid should be a unique identifier
         worker.query_parts[query_partid] = df
         query_partids.append(query_partid)
-    del worker.query_graphs[ctxToken]
+    
     return query_partids, meta, worker.name
 
 
