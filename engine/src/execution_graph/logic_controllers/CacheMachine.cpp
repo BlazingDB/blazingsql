@@ -206,10 +206,7 @@ void CacheMachine::put(size_t message_id, std::unique_ptr<ral::frame::BlazingTab
 
 void CacheMachine::clear() {
 
-	std::unique_ptr<message> message_data;
-	while(message_data = waitingCache->pop_or_wait()) {
-		printf("...cleaning cache\n");
-	}
+	auto messages = this->waitingCache->get_all();
 	this->waitingCache->finish();
 }
 
