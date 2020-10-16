@@ -55,6 +55,9 @@ public:
 		container_[head_id_] = nullptr;	 // sentinel node
 		kernels_edges_logger = spdlog::get("kernels_edges_logger");
 	}
+	virtual ~graph(){
+		std::cout<<"graph destroyed!"<<std::endl;	
+	}
 	graph(const graph &) = default;
 	graph & operator=(const graph &) = default;
 
