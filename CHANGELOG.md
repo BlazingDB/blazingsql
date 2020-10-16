@@ -5,7 +5,7 @@
 ## Improvements
 
 ## Bug Fixes
-- #1086 Showing an appropriate error to indicate that we do not support opening directories with wildcards
+- #1086 Showing an appropriate error to indicate that we don't support opening directories with wildcards
 
 
 # BlazingSQL 0.16.0 (Date TBS)
