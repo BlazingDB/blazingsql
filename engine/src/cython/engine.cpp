@@ -183,6 +183,7 @@ std::unique_ptr<PartitionedResultSet> runExecuteGraph(std::shared_ptr<ral::cache
 
 	result->skipdata_analysis_fail = false;
 	auto token = graph->get_context_token();
+	std::cout<<"USE IS "<<graph.use_count()<<std::endl;
 	comm::graphs_info::getInstance().deregister_graph(token);
 	return result;
 }
