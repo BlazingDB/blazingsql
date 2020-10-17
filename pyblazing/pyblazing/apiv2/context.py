@@ -319,7 +319,7 @@ def executeGraph(ctxToken):
     graph = worker.query_graphs[ctxToken]
     del worker.query_graphs[ctxToken]
     with worker._lock:
-        dfs = cio.runExecuteGraphCaller(graph, is_single_node=False)
+        dfs = cio.runExecuteGraphCaller(graph, ctxToken,is_single_node=False)
         meta = dask.dataframe.utils.make_meta(dfs[0])
         query_partids = []
 
@@ -2572,7 +2572,7 @@ class BlazingContext(object):
                                 algebra,
                                 accessToken,
                                 query_config_options)
-                result = cio.runExecuteGraphCaller(graph, is_single_node=True)
+                result = cio.runExecuteGraphCaller(graph,ctxToken, is_single_node=True)
             except cio.RunQueryError as e:
                 print(">>>>>>>> ", e)
                 result = cudf.DataFrame()
