@@ -19,7 +19,13 @@ namespace cache {
 		}
 		this->add_edge(p.src, p.dst, source_port_name, target_port_name, p.cache_machine_config);
 	}
-
+	void graph::clear_kernels(){
+		container_.clear();
+		edges_.clear();
+		reverse_edges_.clear();
+		mem_monitor = nullptr;
+	}
+	
 	void graph::set_memory_monitor(std::shared_ptr<ral::MemoryMonitor> mem_monitor){
 		this->mem_monitor = mem_monitor;
 	}

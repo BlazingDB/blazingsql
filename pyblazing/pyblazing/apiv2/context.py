@@ -289,7 +289,7 @@ def generateGraphs(
             if len(tables[table_index].partition_keys) > 0:
                 tables[table_index].input = []
                 for key in tables[table_index].partition_keys:
-                    tables[table_index].input.append(worker.data[key])
+                    tables[table_index].input.append(worker.data[key])             
 
     try:
         graph = cio.runGenerateGraphCaller(
@@ -317,8 +317,9 @@ def executeGraph(ctxToken):
     worker = dask.distributed.get_worker()
 
     graph = worker.query_graphs[ctxToken]
+    del worker.query_graphs[ctxToken]
     with worker._lock:
-        dfs = cio.runExecuteGraphCaller(graph, is_single_node=False)
+        dfs = cio.runExecuteGraphCaller(graph, ctxToken,is_single_node=False)
         meta = dask.dataframe.utils.make_meta(dfs[0])
         query_partids = []
 
@@ -331,7 +332,7 @@ def executeGraph(ctxToken):
         )  # query_partid should be a unique identifier
         worker.query_parts[query_partid] = df
         query_partids.append(query_partid)
-    del worker.query_graphs[ctxToken]
+    
     return query_partids, meta, worker.name
 
 
@@ -2571,7 +2572,7 @@ class BlazingContext(object):
                                 algebra,
                                 accessToken,
                                 query_config_options)
-                result = cio.runExecuteGraphCaller(graph, is_single_node=True)
+                result = cio.runExecuteGraphCaller(graph,ctxToken, is_single_node=True)
             except cio.RunQueryError as e:
                 print(">>>>>>>> ", e)
                 result = cudf.DataFrame()

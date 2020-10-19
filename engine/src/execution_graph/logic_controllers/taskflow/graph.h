@@ -55,6 +55,9 @@ public:
 		container_[head_id_] = nullptr;	 // sentinel node
 		kernels_edges_logger = spdlog::get("kernels_edges_logger");
 	}
+	~graph(){
+		std::cout<<"graph destroyed!"<<std::endl;	
+	}
 	graph(const graph &) = default;
 	graph & operator=(const graph &) = default;
 
@@ -104,6 +107,7 @@ public:
 
 	void check_for_simple_scan_with_limit_query();
 	void set_memory_monitor(std::shared_ptr<ral::MemoryMonitor> mem_monitor);
+	void clear_kernels(); 
 private:
 	const std::int32_t head_id_{-1};
 	std::vector<kernel *> kernels_;
