@@ -1,3 +1,18 @@
+# BlazingSQL 0.17.0 (Date TBS)
+
+## New Features
+
+
+
+## Improvements
+
+
+
+## Bug Fixes
+- #1058 Fixed avg_bytes_per_row value when node 0 has no rows
+
+
+
 # BlazingSQL 0.16.0 (Date TBS)
 
 ## New Features
@@ -37,7 +52,8 @@
 - #1073 Fixed parseSchemaPython can throw exceptions
 - #1074: Remove lock inside grow() method from PinnedBufferProvider
 - #1071 Fix crash when loading an empty folder
-- #1058 Fixed avg_bytes_per_row value when node 0 has no rows
+- #1085 Fixed intra-query memory leak in joins. Fixed by clearing array caches after PartwiseJoin is done 
+
 
 
 # BlazingSQL 0.15.0 (August 31, 2020)
