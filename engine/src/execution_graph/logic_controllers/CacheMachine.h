@@ -767,6 +767,14 @@ public:
 	}
 
 	/**
+	 * gets all the messages
+	 */
+	std::vector<message_ptr> get_all(){
+		std::unique_lock<std::mutex> lock(mutex_);
+		return get_all_unsafe();
+	}
+
+	/**
 	* Waits until all messages are ready then returns all of them.
 	* You should never call this function more than once on a WaitingQueue else
 	* race conditions can occur.
