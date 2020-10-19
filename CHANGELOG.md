@@ -1,3 +1,18 @@
+# BlazingSQL 0.17.0 (Date TBS)
+
+## New Features
+
+
+
+## Improvements
+- #878 Adding calcite rule for window functions. (Window functions not supported yet)
+
+
+## Bug Fixes
+
+
+
+
 # BlazingSQL 0.16.0 (Date TBS)
 
 ## New Features
@@ -11,13 +26,13 @@
 - #998 Update TPCH queries, become implicit joins into implicit joins to avoid random values.
 - #1055 Removing cudf source code dependency as some cudf utilities headers were exposed
 - #1065 Remove thrift from build prodcess as its no longer used
-- #878 Adding calcite rule for window functions. (Window functions not supported yet)
+- #1067 Upload conda packages to both rapidsai and blazingsql conda channels
 
 ## Bug Fixes
 - #918 Activate validation for GPU_CI tests results.
-- #975 Fixed issue due to cudf orc api change 
+- #975 Fixed issue due to cudf orc api change
 - #1017 Fixed issue parsing fixed with string literals
-- #1019 Fix hive string col 
+- #1019 Fix hive string col
 - #1021 removed an rmm include
 - #1020 Fixed build issues with latest rmm 0.16 and columnBasisTest due to deprecated drop_column() function
 - #1029 Fix metadata mistmatch due to parsedMetadata
@@ -27,13 +42,17 @@
 - #1030 Avoid read _metadata files
 - #1039 Fixed issues with parsers, in particular ORC parser was misbehaving
 - #1038 Fixed issue with logging dirs in distributed envs
-- #1048 Pinned google cloud version to 1.16 
+- #1048 Pinned google cloud version to 1.16
 - #1052 Partial revert of some changes on parquet rowgroups flow with local_files=True
 - #1054 Can set manually BLAZING_CHACHE_DIRECTORY
 - #1053 Fixed issue when loading paths with wildcards
 - #1057 Fixed issue with concat all in concatenating cache
 - #1007 Fix arrow and spdlog compilation issues
-
+- #1068 Just adds a docs important links and avoid the message about filesystem authority not found
+- #1073 Fixed parseSchemaPython can throw exceptions
+- #1074: Remove lock inside grow() method from PinnedBufferProvider
+- #1071 Fix crash when loading an empty folder
+- #1085 Fixed intra-query memory leak in joins. Fixed by clearing array caches after PartwiseJoin is done 
 
 
 # BlazingSQL 0.15.0 (August 31, 2020)
@@ -71,9 +90,9 @@
 - #936 Adding extern C for include files
 - #941 Logging level (flush_on) can be configurable
 - #947 Use default client and network interface from Dask
-- #945 Added new separate thresh for concat cache 
+- #945 Added new separate thresh for concat cache
 - #939 Add unit test for Project kernel
-- #949 Implemented using threadpool for outgoing messages 
+- #949 Implemented using threadpool for outgoing messages
 - #961 Add list_tables() and describe_table() functions
 - #967 Add bc.get_free_memory() function
 
@@ -109,7 +128,7 @@
 - #927 Fixed random segfault issue in parser
 - #929 Update the GPUManager functions
 - #942 Fix column names on sample function
-- #950 Introducing config param for max orderby samples and fixing oversampling 
+- #950 Introducing config param for max orderby samples and fixing oversampling
 - #952 Dummy PR
 - #957 Fixed issues caused by changes to timespamp in cudf
 - #962 Use new rmm API instead of get_device_resource() and set_device_resource() functions
