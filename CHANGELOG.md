@@ -9,7 +9,7 @@
 
 
 ## Bug Fixes
-
+- #1064 Fixed issue when loading parquet files with local_files=True
 
 
 
