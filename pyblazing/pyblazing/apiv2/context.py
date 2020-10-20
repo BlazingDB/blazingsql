@@ -2574,7 +2574,7 @@ class BlazingContext(object):
                                 algebra,
                                 accessToken,
                                 query_config_options,
-                                sql)
+                                query)
                 result = cio.runExecuteGraphCaller(graph,ctxToken, is_single_node=True)
             except cio.RunQueryError as e:
                 print(">>>>>>>> ", e)
@@ -2600,7 +2600,7 @@ class BlazingContext(object):
                         algebra,
                         accessToken,
                         query_config_options,
-                        sql,
+                        query,
                         single_gpu=True,
                         pure=False,
                         workers=[worker])]
@@ -2628,7 +2628,7 @@ class BlazingContext(object):
                             algebra,
                             accessToken,
                             query_config_options,
-                            sql,
+                            query,
                             workers=[worker],
                             pure=False))
                     i = i + 1
