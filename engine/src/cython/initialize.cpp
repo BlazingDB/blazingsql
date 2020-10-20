@@ -629,7 +629,7 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 	//Logger Headers
 	if(!existsQueriesFileName) {
 		std::shared_ptr<spdlog::logger> queries_logger = spdlog::get("queries_logger");
-		queries_logger->info("ral_id|query_id|start_time|plan");
+		queries_logger->info("ral_id|query_id|start_time|plan|query");
 	}
 
 	if(!existsKernelsFileName) {

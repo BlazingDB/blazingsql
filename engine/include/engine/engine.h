@@ -22,7 +22,8 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(int32_t masterIndex,
 	std::string query,
 	uint64_t accessToken,
 	std::vector<std::vector<std::map<std::string, std::string>>> uri_values,
-	std::map<std::string, std::string> config_options);
+	std::map<std::string, std::string> config_options,
+	std::string sql);
 
 std::unique_ptr<PartitionedResultSet> runExecuteGraph(std::shared_ptr<ral::cache::graph> graph, int ctx_token);
 
