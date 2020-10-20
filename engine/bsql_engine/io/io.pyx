@@ -390,7 +390,9 @@ cdef class PyBlazingGraph:
     def __dealloc__(self):
         print("deleting graph!")
 
-cpdef runGenerateGraphCaller(int masterIndex, worker_ids, tables,  table_scans, vector[int] fileTypes, int ctxToken, queryPy, unsigned long accessToken, map[string,string] config_options, string sql):
+cpdef runGenerateGraphCaller(int masterIndex, worker_ids, tables,  table_scans, vector[int] fileTypes, int ctxToken, queryPy, unsigned long accessToken, map[string,string] config_options, sql):
+    cdef string sql_c
+    sql_c = sql.encode()
     cdef string query
     query = str.encode(queryPy)
 
@@ -494,7 +496,7 @@ cpdef runGenerateGraphCaller(int masterIndex, worker_ids, tables,  table_scans, 
     for worker_id in worker_ids:
         worker_ids_c.push_back(worker_id.encode())
 
-    pyGraph.ptr = runGenerateGraphPython(masterIndex, worker_ids_c, tableNames, tableScans, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query,accessToken,uri_values_cpp_all, config_options,sql)
+    pyGraph.ptr = runGenerateGraphPython(masterIndex, worker_ids_c, tableNames, tableScans, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query,accessToken,uri_values_cpp_all, config_options,sql_c)
     return pyGraph
 
 cpdef runExecuteGraphCaller(PyBlazingGraph graph, int ctx_token, bool is_single_node):
