@@ -55,8 +55,8 @@ echo "Installing BlazingSQL dev environment"
 # NOTE: needing to manually install spdlog here because v1.8 is causing issues https://github.com/gabime/spdlog/issues/1662
 
 # install deps
-echo "conda install --yes -c conda-forge spdlog=1.7.0 google-cloud-cpp ninja"
-conda install --yes -c conda-forge spdlog=1.7.0 google-cloud-cpp ninja
+echo "conda install --yes -c conda-forge spdlog=1.7.0 google-cloud-cpp=1.16 ninja"
+conda install --yes -c conda-forge spdlog=1.7.0 google-cloud-cpp=1.16 ninja
 echo "BlazingSQL dev basic deps installed"
 
 # NOTE cython must be the same of cudf (for 0.11 and 0.12 cython is >=0.29,<0.30)
@@ -97,7 +97,7 @@ if hasArg --skip-tests; then
     logger "Skipping Tests..."
 else
     INSTALL_PREFIX=${INSTALL_PREFIX:=${PREFIX:=${CONDA_PREFIX}}}
-    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$INSTALL_PREFIX/lib
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$INSTALL_PREFIX/lib:$INSTALL_PREFIX/lib64
 
     logger "Check GPU usage..."
     nvidia-smi

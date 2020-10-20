@@ -7,10 +7,10 @@
 
 #include <execution_graph/logic_controllers/LogicPrimitives.h>
 
-#include <tests/utilities/column_wrapper.hpp>
-#include <tests/utilities/base_fixture.hpp>
-#include <tests/utilities/type_lists.hpp>
-#include <tests/utilities/table_utilities.hpp>
+#include <cudf_test/column_wrapper.hpp>
+#include <cudf_test/base_fixture.hpp>
+#include <cudf_test/type_lists.hpp>
+#include <cudf_test/table_utilities.hpp>
 #include <cudf/detail/gather.hpp>
 #include "tests/utilities/BlazingUnitTest.h"
 #include <operators/OrderBy.h>
