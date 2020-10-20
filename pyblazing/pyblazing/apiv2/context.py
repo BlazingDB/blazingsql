@@ -2628,7 +2628,7 @@ class BlazingContext(object):
                             algebra,
                             accessToken,
                             query_config_options,
-                            sql
+                            sql,
                             workers=[worker],
                             pure=False))
                     i = i + 1
