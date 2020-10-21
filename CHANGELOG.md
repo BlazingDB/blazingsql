@@ -1,3 +1,18 @@
+# BlazingSQL 0.17.0 (Date TBS)
+
+## New Features
+
+
+
+## Improvements
+
+
+
+## Bug Fixes
+- #1088 Fixed issue caused by cudf changing from one .so file to multiple
+
+
+
 # BlazingSQL 0.16.0 (Date TBS)
 
 ## New Features
@@ -10,8 +25,8 @@
 
 
 ## Bug Fixes
-- #975 Fixed issue due to cudf orc api change 
-- #1019 Fix hive string col 
+- #975 Fixed issue due to cudf orc api change
+- #1019 Fix hive string col
 - #1021 removed an rmm include
 - #1020 Fixed build issues with latest rmm 0.16 and columnBasisTest due to deprecated drop_column() function
 - #1016 Removed workaround for parquet read schema
@@ -55,9 +70,9 @@
 - #936 Adding extern C for include files
 - #941 Logging level (flush_on) can be configurable
 - #947 Use default client and network interface from Dask
-- #945 Added new separate thresh for concat cache 
+- #945 Added new separate thresh for concat cache
 - #939 Add unit test for Project kernel
-- #949 Implemented using threadpool for outgoing messages 
+- #949 Implemented using threadpool for outgoing messages
 - #961 Add list_tables() and describe_table() functions
 - #967 Add bc.get_free_memory() function
 
@@ -93,7 +108,7 @@
 - #927 Fixed random segfault issue in parser
 - #929 Update the GPUManager functions
 - #942 Fix column names on sample function
-- #950 Introducing config param for max orderby samples and fixing oversampling 
+- #950 Introducing config param for max orderby samples and fixing oversampling
 - #952 Dummy PR
 - #957 Fixed issues caused by changes to timespamp in cudf
 - #962 Use new rmm API instead of get_device_resource() and set_device_resource() functions
