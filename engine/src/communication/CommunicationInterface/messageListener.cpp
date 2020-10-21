@@ -17,30 +17,11 @@ std::map<std::string, comm::node> message_listener::get_node_map(){
 	return _nodes_info_map;
 }
 
-
-
-void recv_frame_callback_c(void * request, ucs_status_t status,
-							ucp_tag_recv_info_t *info) {
-	try{
-		auto message_listener = ucx_message_listener::get_instance();
-		message_listener->increment_frame_receiver(
-			info->sender_tag & message_tag_mask); //and with message_tag_mask to set frame_id to 00 to match tag
-		ucp_request_release(request);
-	}
-	catch(const std::exception& e)
-	{
-		std::cerr << "Error in recv_frame_callback_c: " << e.what() << '\n';
-	}
-}
-
-
 void poll_for_frames(std::shared_ptr<message_receiver> receiver,
 		                 ucp_tag_t tag,
                      ucp_worker_h ucp_worker,
                      const std::size_t request_size){
 	blazing_ucp_tag message_tag = *reinterpret_cast<blazing_ucp_tag *>(&tag);
-	// int buffer_id = 0;
-  // while (!receiver->is_finished()) {
 
 	if (receiver->num_buffers() == 0) {
 		receiver->finish();
@@ -61,31 +42,19 @@ void poll_for_frames(std::shared_ptr<message_receiver> receiver,
                                            message_tag_mask,
                                            request + request_size);
 
-		if (status == UCS_OK)	{
-			ucx_message_listener::get_instance()->increment_frame_receiver(tag & message_tag_mask);
-		} else if (status == UCS_INPROGRESS) {
-			ucp_progress_manager::get_instance()->add_recv_request(request, [tag](){ ucx_message_listener::get_instance()->increment_frame_receiver(tag & message_tag_mask); });
+		if (!UCS_STATUS_IS_ERR(status)) {
+			ucp_progress_manager::get_instance()->add_recv_request(request, [tag](){
+				auto receiver = ucx_message_listener::get_instance()->get_receiver(tag & message_tag_mask);
+				receiver->confirm_transmission();
+				if (receiver->is_finished()) {
+					ucx_message_listener::get_instance()->remove_receiver(tag & message_tag_mask);
+				}
+			});
 		} else {
-			throw std::runtime_error("Immediate Communication error.");
+			throw std::runtime_error("Immediate Communication error in poll_for_frames.");
 		}
-
-    // do {
-    //   ucp_worker_progress(ucp_worker);
-    //   status = ucp_request_check_status(request + request_size);
-    // } while (status == UCS_INPROGRESS);
-
-    // if (status == UCS_OK) {
-    //   auto message_listener = ucx_message_listener::get_instance();
-    //   message_listener->increment_frame_receiver(tag & message_tag_mask);
-    // } else {
-    //   // TODO: decide how to do cleanup i think we just throw an
-    //   // initialization exception
-    // }
-    // delete request;
-
-		// ++buffer_id;
   }
-  // receiver->finish();
+
 }
 
 
@@ -94,37 +63,16 @@ void recv_begin_callback_c(std::shared_ptr<ucp_tag_recv_info_t> info, size_t req
 	auto message_listener = ucx_message_listener::get_instance();
 
 	auto fwd = message_listener->get_pool().push([&message_listener, info, request_size](int thread_id) {
-		auto buffer = tag_to_begin_buffer_and_info.at(info->sender_tag).first;
-
-		auto receiver = std::make_shared<message_receiver>(message_listener->get_node_map(), buffer);
-		message_listener->add_receiver(info->sender_tag, receiver);
-		//TODO: if its a specific cache get that cache adn put it here else put the general iput cache from the graph
-/*
-		auto node = receiver->get_sender_node();
-
-		auto acknowledge_tag = *reinterpret_cast<blazing_ucp_tag *>(&info->sender_tag);
-		acknowledge_tag.frame_id = 0xFFFF;
-		auto acknowledge_tag_ucp = *reinterpret_cast<ucp_tag_t *>(&acknowledge_tag);
-
-		auto status_acknowledge = std::make_shared<status_code>(status_code::OK);
-		char * request_nbr = new char[request_size];
-		auto status = ucp_tag_send_nbr(
-			node.get_ucp_endpoint(),
-			status_acknowledge.get(),
-			sizeof(status_code),
-			ucp_dt_make_contig(1),
-			acknowledge_tag_ucp,
-			request_nbr + request_size);
-
-		do {
-			ucp_worker_progress(node.get_ucp_worker());
-			status = ucp_request_check_status(request_nbr + request_size);
-		} while (status == UCS_INPROGRESS);
-
-		if(status != UCS_OK){
-			throw std::runtime_error("Was not able to send transmission ack");
+		auto iter = tag_to_begin_buffer_and_info.find(info->sender_tag);
+		if (iter == tag_to_begin_buffer_and_info.end()) {
+			return;
 		}
-*/
+
+		auto receiver = std::make_shared<message_receiver>(message_listener->get_node_map(), iter->second.first);
+		tag_to_begin_buffer_and_info.erase(iter);
+
+		message_listener->add_receiver(info->sender_tag, receiver);
+
 		poll_for_frames(receiver, info->sender_tag, message_listener->get_worker(), request_size);
 	});
 	try{
@@ -293,25 +241,11 @@ void ucx_message_listener::poll_begin_message_tag(bool running_from_unit_test){
 						begin_tag_mask,
 						request + _request_size);
 
-					if (status == UCS_OK)	{
-						recv_begin_callback_c(info_tag, _request_size);
-					} else if (status == UCS_INPROGRESS) {
+					if (!UCS_STATUS_IS_ERR(status)) {
 						ucp_progress_manager::get_instance()->add_recv_request(request, [info_tag, request_size=_request_size](){ recv_begin_callback_c(info_tag, request_size); });
 					} else {
-						throw std::runtime_error("Immediate Communication error.");
+						throw std::runtime_error("Immediate Communication error in poll_begin_message_tag.");
 					}
-
-					// do {
-					// 	ucp_worker_progress(ucp_worker);
-					// 	ucp_tag_recv_info_t info_tag_;
-					// 	status = ucp_tag_recv_request_test(request + _request_size, &info_tag_);
-					// } while (status == UCS_INPROGRESS);
-
-					// if(status != UCS_OK){
-					// 	throw std::runtime_error("Was not able to receive begin message");
-					// }
-
-					// recv_begin_callback_c( info_tag, _request_size);
 		}
 
 		});
@@ -323,6 +257,11 @@ void ucx_message_listener::poll_begin_message_tag(bool running_from_unit_test){
 void ucx_message_listener::add_receiver(ucp_tag_t tag,std::shared_ptr<message_receiver> receiver){
 	tag_to_receiver[tag] = receiver;
 }
+
+std::shared_ptr<message_receiver> ucx_message_listener::get_receiver(ucp_tag_t tag) {
+	return tag_to_receiver.at(tag);
+}
+
 void ucx_message_listener::remove_receiver(ucp_tag_t tag){
 	tag_to_receiver.erase(tag);
 }
@@ -331,9 +270,6 @@ ucp_worker_h ucx_message_listener::get_worker(){
 	return ucp_worker;
 }
 
-void ucx_message_listener::increment_frame_receiver(ucp_tag_t tag){
-	tag_to_receiver[tag]->confirm_transmission();
-}
 ucx_message_listener * ucx_message_listener::instance = nullptr;
 tcp_message_listener * tcp_message_listener::instance = nullptr;
 

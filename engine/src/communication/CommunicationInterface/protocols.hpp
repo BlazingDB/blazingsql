@@ -41,7 +41,7 @@ private:
 	ucp_progress_manager(const ucp_progress_manager &) = delete;
 	ucp_progress_manager & operator=(ucp_progress_manager &&) = delete;
 	ucp_progress_manager & operator=(const ucp_progress_manager &) = delete;
-    size_t request_size;
+    size_t _request_size;
     std::mutex request_mutex;
     std::condition_variable cv;
     std::set<request_struct> send_requests;
