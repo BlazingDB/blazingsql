@@ -3,42 +3,17 @@
 #include <numeric>
 
 #include "JSONParser.h"
+#include "ArgsUtil.h"
 
 namespace ral {
 namespace io {
 
-json_parser::json_parser(cudf::io::json_reader_options args) : args(args) {}
+json_parser::json_parser(std::map<std::string, std::string> args_map_) : args_map{args_map_} {}
 
 json_parser::~json_parser() {
 	// TODO Auto-generated destructor stub
 }
 
-cudf::io::table_with_metadata read_json_file(
-	cudf::io::json_reader_options args,
-	std::shared_ptr<arrow::io::RandomAccessFile> arrow_file_handle,
-	bool first_row_only = false)
-{
-	auto arrow_source = cudf_io::arrow_io_source{arrow_file_handle};
-	args = cudf::io::json_reader_options::builder(cudf::io::source_info{&arrow_source});
-
-	if(first_row_only) {
-		int64_t num_bytes = arrow_file_handle->GetSize().ValueOrDie();
-		
-		if(num_bytes > 48192) {
-			// lets only read up to 8192 bytes. We are assuming that a full row will always be less than that
-			num_bytes = 48192;
-		}
-
-		args.set_byte_range_offset(0);
-		args.set_byte_range_size(num_bytes);
-	}
-
-	auto table_and_metadata = cudf::io::read_json(args);
-
-	arrow_file_handle->Close();
-
-	return std::move(table_and_metadata);
-}
 
 // std::unique_ptr<ral::frame::BlazingTable> json_parser::parse(
 // 	std::shared_ptr<arrow::io::RandomAccessFile> file,
@@ -76,7 +51,20 @@ cudf::io::table_with_metadata read_json_file(
 void json_parser::parse_schema(
 	std::shared_ptr<arrow::io::RandomAccessFile> file, ral::io::Schema & schema) {
 
-	auto table_and_metadata = read_json_file(args, file, true);
+	auto arrow_source = cudf::io::arrow_io_source{file};
+	cudf::io::json_reader_options args = getJsonReaderOptions(args_map, arrow_source);
+
+	int64_t num_bytes = file->GetSize().ValueOrDie();
+
+	// lets only read up to 48192 bytes. We are assuming that a full row will always be less than that
+	if(num_bytes > 48192) {
+		num_bytes = 48192;
+	}
+	args.set_byte_range_offset(0);
+	args.set_byte_range_size(num_bytes);
+
+	cudf::io::table_with_metadata table_and_metadata = cudf::io::read_json(args);
+	file->Close();
 	
 	for(auto i = 0; i < table_and_metadata.tbl->num_columns(); i++) {
 		std::string name = table_and_metadata.metadata.column_names[i];

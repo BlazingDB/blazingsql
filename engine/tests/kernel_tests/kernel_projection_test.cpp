@@ -5,8 +5,8 @@
 #include <thread>
 //#include <gtest/gtest.h>
 
-#include "tests/utilities/column_wrapper.hpp"
-#include "tests/utilities/type_lists.hpp"	 // cudf::test::NumericTypes
+#include "cudf_test/column_wrapper.hpp"
+#include "cudf_test/type_lists.hpp"	 // cudf::test::NumericTypes
 
 #include "execution_graph/logic_controllers/taskflow/kernel.h"
 #include "execution_graph/logic_controllers/taskflow/graph.h"

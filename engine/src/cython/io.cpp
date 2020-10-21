@@ -32,7 +32,7 @@ TableSchema parseSchema(std::vector<std::string> files,
 	
 	const DataType data_type_hint = ral::io::inferDataType(file_format_hint);
 	const DataType fileType = inferFileType(files, data_type_hint);
-	ral::io::ReaderArgs args = getReaderArgs(fileType, ral::io::to_map(arg_keys, arg_values));
+	auto args_map = ral::io::to_map(arg_keys, arg_values);
 	TableSchema tableSchema;
 	tableSchema.data_type = fileType;
 
@@ -40,11 +40,11 @@ TableSchema parseSchema(std::vector<std::string> files,
 	if(fileType == ral::io::DataType::PARQUET) {
 		parser = std::make_shared<ral::io::parquet_parser>();
 	} else if(fileType == ral::io::DataType::ORC) {
-		parser = std::make_shared<ral::io::orc_parser>(args.orcReaderArg);
+		parser = std::make_shared<ral::io::orc_parser>(args_map);
 	} else if(fileType == ral::io::DataType::JSON) {
-		parser = std::make_shared<ral::io::json_parser>(args.jsonReaderArg);
+		parser = std::make_shared<ral::io::json_parser>(args_map);
 	} else if(fileType == ral::io::DataType::CSV) {
-		parser = std::make_shared<ral::io::csv_parser>(args.csvReaderArg);
+		parser = std::make_shared<ral::io::csv_parser>(args_map);
 	}
 
 	std::vector<Uri> uris;
@@ -67,9 +67,6 @@ TableSchema parseSchema(std::vector<std::string> files,
 
 		throw;
 	}
-
-	std::vector<size_t> column_indices(schema.get_num_columns());
-	std::iota(column_indices.begin(), column_indices.end(), 0);
 
 	tableSchema.types = schema.get_dtypes();
 	tableSchema.names = schema.get_names();
@@ -124,17 +121,17 @@ std::unique_ptr<ResultSet> parseMetadata(std::vector<std::string> files,
 	}
 	const DataType data_type_hint = ral::io::inferDataType(file_format_hint);
 	const DataType fileType = inferFileType(files, data_type_hint);
-	ral::io::ReaderArgs args = getReaderArgs(fileType, ral::io::to_map(arg_keys, arg_values));
-
+	std::map<std::string, std::string> args_map = ral::io::to_map(arg_keys, arg_values);
+	
 	std::shared_ptr<ral::io::data_parser> parser;
 	if(fileType == ral::io::DataType::PARQUET) {
 		parser = std::make_shared<ral::io::parquet_parser>();
 	} else if(fileType == ral::io::DataType::ORC) {
-		parser = std::make_shared<ral::io::orc_parser>(args.orcReaderArg);
+		parser = std::make_shared<ral::io::orc_parser>(args_map);
 	} else if(fileType == ral::io::DataType::JSON) {
-		parser = std::make_shared<ral::io::json_parser>(args.jsonReaderArg);
+		parser = std::make_shared<ral::io::json_parser>(args_map);
 	} else if(fileType == ral::io::DataType::CSV) {
-		parser = std::make_shared<ral::io::csv_parser>(args.csvReaderArg);
+		parser = std::make_shared<ral::io::csv_parser>(args_map);
 	}
 	std::vector<Uri> uris;
 	for(auto file_path : files) {
@@ -156,8 +153,6 @@ std::unique_ptr<ResultSet> parseMetadata(std::vector<std::string> files,
 	}
 }
 
-
-
 std::pair<bool, std::string> registerFileSystem(
 	FileSystemConnection fileSystemConnection, std::string root, std::string authority) {
 	Path rootPath(root);
@@ -170,6 +165,9 @@ std::pair<bool, std::string> registerFileSystem(
 	try {
 		bool ok = BlazingContext::getInstance()->getFileSystemManager()->deregisterFileSystem(authority);
 		ok = BlazingContext::getInstance()->getFileSystemManager()->registerFileSystem(fileSystemEntity);
+		if (ok == false) {
+			return std::make_pair(false, "Filesystem failed to register");
+		}
 	} catch(const std::exception & e) {
 		return std::make_pair(false, std::string(e.what()));
 	} catch(...) {

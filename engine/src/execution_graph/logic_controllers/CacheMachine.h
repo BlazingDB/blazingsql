@@ -20,7 +20,6 @@
 #include "cudf/column/column_view.hpp"
 #include "cudf/table/table.hpp"
 #include "cudf/table/table_view.hpp"
-#include <cudf/io/functions.hpp>
 
 #include "error.hpp"
 #include "CodeTimer.h"
@@ -765,6 +764,14 @@ public:
 		auto data = std::move(this->message_queue_.front());
 		this->message_queue_.pop_front();
 		return std::move(data);
+	}
+
+	/**
+	 * gets all the messages
+	 */
+	std::vector<message_ptr> get_all(){
+		std::unique_lock<std::mutex> lock(mutex_);
+		return get_all_unsafe();
 	}
 
 	/**

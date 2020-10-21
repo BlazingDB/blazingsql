@@ -33,17 +33,11 @@ function(configure_test TEST_NAME Tests_SRCS)
 
         cudf
 
-        rmm
         zmq
         cudart
-        cuda
-        ${CUDA_CUDA_LIBRARY}
-        ${CUDA_NVRTC_LIBRARY}
-        ${CUDA_NVTX_LIBRARY}
 
         parquet
         arrow
-        thrift
         snappy
 
         zstd
@@ -92,5 +86,6 @@ add_subdirectory(skipdata)
 add_subdirectory(sort)
 add_subdirectory(waiting_queue)
 add_subdirectory(kernel_tests)
+add_subdirectory(provider)
 
 message(STATUS "******** Tests are ready ********")
