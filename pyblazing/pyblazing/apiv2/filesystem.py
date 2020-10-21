@@ -3,7 +3,6 @@ from collections import OrderedDict
 import cio
 
 from pyblazing.apiv2 import S3EncryptionType
-from pyblazing.apiv2.validation import kwargs_validation
 
 
 def registerFileSystem(client, fs, root, prefix):
@@ -64,7 +63,6 @@ class FileSystem(object):
         return registerFileSystem(client, fs, root, prefix)
 
     def hdfs(self, client, prefix, **kwargs):
-        kwargs_validation(kwargs, "hdfs")
         self._verify_prefix(prefix)
         root = kwargs.get("root", "/")
 
@@ -84,7 +82,6 @@ class FileSystem(object):
         return registerFileSystem(client, fs, root, prefix)
 
     def s3(self, client, prefix, **kwargs):
-        kwargs_validation(kwargs, "s3")
         self._verify_prefix(prefix)
         root = kwargs.get("root", "/")
 
@@ -110,7 +107,6 @@ class FileSystem(object):
         return registerFileSystem(client, fs, root, prefix)
 
     def gs(self, client, prefix, **kwargs):
-        kwargs_validation(kwargs, "gs")
         self._verify_prefix(prefix)
         root = kwargs.get("root", "/")
 
