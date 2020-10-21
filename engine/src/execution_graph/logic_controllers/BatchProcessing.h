@@ -93,11 +93,11 @@ public:
 
 		cacheEventTimer.start();
 		std::unique_ptr<ral::frame::BlazingTable> output;
-		if (ordered) {
+		// if (ordered) {
 			output = cache->pullFromCache();
-		} else {
-			output = cache->pullUnorderedFromCache();
-		}
+		// } else {
+		// 	output = cache->pullUnorderedFromCache();
+		// }
 		cacheEventTimer.stop();
 
 		if(output){
