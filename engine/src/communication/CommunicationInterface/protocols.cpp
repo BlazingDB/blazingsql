@@ -171,13 +171,18 @@ void ucp_progress_manager::check_progress(){
 
 
 void graphs_info::register_graph(int32_t ctx_token, std::shared_ptr<ral::cache::graph> graph){
+   // std::cout<<"registered graph"<<ctx_token<<std::endl;
 	_ctx_token_to_graph_map.insert({ctx_token, graph});
 }
 
 void graphs_info::deregister_graph(int32_t ctx_token){
 	if(_ctx_token_to_graph_map.find(ctx_token) != _ctx_token_to_graph_map.end()){
+        _ctx_token_to_graph_map[ctx_token]->clear_kernels();
+     //   std::cout<<"cleared kernels"<<ctx_token<<std::endl;
 		_ctx_token_to_graph_map.erase(ctx_token);
-	}
+	}else{
+       // std::cout<<"did not clear kernels "<<ctx_token<<std::endl;
+    }
 }
 std::shared_ptr<ral::cache::graph> graphs_info::get_graph(int32_t ctx_token) {
 	if(_ctx_token_to_graph_map.find(ctx_token) == _ctx_token_to_graph_map.end()){
@@ -275,7 +280,7 @@ tcp_buffer_transport::tcp_buffer_transport(
 	    allocate_copy_buffer_pool{allocate_copy_buffer_pool} {
 
         //Initialize connection to get
-
+    cudaStreamCreate(&stream);
     for(auto destination : destinations){
         int socket_fd;
         struct sockaddr_in address;
@@ -337,15 +342,15 @@ void tcp_buffer_transport::send_impl(const char * buffer, size_t buffer_size){
 
         auto pinned_buffer = blazingdb::transport::io::getPinnedBufferProvider().getBuffer();
         pinned_buffer->use_size = chunk_size;
-        cudaMemcpyAsync(pinned_buffer->data,buffer_chunk_start,chunk_size,cudaMemcpyDeviceToHost,pinned_buffer->stream);
+        cudaMemcpyAsync(pinned_buffer->data,buffer_chunk_start,chunk_size,cudaMemcpyDeviceToHost,stream);
         buffers[chunk] = pinned_buffer;
     }
     size_t chunk = 0;
     try{
+        cudaStreamSynchronize(stream);
         while(chunk < num_chunks){
 
             auto pinned_buffer = buffers[chunk];
-            cudaStreamSynchronize(pinned_buffer->stream);
             for (auto socket_fd : socket_fds){
                // io::write_to_socket(socket_fd, &pinned_buffer->use_size,sizeof(pinned_buffer->use_size));
                 io::write_to_socket(socket_fd, pinned_buffer->data,pinned_buffer->use_size);
@@ -367,6 +372,7 @@ tcp_buffer_transport::~tcp_buffer_transport(){
     for (auto socket_fd : socket_fds){
         close(socket_fd);
     }
+    cudaStreamDestroy(stream);
 }
 
 }  // namespace comm

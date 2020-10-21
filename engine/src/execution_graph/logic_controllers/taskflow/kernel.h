@@ -66,7 +66,9 @@ public:
 	/**
 	 * Destructor
 	 */
-	virtual ~kernel() = default;
+	virtual ~kernel(){
+		std::cout<<"Kernel destroyed!"<<std::endl;
+	}
 
 	/**
 	 * @brief Executes the batch processing.

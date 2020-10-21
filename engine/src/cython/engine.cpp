@@ -164,7 +164,7 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(int32_t masterIndex,
 	return graph;
 }
 
-std::unique_ptr<PartitionedResultSet> runExecuteGraph(std::shared_ptr<ral::cache::graph> graph) {
+std::unique_ptr<PartitionedResultSet> runExecuteGraph(std::shared_ptr<ral::cache::graph> graph, int32_t ctx_token) {
 	// Execute query
 	std::vector<std::unique_ptr<ral::frame::BlazingTable>> frames;
 	frames = execute_graph(graph);
@@ -182,9 +182,8 @@ std::unique_ptr<PartitionedResultSet> runExecuteGraph(std::shared_ptr<ral::cache
 	}
 
 	result->skipdata_analysis_fail = false;
-	auto token = graph->get_context_token();
-	//TODO: turn this back on!!!
-	//comm::graphs_info::getInstance().deregister_graph(token);
+
+	comm::graphs_info::getInstance().deregister_graph(ctx_token);
 	return result;
 }
 /*
