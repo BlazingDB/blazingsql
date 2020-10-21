@@ -2,9 +2,14 @@
 
 ## New Features
 
+
+
 ## Improvements
 
+
+
 ## Bug Fixes
+- #1064 Fixed issue when loading parquet files with local_files=True
 - #1086 Showing an appropriate error to indicate that we don't support opening directories with wildcards
 
 
@@ -47,6 +52,7 @@
 - #1073 Fixed parseSchemaPython can throw exceptions
 - #1074: Remove lock inside grow() method from PinnedBufferProvider
 - #1071 Fix crash when loading an empty folder
+- #1085 Fixed intra-query memory leak in joins. Fixed by clearing array caches after PartwiseJoin is done 
 
 
 # BlazingSQL 0.15.0 (August 31, 2020)
