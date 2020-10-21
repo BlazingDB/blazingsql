@@ -41,6 +41,7 @@ gpu_raw_buffer_container serialize_gpu_message_to_gpu_containers(ral::frame::Bla
  */
 std::unique_ptr<ral::frame::BlazingTable> deserialize_from_gpu_raw_buffers(
   const std::vector<blazingdb::transport::ColumnTransport> & columns_offsets,
-  const std::vector<rmm::device_buffer> & raw_buffers);
+  const std::vector<rmm::device_buffer> & raw_buffers,
+  cudaStream_t stream = 0);
 
 } // namespace comm

@@ -169,11 +169,30 @@ void CacheMachine::put(size_t message_id, std::unique_ptr<ral::frame::BlazingTab
 
 void CacheMachine::clear() {
 
-	std::unique_ptr<message> message_data;
-	while(message_data = waitingCache->pop_or_wait()) {
-		printf("...cleaning cache\n");
-	}
+	auto messages = this->waitingCache->get_all();
 	this->waitingCache->finish();
+}
+
+
+std::vector<std::unique_ptr<ral::cache::CacheData> > CacheMachine::pull_all_cache_data(){
+
+	auto messages = this->waitingCache->get_all();
+	std::vector<std::unique_ptr<ral::cache::CacheData> > new_messages(messages.size());
+	int i = 0;
+	for (auto & message_data : messages){
+		new_messages[i] = message_data->release_data();
+		i++;
+	}
+	return std::move(new_messages);
+}
+void CacheMachine::put_all_cache_data( std::vector<std::unique_ptr<ral::cache::CacheData> > messages,std::vector<std::string > message_ids){
+	std::vector<std::unique_ptr<message > > wrapped_messages(messages.size());
+	int i = 0;
+	for(int i = 0; i < messages.size();i++){
+		wrapped_messages[i] = 
+			std::make_unique<message>(std::move(messages[i]), message_ids[i]);
+	}
+	this->waitingCache->put_all(std::move(wrapped_messages));
 }
 
 bool CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, const std::string & message_id, bool always_add){

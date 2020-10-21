@@ -67,11 +67,11 @@ public:
     return _buffer_sizes[index];
   }
 
-  void allocate_buffer(uint16_t index){
+  void allocate_buffer(uint16_t index, cudaStream_t stream = 0){
     if (index >= _raw_buffers.size()) {
       throw std::runtime_error("Invalid access to raw buffer");
     }
-    _raw_buffers[index].resize(_buffer_sizes[index]);
+    _raw_buffers[index].resize(_buffer_sizes[index],stream);
 
   }
 
@@ -93,10 +93,14 @@ public:
     return (_buffer_counter == _raw_buffers.size());
   }
 
-  void finish() {
-    std::unique_ptr<ral::frame::BlazingTable> table = deserialize_from_gpu_raw_buffers(_column_transports, _raw_buffers);
-    _output_cache->addCacheData(
-            std::make_unique<ral::cache::GPUCacheDataMetaData>(std::move(table), _metadata), _metadata.get_values()[ral::cache::MESSAGE_ID], true);
+  void finish(cudaStream_t stream = 0) {
+    std::unique_ptr<ral::frame::BlazingTable> table = deserialize_from_gpu_raw_buffers(_column_transports, _raw_buffers,stream);
+    if ( _metadata.get_values()[ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL] == "true"){
+       _output_cache->addToCache(std::move(table),  _metadata.get_values()[ral::cache::MESSAGE_ID], true);
+    } else {
+      _output_cache->addCacheData(
+              std::make_unique<ral::cache::GPUCacheDataMetaData>(std::move(table), _metadata), _metadata.get_values()[ral::cache::MESSAGE_ID], true);
+    }
   }
 private:
 

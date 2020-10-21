@@ -122,7 +122,8 @@ gpu_raw_buffer_container serialize_gpu_message_to_gpu_containers(ral::frame::Bla
 
 std::unique_ptr<ral::frame::BlazingTable> deserialize_from_gpu_raw_buffers(
 	const std::vector<blazingdb::transport::ColumnTransport> & columns_offsets,
-	const std::vector<rmm::device_buffer> & raw_buffers) {
+	const std::vector<rmm::device_buffer> & raw_buffers,
+	cudaStream_t stream) {
 	size_t num_columns = columns_offsets.size();
 	std::vector<std::unique_ptr<cudf::column>> received_samples(num_columns);
 	std::vector<std::string> column_names(num_columns);
@@ -150,7 +151,7 @@ std::unique_ptr<ral::frame::BlazingTable> deserialize_from_gpu_raw_buffers(
 
 			cudf::size_type null_count = columns_offsets[i].metadata.null_count;
 			auto unique_column = cudf::make_strings_column(
-				num_strings, std::move(offsets_column), std::move(chars_column), null_count, std::move(null_mask));
+				num_strings, std::move(offsets_column), std::move(chars_column), null_count, std::move(null_mask),stream);
 			received_samples[i] = std::move(unique_column);
 
 		} else {
