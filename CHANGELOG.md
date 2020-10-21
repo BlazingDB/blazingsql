@@ -1,3 +1,19 @@
+# BlazingSQL 0.17.0 (Date TBS)
+
+## New Features
+
+
+
+## Improvements
+
+
+
+## Bug Fixes
+- #1064 Fixed issue when loading parquet files with local_files=True
+- #1088 Fixed issue caused by cudf changing from one .so file to multiple
+
+
+
 # BlazingSQL 0.16.0 (Date TBS)
 
 ## New Features
@@ -38,6 +54,7 @@
 - #1073 Fixed parseSchemaPython can throw exceptions
 - #1074: Remove lock inside grow() method from PinnedBufferProvider
 - #1071 Fix crash when loading an empty folder
+- #1085 Fixed intra-query memory leak in joins. Fixed by clearing array caches after PartwiseJoin is done 
 
 
 # BlazingSQL 0.15.0 (August 31, 2020)

@@ -1040,6 +1040,7 @@ class BlazingTable(object):
                 nodeFilesList.append(BlazingTable(self.name, self.input, self.fileType))
             return nodeFilesList
 
+        offset_x = 0
         for target_files in self.mapping_files.values():
             bt = BlazingTable(
                 self.name,
@@ -1053,7 +1054,8 @@ class BlazingTable(object):
                 in_file=self.in_file,
             )
 
-            bt.offset = self.offset
+            bt.offset = (offset_x, len(target_files))
+            offset_x = offset_x + len(target_files)
             bt.column_names = self.column_names
             bt.file_column_names = self.file_column_names
             bt.column_types = self.column_types
@@ -1717,6 +1719,13 @@ class BlazingContext(object):
         input : data source for table.
                 cudf.Dataframe, dask_cudf.DataFrame, pandas.DataFrame,
                 filepath for csv, orc, parquet, etc...
+        file_format (optional) : string describing the file format
+                      (e.g. "csv", "orc", "parquet") this field must
+                      only be set if the files do not have an extension.
+        local_files (optional) : boolean, must be set to True if workers
+                      only have access to a subset of the files
+                      belonging to the same table. In such a case,
+                      each worker will load their corresponding partitions.
 
         Examples
         --------
@@ -1939,8 +1948,12 @@ class BlazingContext(object):
             input = resolve_relative_path(input)
 
             # if we are using user defined partitions without hive,
-            # we want to ignore paths we dont find.
-            ignore_missing_paths = user_partitions_schema is not None
+            # we want to ignore paths we dont find. Also, we should
+            # ignore missing files in case some worker hasn't any
+            # partition file when local_files is True
+            ignore_missing_paths = (user_partitions_schema is not None) or (
+                local_files is True
+            )
             parsedSchema, parsed_mapping_files = self._parseSchema(
                 input,
                 file_format_hint,
@@ -2030,7 +2043,11 @@ class BlazingContext(object):
                     dtypes_list.append(dtype_str)
             table.args["dtype"] = dtypes_list
 
-            table.slices = table.getSlices(len(self.nodes))
+            if table.local_files is False:
+                table.slices = table.getSlices(len(self.nodes))
+            else:
+                table.slices = table.getSlicesByWorker(len(self.nodes))
+
             parsedMetadata = None
             if len(uri_values) > 0:
                 parsedMetadata = parseHiveMetadata(table, uri_values)
@@ -2068,6 +2085,7 @@ class BlazingContext(object):
                 metadata_ids = table.metadata[
                     ["file_handle_index", "row_group_index"]
                 ].to_pandas()
+
                 grouped = metadata_ids.groupby("file_handle_index")
                 row_groups_ids = []
                 for group_id in grouped.groups:
@@ -2186,6 +2204,10 @@ class BlazingContext(object):
                     pure=False,
                 )
                 parsed_schema = connection.result()
+                if len(parsed_schema["files"]) == 0:
+                    raise Exception(
+                        "ERROR: The file pattern specified did not match any files"
+                    )
                 return parsed_schema, {"localhost": parsed_schema["files"]}
             else:
                 # each worker parse all accesible files on the file path
@@ -2237,17 +2259,18 @@ class BlazingContext(object):
                                         all_files[worker].append(file_item)
                             else:
                                 all_files[worker] = result[key]
+                                return_object[key] = {}
 
-                            if "files" in return_object:
-                                return_object[key].update(result[key])
-                            else:
-                                return_object[key] = set()
-                                return_object[key].update(result[key])
+                            return_object[key].update(dict.fromkeys(result[key], None))
                         else:
-                            if key in return_object:
-                                assert return_object[key] == result[key]
-                            else:
+                            if key not in return_object or (
+                                key in return_object and len(result["files"]) > 0
+                            ):
                                 return_object[key] = result[key]
+                if len(return_object["files"]) == 0:
+                    raise Exception(
+                        "ERROR: The file pattern specified did not match any files"
+                    )
                 return_object["files"] = list(return_object["files"])
                 return return_object, all_files
         else:
@@ -2346,9 +2369,11 @@ class BlazingContext(object):
         all_sliced_row_groups_ids = []
 
         for target_files in mapping_files.values():
-            sliced_files = target_files
+            sliced_files = [
+                file_name for file_name in target_files if file_name in dict_files
+            ]
             sliced_uri_values = []
-            sliced_rowgroup_ids = [dict_files[file_name] for file_name in target_files]
+            sliced_rowgroup_ids = [dict_files[file_name] for file_name in sliced_files]
 
             all_sliced_files.append(sliced_files)
             all_sliced_uri_values.append(sliced_uri_values)
@@ -2391,8 +2416,8 @@ class BlazingContext(object):
                 file_and_rowgroup_indices = (
                     file_indices_and_rowgroup_indices.to_pandas()
                 )
-                grouped = file_and_rowgroup_indices.groupby("file_handle_index")
 
+                grouped = file_and_rowgroup_indices.groupby("file_handle_index")
                 for group_id in grouped.groups:
                     row_indices = grouped.groups[group_id].values.tolist()
                     actual_files.append(current_table.files[group_id])

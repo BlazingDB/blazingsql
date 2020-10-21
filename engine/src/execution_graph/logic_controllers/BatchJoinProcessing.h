@@ -412,6 +412,10 @@ public:
 									"duration"_a=timer.elapsed_time(),
 									"kernel_id"_a=this->get_id());
 
+		// these are intra kernel caches. We want to make sure they are empty before we finish.
+		this->leftArrayCache->clear();
+		this->rightArrayCache->clear();
+
 		return kstatus::proceed;
 	}
 
