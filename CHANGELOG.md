@@ -5,10 +5,12 @@
 
 ## Improvements
 - #1082 Validate s3 bucket
+- #1091 Improves the error message problem when validating any GCP bucket
 
 
 ## Bug Fixes
-
+- #1064 Fixed issue when loading parquet files with local_files=True
+- #1088 Fixed issue caused by cudf changing from one .so file to multiple
 
 
 # BlazingSQL 0.16.0 (Date TBS)
@@ -48,7 +50,7 @@
 - #1007 Fix arrow and spdlog compilation issues
 - #1068 Just adds a docs important links and avoid the message about filesystem authority not found
 - #1073 Fixed parseSchemaPython can throw exceptions
-- #1074: Remove lock inside grow() method from PinnedBufferProvider
+- #1074 Remove lock inside grow() method from PinnedBufferProvider
 - #1071 Fix crash when loading an empty folder
 - #1085 Fixed intra-query memory leak in joins. Fixed by clearing array caches after PartwiseJoin is done 
 
@@ -181,3 +183,4 @@
 - #785 Add script for Manual Testing Artifacts.
 - #931 Add script for error messages validation.
 - #932 Import pydrill and pyspark only when its generator or full mode.
+- #1031 adding notebooks into BlazingSQL Tests
