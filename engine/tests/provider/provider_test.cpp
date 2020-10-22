@@ -4,6 +4,8 @@
 #include "FileSystem/LocalFileSystem.h"
 #include "Util/StringUtil.h"
 
+const std::string BLAZING_TMP_PATH = "/tmp/blazing";
+
 struct ProviderTest : public BlazingUnitTest {};
 
 TEST_F(ProviderTest, non_existent_directory) {
@@ -40,7 +42,7 @@ void create_dummy_file(std::string content, std::string filename){
 void create_folder_test()
 {
 	LocalFileSystem localFileSystem(Path("/"));
-	bool dir_create_ok = localFileSystem.makeDirectory(Uri{"/tmp/blazing/"});
+	bool dir_create_ok = localFileSystem.makeDirectory(Uri{BLAZING_TMP_PATH});
 	ASSERT_TRUE(dir_create_ok);
 }
 
@@ -62,14 +64,14 @@ TEST_F(ProviderTest, ignoring_dummy_files) {
 	create_folder_test();
 
 	std::vector<std::string> test_files = {
-		"/tmp/blazing/file.crc", "/tmp/blazing/file_SUCCESS", "/tmp/blazing/file_metadata", "/tmp/blazing/file.csv"};
+		BLAZING_TMP_PATH + "/file.crc", BLAZING_TMP_PATH + "/file_SUCCESS", BLAZING_TMP_PATH + "/file_metadata", BLAZING_TMP_PATH + "/file.csv"};
 
 	create_dummy_file("some crc", test_files[0]);
     create_dummy_file("some flag", test_files[1]);
     create_dummy_file("some meta", test_files[2]);
     create_dummy_file("a|b\n0|0", test_files[3]);
 
-    std::vector<Uri> uris = {Uri{"/tmp/blazing/file*"}};
+    std::vector<Uri> uris = {Uri{BLAZING_TMP_PATH + "/file*"}};
 
 	auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
 
@@ -86,7 +88,7 @@ TEST_F(ProviderTest, ignoring_dummy_files) {
 	remove_dummy_file(test_files);
 
     EXPECT_EQ(result.size(), 1);
-    EXPECT_EQ(result[0], "/tmp/blazing/file.csv");
+    EXPECT_EQ(result[0], BLAZING_TMP_PATH + "/file.csv");
 }
 
 TEST_F(ProviderTest, empty_dir) {
@@ -120,7 +122,7 @@ TEST_F(ProviderTest, folder_with_one_file)
 {
 	create_folder_test();
 
-	std::vector<Uri> uris = {Uri("/tmp/blazing/file.csv")};
+	std::vector<Uri> uris = {Uri(BLAZING_TMP_PATH + "/file.csv")};
 
 	create_dummy_file("a|b\n0|0", uris[0].toString());
 
@@ -141,7 +143,7 @@ TEST_F(ProviderTest, folder_with_one_file_ignore_missing_file)
 {
 	create_folder_test();
 
-	std::vector<Uri> uris{Uri("/tmp/blazing/filezxc.csv")};
+	std::vector<Uri> uris{Uri(BLAZING_TMP_PATH + "/filezxc.csv")};
 
 	auto provider = std::make_shared<ral::io::uri_data_provider>(uris, true);
 
@@ -161,10 +163,10 @@ TEST_F(ProviderTest, folder_multiple_files)
 	create_folder_test();
 
 	std::vector<Uri> uris = {
-		Uri("/tmp/blazing/file.orc"),
-		Uri("/tmp/blazing/file_SUCCESS.csv"),
-		Uri("/tmp/blazing/file_metadata.csv"),
-		Uri("/tmp/blazing/file.csv")};
+		Uri(BLAZING_TMP_PATH + "/file.orc"),
+		Uri(BLAZING_TMP_PATH + "/file_SUCCESS.csv"),
+		Uri(BLAZING_TMP_PATH + "/file_metadata.csv"),
+		Uri(BLAZING_TMP_PATH + "/file.csv")};
 
 	create_dummy_file("a|b\n0|0", uris[0].toString());
 	create_dummy_file("a|b\n0|0", uris[1].toString());
@@ -193,10 +195,10 @@ TEST_F(ProviderTest, folder_multiple_files_ignore_missing_file)
 	create_folder_test();
 
 	std::vector<Uri> uris = {
-		Uri("/tmp/blazing/file.orc"),
-		Uri("/tmp/blazing/file_SUCCESS.csv"),
-		Uri("/tmp/blazing/file_metadata.csv"),
-		Uri("/tmp/blazing/file.csv")};
+		Uri(BLAZING_TMP_PATH + "/file.orc"),
+		Uri(BLAZING_TMP_PATH + "/file_SUCCESS.csv"),
+		Uri(BLAZING_TMP_PATH + "/file_metadata.csv"),
+		Uri(BLAZING_TMP_PATH + "/file.csv")};
 
 	auto provider = std::make_shared<ral::io::uri_data_provider>(uris, true);
 
@@ -215,10 +217,10 @@ TEST_F(ProviderTest, folder_multiple_files_one_empty_folder)
 {
 	create_folder_test();
 
-	std::vector<std::string> test_files{"/tmp/blazing/file.orc",
-										"/tmp/blazing/file_SUCCESS.csv",
-										"/tmp/blazing/file_metadata.csv",
-										"/tmp/blazing/file.csv"};
+	std::vector<std::string> test_files{BLAZING_TMP_PATH + "/file.orc",
+										BLAZING_TMP_PATH + "/file_SUCCESS.csv",
+										BLAZING_TMP_PATH + "/file_metadata.csv",
+										BLAZING_TMP_PATH + "/file.csv"};
 
 	create_dummy_file("a|b\n0|0", test_files[0]);
 	create_dummy_file("a|b\n0|0", test_files[1]);
@@ -226,14 +228,14 @@ TEST_F(ProviderTest, folder_multiple_files_one_empty_folder)
 	create_dummy_file("a|b\n0|0", test_files[3]);
 
 	LocalFileSystem localFileSystem(Path("/"));
-	localFileSystem.makeDirectory(Uri("/tmp/blazing/emptyFolder"));
+	localFileSystem.makeDirectory(Uri(BLAZING_TMP_PATH + "/emptyFolder"));
 
 	std::vector<Uri> uris = {
 		Uri(test_files[0]),
 		Uri(test_files[1]),
 		Uri(test_files[2]),
 		Uri(test_files[3]),
-		Uri("/tmp/blazing/emptyFolder/*")};
+		Uri(BLAZING_TMP_PATH + "/emptyFolder/*")};
 
 	auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
 
@@ -249,7 +251,7 @@ TEST_F(ProviderTest, folder_multiple_files_one_empty_folder)
 
 	EXPECT_EQ(test_files, result);
 
-	localFileSystem.remove(Uri("/tmp/blazing/emptyFolder"));
+	localFileSystem.remove(Uri(BLAZING_TMP_PATH + "/emptyFolder"));
 	remove_dummy_file(test_files);
 }
 
@@ -257,17 +259,17 @@ TEST_F(ProviderTest, folder_multiple_files_one_empty_folder_ignore_missing_file)
 {
 	create_folder_test();
 
-	std::vector<std::string> test_files{"/tmp/blazing/file.orc",
-										"/tmp/blazing/file_SUCCESS.csv",
-										"/tmp/blazing/file_metadata.csv",
-										"/tmp/blazing/file.csv"};
+	std::vector<std::string> test_files{BLAZING_TMP_PATH + "/file.orc",
+										BLAZING_TMP_PATH + "/file_SUCCESS.csv",
+										BLAZING_TMP_PATH + "/file_metadata.csv",
+										BLAZING_TMP_PATH + "/file.csv"};
 
 	std::vector<Uri> uris = {
 		Uri(test_files[0]),
 		Uri(test_files[1]),
 		Uri(test_files[2]),
 		Uri(test_files[3]),
-		Uri("/tmp/blazing/emptyFolder/*")};
+		Uri(BLAZING_TMP_PATH + "/emptyFolder/*")};
 
 	auto provider = std::make_shared<ral::io::uri_data_provider>(uris, true);
 
@@ -286,14 +288,14 @@ TEST_F(ProviderTest, folder_multiple_files_one_non_empty_folder)
 {
 	create_folder_test();
 
-	std::vector<std::string> test_files{"/tmp/blazing/file.orc",
-										"/tmp/blazing/file_SUCCESS.csv",
-										"/tmp/blazing/file_metadata.csv",
-										"/tmp/blazing/file.csv",
-										"/tmp/blazing/folder/file.orc",
-										"/tmp/blazing/folder/file_SUCCESS.csv",
-										"/tmp/blazing/folder/file_metadata.csv",
-										"/tmp/blazing/folder/file.csv"};
+	std::vector<std::string> test_files{BLAZING_TMP_PATH + "/file.orc",
+										BLAZING_TMP_PATH + "/file_SUCCESS.csv",
+										BLAZING_TMP_PATH + "/file_metadata.csv",
+										BLAZING_TMP_PATH + "/file.csv",
+										BLAZING_TMP_PATH + "/folder/file.orc",
+										BLAZING_TMP_PATH + "/folder/file_SUCCESS.csv",
+										BLAZING_TMP_PATH + "/folder/file_metadata.csv",
+										BLAZING_TMP_PATH + "/folder/file.csv"};
 
 	create_dummy_file("a|b\n0|0", test_files[0]);
 	create_dummy_file("a|b\n0|0", test_files[1]);
@@ -301,7 +303,7 @@ TEST_F(ProviderTest, folder_multiple_files_one_non_empty_folder)
 	create_dummy_file("a|b\n0|0", test_files[3]);
 
 	LocalFileSystem localFileSystem(Path("/"));
-	localFileSystem.makeDirectory(Uri("/tmp/blazing/folder"));
+	localFileSystem.makeDirectory(Uri(BLAZING_TMP_PATH + "/folder"));
 
 	create_dummy_file("a|b\n0|0", test_files[4]);
 	create_dummy_file("a|b\n0|0", test_files[5]);
@@ -313,7 +315,7 @@ TEST_F(ProviderTest, folder_multiple_files_one_non_empty_folder)
 		Uri(test_files[1]),
 		Uri(test_files[2]),
 		Uri(test_files[3]),
-		Uri("/tmp/blazing/folder/*")};
+		Uri(BLAZING_TMP_PATH + "/folder/*")};
 
 	auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
 
@@ -331,7 +333,7 @@ TEST_F(ProviderTest, folder_multiple_files_one_non_empty_folder)
 	std::sort(result.begin(), result.end());
 	EXPECT_EQ(test_files, result);
 
-	localFileSystem.remove(Uri("/tmp/blazing/folder"));
+	localFileSystem.remove(Uri(BLAZING_TMP_PATH + "/folder"));
 	remove_dummy_file(test_files);
 }
 
@@ -339,21 +341,21 @@ TEST_F(ProviderTest, folder_multiple_files_one_non_empty_folder_ignore_missing_f
 {
 	create_folder_test();
 
-	std::vector<std::string> test_files{"/tmp/blazing/file.orc",
-										"/tmp/blazing/file_SUCCESS.csv",
-										"/tmp/blazing/file_metadata.csv",
-										"/tmp/blazing/file.csv",
-										"/tmp/blazing/folder/file.orc",
-										"/tmp/blazing/folder/file_SUCCESS.csv",
-										"/tmp/blazing/folder/file_metadata.csv",
-										"/tmp/blazing/folder/file.csv"};
+	std::vector<std::string> test_files{BLAZING_TMP_PATH + "/file.orc",
+										BLAZING_TMP_PATH + "/file_SUCCESS.csv",
+										BLAZING_TMP_PATH + "/file_metadata.csv",
+										BLAZING_TMP_PATH + "/file.csv",
+										BLAZING_TMP_PATH + "/folder/file.orc",
+										BLAZING_TMP_PATH + "/folder/file_SUCCESS.csv",
+										BLAZING_TMP_PATH + "/folder/file_metadata.csv",
+										BLAZING_TMP_PATH + "/folder/file.csv"};
 
 	std::vector<Uri> uris = {
 		Uri(test_files[0]),
 		Uri(test_files[1]),
 		Uri(test_files[2]),
 		Uri(test_files[3]),
-		Uri("/tmp/blazing/folder/*")};
+		Uri(BLAZING_TMP_PATH + "/folder/*")};
 
 	auto provider = std::make_shared<ral::io::uri_data_provider>(uris, true);
 
@@ -372,20 +374,20 @@ TEST_F(ProviderTest, folder_multiple_folder_on_multiple_folder)
 {
 	create_folder_test();
 
-	std::vector<std::string> test_files{"/tmp/blazing/folder1/file.orc",
-										"/tmp/blazing/folder1/file_SUCCESS.csv",
-										"/tmp/blazing/folder2/file.orc",
-										"/tmp/blazing/folder2/file_SUCCESS.csv",
-										"/tmp/blazing/folder3/file.orc",
-										"/tmp/blazing/folder3/file_SUCCESS.csv",
-										"/tmp/blazing/folder4/file.orc",
-										"/tmp/blazing/folder4/file_SUCCESS.csv"};
+	std::vector<std::string> test_files{BLAZING_TMP_PATH + "/folder1/file.orc",
+										BLAZING_TMP_PATH + "/folder1/file_SUCCESS.csv",
+										BLAZING_TMP_PATH + "/folder2/file.orc",
+										BLAZING_TMP_PATH + "/folder2/file_SUCCESS.csv",
+										BLAZING_TMP_PATH + "/folder3/file.orc",
+										BLAZING_TMP_PATH + "/folder3/file_SUCCESS.csv",
+										BLAZING_TMP_PATH + "/folder4/file.orc",
+										BLAZING_TMP_PATH + "/folder4/file_SUCCESS.csv"};
 
 	LocalFileSystem localFileSystem(Path("/"));
-	localFileSystem.makeDirectory(Uri("/tmp/blazing/folder1"));
-	localFileSystem.makeDirectory(Uri("/tmp/blazing/folder2"));
-	localFileSystem.makeDirectory(Uri("/tmp/blazing/folder3"));
-	localFileSystem.makeDirectory(Uri("/tmp/blazing/folder4"));
+	localFileSystem.makeDirectory(Uri(BLAZING_TMP_PATH + "/folder1"));
+	localFileSystem.makeDirectory(Uri(BLAZING_TMP_PATH + "/folder2"));
+	localFileSystem.makeDirectory(Uri(BLAZING_TMP_PATH + "/folder3"));
+	localFileSystem.makeDirectory(Uri(BLAZING_TMP_PATH + "/folder4"));
 
 	create_dummy_file("a|b\n0|0", test_files[0]);
 	create_dummy_file("a|b\n0|0", test_files[1]);
@@ -397,10 +399,10 @@ TEST_F(ProviderTest, folder_multiple_folder_on_multiple_folder)
 	create_dummy_file("a|b\n0|0", test_files[7]);
 
 	std::vector<Uri> uris = {
-		Uri("/tmp/blazing/folder1/*"),
-		Uri("/tmp/blazing/folder2/*"),
-		Uri("/tmp/blazing/folder3/*"),
-		Uri("/tmp/blazing/folder4/*")};
+		Uri(BLAZING_TMP_PATH + "/folder1/*"),
+		Uri(BLAZING_TMP_PATH + "/folder2/*"),
+		Uri(BLAZING_TMP_PATH + "/folder3/*"),
+		Uri(BLAZING_TMP_PATH + "/folder4/*")};
 
 	auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
 
@@ -418,10 +420,10 @@ TEST_F(ProviderTest, folder_multiple_folder_on_multiple_folder)
 	std::sort(result.begin(), result.end());
 	EXPECT_EQ(test_files, result);
 
-	localFileSystem.remove(Uri("/tmp/blazing/folder1"));
-	localFileSystem.remove(Uri("/tmp/blazing/folder2"));
-	localFileSystem.remove(Uri("/tmp/blazing/folder3"));
-	localFileSystem.remove(Uri("/tmp/blazing/folder4"));
+	localFileSystem.remove(Uri(BLAZING_TMP_PATH + "/folder1"));
+	localFileSystem.remove(Uri(BLAZING_TMP_PATH + "/folder2"));
+	localFileSystem.remove(Uri(BLAZING_TMP_PATH + "/folder3"));
+	localFileSystem.remove(Uri(BLAZING_TMP_PATH + "/folder4"));
 	remove_dummy_file(test_files);
 }
 
@@ -430,10 +432,10 @@ TEST_F(ProviderTest, folder_multiple_folder_on_multiple_folder_ignore_missing_fi
 	create_folder_test();
 
 	std::vector<Uri> uris = {
-		Uri("/tmp/blazing/folder1/*"),
-		Uri("/tmp/blazing/folder2/*"),
-		Uri("/tmp/blazing/folder3/*"),
-		Uri("/tmp/blazing/folder4/*")};
+		Uri(BLAZING_TMP_PATH + "/folder1/*"),
+		Uri(BLAZING_TMP_PATH + "/folder2/*"),
+		Uri(BLAZING_TMP_PATH + "/folder3/*"),
+		Uri(BLAZING_TMP_PATH + "/folder4/*")};
 
 	auto provider = std::make_shared<ral::io::uri_data_provider>(uris, true);
 
@@ -452,7 +454,7 @@ TEST_F(ProviderTest, wildcard_return_nothing)
 {
 	create_folder_test();
 
-	std::vector<Uri> uris = {Uri("/tmp/blazing/*")};
+	std::vector<Uri> uris = {Uri(BLAZING_TMP_PATH + "/*")};
 
 	auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
 
@@ -474,13 +476,13 @@ TEST_F(ProviderTest, wildcard_one_file)
 	create_folder_test();
 
 	std::vector<std::string> test_files{
-		"/tmp/blazing/fileone.orc", "/tmp/blazing/filetwo.orc", "/tmp/blazing/filethree.orc"};
+		BLAZING_TMP_PATH + "/fileone.orc", BLAZING_TMP_PATH + "/filetwo.orc", BLAZING_TMP_PATH + "/filethree.orc"};
 
 	create_dummy_file("a|b\n0|0", test_files[0]);
 	create_dummy_file("a|b\n0|0", test_files[1]);
 	create_dummy_file("a|b\n0|0", test_files[2]);
 
-	std::vector<Uri> uris = {Uri("/tmp/blazing/*ileo*")};
+	std::vector<Uri> uris = {Uri(BLAZING_TMP_PATH + "/*ileo*")};
 
 	auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
 
@@ -494,7 +496,7 @@ TEST_F(ProviderTest, wildcard_one_file)
 		result.emplace_back(new_handle.uri.toString());
 	}
 
-	EXPECT_EQ(result, std::vector<std::string>{"/tmp/blazing/fileone.orc"});
+	EXPECT_EQ(result, std::vector<std::string>{BLAZING_TMP_PATH + "/fileone.orc"});
 
 	remove_dummy_file(test_files);
 }
@@ -504,13 +506,13 @@ TEST_F(ProviderTest, wildcard_multiple_file)
 	create_folder_test();
 
 	std::vector<std::string> test_files{
-		"/tmp/blazing/fileone.orc", "/tmp/blazing/filetwo.orc", "/tmp/blazing/filethree.orc"};
+		BLAZING_TMP_PATH + "/fileone.orc", BLAZING_TMP_PATH + "/filetwo.orc", BLAZING_TMP_PATH + "/filethree.orc"};
 
 	create_dummy_file("a|b\n0|0", test_files[0]);
 	create_dummy_file("a|b\n0|0", test_files[1]);
 	create_dummy_file("a|b\n0|0", test_files[2]);
 
-	std::vector<Uri> uris = {Uri("/tmp/blazing/*ilet*")};
+	std::vector<Uri> uris = {Uri(BLAZING_TMP_PATH + "/*ilet*")};
 
 	auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
 
@@ -524,7 +526,7 @@ TEST_F(ProviderTest, wildcard_multiple_file)
 		result.emplace_back(new_handle.uri.toString());
 	}
 
-	std::vector<std::string> cmp{"/tmp/blazing/filetwo.orc", "/tmp/blazing/filethree.orc"};
+	std::vector<std::string> cmp{BLAZING_TMP_PATH + "/filetwo.orc", BLAZING_TMP_PATH + "/filethree.orc"};
 	EXPECT_EQ(result, cmp);
 
 	remove_dummy_file(test_files);
@@ -537,20 +539,20 @@ TEST_F(ProviderTest, wilcard_recursive)
 
 	create_folder_test();
 
-	std::vector<std::string> test_files{"/tmp/blazing/folder1/file.orc",
-										"/tmp/blazing/folder1/file_SUCCESS.csv",
-										"/tmp/blazing/folder2/file.orc",
-										"/tmp/blazing/folder2/file_SUCCESS.csv",
-										"/tmp/blazing/folder3/file.orc",
-										"/tmp/blazing/folder3/file_SUCCESS.csv",
-										"/tmp/blazing/folder4/file.orc",
-										"/tmp/blazing/folder4/file_SUCCESS.csv"};
+	std::vector<std::string> test_files{BLAZING_TMP_PATH + "/folder1/file.orc",
+										BLAZING_TMP_PATH + "/folder1/file_SUCCESS.csv",
+										BLAZING_TMP_PATH + "/folder2/file.orc",
+										BLAZING_TMP_PATH + "/folder2/file_SUCCESS.csv",
+										BLAZING_TMP_PATH + "/folder3/file.orc",
+										BLAZING_TMP_PATH + "/folder3/file_SUCCESS.csv",
+										BLAZING_TMP_PATH + "/folder4/file.orc",
+										BLAZING_TMP_PATH + "/folder4/file_SUCCESS.csv"};
 
 	LocalFileSystem localFileSystem(Path("/"));
-	localFileSystem.makeDirectory(Uri("/tmp/blazing/folder1"));
-	localFileSystem.makeDirectory(Uri("/tmp/blazing/folder2"));
-	localFileSystem.makeDirectory(Uri("/tmp/blazing/folder3"));
-	localFileSystem.makeDirectory(Uri("/tmp/blazing/folder4"));
+	localFileSystem.makeDirectory(Uri(BLAZING_TMP_PATH + "/folder1"));
+	localFileSystem.makeDirectory(Uri(BLAZING_TMP_PATH + "/folder2"));
+	localFileSystem.makeDirectory(Uri(BLAZING_TMP_PATH + "/folder3"));
+	localFileSystem.makeDirectory(Uri(BLAZING_TMP_PATH + "/folder4"));
 
 	create_dummy_file("a|b\n0|0", test_files[0]);
 	create_dummy_file("a|b\n0|0", test_files[1]);
@@ -561,7 +563,7 @@ TEST_F(ProviderTest, wilcard_recursive)
 	create_dummy_file("a|b\n0|0", test_files[6]);
 	create_dummy_file("a|b\n0|0", test_files[7]);
 
-	std::vector<Uri> uris = {Uri("/tmp/blazing/*")};
+	std::vector<Uri> uris = {Uri(BLAZING_TMP_PATH + "/*")};
 
 	auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
 
@@ -579,10 +581,10 @@ TEST_F(ProviderTest, wilcard_recursive)
 	std::sort(result.begin(), result.end());
 	EXPECT_EQ(test_files, result);
 
-	localFileSystem.remove(Uri("/tmp/blazing/folder1"));
-	localFileSystem.remove(Uri("/tmp/blazing/folder2"));
-	localFileSystem.remove(Uri("/tmp/blazing/folder3"));
-	localFileSystem.remove(Uri("/tmp/blazing/folder4"));
+	localFileSystem.remove(Uri(BLAZING_TMP_PATH + "/folder1"));
+	localFileSystem.remove(Uri(BLAZING_TMP_PATH + "/folder2"));
+	localFileSystem.remove(Uri(BLAZING_TMP_PATH + "/folder3"));
+	localFileSystem.remove(Uri(BLAZING_TMP_PATH + "/folder4"));
 	remove_dummy_file(test_files);
 }
 
@@ -593,20 +595,20 @@ TEST_F(ProviderTest, wilcard_folder)
 
 	create_folder_test();
 
-	std::vector<std::string> test_files{"/tmp/blazing/folder1/file.orc",
-										"/tmp/blazing/folder1/file_SUCCESS.csv",
-										"/tmp/blazing/folder2/file.orc",
-										"/tmp/blazing/folder2/file_SUCCESS.csv",
-										"/tmp/blazing/folder3/file.orc",
-										"/tmp/blazing/folder3/file_SUCCESS.csv",
-										"/tmp/blazing/folder4/file.orc",
-										"/tmp/blazing/folder4/file_SUCCESS.csv"};
+	std::vector<std::string> test_files{BLAZING_TMP_PATH + "/folder1/file.orc",
+										BLAZING_TMP_PATH + "/folder1/file_SUCCESS.csv",
+										BLAZING_TMP_PATH + "/folder2/file.orc",
+										BLAZING_TMP_PATH + "/folder2/file_SUCCESS.csv",
+										BLAZING_TMP_PATH + "/folder3/file.orc",
+										BLAZING_TMP_PATH + "/folder3/file_SUCCESS.csv",
+										BLAZING_TMP_PATH + "/folder4/file.orc",
+										BLAZING_TMP_PATH + "/folder4/file_SUCCESS.csv"};
 
 	LocalFileSystem localFileSystem(Path("/"));
-	localFileSystem.makeDirectory(Uri("/tmp/blazing/folder1"));
-	localFileSystem.makeDirectory(Uri("/tmp/blazing/folder2"));
-	localFileSystem.makeDirectory(Uri("/tmp/blazing/folder3"));
-	localFileSystem.makeDirectory(Uri("/tmp/blazing/folder4"));
+	localFileSystem.makeDirectory(Uri(BLAZING_TMP_PATH + "/folder1"));
+	localFileSystem.makeDirectory(Uri(BLAZING_TMP_PATH + "/folder2"));
+	localFileSystem.makeDirectory(Uri(BLAZING_TMP_PATH + "/folder3"));
+	localFileSystem.makeDirectory(Uri(BLAZING_TMP_PATH + "/folder4"));
 
 	create_dummy_file("a|b\n0|0", test_files[0]);
 	create_dummy_file("a|b\n0|0", test_files[1]);
@@ -617,7 +619,7 @@ TEST_F(ProviderTest, wilcard_folder)
 	create_dummy_file("a|b\n0|0", test_files[6]);
 	create_dummy_file("a|b\n0|0", test_files[7]);
 
-	std::vector<Uri> uris = {Uri("/tmp/blazing/folder*/*")};
+	std::vector<Uri> uris = {Uri(BLAZING_TMP_PATH + "/folder*/*")};
 
 	auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
 
@@ -635,9 +637,9 @@ TEST_F(ProviderTest, wilcard_folder)
 	std::sort(result.begin(), result.end());
 	EXPECT_EQ(test_files, result);
 
-	localFileSystem.remove(Uri("/tmp/blazing/folder1"));
-	localFileSystem.remove(Uri("/tmp/blazing/folder2"));
-	localFileSystem.remove(Uri("/tmp/blazing/folder3"));
-	localFileSystem.remove(Uri("/tmp/blazing/folder4"));
+	localFileSystem.remove(Uri(BLAZING_TMP_PATH + "/folder1"));
+	localFileSystem.remove(Uri(BLAZING_TMP_PATH + "/folder2"));
+	localFileSystem.remove(Uri(BLAZING_TMP_PATH + "/folder3"));
+	localFileSystem.remove(Uri(BLAZING_TMP_PATH + "/folder4"));
 	remove_dummy_file(test_files);
 }
