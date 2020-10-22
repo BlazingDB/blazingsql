@@ -5,7 +5,7 @@
 
 
 ## Improvements
-
+- #1093 Logs configurable to have max size
 
 
 ## Bug Fixes

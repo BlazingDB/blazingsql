@@ -1094,7 +1094,7 @@ def load_config_options_from_env(user_config_options: dict):
         "MAX_SEND_MESSAGE_THREADS": 20,
         "LOGGING_LEVEL": "trace",
         "LOGGING_FLUSH_LEVEL": "warn",
-        "LOGGING_MAX_SIZE_PER_FILE": 1073741824, # 1 GB
+        "LOGGING_MAX_SIZE_PER_FILE": 1073741824,  # 1 GB
         "TRANSPORT_BUFFER_BYTE_SIZE": 1048576,  # 10 MB in bytes
         "TRANSPORT_POOL_NUM_BUFFERS": 100,
     }
