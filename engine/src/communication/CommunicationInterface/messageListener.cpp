@@ -232,7 +232,7 @@ void tcp_message_listener::start_polling(){
 		std::cout<<"META, Recevier, allocate, read, synchronize, total_before_finish, total_after_finish,bytes\n"<<
 		meta_read_time<<", "<<receiver_time<<", "<<total_allocate_time<<", "<<total_read_time<<","<<total_sync_time<<", "<<duration<<","<<duration_2<<", "<<total_size<<std::endl;
 
-		close(connection_fd)
+		close(connection_fd);
 		cudaStreamSynchronize(stream);
 		cudaStreamDestroy(stream);
         });
