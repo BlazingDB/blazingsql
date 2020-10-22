@@ -5,7 +5,7 @@
 
 
 ## Improvements
-
+- #1090 Add tests for Uri Data provider for local uri
 
 
 ## Bug Fixes
