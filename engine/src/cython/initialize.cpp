@@ -550,7 +550,7 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 	std::string env_cuda_device_str = env_cuda_device == nullptr ? "" : std::string(env_cuda_device);
 	initLogMsg = initLogMsg + "CUDA_VISIBLE_DEVICES is set to: " + env_cuda_device_str + ", ";
 	
-	size_t buffers_size = 78643200;  // 75 MBs        0.1 * free_gpu_mem_size;
+	size_t buffers_size = 78643200 / 8;  // 75 MBs        0.1 * free_gpu_mem_size;
 	auto iter = config_options.find("TRANSPORT_BUFFER_BYTE_SIZE");
 	if (iter != config_options.end()){
 		buffers_size = std::stoi(config_options["TRANSPORT_BUFFER_BYTE_SIZE"]);
@@ -560,7 +560,7 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 	if (iter != config_options.end()){
 		num_comm_threads = std::stoi(config_options["MAX_SEND_MESSAGE_THREADS"]);
 	}	
-	blazingdb::transport::io::setPinnedBufferProvider(buffers_size, num_comm_threads);
+	blazingdb::transport::io::setPinnedBufferProvider(buffers_size, num_comm_threads*10);
 
 	//to avoid redundancy the default value or user defined value for this parameter is placed on the pyblazing side
 	assert( config_options.find("BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD") != config_options.end() );
@@ -629,7 +629,7 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 	//Logger Headers
 	if(!existsQueriesFileName) {
 		std::shared_ptr<spdlog::logger> queries_logger = spdlog::get("queries_logger");
-		queries_logger->info("ral_id|query_id|start_time|plan");
+		queries_logger->info("ral_id|query_id|start_time|plan|query");
 	}
 
 	if(!existsKernelsFileName) {
