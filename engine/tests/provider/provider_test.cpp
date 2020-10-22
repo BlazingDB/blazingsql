@@ -39,14 +39,11 @@ void create_dummy_file(std::string content, std::string filename){
 	outfile.close();
 }
 
-void create_folder_test()
+bool create_folder_test()
 {
 	LocalFileSystem localFileSystem(Path("/"));
-	bool dir_create_ok = localFileSystem.makeDirectory(Uri{BLAZING_TMP_PATH});
-	ASSERT_TRUE(dir_create_ok);
-
-	bool dir_exists = localFileSystem.exists(Uri(BLAZING_TMP_PATH));
-	ASSERT_TRUE(dir_exists);
+	localFileSystem.makeDirectory(Uri{BLAZING_TMP_PATH});
+	return localFileSystem.exists(Uri(BLAZING_TMP_PATH));
 }
 
 void remove_dummy_file(std::vector<Uri> uris){
@@ -64,7 +61,7 @@ void remove_dummy_file(std::vector<std::string> uris){
 	}
 }
 TEST_F(ProviderTest, ignoring_dummy_files) {
-	create_folder_test();
+	ASSERT_TRUE(create_folder_test());
 
 	std::vector<std::string> test_files = {
 		BLAZING_TMP_PATH + "/file.crc", BLAZING_TMP_PATH + "/file_SUCCESS", BLAZING_TMP_PATH + "/file_metadata", BLAZING_TMP_PATH + "/file.csv"};
@@ -96,7 +93,7 @@ TEST_F(ProviderTest, ignoring_dummy_files) {
 
 TEST_F(ProviderTest, empty_dir) {
 	std::unique_ptr<LocalFileSystem> localFileSystem(new LocalFileSystem(Path("/")));
-	create_folder_test();
+	ASSERT_TRUE(create_folder_test());
 
     const int length = 10;
     std::string dirname = "/tmp/" + randomString(length);
@@ -123,7 +120,7 @@ TEST_F(ProviderTest, empty_dir) {
 
 TEST_F(ProviderTest, folder_with_one_file)
 {
-	create_folder_test();
+	ASSERT_TRUE(create_folder_test());
 
 	std::vector<Uri> uris = {Uri(BLAZING_TMP_PATH + "/file.csv")};
 
@@ -144,7 +141,7 @@ TEST_F(ProviderTest, folder_with_one_file)
 
 TEST_F(ProviderTest, folder_with_one_file_ignore_missing_file)
 {
-	create_folder_test();
+	ASSERT_TRUE(create_folder_test());
 
 	std::vector<Uri> uris{Uri(BLAZING_TMP_PATH + "/filezxc.csv")};
 
@@ -163,7 +160,7 @@ TEST_F(ProviderTest, folder_with_one_file_ignore_missing_file)
 
 TEST_F(ProviderTest, folder_multiple_files)
 {
-	create_folder_test();
+	ASSERT_TRUE(create_folder_test());
 
 	std::vector<Uri> uris = {
 		Uri(BLAZING_TMP_PATH + "/file.orc"),
@@ -195,7 +192,7 @@ TEST_F(ProviderTest, folder_multiple_files)
 
 TEST_F(ProviderTest, folder_multiple_files_ignore_missing_file)
 {
-	create_folder_test();
+	ASSERT_TRUE(create_folder_test());
 
 	std::vector<Uri> uris = {
 		Uri(BLAZING_TMP_PATH + "/file.orc"),
@@ -218,7 +215,7 @@ TEST_F(ProviderTest, folder_multiple_files_ignore_missing_file)
 
 TEST_F(ProviderTest, folder_multiple_files_one_empty_folder)
 {
-	create_folder_test();
+	ASSERT_TRUE(create_folder_test());
 
 	std::vector<std::string> test_files{BLAZING_TMP_PATH + "/file.orc",
 										BLAZING_TMP_PATH + "/file_SUCCESS.csv",
@@ -260,7 +257,7 @@ TEST_F(ProviderTest, folder_multiple_files_one_empty_folder)
 
 TEST_F(ProviderTest, folder_multiple_files_one_empty_folder_ignore_missing_file)
 {
-	create_folder_test();
+	ASSERT_TRUE(create_folder_test());
 
 	std::vector<std::string> test_files{BLAZING_TMP_PATH + "/file.orc",
 										BLAZING_TMP_PATH + "/file_SUCCESS.csv",
@@ -289,7 +286,7 @@ TEST_F(ProviderTest, folder_multiple_files_one_empty_folder_ignore_missing_file)
 
 TEST_F(ProviderTest, folder_multiple_files_one_non_empty_folder)
 {
-	create_folder_test();
+	ASSERT_TRUE(create_folder_test());
 
 	std::vector<std::string> test_files{BLAZING_TMP_PATH + "/file.orc",
 										BLAZING_TMP_PATH + "/file_SUCCESS.csv",
@@ -342,7 +339,7 @@ TEST_F(ProviderTest, folder_multiple_files_one_non_empty_folder)
 
 TEST_F(ProviderTest, folder_multiple_files_one_non_empty_folder_ignore_missing_file)
 {
-	create_folder_test();
+	ASSERT_TRUE(create_folder_test());
 
 	std::vector<std::string> test_files{BLAZING_TMP_PATH + "/file.orc",
 										BLAZING_TMP_PATH + "/file_SUCCESS.csv",
@@ -375,7 +372,7 @@ TEST_F(ProviderTest, folder_multiple_files_one_non_empty_folder_ignore_missing_f
 
 TEST_F(ProviderTest, folder_multiple_folder_on_multiple_folder)
 {
-	create_folder_test();
+	ASSERT_TRUE(create_folder_test());
 
 	std::vector<std::string> test_files{BLAZING_TMP_PATH + "/folder1/file.orc",
 										BLAZING_TMP_PATH + "/folder1/file_SUCCESS.csv",
@@ -432,7 +429,7 @@ TEST_F(ProviderTest, folder_multiple_folder_on_multiple_folder)
 
 TEST_F(ProviderTest, folder_multiple_folder_on_multiple_folder_ignore_missing_file)
 {
-	create_folder_test();
+	ASSERT_TRUE(create_folder_test());
 
 	std::vector<Uri> uris = {
 		Uri(BLAZING_TMP_PATH + "/folder1/*"),
@@ -455,7 +452,7 @@ TEST_F(ProviderTest, folder_multiple_folder_on_multiple_folder_ignore_missing_fi
 
 TEST_F(ProviderTest, wildcard_return_nothing)
 {
-	create_folder_test();
+	ASSERT_TRUE(create_folder_test());
 
 	std::vector<Uri> uris = {Uri(BLAZING_TMP_PATH + "/*")};
 
@@ -476,7 +473,7 @@ TEST_F(ProviderTest, wildcard_return_nothing)
 
 TEST_F(ProviderTest, wildcard_one_file)
 {
-	create_folder_test();
+	ASSERT_TRUE(create_folder_test());
 
 	std::vector<std::string> test_files{
 		BLAZING_TMP_PATH + "/fileone.orc", BLAZING_TMP_PATH + "/filetwo.orc", BLAZING_TMP_PATH + "/filethree.orc"};
@@ -506,7 +503,7 @@ TEST_F(ProviderTest, wildcard_one_file)
 
 TEST_F(ProviderTest, wildcard_multiple_file)
 {
-	create_folder_test();
+	ASSERT_TRUE(create_folder_test());
 
 	std::vector<std::string> test_files{
 		BLAZING_TMP_PATH + "/fileone.orc", BLAZING_TMP_PATH + "/filetwo.orc", BLAZING_TMP_PATH + "/filethree.orc"};
@@ -540,7 +537,7 @@ TEST_F(ProviderTest, wilcard_recursive)
 {
 	GTEST_SKIP();
 
-	create_folder_test();
+	ASSERT_TRUE(create_folder_test());
 
 	std::vector<std::string> test_files{BLAZING_TMP_PATH + "/folder1/file.orc",
 										BLAZING_TMP_PATH + "/folder1/file_SUCCESS.csv",
@@ -596,7 +593,7 @@ TEST_F(ProviderTest, wilcard_folder)
 {
 	GTEST_SKIP();
 
-	create_folder_test();
+	ASSERT_TRUE(create_folder_test());
 
 	std::vector<std::string> test_files{BLAZING_TMP_PATH + "/folder1/file.orc",
 										BLAZING_TMP_PATH + "/folder1/file_SUCCESS.csv",
@@ -651,7 +648,7 @@ TEST_F(ProviderTest, catch_exception_ignore_missing_paths)
 {
 	try
 	{
-		create_folder_test();
+		ASSERT_TRUE(create_folder_test());
 
 		std::vector<Uri> uris{Uri(BLAZING_TMP_PATH + "/file.csv")};
 
