@@ -74,11 +74,11 @@ public:
 
 				std::vector<std::unique_ptr<ral::cache::CacheData> > cache_datas = output_cache->pull_all_cache_data();
 				for(auto & cache_data : cache_datas){
-					auto thread = std::thread([cache_data{std::move(cache_data)},
+					pool.push([cache_data{std::move(cache_data)},
 							node_address_map = node_address_map,
 							output_cache = output_cache,
 								protocol=this->protocol,
-								this] {
+								this](int thread_id) {
 
 
 
@@ -143,7 +143,6 @@ public:
 							throw;
 						}
 				});
-				thread.detach();
 
 			
 			}
