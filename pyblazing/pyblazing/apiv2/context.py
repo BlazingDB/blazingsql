@@ -1303,11 +1303,11 @@ class BlazingContext(object):
         logging_dir_path = "blazing_log"
         # want to use config_options and not self.config_options
         # since its not encoded
-        if "BLAZING_LOGGING_DIRECTORY" in config_options:
+        if "BLAZING_LOGGING_DIRECTORY" in self.config_options:
             logging_dir_path = config_options["BLAZING_LOGGING_DIRECTORY"]
 
         cache_dir_path = "/tmp"  # default directory to store orc files
-        if "BLAZING_CACHE_DIRECTORY" in config_options:
+        if "BLAZING_CACHE_DIRECTORY" in self.config_options:
             cache_dir_path = config_options["BLAZING_CACHE_DIRECTORY"] + "tmp"
 
         if dask_client == "autocheck":
