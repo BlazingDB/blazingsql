@@ -21,7 +21,7 @@ public:
 		exceptionHolder = holder;
 
 		thread = std::thread([holder, args...]() {
-			cudaSetDevice(0);
+			// cudaSetDevice(0);
 
 			try {
 				std::bind(args...)();
@@ -94,7 +94,7 @@ public:
 									func = std::forward<Func>(func),
 									tpl = move(tpl)]
 									() mutable {
-			cudaSetDevice(0);
+			// cudaSetDevice(0);
 			try {
 				detail::apply(func, tpl);
 			} catch(...) {
