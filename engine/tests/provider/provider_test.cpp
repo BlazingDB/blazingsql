@@ -44,6 +44,9 @@ void create_folder_test()
 	LocalFileSystem localFileSystem(Path("/"));
 	bool dir_create_ok = localFileSystem.makeDirectory(Uri{BLAZING_TMP_PATH});
 	ASSERT_TRUE(dir_create_ok);
+
+	bool dir_exists = localFileSystem.exists(Uri(BLAZING_TMP_PATH));
+	ASSERT_TRUE(dir_exists);
 }
 
 void remove_dummy_file(std::vector<Uri> uris){
