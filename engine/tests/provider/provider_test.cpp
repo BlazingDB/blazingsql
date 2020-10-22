@@ -585,3 +585,59 @@ TEST_F(ProviderTest, wilcard_recursive)
 	localFileSystem.remove(Uri("/tmp/blazing/folder4"));
 	remove_dummy_file(test_files);
 }
+
+/// Wildcard folder not supported - skip test
+TEST_F(ProviderTest, wilcard_folder)
+{
+	GTEST_SKIP();
+
+	create_folder_test();
+
+	std::vector<std::string> test_files{"/tmp/blazing/folder1/file.orc",
+										"/tmp/blazing/folder1/file_SUCCESS.csv",
+										"/tmp/blazing/folder2/file.orc",
+										"/tmp/blazing/folder2/file_SUCCESS.csv",
+										"/tmp/blazing/folder3/file.orc",
+										"/tmp/blazing/folder3/file_SUCCESS.csv",
+										"/tmp/blazing/folder4/file.orc",
+										"/tmp/blazing/folder4/file_SUCCESS.csv"};
+
+	LocalFileSystem localFileSystem(Path("/"));
+	localFileSystem.makeDirectory(Uri("/tmp/blazing/folder1"));
+	localFileSystem.makeDirectory(Uri("/tmp/blazing/folder2"));
+	localFileSystem.makeDirectory(Uri("/tmp/blazing/folder3"));
+	localFileSystem.makeDirectory(Uri("/tmp/blazing/folder4"));
+
+	create_dummy_file("a|b\n0|0", test_files[0]);
+	create_dummy_file("a|b\n0|0", test_files[1]);
+	create_dummy_file("a|b\n0|0", test_files[2]);
+	create_dummy_file("a|b\n0|0", test_files[3]);
+	create_dummy_file("a|b\n0|0", test_files[4]);
+	create_dummy_file("a|b\n0|0", test_files[5]);
+	create_dummy_file("a|b\n0|0", test_files[6]);
+	create_dummy_file("a|b\n0|0", test_files[7]);
+
+	std::vector<Uri> uris = {Uri("/tmp/blazing/folder*/*")};
+
+	auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
+
+	bool open_file = false;
+
+	std::vector<std::string> result;
+
+	while(provider->has_next())
+	{
+		ral::io::data_handle new_handle = provider->get_next(open_file);
+		if(new_handle.is_valid()) result.emplace_back(new_handle.uri.toString());
+	}
+
+	std::sort(test_files.begin(), test_files.end());
+	std::sort(result.begin(), result.end());
+	EXPECT_EQ(test_files, result);
+
+	localFileSystem.remove(Uri("/tmp/blazing/folder1"));
+	localFileSystem.remove(Uri("/tmp/blazing/folder2"));
+	localFileSystem.remove(Uri("/tmp/blazing/folder3"));
+	localFileSystem.remove(Uri("/tmp/blazing/folder4"));
+	remove_dummy_file(test_files);
+}
