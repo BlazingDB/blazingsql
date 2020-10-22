@@ -530,7 +530,7 @@ TEST_F(ProviderTest, wildcard_multiple_file)
 	remove_dummy_file(test_files);
 }
 
-/// Recursive wildcard not supported - skip test
+///\TODO Recursive wildcard not supported (/*) - skip test
 TEST_F(ProviderTest, wilcard_recursive)
 {
 	GTEST_SKIP();
@@ -586,7 +586,7 @@ TEST_F(ProviderTest, wilcard_recursive)
 	remove_dummy_file(test_files);
 }
 
-/// Wildcard folder not supported - skip test
+///\TODO Wildcard folder not supported (/folder*/*) - skip test
 TEST_F(ProviderTest, wilcard_folder)
 {
 	GTEST_SKIP();
