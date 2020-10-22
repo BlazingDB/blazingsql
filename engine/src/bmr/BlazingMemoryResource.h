@@ -300,7 +300,6 @@ public:
     }
 
 	size_t get_memory_used() override {
-		// std::cout << "blazing_host_memory_resource: " << initialized_resource->get_memory_used() << std::endl; 
 		return initialized_resource->get_memory_used();
 	}
 

@@ -223,14 +223,8 @@ include_directories(
 ## Target source files
 set(SRC_FILES         src/blazingdb/concurrency/BlazingExceptionHolder.cpp
         src/blazingdb/concurrency/BlazingThread.cpp
-        src/blazingdb/transport/Message.cc
-        src/blazingdb/transport/Client.cc
-        src/blazingdb/transport/Server.cc
-        src/blazingdb/transport/MessageQueue.cpp
-        src/blazingdb/transport/Address.cc
         src/blazingdb/transport/Node.cc
         src/blazingdb/transport/io/reader_writer.cpp
-        src/blazingdb/transport/io/fd_reader_writer.cpp
         src/blazingdb/manager/Context.cc
         )
 
@@ -287,15 +281,15 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/blazingdb/network DESTINATION incl
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/blazingdb/transport DESTINATION include/blazingdb)
 
 # Tests
-if(BUILD_TESTING)
-    find_package(GTest REQUIRED)
+# if(BUILD_TESTING)
+#     find_package(GTest REQUIRED)
 
-    if(GTEST_FOUND)
-        add_subdirectory(tests)
-    else()
-        message(AUTHOR_WARNING "Google C++ Testing Framework (Google Test) not found: automated tests are disabled.")
-    endif()
-endif()
+#     if(GTEST_FOUND)
+#         add_subdirectory(tests)
+#     else()
+#         message(AUTHOR_WARNING "Google C++ Testing Framework (Google Test) not found: automated tests are disabled.")
+#     endif()
+# endif()
 
 # Print the project summary
 feature_summary(WHAT ALL INCLUDE_QUIET_PACKAGES FATAL_ON_MISSING_REQUIRED_PACKAGES)
