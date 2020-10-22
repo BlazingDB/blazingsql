@@ -206,7 +206,7 @@ void tcp_message_listener::start_polling(){
               cudaMemcpyAsync(buffer_chunk_start, pinned_buffer->data, chunk_size, cudaMemcpyHostToDevice, stream);
               pinned_buffers[chunk] = pinned_buffer;
             }
-			close(connection_fd);
+
             //std::cout<<"elapsed copy from gpu before synch "<<timer_2.elapsed_time()<<std::endl;
             total_read_time += timer_2.elapsed_time();
             timer_2.reset();
@@ -221,6 +221,7 @@ void tcp_message_listener::start_polling(){
             }
             buffer_position++;
           }
+		close(connection_fd);
           auto duration = timer.elapsed_time();
           std::cout<<"Transfer duration before finish "<<duration <<" Throughput was "<<
           (( (float) total_size) / 1000000.0)/(((float) duration)/1000.0)<<" MB/s"<<std::endl;
