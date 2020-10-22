@@ -45,6 +45,8 @@ from enum import IntEnum
 
 import platform
 
+import sys
+
 jpype.addClassPath(
     os.path.join(os.getenv("CONDA_PREFIX"), "lib/blazingsql-algebra.jar")
 )
@@ -846,6 +848,88 @@ def convert_friendly_dtype_to_string(list_types):
     return list_types
 
 
+def kwargs_validation(kwargs, bc_api_str):
+    """
+    Validation of kwargs params when a bc API is called
+    """
+    # csv, parquet, orc, json params
+    if bc_api_str == "create_table":
+        full_kwargs = [
+            "file_format",
+            "names",
+            "dtype",
+            "delimiter",
+            "skiprows",
+            "skipfooter",
+            "lineterminator",
+            "header",
+            "nrows",
+            "skip_blank_lines",
+            "decimal",
+            "true_values",
+            "false_values",
+            "na_values",
+            "keep_default_na",
+            "na_filter",
+            "quotechar",
+            "quoting",
+            "doublequote",
+            "comment",
+            "delim_whitespace",
+            "skipinitialspace",
+            "use_cols_indexes",
+            "use_cols_names",
+            "byte_range_offset",
+            "byte_range_size",
+            "compression",
+            "lines",
+            "stripes",
+            "skiprows",
+            "num_rows",
+            "use_index",
+        ]
+        params_info = "https://docs.blazingdb.com/docs/create_table"
+
+    elif bc_api_str == "s3":
+        full_kwargs = [
+            "name",
+            "bucket_name",
+            "access_key_id",
+            "secret_key",
+            "encryption_type",
+            "session_token",
+            "root",
+            "kms_key_amazon_resource_name",
+            "endpoint_override",
+            "region",
+        ]
+        params_info = "https://docs.blazingdb.com/docs/s3"
+
+    elif bc_api_str == "hdfs":
+        full_kwargs = ["name", "host", "port", "user", "kerb_ticket"]
+        params_info = "https://docs.blazingdb.com/docs/hdfs"
+
+    elif bc_api_str == "gs":
+        full_kwargs = [
+            "name",
+            "project_id",
+            "bucket_name",
+            "use_default_adc_json_file",
+            "adc_json_file",
+        ]
+        params_info = "https://docs.blazingdb.com/docs/google-storage"
+
+    for arg_i in kwargs.keys():
+        if arg_i not in full_kwargs:
+            print(
+                "The parameter '"
+                + arg_i
+                + "' does not exists. Please make sure you are using the correct parameter:"
+            )
+            print("To get the correct parameters, check:  " + params_info)
+            sys.exit()
+
+
 class BlazingTable(object):
     def __init__(
         self,
@@ -1039,6 +1123,7 @@ class BlazingTable(object):
                 nodeFilesList.append(BlazingTable(self.name, self.input, self.fileType))
             return nodeFilesList
 
+        offset_x = 0
         for target_files in self.mapping_files.values():
             bt = BlazingTable(
                 self.name,
@@ -1052,7 +1137,8 @@ class BlazingTable(object):
                 in_file=self.in_file,
             )
 
-            bt.offset = self.offset
+            bt.offset = (offset_x, len(target_files))
+            offset_x = offset_x + len(target_files)
             bt.column_names = self.column_names
             bt.file_column_names = self.file_column_names
             bt.column_types = self.column_types
@@ -1092,6 +1178,7 @@ def load_config_options_from_env(user_config_options: dict):
         "MAX_SEND_MESSAGE_THREADS": 20,
         "LOGGING_LEVEL": "trace",
         "LOGGING_FLUSH_LEVEL": "warn",
+        "LOGGING_MAX_SIZE_PER_FILE": 1073741824,  # 1 GB
         "TRANSPORT_BUFFER_BYTE_SIZE": 1048576,  # 10 MB in bytes
         "TRANSPORT_POOL_NUM_BUFFERS": 100,
     }
@@ -1258,6 +1345,10 @@ class BlazingContext(object):
                     NOTE: This parameter only works when used in the
                     BlazingContext
                     default: 'warn'
+            LOGGING_MAX_SIZE_PER_FILE: Set the max size in bytes for the log files.
+                    NOTE: This parameter only works when used in the
+                    BlazingContext
+                    default: 1 GB
             TRANSPORT_BUFFER_BYTE_SIZE : The size in bytes about the pinned buffer memory
                     default: 10 MBs
             TRANSPORT_POOL_NUM_BUFFERS: The number of buffers in the punned buffer memory pool.
@@ -1303,11 +1394,11 @@ class BlazingContext(object):
         logging_dir_path = "blazing_log"
         # want to use config_options and not self.config_options
         # since its not encoded
-        if "BLAZING_LOGGING_DIRECTORY" in config_options:
+        if "BLAZING_LOGGING_DIRECTORY" in self.config_options:
             logging_dir_path = config_options["BLAZING_LOGGING_DIRECTORY"]
 
         cache_dir_path = "/tmp"  # default directory to store orc files
-        if "BLAZING_CACHE_DIRECTORY" in config_options:
+        if "BLAZING_CACHE_DIRECTORY" in self.config_options:
             cache_dir_path = config_options["BLAZING_CACHE_DIRECTORY"] + "tmp"
 
         if dask_client == "autocheck":
@@ -1488,6 +1579,7 @@ class BlazingContext(object):
 
         Docs: https://docs.blazingdb.com/docs/hdfs
         """
+        kwargs_validation(kwargs, "hdfs")
         return self.fs.hdfs(self.dask_client, prefix, **kwargs)
 
     def s3(self, prefix, **kwargs):
@@ -1536,6 +1628,7 @@ class BlazingContext(object):
 
         Docs: https://docs.blazingdb.com/docs/s3
         """
+        kwargs_validation(kwargs, "s3")
         return self.fs.s3(self.dask_client, prefix, **kwargs)
 
     def gs(self, prefix, **kwargs):
@@ -1568,6 +1661,7 @@ class BlazingContext(object):
 
         Docs: https://docs.blazingdb.com/docs/google-storage
         """
+        kwargs_validation(kwargs, "gs")
         return self.fs.gs(self.dask_client, prefix, **kwargs)
 
     def show_filesystems(self):
@@ -1716,6 +1810,13 @@ class BlazingContext(object):
         input : data source for table.
                 cudf.Dataframe, dask_cudf.DataFrame, pandas.DataFrame,
                 filepath for csv, orc, parquet, etc...
+        file_format (optional) : string describing the file format
+                      (e.g. "csv", "orc", "parquet") this field must
+                      only be set if the files do not have an extension.
+        local_files (optional) : boolean, must be set to True if workers
+                      only have access to a subset of the files
+                      belonging to the same table. In such a case,
+                      each worker will load their corresponding partitions.
 
         Examples
         --------
@@ -1749,6 +1850,8 @@ class BlazingContext(object):
 
         Docs: https://docs.blazingdb.com/docs/create_table
         """
+
+        kwargs_validation(kwargs, "create_table")
 
         logging.info("create_table start for " + table_name)
 
@@ -1936,8 +2039,12 @@ class BlazingContext(object):
             input = resolve_relative_path(input)
 
             # if we are using user defined partitions without hive,
-            # we want to ignore paths we dont find.
-            ignore_missing_paths = user_partitions_schema is not None
+            # we want to ignore paths we dont find. Also, we should
+            # ignore missing files in case some worker hasn't any
+            # partition file when local_files is True
+            ignore_missing_paths = (user_partitions_schema is not None) or (
+                local_files is True
+            )
             parsedSchema, parsed_mapping_files = self._parseSchema(
                 input,
                 file_format_hint,
@@ -2027,7 +2134,11 @@ class BlazingContext(object):
                     dtypes_list.append(dtype_str)
             table.args["dtype"] = dtypes_list
 
-            table.slices = table.getSlices(len(self.nodes))
+            if table.local_files is False:
+                table.slices = table.getSlices(len(self.nodes))
+            else:
+                table.slices = table.getSlicesByWorker(len(self.nodes))
+
             parsedMetadata = None
             if len(uri_values) > 0:
                 parsedMetadata = parseHiveMetadata(table, uri_values)
@@ -2065,6 +2176,7 @@ class BlazingContext(object):
                 metadata_ids = table.metadata[
                     ["file_handle_index", "row_group_index"]
                 ].to_pandas()
+
                 grouped = metadata_ids.groupby("file_handle_index")
                 row_groups_ids = []
                 for group_id in grouped.groups:
@@ -2183,6 +2295,10 @@ class BlazingContext(object):
                     pure=False,
                 )
                 parsed_schema = connection.result()
+                if len(parsed_schema["files"]) == 0:
+                    raise Exception(
+                        "ERROR: The file pattern specified did not match any files"
+                    )
                 return parsed_schema, {"localhost": parsed_schema["files"]}
             else:
                 # each worker parse all accesible files on the file path
@@ -2234,17 +2350,18 @@ class BlazingContext(object):
                                         all_files[worker].append(file_item)
                             else:
                                 all_files[worker] = result[key]
+                                return_object[key] = {}
 
-                            if "files" in return_object:
-                                return_object[key].update(result[key])
-                            else:
-                                return_object[key] = set()
-                                return_object[key].update(result[key])
+                            return_object[key].update(dict.fromkeys(result[key], None))
                         else:
-                            if key in return_object:
-                                assert return_object[key] == result[key]
-                            else:
+                            if key not in return_object or (
+                                key in return_object and len(result["files"]) > 0
+                            ):
                                 return_object[key] = result[key]
+                if len(return_object["files"]) == 0:
+                    raise Exception(
+                        "ERROR: The file pattern specified did not match any files"
+                    )
                 return_object["files"] = list(return_object["files"])
                 return return_object, all_files
         else:
@@ -2343,9 +2460,11 @@ class BlazingContext(object):
         all_sliced_row_groups_ids = []
 
         for target_files in mapping_files.values():
-            sliced_files = target_files
+            sliced_files = [
+                file_name for file_name in target_files if file_name in dict_files
+            ]
             sliced_uri_values = []
-            sliced_rowgroup_ids = [dict_files[file_name] for file_name in target_files]
+            sliced_rowgroup_ids = [dict_files[file_name] for file_name in sliced_files]
 
             all_sliced_files.append(sliced_files)
             all_sliced_uri_values.append(sliced_uri_values)
@@ -2388,8 +2507,8 @@ class BlazingContext(object):
                 file_and_rowgroup_indices = (
                     file_indices_and_rowgroup_indices.to_pandas()
                 )
-                grouped = file_and_rowgroup_indices.groupby("file_handle_index")
 
+                grouped = file_and_rowgroup_indices.groupby("file_handle_index")
                 for group_id in grouped.groups:
                     row_indices = grouped.groups[group_id].values.tolist()
                     actual_files.append(current_table.files[group_id])
