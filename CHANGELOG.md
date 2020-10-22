@@ -5,7 +5,7 @@
 
 
 ## Improvements
-- #1093 Logs configurable to have max size
+- #1093 Logs configurable to have max size and be rotated
 - #1091 Improves the error message problem when validating any GCP bucket
 
 
