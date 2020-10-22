@@ -170,7 +170,7 @@ void tcp_message_listener::start_polling(){
           auto meta_read_time = timer.elapsed_time();
           //status_code success = status_code::OK;
           //io::write_to_socket(connection_fd, &success, sizeof(success));
-		{
+		
           auto receiver = std::make_shared<message_receiver>(_nodes_info_map, data);
 
         //	std::cout<<"elapsed time make receiver done "<<timer.elapsed_time()<<std::endl;
@@ -232,7 +232,7 @@ void tcp_message_listener::start_polling(){
 		std::cout<<"META, Recevier, allocate, read, synchronize, total_before_finish, total_after_finish,bytes\n"<<
 		meta_read_time<<", "<<receiver_time<<", "<<total_allocate_time<<", "<<total_read_time<<","<<total_sync_time<<", "<<duration<<","<<duration_2<<", "<<total_size<<std::endl;
 
-		}
+		close(connection_fd)
 		cudaStreamSynchronize(stream);
 		cudaStreamDestroy(stream);
         });
