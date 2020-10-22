@@ -6,6 +6,7 @@
 
 ## Improvements
 - #1093 Logs configurable to have max size
+- #1091 Improves the error message problem when validating any GCP bucket
 
 
 ## Bug Fixes
@@ -51,7 +52,7 @@
 - #1007 Fix arrow and spdlog compilation issues
 - #1068 Just adds a docs important links and avoid the message about filesystem authority not found
 - #1073 Fixed parseSchemaPython can throw exceptions
-- #1074: Remove lock inside grow() method from PinnedBufferProvider
+- #1074 Remove lock inside grow() method from PinnedBufferProvider
 - #1071 Fix crash when loading an empty folder
 - #1085 Fixed intra-query memory leak in joins. Fixed by clearing array caches after PartwiseJoin is done 
 
