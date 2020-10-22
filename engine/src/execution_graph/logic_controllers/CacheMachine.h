@@ -884,8 +884,6 @@ class CacheMachine {
 public:
 	CacheMachine(std::shared_ptr<Context> context);
 
-	CacheMachine(std::shared_ptr<Context> context, std::size_t flow_control_bytes_threshold);
-
 	~CacheMachine();
 
 	virtual void put(size_t message_id, std::unique_ptr<ral::frame::BlazingTable> table);
@@ -936,10 +934,6 @@ public:
 
 	virtual std::unique_ptr<ral::cache::CacheData> pullCacheData();
 
-	bool thresholds_are_met(std::size_t bytes_count);
-
-	virtual void wait_if_cache_is_saturated();
-
 	void wait_for_count(int count){
 		return this->waitingCache->wait_for_count(count);
 	}
@@ -964,12 +958,6 @@ protected:
 	std::shared_ptr<spdlog::logger> logger;
 	std::shared_ptr<spdlog::logger> cache_events_logger;
 	const std::size_t cache_id;
-
-	std::size_t flow_control_bytes_threshold;
-	std::size_t flow_control_bytes_count;
-	std::mutex flow_control_mutex;
-	std::condition_variable flow_control_condition_variable;
-
 };
 
 /**
@@ -1074,7 +1062,7 @@ class ConcatenatingCacheMachine : public CacheMachine {
 public:
 	ConcatenatingCacheMachine(std::shared_ptr<Context> context);
 
-	ConcatenatingCacheMachine(std::shared_ptr<Context> context, std::size_t flow_control_bytes_threshold, 
+	ConcatenatingCacheMachine(std::shared_ptr<Context> context, 
 			std::size_t concat_cache_num_bytes, bool concat_all);
 
 	~ConcatenatingCacheMachine() = default;

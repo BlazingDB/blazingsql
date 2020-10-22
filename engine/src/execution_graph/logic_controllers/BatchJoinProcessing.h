@@ -76,10 +76,6 @@ public:
 		std::tie(this->expression, this->condition, this->filter_statement, this->join_type) = parseExpressionToGetTypeAndCondition(this->expression);
 	}
 
-	bool can_you_throttle_my_input() {
-		return false;  // join has its own sort of limiter, so its not good to try to apply another limiter
-	}
-
 	std::unique_ptr<TableSchema> left_schema{nullptr};
  	std::unique_ptr<TableSchema> right_schema{nullptr};
 
@@ -452,10 +448,6 @@ public:
 		this->output_.add_port("output_a", "output_b");
 
 		std::tie(this->expression, this->condition, this->filter_statement, this->join_type) = parseExpressionToGetTypeAndCondition(this->expression);
-	}
-
-	bool can_you_throttle_my_input() {
-		return true;
 	}
 
 	// this function makes sure that the columns being joined are of the same type so that we can join them properly

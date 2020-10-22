@@ -67,7 +67,7 @@ public:
 			polling_started = true;
 		
 			auto thread = std::thread([this]{
-				cudaSetDevice(0);
+				// cudaSetDevice(0);
 
 
 			while(true) {

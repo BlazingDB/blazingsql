@@ -288,15 +288,13 @@ struct tree_processor {
 			visit(query_graph, child.get(), child->children);
 			std::string port_name = "input";
 
-			std::size_t flow_control_bytes_threshold = std::numeric_limits<std::size_t>::max();
 			std::map<std::string, std::string> config_options = context->getConfigOptions();
-			auto it = config_options.find("FLOW_CONTROL_BYTES_THRESHOLD");
+			std::size_t join_partition_size_thresh = 400000000; // 400 MB
+			auto it = config_options.find("JOIN_PARTITION_SIZE_THRESHOLD");
 			if (it != config_options.end()){
-				flow_control_bytes_threshold = std::stoull(config_options["FLOW_CONTROL_BYTES_THRESHOLD"]);
+				join_partition_size_thresh = std::stoull(config_options["JOIN_PARTITION_SIZE_THRESHOLD"]);
 			}
-			cache_settings default_throttled_cache_machine_config = cache_settings{.type = CacheType::SIMPLE, .num_partitions = 1, .context = context->clone(),
-						.flow_control_bytes_threshold = flow_control_bytes_threshold};
-
+			
 			auto child_kernel_type = child->kernel_unit->get_type_id();
 			auto parent_kernel_type = parent->kernel_unit->get_type_id();
 			if (children.size() > 1) {
@@ -304,26 +302,16 @@ struct tree_processor {
 				port_name = std::string("input_");
 				port_name.push_back(index_char);
 
-				if (parent_kernel_type == kernel_type::PartwiseJoinKernel) {
-
-					std::size_t join_partition_size_thresh = 400000000; // 400 MB
-					config_options = context->getConfigOptions();
-					it = config_options.find("JOIN_PARTITION_SIZE_THRESHOLD");
-					if (it != config_options.end()){
-						join_partition_size_thresh = std::stoull(config_options["JOIN_PARTITION_SIZE_THRESHOLD"]);
-					}
+				if (parent_kernel_type == kernel_type::PartwiseJoinKernel) {				
 
 					auto join_type = static_cast<PartwiseJoin*>(parent->kernel_unit.get())->get_join_type();
 					bool left_concat_all = join_type == ral::batch::RIGHT_JOIN || join_type == ral::batch::OUTER_JOIN || join_type == ral::batch::CROSS_JOIN;
 					bool right_concat_all = join_type == ral::batch::LEFT_JOIN || join_type == ral::batch::OUTER_JOIN || join_type == ral::batch::CROSS_JOIN;
 					bool concat_all = index == 0 ? left_concat_all : right_concat_all;
 					cache_settings join_cache_machine_config = cache_settings{.type = CacheType::CONCATENATING, .num_partitions = 1, .context = context->clone(),
-						.flow_control_bytes_threshold = flow_control_bytes_threshold, .concat_cache_num_bytes = join_partition_size_thresh, .concat_all = concat_all};
+						.concat_cache_num_bytes = join_partition_size_thresh, .concat_all = concat_all};
 					query_graph.addPair(ral::cache::kpair(child->kernel_unit, parent->kernel_unit, port_name, join_cache_machine_config));					
 
-
-				} else if (parent->kernel_unit->can_you_throttle_my_input()){
-					query_graph.addPair(ral::cache::kpair(child->kernel_unit, parent->kernel_unit, port_name, default_throttled_cache_machine_config));					
 				} else {
 					cache_settings cache_machine_config;
 					cache_machine_config.context = context->clone();
@@ -334,20 +322,13 @@ struct tree_processor {
 				
 				if (child_kernel_type == kernel_type::JoinPartitionKernel && parent_kernel_type == kernel_type::PartwiseJoinKernel) {
 
-					std::size_t join_partition_size_thresh = 400000000; // 400 MB
-					config_options = context->getConfigOptions();
-					it = config_options.find("JOIN_PARTITION_SIZE_THRESHOLD");
-					if (it != config_options.end()){
-						join_partition_size_thresh = std::stoull(config_options["JOIN_PARTITION_SIZE_THRESHOLD"]);
-					}
-
 					auto join_type = static_cast<PartwiseJoin*>(parent->kernel_unit.get())->get_join_type();
 					bool left_concat_all = join_type == ral::batch::RIGHT_JOIN || join_type == ral::batch::OUTER_JOIN || join_type == ral::batch::CROSS_JOIN;
 					bool right_concat_all = join_type == ral::batch::LEFT_JOIN || join_type == ral::batch::OUTER_JOIN || join_type == ral::batch::CROSS_JOIN;
 					cache_settings left_cache_machine_config = cache_settings{.type = CacheType::CONCATENATING, .num_partitions = 1, .context = context->clone(),
-						.flow_control_bytes_threshold = flow_control_bytes_threshold, .concat_cache_num_bytes = join_partition_size_thresh, .concat_all = left_concat_all};
+						.concat_cache_num_bytes = join_partition_size_thresh, .concat_all = left_concat_all};
 					cache_settings right_cache_machine_config = cache_settings{.type = CacheType::CONCATENATING, .num_partitions = 1, .context = context->clone(),
-						.flow_control_bytes_threshold = flow_control_bytes_threshold, .concat_cache_num_bytes = join_partition_size_thresh, .concat_all = right_concat_all};
+						.concat_cache_num_bytes = join_partition_size_thresh, .concat_all = right_concat_all};
 					
 					query_graph.addPair(ral::cache::kpair(child->kernel_unit, "output_a", parent->kernel_unit, "input_a", left_cache_machine_config));
 					query_graph.addPair(ral::cache::kpair(child->kernel_unit, "output_b", parent->kernel_unit, "input_b", right_cache_machine_config));
@@ -355,37 +336,27 @@ struct tree_processor {
 				} else if ((child_kernel_type == kernel_type::SortAndSampleKernel &&	parent_kernel_type == kernel_type::PartitionKernel)
 						|| (child_kernel_type == kernel_type::SortAndSampleKernel &&	parent_kernel_type == kernel_type::PartitionSingleNodeKernel)) {
 
-					if (parent->kernel_unit->can_you_throttle_my_input()){
-						query_graph.addPair(ral::cache::kpair(child->kernel_unit, "output_a", parent->kernel_unit, "input_a", default_throttled_cache_machine_config));
-						query_graph.addPair(ral::cache::kpair(child->kernel_unit, "output_b", parent->kernel_unit, "input_b", default_throttled_cache_machine_config));
-					} else {
-						cache_settings cache_machine_config;
-						cache_machine_config.context = context->clone();
+					cache_settings cache_machine_config;
+					cache_machine_config.context = context->clone();
 
-						query_graph.addPair(ral::cache::kpair(child->kernel_unit, "output_a", parent->kernel_unit, "input_a", cache_machine_config));
-						query_graph.addPair(ral::cache::kpair(child->kernel_unit, "output_b", parent->kernel_unit, "input_b", cache_machine_config));
-					}
+					query_graph.addPair(ral::cache::kpair(child->kernel_unit, "output_a", parent->kernel_unit, "input_a", cache_machine_config));
+					query_graph.addPair(ral::cache::kpair(child->kernel_unit, "output_b", parent->kernel_unit, "input_b", cache_machine_config));
+					
 
 				} else if ((child_kernel_type == kernel_type::PartitionKernel && parent_kernel_type == kernel_type::MergeStreamKernel)
 									|| (child_kernel_type == kernel_type::PartitionSingleNodeKernel && parent_kernel_type == kernel_type::MergeStreamKernel)) {
 
 					int max_num_order_by_partitions_per_node = 8;
-					auto it = config_options.find("MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE");
+					it = config_options.find("MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE");
 					if (it != config_options.end()){
 						max_num_order_by_partitions_per_node = std::stoi(config_options["MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE"]);
 					}
-					if (parent->kernel_unit->can_you_throttle_my_input()){
-						cache_settings cache_machine_config = cache_settings{.type = CacheType::FOR_EACH, .num_partitions = max_num_order_by_partitions_per_node,
-								.context = context->clone(), .flow_control_bytes_threshold = flow_control_bytes_threshold};
-						query_graph.addPair(ral::cache::kpair(child->kernel_unit, parent->kernel_unit, cache_machine_config));
-
-					} else {
-						ral::cache::cache_settings cache_machine_config;
-						cache_machine_config.type = ral::cache::CacheType::FOR_EACH;
-						cache_machine_config.num_partitions = max_num_order_by_partitions_per_node;
-						cache_machine_config.context = context->clone();
-						query_graph.addPair(ral::cache::kpair(child->kernel_unit, parent->kernel_unit, cache_machine_config));
-					}
+					ral::cache::cache_settings cache_machine_config;
+					cache_machine_config.type = ral::cache::CacheType::FOR_EACH;
+					cache_machine_config.num_partitions = max_num_order_by_partitions_per_node;
+					cache_machine_config.context = context->clone();
+					query_graph.addPair(ral::cache::kpair(child->kernel_unit, parent->kernel_unit, cache_machine_config));
+					
 				} else if(child_kernel_type == kernel_type::TableScanKernel || child_kernel_type == kernel_type::BindableTableScanKernel) {
 					std::size_t concat_cache_num_bytes = 400000000; // 400 MB
 					config_options = context->getConfigOptions();
@@ -395,7 +366,7 @@ struct tree_processor {
 					}
 					
 					cache_settings cache_machine_config = cache_settings{.type = CacheType::CONCATENATING, .num_partitions = 1, .context = context->clone(),
-						.flow_control_bytes_threshold = flow_control_bytes_threshold, .concat_cache_num_bytes = concat_cache_num_bytes, .concat_all = false};
+						.concat_cache_num_bytes = concat_cache_num_bytes, .concat_all = false};
 					query_graph.addPair(ral::cache::kpair(child->kernel_unit, parent->kernel_unit, cache_machine_config));
 				} else {
 					cache_settings cache_machine_config;
