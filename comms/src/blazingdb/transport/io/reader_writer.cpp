@@ -71,8 +71,6 @@ PinnedBuffer *PinnedBufferProvider::getBuffer() {
 // Will create a new allocation and grow the buffer pool with this->numBuffers/2 new buffers
 // Its not threadsafe and the lock needs to be applied before calling it
 void PinnedBufferProvider::grow() {
-  PinnedBuffer *buffer = new PinnedBuffer();
-  buffer->size = this->bufferSize;
   allocations.resize(allocations.size() + 1);
   std::size_t num_new_buffers = this->numBuffers/2;
   cudaError_t err = cudaMallocHost((void **)&allocations[allocations.size() -1], this->bufferSize * num_new_buffers);
@@ -98,8 +96,7 @@ void PinnedBufferProvider::grow() {
 
 void PinnedBufferProvider::freeBuffer(PinnedBuffer *buffer) {
   std::unique_lock<std::mutex> lock(inUseMutex);
-  this->buffers.push(buffer);
-  cv.notify_one();
+  this->buffers.push(buffer);  
 }
 
 void PinnedBufferProvider::freeAll() {
