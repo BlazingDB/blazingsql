@@ -643,3 +643,28 @@ TEST_F(ProviderTest, wilcard_folder)
 	localFileSystem.remove(Uri(BLAZING_TMP_PATH + "/folder4"));
 	remove_dummy_file(test_files);
 }
+
+TEST_F(ProviderTest, catch_exception_ignore_missing_paths)
+{
+	try
+	{
+		create_folder_test();
+
+		std::vector<Uri> uris{Uri(BLAZING_TMP_PATH + "/file.csv")};
+
+		auto provider = std::make_shared<ral::io::uri_data_provider>(uris, false);
+
+		bool open_file = false;
+
+		if( provider->has_next() )
+		{
+			ral::io::data_handle new_handle = provider->get_next(open_file);
+		}
+
+		FAIL();
+	}
+	catch(const std::runtime_error& e)
+	{
+		SUCCEED();
+	}
+}
