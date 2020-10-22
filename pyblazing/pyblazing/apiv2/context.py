@@ -263,6 +263,7 @@ def generateGraphs(
     algebra,
     accessToken,
     config_options,
+    sql,
     single_gpu=False,
 ):
 
@@ -301,7 +302,8 @@ def generateGraphs(
                         ctxToken,
                         algebra,
                         accessToken,
-                        config_options)
+                        config_options,
+                        sql)
         graph.set_input_and_output_caches(worker.input_cache, worker.output_cache)
     except Exception as e:
         raise e
@@ -2571,7 +2573,8 @@ class BlazingContext(object):
                                 ctxToken,
                                 algebra,
                                 accessToken,
-                                query_config_options)
+                                query_config_options,
+                                query)
                 result = cio.runExecuteGraphCaller(graph,ctxToken, is_single_node=True)
             except cio.RunQueryError as e:
                 print(">>>>>>>> ", e)
@@ -2597,6 +2600,7 @@ class BlazingContext(object):
                         algebra,
                         accessToken,
                         query_config_options,
+                        query,
                         single_gpu=True,
                         pure=False,
                         workers=[worker])]
@@ -2624,6 +2628,7 @@ class BlazingContext(object):
                             algebra,
                             accessToken,
                             query_config_options,
+                            query,
                             workers=[worker],
                             pure=False))
                     i = i + 1
