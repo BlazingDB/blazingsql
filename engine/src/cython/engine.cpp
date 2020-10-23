@@ -261,13 +261,14 @@ std::unique_ptr<ResultSet> runSkipData(ral::frame::BlazingTableView metadata,
 		return result;
 
 	} catch(const std::exception & e) {
+		std::cerr << "**[runSkipData]** error parsing metadata.\n";
+		std::cerr << e.what() << std::endl;
 		std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
 		logger->error("|||{info}|||||",
 									"info"_a="In runSkipData. What: {}"_format(e.what()));
 		logger->flush();
 
-		std::cerr << "**[runSkipData]** error parsing metadata.\n";
-		std::cerr << e.what() << std::endl;
+
 		throw;
 	}
 }

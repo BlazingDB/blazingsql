@@ -221,6 +221,7 @@ void tcp_message_listener::start_polling(){
             }
             buffer_position++;
           }
+		shutdown(connection_fd,2);
 		close(connection_fd);
           auto duration = timer.elapsed_time();
           std::cout<<"Transfer duration before finish "<<duration <<" Throughput was "<<
