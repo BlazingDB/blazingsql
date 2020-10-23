@@ -158,7 +158,7 @@ void tcp_message_listener::start_polling(){
       int connection_fd;
       // TODO: be able to stop this thread from running when the engine is killed
       while((connection_fd = accept(socket_fd, (struct sockaddr *) &client_address, &len)) != -1) {
-        pool.push([this, connection_fd](int thread_num) {
+        std::thread([this, connection_fd]{
           CodeTimer timer;
           cudaStream_t stream;
           cudaStreamCreate(&stream);
@@ -238,7 +238,7 @@ void tcp_message_listener::start_polling(){
 		}
 		cudaStreamSynchronize(stream);
 		cudaStreamDestroy(stream);
-        });
+        }).detach();
 
       }
     });
