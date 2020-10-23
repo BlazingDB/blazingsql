@@ -18,7 +18,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_CUDA_STANDARD 14)
 set(CMAKE_CUDA_STANDARD_REQUIRED ON)
-
+set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --default-stream=per-thread")
 if(CMAKE_COMPILER_IS_GNUCXX)
     # NOTE felipe percy these flags are too strict for blazingsql
     #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wno-error=deprecated-declarations")
@@ -297,6 +297,7 @@ if(BUILD_TESTING)
     endif()
 endif()
 
+message(STATUS "cmake_cuda_flags = ${CMAKE_CUDA_FLAGS}")
 # Print the project summary
 feature_summary(WHAT ALL INCLUDE_QUIET_PACKAGES FATAL_ON_MISSING_REQUIRED_PACKAGES)
 

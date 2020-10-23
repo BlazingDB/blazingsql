@@ -160,8 +160,8 @@ void tcp_message_listener::start_polling(){
       while((connection_fd = accept(socket_fd, (struct sockaddr *) &client_address, &len)) != -1) {
         pool.push([this, connection_fd](int thread_num) {
           CodeTimer timer;
-          cudaStream_t stream;
-          cudaStreamCreate(&stream);
+          cudaStream_t stream = 0;
+//          cudaStreamCreate(&stream);
           size_t message_size;
           io::read_from_socket(connection_fd, &message_size, sizeof(message_size));
 
@@ -236,7 +236,7 @@ void tcp_message_listener::start_polling(){
 
 		}
 		cudaStreamSynchronize(stream);
-		cudaStreamDestroy(stream);
+	//	cudaStreamDestroy(stream);
         });
 
       }
