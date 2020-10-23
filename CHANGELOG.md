@@ -12,6 +12,7 @@
 
 ## Bug Fixes
 - #1064 Fixed issue when loading parquet files with local_files=True
+- #1086 Showing an appropriate error to indicate that we don't support opening directories with wildcards
 - #1088 Fixed issue caused by cudf changing from one .so file to multiple
 - #1094 Fixed logging directory setup
 
