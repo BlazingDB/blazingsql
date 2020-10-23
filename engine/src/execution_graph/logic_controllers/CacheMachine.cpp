@@ -83,8 +83,6 @@ CacheMachine::CacheMachine(std::shared_ptr<Context> context): ctx(context), cach
 	this->memory_resources.push_back( &blazing_disk_memory_resource::getInstance() );
 	this->num_bytes_added = 0;
 	this->num_rows_added = 0;
-	this->flow_control_bytes_threshold = std::numeric_limits<std::size_t>::max();
-	this->flow_control_bytes_count = 0;
 
 	logger = spdlog::get("batch_logger");
 	cache_events_logger = spdlog::get("cache_events_logger");
@@ -97,37 +95,6 @@ CacheMachine::CacheMachine(std::shared_ptr<Context> context): ctx(context), cach
 	if(kernels_logger != nullptr) {
 		kernels_logger->info("{ral_id}|{query_id}|{kernel_id}|{is_kernel}|{kernel_type}",
 							"ral_id"_a=(context ? context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()) : -1 ),
-							"query_id"_a=(context ? std::to_string(context->getContextToken()) : "null"),
-							"kernel_id"_a=cache_id,
-							"is_kernel"_a=0, //false
-							"kernel_type"_a="cache");
-	}
-}
-
-CacheMachine::CacheMachine(std::shared_ptr<Context> context, std::size_t flow_control_bytes_threshold) : ctx(context), cache_id(CacheMachine::cache_count)
-{
-	CacheMachine::cache_count++;
-
-	waitingCache = std::make_unique<WaitingQueue>();
-	this->memory_resources.push_back( &blazing_device_memory_resource::getInstance() );
-	this->memory_resources.push_back( &blazing_host_memory_resource::getInstance() );
-	this->memory_resources.push_back( &blazing_disk_memory_resource::getInstance() );
-	this->num_bytes_added = 0;
-	this->num_rows_added = 0;
-	this->flow_control_bytes_threshold = flow_control_bytes_threshold;
-	this->flow_control_bytes_count = 0;
-
-	logger = spdlog::get("batch_logger");
-	cache_events_logger = spdlog::get("cache_events_logger");
-
-	something_added = false;
-
-	std::shared_ptr<spdlog::logger> kernels_logger;
-	kernels_logger = spdlog::get("kernels_logger");
-
-	if(kernels_logger != nullptr) {
-		kernels_logger->info("{ral_id}|{query_id}|{kernel_id}|{is_kernel}|{kernel_type}",
-							"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
 							"query_id"_a=(context ? std::to_string(context->getContextToken()) : "null"),
 							"kernel_id"_a=cache_id,
 							"is_kernel"_a=0, //false
@@ -183,10 +150,6 @@ bool CacheMachine::addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTa
 									"rows"_a=host_table->num_rows());
 		}
 
-		std::unique_lock<std::mutex> lock(flow_control_mutex);
-		flow_control_bytes_count += host_table->sizeInBytes();
-		lock.unlock();
-
 		num_rows_added += host_table->num_rows();
 		num_bytes_added += host_table->sizeInBytes();
 		auto cache_data = std::make_unique<CPUCacheData>(std::move(host_table));
@@ -236,10 +199,6 @@ bool CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_dat
 
 	// we dont want to add empty tables to a cache, unless we have never added anything
 	if ((!this->something_added || cache_data->num_rows() > 0) || always_add){
-		std::unique_lock<std::mutex> lock(flow_control_mutex);
-		flow_control_bytes_count += cache_data->sizeInBytes();
-		lock.unlock();
-
 		num_rows_added += cache_data->num_rows();
 		num_bytes_added += cache_data->sizeInBytes();
 		int cacheIndex = 0;
@@ -317,10 +276,6 @@ bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, c
 			}
 
 		}
-		std::unique_lock<std::mutex> lock(flow_control_mutex);
-		flow_control_bytes_count += table->sizeInBytes();
-		lock.unlock();
-
 		num_rows_added += table->num_rows();
 		num_bytes_added += table->sizeInBytes();
 		int cacheIndex = 0;
@@ -413,9 +368,6 @@ std::unique_ptr<ral::frame::BlazingTable> CacheMachine::get_or_wait(size_t index
 	}
 
 	std::unique_ptr<ral::frame::BlazingTable> output = message_data->get_data().decache();
-	std::unique_lock<std::mutex> lock(flow_control_mutex);
-	flow_control_bytes_count -= output->sizeInBytes();
-	flow_control_condition_variable.notify_all();
 	return std::move(output);
 }
 
@@ -437,9 +389,6 @@ std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullFromCache() {
 	}
 
 	std::unique_ptr<ral::frame::BlazingTable> output = message_data->get_data().decache();
-	std::unique_lock<std::mutex> lock(flow_control_mutex);
-	flow_control_bytes_count -= output->sizeInBytes();
-	flow_control_condition_variable.notify_all();
 	return std::move(output);
 }
 
@@ -461,9 +410,6 @@ std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData(std::string m
 								"rows"_a=message_data->get_data().num_rows());
 	}
 	std::unique_ptr<ral::cache::CacheData> output = message_data->release_data();
-	std::unique_lock<std::mutex> lock(flow_control_mutex);
-	flow_control_bytes_count -= output->sizeInBytes();
-	flow_control_condition_variable.notify_all();
 	return std::move(output);
 }
 
@@ -497,9 +443,6 @@ std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullUnorderedFromCache()
 		}
 
 		std::unique_ptr<ral::frame::BlazingTable> output = message_data->get_data().decache();
-		std::unique_lock<std::mutex> lock(flow_control_mutex);
-		flow_control_bytes_count -= output->sizeInBytes();
-		flow_control_condition_variable.notify_all();
 		return std::move(output);
 	} else {
 		return pullFromCache();
@@ -524,39 +467,9 @@ std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData() {
 	}
 
 	std::unique_ptr<ral::cache::CacheData> output = message_data->release_data();
-	std::unique_lock<std::mutex> lock(flow_control_mutex);
-	flow_control_bytes_count -= output->sizeInBytes();
-	flow_control_condition_variable.notify_all();
 	return std::move(output);
 }
 
-
-bool CacheMachine::thresholds_are_met(std::size_t bytes_count){
-
-	return bytes_count > this->flow_control_bytes_threshold;
-}
-
-void CacheMachine::wait_if_cache_is_saturated() {
-
-	CodeTimer blazing_timer;
-
-	std::unique_lock<std::mutex> lock(flow_control_mutex);
-	while(!flow_control_condition_variable.wait_for(lock, 60000ms, [&, this] {
-			bool cache_not_saturated = !thresholds_are_met(flow_control_bytes_count);
-
-			if (!cache_not_saturated && blazing_timer.elapsed_time() > 59000){
-				if(logger != nullptr) {
-					logger->warn("{query_id}|{step}|{substep}|{info}|{duration}||||",
-									"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
-									"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
-									"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-									"info"_a="wait_if_cache_is_saturated timed out",
-									"duration"_a=blazing_timer.elapsed_time());
-				}
-			}
-			return cache_not_saturated;
-		})){}
-}
 
 // take the first cacheData in this CacheMachine that it can find (looking in reverse order) that is in the GPU put it in RAM or Disk as oppropriate
 // this function does not change the order of the caches
@@ -626,13 +539,10 @@ size_t CacheMachine::downgradeCacheData() {
 ConcatenatingCacheMachine::ConcatenatingCacheMachine(std::shared_ptr<Context> context)
 	: CacheMachine(context) {}
 
-ConcatenatingCacheMachine::ConcatenatingCacheMachine(std::shared_ptr<Context> context, std::size_t flow_control_bytes_threshold, 
+ConcatenatingCacheMachine::ConcatenatingCacheMachine(std::shared_ptr<Context> context, 
 			std::size_t concat_cache_num_bytes, bool concat_all)
-	: CacheMachine(context, flow_control_bytes_threshold), concat_cache_num_bytes(concat_cache_num_bytes), concat_all(concat_all) {
-
-		if (this->concat_cache_num_bytes > this->flow_control_bytes_threshold){
-			this->concat_cache_num_bytes = this->flow_control_bytes_threshold; // if concat_cache_num_bytes is bigger than flow_control_bytes_threshold you can deadlock
-		}
+	: CacheMachine(context), concat_cache_num_bytes(concat_cache_num_bytes), concat_all(concat_all) {
+		
 	}
 
 // This method does not guarantee the relative order of the messages to be preserved
@@ -658,11 +568,6 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 		total_bytes += cache_data.sizeInBytes();
 		message_id = message_data->get_message_id();
 		collected_messages.push_back(std::move(message_data));
-
-		// we need to decrement here and not at the end, otherwise we can end up with a dead lock
-		std::unique_lock<std::mutex> lock(flow_control_mutex);
-		flow_control_bytes_count -= cache_data.sizeInBytes();
-		flow_control_condition_variable.notify_all();
 
 	} while ((total_bytes + waitingCache->get_next_size_in_bytes()) <= this->concat_cache_num_bytes);
 
@@ -696,12 +601,9 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 				tables_holder.pop_back();
 				table_views.pop_back();
 				collected_messages[i] =	std::make_unique<message>(std::move(cache_data), collected_messages[i]->get_message_id());
-				std::unique_lock<std::mutex> lock(flow_control_mutex);
 				for (; i < collected_messages.size(); i++){
-					flow_control_bytes_count += collected_messages[i]->get_data().sizeInBytes();
 					this->waitingCache->put(std::move(collected_messages[i]));
 				}
-				flow_control_condition_variable.notify_all();
 				break;
 			}
 		}

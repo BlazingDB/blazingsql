@@ -10,6 +10,7 @@ namespace blazingdb {
 namespace transport {
 namespace io {
 
+
 using Buffer = std::basic_string<char>;
 
 struct PinnedBuffer {
@@ -33,9 +34,8 @@ public:
   void freeAll();
 
 private:
+  // Its not threadsafe and the lock needs to be applied before calling it
   void grow();
-
-  std::condition_variable cv;
 
   std::mutex inUseMutex;
 
@@ -43,7 +43,13 @@ private:
 
   std::size_t bufferSize;
 
+  std::size_t numBuffers;
+
   int buffer_counter;
+
+  int allocation_counter;
+    
+  std::vector<char *> allocations;
 };
 
 // Memory Pool
@@ -51,16 +57,6 @@ PinnedBufferProvider &getPinnedBufferProvider();
 
 void setPinnedBufferProvider(std::size_t sizeBuffers, std::size_t numBuffers);
 
-void writeBuffersFromGPUTCP(std::vector<ColumnTransport> &column_transport,
-                            std::vector<std::size_t> bufferSizes,
-                            std::vector<const char *> buffers, void *fileDescriptor,
-                            int gpuNum);
-
-void readBuffersIntoGPUTCP(std::vector<std::size_t> bufferSizes,
-                                          void *fileDescriptor, int gpuNum, std::vector<rmm::device_buffer> &);
-
-void readBuffersIntoCPUTCP(std::vector<std::size_t> bufferSizes,
-                                          void *fileDescriptor, int gpuNum, std::vector<Buffer> &);
 
 }  // namespace io
 }  // namespace transport

@@ -121,7 +121,7 @@ void tcp_message_listener::start_polling(){
       int connection_fd;
       // TODO: be able to stop this thread from running when the engine is killed
       while((connection_fd = accept(socket_fd, (struct sockaddr *) &client_address, &len)) != -1) {
-        auto fwd = pool.push([this, connection_fd](int thread_num) {
+        pool.push([this, connection_fd](int thread_num) {
           CodeTimer timer;
           cudaStream_t stream;
           cudaStreamCreate(&stream);
@@ -169,6 +169,7 @@ void tcp_message_listener::start_polling(){
               cudaMemcpyAsync(buffer_chunk_start, pinned_buffer->data, chunk_size, cudaMemcpyHostToDevice, stream);
               pinned_buffers[chunk] = pinned_buffer;
             }
+
             //std::cout<<"elapsed copy from gpu before synch "<<timer_2.elapsed_time()<<std::endl;
             total_read_time += timer_2.elapsed_time();
             timer_2.reset();
@@ -183,6 +184,7 @@ void tcp_message_listener::start_polling(){
             }
             buffer_position++;
           }
+		close(connection_fd);
           auto duration = timer.elapsed_time();
           std::cout<<"Transfer duration before finish "<<duration <<" Throughput was "<<
           (( (float) total_size) / 1000000.0)/(((float) duration)/1000.0)<<" MB/s"<<std::endl;
@@ -212,7 +214,7 @@ void ucx_message_listener::poll_begin_message_tag(bool running_from_unit_test){
 	if (!polling_started){
 		polling_started = true;
 		auto thread = std::thread([running_from_unit_test, this]{
-			cudaSetDevice(0);
+			// cudaSetDevice(0);
 
 			for(;;){
 				std::shared_ptr<ucp_tag_recv_info_t> info_tag = std::make_shared<ucp_tag_recv_info_t>();

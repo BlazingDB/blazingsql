@@ -369,6 +369,7 @@ void tcp_buffer_transport::send_impl(const char * buffer, size_t buffer_size){
 }
 
 tcp_buffer_transport::~tcp_buffer_transport(){
+    std::cout<<"transport going out of scope"<<std::endl;
     for (auto socket_fd : socket_fds){
         close(socket_fd);
     }
