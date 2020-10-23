@@ -1,6 +1,7 @@
 #include "CacheMachine.h"
 #include <sys/stat.h>
 #include <random>
+#include <cudf/io/orc.hpp>
 #include <src/utilities/CommonOperations.h>
 #include "communication/CommunicationData.h"
 #include <stdio.h>
@@ -41,8 +42,8 @@ size_t CacheDataLocalFile::sizeInBytes() const {
 }
 
 std::unique_ptr<ral::frame::BlazingTable> CacheDataLocalFile::decache() {
-	cudf_io::read_orc_args in_args{cudf_io::source_info{this->filePath_}};
-	auto result = cudf_io::read_orc(in_args);
+	cudf::io::orc_reader_options read_opts = cudf::io::orc_reader_options::builder(cudf::io::source_info{this->filePath_});
+	auto result = cudf::io::read_orc(read_opts);
 
 	// Remove temp orc files
 	const char *orc_path_file = this->filePath_.c_str();
@@ -56,13 +57,15 @@ CacheDataLocalFile::CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable>
 	this->size_in_bytes = table->sizeInBytes();
 	this->filePath_ = orc_files_path + "/.blazing-temp-" + randomString(64) + ".orc";
 
-	cudf_io::table_metadata metadata;
+	cudf::io::table_metadata metadata;
 	for(auto name : table->names()) {
 		metadata.column_names.emplace_back(name);
 	}
-	cudf_io::write_orc_args out_args(cudf_io::sink_info{this->filePath_}, table->view(), &metadata);
 
-	cudf_io::write_orc(out_args);
+	cudf::io::orc_writer_options out_opts = cudf::io::orc_writer_options::builder(cudf::io::sink_info{this->filePath_}, table->view())
+		.metadata(&metadata);
+
+	cudf::io::write_orc(out_opts);
 }
 std::unique_ptr<GPUCacheDataMetaData> cast_cache_data_to_gpu_with_meta(std::unique_ptr<CacheData> base_pointer){
 	return std::unique_ptr<GPUCacheDataMetaData>(static_cast<GPUCacheDataMetaData *>(base_pointer.release()));
@@ -197,10 +200,7 @@ void CacheMachine::put(size_t message_id, std::unique_ptr<ral::frame::BlazingTab
 }
 
 void CacheMachine::clear() {
-	std::unique_ptr<message> message_data;
-	while(message_data = waitingCache->pop_or_wait()) {
-		printf("...cleaning cache\n");
-	}
+	auto messages = this->waitingCache->get_all();
 	this->waitingCache->finish();
 }
 
@@ -626,7 +626,7 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 		flow_control_bytes_count -= cache_data.sizeInBytes();
 		flow_control_condition_variable.notify_all();
 
-	} while ((total_bytes + waitingCache->get_next_size_in_bytes()) <= this->concat_cache_num_bytes);
+	} while (concat_all || (total_bytes + waitingCache->get_next_size_in_bytes()) <= this->concat_cache_num_bytes);
 
 	std::unique_ptr<ral::frame::BlazingTable> output;
 	size_t num_rows = 0;

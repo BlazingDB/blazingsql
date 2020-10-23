@@ -36,7 +36,7 @@ struct data_handle {
 	Uri uri;										  // in case the data was loaded from a file
 
 	bool is_valid(){
-		return fileHandle != nullptr || !uri.isEmpty();
+		return fileHandle != nullptr || !uri.isEmpty() ;
 	}
 };
 

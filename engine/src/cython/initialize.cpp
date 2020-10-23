@@ -31,6 +31,7 @@
 #include "communication/network/Client.h"
 #include "communication/network/Server.h"
 #include <bmr/initializer.h>
+#include <bmr/BlazingMemoryResource.h>
 
 #include "error.hpp"
 
@@ -60,8 +61,6 @@ std::string get_ip(const std::string & iface_name = "eth0") {
 
 	return the_ip;
 }
-
-
 
 auto log_level_str_to_enum(std::string level) {
 	if (level == "critical") {
@@ -125,7 +124,37 @@ void initialize(int ralId,
 	std::string ralHost,
 	int ralCommunicationPort,
 	bool singleNode,
-	std::map<std::string, std::string> config_options) {
+	std::map<std::string, std::string> config_options,
+	std::string allocation_mode,
+	std::size_t initial_pool_size,
+	std::size_t maximum_pool_size, 
+	bool enable_logging) {
+
+	float device_mem_resouce_consumption_thresh = 0.95;
+	auto config_it = config_options.find("BLAZING_DEVICE_MEM_CONSUMPTION_THRESHOLD");
+	if (config_it != config_options.end()){
+		device_mem_resouce_consumption_thresh = std::stof(config_options["BLAZING_DEVICE_MEM_CONSUMPTION_THRESHOLD"]);
+	}
+	std::string logging_dir = "blazing_log";
+	config_it = config_options.find("BLAZING_LOGGING_DIRECTORY");
+	if (config_it != config_options.end()){
+		logging_dir = config_options["BLAZING_LOGGING_DIRECTORY"];
+	}
+	bool logging_directory_missing = false;
+	struct stat sb;
+	if (!(stat(logging_dir.c_str(), &sb) == 0 && S_ISDIR(sb.st_mode))){ // logging_dir does not exist
+	// we are assuming that this logging directory was created by the python layer, because only the python layer can only target on directory creation per server
+	// having all RALs independently trying to create a directory simulatenously can cause problems
+		logging_directory_missing = true;
+		logging_dir = "";
+	}
+
+	std::string allocator_logging_file = "";
+	if (enable_logging && !logging_directory_missing){
+		allocator_logging_file = logging_dir + "/allocator." + std::to_string(ralId) + ".log";
+	}
+	BlazingRMMInitialize(allocation_mode, initial_pool_size, maximum_pool_size, allocator_logging_file, device_mem_resouce_consumption_thresh);
+
 	// ---------------------------------------------------------------------------
 	// DISCLAIMER
 	// TODO: Support proper locale support for non-US cases (percy)
@@ -143,11 +172,18 @@ void initialize(int ralId,
 	const char * env_cuda_device = std::getenv("CUDA_VISIBLE_DEVICES");
 	std::string env_cuda_device_str = env_cuda_device == nullptr ? "" : std::string(env_cuda_device);
 	initLogMsg = initLogMsg + "CUDA_VISIBLE_DEVICES is set to: " + env_cuda_device_str + ", ";
-
-	size_t total_gpu_mem_size = ral::config::gpuTotalMemory();
-	assert(total_gpu_mem_size > 0);
-	auto nthread = 4;
-	blazingdb::transport::io::setPinnedBufferProvider(0.1 * total_gpu_mem_size, nthread);
+	
+	size_t buffers_size = 1048576;  // 10 MBs
+	auto iter = config_options.find("TRANSPORT_BUFFER_BYTE_SIZE");
+	if (iter != config_options.end()){
+		buffers_size = std::stoi(config_options["TRANSPORT_BUFFER_BYTE_SIZE"]);
+	}
+	int num_buffers = 100;
+	iter = config_options.find("TRANSPORT_POOL_NUM_BUFFERS");
+	if (iter != config_options.end()){
+		num_buffers = std::stoi(config_options["TRANSPORT_POOL_NUM_BUFFERS"]);
+	}
+	blazingdb::transport::io::setPinnedBufferProvider(buffers_size, num_buffers);
 
 	//to avoid redundancy the default value or user defined value for this parameter is placed on the pyblazing side
 	assert( config_options.find("BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD") != config_options.end() );
@@ -171,20 +207,6 @@ void initialize(int ralId,
 	spdlog::shutdown();
 
 	spdlog::init_thread_pool(8192, 1);
-
-	std::string logging_dir = "blazing_log";
-	auto config_it = config_options.find("BLAZING_LOGGING_DIRECTORY");
-	if (config_it != config_options.end()){
-		logging_dir = config_options["BLAZING_LOGGING_DIRECTORY"];
-	}
-	bool logging_directory_missing = false;
-	struct stat sb;
-	if (!(stat(logging_dir.c_str(), &sb) == 0 && S_ISDIR(sb.st_mode))){ // logging_dir does not exist
-	// we are assuming that this logging directory was created by the python layer, because only the python layer can only target on directory creation per server
-	// having all RALs independently trying to create a directory simulatenously can cause problems
-		logging_directory_missing = true;
-		logging_dir = "";
-	}
 
 	std::string flush_level = "warn";
 	auto log_it = config_options.find("LOGGING_FLUSH_LEVEL");
@@ -263,6 +285,17 @@ void initialize(int ralId,
 		it++;
 	}
 	logger->debug("|||{info}|||||","info"_a=product_details_str);
+
+	blazing_device_memory_resource* resource = &blazing_device_memory_resource::getInstance();
+	std::string alloc_info = "allocation_mode: " + allocation_mode;
+	alloc_info += ", total_memory: " + std::to_string(resource->get_total_memory());
+	alloc_info += ", memory_limit: " + std::to_string(resource->get_memory_limit());
+	alloc_info += ", type: " + resource->get_type();
+	alloc_info += ", initial_pool_size: " + std::to_string(initial_pool_size);
+	alloc_info += ", maximum_pool_size: " + std::to_string(maximum_pool_size);
+	alloc_info += ", allocator_logging_file: " + allocator_logging_file;
+
+	logger->debug("|||{info}|||||","info"_a=alloc_info);
 }
 
 void finalize() {
@@ -274,27 +307,17 @@ void finalize() {
 	exit(0);
 }
 
-void blazingSetAllocator(
-	std::string allocation_mode,
-	std::size_t initial_pool_size,
-	std::map<std::string, std::string> config_options) {
-
-	float device_mem_resouce_consumption_thresh = 0.95;
-	auto it = config_options.find("BLAZING_DEVICE_MEM_CONSUMPTION_THRESHOLD");
-	if (it != config_options.end()){
-		device_mem_resouce_consumption_thresh = std::stof(config_options["BLAZING_DEVICE_MEM_CONSUMPTION_THRESHOLD"]);
-	}
-
-	BlazingRMMInitialize(allocation_mode, initial_pool_size, device_mem_resouce_consumption_thresh);
-}
-
 error_code_t initialize_C(int ralId,
 	int gpuId,
 	std::string network_iface_name,
 	std::string ralHost,
 	int ralCommunicationPort,
 	bool singleNode,
-	std::map<std::string, std::string> config_options) {
+	std::map<std::string, std::string> config_options,
+	std::string allocation_mode,
+	std::size_t initial_pool_size,
+	std::size_t maximum_pool_size,
+	bool enable_logging) {
 
 	try {
 		initialize(ralId,
@@ -303,7 +326,11 @@ error_code_t initialize_C(int ralId,
 			ralHost,
 			ralCommunicationPort,
 			singleNode,
-			config_options);
+			config_options,
+			allocation_mode,
+			initial_pool_size,
+			maximum_pool_size,
+			enable_logging);
 		return E_SUCCESS;
 	} catch (std::exception& e) {
 		return E_EXCEPTION;
@@ -319,17 +346,8 @@ error_code_t finalize_C() {
 	}
 }
 
-error_code_t blazingSetAllocator_C(
-	std::string allocation_mode,
-	std::size_t initial_pool_size,
-	std::map<std::string, std::string> config_options) {
-
-	try {
-		blazingSetAllocator(allocation_mode,
-			initial_pool_size,
-			config_options);
-		return E_SUCCESS;
-	} catch (std::exception& e) {
-		return E_EXCEPTION;
-	}
+size_t getFreeMemory() {
+	BlazingMemoryResource* resource = &blazing_device_memory_resource::getInstance();
+	size_t total_free_memory = resource->get_memory_limit() - resource->get_memory_used();
+	return total_free_memory;
 }

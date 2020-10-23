@@ -11,7 +11,6 @@
 #include <src/communication/network/Client.h>
 #include "parser/expression_utils.hpp"
 
-#include <cudf/io/functions.hpp>
 #include <cudf/types.hpp>
 #include "execution_graph/logic_controllers/LogicalProject.h"
 #include <execution_graph/logic_controllers/LogicPrimitives.h>
@@ -410,7 +409,7 @@ public:
 	 * Updates the set of columns to be projected at the time of reading the data source.
 	 * @param projections The set of column ids to be selected.
 	 */
-	void set_projections(std::vector<size_t> projections) {
+	void set_projections(std::vector<int> projections) {
 		this->projections = projections;
 	}
 
@@ -436,7 +435,7 @@ private:
 	std::shared_ptr<ral::io::data_parser> parser; /**< Data parser associated to the data loader. */
 
 	std::shared_ptr<Context> context; /**< Pointer to the shared query context. */
-	std::vector<size_t> projections; /**< List of columns that will be selected if they were previously settled. */
+	std::vector<int> projections; /**< List of columns that will be selected if they were previously settled. */
 	ral::io::data_loader loader; /**< Data loader responsible for executing the batching load. */
 	ral::io::Schema  schema; /**< Table schema associated to the data to be loaded. */
 	size_t cur_file_index; /**< Current file index. */

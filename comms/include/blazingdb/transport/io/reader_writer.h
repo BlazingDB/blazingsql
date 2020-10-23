@@ -21,6 +21,8 @@ class PinnedBufferProvider {
 public:
   PinnedBufferProvider(std::size_t sizeBuffers, std::size_t numBuffers);
 
+  ~PinnedBufferProvider();
+
   PinnedBuffer *getBuffer();
 
   void freeBuffer(PinnedBuffer *buffer);
@@ -30,6 +32,7 @@ public:
   void freeAll();
 
 private:
+  // Its not threadsafe and the lock needs to be applied before calling it
   void grow();
 
   std::condition_variable cv;
@@ -39,7 +42,16 @@ private:
   std::stack<PinnedBuffer *> buffers;
 
   std::size_t bufferSize;
+
+  std::size_t numBuffers;
+
+  int buffer_counter;
+
+  int allocation_counter;
+    
+  std::vector<char *> allocations;
 };
+
 // Memory Pool
 PinnedBufferProvider &getPinnedBufferProvider();
 

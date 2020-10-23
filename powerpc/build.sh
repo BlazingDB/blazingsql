@@ -119,7 +119,7 @@ arrow_install_dir=$tmp_dir
 echo "arrow_install_dir: "$arrow_install_dir
 if [ ! -d arrow ]; then
     echo "### Arrow - start ###"
-    arrow_version=apache-arrow-0.17.1
+    arrow_version=apache-arrow-1.0.1
     git clone --depth 1 https://github.com/apache/arrow.git --branch $arrow_version --single-branch
     cd arrow/
 
@@ -127,7 +127,6 @@ if [ ! -d arrow ]; then
     # NOTE for the arrow cmake arguments:
     # -DARROW_IPC=ON \ # need ipc for blazingdb-ral (because cudf)
     # -DARROW_HDFS=ON \ # blazingdb-io use arrow for hdfs
-    # -DARROW_TENSORFLOW=ON \ # enable old ABI for C/C++
     
     export BOOST_ROOT=$env_prefix
 
@@ -207,7 +206,7 @@ fi
 # NOTE percy mario this var is used by rmm build.sh and by pycudf setup.py
 export PARALLEL_LEVEL=$MAKEJ
 
-cudf_version=0.15
+cudf_version=0.16
 export CUDA_HOME=/usr/local/cuda/
 
 # BEGIN RMM
@@ -256,7 +255,7 @@ if [ ! -d cudf ]; then
     #export CUDA_HOME=/usr/local/cuda/
     #export PARALLEL_LEVEL=$build_mode
     #CUDACXX=/usr/local/cuda/bin/nvcc ./build.sh
-    #cmake -D GPU_ARCHS=70 -DBUILD_TESTS=ON -DCMAKE_INSTALL_PREFIX=$tmp_dir -DCMAKE_CXX11_ABI=ON ./cpp
+    #cmake -D GPU_ARCHS=70 -DBUILD_TESTS=ON -DCMAKE_INSTALL_PREFIX=$tmp_dir ./cpp
     #echo "make"
     #make -j4 install
 
@@ -264,7 +263,6 @@ if [ ! -d cudf ]; then
     mkdir -p build
     cd build
     cmake -DCMAKE_INSTALL_PREFIX=$tmp_dir \
-          -DCMAKE_CXX11_ABI=ON \
           ${GPU_ARCH} \
           -DUSE_NVTX=${BUILD_NVTX} \
           -DBUILD_BENCHMARKS=${BUILD_BENCHMARKS} \
@@ -490,7 +488,6 @@ export RMM_ROOT=$tmp_dir
 export DLPACK_ROOT=$tmp_dir
 export CONDA_PREFIX=$tmp_dir
 export CUDF_HOME=$build_dir/cudf/
-export THRIFT_INSTALL_DIR=$build_dir/arrow/cpp/build/thrift_ep-install/lib
 export SNAPPY_INSTALL_DIR=$build_dir/arrow/cpp/build/snappy_ep/src/snappy_ep-install/lib
 export LZ4_INSTALL_DIR=$build_dir/arrow/cpp/build/lz4_ep-prefix/src/lz4_ep/lib
 
