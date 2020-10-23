@@ -39,8 +39,6 @@ private:
   // Its not threadsafe and the lock needs to be applied before calling it
   void grow();
 
-  std::condition_variable cv;
-
   std::mutex inUseMutex;
 
   std::stack<PinnedBuffer *> buffers;
