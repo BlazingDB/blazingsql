@@ -4,6 +4,7 @@
 
 
 ## Improvements
+- #1081 Add validation for the kwargs when bc API is called
 - #1082 Validate s3 bucket
 - #1093 Logs configurable to have max size and be rotated
 - #1091 Improves the error message problem when validating any GCP bucket
@@ -26,6 +27,7 @@
 - #1055 Removing cudf source code dependency as some cudf utilities headers were exposed
 - #1065 Remove thrift from build prodcess as its no longer used
 - #1067 Upload conda packages to both rapidsai and blazingsql conda channels
+
 
 ## Bug Fixes
 - #918 Activate validation for GPU_CI tests results.
