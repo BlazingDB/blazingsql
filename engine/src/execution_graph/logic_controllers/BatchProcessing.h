@@ -375,15 +375,7 @@ public:
 		this->query_graph = query_graph;
 	}
 
-	/**
-	 * Indicates whether the cache load can be throttling.
-	 * @return true If the pace of cache loading may be throttled.
-	 * @return false If cache should be loaded according to the default pace.
-	 */
-	bool can_you_throttle_my_input() {
-		return false;
-	}
-
+	
 	/**
 	 * Executes the batch processing.
 	 * Loads the data from their input port, and after processing it,
@@ -413,8 +405,6 @@ public:
 			threads.push_back(BlazingThread([this, &has_limit, &limit_, &current_rows]() {
 				CodeTimer eventTimer(false);
 
-				this->output_cache()->wait_if_cache_is_saturated();
-
 				std::unique_ptr<ral::frame::BlazingTable> batch;
 				while(batch = input.next()) {
 					eventTimer.start();
@@ -434,8 +424,7 @@ public:
 									"timestamp_end"_a=eventTimer.end_time());
 
 					this->add_to_output_cache(std::move(batch));
-					this->output_cache()->wait_if_cache_is_saturated();
-
+					
 					if (has_limit && current_rows >= limit_) {
 						break;
 					}
@@ -499,15 +488,7 @@ public:
 		this->query_graph = query_graph;
 	}
 
-	/**
-	 * Indicates whether the cache load can be throttling.
-	 * @return true If the pace of cache loading may be throttled.
-	 * @return false If cache should be loaded according to the default pace.
-	 */
-	bool can_you_throttle_my_input() {
-		return false;
-	}
-
+	
 	/**
 	 * Executes the batch processing.
 	 * Loads the data from their input port, and after processing it,
@@ -535,7 +516,6 @@ public:
 
 				CodeTimer eventTimer(false);
 
-				this->output_cache()->wait_if_cache_is_saturated();
 				std::unique_ptr<ral::frame::BlazingTable> batch;
 
 				while(batch = input.next()) {
@@ -591,8 +571,6 @@ public:
 
 							this->add_to_output_cache(std::move(batch));
 						}
-
-						this->output_cache()->wait_if_cache_is_saturated();
 
 						// useful when the Algebra Relacional only contains: BindableTableScan and LogicalLimit
 						if (has_limit && current_rows >= limit_) {
@@ -664,15 +642,7 @@ public:
 		this->query_graph = query_graph;
 	}
 
-	/**
-	 * Indicates whether the cache load can be throttling.
-	 * @return true If the pace of cache loading may be throttled.
-	 * @return false If cache should be loaded according to the default pace.
-	 */
-	bool can_you_throttle_my_input() {
-		return true;
-	}
-
+	
 	/**
 	 * Executes the batch processing.
 	 * Loads the data from their input port, and after processing it,
@@ -687,8 +657,6 @@ public:
 		int batch_count = 0;
 		while (input.wait_for_next()) {
 			try {
-				this->output_cache()->wait_if_cache_is_saturated();
-
 				auto batch = input.next();
 
 				auto log_input_num_rows = batch ? batch->num_rows() : 0;
@@ -766,15 +734,7 @@ public:
 		this->query_graph = query_graph;
 	}
 
-	/**
-	 * Indicates whether the cache load can be throttling.
-	 * @return true If the pace of cache loading may be throttled.
-	 * @return false If cache should be loaded according to the default pace.
-	 */
-	bool can_you_throttle_my_input() {
-		return true;
-	}
-
+	
 	/**
 	 * Executes the batch processing.
 	 * Loads the data from their input port, and after processing it,
@@ -789,8 +749,6 @@ public:
 		int batch_count = 0;
 		while (input.wait_for_next()) {
 			try {
-				this->output_cache()->wait_if_cache_is_saturated();
-
 				auto batch = input.next();
 
 				auto log_input_num_rows = batch->num_rows();
@@ -875,15 +833,6 @@ public:
 	Print(std::ostream & stream) : kernel(0,"Print", nullptr, kernel_type::PrintKernel) { ofs = &stream; }
 
 	/**
-	 * Indicates whether the cache load can be throttling.
-	 * @return true If the pace of cache loading may be throttled.
-	 * @return false If cache should be loaded according to the default pace.
-	 */
-	bool can_you_throttle_my_input() {
-		return false;
-	}
-
-	/**
 	 * Executes the batch processing.
 	 * Loads the data from their input port, and after processing it,
 	 * the results are stored in their output port.
@@ -955,15 +904,7 @@ public:
 		return kstatus::stop;
 	}
 
-	/**
-	 * Indicates whether the cache load can be throttling.
-	 * @return true If the pace of cache loading may be throttled.
-	 * @return false If cache should be loaded according to the default pace.
-	 */
-	bool can_you_throttle_my_input() {
-		return false;
-	}
-
+	
 	/**
 	 * Returns the vector containing the final processed output.
 	 * @return frame_type A vector of unique_ptr of BlazingTables.
