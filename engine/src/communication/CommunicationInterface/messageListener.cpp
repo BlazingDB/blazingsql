@@ -158,7 +158,7 @@ void tcp_message_listener::start_polling(){
       int connection_fd;
       // TODO: be able to stop this thread from running when the engine is killed
       while((connection_fd = accept(socket_fd, (struct sockaddr *) &client_address, &len)) != -1) {
-        std::thread([this, connection_fd]{
+        pool.push([this, connection_fd](int thread_num) {
           CodeTimer timer;
           cudaStream_t stream;
           cudaStreamCreate(&stream);
@@ -221,7 +221,6 @@ void tcp_message_listener::start_polling(){
             }
             buffer_position++;
           }
-		shutdown(connection_fd,2);
 		close(connection_fd);
           auto duration = timer.elapsed_time();
           std::cout<<"Transfer duration before finish "<<duration <<" Throughput was "<<
@@ -238,7 +237,7 @@ void tcp_message_listener::start_polling(){
 		}
 		cudaStreamSynchronize(stream);
 		cudaStreamDestroy(stream);
-        }).detach();
+        });
 
       }
     });
