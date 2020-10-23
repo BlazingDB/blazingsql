@@ -33,6 +33,8 @@ public:
 
   void freeAll();
 
+  std::size_t get_allocated_buffers();
+  std::size_t get_total_buffers();
 private:
   // Its not threadsafe and the lock needs to be applied before calling it
   void grow();

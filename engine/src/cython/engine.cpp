@@ -19,6 +19,8 @@
 #include "CodeTimer.h"
 #include "communication/CommunicationInterface/protocols.hpp"
 #include "error.hpp"
+#include "blazingdb/transport/io/reader_writer.h"
+
 
 using namespace fmt::literals;
 
@@ -187,6 +189,9 @@ std::unique_ptr<PartitionedResultSet> runExecuteGraph(std::shared_ptr<ral::cache
 	result->skipdata_analysis_fail = false;
 
 	comm::graphs_info::getInstance().deregister_graph(ctx_token);
+	spdlog::get("batch_logger")->info("{allocation_count}|{total_buffer_count}", 
+			"allocation_count"_a=blazingdb::transport::io::getPinnedBufferProvider().get_allocated_buffers(),
+			"total_buffer_count"_a=blazingdb::transport::io::getPinnedBufferProvider().get_total_buffers());
 	return result;
 }
 /*
