@@ -5,18 +5,17 @@
 
 ## Improvements
 - #1082 Validate s3 bucket
+- #1093 Logs configurable to have max size and be rotated
 - #1091 Improves the error message problem when validating any GCP bucket
 
 
 ## Bug Fixes
 - #1064 Fixed issue when loading parquet files with local_files=True
 - #1088 Fixed issue caused by cudf changing from one .so file to multiple
+- #1094 Fixed logging directory setup
 
 
-# BlazingSQL 0.16.0 (Date TBS)
-
-## New Features
-
+# BlazingSQL 0.16.0 (October 22, 2020)
 
 ## Improvements
 - #997 Add capacity to set the transport memory
