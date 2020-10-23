@@ -10,6 +10,7 @@
 #include <spdlog/async.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/sinks/rotating_file_sink.h>
 
 #include <algorithm>
 #include <cuda_runtime.h>
@@ -91,21 +92,26 @@ void create_logger(std::string fileName,
 	std::string loggingName,
 	int ralId, std::string flush_level,
 	std::string logger_level_wanted,
+	std::size_t max_size_logging,
 	bool simple_log=true) {
 
 	auto stdout_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
 	stdout_sink->set_pattern("[%T.%e] [%^%l%$] %v");
 	stdout_sink->set_level(spdlog::level::err);
-	auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(fileName);
-	if(simple_log){
-		file_sink->set_pattern(fmt::format("%v"));
-	}else{
-		file_sink->set_pattern(fmt::format("%Y-%m-%d %T.%e|{}|%^%l%$|%v", ralId));
+
+	// TODO: discuss how we should handle this
+	// if max_num_files = 4 -> will have: RAL.0.log, RAL.0.1.log, RAL.0.2.log, RAL.0.3.log, RAL.0.4.log
+	auto max_num_files = 0;
+	auto rotating_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt> (fileName, max_size_logging, max_num_files);
+	if (simple_log) {
+		rotating_sink->set_pattern(fmt::format("%v"));
+	} else {
+		rotating_sink->set_pattern(fmt::format("%Y-%m-%d %T.%e|{}|%^%l%$|%v", ralId));
 	}
 
 	// We want ALL levels of info to be registered. So using by default `trace` level
-	file_sink->set_level(spdlog::level::trace);
-	spdlog::sinks_init_list sink_list = { stdout_sink, file_sink };
+	rotating_sink->set_level(spdlog::level::trace);
+	spdlog::sinks_init_list sink_list = {stdout_sink, rotating_sink};
 	auto logger = std::make_shared<spdlog::async_logger>(loggingName, sink_list, spdlog::thread_pool(), spdlog::async_overflow_policy::block);
 
 	// level of logs
@@ -220,28 +226,34 @@ void initialize(int ralId,
 		logger_level_wanted = config_options["LOGGING_LEVEL"];
 	}
 
+	std::size_t max_size_logging = 1073741824; // 1 GB
+	auto size_log_it = config_options.find("LOGGING_MAX_SIZE_PER_FILE");
+	if (size_log_it != config_options.end()){
+		max_size_logging = std::stoi(config_options["LOGGING_MAX_SIZE_PER_FILE"]);
+	}
+
 	std::string batchLoggerFileName = logging_dir + "/RAL." + std::to_string(ralId) + ".log";
-	create_logger(batchLoggerFileName, "batch_logger", ralId, flush_level, logger_level_wanted, false);
+	create_logger(batchLoggerFileName, "batch_logger", ralId, flush_level, logger_level_wanted, max_size_logging, false);
 
 	std::string queriesFileName = logging_dir + "/bsql_queries." + std::to_string(ralId) + ".log";
 	bool existsQueriesFileName = std::ifstream(queriesFileName).good();
-	create_logger(queriesFileName, "queries_logger", ralId, flush_level, logger_level_wanted);
+	create_logger(queriesFileName, "queries_logger", ralId, flush_level, logger_level_wanted, max_size_logging);
 
 	std::string kernelsFileName = logging_dir + "/bsql_kernels." + std::to_string(ralId) + ".log";
 	bool existsKernelsFileName = std::ifstream(kernelsFileName).good();
-	create_logger(kernelsFileName, "kernels_logger", ralId, flush_level, logger_level_wanted);
+	create_logger(kernelsFileName, "kernels_logger", ralId, flush_level, logger_level_wanted, max_size_logging);
 
 	std::string kernelsEdgesFileName = logging_dir + "/bsql_kernels_edges." + std::to_string(ralId) + ".log";
 	bool existsKernelsEdgesFileName = std::ifstream(kernelsEdgesFileName).good();
-	create_logger(kernelsEdgesFileName, "kernels_edges_logger", ralId, flush_level, logger_level_wanted);
+	create_logger(kernelsEdgesFileName, "kernels_edges_logger", ralId, flush_level, logger_level_wanted, max_size_logging);
 
 	std::string kernelEventsFileName = logging_dir + "/bsql_kernel_events." + std::to_string(ralId) + ".log";
 	bool existsKernelEventsFileName = std::ifstream(kernelEventsFileName).good();
-	create_logger(kernelEventsFileName, "events_logger", ralId, flush_level, logger_level_wanted);
+	create_logger(kernelEventsFileName, "events_logger", ralId, flush_level, logger_level_wanted, max_size_logging);
 
 	std::string cacheEventsFileName = logging_dir + "/bsql_cache_events." + std::to_string(ralId) + ".log";
 	bool existsCacheEventsFileName = std::ifstream(cacheEventsFileName).good();
-	create_logger(cacheEventsFileName, "cache_events_logger", ralId, flush_level, logger_level_wanted);
+	create_logger(cacheEventsFileName, "cache_events_logger", ralId, flush_level, logger_level_wanted, max_size_logging);
 
 	//Logger Headers
 	if(!existsQueriesFileName) {
