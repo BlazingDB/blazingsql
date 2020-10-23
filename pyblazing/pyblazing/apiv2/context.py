@@ -1178,6 +1178,7 @@ def load_config_options_from_env(user_config_options: dict):
         "MAX_SEND_MESSAGE_THREADS": 20,
         "LOGGING_LEVEL": "trace",
         "LOGGING_FLUSH_LEVEL": "warn",
+        "LOGGING_MAX_SIZE_PER_FILE": 1073741824,  # 1 GB
         "TRANSPORT_BUFFER_BYTE_SIZE": 1048576,  # 10 MB in bytes
         "TRANSPORT_POOL_NUM_BUFFERS": 100,
     }
@@ -1344,6 +1345,10 @@ class BlazingContext(object):
                     NOTE: This parameter only works when used in the
                     BlazingContext
                     default: 'warn'
+            LOGGING_MAX_SIZE_PER_FILE: Set the max size in bytes for the log files.
+                    NOTE: This parameter only works when used in the
+                    BlazingContext
+                    default: 1 GB
             TRANSPORT_BUFFER_BYTE_SIZE : The size in bytes about the pinned buffer memory
                     default: 10 MBs
             TRANSPORT_POOL_NUM_BUFFERS: The number of buffers in the punned buffer memory pool.
@@ -1389,11 +1394,11 @@ class BlazingContext(object):
         logging_dir_path = "blazing_log"
         # want to use config_options and not self.config_options
         # since its not encoded
-        if "BLAZING_LOGGING_DIRECTORY" in config_options:
+        if "BLAZING_LOGGING_DIRECTORY" in self.config_options:
             logging_dir_path = config_options["BLAZING_LOGGING_DIRECTORY"]
 
         cache_dir_path = "/tmp"  # default directory to store orc files
-        if "BLAZING_CACHE_DIRECTORY" in config_options:
+        if "BLAZING_CACHE_DIRECTORY" in self.config_options:
             cache_dir_path = config_options["BLAZING_CACHE_DIRECTORY"] + "tmp"
 
         if dask_client == "autocheck":
