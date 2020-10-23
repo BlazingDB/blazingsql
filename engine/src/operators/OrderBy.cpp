@@ -220,7 +220,19 @@ std::unique_ptr<ral::frame::BlazingTable> generate_partition_plan(const std::vec
 	}
 
 	int num_nodes = context->getTotalNodes();
-	cudf::size_type total_num_partitions = (double)table_num_rows*(double)avg_bytes_per_row/(double)num_bytes_per_order_by_partition;
+
+	// if node 0 does not have data, so need take the average from the sample of another node
+	if (avg_bytes_per_row == 1 && samples.size() > 1) {
+		// normally last nodes contain data as they start reading files 
+		for (size_t i = samples.size() - 1; i > 0; --i) {
+			if (samples[i].num_rows() > 0) {
+				avg_bytes_per_row = samples[i].sizeInBytes();
+				break;
+			}
+		}
+	}
+
+	cudf::size_type total_num_partitions = (double)table_num_rows * (double)avg_bytes_per_row / (double)num_bytes_per_order_by_partition;
 	total_num_partitions = total_num_partitions <= 0 ? 1 : total_num_partitions;
 	// want to make the total_num_partitions to be a multiple of the number of nodes to evenly distribute
 	total_num_partitions = ((total_num_partitions + num_nodes - 1) / num_nodes) * num_nodes;

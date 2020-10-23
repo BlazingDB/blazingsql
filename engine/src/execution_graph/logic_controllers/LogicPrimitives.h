@@ -89,6 +89,8 @@ public:
 
 	std::unique_ptr<BlazingTable> clone() const;
 
+	unsigned long long sizeInBytes() const;
+
 private:
 	std::vector<std::string> columnNames;
 	CudfTableView table;
