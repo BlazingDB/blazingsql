@@ -12,7 +12,6 @@
 #include <arrow/io/api.h>
 #include "arrow/buffer.h"
 
-#include "aws/s3/model/HeadObjectRequest.h"
 #include <aws/core/Aws.h>
 #include <aws/s3/model/GetObjectRequest.h>
 #include <aws/s3/model/HeadObjectRequest.h>
@@ -66,39 +65,39 @@ std::shared_ptr<Aws::S3::S3Client> make_s3_client(
 		const std::string & endpointOverride,
 		long connectTimeoutMs = -1,
 		long requestTimeoutMs = -1) {
-	
+
 	// TODO Percy Rommel use configuration files instead of magic numbers/strings
 	// here we can make changes to the client configuration
-	
+
 	auto clientConfig = Aws::Client::ClientConfiguration();
 	clientConfig.region = Aws::String(region.data());
-	
+
 	if (connectTimeoutMs > 0) {
 		clientConfig.connectTimeoutMs = connectTimeoutMs;
 	}
-	
+
 	if (requestTimeoutMs > 0) {
 		clientConfig.requestTimeoutMs = requestTimeoutMs;
 	}
-	
+
 	bool useVirtualAddressing = true;
-	
+
 	if (endpointOverride.empty() == false) {
 		clientConfig.endpointOverride = Aws::String(endpointOverride.data());
-		
+
 		// NOTE When use endpointOverride we need to set useVirtualAddressing to true for the client ctor
 		useVirtualAddressing = false;
 	}
-	
+
 	std::shared_ptr<Aws::S3::S3Client> s3Client;
 	Aws::Client::AWSAuthV4Signer::PayloadSigningPolicy signPayloads = Aws::Client::AWSAuthV4Signer::PayloadSigningPolicy::Never;
-	
+
 	if(credentials == nullptr){
 		s3Client = std::make_shared<Aws::S3::S3Client>(clientConfig, signPayloads, useVirtualAddressing);
 	}else{
 		s3Client = std::make_shared<Aws::S3::S3Client>(*credentials, clientConfig, signPayloads, useVirtualAddressing);
 	}
-	
+
 	return s3Client;
 }
 
@@ -202,7 +201,7 @@ bool S3FileSystem::Private::connect(const FileSystemConnection & fileSystemConne
 			regionResult.regionName = "us-east-1";
 			regionResult.valid = true;
 		}
-	
+
 		// TODO percy error handling
 		if(regionResult.valid == false) {
 			this->disconnect();
@@ -261,6 +260,11 @@ bool S3FileSystem::Private::connect(const FileSystemConnection & fileSystemConne
 
 	this->regionName = regionResult.regionName;
 	this->fileSystemConnection = fileSystemConnection;
+
+	if (!checkBucket()) {
+		this->disconnect();
+		throw BlazingS3Exception("Error invalid bucket " + bucketName + ". Filesystem " + fileSystemConnection.toString());
+	}
 
 	return true;
 }
@@ -1085,7 +1089,7 @@ bool S3FileSystem::Private::truncateFile(const Uri & uri, long long length) cons
         if (!bufferResult.status().ok()) {
             return false;
         }
-        
+
 		if(closeFileOk.ok() == false) {
 			throw BlazingS3Exception("Could not close " + uri.toString() + " for truncating.");
 			return false;
@@ -1108,7 +1112,7 @@ bool S3FileSystem::Private::truncateFile(const Uri & uri, long long length) cons
 		if(outOk == false) {
 			throw BlazingS3Exception("Could not open " + uri.toString() + " for writing truncated data");
 		}
-        
+
         auto buffer = bufferResult.ValueOrDie();
 
 		const auto writeOk = outFile->Write(buffer->data(), buffer->size());
@@ -1169,6 +1173,19 @@ bool S3FileSystem::Private::openWriteable(const Uri & uri, std::shared_ptr<S3Out
 const std::string S3FileSystem::Private::getBucketName() const {
 	using namespace S3FileSystemConnection;
 	return this->fileSystemConnection.getConnectionProperty(ConnectionProperty::BUCKET_NAME);
+}
+
+bool S3FileSystem::Private::checkBucket() const {
+	using namespace S3FileSystemConnection;
+
+	const std::string bucket = this->getBucketName();
+
+	Aws::S3::Model::HeadBucketRequest request;
+	request.WithBucket(bucket.data());
+
+	Aws::S3::Model::HeadBucketOutcome result = this->s3Client->HeadBucket(request);
+
+	return result.IsSuccess();
 }
 
 const S3FileSystemConnection::EncryptionType S3FileSystem::Private::encryptionType() const {
