@@ -14,10 +14,7 @@
 
 
 
-# BlazingSQL 0.16.0 (Date TBS)
-
-## New Features
-
+# BlazingSQL 0.16.0 (October 22, 2020)
 
 ## Improvements
 - #997 Add capacity to set the transport memory
