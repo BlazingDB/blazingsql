@@ -313,7 +313,7 @@ public:
 
 		BatchSequence input_partitionPlan(this->input_.get_cache("input_b"), this);
 		auto partitionPlan = std::move(input_partitionPlan.next());
-		
+
 		context->incrementQuerySubstep();
 
 		std::vector<std::string> messages_to_wait_for;
@@ -328,7 +328,8 @@ public:
 			auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
 			auto nodes = context->getAllNodes();
 
-			int num_partitions_per_node = (partitionPlan->num_rows() + 1) / this->context->getTotalNodes();
+			// If we have no partitionPlan, its because we have no data, therefore its one partition per node
+			int num_partitions_per_node = partitionPlan->num_rows() == 0 ? 1 : (partitionPlan->num_rows() + 1) / this->context->getTotalNodes();
 		
 			std::map<int32_t, int> temp_partitions_map;
 			for (size_t i = 0; i < num_partitions_per_node; i++) {
