@@ -65,7 +65,7 @@ bool GoogleCloudStorage::Private::connect(const FileSystemConnection & fileSyste
 	for(auto && bucket_metadata : this->gcsClient->ListBucketsForProject(projectId)) {
 		if(!bucket_metadata) {
 			this->fileSystemConnection = FileSystemConnection();
-			throw std::runtime_error("Couldn't register the filesystem " + fileSystemConnection.toString());
+			throw std::runtime_error("Couldn't register the filesystem " + fileSystemConnection.toString() + " status=" + bucket_metadata.status().message());
 		} else {
 			const std::string element = bucket_metadata->name();
 			if(element == bucket) {

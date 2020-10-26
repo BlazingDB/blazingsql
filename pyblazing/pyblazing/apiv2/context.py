@@ -36,6 +36,7 @@ import pandas
 import numpy as np
 import pyarrow
 from pathlib import PurePath
+from glob import glob
 import cio
 import dask_cudf
 import dask
@@ -50,6 +51,8 @@ import logging
 from enum import IntEnum
 
 import platform
+
+import sys
 
 jpype.addClassPath(
     os.path.join(os.getenv("CONDA_PREFIX"), "lib/blazingsql-algebra.jar")
@@ -124,23 +127,6 @@ class blazing_allocation_mode(IntEnum):
     CudaManagedMemory = (2,)
 
 
-
-def initialize_logs(ralId=0, networkInterface="lo", logging_dir_path="blazing_log"):
-    last_str = '|%(levelname)s|||"%(message)s"||||||'
-    FORMAT = "%(asctime)s|" + str(ralId) + last_str
-    filename = os.path.join(logging_dir_path, "pyblazing." + str(ralId) + ".log")
-    logging.basicConfig(filename=filename, format=FORMAT, level=logging.INFO)
-   
-    
-
-    if (os.path.isabs(logging_dir_path)):
-        log_path = logging_dir_path
-    else:
-        log_path = os.path.join(os.getcwd(), logging_dir_path)
-
-    return log_path
-
-
 def initializeBlazing(
     ralId=0,
     worker_id='',
@@ -149,17 +135,35 @@ def initializeBlazing(
     nodes=[],
     allocator="default",
     pool=True,
-    initial_pool_size=1000000000,
+    initial_pool_size=None,
+    maximum_pool_size=None,
+    enable_logging=False,
     config_options={},
     logging_dir_path="blazing_log",
-
 ):
+
+    last_str = '|%(levelname)s|||"%(message)s"||||||'
+    FORMAT = "%(asctime)s|" + str(ralId) + last_str
+    filename = os.path.join(logging_dir_path, "pyblazing." + str(ralId) + ".log")
+    logging.basicConfig(filename=filename, format=FORMAT, level=logging.INFO)
+    workerIp = ni.ifaddresses(networkInterface)[ni.AF_INET][0]["addr"]
+    ralCommunicationPort = random.randint(10000, 32000) + ralId
+
+    logging.info("Worker IP: %s   Port: %d", workerIp, ralCommunicationPort)
+
+
     if not pool:
         initial_pool_size = 0
+        maximum_pool_size = 0
     elif pool and initial_pool_size is None:
         initial_pool_size = 0
     elif pool and initial_pool_size == 0:
         initial_pool_size = 1
+
+    if maximum_pool_size is None:
+        maximum_pool_size = 0
+    elif maximum_pool_size < initial_pool_size:
+        maximum_pool_size = initial_pool_size
 
     possible_allocators = [
         "default",
@@ -167,6 +171,8 @@ def initializeBlazing(
         "existing",
         "cuda_memory_resource",
         "managed_memory_resource",
+        "pool_memory_resource",
+        "managed_pool_memory_resource",
     ]
     if allocator not in possible_allocators:
         print(
@@ -181,8 +187,10 @@ def initializeBlazing(
         allocator = "cuda_memory_resource"
     elif not pool and allocator == "managed":
         allocator = "managed_memory_resource"
-
-    cio.blazingSetAllocatorCaller(allocator.encode(), initial_pool_size, config_options)
+    elif pool and allocator == "default":
+        allocator = "pool_memory_resource"
+    elif pool and allocator == "managed":
+        allocator = "managed_pool_memory_resource"
 
     import ucp.core as ucp_core
 
@@ -190,8 +198,6 @@ def initializeBlazing(
     self_port = 0
     if singleNode is False:
         worker = dask.distributed.get_worker()
-        print("am here!!!!!!")
-        print(ucp_core._get_ctx().context.handle)
         for dask_addr in worker.ucx_addresses:
                 other_worker = worker.ucx_addresses[dask_addr]
                 workers_ucp_info.append({
@@ -214,6 +220,10 @@ def initializeBlazing(
         workers_ucp_info,
         singleNode,
         config_options,
+        allocator.encode(),
+        initial_pool_size,
+        maximum_pool_size,
+        enable_logging,
     )
     print("everything initialized")
     if singleNode is False:
@@ -682,8 +692,12 @@ def visit(lines):
 
 
 def get_plan(algebra):
-    algebra = algebra.replace("  ", "\t")
     lines = algebra.split("\n")
+    for i in range(len(lines) - 1):
+        lstrip_ = lines[i].lstrip()
+        index = len(lines[i]) - len(lstrip_)
+        lines[i] = ("\t" * (index // 2)) + lstrip_
+
     # algebra plan was provided and only contains one-line as logical plan
     if len(lines) == 1:
         algebra += "\n"
@@ -710,7 +724,9 @@ def resolve_relative_path(files):
                 files_out.append(file)
             else:  # if its not, lets see if its a relative path we can access
                 abs_file = os.path.abspath(os.path.join(os.getcwd(), file))
-                if os.path.exists(abs_file):
+                # we check if the file exists otherwise we try to expand the
+                # wildcard pattern with glob
+                if os.path.exists(abs_file) or glob(abs_file):
                     files_out.append(abs_file)
                 # if its not, lets just leave it and see if somehow
                 # the engine can access it
@@ -756,11 +772,13 @@ def distributed_initialize_server_directory(client, dir_path):
 
     is_absolute_path = os.path.isabs(dir_path)
 
+    import re
+
     if is_absolute_path:
         # Let's group the workers by host_name
         host_worker_dict = {}
         for worker, worker_info in all_items:
-            host_name = worker.split(":")[0]
+            host_name = re.findall(r"[0-9]+(?:\.[0-9]+){3}", worker)[0]
             if host_name not in host_worker_dict.keys():
                 host_worker_dict[host_name] = [worker]
             else:
@@ -795,7 +813,7 @@ def distributed_initialize_server_directory(client, dir_path):
         host_worker_dict = {}
         for worker_key, cwd in zip(all_items, current_working_dirs):
             worker = worker_key[0]
-            host_name = worker.split(":")[0]
+            host_name = re.findall(r"[0-9]+(?:\.[0-9]+){3}", worker)[0]
             if host_name not in host_worker_dict.keys():
                 host_worker_dict[host_name] = {cwd: [worker]}
             else:
@@ -860,6 +878,88 @@ def convert_friendly_dtype_to_string(list_types):
     return list_types
 
 
+def kwargs_validation(kwargs, bc_api_str):
+    """
+    Validation of kwargs params when a bc API is called
+    """
+    # csv, parquet, orc, json params
+    if bc_api_str == "create_table":
+        full_kwargs = [
+            "file_format",
+            "names",
+            "dtype",
+            "delimiter",
+            "skiprows",
+            "skipfooter",
+            "lineterminator",
+            "header",
+            "nrows",
+            "skip_blank_lines",
+            "decimal",
+            "true_values",
+            "false_values",
+            "na_values",
+            "keep_default_na",
+            "na_filter",
+            "quotechar",
+            "quoting",
+            "doublequote",
+            "comment",
+            "delim_whitespace",
+            "skipinitialspace",
+            "use_cols_indexes",
+            "use_cols_names",
+            "byte_range_offset",
+            "byte_range_size",
+            "compression",
+            "lines",
+            "stripes",
+            "skiprows",
+            "num_rows",
+            "use_index",
+        ]
+        params_info = "https://docs.blazingdb.com/docs/create_table"
+
+    elif bc_api_str == "s3":
+        full_kwargs = [
+            "name",
+            "bucket_name",
+            "access_key_id",
+            "secret_key",
+            "encryption_type",
+            "session_token",
+            "root",
+            "kms_key_amazon_resource_name",
+            "endpoint_override",
+            "region",
+        ]
+        params_info = "https://docs.blazingdb.com/docs/s3"
+
+    elif bc_api_str == "hdfs":
+        full_kwargs = ["name", "host", "port", "user", "kerb_ticket"]
+        params_info = "https://docs.blazingdb.com/docs/hdfs"
+
+    elif bc_api_str == "gs":
+        full_kwargs = [
+            "name",
+            "project_id",
+            "bucket_name",
+            "use_default_adc_json_file",
+            "adc_json_file",
+        ]
+        params_info = "https://docs.blazingdb.com/docs/google-storage"
+
+    for arg_i in kwargs.keys():
+        if arg_i not in full_kwargs:
+            print(
+                "The parameter '"
+                + arg_i
+                + "' does not exists. Please make sure you are using the correct parameter:"
+            )
+            print("To get the correct parameters, check:  " + params_info)
+            sys.exit()
+
+
 class BlazingTable(object):
     def __init__(
         self,
@@ -878,6 +978,8 @@ class BlazingTable(object):
         force_conversion=False,
         metadata=None,
         row_groups_ids=[],
+        local_files=False,
+        mapping_files={},
     ):
         # row_groups_ids, vector<vector<int>> one vector
         # of row_groups per file
@@ -896,6 +998,15 @@ class BlazingTable(object):
 
         self.calcite_to_file_indices = calcite_to_file_indices
         self.files = files
+
+        # This flag allows to differentiate the accessibility of the files
+        # by the worker nodes. Set to True if the files are distributed,
+        # for example in the case of log files.
+        self.local_files = local_files
+
+        # When local_files is True, mapping_files allows to know
+        # which files reside in which nodes.
+        self.mapping_files = mapping_files
 
         self.datasource = datasource
 
@@ -1035,6 +1146,90 @@ class BlazingTable(object):
 
         return nodeFilesList
 
+    def getSlicesByWorker(self, numSlices):
+        nodeFilesList = []
+        if self.files is None:
+            for i in range(0, numSlices):
+                nodeFilesList.append(BlazingTable(self.name, self.input, self.fileType))
+            return nodeFilesList
+
+        offset_x = 0
+        for target_files in self.mapping_files.values():
+            bt = BlazingTable(
+                self.name,
+                self.input,
+                self.fileType,
+                files=target_files,
+                calcite_to_file_indices=self.calcite_to_file_indices,
+                uri_values=self.uri_values,
+                args=self.args,
+                row_groups_ids=self.row_groups_ids,
+                in_file=self.in_file,
+            )
+
+            bt.offset = (offset_x, len(target_files))
+            offset_x = offset_x + len(target_files)
+            bt.column_names = self.column_names
+            bt.file_column_names = self.file_column_names
+            bt.column_types = self.column_types
+            nodeFilesList.append(bt)
+
+        return nodeFilesList
+
+
+# NOTE The name of the env var is "BSQL_"+option_name
+# For example:
+# The env var 'BSQL_BLAZING_CACHE_DIRECTORY' will be 'BLAZING_CACHE_DIRECTORY' for the config_options python map
+def get_config_option_from_env(option_name: str, default_value):
+    sys_opt_name = "BSQL_" + option_name
+    if sys_opt_name in os.environ:
+        return os.environ[sys_opt_name]
+    return default_value
+
+
+def load_config_options_from_env(user_config_options: dict):
+    config_options = {}
+    default_values = {
+        "JOIN_PARTITION_SIZE_THRESHOLD": 400000000,
+        "MAX_JOIN_SCATTER_MEM_OVERHEAD": 500000000,
+        "MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE": 8,
+        "NUM_BYTES_PER_ORDER_BY_PARTITION": 400000000,
+        "TABLE_SCAN_KERNEL_NUM_THREADS": 4,
+        "MAX_DATA_LOAD_CONCAT_CACHE_BYTE_SIZE": 400000000,
+        "FLOW_CONTROL_BYTES_THRESHOLD": 18446744073709551615,  # see https://en.cppreference.com/w/cpp/types/numeric_limits/max
+        "ORDER_BY_SAMPLES_RATIO": 0.1,
+        "MAX_ORDER_BY_SAMPLES_PER_NODE": 10000,
+        "BLAZING_DEVICE_MEM_CONSUMPTION_THRESHOLD": 0.95,
+        "BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD": 0.75,
+        "BLAZING_LOGGING_DIRECTORY": "blazing_log",
+        "BLAZING_CACHE_DIRECTORY": "/tmp/",
+        "MEMORY_MONITOR_PERIOD": 50,
+        "MAX_KERNEL_RUN_THREADS": 16,
+        "MAX_SEND_MESSAGE_THREADS": 20,
+        "LOGGING_LEVEL": "trace",
+        "LOGGING_FLUSH_LEVEL": "warn",
+        "LOGGING_MAX_SIZE_PER_FILE": 1073741824,  # 1 GB
+        "TRANSPORT_BUFFER_BYTE_SIZE": 1048576,  # 10 MB in bytes
+        "TRANSPORT_POOL_NUM_BUFFERS": 100,
+    }
+
+    # key: option_name, value: default_value
+    for option_name, default_value in default_values.items():
+        # if the user set this option in the Blazingcontext ctor
+        if option_name in user_config_options:
+            config_options[option_name] = user_config_options[option_name]
+        else:  # else: the user didn't specify this option so we can load it from the its env var
+            config_options[option_name] = get_config_option_from_env(
+                option_name, default_value
+            )
+
+    # make sure all options are encoded strings
+    encoded_config_options = {}
+    for option in config_options:
+        encoded_config_options[option.encode()] = str(config_options[option]).encode()
+
+    return encoded_config_options
+
 
 class BlazingContext(object):
     """
@@ -1054,6 +1249,8 @@ class BlazingContext(object):
         allocator="default",
         pool=False,
         initial_pool_size=None,
+        maximum_pool_size=None,
+        enable_logging=False,
         config_options={},
     ):
         """
@@ -1081,6 +1278,13 @@ class BlazingContext(object):
         initial_pool_size (optional) : initial size of memory pool in bytes
                     (if pool=True).
                     if None, and pool=True, defaults to 1/2 GPU memory.
+         maximum_pool_size (optional) :  size, in bytes, that the pool can
+                    grow to (if pool=True).
+                    if None, and pool=True, defaults to all the GPU memory.
+        enable_logging (optional) : If set to True the memory allocator
+                    logging will be enabled, but can negatively impact
+                    performance. Memory allocator logs will be placed
+                    in the same directory and BSQL logs.
         config_options (optional) : this is a dictionary for setting certain
                     parameters in the engine. These parameters will be used
                     for all queries except if overriden by setting these
@@ -1167,8 +1371,14 @@ class BlazingContext(object):
                     NOTE: This parameter only works when used in the
                     BlazingContext
                     default: 'warn'
+            LOGGING_MAX_SIZE_PER_FILE: Set the max size in bytes for the log files.
+                    NOTE: This parameter only works when used in the
+                    BlazingContext
+                    default: 1 GB
             TRANSPORT_BUFFER_BYTE_SIZE : The size in bytes about the pinned buffer memory
-                    default: 75 MBs
+                    default: 10 MBs
+            TRANSPORT_POOL_NUM_BUFFERS: The number of buffers in the punned buffer memory pool.
+                    default: 100 buffers
 
         Examples
         --------
@@ -1203,27 +1413,19 @@ class BlazingContext(object):
         self.lock = Lock()
         self.finalizeCaller = ref(cio.finalizeCaller)
         self.nodes = []
-        self.node_log_paths = []
+        self.node_log_paths = set()
         self.finalizeCaller = lambda: NotImplemented
-        self.config_options = {}
-        for option in config_options:
-            self.config_options[option.encode()] = str(
-                config_options[option]
-            ).encode()  # make sure all options are encoded strings
+        self.config_options = load_config_options_from_env(config_options)
 
         logging_dir_path = "blazing_log"
         # want to use config_options and not self.config_options
         # since its not encoded
-        if "BLAZING_LOGGING_DIRECTORY" in config_options:
+        if "BLAZING_LOGGING_DIRECTORY" in self.config_options:
             logging_dir_path = config_options["BLAZING_LOGGING_DIRECTORY"]
 
         cache_dir_path = "/tmp"  # default directory to store orc files
-        if "BLAZING_CACHE_DIRECTORY" in config_options:
+        if "BLAZING_CACHE_DIRECTORY" in self.config_options:
             cache_dir_path = config_options["BLAZING_CACHE_DIRECTORY"] + "tmp"
-
-        self.config_options[
-            "BLAZING_CACHE_DIRECTORY".encode()
-        ] = cache_dir_path.encode()
 
         if dask_client == "autocheck":
             try:
@@ -1282,10 +1484,8 @@ class BlazingContext(object):
             self.config_options["BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD".encode()] = str(
                 host_memory_quota * len(set(host_list)) / len(workers_info)
             ).encode()
-            print("listening")
             # Start listener on each worker to send received messages to router
             worker_maps = listen(self.dask_client,network_interface=network_interface)
-            print("listened")
             workers = list(self.dask_client.scheduler_info()["workers"])
             i = 0
             dask_futures = []
@@ -1329,6 +1529,8 @@ class BlazingContext(object):
                         allocator=allocator,
                         pool=pool,
                         initial_pool_size=initial_pool_size,
+                        maximum_pool_size=maximum_pool_size,
+                        enable_logging=enable_logging,
                         config_options=self.config_options,
                         workers=[worker],
                     )
@@ -1336,12 +1538,9 @@ class BlazingContext(object):
                 i = i + 1
 
             for connection in dask_futures:
-                connection.result()
-
-            # need to initialize this logging independently, in case its set as a relative path
-            # and the location from where the python script is running is different
-            # than the local dask workers
-            print("collected dask futures")
+                ralPort, ralIp, log_path = connection.result()
+                self.node_log_paths.add(log_path)
+                
 
             initialize_server_directory(logging_dir_path)
             # this one is for the non dask side
@@ -1352,18 +1551,11 @@ class BlazingContext(object):
             initialize_server_directory(logging_dir_path)
             initialize_server_directory(cache_dir_path)
 
-            log_path = initialize_logs(
-                ralId=0,
-                networkInterface="lo",
-                logging_dir_path=logging_dir_path
-            )
-
             node = {}
             node["worker"] = ''
             self.nodes.append(node)
-            self.node_log_paths.append(log_path)
-
-            initializeBlazing(
+            
+            ralPort, ralIp, log_path = initializeBlazing(
                 ralId=0,
                 worker_id='',
                 networkInterface="lo",
@@ -1372,8 +1564,11 @@ class BlazingContext(object):
                 allocator=allocator,
                 pool=pool,
                 initial_pool_size=initial_pool_size,
+                maximum_pool_size=maximum_pool_size,
+                enable_logging=enable_logging,
                 config_options=self.config_options,
             )
+            self.node_log_paths.append(log_path)
 
         self.fs = FileSystem()
 
@@ -1438,6 +1633,7 @@ class BlazingContext(object):
 
         Docs: https://docs.blazingdb.com/docs/hdfs
         """
+        kwargs_validation(kwargs, "hdfs")
         return self.fs.hdfs(self.dask_client, prefix, **kwargs)
 
     def s3(self, prefix, **kwargs):
@@ -1486,6 +1682,7 @@ class BlazingContext(object):
 
         Docs: https://docs.blazingdb.com/docs/s3
         """
+        kwargs_validation(kwargs, "s3")
         return self.fs.s3(self.dask_client, prefix, **kwargs)
 
     def gs(self, prefix, **kwargs):
@@ -1518,6 +1715,7 @@ class BlazingContext(object):
 
         Docs: https://docs.blazingdb.com/docs/google-storage
         """
+        kwargs_validation(kwargs, "gs")
         return self.fs.gs(self.dask_client, prefix, **kwargs)
 
     def show_filesystems(self):
@@ -1613,29 +1811,29 @@ class BlazingContext(object):
 
     def get_free_memory(self):
         """
-            This function returns a dictionary which contains as
-            key the gpuID and as value the free memory (bytes)
+        This function returns a dictionary which contains as
+        key the gpuID and as value the free memory (bytes)
 
-            Example
-            --------
-            # single-GPU
-            >>> from blazingsql import BlazingContext
-            >>> bc = BlazingContext()
-            >>> free_mem = bc.get_free_memory()
-            >>> print(free_mem)
-                    {0: 4234220154}
+        Example
+        --------
+        # single-GPU
+        >>> from blazingsql import BlazingContext
+        >>> bc = BlazingContext()
+        >>> free_mem = bc.get_free_memory()
+        >>> print(free_mem)
+                {0: 4234220154}
 
-            # multi-GPU (4 GPUs):
-            >>> from blazingsql import BlazingContext
-            >>> from dask_cuda import LocalCUDACluster
-            >>> from dask.distributed import Client
-            >>> cluster = LocalCUDACluster()
-            >>> client = Client(cluster)
-            >>> bc = BlazingContext(dask_client=client, network_interface='lo')
-            >>> free_mem = bc.get_free_memory()
-            >>> print(free_mem)
-                    {0: 4234220154, 1: 4104210987,
-                     2: 4197720291, 3: 3934320116}
+        # multi-GPU (4 GPUs):
+        >>> from blazingsql import BlazingContext
+        >>> from dask_cuda import LocalCUDACluster
+        >>> from dask.distributed import Client
+        >>> cluster = LocalCUDACluster()
+        >>> client = Client(cluster)
+        >>> bc = BlazingContext(dask_client=client, network_interface='lo')
+        >>> free_mem = bc.get_free_memory()
+        >>> print(free_mem)
+                {0: 4234220154, 1: 4104210987,
+                 2: 4197720291, 3: 3934320116}
         """
         if self.dask_client:
             dask_futures = []
@@ -1666,6 +1864,13 @@ class BlazingContext(object):
         input : data source for table.
                 cudf.Dataframe, dask_cudf.DataFrame, pandas.DataFrame,
                 filepath for csv, orc, parquet, etc...
+        file_format (optional) : string describing the file format
+                      (e.g. "csv", "orc", "parquet") this field must
+                      only be set if the files do not have an extension.
+        local_files (optional) : boolean, must be set to True if workers
+                      only have access to a subset of the files
+                      belonging to the same table. In such a case,
+                      each worker will load their corresponding partitions.
 
         Examples
         --------
@@ -1700,6 +1905,8 @@ class BlazingContext(object):
         Docs: https://docs.blazingdb.com/docs/create_table
         """
 
+        kwargs_validation(kwargs, "create_table")
+
         logging.info("create_table start for " + table_name)
 
         table = None
@@ -1707,6 +1914,7 @@ class BlazingContext(object):
         in_file = []
         is_hive_input = False
         extra_columns = []
+        local_files = kwargs.get("local_files", False)
 
         # See datasource.file_format
         file_format_hint = kwargs.get("file_format", "undefined")
@@ -1885,10 +2093,19 @@ class BlazingContext(object):
             input = resolve_relative_path(input)
 
             # if we are using user defined partitions without hive,
-            # we want to ignore paths we dont find.
-            ignore_missing_paths = user_partitions_schema is not None
-            parsedSchema = self._parseSchema(
-                input, file_format_hint, kwargs, extra_columns, ignore_missing_paths
+            # we want to ignore paths we dont find. Also, we should
+            # ignore missing files in case some worker hasn't any
+            # partition file when local_files is True
+            ignore_missing_paths = (user_partitions_schema is not None) or (
+                local_files is True
+            )
+            parsedSchema, parsed_mapping_files = self._parseSchema(
+                input,
+                file_format_hint,
+                kwargs,
+                extra_columns,
+                ignore_missing_paths,
+                local_files,
             )
 
             if is_hive_input or user_partitions is not None:
@@ -1916,6 +2133,8 @@ class BlazingContext(object):
                 args=parsedSchema["args"],
                 uri_values=uri_values,
                 in_file=in_file,
+                local_files=local_files,
+                mapping_files=parsed_mapping_files,
             )
 
             if is_hive_input:
@@ -1969,8 +2188,12 @@ class BlazingContext(object):
                     dtypes_list.append(dtype_str)
             table.args["dtype"] = dtypes_list
 
-            table.slices = table.getSlices(len(self.nodes))
+            if table.local_files is False:
+                table.slices = table.getSlices(len(self.nodes))
+            else:
+                table.slices = table.getSlicesByWorker(len(self.nodes))
 
+            parsedMetadata = None
             if len(uri_values) > 0:
                 parsedMetadata = parseHiveMetadata(table, uri_values)
                 table.metadata = parsedMetadata
@@ -2007,6 +2230,7 @@ class BlazingContext(object):
                 metadata_ids = table.metadata[
                     ["file_handle_index", "row_group_index"]
                 ].to_pandas()
+
                 grouped = metadata_ids.groupby("file_handle_index")
                 row_groups_ids = []
                 for group_id in grouped.groups:
@@ -2102,25 +2326,103 @@ class BlazingContext(object):
             raise ValueError("ERROR: Not found table: " + str(table_name))
 
     def _parseSchema(
-        self, input, file_format_hint, kwargs, extra_columns, ignore_missing_paths
+        self,
+        input,
+        file_format_hint,
+        kwargs,
+        extra_columns,
+        ignore_missing_paths,
+        local_files,
     ):
         if self.dask_client:
-            worker = tuple(self.dask_client.scheduler_info()["workers"])[0]
-            connection = self.dask_client.submit(
-                cio.parseSchemaCaller,
-                input,
-                file_format_hint,
-                kwargs,
-                extra_columns,
-                ignore_missing_paths,
-                workers=[worker],
-                pure=False,
-            )
-            return connection.result()
+            if local_files is False:
+                # just the first worker parse the entire file schemas
+                worker = tuple(self.dask_client.scheduler_info()["workers"])[0]
+                connection = self.dask_client.submit(
+                    cio.parseSchemaCaller,
+                    input,
+                    file_format_hint,
+                    kwargs,
+                    extra_columns,
+                    ignore_missing_paths,
+                    workers=[worker],
+                    pure=False,
+                )
+                parsed_schema = connection.result()
+                if len(parsed_schema["files"]) == 0:
+                    raise Exception(
+                        "ERROR: The file pattern specified did not match any files"
+                    )
+                return parsed_schema, {"localhost": parsed_schema["files"]}
+            else:
+                # each worker parse all accesible files on the file path
+                dask_futures = []
+
+                for worker in list(self.dask_client.scheduler_info()["workers"]):
+                    dask_futures.append(
+                        (
+                            self.dask_client.submit(
+                                cio.parseSchemaCaller,
+                                input,
+                                file_format_hint,
+                                kwargs,
+                                extra_columns,
+                                ignore_missing_paths,
+                                workers=[worker],
+                                pure=False,
+                            ),
+                            worker,
+                        )
+                    )
+
+                # After listing the files accessible by each worker, it could
+                # happen that several workers that were started from the same
+                # node have more than one shared file.
+                # So, to avoid duplicate reads, we will group the files by node
+                # as long as the current file does not already exist in another
+                # group.
+                return_object = {}
+                all_files = {}
+                for future, worker in dask_futures:
+                    result = future.result()
+
+                    for key in result:
+                        if key == "files":
+                            # Remove possible duplicated files
+                            # TODO: This duplicate removal mechanism must
+                            # be revisited, consider scenarios of very
+                            # varied topologies.
+                            # A possible improvement is that if it is detected
+                            # that several workers are effectively inside a node
+                            # and have access to the same files, the files
+                            # should be distributed evenly among all of them.
+                            if key in return_object:
+                                all_files[worker] = []
+
+                                for file_item in result[key]:
+                                    if file_item not in return_object[key]:
+                                        all_files[worker].append(file_item)
+                            else:
+                                all_files[worker] = result[key]
+                                return_object[key] = {}
+
+                            return_object[key].update(dict.fromkeys(result[key], None))
+                        else:
+                            if key not in return_object or (
+                                key in return_object and len(result["files"]) > 0
+                            ):
+                                return_object[key] = result[key]
+                if len(return_object["files"]) == 0:
+                    raise Exception(
+                        "ERROR: The file pattern specified did not match any files"
+                    )
+                return_object["files"] = list(return_object["files"])
+                return return_object, all_files
         else:
-            return cio.parseSchemaCaller(
+            parsed_schema = cio.parseSchemaCaller(
                 input, file_format_hint, kwargs, extra_columns, ignore_missing_paths
             )
+            return parsed_schema, {"localhost": parsed_schema["files"]}
 
     def _parseMetadata(self, file_format_hint, currentTableNodes, schema, kwargs):
         if self.dask_client:
@@ -2200,6 +2502,30 @@ class BlazingContext(object):
 
         return (all_sliced_files, all_sliced_uri_values, all_sliced_row_groups_ids)
 
+    def _sliceRowGroupsByWorker(
+        self, numSlices, files, uri_values, row_groups_ids, mapping_files
+    ):
+        dict_files = {}
+        for i in range(len(files)):
+            dict_files[files[i]] = row_groups_ids[i]
+
+        all_sliced_files = []
+        all_sliced_uri_values = []
+        all_sliced_row_groups_ids = []
+
+        for target_files in mapping_files.values():
+            sliced_files = [
+                file_name for file_name in target_files if file_name in dict_files
+            ]
+            sliced_uri_values = []
+            sliced_rowgroup_ids = [dict_files[file_name] for file_name in sliced_files]
+
+            all_sliced_files.append(sliced_files)
+            all_sliced_uri_values.append(sliced_uri_values)
+            all_sliced_row_groups_ids.append(sliced_rowgroup_ids)
+
+        return (all_sliced_files, all_sliced_uri_values, all_sliced_row_groups_ids)
+
     def _optimize_skip_data_getSlices(
         self, current_table, scan_table_query, single_gpu
     ):
@@ -2235,6 +2561,7 @@ class BlazingContext(object):
                 file_and_rowgroup_indices = (
                     file_indices_and_rowgroup_indices.to_pandas()
                 )
+
                 grouped = file_and_rowgroup_indices.groupby("file_handle_index")
                 for group_id in grouped.groups:
                     row_indices = grouped.groups[group_id].values.tolist()
@@ -2292,13 +2619,26 @@ class BlazingContext(object):
                     bt.column_types = current_table.column_types
                     nodeFilesList.append(bt)
                 else:
-                    (
-                        all_sliced_files,
-                        all_sliced_uri_values,
-                        all_sliced_row_groups_ids,
-                    ) = self._sliceRowGroups(
-                        len(self.nodes), actual_files, uri_values, row_groups_ids
-                    )
+                    if current_table.local_files is False:
+                        (
+                            all_sliced_files,
+                            all_sliced_uri_values,
+                            all_sliced_row_groups_ids,
+                        ) = self._sliceRowGroups(
+                            len(self.nodes), actual_files, uri_values, row_groups_ids
+                        )
+                    else:
+                        (
+                            all_sliced_files,
+                            all_sliced_uri_values,
+                            all_sliced_row_groups_ids,
+                        ) = self._sliceRowGroupsByWorker(
+                            len(self.nodes),
+                            actual_files,
+                            uri_values,
+                            row_groups_ids,
+                            current_table.mapping_files,
+                        )
 
                     for i, node in enumerate(self.nodes):
                         curr_calcite = current_table.calcite_to_file_indices
@@ -2323,7 +2663,10 @@ class BlazingContext(object):
             if single_gpu:
                 return current_table.getSlices(1)
             else:
-                return current_table.getSlices(len(self.nodes))
+                if current_table.local_files is False:
+                    return current_table.getSlices(len(self.nodes))
+                else:
+                    return current_table.getSlicesByWorker(len(self.nodes))
 
     """
     Partition a dask_cudf DataFrame based on one or more columns.
@@ -2485,6 +2828,8 @@ class BlazingContext(object):
             print("Parsing Error")
             return
 
+        table_names = []
+
         if len(config_options) == 0:
             query_config_options = self.config_options
         else:
@@ -2527,7 +2872,16 @@ class BlazingContext(object):
                     if single_gpu:
                         currentTableNodes = query_table.getSlices(1)
                     else:
-                        currentTableNodes = query_table.getSlices(len(self.nodes))
+                        # If all files are accessible by all nodes,
+                        # it is better to distribute them in the old way
+                        # otherwise, each node is responsible for the files
+                        # it has access to.
+                        if query_table.local_files is False:
+                            currentTableNodes = query_table.getSlices(len(self.nodes))
+                        else:
+                            currentTableNodes = query_table.getSlicesByWorker(
+                                len(self.nodes)
+                            )
             elif query_table.fileType == DataType.DASK_CUDF:
                 if single_gpu:
                     # TODO: repartition onto the node that does the work
@@ -2696,8 +3050,7 @@ class BlazingContext(object):
         if not self.logs_initialized:
             self.logs_table_name = logs_table_name
             log_files = [
-                os.path.join(self.node_log_paths[i], "RAL." + str(i) + ".log")
-                for i in range(0, len(self.node_log_paths))
+                os.path.join(log_path, "RAL.*.log") for log_path in self.node_log_paths
             ]
             dtypes = [
                 "date64",
@@ -2734,6 +3087,7 @@ class BlazingContext(object):
                 dtype=dtypes,
                 names=names,
                 file_format="csv",
+                local_files=True,
             )
 
             log_schemas = {
@@ -2805,10 +3159,8 @@ class BlazingContext(object):
 
             for log_table_name in log_schemas:
                 log_files = [
-                    os.path.join(
-                        self.node_log_paths[i], log_table_name + "." + str(i) + ".log"
-                    )
-                    for i in range(0, len(self.node_log_paths))
+                    os.path.join(log_path, log_table_name + ".*.log")
+                    for log_path in self.node_log_paths
                 ]
 
                 names, dtypes = log_schemas[log_table_name]
@@ -2819,6 +3171,7 @@ class BlazingContext(object):
                     dtype=dtypes,
                     names=names,
                     file_format="csv",
+                    local_files=True,
                 )
 
             self.logs_initialized = True

@@ -14,6 +14,7 @@
 #include <spdlog/async.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/sinks/rotating_file_sink.h>
 
 #include <algorithm>
 #include <cuda_runtime.h>
@@ -99,8 +100,6 @@ std::string get_ip(const std::string & iface_name = "eno1") {
 	return the_ip;
 }
 
-
-
 auto log_level_str_to_enum(std::string level) {
 	if (level == "critical") {
 		return spdlog::level::critical;
@@ -130,21 +129,26 @@ void create_logger(std::string fileName,
 	std::string loggingName,
 	int ralId, std::string flush_level,
 	std::string logger_level_wanted,
+	std::size_t max_size_logging,
 	bool simple_log=true) {
 
 	auto stdout_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
 	stdout_sink->set_pattern("[%T.%e] [%^%l%$] %v");
 	stdout_sink->set_level(spdlog::level::err);
-	auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(fileName);
-	if(simple_log){
-		file_sink->set_pattern(fmt::format("%v"));
-	}else{
-		file_sink->set_pattern(fmt::format("%Y-%m-%d %T.%e|{}|%^%l%$|%v", ralId));
+
+	// TODO: discuss how we should handle this
+	// if max_num_files = 4 -> will have: RAL.0.log, RAL.0.1.log, RAL.0.2.log, RAL.0.3.log, RAL.0.4.log
+	auto max_num_files = 0;
+	auto rotating_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt> (fileName, max_size_logging, max_num_files);
+	if (simple_log) {
+		rotating_sink->set_pattern(fmt::format("%v"));
+	} else {
+		rotating_sink->set_pattern(fmt::format("%Y-%m-%d %T.%e|{}|%^%l%$|%v", ralId));
 	}
 
 	// We want ALL levels of info to be registered. So using by default `trace` level
-	file_sink->set_level(spdlog::level::trace);
-	spdlog::sinks_init_list sink_list = { stdout_sink, file_sink };
+	rotating_sink->set_level(spdlog::level::trace);
+	spdlog::sinks_init_list sink_list = {stdout_sink, rotating_sink};
 	auto logger = std::make_shared<spdlog::async_logger>(loggingName, sink_list, spdlog::thread_pool(), spdlog::async_overflow_policy::block);
 
 	// level of logs
@@ -525,11 +529,40 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 	std::string worker_id,
 	int gpuId,
 	std::string network_iface_name,
-
 	int ralCommunicationPort,
 	std::vector<NodeMetaDataUCP> workers_ucp_info,
 	bool singleNode,
-	std::map<std::string, std::string> config_options) {
+	std::map<std::string, std::string> config_options,
+	std::string allocation_mode,
+	std::size_t initial_pool_size,
+	std::size_t maximum_pool_size, 
+	bool enable_logging) {
+
+	float device_mem_resouce_consumption_thresh = 0.95;
+	auto config_it = config_options.find("BLAZING_DEVICE_MEM_CONSUMPTION_THRESHOLD");
+	if (config_it != config_options.end()){
+		device_mem_resouce_consumption_thresh = std::stof(config_options["BLAZING_DEVICE_MEM_CONSUMPTION_THRESHOLD"]);
+	}
+	std::string logging_dir = "blazing_log";
+	config_it = config_options.find("BLAZING_LOGGING_DIRECTORY");
+	if (config_it != config_options.end()){
+		logging_dir = config_options["BLAZING_LOGGING_DIRECTORY"];
+	}
+	bool logging_directory_missing = false;
+	struct stat sb;
+	if (!(stat(logging_dir.c_str(), &sb) == 0 && S_ISDIR(sb.st_mode))){ // logging_dir does not exist
+	// we are assuming that this logging directory was created by the python layer, because only the python layer can only target on directory creation per server
+	// having all RALs independently trying to create a directory simulatenously can cause problems
+		logging_directory_missing = true;
+		logging_dir = "";
+	}
+
+	std::string allocator_logging_file = "";
+	if (enable_logging && !logging_directory_missing){
+		allocator_logging_file = logging_dir + "/allocator." + std::to_string(ralId) + ".log";
+	}
+	BlazingRMMInitialize(allocation_mode, initial_pool_size, maximum_pool_size, allocator_logging_file, device_mem_resouce_consumption_thresh);
+
 	// ---------------------------------------------------------------------------
 	// DISCLAIMER
 	// TODO: Support proper locale support for non-US cases (percy)
@@ -550,7 +583,7 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 	std::string env_cuda_device_str = env_cuda_device == nullptr ? "" : std::string(env_cuda_device);
 	initLogMsg = initLogMsg + "CUDA_VISIBLE_DEVICES is set to: " + env_cuda_device_str + ", ";
 	
-	size_t buffers_size = 78643200 / 8;  // 75 MBs        0.1 * free_gpu_mem_size;
+	size_t buffers_size = 1048576;  // 10 MBs
 	auto iter = config_options.find("TRANSPORT_BUFFER_BYTE_SIZE");
 	if (iter != config_options.end()){
 		buffers_size = std::stoi(config_options["TRANSPORT_BUFFER_BYTE_SIZE"]);
@@ -560,7 +593,12 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 	if (iter != config_options.end()){
 		num_comm_threads = std::stoi(config_options["MAX_SEND_MESSAGE_THREADS"]);
 	}	
-	blazingdb::transport::io::setPinnedBufferProvider(buffers_size, num_comm_threads*10);
+	int num_buffers = 100;
+	iter = config_options.find("TRANSPORT_POOL_NUM_BUFFERS");
+	if (iter != config_options.end()){
+		num_buffers = std::stoi(config_options["TRANSPORT_POOL_NUM_BUFFERS"]);
+	}
+	blazingdb::transport::io::setPinnedBufferProvider(buffers_size, num_buffers);
 
 	//to avoid redundancy the default value or user defined value for this parameter is placed on the pyblazing side
 	assert( config_options.find("BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD") != config_options.end() );
@@ -577,20 +615,6 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 
 	spdlog::init_thread_pool(8192, 1);
 
-	std::string logging_dir = "blazing_log";
-	auto config_it = config_options.find("BLAZING_LOGGING_DIRECTORY");
-	if (config_it != config_options.end()){
-		logging_dir = config_options["BLAZING_LOGGING_DIRECTORY"];
-	}
-	bool logging_directory_missing = false;
-	struct stat sb;
-	if (!(stat(logging_dir.c_str(), &sb) == 0 && S_ISDIR(sb.st_mode))){ // logging_dir does not exist
-	// we are assuming that this logging directory was created by the python layer, because only the python layer can only target on directory creation per server
-	// having all RALs independently trying to create a directory simulatenously can cause problems
-		logging_directory_missing = true;
-		logging_dir = "";
-	}
-
 	std::string flush_level = "warn";
 	auto log_it = config_options.find("LOGGING_FLUSH_LEVEL");
 	if (log_it != config_options.end()){
@@ -603,28 +627,34 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 		logger_level_wanted = config_options["LOGGING_LEVEL"];
 	}
 
+	std::size_t max_size_logging = 1073741824; // 1 GB
+	auto size_log_it = config_options.find("LOGGING_MAX_SIZE_PER_FILE");
+	if (size_log_it != config_options.end()){
+		max_size_logging = std::stoi(config_options["LOGGING_MAX_SIZE_PER_FILE"]);
+	}
+
 	std::string batchLoggerFileName = logging_dir + "/RAL." + std::to_string(ralId) + ".log";
-	create_logger(batchLoggerFileName, "batch_logger", ralId, flush_level, logger_level_wanted, false);
+	create_logger(batchLoggerFileName, "batch_logger", ralId, flush_level, logger_level_wanted, max_size_logging, false);
 
 	std::string queriesFileName = logging_dir + "/bsql_queries." + std::to_string(ralId) + ".log";
 	bool existsQueriesFileName = std::ifstream(queriesFileName).good();
-	create_logger(queriesFileName, "queries_logger", ralId, flush_level, logger_level_wanted);
+	create_logger(queriesFileName, "queries_logger", ralId, flush_level, logger_level_wanted, max_size_logging);
 
 	std::string kernelsFileName = logging_dir + "/bsql_kernels." + std::to_string(ralId) + ".log";
 	bool existsKernelsFileName = std::ifstream(kernelsFileName).good();
-	create_logger(kernelsFileName, "kernels_logger", ralId, flush_level, logger_level_wanted);
+	create_logger(kernelsFileName, "kernels_logger", ralId, flush_level, logger_level_wanted, max_size_logging);
 
 	std::string kernelsEdgesFileName = logging_dir + "/bsql_kernels_edges." + std::to_string(ralId) + ".log";
 	bool existsKernelsEdgesFileName = std::ifstream(kernelsEdgesFileName).good();
-	create_logger(kernelsEdgesFileName, "kernels_edges_logger", ralId, flush_level, logger_level_wanted);
+	create_logger(kernelsEdgesFileName, "kernels_edges_logger", ralId, flush_level, logger_level_wanted, max_size_logging);
 
 	std::string kernelEventsFileName = logging_dir + "/bsql_kernel_events." + std::to_string(ralId) + ".log";
 	bool existsKernelEventsFileName = std::ifstream(kernelEventsFileName).good();
-	create_logger(kernelEventsFileName, "events_logger", ralId, flush_level, logger_level_wanted);
+	create_logger(kernelEventsFileName, "events_logger", ralId, flush_level, logger_level_wanted, max_size_logging);
 
 	std::string cacheEventsFileName = logging_dir + "/bsql_cache_events." + std::to_string(ralId) + ".log";
 	bool existsCacheEventsFileName = std::ifstream(cacheEventsFileName).good();
-	create_logger(cacheEventsFileName, "cache_events_logger", ralId, flush_level, logger_level_wanted);
+	create_logger(cacheEventsFileName, "cache_events_logger", ralId, flush_level, logger_level_wanted, max_size_logging);
 
 	//Logger Headers
 	if(!existsQueriesFileName) {
@@ -667,6 +697,17 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 		it++;
 	}
 	logger->debug("|||{info}|||||","info"_a=product_details_str);
+
+
+	blazing_device_memory_resource* resource = &blazing_device_memory_resource::getInstance();
+	std::string alloc_info = "allocation_mode: " + allocation_mode;
+	alloc_info += ", total_memory: " + std::to_string(resource->get_total_memory());
+	alloc_info += ", memory_limit: " + std::to_string(resource->get_memory_limit());
+	alloc_info += ", type: " + resource->get_type();
+	alloc_info += ", initial_pool_size: " + std::to_string(initial_pool_size);
+	alloc_info += ", maximum_pool_size: " + std::to_string(maximum_pool_size);
+	alloc_info += ", allocator_logging_file: " + allocator_logging_file;
+	logger->debug("|||{info}|||||","info"_a=alloc_info);
 
 
 	auto & communicationData = ral::communication::CommunicationData::getInstance();
@@ -813,7 +854,7 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 		output_input_caches.second = comm::message_sender::get_instance()->get_input_cache();
 	}
 
-	return std::make_pair(output_input_caches, ralCommunicationPort);
+	return std::make_pair(output_input_caches, ralCommunicationPort);	
 }
 
 void finalize() {
@@ -824,20 +865,6 @@ void finalize() {
 	exit(0);
 }
 
-void blazingSetAllocator(
-	std::string allocation_mode,
-	std::size_t initial_pool_size,
-	std::map<std::string, std::string> config_options) {
-
-	float device_mem_resouce_consumption_thresh = 0.95;
-	auto it = config_options.find("BLAZING_DEVICE_MEM_CONSUMPTION_THRESHOLD");
-	if (it != config_options.end()){
-		device_mem_resouce_consumption_thresh = std::stof(config_options["BLAZING_DEVICE_MEM_CONSUMPTION_THRESHOLD"]);
-	}
-
-	BlazingRMMInitialize(allocation_mode, initial_pool_size, device_mem_resouce_consumption_thresh);
-}
-
 error_code_t initialize_C(int ralId,
 	std::string worker_id,
 	int gpuId,
@@ -846,18 +873,25 @@ error_code_t initialize_C(int ralId,
 	int ralCommunicationPort,
 	std::vector<NodeMetaDataUCP> workers_ucp_info,
 	bool singleNode,
-	std::map<std::string, std::string> config_options) {
+	std::map<std::string, std::string> config_options,
+	std::string allocation_mode,
+	std::size_t initial_pool_size,
+	std::size_t maximum_pool_size,
+	bool enable_logging) {
 
 	try {
 		initialize(ralId,
 			worker_id,
 			gpuId,
 			network_iface_name,
-
 			ralCommunicationPort,
 			workers_ucp_info,
 			singleNode,
-			config_options);
+			config_options,
+			allocation_mode,
+			initial_pool_size,
+			maximum_pool_size,
+			enable_logging);
 		return E_SUCCESS;
 	} catch (std::exception& e) {
 		return E_EXCEPTION;
@@ -867,21 +901,6 @@ error_code_t initialize_C(int ralId,
 error_code_t finalize_C() {
 	try {
 		finalize();
-		return E_SUCCESS;
-	} catch (std::exception& e) {
-		return E_EXCEPTION;
-	}
-}
-
-error_code_t blazingSetAllocator_C(
-	std::string allocation_mode,
-	std::size_t initial_pool_size,
-	std::map<std::string, std::string> config_options) {
-
-	try {
-		blazingSetAllocator(allocation_mode,
-			initial_pool_size,
-			config_options);
 		return E_SUCCESS;
 	} catch (std::exception& e) {
 		return E_EXCEPTION;

@@ -26,7 +26,6 @@ namespace blazingdb {
 namespace transport {
 namespace io {
 
-
 PinnedBufferProvider::PinnedBufferProvider(std::size_t sizeBuffers,
                                            std::size_t numBuffers) {
   this->numBuffers = numBuffers;
