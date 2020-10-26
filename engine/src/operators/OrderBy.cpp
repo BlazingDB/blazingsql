@@ -155,25 +155,19 @@ std::unique_ptr<ral::frame::BlazingTable> sort(const ral::frame::BlazingTableVie
 }
 
 std::unique_ptr<ral::frame::BlazingTable> sample(const ral::frame::BlazingTableView & table, const std::string & query_part, Context * context, float samples_ratio){
-	std::vector<cudf::order> sortOrderTypes;
-	std::vector<int> sortColIndices;
-	cudf::size_type limitRows;
-	std::tie(sortColIndices, sortOrderTypes, limitRows) = get_sort_vars(query_part);
-
 	auto tableNames = table.names();
-	std::vector<std::string> sortColNames(sortColIndices.size());
-  	std::transform(sortColIndices.begin(), sortColIndices.end(), sortColNames.begin(), [&](auto index) { return tableNames[index]; });
 
-	std::random_device rd;
 	// more homogeneus when we have many workers
 	int num_nodes = context->getTotalNodes();
 	int total_samples = std::ceil(table.num_rows() * samples_ratio);
 	if (total_samples < num_nodes && num_nodes < table.num_rows()) {
 		total_samples = num_nodes;
 	}
-	auto samples = cudf::sample(table.view().select(sortColIndices), total_samples, cudf::sample_with_replacement::FALSE, rd());
 
-	return std::make_unique<ral::frame::BlazingTable>(std::move(samples), sortColNames);
+	std::random_device rd;
+	auto samples = cudf::sample(table.view(), total_samples, cudf::sample_with_replacement::FALSE, rd());
+
+	return std::make_unique<ral::frame::BlazingTable>(std::move(samples), tableNames);
 }
 
 
@@ -221,16 +215,27 @@ std::unique_ptr<ral::frame::BlazingTable> generate_partition_plan(const std::vec
 
 	int num_nodes = context->getTotalNodes();
 
-	// if node 0 does not have data, so need take the average from the sample of another node
-	if (avg_bytes_per_row == 1 && samples.size() > 1) {
-		// normally last nodes contain data as they start reading files 
-		for (size_t i = samples.size() - 1; i > 0; --i) {
-			if (samples[i].num_rows() > 0) {
-				avg_bytes_per_row = samples[i].sizeInBytes();
-				break;
-			}
+	// This mean master node does not have data, so we want to recompute the `avg_bytes_per_row` value
+	// using the average of all the samples
+	if (avg_bytes_per_row == 1 && samples.size() > 1 && table_num_rows > 0) {
+		size_t new_avg_bytes_per_row = 0;
+		for (int i = 0; i < samples.size(); ++i) {
+			new_avg_bytes_per_row += samples[i].sizeInBytes();
 		}
+		avg_bytes_per_row = new_avg_bytes_per_row / table_num_rows;
 	}
+
+	// ahora solo QUEREMOS las columnas a ordernar de los samples ..
+	auto tableNames = samples[0].names();
+	std::vector<std::string> sortColNames(sortColIndices.size());
+	std::transform(sortColIndices.begin(), sortColIndices.end(), sortColNames.begin(), [&](auto index) { return tableNames[index]; });
+
+	std::vector<ral::frame::BlazingTableView> samples_only_with_sort_cols;
+	for (int i = 0; i < samples.size(); i++){
+		auto sample_view_with_sorted_columns = samples[i].view().select(sortColIndices);
+		auto sample_blaz_view_with_sort_columns = std::make_unique<ral::frame::BlazingTableView>(std::move(sample_view_with_sorted_columns), sortColNames);
+		samples_only_with_sort_cols.push_back(*sample_blaz_view_with_sort_columns);
+    }
 
 	cudf::size_type total_num_partitions = (double)table_num_rows * (double)avg_bytes_per_row / (double)num_bytes_per_order_by_partition;
 	total_num_partitions = total_num_partitions <= 0 ? 1 : total_num_partitions;
@@ -250,14 +255,14 @@ std::unique_ptr<ral::frame::BlazingTable> generate_partition_plan(const std::vec
 								"substep"_a=context->getQuerySubstep(),
 								"info"_a="Determining Number of Order By Partitions " + info);
 
-	if( ral::utilities::checkIfConcatenatingStringsWillOverflow(samples)) {
+	if( ral::utilities::checkIfConcatenatingStringsWillOverflow(samples_only_with_sort_cols)) {
 		logger->warn("{query_id}|{step}|{substep}|{info}",
 						"query_id"_a=(context ? std::to_string(context->getContextToken()) : ""),
 						"step"_a=(context ? std::to_string(context->getQueryStep()) : ""),
 						"substep"_a=(context ? std::to_string(context->getQuerySubstep()) : ""),
 						"info"_a="In generatePartitionPlans Concatenating Strings will overflow strings length");
 	}
-	partitionPlan = generatePartitionPlans(total_num_partitions, samples, sortOrderTypes);
+	partitionPlan = generatePartitionPlans(total_num_partitions, samples_only_with_sort_cols, sortOrderTypes);
 	context->incrementQuerySubstep();
 
 	return partitionPlan;
