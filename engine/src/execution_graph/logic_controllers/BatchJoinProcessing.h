@@ -819,23 +819,6 @@ public:
 			this->logger.get(),
 		  LEFT_TABLE_IDX);
 
-		// BlazingThread left_consumer([context = this->context, this](){
-		// 	ExternalBatchColumnDataSequence<ColumnDataPartitionMessage> external_input_left(this->context, this->get_message_id(), this);
-		// 	std::unique_ptr<ral::frame::BlazingHostTable> host_table;
-
-		// 	while (host_table = external_input_left.next()) {
-		// 		this->add_to_output_cache(std::move(host_table), "output_a");
-		// 	}
-		// });
-
-		distribute_left_thread.join();
-		int total_count_left = node_count_left[self_node.id()];
-		for (auto message : messages_to_wait_for_left){
-			auto meta_message = this->query_graph->get_input_message_cache()->pullCacheData(message);
-			total_count_left += std::stoi(static_cast<ral::cache::GPUCacheDataMetaData *>(meta_message.get())->getMetadata().get_values()[ral::cache::PARTITION_COUNT]);
-		}
-		this->output_.get_cache("output_a")->wait_for_count(total_count_left);
-
 		std::map<std::string, int> node_count_right;
 		std::vector<std::string> messages_to_wait_for_right;
 		BlazingMutableThread distribute_right_thread(&JoinPartitionKernel::partition_table, std::to_string(this->get_id()), this->context.get(),
@@ -848,16 +831,17 @@ public:
 			this->logger.get(),
 			RIGHT_TABLE_IDX);
 
-		// create thread with ExternalBatchColumnDataSequence for the right table being distriubted
-		// BlazingThread right_consumer([cloned_context, this](){
-		// 	ExternalBatchColumnDataSequence<ColumnDataPartitionMessage> external_input_right(cloned_context, this->get_message_id(), this);
-		// 	std::unique_ptr<ral::frame::BlazingHostTable> host_table;
-
-		// 	while (host_table = external_input_right.next()) {
-		// 		this->add_to_output_cache(std::move(host_table), "output_b");
-		// 	}
-		// });
+		
+		distribute_left_thread.join();
 		distribute_right_thread.join();
+
+		int total_count_left = node_count_left[self_node.id()];
+		for (auto message : messages_to_wait_for_left){
+			auto meta_message = this->query_graph->get_input_message_cache()->pullCacheData(message);
+			total_count_left += std::stoi(static_cast<ral::cache::GPUCacheDataMetaData *>(meta_message.get())->getMetadata().get_values()[ral::cache::PARTITION_COUNT]);
+		}
+		this->output_.get_cache("output_a")->wait_for_count(total_count_left);
+		
 		int total_count_right = node_count_right[self_node.id()];
 		for (auto message : messages_to_wait_for_right){
 			auto meta_message = this->query_graph->get_input_message_cache()->pullCacheData(message);
@@ -958,15 +942,6 @@ public:
 			}
 		});
 
-		distribute_small_table_thread.join();
-		auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
- 		int total_count = node_count[self_node.id()];
-		for (auto message : messages_to_wait_for){
-			auto meta_message = this->query_graph->get_input_message_cache()->pullCacheData(message);
-			total_count += std::stoi(static_cast<ral::cache::GPUCacheDataMetaData *>(meta_message.get())->getMetadata().get_values()[ral::cache::PARTITION_COUNT]);
-		}
-		this->output_cache(small_output_cache_name)->wait_for_count(total_count);
-
 		this->add_to_output_cache(std::move(big_table_batch), big_output_cache_name);
 		BlazingThread big_table_passthrough_thread([this, &big_table_sequence, big_output_cache_name](){
 			while (big_table_sequence.wait_for_next()) {
@@ -975,8 +950,15 @@ public:
 			}
 		});
 
-
-		// collect_small_table_thread.join();
+		distribute_small_table_thread.join();
+		auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
+ 		int total_count = node_count[self_node.id()];
+		for (auto message : messages_to_wait_for){
+			auto meta_message = this->query_graph->get_input_message_cache()->pullCacheData(message);
+			total_count += std::stoi(static_cast<ral::cache::GPUCacheDataMetaData *>(meta_message.get())->getMetadata().get_values()[ral::cache::PARTITION_COUNT]);
+		}
+		this->output_cache(small_output_cache_name)->wait_for_count(total_count);
+		
 		big_table_passthrough_thread.join();
 	}
 
