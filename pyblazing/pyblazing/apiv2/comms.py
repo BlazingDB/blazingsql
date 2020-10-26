@@ -7,6 +7,7 @@ from distributed.comm.ucx import UCXConnector
 import netifaces as ni
 import random
 import socket
+import errno
 
 
 def set_id_mappings_on_worker(mapping):
@@ -87,43 +88,43 @@ class UCX:
             UCX()
         return UCX.__instance
 
-    @staticmethod
-    async def start_listener_on_worker(callback):
-        UCX.get().callback = callback
-        return await UCX.get().start_listener()
+    # @staticmethod
+    # async def start_listener_on_worker(callback):
+    #     UCX.get().callback = callback
+    #     return await UCX.get().start_listener()
 
-    @staticmethod
-    async def init_handlers():
-        addresses = get_worker().ucx_addresses
-        eps = []
-        for address in addresses.values():
-            ep = await UCX.get().get_endpoint(address)
+    # @staticmethod
+    # async def init_handlers():
+    #     addresses = get_worker().ucx_addresses
+    #     eps = []
+    #     for address in addresses.values():
+    #         ep = await UCX.get().get_endpoint(address)
 
-    @staticmethod
-    def get_ucp_worker():
-        return ucp.get_ucp_worker()
+    # @staticmethod
+    # def get_ucp_worker():
+    #     return ucp.get_ucp_worker()
 
-    async def start_listener(self):
+    # async def start_listener(self):
 
-        ip, port = parse_host_port(get_worker().address)
+    #     ip, port = parse_host_port(get_worker().address)
 
-        async def handle_comm(comm):
-            print("oh fuck...")
-            should_stop = False
-            while not comm.closed() and not should_stop:
-                msg = await comm.read()
-                if msg == CTRL_STOP:
-                    should_stop = True
-                else:
-                    msg = BlazingMessage(**{k: v.deserialize() for k, v in msg.items()})
-                    self.received += 1
-                    await self.callback(msg)
+    #     async def handle_comm(comm):
+    #         print("oh fuck...")
+    #         should_stop = False
+    #         while not comm.closed() and not should_stop:
+    #             msg = await comm.read()
+    #             if msg == CTRL_STOP:
+    #                 should_stop = True
+    #             else:
+    #                 msg = BlazingMessage(**{k: v.deserialize() for k, v in msg.items()})
+    #                 self.received += 1
+    #                 await self.callback(msg)
 
-        self._listener = await UCXListener(ip, handle_comm)
+    #     self._listener = await UCXListener(ip, handle_comm)
 
-        await self._listener.start()
+    #     await self._listener.start()
 
-        return "ucx://%s:%s" % (ip, self.listener_port())
+    #     return "ucx://%s:%s" % (ip, self.listener_port())
 
     def listener_port(self):
         return self._listener.port

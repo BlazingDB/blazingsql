@@ -209,7 +209,6 @@ def initializeBlazing(
             )
         self_port = worker.ucx_addresses[worker_id]["port"]
 
-    self_node_tcp_data = next(n for n in nodes if n["worker"] == worker_id)
     output_cache, input_cache, self_port = cio.initializeCaller(
         ralId,
         worker_id.encode(),
@@ -224,7 +223,6 @@ def initializeBlazing(
         maximum_pool_size,
         enable_logging,
     )
-    print("everything initialized")
     if singleNode is False:
         worker.output_cache = output_cache
         worker.input_cache = input_cache
@@ -233,7 +231,6 @@ def initializeBlazing(
         log_path = logging_dir_path
     else:
         log_path = os.path.join(os.getcwd(), logging_dir_path)
-    print("returning ral")
     return self_port, ni.ifaddresses(networkInterface)[ni.AF_INET][0]["addr"], log_path
 
 
@@ -1465,7 +1462,6 @@ class BlazingContext(object):
                 if network_interface is None:
                     network_interface = "eth0"
 
-            worker_list = []
             dask_futures = []
             i = 0
 
@@ -1488,25 +1484,6 @@ class BlazingContext(object):
             # Start listener on each worker to send received messages to router
             worker_maps = listen(self.dask_client, network_interface=network_interface)
             workers = list(self.dask_client.scheduler_info()["workers"])
-            i = 0
-            dask_futures = []
-            for worker in workers:
-                dask_futures.append(
-                    self.dask_client.submit(
-                        initialize_logs,
-                        ralId=i,
-                        logging_dir_path=logging_dir_path,
-                        workers=[worker],
-                    )
-                )
-
-                i = i + 1
-
-            i = 0
-            for connection in dask_futures:
-                log_path = connection.result()
-                self.node_log_paths.append(log_path)
-                i = i + 1
 
             self.nodes = []
             for node_name in worker_maps:
@@ -2931,7 +2908,7 @@ class BlazingContext(object):
             except Exception as e:
                 raise e
         else:
-            if single_gpu == True:
+            if single_gpu is True:
                 # the following is wrapped in an array because .sql expects to return
                 # an array of dask_futures or a df, this makes it consistent
                 worker = self.nodes[self.single_gpu_idx]["worker"]

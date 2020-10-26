@@ -53,7 +53,7 @@ class PyBlazingCache:
 
 
 @pytest.mark.asyncio
-async def test_ucx_localcluster(dask_cleanup):
+async def test_ucx_localcluster():
     async with LocalCUDACluster(
         protocol="ucx",
         dashboard_address=None,
@@ -69,7 +69,7 @@ async def test_ucx_localcluster(dask_cleanup):
 
             """
             Next, simply call list using an asynchronous Dask client.
-            The callback function is pushed to the workers and 
+            The callback function is pushed to the workers and
             invoked when a message is received with a BlazingMessage
             """
 
