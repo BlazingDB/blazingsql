@@ -33,10 +33,15 @@ TEST_F(ProviderTest, non_existent_directory) {
     }
 }
 
-void create_dummy_file(std::string content, std::string filename){
+bool create_dummy_file(std::string content, std::string filename){
 	std::ofstream outfile(filename, std::ofstream::out);
-	outfile << content << std::endl;
-	outfile.close();
+	if( outfile.is_open() )
+	{
+		outfile << content << std::endl;
+		return true;
+	}
+
+	return false;
 }
 
 bool create_folder_test()
@@ -66,10 +71,10 @@ TEST_F(ProviderTest, ignoring_dummy_files) {
 	std::vector<std::string> test_files = {
 		BLAZING_TMP_PATH + "/file.crc", BLAZING_TMP_PATH + "/file_SUCCESS", BLAZING_TMP_PATH + "/file_metadata", BLAZING_TMP_PATH + "/file.csv"};
 
-	create_dummy_file("some crc", test_files[0]);
-    create_dummy_file("some flag", test_files[1]);
-    create_dummy_file("some meta", test_files[2]);
-    create_dummy_file("a|b\n0|0", test_files[3]);
+	ASSERT_TRUE(create_dummy_file("some crc", test_files[0]));
+	ASSERT_TRUE(create_dummy_file("some flag", test_files[1]));
+	ASSERT_TRUE(create_dummy_file("some meta", test_files[2]));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", test_files[3]));
 
     std::vector<Uri> uris = {Uri{BLAZING_TMP_PATH + "/file*"}};
 
@@ -124,7 +129,7 @@ TEST_F(ProviderTest, folder_with_one_file)
 
 	std::vector<Uri> uris = {Uri(BLAZING_TMP_PATH + "/file.csv")};
 
-	create_dummy_file("a|b\n0|0", uris[0].toString());
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uris[0].toString()));
 
 	auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
 
@@ -168,10 +173,10 @@ TEST_F(ProviderTest, folder_multiple_files)
 		Uri(BLAZING_TMP_PATH + "/file_metadata.csv"),
 		Uri(BLAZING_TMP_PATH + "/file.csv")};
 
-	create_dummy_file("a|b\n0|0", uris[0].toString());
-	create_dummy_file("a|b\n0|0", uris[1].toString());
-	create_dummy_file("a|b\n0|0", uris[2].toString());
-	create_dummy_file("a|b\n0|0", uris[3].toString());
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uris[0].toString()));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uris[1].toString()));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uris[2].toString()));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uris[3].toString()));
 
 	auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
 
@@ -222,10 +227,10 @@ TEST_F(ProviderTest, folder_multiple_files_one_empty_folder)
 										BLAZING_TMP_PATH + "/file_metadata.csv",
 										BLAZING_TMP_PATH + "/file.csv"};
 
-	create_dummy_file("a|b\n0|0", test_files[0]);
-	create_dummy_file("a|b\n0|0", test_files[1]);
-	create_dummy_file("a|b\n0|0", test_files[2]);
-	create_dummy_file("a|b\n0|0", test_files[3]);
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", test_files[0]));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", test_files[1]));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", test_files[2]));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", test_files[3]));
 
 	LocalFileSystem localFileSystem(Path("/"));
 	localFileSystem.makeDirectory(Uri(BLAZING_TMP_PATH + "/emptyFolder"));
@@ -297,18 +302,18 @@ TEST_F(ProviderTest, folder_multiple_files_one_non_empty_folder)
 										BLAZING_TMP_PATH + "/folder/file_metadata.csv",
 										BLAZING_TMP_PATH + "/folder/file.csv"};
 
-	create_dummy_file("a|b\n0|0", test_files[0]);
-	create_dummy_file("a|b\n0|0", test_files[1]);
-	create_dummy_file("a|b\n0|0", test_files[2]);
-	create_dummy_file("a|b\n0|0", test_files[3]);
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", test_files[0]));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", test_files[1]));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", test_files[2]));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", test_files[3]));
 
 	LocalFileSystem localFileSystem(Path("/"));
 	localFileSystem.makeDirectory(Uri(BLAZING_TMP_PATH + "/folder"));
 
-	create_dummy_file("a|b\n0|0", test_files[4]);
-	create_dummy_file("a|b\n0|0", test_files[5]);
-	create_dummy_file("a|b\n0|0", test_files[6]);
-	create_dummy_file("a|b\n0|0", test_files[7]);
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", test_files[4]));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", test_files[5]));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", test_files[6]));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", test_files[7]));
 
 	std::vector<Uri> uris = {
 		Uri(test_files[0]),
@@ -389,14 +394,14 @@ TEST_F(ProviderTest, folder_multiple_folder_on_multiple_folder)
 	localFileSystem.makeDirectory(Uri(BLAZING_TMP_PATH + "/folder3"));
 	localFileSystem.makeDirectory(Uri(BLAZING_TMP_PATH + "/folder4"));
 
-	create_dummy_file("a|b\n0|0", test_files[0]);
-	create_dummy_file("a|b\n0|0", test_files[1]);
-	create_dummy_file("a|b\n0|0", test_files[2]);
-	create_dummy_file("a|b\n0|0", test_files[3]);
-	create_dummy_file("a|b\n0|0", test_files[4]);
-	create_dummy_file("a|b\n0|0", test_files[5]);
-	create_dummy_file("a|b\n0|0", test_files[6]);
-	create_dummy_file("a|b\n0|0", test_files[7]);
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", test_files[0]));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", test_files[1]));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", test_files[2]));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", test_files[3]));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", test_files[4]));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", test_files[5]));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", test_files[6]));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", test_files[7]));
 
 	std::vector<Uri> uris = {
 		Uri(BLAZING_TMP_PATH + "/folder1/*"),
@@ -478,9 +483,9 @@ TEST_F(ProviderTest, wildcard_one_file)
 	std::vector<std::string> test_files{
 		BLAZING_TMP_PATH + "/fileone.orc", BLAZING_TMP_PATH + "/filetwo.orc", BLAZING_TMP_PATH + "/filethree.orc"};
 
-	create_dummy_file("a|b\n0|0", test_files[0]);
-	create_dummy_file("a|b\n0|0", test_files[1]);
-	create_dummy_file("a|b\n0|0", test_files[2]);
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", test_files[0]));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", test_files[1]));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", test_files[2]));
 
 	std::vector<Uri> uris = {Uri(BLAZING_TMP_PATH + "/*ileo*")};
 
@@ -508,9 +513,9 @@ TEST_F(ProviderTest, wildcard_multiple_file)
 	std::vector<std::string> test_files{
 		BLAZING_TMP_PATH + "/fileone.orc", BLAZING_TMP_PATH + "/filetwo.orc", BLAZING_TMP_PATH + "/filethree.orc"};
 
-	create_dummy_file("a|b\n0|0", test_files[0]);
-	create_dummy_file("a|b\n0|0", test_files[1]);
-	create_dummy_file("a|b\n0|0", test_files[2]);
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", test_files[0]));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", test_files[1]));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", test_files[2]));
 
 	std::vector<Uri> uris = {Uri(BLAZING_TMP_PATH + "/*ilet*")};
 
@@ -554,14 +559,14 @@ TEST_F(ProviderTest, wilcard_recursive)
 	localFileSystem.makeDirectory(Uri(BLAZING_TMP_PATH + "/folder3"));
 	localFileSystem.makeDirectory(Uri(BLAZING_TMP_PATH + "/folder4"));
 
-	create_dummy_file("a|b\n0|0", test_files[0]);
-	create_dummy_file("a|b\n0|0", test_files[1]);
-	create_dummy_file("a|b\n0|0", test_files[2]);
-	create_dummy_file("a|b\n0|0", test_files[3]);
-	create_dummy_file("a|b\n0|0", test_files[4]);
-	create_dummy_file("a|b\n0|0", test_files[5]);
-	create_dummy_file("a|b\n0|0", test_files[6]);
-	create_dummy_file("a|b\n0|0", test_files[7]);
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", test_files[0]));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", test_files[1]));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", test_files[2]));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", test_files[3]));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", test_files[4]));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", test_files[5]));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", test_files[6]));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", test_files[7]));
 
 	std::vector<Uri> uris = {Uri(BLAZING_TMP_PATH + "/*")};
 
@@ -610,14 +615,14 @@ TEST_F(ProviderTest, wilcard_folder)
 	localFileSystem.makeDirectory(Uri(BLAZING_TMP_PATH + "/folder3"));
 	localFileSystem.makeDirectory(Uri(BLAZING_TMP_PATH + "/folder4"));
 
-	create_dummy_file("a|b\n0|0", test_files[0]);
-	create_dummy_file("a|b\n0|0", test_files[1]);
-	create_dummy_file("a|b\n0|0", test_files[2]);
-	create_dummy_file("a|b\n0|0", test_files[3]);
-	create_dummy_file("a|b\n0|0", test_files[4]);
-	create_dummy_file("a|b\n0|0", test_files[5]);
-	create_dummy_file("a|b\n0|0", test_files[6]);
-	create_dummy_file("a|b\n0|0", test_files[7]);
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", test_files[0]));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", test_files[1]));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", test_files[2]));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", test_files[3]));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", test_files[4]));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", test_files[5]));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", test_files[6]));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", test_files[7]));
 
 	std::vector<Uri> uris = {Uri(BLAZING_TMP_PATH + "/folder*/*")};
 
