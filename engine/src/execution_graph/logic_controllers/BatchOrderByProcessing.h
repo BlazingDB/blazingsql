@@ -41,7 +41,6 @@ public:
 			try {
 				auto batch = input.next();
 				auto partitions = ral::operators::partition_table(partitionPlan->toBlazingTableView(), batch->toBlazingTableView(), this->expression);
-				std::cout<<"PartitionSingleNodeKernel: partitions.size(): "<<partitions.size()<<std::endl;
 
 				for (auto i = 0; i < partitions.size(); i++) {
 					std::string cache_id = "output_" + std::to_string(i);

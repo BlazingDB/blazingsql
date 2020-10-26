@@ -5,11 +5,8 @@
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
-#include <blazingdb/transport/Address.h>
 #include <blazingdb/transport/ColumnTransport.h>
-#include <blazingdb/transport/Message.h>
 #include <blazingdb/transport/Node.h>
-#include <blazingdb/transport/Server.h>
 #include <communication/messages/MessageUtil.cuh>
 
 #include <map>

@@ -1,6 +1,5 @@
 void raiseInitializeError();
 void raiseFinalizeError();
-void raiseBlazingSetAllocatorError();
 void raiseGetProductDetailsError();
 void raisePerformPartitionError();
 void raiseRunGenerateGraphError();

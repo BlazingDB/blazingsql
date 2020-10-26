@@ -58,8 +58,6 @@ RUN yum install git nano -y
 # Dependency for boost
 RUN yum install which -y
 
-# Dependency for thrift
-RUN yum install -y flex bison byacc
 # Dependency for scikit-learn
 RUN yum install epel-release -y
 RUN yum install -y openblas-devel

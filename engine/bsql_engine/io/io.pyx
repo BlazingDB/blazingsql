@@ -56,10 +56,6 @@ class FinalizeError(BlazingError):
     """Finalize Error."""
 cdef public PyObject * FinalizeError_ = <PyObject *>FinalizeError
 
-class BlazingSetAllocatorError(BlazingError):
-    """BlazingSetAllocator Error."""
-cdef public PyObject * BlazingSetAllocatorError_ = <PyObject *>BlazingSetAllocatorError
-
 class GetFreeMemoryError(BlazingError):
     """GetFreeMemory Error."""
 cdef public PyObject * GetFreeMemoryError_ = <PyObject *>GetFreeMemoryError
@@ -104,10 +100,9 @@ class RegisterFileSystemLocalError(BlazingError):
     """RegisterFileSystemLocal Error."""
 cdef public PyObject * RegisterFileSystemLocalError_ = <PyObject *>RegisterFileSystemLocalError
 
-cdef cio.TableSchema parseSchemaPython(vector[string] files, string file_format_hint, vector[string] arg_keys, vector[string] arg_values,vector[pair[string,type_id]] extra_columns, bool ignore_missing_paths) nogil:
+cdef cio.TableSchema parseSchemaPython(vector[string] files, string file_format_hint, vector[string] arg_keys, vector[string] arg_values,vector[pair[string,type_id]] extra_columns, bool ignore_missing_paths) nogil except *:
     with nogil:
-        temp = cio.parseSchema(files,file_format_hint,arg_keys,arg_values,extra_columns, ignore_missing_paths)
-    return temp
+        return cio.parseSchema(files,file_format_hint,arg_keys,arg_values,extra_columns, ignore_missing_paths)
 
 cdef unique_ptr[cio.ResultSet] parseMetadataPython(vector[string] files, pair[int,int] offset, cio.TableSchema schema, string file_format_hint, vector[string] arg_keys, vector[string] arg_values) nogil:
     with nogil:
@@ -133,17 +128,16 @@ cdef cio.TableScanInfo getTableScanInfoPython(string logicalPlan) nogil:
         temp = cio.getTableScanInfo(logicalPlan)
     return temp
 
-cdef pair[pair[shared_ptr[cio.CacheMachine], shared_ptr[cio.CacheMachine] ], int] initializePython(int ralId, string worker_id, int gpuId, string network_iface_name,  int ralCommunicationPort, vector[NodeMetaDataUCP] workers_ucp_info, bool singleNode, map[string,string] config_options) except +:
+cdef pair[pair[shared_ptr[cio.CacheMachine], shared_ptr[cio.CacheMachine] ], int] initializePython(int ralId, string worker_id, int gpuId, string network_iface_name,  
+    int ralCommunicationPort, vector[NodeMetaDataUCP] workers_ucp_info, bool singleNode, map[string,string] config_options,
+    string allocation_mode, size_t initial_pool_size, size_t maximum_pool_size, bool enable_logging) nogil except +:
     with nogil:
-        return cio.initialize( ralId, worker_id, gpuId, network_iface_name,  ralCommunicationPort, workers_ucp_info, singleNode, config_options)
+        return cio.initialize( ralId, worker_id, gpuId, network_iface_name, ralCommunicationPort, workers_ucp_info, singleNode, config_options, allocation_mode, initial_pool_size, maximum_pool_size, enable_logging)
+
 
 cdef void finalizePython() nogil except +:
     with nogil:
         cio.finalize()
-
-cdef void blazingSetAllocatorPython(string allocation_mode, size_t initial_pool_size, map[string,string] config_options) nogil except +:
-    with nogil:
-        cio.blazingSetAllocator(allocation_mode, initial_pool_size, config_options)
 
 cdef size_t getFreeMemoryPython() nogil except *:
     with nogil:
@@ -188,7 +182,6 @@ cpdef pair[bool, string] registerFileSystemCaller(fs, root, authority):
         return cio.registerFileSystemGCS( gcs,  str.encode(root), str.encode(authority))
     if fs['type'] == 'local':
         return cio.registerFileSystemLocal( str.encode( root), str.encode(authority))
-
 
 
 cdef class PyBlazingCache:
@@ -265,8 +258,10 @@ cdef class PyBlazingCache:
         df._rename_columns(decoded_names)
         return df, metadata_py
 
-cpdef initializeCaller(int ralId, string worker_id, int gpuId, string network_iface_name,  int ralCommunicationPort, vector[NodeMetaDataUCP] workers_ucp_info, bool singleNode, map[string,string] config_options):
-    init_output = initializePython( ralId, worker_id, gpuId, network_iface_name,  ralCommunicationPort, workers_ucp_info, singleNode, config_options)
+cpdef initializeCaller(int ralId, string worker_id, int gpuId, string network_iface_name,  int ralCommunicationPort, vector[NodeMetaDataUCP] workers_ucp_info, 
+        bool singleNode, map[string,string] config_options, string allocation_mode, size_t initial_pool_size, size_t maximum_pool_size, bool enable_logging):
+    init_output = initializePython( ralId, worker_id, gpuId, network_iface_name,  ralCommunicationPort, workers_ucp_info, singleNode, config_options,
+        allocation_mode, initial_pool_size, maximum_pool_size, enable_logging)
     caches = init_output.first
     port = init_output.second
     transport_out = PyBlazingCache()
@@ -279,9 +274,6 @@ cpdef initializeCaller(int ralId, string worker_id, int gpuId, string network_if
 
 cpdef finalizeCaller():
     finalizePython()
-
-cpdef blazingSetAllocatorCaller(string allocation_mode, size_t initial_pool_size, map[string,string] config_options):
-    blazingSetAllocatorPython(allocation_mode, initial_pool_size, config_options)
 
 cpdef getFreeMemoryCaller():
     return getFreeMemoryPython()

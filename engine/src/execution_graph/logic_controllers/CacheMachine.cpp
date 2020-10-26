@@ -168,7 +168,6 @@ void CacheMachine::put(size_t message_id, std::unique_ptr<ral::frame::BlazingTab
 }
 
 void CacheMachine::clear() {
-
 	auto messages = this->waitingCache->get_all();
 	this->waitingCache->finish();
 }
@@ -569,7 +568,7 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 		message_id = message_data->get_message_id();
 		collected_messages.push_back(std::move(message_data));
 
-	} while ((total_bytes + waitingCache->get_next_size_in_bytes()) <= this->concat_cache_num_bytes);
+	} while (concat_all || (total_bytes + waitingCache->get_next_size_in_bytes() <= this->concat_cache_num_bytes));
 
 	std::unique_ptr<ral::frame::BlazingTable> output;
 	size_t num_rows = 0;

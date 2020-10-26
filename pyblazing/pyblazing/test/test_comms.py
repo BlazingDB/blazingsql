@@ -40,22 +40,22 @@ async def mock_msg_callback(msg):
     get_worker()._test_msgs_received.append(msg)
 
 
-class PyBlazingCache():
+class PyBlazingCache:
     """
     Probably want to add a
     """
-    def add_to_cache_with_meta(self,cudf_data,metadata):
+
+    def add_to_cache_with_meta(self, cudf_data, metadata):
         pass
 
-    def add_to_cache(self,cudf_data):
+    def add_to_cache(self, cudf_data):
         pass
 
 
 @pytest.mark.asyncio
-async def test_ucx_localcluster( dask_cleanup):
+async def test_ucx_localcluster():
     async with LocalCUDACluster(
         protocol="ucx",
-
         dashboard_address=None,
         n_workers=2,
         threads_per_worker=1,
@@ -63,18 +63,20 @@ async def test_ucx_localcluster( dask_cleanup):
         asynchronous=True,
         enable_tcp_over_ucx=enable_tcp_over_ucx,
         enable_nvlink=enable_nvlink,
-        enable_infiniband=enable_infiniband
+        enable_infiniband=enable_infiniband,
     ) as cluster:
         async with Client(cluster, asynchronous=True) as client:
 
             """
             Next, simply call list using an asynchronous Dask client.
-            The callback function is pushed to the workers and 
+            The callback function is pushed to the workers and
             invoked when a message is received with a BlazingMessage
             """
 
             try:
-                ips_ports = await listen_async(callback=mock_msg_callback, client=client)
+                ips_ports = await listen_async(
+                    callback=mock_msg_callback, client=client
+                )
 
                 print(str(ips_ports))
 
@@ -84,8 +86,11 @@ async def test_ucx_localcluster( dask_cleanup):
                 for k, v in ips_ports.items():
                     assert v is not None
                 import numpy
+
                 meta = {"worker_ids": tuple(ips_ports.keys())}
-                data = cudf.DataFrame({"%s" % x: cudf.Series(np.arange(37000)) for x in range(50)})
+                data = cudf.DataFrame(
+                    {"%s" % x: cudf.Series(np.arange(37000)) for x in range(50)}
+                )
 
                 """
                 Loop through each of the workers, sending a test BlazingMessage
@@ -95,13 +100,18 @@ async def test_ucx_localcluster( dask_cleanup):
                     msg = BlazingMessage(meta, data)
 
                     for n in range(1):
-                        async def send(msg): await UCX.get().send(msg)
+
+                        async def send(msg):
+                            await UCX.get().send(msg)
+
                         await client.run(send, msg, workers=[dask_addr], wait=True)
 
                 """
                 Gather messages received on each worker for validation
                 """
-                received = await client.run(lambda: get_worker()._test_msgs_received, wait=True)
+                received = await client.run(
+                    lambda: get_worker()._test_msgs_received, wait=True
+                )
 
                 assert len(received) == len(ips_ports)
 
@@ -114,5 +124,3 @@ async def test_ucx_localcluster( dask_cleanup):
 
                 print("Cleaning up")
                 await cleanup(client)
-
-

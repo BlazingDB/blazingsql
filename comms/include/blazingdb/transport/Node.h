@@ -3,8 +3,6 @@
 #include <memory>
 #include <string>
 
-#include "blazingdb/transport/Address.h"
-
 namespace blazingdb {
 namespace transport {
 

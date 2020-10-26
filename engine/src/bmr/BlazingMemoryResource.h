@@ -7,8 +7,11 @@
 #include <cuda_runtime_api.h>
 
 #include <rmm/mr/device/device_memory_resource.hpp>
+#include <rmm/mr/device/owning_wrapper.hpp>
 #include <rmm/mr/device/cuda_memory_resource.hpp>
 #include <rmm/mr/device/managed_memory_resource.hpp>
+#include <rmm/mr/device/pool_memory_resource.hpp>
+#include <rmm/mr/device/logging_resource_adaptor.hpp>
 #include <rmm/mr/device/per_device_resource.hpp>
 
 #include "config/GPUManager.cuh"
@@ -40,26 +43,46 @@ public:
 
 	internal_blazing_device_memory_resource(std::string allocation_mode,
                                             std::size_t initial_pool_size,
+                                            std::size_t maximum_pool_size,
+                                            std::string allocator_logging_file = "",
                                             float custom_threshold = 0.95)
     {
 		total_memory_size = ral::config::gpuTotalMemory();
 		used_memory = 0;
+        memory_limit = (double)custom_threshold * total_memory_size;
+
+        initial_pool_size = initial_pool_size - initial_pool_size % 256; //initial_pool_size required to be a multiple of 256 bytes 
 
         if (total_memory_size <= initial_pool_size) {
             throw std::runtime_error("Cannot allocate this Pool memory size on the GPU.");
         }
 
         if (allocation_mode == "cuda_memory_resource"){
-            memory_resource_owner = std::make_unique<rmm::mr::cuda_memory_resource>();
+            memory_resource_owner = std::make_shared<rmm::mr::cuda_memory_resource>();
             memory_resource = memory_resource_owner.get();
         } else if (allocation_mode == "managed_memory_resource"){
-            memory_resource_owner = std::make_unique<rmm::mr::managed_memory_resource>();
+            memory_resource_owner = std::make_shared<rmm::mr::managed_memory_resource>();
             memory_resource = memory_resource_owner.get();
-        } else {  //(allocation_mode == "existing"){
-            memory_resource = rmm::mr::get_current_device_resource();
-        } 
+        } else if (allocation_mode == "pool_memory_resource") {
+            memory_resource_owner = rmm::mr::make_owning_wrapper<rmm::mr::pool_memory_resource>(
+                std::make_shared<rmm::mr::cuda_memory_resource>(), initial_pool_size, maximum_pool_size);
+            memory_resource = memory_resource_owner.get();
+        } else if (allocation_mode == "managed_pool_memory_resource") {
+            memory_resource_owner = rmm::mr::make_owning_wrapper<rmm::mr::pool_memory_resource>(
+                std::make_shared<rmm::mr::managed_memory_resource>(), initial_pool_size, maximum_pool_size);
+            memory_resource = memory_resource_owner.get();
+        } else if (allocation_mode == "existing"){
+            memory_resource = rmm::mr::get_current_device_resource();        
+        } else {
+            throw std::runtime_error("ERROR creating internal_blazing_device_memory_resource: allocation_mode not recognized.");
+        }
+        type = allocation_mode;
 
-        memory_limit = custom_threshold * total_memory_size;
+        if (allocator_logging_file != ""){
+            logging_adaptor.reset(new rmm::mr::logging_resource_adaptor<rmm::mr::device_memory_resource>(
+                memory_resource, allocator_logging_file, /*auto_flush=*/true));
+            memory_resource = logging_adaptor.get();
+        }
 	}
 
 	virtual ~internal_blazing_device_memory_resource() = default;
@@ -76,6 +99,10 @@ public:
 	}
 	size_t get_memory_limit() {
         return memory_limit;
+    }
+
+    std::string get_type() {
+		return type;
     }
 
 	bool supports_streams() const noexcept override { return memory_resource->supports_streams(); }
@@ -114,8 +141,10 @@ private:
 	size_t total_memory_size;
 	size_t memory_limit;
 	std::atomic<size_t> used_memory;
-    std::unique_ptr<rmm::mr::device_memory_resource> memory_resource_owner;
+    std::shared_ptr<rmm::mr::device_memory_resource> memory_resource_owner;
     rmm::mr::device_memory_resource * memory_resource;
+    std::unique_ptr<rmm::mr::logging_resource_adaptor<rmm::mr::device_memory_resource>> logging_adaptor;
+    std::string type;
 };
 
 // forward declaration
@@ -156,6 +185,10 @@ public:
 		return initialized_resource->get_memory_limit() ;
     }
 
+    std::string get_type() {
+		return initialized_resource->get_type() ;
+    }
+
   /** -----------------------------------------------------------------------*
    * @brief Initialize RMM options
    * 
@@ -166,12 +199,17 @@ public:
    *   pool               : if True, BlazingContext will self-allocate a GPU memory pool. can greatly improve performance.
    *   initial_pool_size  : initial size of memory pool in bytes (if pool=True).
    *                                   if None, and pool=True, defaults to 1/2 GPU memory.
+   *   maximum_pool_size  : maximum size of memory pool in bytes (if pool=True).
+   *                                   if None, and pool=True, defaults to all the GPU memory.
+   *   allocator_logging_file : File that would be used by the allocator logger. If empty, then no allocator logging will be enabled.
    *   device_mem_resouce_consumption_thresh : The percent (as a decimal) of total GPU memory that the memory resource
    * 
    * @param[in] options Optional options to set
    * ----------------------------------------------------------------------**/
     void initialize(std::string allocation_mode,
                     std::size_t initial_pool_size,
+                    std::size_t maximum_pool_size,
+                    std::string allocator_logging_file,
                     float device_mem_resouce_consumption_thresh) {
         
         std::lock_guard<std::mutex> guard(manager_mutex);
@@ -180,7 +218,8 @@ public:
         if (isInitialized()) return;
 
         initialized_resource.reset(new internal_blazing_device_memory_resource(
-                allocation_mode, initial_pool_size, device_mem_resouce_consumption_thresh));
+                allocation_mode, initial_pool_size, maximum_pool_size, 
+                allocator_logging_file, device_mem_resouce_consumption_thresh));
         
         rmm::mr::set_current_device_resource(initialized_resource.get());
         
@@ -300,7 +339,6 @@ public:
     }
 
 	size_t get_memory_used() override {
-		// std::cout << "blazing_host_memory_resource: " << initialized_resource->get_memory_used() << std::endl; 
 		return initialized_resource->get_memory_used();
 	}
 

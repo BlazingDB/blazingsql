@@ -104,8 +104,8 @@ cudf::io::orc_reader_options getOrcReaderOptions(const std::map<std::string, std
 	if(map_contains("stripes", args)) {
 		reader_opts.set_stripes(to_vector_int(args.at("stripes")));
 	}
-	if(map_contains("skip_rows", args)) {
-		reader_opts.set_skip_rows(to_int(args.at("skip_rows")));
+	if(map_contains("skiprows", args)) {
+		reader_opts.set_skip_rows(to_int(args.at("skiprows")));
 	}
 	if(map_contains("num_rows", args)) {
 		reader_opts.set_num_rows(to_int(args.at("num_rows")));
