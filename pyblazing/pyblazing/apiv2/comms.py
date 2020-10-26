@@ -18,6 +18,7 @@ async def init_endpoints():
     for addr in get_worker().ucx_addresses.values():
         await UCX.get().get_endpoint(addr)
 
+
 def checkSocket(socketNum):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -34,12 +35,13 @@ def checkSocket(socketNum):
     s.close()
     return socket_free
 
+
 def get_communication_port(network_interface):
     ralCommunicationPort = random.randint(10000, 32000)
     workerIp = ni.ifaddresses(network_interface)[ni.AF_INET][0]["addr"]
     while checkSocket(ralCommunicationPort) is False:
         ralCommunicationPort = random.randint(10000, 32000)
-    return {"port":ralCommunicationPort, "ip":workerIp}
+    return {"port": ralCommunicationPort, "ip": workerIp}
 
 
 def listen(client, network_interface=""):
@@ -47,7 +49,6 @@ def listen(client, network_interface=""):
     print(worker_id_maps)
     client.run(set_id_mappings_on_worker, worker_id_maps, wait=True)
     return worker_id_maps
-
 
 
 def cleanup(client=None):
@@ -86,7 +87,6 @@ class UCX:
             UCX()
         return UCX.__instance
 
-
     @staticmethod
     async def start_listener_on_worker(callback):
         UCX.get().callback = callback
@@ -115,12 +115,11 @@ class UCX:
                 if msg == CTRL_STOP:
                     should_stop = True
                 else:
-                    msg = BlazingMessage(**{k: v.deserialize()
-                                            for k, v in msg.items()})
+                    msg = BlazingMessage(**{k: v.deserialize() for k, v in msg.items()})
                     self.received += 1
                     await self.callback(msg)
 
-        self._listener = await UCXListener(ip,handle_comm)
+        self._listener = await UCXListener(ip, handle_comm)
 
         await self._listener.start()
 
