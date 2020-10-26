@@ -372,6 +372,7 @@ target_link_libraries(blazingsql-engine
 
 ###################################################################################################
 # - build options ---------------------------------------------------------------------------------
+set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --default-stream=per-thread")
 
 option(USE_NVTX "Build with NVTX support" ON)
 if(USE_NVTX)
@@ -412,6 +413,7 @@ endif()
 
 
 include(ConfigureProductVersion)
+message(STATUS "cmake_cuda_flags = ${CMAKE_CUDA_FLAGS}")
 
 # Print the project summary
 feature_summary(WHAT ALL INCLUDE_QUIET_PACKAGES FATAL_ON_MISSING_REQUIRED_PACKAGES)

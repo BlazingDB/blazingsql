@@ -155,28 +155,38 @@ void tcp_message_listener::start_polling() {
 			// TODO: be able to stop this thread from running when the engine is killed
 			while((connection_fd = accept(socket_fd, (struct sockaddr *) &client_address, &len)) != -1) {
 				pool.push([this, connection_fd](int thread_num) {
-					cudaStream_t stream;
-					cudaStreamCreate(&stream);
+					CodeTimer timer;
+					cudaStream_t stream = 0;
+					//          cudaStreamCreate(&stream);
 					size_t message_size;
 					io::read_from_socket(connection_fd, &message_size, sizeof(message_size));
 
 					std::vector<char> data(message_size);
 					io::read_from_socket(connection_fd, data.data(), message_size);
+					auto meta_read_time = timer.elapsed_time();
 					// status_code success = status_code::OK;
 					// io::write_to_socket(connection_fd, &success, sizeof(success));
 					{
 						auto receiver = std::make_shared<message_receiver>(_nodes_info_map, data);
 
+						//   auto receiver_time = timer.elapsed_time() - meta_read_time;
 						size_t pinned_buffer_size = blazingdb::transport::io::getPinnedBufferProvider().sizeBuffers();
 						size_t buffer_position = 0;
 						size_t total_size = 0;
+						//   size_t total_allocate_time = 0 ;
+						//   size_t total_read_time = 0 ;
+						//   size_t total_sync_time = 0;
 						while(buffer_position < receiver->num_buffers()) {
 							size_t buffer_size = receiver->buffer_size(buffer_position);
 							total_size += buffer_size;
 							size_t num_chunks = (buffer_size + (pinned_buffer_size - 1)) / pinned_buffer_size;
 							std::vector<blazingdb::transport::io::PinnedBuffer *> pinned_buffers(num_chunks);
+							// CodeTimer timer_2;
 							receiver->allocate_buffer(buffer_position, stream);
 							void * buffer = receiver->get_buffer(buffer_position);
+							// auto prev_timer_2 = timer_2.elapsed_time();
+							// total_allocate_time += timer_2.elapsed_time();
+							// timer_2.reset();
 							for(size_t chunk = 0; chunk < num_chunks; chunk++) {
 								size_t chunk_size = pinned_buffer_size;
 								if((chunk + 1) == num_chunks) {	 // if its the last chunk, we chunk_size is different
@@ -196,9 +206,14 @@ void tcp_message_listener::start_polling() {
 								pinned_buffers[chunk] = pinned_buffer;
 							}
 
+							// total_read_time += timer_2.elapsed_time();
+							// timer_2.reset();
+
 							// TODO: Do we want to do this synchronize and free after all the receiver->num_buffers() or
 							// for each one?
 							cudaStreamSynchronize(stream);
+
+							// total_sync_time += timer_2.elapsed_time();
 
 							for(size_t chunk = 0; chunk < num_chunks; chunk++) {
 								blazingdb::transport::io::getPinnedBufferProvider().freeBuffer(pinned_buffers[chunk]);
@@ -206,11 +221,22 @@ void tcp_message_listener::start_polling() {
 							buffer_position++;
 						}
 						close(connection_fd);
+						//   auto duration = timer.elapsed_time();
+						//   std::cout<<"Transfer duration before finish "<<duration <<" Throughput was "<<
+						//   (( (float) total_size) / 1000000.0)/(((float) duration)/1000.0)<<" MB/s"<<std::endl;
 
 						receiver->finish(stream);
+						// auto duration_2 = timer.elapsed_time();
+						// std::cout<<"Transfer duration with finish "<<duration <<" Throughput was "<<
+						// (( (float) total_size) / 1000000.0)/(((float) duration)/1000.0)<<" MB/s"<<std::endl;
+
+						// std::cout<<"META, Recevier, allocate, read, synchronize, total_before_finish,
+						// total_after_finish,bytes\n"<< meta_read_time<<", "<<receiver_time<<",
+						// "<<total_allocate_time<<", "<<total_read_time<<","<<total_sync_time<<",
+						// "<<duration<<","<<duration_2<<", "<<total_size<<std::endl;
 					}
 					cudaStreamSynchronize(stream);
-					cudaStreamDestroy(stream);
+					//	cudaStreamDestroy(stream);
 				});
 			}
 		});
