@@ -101,7 +101,7 @@ struct tree_processor {
 			k = std::make_shared<UnionKernel>(kernel_id,expr, kernel_context, query_graph);
 
 		} else {
-			RAL_FAIL("Invalid expression in the logical plan");
+			RAL_FAIL("Invalid or unsupported expression: '" + expr + "' in the logical plan");
 		}
 		return k;
 	}
