@@ -3,20 +3,22 @@
 ## New Features
 
 
-
 ## Improvements
 - #878 Adding calcite rule for window functions. (Window functions not supported yet)
+- #1081 Add validation for the kwargs when bc API is called
+- #1082 Validate s3 bucket
+- #1093 Logs configurable to have max size and be rotated
+- #1091 Improves the error message problem when validating any GCP bucket
 
 
 ## Bug Fixes
+- #1064 Fixed issue when loading parquet files with local_files=True
+- #1086 Showing an appropriate error to indicate that we don't support opening directories with wildcards
+- #1088 Fixed issue caused by cudf changing from one .so file to multiple
+- #1094 Fixed logging directory setup
 
 
-
-
-# BlazingSQL 0.16.0 (Date TBS)
-
-## New Features
-
+# BlazingSQL 0.16.0 (October 22, 2020)
 
 ## Improvements
 - #997 Add capacity to set the transport memory
@@ -27,6 +29,7 @@
 - #1055 Removing cudf source code dependency as some cudf utilities headers were exposed
 - #1065 Remove thrift from build prodcess as its no longer used
 - #1067 Upload conda packages to both rapidsai and blazingsql conda channels
+
 
 ## Bug Fixes
 - #918 Activate validation for GPU_CI tests results.
@@ -50,7 +53,7 @@
 - #1007 Fix arrow and spdlog compilation issues
 - #1068 Just adds a docs important links and avoid the message about filesystem authority not found
 - #1073 Fixed parseSchemaPython can throw exceptions
-- #1074: Remove lock inside grow() method from PinnedBufferProvider
+- #1074 Remove lock inside grow() method from PinnedBufferProvider
 - #1071 Fix crash when loading an empty folder
 - #1085 Fixed intra-query memory leak in joins. Fixed by clearing array caches after PartwiseJoin is done 
 
@@ -183,3 +186,4 @@
 - #785 Add script for Manual Testing Artifacts.
 - #931 Add script for error messages validation.
 - #932 Import pydrill and pyspark only when its generator or full mode.
+- #1031 adding notebooks into BlazingSQL Tests
