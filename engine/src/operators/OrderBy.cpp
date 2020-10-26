@@ -225,7 +225,7 @@ std::unique_ptr<ral::frame::BlazingTable> generate_partition_plan(const std::vec
 		avg_bytes_per_row = new_avg_bytes_per_row / table_num_rows;
 	}
 
-	// ahora solo QUEREMOS las columnas a ordernar de los samples ..
+	// Now we just want those columns that sould be ordered
 	auto tableNames = samples[0].names();
 	std::vector<std::string> sortColNames(sortColIndices.size());
 	std::transform(sortColIndices.begin(), sortColIndices.end(), sortColNames.begin(), [&](auto index) { return tableNames[index]; });
