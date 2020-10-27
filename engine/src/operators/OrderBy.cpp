@@ -216,13 +216,17 @@ std::unique_ptr<ral::frame::BlazingTable> generate_partition_plan(const std::vec
 	int num_nodes = context->getTotalNodes();
 
 	// This mean master node does not have data, so we want to recompute the `avg_bytes_per_row` value
-	// using the average of all the samples
+	// using the average of all the samples that contains data
 	if (avg_bytes_per_row == 1 && samples.size() > 1 && table_num_rows > 0) {
-		size_t new_avg_bytes_per_row = 0;
+		size_t local_average_by_sample = 0;
+		int count_non_empty = 0;
 		for (int i = 0; i < samples.size(); ++i) {
-			new_avg_bytes_per_row += samples[i].sizeInBytes();
+			if (samples[i].num_rows() > 0) {
+				count_non_empty++;
+				local_average_by_sample += samples[i].sizeInBytes() / samples[i].num_rows();
+			}
 		}
-		avg_bytes_per_row = new_avg_bytes_per_row / table_num_rows;
+		avg_bytes_per_row = local_average_by_sample / count_non_empty;
 	}
 
 	// Now we just want those columns that sould be ordered
