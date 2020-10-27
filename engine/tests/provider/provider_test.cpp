@@ -533,6 +533,8 @@ TEST_F(ProviderTest, wildcard_multiple_file)
 	}
 
 	std::vector<std::string> cmp{BLAZING_TMP_PATH + "/filetwo.orc", BLAZING_TMP_PATH + "/filethree.orc"};
+	std::sort(cmp.begin(), cmp.end());
+	std::sort(result.begin(), result.end());
 	EXPECT_EQ(result, cmp);
 
 	remove_dummy_file(test_files);
