@@ -528,7 +528,7 @@ public:
 												"query_id"_a=context->getContextToken(),
 												"step"_a=context->getQueryStep(),
 												"substep"_a=context->getQuerySubstep(),
-												"info"_a="In MergeStream kernel batch {} for {}. What: {} . max_memory_used: "_format(batch_count, expression, e.what(), blazing_device_memory_resource::getInstance().get_max_memory_used()),
+												"info"_a="In MergeStream kernel batch {} for {}. What: {} . max_memory_used: {}"_format(batch_count, expression, e.what(), blazing_device_memory_resource::getInstance().get_max_memory_used()),
 												"duration"_a="");
 				throw;
 			}
