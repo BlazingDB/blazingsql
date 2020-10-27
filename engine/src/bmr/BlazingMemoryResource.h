@@ -83,6 +83,7 @@ public:
                 memory_resource, allocator_logging_file, /*auto_flush=*/true));
             memory_resource = logging_adaptor.get();
         }
+        max_used_memory=0;
 	}
 
 	virtual ~internal_blazing_device_memory_resource() = default;
@@ -90,6 +91,9 @@ public:
 	size_t get_memory_used() {
 		return used_memory;
 	}
+    size_t get_max_memory_used() {
+        return max_used_memory;
+    }
     size_t get_from_driver_available_memory() {
 	    return ral::config::gpuUsedMemory();
     }
@@ -114,6 +118,9 @@ private:
             return nullptr;
 		}
 		used_memory += bytes;
+        if (max_used_memory < used_memory){
+            max_used_memory += bytes;
+        }        
         
 		return memory_resource->allocate(bytes, stream);
 	}
@@ -141,6 +148,7 @@ private:
 	size_t total_memory_size;
 	size_t memory_limit;
 	std::atomic<size_t> used_memory;
+    std::atomic<size_t> max_used_memory;
     std::shared_ptr<rmm::mr::device_memory_resource> memory_resource_owner;
     rmm::mr::device_memory_resource * memory_resource;
     std::unique_ptr<rmm::mr::logging_resource_adaptor<rmm::mr::device_memory_resource>> logging_adaptor;
@@ -173,6 +181,10 @@ public:
 	size_t get_memory_used() {
 		return initialized_resource->get_memory_used();
 	}
+
+    size_t get_max_memory_used() {
+        return initialized_resource->get_max_memory_used();
+    }
 
 	size_t get_total_memory() {
 		return initialized_resource->get_total_memory() ;
