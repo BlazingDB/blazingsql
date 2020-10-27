@@ -127,7 +127,7 @@ if testAll || hasArg libengine; then
     logger "Running Engine Unit tests..."
     cd ${WORKSPACE}/engine/build
     SECONDS=0
-    ctest
+    ctest --verbose
     duration=$SECONDS
     echo "Total time for Engine Unit tests: $(($duration / 60)) minutes and $(($duration % 60)) seconds"
 fi
