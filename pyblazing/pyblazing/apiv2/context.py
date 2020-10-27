@@ -16,7 +16,7 @@ from pyblazing.apiv2.filesystem import FileSystem
 from pyblazing.apiv2 import DataType
 import asyncio
 
-from pyblazing.apiv2.comms import listen, UCX
+from pyblazing.apiv2.comms import listen
 
 import json
 import collections
