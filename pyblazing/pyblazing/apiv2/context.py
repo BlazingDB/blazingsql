@@ -1395,12 +1395,12 @@ class BlazingContext(object):
         logging_dir_path = "blazing_log"
         # want to use config_options and not self.config_options
         # since its not encoded
-        if "BLAZING_LOGGING_DIRECTORY" in self.config_options:
-            logging_dir_path = self.config_options["BLAZING_LOGGING_DIRECTORY"]
+        if "BLAZING_LOGGING_DIRECTORY".encode() in self.config_options:
+            logging_dir_path = self.config_options["BLAZING_LOGGING_DIRECTORY".encode()].decode()
 
         cache_dir_path = "/tmp"  # default directory to store orc files
-        if "BLAZING_CACHE_DIRECTORY" in self.config_options:
-            cache_dir_path = self.config_options["BLAZING_CACHE_DIRECTORY"] + "tmp"
+        if "BLAZING_CACHE_DIRECTORY".encode() in self.config_options:
+            cache_dir_path = self.config_options["BLAZING_CACHE_DIRECTORY".encode()].decode() + "tmp"
 
         if dask_client == "autocheck":
             try:
@@ -1442,11 +1442,6 @@ class BlazingContext(object):
             worker_list = []
             dask_futures = []
             i = 0
-
-            if "BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD" in self.config_options:
-                host_memory_quota = float(
-                    self.config_options["BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD".encode()]
-                )
 
             # If all workers are on the same machine, the memory threshold is
             # split between the workers, here we are assuming that there are
