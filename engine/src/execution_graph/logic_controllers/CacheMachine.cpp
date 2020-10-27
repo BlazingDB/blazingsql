@@ -204,7 +204,7 @@ bool CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_dat
 		ral::cache::CacheDataType type = cache_data->get_type();
 		if (type == ral::cache::CacheDataType::GPU || type == ral::cache::CacheDataType::GPU_METADATA){
 			cacheIndex = 0;
-		} else if (type == ral::cache::CacheDataType::GPU){
+		} else if (type == ral::cache::CacheDataType::CPU){
 			cacheIndex = 1;
 		} else {
 			cacheIndex = 2;
@@ -279,7 +279,14 @@ bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, c
 		num_bytes_added += table->sizeInBytes();
 		int cacheIndex = 0;
 		while(cacheIndex < memory_resources.size()) {
+			
 			auto memory_to_use = (this->memory_resources[cacheIndex]->get_memory_used() + table->sizeInBytes());
+
+			std::string info = "get_memory_used: " + std::to_string(this->memory_resources[cacheIndex]->get_memory_used());
+			info += " table->sizeInBytes(): " + std::to_string(table->sizeInBytes());
+			info += " memory_to_use: " + std::to_string(memory_to_use);
+			info += " get_memory_limit(): " + std::to_string(this->memory_resources[cacheIndex]->get_memory_limit());
+
 			if( memory_to_use < this->memory_resources[cacheIndex]->get_memory_limit()) {
 				if(cacheIndex == 0) {
 					if(logger != nullptr) {
@@ -288,7 +295,7 @@ bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, c
 							"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
 							"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
 							"info"_a="Add to CacheMachine into GPU cache",
-							"duration"_a="",
+							"duration"_a=info,
 							"kernel_id"_a=message_id,
 							"rows"_a=table->num_rows());
 					}
@@ -308,7 +315,7 @@ bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, c
 								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
 								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
 								"info"_a="Add to CacheMachine into CPU cache",
-								"duration"_a="",
+								"duration"_a=info,
 								"kernel_id"_a=message_id,
 								"rows"_a=table->num_rows());
 						}
@@ -323,7 +330,7 @@ bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, c
 								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
 								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
 								"info"_a="Add to CacheMachine into Disk cache",
-								"duration"_a="",
+								"duration"_a=info,
 								"kernel_id"_a=message_id,
 								"rows"_a=table->num_rows());
 						}
