@@ -47,6 +47,7 @@ bool create_dummy_file(std::string content, std::string filename){
 bool create_folder_test()
 {
 	LocalFileSystem localFileSystem(Path("/"));
+	localFileSystem.remove(Uri{BLAZING_TMP_PATH});
 	localFileSystem.makeDirectory(Uri{BLAZING_TMP_PATH});
 	return localFileSystem.exists(Uri(BLAZING_TMP_PATH));
 }
