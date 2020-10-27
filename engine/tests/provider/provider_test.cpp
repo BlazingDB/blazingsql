@@ -388,11 +388,11 @@ TEST_F(ProviderTest, folder_multiple_folder_on_multiple_folder)
 										BLAZING_TMP_PATH + "/folder4/file.orc",
 										BLAZING_TMP_PATH + "/folder4/file_SUCCESS.csv"};
 
-	LocalFileSystem localFileSystem(Path("/"));
-	localFileSystem.makeDirectory(Uri(BLAZING_TMP_PATH + "/folder1"));
-	localFileSystem.makeDirectory(Uri(BLAZING_TMP_PATH + "/folder2"));
-	localFileSystem.makeDirectory(Uri(BLAZING_TMP_PATH + "/folder3"));
-	localFileSystem.makeDirectory(Uri(BLAZING_TMP_PATH + "/folder4"));
+	LocalFileSystem localFileSystem(Path{BLAZING_TMP_PATH});
+	localFileSystem.makeDirectory(Uri("/folder1"));
+	localFileSystem.makeDirectory(Uri("/folder2"));
+	localFileSystem.makeDirectory(Uri("/folder3"));
+	localFileSystem.makeDirectory(Uri("/folder4"));
 
 	ASSERT_TRUE(create_dummy_file("a|b\n0|0", test_files[0]));
 	ASSERT_TRUE(create_dummy_file("a|b\n0|0", test_files[1]));
@@ -425,10 +425,10 @@ TEST_F(ProviderTest, folder_multiple_folder_on_multiple_folder)
 	std::sort(result.begin(), result.end());
 	EXPECT_EQ(test_files, result);
 
-	localFileSystem.remove(Uri(BLAZING_TMP_PATH + "/folder1"));
-	localFileSystem.remove(Uri(BLAZING_TMP_PATH + "/folder2"));
-	localFileSystem.remove(Uri(BLAZING_TMP_PATH + "/folder3"));
-	localFileSystem.remove(Uri(BLAZING_TMP_PATH + "/folder4"));
+	localFileSystem.remove(Uri("/folder1"));
+	localFileSystem.remove(Uri("/folder2"));
+	localFileSystem.remove(Uri("/folder3"));
+	localFileSystem.remove(Uri("/folder4"));
 	remove_dummy_file(test_files);
 }
 
