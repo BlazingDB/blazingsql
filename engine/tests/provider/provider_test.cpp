@@ -257,8 +257,9 @@ TEST_F(ProviderTest, folder_multiple_files_one_empty_folder)
 
 	EXPECT_EQ(test_files, result);
 
-	localFileSystem.remove(Uri(BLAZING_TMP_PATH + "/emptyFolder"));
 	remove_dummy_file(test_files);
+	bool dir_remove_ok = localFileSystem.remove(Uri{BLAZING_TMP_PATH});
+	ASSERT_TRUE(dir_remove_ok);
 }
 
 TEST_F(ProviderTest, folder_multiple_files_one_empty_folder_ignore_missing_file)
@@ -339,8 +340,9 @@ TEST_F(ProviderTest, folder_multiple_files_one_non_empty_folder)
 	std::sort(result.begin(), result.end());
 	EXPECT_EQ(test_files, result);
 
-	localFileSystem.remove(Uri(BLAZING_TMP_PATH + "/folder"));
 	remove_dummy_file(test_files);
+	bool dir_remove_ok = localFileSystem.remove(Uri{BLAZING_TMP_PATH});
+	ASSERT_TRUE(dir_remove_ok);
 }
 
 TEST_F(ProviderTest, folder_multiple_files_one_non_empty_folder_ignore_missing_file)
@@ -426,11 +428,9 @@ TEST_F(ProviderTest, folder_multiple_folder_on_multiple_folder)
 	std::sort(result.begin(), result.end());
 	EXPECT_EQ(test_files, result);
 
-	localFileSystem.remove(Uri("/folder1"));
-	localFileSystem.remove(Uri("/folder2"));
-	localFileSystem.remove(Uri("/folder3"));
-	localFileSystem.remove(Uri("/folder4"));
 	remove_dummy_file(test_files);
+	bool dir_remove_ok = localFileSystem.remove(Uri{BLAZING_TMP_PATH});
+	ASSERT_TRUE(dir_remove_ok);
 }
 
 TEST_F(ProviderTest, folder_multiple_folder_on_multiple_folder_ignore_missing_file)
@@ -589,11 +589,9 @@ TEST_F(ProviderTest, wilcard_recursive)
 	std::sort(result.begin(), result.end());
 	EXPECT_EQ(test_files, result);
 
-	localFileSystem.remove(Uri(BLAZING_TMP_PATH + "/folder1"));
-	localFileSystem.remove(Uri(BLAZING_TMP_PATH + "/folder2"));
-	localFileSystem.remove(Uri(BLAZING_TMP_PATH + "/folder3"));
-	localFileSystem.remove(Uri(BLAZING_TMP_PATH + "/folder4"));
 	remove_dummy_file(test_files);
+	bool dir_remove_ok = localFileSystem.remove(Uri{BLAZING_TMP_PATH});
+	ASSERT_TRUE(dir_remove_ok);
 }
 
 ///\TODO Wildcard folder not supported (/folder*/*) - skip test
@@ -645,11 +643,9 @@ TEST_F(ProviderTest, wilcard_folder)
 	std::sort(result.begin(), result.end());
 	EXPECT_EQ(test_files, result);
 
-	localFileSystem.remove(Uri(BLAZING_TMP_PATH + "/folder1"));
-	localFileSystem.remove(Uri(BLAZING_TMP_PATH + "/folder2"));
-	localFileSystem.remove(Uri(BLAZING_TMP_PATH + "/folder3"));
-	localFileSystem.remove(Uri(BLAZING_TMP_PATH + "/folder4"));
 	remove_dummy_file(test_files);
+	bool dir_remove_ok = localFileSystem.remove(Uri{BLAZING_TMP_PATH});
+	ASSERT_TRUE(dir_remove_ok);
 }
 
 TEST_F(ProviderTest, catch_exception_ignore_missing_paths)
