@@ -672,3 +672,193 @@ TEST_F(ProviderTest, catch_exception_ignore_missing_paths)
 		SUCCEED();
 	}
 }
+
+bool make_directories_hive()
+{
+	LocalFileSystem localFileSystem(Path{BLAZING_TMP_PATH});
+	localFileSystem.makeDirectory(Uri("/t_year=2017"));
+	localFileSystem.makeDirectory(Uri("/t_year=2018"));
+	localFileSystem.makeDirectory(Uri("/t_year=2017/t_company_id=2"));
+	localFileSystem.makeDirectory(Uri("/t_year=2017/t_company_id=4"));
+	localFileSystem.makeDirectory(Uri("/t_year=2018/t_company_id=6"));
+	localFileSystem.makeDirectory(Uri("/t_year=2017/t_company_id=2/region=asia"));
+	localFileSystem.makeDirectory(Uri("/t_year=2017/t_company_id=4/region=asia"));
+	localFileSystem.makeDirectory(Uri("/t_year=2017/t_company_id=4/region=europa"));
+	localFileSystem.makeDirectory(Uri("/t_year=2018/t_company_id=6/region=europa"));
+}
+
+TEST_F(ProviderTest, uri_values_one_folder_multiple_files_wildcard)
+{
+	ASSERT_TRUE(create_folder_test());
+
+	std::vector<std::string> uri_files = {
+		BLAZING_TMP_PATH + "/t_year=2017/t_company_id=2/region=asia/file1.parquet",
+		BLAZING_TMP_PATH + "/t_year=2017/t_company_id=2/region=asia/file2.parquet",
+		BLAZING_TMP_PATH + "/t_year=2017/t_company_id=4/region=asia/file3.parquet",
+		BLAZING_TMP_PATH + "/t_year=2017/t_company_id=4/region=europa/file4.parquet",
+		BLAZING_TMP_PATH + "/t_year=2018/t_company_id=6/region=europa/file5.parquet",
+		BLAZING_TMP_PATH + "/t_year=2018/t_company_id=6/region=europa/file6.parquet",
+	};
+	std::vector<Uri> uris = {
+		Uri(BLAZING_TMP_PATH + "/t_year=2017/t_company_id=2/region=asia/*"),
+		Uri(BLAZING_TMP_PATH + "/t_year=2017/t_company_id=4/region=asia/*"),
+		Uri(BLAZING_TMP_PATH + "/t_year=2017/t_company_id=4/region=europa/*"),
+		Uri(BLAZING_TMP_PATH + "/t_year=2018/t_company_id=6/region=europa/*"),
+	};
+
+	make_directories_hive();
+
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uri_files[0]));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uri_files[1]));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uri_files[2]));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uri_files[3]));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uri_files[4]));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uri_files[5]));
+
+	std::vector<std::map<std::string, std::string>> uri_values
+	{
+			{{"t_year", "2017"}, {"t_company_id", "2"}, {"region", "asia"}},
+			{{"t_year", "2017"}, {"t_company_id", "4"}, {"region", "asia"}},
+			{{"t_year", "2017"}, {"t_company_id", "4"}, {"region", "europa"}},
+			{{"t_year", "2018"}, {"t_company_id", "6"}, {"region", "europa"}}
+	};
+
+	auto provider = std::make_shared<ral::io::uri_data_provider>(uris, uri_values);
+
+	bool open_file = false;
+
+	std::vector<std::string> result;
+
+	while(provider->has_next())
+	{
+		ral::io::data_handle new_handle = provider->get_next(open_file);
+		result.emplace_back(new_handle.uri.toString());
+	}
+
+	std::sort(uri_files.begin(), uri_files.end());
+	std::sort(result.begin(), result.end());
+	EXPECT_EQ(uri_files, result);
+
+	remove_dummy_file(uris);
+	LocalFileSystem localFileSystem(Path(""));
+	bool dir_remove_ok = localFileSystem.remove(Uri{BLAZING_TMP_PATH});
+	ASSERT_TRUE(dir_remove_ok);
+}
+
+TEST_F(ProviderTest, uri_values_one_folder_multiple_files)
+{
+	ASSERT_TRUE(create_folder_test());
+
+	std::vector<Uri> uris = {
+		Uri(BLAZING_TMP_PATH + "/t_year=2017/t_company_id=2/region=asia/file1.parquet"),
+		Uri(BLAZING_TMP_PATH + "/t_year=2017/t_company_id=2/region=asia/file2.parquet"),
+		Uri(BLAZING_TMP_PATH + "/t_year=2017/t_company_id=4/region=asia/file3.parquet"),
+		Uri(BLAZING_TMP_PATH + "/t_year=2017/t_company_id=4/region=europa/file4.parquet"),
+		Uri(BLAZING_TMP_PATH + "/t_year=2018/t_company_id=6/region=europa/file5.parquet"),
+		Uri(BLAZING_TMP_PATH + "/t_year=2018/t_company_id=6/region=europa/file6.parquet"),
+	};
+
+	make_directories_hive();
+
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uris[0].toString()));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uris[1].toString()));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uris[2].toString()));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uris[3].toString()));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uris[4].toString()));
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uris[5].toString()));
+
+	std::vector<std::map<std::string, std::string>> uri_values
+		{
+			{{"t_year", "2017"}, {"t_company_id", "2"}, {"region", "asia"}},
+			{{"t_year", "2017"}, {"t_company_id", "2"}, {"region", "asia"}},
+			{{"t_year", "2017"}, {"t_company_id", "4"}, {"region", "asia"}},
+			{{"t_year", "2017"}, {"t_company_id", "4"}, {"region", "europa"}},
+			{{"t_year", "2018"}, {"t_company_id", "6"}, {"region", "europa"}},
+			{{"t_year", "2018"}, {"t_company_id", "6"}, {"region", "europa"}}
+		};
+
+	auto provider = std::make_shared<ral::io::uri_data_provider>(uris, uri_values);
+
+	bool open_file = false;
+
+	std::vector<std::string> result;
+
+	while(provider->has_next())
+	{
+		ral::io::data_handle new_handle = provider->get_next(open_file);
+		result.emplace_back(new_handle.uri.toString());
+	}
+
+	std::vector<std::string> cmp;
+	std::transform(uris.begin(), uris.end(), std::back_inserter(cmp), [](const Uri& uri){return uri.toString();});
+
+	std::sort(cmp.begin(), cmp.end());
+	std::sort(result.begin(), result.end());
+	EXPECT_EQ(cmp, result);
+
+	remove_dummy_file(uris);
+	LocalFileSystem localFileSystem(Path(""));
+	bool dir_remove_ok = localFileSystem.remove(Uri{BLAZING_TMP_PATH});
+	ASSERT_TRUE(dir_remove_ok);
+}
+
+TEST_F(ProviderTest, uri_values_folder_with_one_file)
+{
+	ASSERT_TRUE(create_folder_test());
+
+	std::vector<Uri> uris = {Uri(BLAZING_TMP_PATH + "/t_year=2017/t_company_id=2/region=asia/file.csv")};
+
+	make_directories_hive();
+
+	ASSERT_TRUE(create_dummy_file("a|b\n0|0", uris[0].toString()));
+
+	std::vector<std::map<std::string, std::string>> uri_values
+		{
+			{{"t_year", "2017"}, {"t_company_id", "2"}, {"region", "asia"}}
+		};
+
+	auto provider = std::make_shared<ral::io::uri_data_provider>(uris, uri_values);
+
+	bool open_file = false;
+
+	if( provider->has_next() )
+	{
+		ral::io::data_handle new_handle = provider->get_next(open_file);
+		EXPECT_EQ(new_handle.uri.toString(), uris[0].toString());
+	}
+
+	remove_dummy_file(uris);
+	LocalFileSystem localFileSystem(Path(""));
+	bool dir_remove_ok = localFileSystem.remove(Uri{BLAZING_TMP_PATH});
+	ASSERT_TRUE(dir_remove_ok);
+}
+
+TEST_F(ProviderTest, uri_values_empty_dir) {
+	std::unique_ptr<LocalFileSystem> localFileSystem(new LocalFileSystem(Path("/")));
+
+	const int length = 10;
+	std::string dirname = "/tmp/" + randomString(length);
+
+	bool dir_create_ok = localFileSystem->makeDirectory(Uri{dirname});
+	ASSERT_TRUE(dir_create_ok);
+
+	std::vector<Uri> uris = {Uri{dirname}};
+	std::vector<std::map<std::string, std::string>> uri_values
+		{
+			{{"t_year", "2017"}, {"t_company_id", "2"}, {"region", "asia"}}
+		};
+
+	auto provider = std::make_shared<ral::io::uri_data_provider>(uris, uri_values);
+
+	bool open_file = false;
+
+	std::vector<std::string> result;
+
+	if(provider->has_next()){
+		ral::io::data_handle new_handle = provider->get_next(open_file);
+		EXPECT_EQ(new_handle.uri.isEmpty(), true);
+	}
+
+	bool dir_remove_ok = localFileSystem->remove(Uri{dirname});
+	ASSERT_TRUE(dir_remove_ok);
+}
