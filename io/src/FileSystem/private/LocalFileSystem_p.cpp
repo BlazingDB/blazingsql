@@ -461,7 +461,7 @@ bool LocalFileSystem::Private::makeDirectory(const Uri & uri) const {
 
 			success = mkdir(path.toString().c_str(), FILE_PERMISSION_BITS_MODE);
 
-			if(countInvalids > 10000) {
+			if(countInvalids > 10) {
 				break;
 			}
 		}
