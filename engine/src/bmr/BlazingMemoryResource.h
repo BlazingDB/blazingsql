@@ -112,6 +112,17 @@ public:
 	bool supports_streams() const noexcept override { return memory_resource->supports_streams(); }
 	bool supports_get_mem_info() const noexcept override { return memory_resource->supports_get_mem_info(); }
 
+    std::string get_full_memory_summary() {
+        std::string summary = "";
+        summary += "Memory Resource Summary:: Type: " + this->type;
+        summary += " | Used Memory: " + std::to_string(this->used_memory);
+        summary += " | Max Used Memory: " + std::to_string(this->max_used_memory);
+        summary += " | Available Memory from driver: " + std::to_string(this->get_from_driver_available_memory());
+        summary += " | Total Memory: " + std::to_string(this->total_memory_size);
+        summary += " | Memory Limit: " + std::to_string(this->memory_limit);
+        return summary;
+    }
+
 private: 
 	void* do_allocate(size_t bytes, cudaStream_t stream) override {
 		if (bytes <= 0) { 
@@ -199,6 +210,10 @@ public:
 
     std::string get_type() {
 		return initialized_resource->get_type() ;
+    }
+
+    std::string get_full_memory_summary() {
+        return initialized_resource->get_full_memory_summary() ;
     }
 
   /** -----------------------------------------------------------------------*
