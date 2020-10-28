@@ -20,9 +20,11 @@ public:
 	arrow_parser( std::shared_ptr< arrow::Table > table);
 
 	virtual ~arrow_parser();
-	
+
 	void parse_schema(std::shared_ptr<arrow::io::RandomAccessFile> file,
 			ral::io::Schema & schema);
+
+	DataType type() const override { return DataType::ARROW; }
 
 private:
 	std::shared_ptr< arrow::Table > table;

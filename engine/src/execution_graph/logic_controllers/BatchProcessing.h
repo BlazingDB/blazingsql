@@ -23,6 +23,7 @@
 #include <mutex>
 #include "io/DataLoader.h"
 #include "io/Schema.h"
+#include "io/data_parser/CSVParser.h"
 #include <Util/StringUtil.h>
 
 #include <boost/property_tree/ptree.hpp>
@@ -335,7 +336,7 @@ public:
 	 * @param context Shared context associated to the running query.
 	 */
 	DataSourceSequence(ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context)
-		: context(context), loader(loader), schema(schema), batch_index{0}, cur_file_index{0}, cur_row_group_index{0}, n_batches{0}
+		: context(context), loader(loader), schema(schema), batch_index{0}, n_batches{0}
 	{
 		// n_partitions{n_partitions}: TODO Update n_batches using data_loader
 		this->provider = loader.get_provider();
@@ -349,9 +350,37 @@ public:
 		is_empty_data_source = (n_files == 0 && parser->get_num_partitions() == 0);
 		is_gdf_parser = parser->get_num_partitions() > 0;
 		if(is_gdf_parser){
-			n_batches = parser->get_num_partitions();
-		} else {
-			n_batches = n_files;
+			n_batches = std::max(parser->get_num_partitions(), (size_t)1);
+		} else if (parser->type() == ral::io::DataType::CSV)	{
+			auto csv_parser = static_cast<ral::io::csv_parser*>(parser.get());
+
+			n_batches = 0;
+			size_t max_bytes_chuck_size = csv_parser->max_bytes_chuck_size();
+			if (max_bytes_chuck_size > 0) {
+				int file_idx = 0;
+				while (provider->has_next()) {
+					auto data_handle = provider->get_next();
+					int64_t file_size = data_handle.fileHandle->GetSize().ValueOrDie();
+					size_t num_chunks = (file_size + max_bytes_chuck_size - 1) / max_bytes_chuck_size;
+					std::vector<int> file_row_groups(num_chunks);
+					std::iota(file_row_groups.begin(), file_row_groups.end(), 0);
+					all_row_groups[file_idx] = std::move(file_row_groups);
+					n_batches += num_chunks;
+					file_idx++;
+				}
+				provider->reset();
+			} else {
+				n_batches = n_files;
+			}
+		}	else {
+			n_batches = 0;
+			for (auto &&row_group : all_row_groups) {
+				n_batches += std::max(row_group.size(), (size_t)1);
+			}
+		}
+
+		if (!is_empty_data_source && !is_gdf_parser && has_next()) {
+			current_data_handle = provider->get_next();
 		}
 	}
 
@@ -373,26 +402,40 @@ public:
 		}
 
 		if(is_gdf_parser){
-			auto ret = loader.load_batch(context.get(), projections, schema, ral::io::data_handle(), 0, std::vector<cudf::size_type>(1, cur_row_group_index));
+			auto ret = loader.load_batch(context.get(), projections, schema, ral::io::data_handle(), 0, {static_cast<cudf::size_type>(batch_index)} );
 			batch_index++;
-			cur_row_group_index++;
 
 			return std::move(ret);
 		}
 
-		// a file handle that we can use in case errors occur to tell the user which file had parsing issues
-		assert(this->provider->has_next());
-
-		auto local_cur_data_handle = this->provider->get_next();
+		auto local_cur_data_handle = current_data_handle;
 		auto local_cur_file_index = cur_file_index;
-		auto local_all_row_groups = this->all_row_groups[cur_file_index];
+		auto local_all_row_groups = all_row_groups[cur_file_index];
+		if (file_batch_index > 0 && file_batch_index >= local_all_row_groups.size()) {
+			// a file handle that we can use in case errors occur to tell the user which file had parsing issues
+			assert(provider->has_next());
+			current_data_handle = provider->get_next();
 
+			file_batch_index = 0;
+			cur_file_index++;
+
+			local_cur_data_handle = current_data_handle;
+			local_cur_file_index = cur_file_index;
+			local_all_row_groups = all_row_groups[cur_file_index];
+		}
+
+		std::vector<cudf::size_type> local_row_group;
+		if (!local_all_row_groups.empty()) {
+			local_row_group = { local_all_row_groups[file_batch_index] };
+		}
+
+		file_batch_index++;
 		batch_index++;
-		cur_file_index++;
 
 		lock.unlock();
 
-		auto ret = loader.load_batch(context.get(), projections, schema, local_cur_data_handle, local_cur_file_index, local_all_row_groups);
+		auto ret = loader.load_batch(context.get(), projections, schema, local_cur_data_handle, local_cur_file_index, local_row_group);
+
 		return std::move(ret);
 	}
 
@@ -402,7 +445,7 @@ public:
 	 * @return false The data source is empty or all batches have already been processed.
 	 */
 	bool has_next() {
-		return (is_empty_data_source && batch_index < 1) || (is_gdf_parser && batch_index.load() < n_batches) || (cur_file_index < n_files);
+		return (is_empty_data_source && batch_index < 1) || (batch_index.load() < n_batches);
 	}
 
 	/**
@@ -438,14 +481,15 @@ private:
 	std::vector<int> projections; /**< List of columns that will be selected if they were previously settled. */
 	ral::io::data_loader loader; /**< Data loader responsible for executing the batching load. */
 	ral::io::Schema  schema; /**< Table schema associated to the data to be loaded. */
-	size_t cur_file_index; /**< Current file index. */
-	size_t cur_row_group_index; /**< Current rowgroup index. */
 	std::vector<std::vector<int>> all_row_groups;
-	std::atomic<size_t> batch_index; /**< Current batch index. */
+	std::atomic<size_t> batch_index; /**< Current global batch index. */
 	size_t n_batches; /**< Number of batches. */
 	size_t n_files; /**< Number of files. */
 	bool is_empty_data_source; /**< Indicates whether the data source is empty. */
 	bool is_gdf_parser; /**< Indicates whether the parser is a gdf one. */
+	int cur_file_index{}; /**< Current file index. */
+	int file_batch_index{};  /**< Current file batch index. */
+	ral::io::data_handle current_data_handle{};
 
 	std::mutex mutex_; /**< Mutex for making the loading batch thread-safe. */
 };
