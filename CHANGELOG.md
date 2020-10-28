@@ -8,6 +8,7 @@
 - #1082 Validate s3 bucket
 - #1093 Logs configurable to have max size and be rotated
 - #1091 Improves the error message problem when validating any GCP bucket
+- #1102 Add option to read csv files in chunks
 
 
 ## Bug Fixes
@@ -54,7 +55,7 @@
 - #1073 Fixed parseSchemaPython can throw exceptions
 - #1074 Remove lock inside grow() method from PinnedBufferProvider
 - #1071 Fix crash when loading an empty folder
-- #1085 Fixed intra-query memory leak in joins. Fixed by clearing array caches after PartwiseJoin is done 
+- #1085 Fixed intra-query memory leak in joins. Fixed by clearing array caches after PartwiseJoin is done
 
 
 # BlazingSQL 0.15.0 (August 31, 2020)
