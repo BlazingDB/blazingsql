@@ -161,7 +161,7 @@ def initializeBlazing(
         maximum_pool_size = 0
     elif pool and initial_pool_size is None:
         initial_pool_size = 0
-    
+
     if maximum_pool_size is None or maximum_pool_size == 0:
         maximum_pool_size = 0
     elif maximum_pool_size < initial_pool_size:
