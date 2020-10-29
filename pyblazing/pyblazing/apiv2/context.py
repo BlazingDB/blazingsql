@@ -209,6 +209,10 @@ def initializeBlazing(
             )
         self_port = worker.ucx_addresses[worker_id]["port"]
 
+    print("initial_pool_size: " + str(initial_pool_size))
+    print("maximum_pool_size: " + str(maximum_pool_size))
+    print("enable_logging: " + str(enable_logging))
+
     output_cache, input_cache, self_port = cio.initializeCaller(
         ralId,
         worker_id.encode(),
