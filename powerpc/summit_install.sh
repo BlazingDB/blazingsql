@@ -37,4 +37,4 @@ python -m venv $VIRTUAL_ENV
 source $VIRTUAL_ENV/bin/activate
 
 echo "### Building ###"
-./build.sh $VIRTUAL_ENV
+powerpc/build.sh $VIRTUAL_ENV
