@@ -170,6 +170,7 @@ def initializeBlazing(
         "managed_memory_resource",
         "pool_memory_resource",
         "managed_pool_memory_resource",
+        "arena_memory_resource",
     ]
     if allocator not in possible_allocators:
         print(

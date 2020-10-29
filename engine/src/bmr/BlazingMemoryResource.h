@@ -11,6 +11,7 @@
 #include <rmm/mr/device/cuda_memory_resource.hpp>
 #include <rmm/mr/device/managed_memory_resource.hpp>
 #include <rmm/mr/device/pool_memory_resource.hpp>
+#include <rmm/mr/device/arena_memory_resource.hpp>
 #include <rmm/mr/device/logging_resource_adaptor.hpp>
 #include <rmm/mr/device/per_device_resource.hpp>
 
@@ -27,7 +28,7 @@
 */
 class BlazingMemoryResource {
 public:
-	virtual size_t get_from_driver_available_memory() = 0 ; // driver.get_available_memory()
+	virtual size_t get_from_driver_used_memory() = 0 ; // driver.get_available_memory()
 	virtual size_t get_memory_limit() = 0 ; // memory_limite = total_memory * threshold
 
 	virtual size_t get_memory_used() = 0 ; // atomic 
@@ -74,6 +75,10 @@ public:
             memory_resource_owner = rmm::mr::make_owning_wrapper<rmm::mr::pool_memory_resource>(
                 std::make_shared<rmm::mr::managed_memory_resource>(), initial_pool_size, maximum_pool_size);
             memory_resource = memory_resource_owner.get();
+        } else if (allocation_mode == "arena_memory_resource") {
+            memory_resource_owner = rmm::mr::make_owning_wrapper<rmm::mr::arena_memory_resource>(
+                std::make_shared<rmm::mr::cuda_memory_resource>(), initial_pool_size, maximum_pool_size);
+            memory_resource = memory_resource_owner.get();
         } else if (allocation_mode == "existing"){
             memory_resource = rmm::mr::get_current_device_resource();        
         } else {
@@ -97,7 +102,7 @@ public:
     size_t get_max_memory_used() {
         return max_used_memory;
     }
-    size_t get_from_driver_available_memory() {
+    size_t get_from_driver_used_memory() {
 	    return ral::config::gpuUsedMemory();
     }
 
@@ -120,7 +125,7 @@ public:
         summary += "Memory Resource Summary:: Type: " + this->type;
         summary += " | Used Memory: " + std::to_string(this->used_memory);
         summary += " | Max Used Memory: " + std::to_string(this->max_used_memory);
-        summary += " | Available Memory from driver: " + std::to_string(this->get_from_driver_available_memory());
+        summary += " | Available Memory from driver: " + std::to_string(this->get_from_driver_used_memory());
         summary += " | Total Memory: " + std::to_string(this->total_memory_size);
         summary += " | Memory Limit: " + std::to_string(this->memory_limit);
         return summary;
@@ -204,8 +209,8 @@ public:
 		return initialized_resource->get_total_memory() ;
 	}
 
-    size_t get_from_driver_available_memory()  {
-        return initialized_resource->get_from_driver_available_memory();
+    size_t get_from_driver_used_memory()  {
+        return initialized_resource->get_from_driver_used_memory();
     }
 	size_t get_memory_limit() {
 		return initialized_resource->get_memory_limit() ;
@@ -322,7 +327,7 @@ public:
 		used_memory_size -= bytes;
 	}
 
-	size_t get_from_driver_available_memory()  {
+	size_t get_from_driver_used_memory()  {
         struct sysinfo si;
 		sysinfo (&si);
         // NOTE: sync point 
@@ -376,8 +381,8 @@ public:
 		return initialized_resource->get_total_memory() ;
 	}
 
-    size_t get_from_driver_available_memory()  {
-        return initialized_resource->get_from_driver_available_memory();
+    size_t get_from_driver_used_memory()  {
+        return initialized_resource->get_from_driver_used_memory();
     }
 	size_t get_memory_limit() {
 		return initialized_resource->get_memory_limit() ;
@@ -472,7 +477,7 @@ public:
 
 	virtual ~blazing_disk_memory_resource() = default;
 
-	virtual size_t get_from_driver_available_memory()  {
+	virtual size_t get_from_driver_used_memory()  {
         struct sysinfo si;
         sysinfo (&si);
         // NOTE: sync point 
