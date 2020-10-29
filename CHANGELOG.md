@@ -15,6 +15,7 @@
 - #1086 Showing an appropriate error to indicate that we don't support opening directories with wildcards
 - #1088 Fixed issue caused by cudf changing from one .so file to multiple
 - #1094 Fixed logging directory setup
+- #1100 Showing an appropriate error for invalid or unsupported expressions on the logical plan
 
 
 # BlazingSQL 0.16.0 (October 22, 2020)
