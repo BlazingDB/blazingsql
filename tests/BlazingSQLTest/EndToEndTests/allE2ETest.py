@@ -290,11 +290,10 @@ if __name__ == "__main__":
         # an error comparing with historic results
         # TODO william kharoly felipe we should try to enable and
         # use this function in the future
-        result = True
         if result is False:
             for error_msg in error_msgs:
                 print(error_msg)
-            # import sys
+            import sys
 
             end = time.time()  # in seconds
             elapsed = end - start  # in seconds
@@ -313,4 +312,4 @@ if __name__ == "__main__":
             # TODO percy kharo willian: uncomment this line
             # when gpuci has all the env vars set
             # return error exit status to the command prompt (shell)
-            # sys.exit(1)
+            sys.exit(1)
