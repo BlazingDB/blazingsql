@@ -1,8 +1,20 @@
 #!/bin/bash
 # usage: /new-path/python/environment/
+# NOTE: this install script is for installing on Summit Supercomputer
 set -e
 
+NUMARGS=$#
+if (( ${NUMARGS} != 1 )); then
+  echo "Only one argument expected which should be environment prefix path"
+  exit 1
+fi
+
 VIRTUAL_ENV=$1
+
+if [ ! -d $VIRTUAL_ENV ]; then
+    echo "The environment prefix path does not exist"
+    exit 1
+fi
 
 echo "### Modules loading ###"
 module load gcc/7.4.0

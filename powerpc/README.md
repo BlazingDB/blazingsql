@@ -28,7 +28,7 @@ You need these dependencies, they can be provided by OS package system (e.g. apt
 - hwloc
 - gdrcopy
 
-If using lmod and your system has the necessary modules you can use:
+If running on Summit and using lmod and your system has the necessary modules you can use:
 ```shell
 module load gcc/7.4.0
 module load python/3.7.0
@@ -70,10 +70,44 @@ Run the build script and pass your environment folder (prefix path) as argument:
 cd blazingsql
 bash powerpc/build.sh $VIRTUAL_ENV
 ```
+
+It is recommented to pipe the output of the installation to a file, so that if the terminal is closed or something goes wrong
+you can maintain a copy of the installation output:
+```shell
+cd blazingsql
+bash powerpc/build.sh $VIRTUAL_ENV | tee out.txt
+```
+
 Notes:
 * You need to run the build process from the root directory of the project: *blazingsql*
 * Near the end of the process, you will be prompted to answer some questions for the installation of JAVA.
 * This build process will install cudf and its dependencies (dask-cudf, arrow, etc.), llvm, compiled python packages like (llvmlite, cupy, etc.) and blazingsql.
+
+
+### Build & install BlazingSQL on Summit
+The `summit_install.sh` script will create the python virtual environment for you an load all the lmod modules for you.
+
+It is recommended you setup a build folder and export to the following variable before you begin building:
+`export BLAZINGSQL_POWERPC_TMP_BUILD_DIR=PATH_TO_A_BUILD_FOLDER`
+
+Run the installation script and pass your environment folder (prefix path) as argument:
+```shell
+cd blazingsql
+bash powerpc/summit_install.sh $VIRTUAL_ENV
+```
+
+It is recommented to pipe the output of the installation to a file, so that if the terminal is closed or something goes wrong
+you can maintain a copy of the installation output:
+```shell
+cd blazingsql
+bash powerpc/summit_install.sh $VIRTUAL_ENV | tee out.txt
+```
+
+Notes:
+* You need to run the build process from the root directory of the project: *blazingsql*
+* Near the end of the process, you will be prompted to answer some questions for the installation of JAVA.
+* This build process will install cudf and its dependencies (dask-cudf, arrow, etc.), llvm, compiled python packages like (llvmlite, cupy, etc.) and blazingsql.
+
 
 
 ## Use BlazingSQL

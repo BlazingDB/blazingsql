@@ -1,6 +1,17 @@
 #!/bin/bash
 
+NUMARGS=$#
+if (( ${NUMARGS} != 1 )); then
+  echo "Only one argument expected which should be environment prefix path"
+  exit 1
+fi
+
 env_prefix=$1
+
+if [ ! -d $env_prefix ]; then
+    echo "The environment prefix path does not exist"
+    exit 1
+fi
 
 # NOTE always run this script from blazingsql root folder
 blazingsql_project_root_dir=$PWD
