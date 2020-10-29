@@ -4,6 +4,7 @@
 - #981 Added powerPC building script and instructions
 - #912 Added UCX support to how the engine runs
 
+# BlazingSQL 0.16.0 (October 22, 2020)
 
 ## Improvements
 - #1081 Add validation for the kwargs when bc API is called
@@ -187,4 +188,8 @@
 - #785 Add script for Manual Testing Artifacts.
 - #931 Add script for error messages validation.
 - #932 Import pydrill and pyspark only when its generator or full mode.
+<<<<<<< HEAD
 - #1031 adding notebooks into BlazingSQL Tests
+=======
+
+>>>>>>> upstream/branch-0.16
