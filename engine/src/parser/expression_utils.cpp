@@ -14,7 +14,7 @@ switch (op)
 		return true;
 	default:
 		return false;
-	}	
+	}
 }
 
 bool is_unary_operator(operator_type op) {
@@ -84,6 +84,8 @@ bool is_binary_operator(operator_type op) {
 	case operator_type::BLZ_STR_CONCAT:
 		return true;
 	case operator_type::BLZ_STR_SUBSTRING:
+	case operator_type::BLZ_TO_DATE:
+	case operator_type::BLZ_TO_TIMESTAMP:
 		assert(false);
 		// Ternary operator. Should not reach here
 		// Should be evaluated in place (inside function_evaluator_transformer) and removed from the tree
@@ -216,6 +218,10 @@ cudf::type_id get_output_type(operator_type op, cudf::type_id input_left_type, c
 	case operator_type::BLZ_STR_SUBSTRING:
 	case operator_type::BLZ_STR_CONCAT:
 		return cudf::type_id::STRING;
+	case operator_type::BLZ_TO_DATE:
+		return cudf::type_id::TIMESTAMP_DAYS;
+	case operator_type::BLZ_TO_TIMESTAMP:
+		return cudf::type_id::TIMESTAMP_NANOSECONDS;
 	default:
 		assert(false);
 		return cudf::type_id::EMPTY;
@@ -281,6 +287,8 @@ operator_type map_to_operator_type(const std::string & operator_token) {
 		{"MAGIC_IF_NOT", operator_type::BLZ_MAGIC_IF_NOT},
 		{"LIKE", operator_type::BLZ_STR_LIKE},
 		{"SUBSTRING", operator_type::BLZ_STR_SUBSTRING},
+		{"TO_DATE", operator_type::BLZ_TO_DATE},
+		{"TO_TIMESTAMP", operator_type::BLZ_TO_TIMESTAMP},
 		{"||", operator_type::BLZ_STR_CONCAT}
 	};
 
@@ -451,13 +459,13 @@ bool is_merge_aggregate(std::string query_part) { return (query_part.find(LOGICA
 
 // Returns the index from table_scan if exists
 size_t get_table_index(std::vector<std::string> table_scans, std::string table_scan) {
-	
+
 	for (size_t i = 0; i < table_scans.size(); i++){
 		if (StringUtil::contains(table_scans[i], table_scan)){
 			return i;
 		}
 	}
-	throw std::invalid_argument("ERROR: get_table_index table_scan was not found ==>" + table_scan);	
+	throw std::invalid_argument("ERROR: get_table_index table_scan was not found ==>" + table_scan);
 }
 
 // Input: [[hr, emps]] or [[emps]] Output: hr.emps or emps
@@ -559,7 +567,7 @@ std::string replace_calcite_regex(const std::string & expression) {
 	static const std::regex char_re{
 		R""(CHAR\(\d+\))"", std::regex_constants::icase};
 	ret = std::regex_replace(ret, char_re, "VARCHAR");
-	
+
 
 	StringUtil::findAndReplaceAll(ret, "IS NOT NULL", "IS_NOT_NULL");
 	StringUtil::findAndReplaceAll(ret, "IS NULL", "IS_NULL");
