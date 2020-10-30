@@ -1,7 +1,7 @@
 # BlazingSQL 0.17.0 (Date TBS)
 
 ## New Features
-
+- #1077 Allow to create tables from compressed files
 
 ## Improvements
 - #1081 Add validation for the kwargs when bc API is called
