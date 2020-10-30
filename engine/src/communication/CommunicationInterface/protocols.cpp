@@ -52,9 +52,7 @@ namespace io{
 				amount_written += bytes_written;
 				count_invalids = 0;
 			} else {
-            //    std::cout<<errno<<" is errno"<<std::endl;
-            std::cout<<"could not send"<<std::endl;
-				if (errno == 9) { // Bad socket number
+            	if (errno == 9) { // Bad socket number
 					std::cerr << "Bad socket writing to " << socket_fd << std::endl;
 					throw std::runtime_error("Bad socket");
 				}
@@ -171,16 +169,14 @@ void ucp_progress_manager::check_progress(){
 
 
 void graphs_info::register_graph(int32_t ctx_token, std::shared_ptr<ral::cache::graph> graph){
-   // std::cout<<"registered graph"<<ctx_token<<std::endl;
 	_ctx_token_to_graph_map.insert({ctx_token, graph});
 }
 
 void graphs_info::deregister_graph(int32_t ctx_token){
 	if(_ctx_token_to_graph_map.find(ctx_token) != _ctx_token_to_graph_map.end()){
         _ctx_token_to_graph_map[ctx_token]->clear_kernels();
-     //   std::cout<<"cleared kernels"<<ctx_token<<std::endl;
 		_ctx_token_to_graph_map.erase(ctx_token);
-	}else{
+	} else{
        // std::cout<<"did not clear kernels "<<ctx_token<<std::endl;
     }
 }
@@ -369,7 +365,6 @@ void tcp_buffer_transport::send_impl(const char * buffer, size_t buffer_size){
 }
 
 tcp_buffer_transport::~tcp_buffer_transport(){
-    std::cout<<"transport going out of scope"<<std::endl;
     for (auto socket_fd : socket_fds){
         close(socket_fd);
     }

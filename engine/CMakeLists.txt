@@ -25,16 +25,6 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 
     # Suppress parentheses warning which causes gmock to fail
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -Wno-parentheses")
-
-    option(CMAKE_CXX11_ABI "Enable the GLIBCXX11 ABI" ON)
-    if(CMAKE_CXX11_ABI)
-        message(STATUS "CUDF: Enabling the GLIBCXX11 ABI")
-    else()
-        message(STATUS "CUDF: Disabling the GLIBCXX11 ABI")
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_GLIBCXX_USE_CXX11_ABI=0")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GLIBCXX_USE_CXX11_ABI=0")
-        set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -D_GLIBCXX_USE_CXX11_ABI=0")
-    endif(CMAKE_CXX11_ABI)
 endif(CMAKE_COMPILER_IS_GNUCXX)
 
 if(CMAKE_CUDA_COMPILER_VERSION)
@@ -48,9 +38,6 @@ endif()
 message(STATUS "CUDA_VERSION_MAJOR: ${CUDA_VERSION_MAJOR}")
 message(STATUS "CUDA_VERSION_MINOR: ${CUDA_VERSION_MINOR}")
 message(STATUS "CUDA_VERSION: ${CUDA_VERSION}")
-
-find_library(CUDFTESTUTIL_LIBRARY "libcudftestutil.a"
-             HINTS "$ENV{CUDF_ROOT}/lib")
 
 # Always set this convenience variable
 set(CUDA_VERSION_STRING "${CUDA_VERSION}")
@@ -225,26 +212,6 @@ get_directory_property(CXX_COMPILE_DEFINITIONS DIRECTORY ${CMAKE_SOURCE_DIR} COM
 message(STATUS "C++ compiler definitions: ${CXX_COMPILE_DEFINITIONS}")
 
 
-###################################################################################################
-# - common test utils -----------------------------------------------------------------------------
-
-set(CUDF_TEST_INCLUDE "$ENV{CUDF_HOME}/cpp")
-
-find_library(CUDFTESTUTIL_LIBRARY "libcudftestutil.a"
-             HINTS "$ENV{CUDF_ROOT}/lib")
-
-message(STATUS "CUDFTESTUTIL: CUDFTESTUTIL_LIBRARY set to ${CUDFTESTUTIL_LIBRARY}")
-message(STATUS "CUDFTESTUTIL: CUDF_TEST_INCLUDE set to ${CUDF_TEST_INCLUDE}")
-
-add_library(cudftestutil STATIC IMPORTED ${CUDFTESTUTIL_LIBRARY})
-
-if (CUDF_TEST_INCLUDE AND CUDFTESTUTIL_LIBRARY)
-    set_target_properties(cudftestutil PROPERTIES IMPORTED_LOCATION ${CUDFTESTUTIL_LIBRARY})
-endif (CUDF_TEST_INCLUDE AND CUDFTESTUTIL_LIBRARY)
-
-###################################################################################################
-
-
 include_directories(
     ${PROJECT_BINARY_DIR}
     ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR}
@@ -269,7 +236,6 @@ include_directories(
     $ENV{INSTALL_PREFIX}/include/libcudf/libcudacxx/
     $ENV{INSTALL_PREFIX}/include/blazingdb/io
     ${PYTHON_INCLUDE_DIRS}
-    ${CUDF_TEST_INCLUDE}
     "${ARROW_INCLUDE_DIR}"
     )
 
@@ -335,7 +301,6 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingH
 link_directories(${BSQL_BLD_PREFIX}/lib)
 
 # These new var are for custom build process (powerpc)
-link_directories($ENV{THRIFT_INSTALL_DIR})
 link_directories($ENV{SNAPPY_INSTALL_DIR})
 link_directories($ENV{LZ4_INSTALL_DIR})
 
@@ -376,16 +341,11 @@ target_link_libraries(blazingsql-engine
     
     zmq
     cudart
-    cuda
-    ${CUDA_CUDA_LIBRARY}
-    ${CUDA_NVRTC_LIBRARY}
-    ${CUDA_NVTX_LIBRARY}
 
     ${UCX_LIBRARIES}
 
     parquet
     arrow
-    thrift
     snappy
 
     zstd
@@ -412,6 +372,7 @@ target_link_libraries(blazingsql-engine
 
 ###################################################################################################
 # - build options ---------------------------------------------------------------------------------
+set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --default-stream=per-thread")
 
 option(USE_NVTX "Build with NVTX support" ON)
 if(USE_NVTX)
@@ -452,6 +413,7 @@ endif()
 
 
 include(ConfigureProductVersion)
+message(STATUS "cmake_cuda_flags = ${CMAKE_CUDA_FLAGS}")
 
 # Print the project summary
 feature_summary(WHAT ALL INCLUDE_QUIET_PACKAGES FATAL_ON_MISSING_REQUIRED_PACKAGES)

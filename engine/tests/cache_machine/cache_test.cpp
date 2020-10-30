@@ -9,7 +9,6 @@
 #include <cudf_test/column_wrapper.hpp>
 
 using blazingdb::manager::Context;
-using blazingdb::transport::Address;
 using blazingdb::transport::Node;
 
 struct CacheMachineTest : public BlazingUnitTest {};

@@ -26,7 +26,6 @@ namespace blazingdb {
 namespace transport {
 namespace io {
 
-
 PinnedBufferProvider::PinnedBufferProvider(std::size_t sizeBuffers,
                                            std::size_t numBuffers) {
   this->numBuffers = numBuffers;
@@ -44,6 +43,7 @@ PinnedBufferProvider::PinnedBufferProvider(std::size_t sizeBuffers,
     this->buffers.push(buffer);
   }
   this->buffer_counter =  this->numBuffers;
+  this->allocation_counter = 0;
 }
 
 PinnedBufferProvider::~PinnedBufferProvider(){
@@ -62,6 +62,7 @@ PinnedBuffer *PinnedBufferProvider::getBuffer() {
     //}
     
   }
+  this->allocation_counter++;
   PinnedBuffer *temp = this->buffers.top();
   this->buffers.pop();
   return temp;
@@ -97,6 +98,8 @@ void PinnedBufferProvider::grow() {
 void PinnedBufferProvider::freeBuffer(PinnedBuffer *buffer) {
   std::unique_lock<std::mutex> lock(inUseMutex);
   this->buffers.push(buffer);  
+  this->allocation_counter--;
+
 }
 
 void PinnedBufferProvider::freeAll() {
@@ -110,6 +113,7 @@ void PinnedBufferProvider::freeAll() {
   for(auto allocation : allocations){
     cudaFreeHost(allocation);
   }
+    this->allocation_counter = 0;
 }
 
 std::size_t PinnedBufferProvider::sizeBuffers() { return this->bufferSize; }
@@ -119,6 +123,15 @@ static std::shared_ptr<PinnedBufferProvider> global_instance{};
 void setPinnedBufferProvider(std::size_t sizeBuffers, std::size_t numBuffers) {
   global_instance =
       std::make_shared<PinnedBufferProvider>(sizeBuffers, numBuffers);
+}
+
+
+std::size_t PinnedBufferProvider::get_allocated_buffers(){
+  return allocation_counter;
+}
+
+std::size_t PinnedBufferProvider::get_total_buffers(){
+  return buffer_counter;
 }
 
 PinnedBufferProvider &getPinnedBufferProvider() { return *global_instance; }

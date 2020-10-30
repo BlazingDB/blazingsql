@@ -105,8 +105,7 @@ public:
 							for(auto worker_id : worker_ids) {
 
 								if(node_address_map.find(worker_id) == node_address_map.end()) {
-									std::cout<<"Worker id not found!"<<worker_id<<std::endl;
-									throw std::exception();	 // TODO: make a real exception here
+									throw std::runtime_error("Worker id not found!" + worker_id);
 								}
 								destinations.push_back(node_address_map.at(worker_id));
 							}
@@ -129,8 +128,7 @@ public:
 								);
 							}
 							else{
-								std::cout<<"how!?"<<std::endl;
-								throw std::exception();
+								throw std::runtime_error("Unknown protocol");
 							}
 
 							transport->send_begin_transmission();

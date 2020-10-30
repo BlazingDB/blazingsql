@@ -106,6 +106,13 @@ data_handle uri_data_provider::get_next(bool open_file) {
 		try {
 			auto fs_manager = BlazingContext::getInstance()->getFileSystemManager();
 
+			const bool hasParentWildcard = current_uri.getPath().getParentPath().hasWildcard();
+
+			if(hasParentWildcard) {
+				throw std::runtime_error(
+					"ERROR: Wildcards on directories are not currently supported.");
+			}
+
 			if(hasWildcard) {
 				const Path final_path = current_uri.getPath().getParentPath();
 				target_uri = Uri(current_uri.getScheme(), current_uri.getAuthority(), final_path);
@@ -150,18 +157,50 @@ data_handle uri_data_provider::get_next(bool open_file) {
 				this->directory_uris = BlazingContext::getInstance()->getFileSystemManager()->list(target_uri);
 			}
 
-			std::string ender = ".crc";
+			// sometimes parquet directories have somes files that
+			// have not the same schema as the *.parquet files
+			// we don't want the data provider handle this ones
+			std::vector<std::string> ignored_suffixes {
+				".crc",
+				"_metadata",
+				"_SUCCESS",
+				".ipynb_checkpoints"
+			};
+
 			std::vector<Uri> new_uris;
 			for(int i = 0; i < this->directory_uris.size(); i++) {
 				std::string fileName = this->directory_uris[i].getPath().toString();
 
-				if(!StringUtil::endsWith(fileName, ender)) { 
+				bool is_valid=true;
+				for(std::string ender : ignored_suffixes) {
+					if(StringUtil::endsWith(fileName, ender)) {
+						is_valid=false;
+						break;
+					}
+				}
+
+				if(is_valid){
 					new_uris.push_back(this->directory_uris[i]);
 				}
 			}
-			this->directory_uris = new_uris;
 
+			this->directory_uris = new_uris;
 			this->directory_current_file = 0;
+
+			// If this->directory_uris is empty,
+			// the folder is empty, we just skip it
+			if(this->directory_uris.size()==0){
+				this->current_file++;
+
+				auto logger = spdlog::get("batch_logger");
+				if(logger != nullptr) {
+					logger->warn("|||{info}|||||", "info"_a="Folder is empty");
+				}
+
+				data_handle empty_handle;
+				return empty_handle;
+			}
+
 			return get_next(open_file);
 
 		} else if(fileStatus.isFile()) {

@@ -29,7 +29,6 @@ from libc.stdint cimport (  # noqa: E211
 cdef extern from "../include/engine/errors.h":
     cdef void raiseInitializeError()
     cdef void raiseFinalizeError()
-    cdef void raiseBlazingSetAllocatorError()
     cdef void raiseGetFreeMemoryError()
     cdef void raiseGetProductDetailsError()
     cdef void raisePerformPartitionError()
@@ -207,10 +206,9 @@ cdef extern from "../include/engine/engine.h" nogil:
 
         TableScanInfo getTableScanInfo(string logicalPlan)
 
-cdef extern from "../include/engine/initialize.h":
-    cdef pair[pair[shared_ptr[CacheMachine], shared_ptr[CacheMachine] ], int] initialize(int ralId, string worker_id, int gpuId, string network_iface_name, int ralCommunicationPort, vector[NodeMetaDataUCP] workers_ucp_info, bool singleNode, map[string,string] config_options) nogil except +raiseInitializeError
+cdef extern from "../include/engine/initialize.h" nogil:
+    cdef pair[pair[shared_ptr[CacheMachine], shared_ptr[CacheMachine] ], int] initialize(int ralId, string worker_id, int gpuId, string network_iface_name, int ralCommunicationPort, vector[NodeMetaDataUCP] workers_ucp_info, bool singleNode, map[string,string] config_options, string allocation_mode, size_t initial_pool_size, size_t maximum_pool_size,	bool enable_logging) nogil except +raiseInitializeError
     cdef void finalize() nogil except +raiseFinalizeError
-    cdef void blazingSetAllocator(string allocation_mode, size_t initial_pool_size, map[string,string] config_options) nogil except +raiseBlazingSetAllocatorError
     cdef size_t getFreeMemory() nogil except +raiseGetFreeMemoryError
 
 cdef extern from "../include/engine/static.h" nogil:
