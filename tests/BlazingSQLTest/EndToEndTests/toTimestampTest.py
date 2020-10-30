@@ -6,10 +6,10 @@ from pynvml import nvmlInit
 from Runner import runTest
 from Utils import Execution, gpuMemory, init_context, skip_test
 
-queryType = "to_timestamp"
+queryType = "To_timestamp"
 
 
-def main(dask_client, drill, spark, dir_data_lc, bc, nRals):
+def main(dask_client, spark, dir_data_lc, bc, nRals):
 
     start_mem = gpuMemory.capture_gpu_memory_usage()
 
@@ -19,11 +19,8 @@ def main(dask_client, drill, spark, dir_data_lc, bc, nRals):
             "lineitem",
         ]
         data_types = [
-            DataType.CUDF,
-            DataType.CSV,
-            DataType.ORC,
-            DataType.PARQUET,
-        ]  # TODO parquet json
+            DataType.ORC
+        ]
 
         # Create Tables -----------------------------------------------------
         for fileSchemaType in data_types:
@@ -44,9 +41,10 @@ def main(dask_client, drill, spark, dir_data_lc, bc, nRals):
 
             queryId = "TEST_01"
             query = """select TO_DATE(cast(o_orderdate as varchar), '%Y-%m-%d %H:%M:%S') from orders"""
+            query_spark = """select TO_DATE(cast(o_orderdate as string), 'yyyy-MM-dd HH:mm:ss') from orders"""
             runTest.run_query(
                 bc,
-                drill,
+                spark,
                 query,
                 queryId,
                 queryType,
@@ -55,13 +53,15 @@ def main(dask_client, drill, spark, dir_data_lc, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
+                query_spark=query_spark,
             )
 
             queryId = "TEST_02"
             query = """select TO_TIMESTAMP(cast(o_orderdate as varchar), '%Y-%m-%d %H:%M:%S') from orders"""
+            query_spark = """select TO_TIMESTAMP(cast(o_orderdate as string), 'yyyy-MM-dd HH:mm:ss') from orders"""
             runTest.run_query(
                 bc,
-                drill,
+                spark,
                 query,
                 queryId,
                 queryType,
@@ -70,6 +70,7 @@ def main(dask_client, drill, spark, dir_data_lc, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
+                query_spark=query_spark
             )
 
             queryId = "TEST_03"
@@ -77,12 +78,19 @@ def main(dask_client, drill, spark, dir_data_lc, bc, nRals):
                         TO_DATE(
                         substring(cast(l_shipdate as varchar), 1, 4) || '|' ||
                         substring(cast(l_commitdate as varchar), 6, 2) || '|' ||
-                        substring(cast(l_receiptdate as varchar), 9, 2),
+                        '13',
                         '%Y|%m|%d')
                         from lineitem"""
+            query_spark = """select
+                            TO_DATE(
+                            substring(cast(l_shipdate as string), 1, 4) || '|' ||
+                            substring(cast(l_commitdate as string), 6, 2) || '|' ||
+                            '13',
+                            'yyyy|MM|dd')
+                            from lineitem"""
             runTest.run_query(
                 bc,
-                drill,
+                spark,
                 query,
                 queryId,
                 queryType,
@@ -91,6 +99,7 @@ def main(dask_client, drill, spark, dir_data_lc, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
+                query_spark=query_spark
             )
 
             queryId = "TEST_04"
@@ -98,12 +107,19 @@ def main(dask_client, drill, spark, dir_data_lc, bc, nRals):
                         TO_TIMESTAMP(
                         substring(cast(l_shipdate as varchar), 1, 4) || '|' ||
                         substring(cast(l_commitdate as varchar), 6, 2) || '|' ||
-                        substring(cast(l_receiptdate as varchar), 9, 2),
+                        '13',
                         '%Y|%m|%d')
                         from lineitem"""
+            query_spark = """select
+                            TO_TIMESTAMP(
+                            substring(cast(l_shipdate as string), 1, 4) || '|' ||
+                            substring(cast(l_commitdate as string), 6, 2) || '|' ||
+                            '13',
+                            'yyyy|MM|dd')
+                            from lineitem"""
             runTest.run_query(
                 bc,
-                drill,
+                spark,
                 query,
                 queryId,
                 queryType,
@@ -112,6 +128,7 @@ def main(dask_client, drill, spark, dir_data_lc, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
+                query_spark=query_spark
             )
 
     executionTest()
@@ -138,11 +155,11 @@ if __name__ == "__main__":
          compareResults == "true") or
             Settings.execution_mode == ExecutionMode.GENERATOR):
         # Create Table Drill ------------------------------------------------
-        from pydrill.client import PyDrill
+        # from pydrill.client import PyDrill
 
-        drill = PyDrill(host="localhost", port=8047)
-        cs.init_drill_schema(drill,
-                             Settings.data["TestSettings"]["dataDirectory"])
+        # drill = PyDrill(host="localhost", port=8047)
+        # cs.init_drill_schema(drill,
+        #                      Settings.data["TestSettings"]["dataDirectory"])
 
         # Create Table Spark -------------------------------------------------
         from pyspark.sql import SparkSession
@@ -159,7 +176,6 @@ if __name__ == "__main__":
 
     main(
         dask_client,
-        drill,
         spark,
         Settings.data["TestSettings"]["dataDirectory"],
         bc,
