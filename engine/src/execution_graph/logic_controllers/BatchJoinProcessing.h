@@ -776,10 +776,10 @@ public:
 		distribute_left_thread.join();
 		distribute_right_thread.join();
 
-		int total_count_left = get_total_partition_counts(1); //left
+		int total_count_left = get_total_partition_counts(LEFT_TABLE_IDX); //left
 		this->output_.get_cache("output_a")->wait_for_count(total_count_left);
 
-		int total_count_right = get_total_partition_counts(2); //right
+		int total_count_right = get_total_partition_counts(RIGHT_TABLE_IDX); //right
 		this->output_.get_cache("output_b")->wait_for_count(total_count_right);
 	}
 

@@ -236,8 +236,9 @@ public:
             "", //message_prefix
             "" //cache_id
         );
-
+        
         int total_count = get_total_partition_counts();
+
         this->output_cache()->wait_for_count(total_count);
 
         logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
@@ -278,6 +279,7 @@ public:
         int batch_count=0;
         try {
             while (input.wait_for_next()) {
+                std::cout<<"MergeAggregateKernel batch_count: "<<batch_count<<std::endl;
                 auto batch = input.next();
                 batch_count++;
                 tableViewsToConcat.emplace_back(batch->toBlazingTableView());

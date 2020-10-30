@@ -65,7 +65,10 @@ void distributing_kernel::send_message(std::unique_ptr<ral::frame::BlazingTable>
     }
 
     if(wait_for) {
-        messages_to_wait_for[message_tracker_idx].push_back(message_id_prefix + MESSAGE_ID_CONTENT);
+        const std::string message_id_to_wait_for = metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL] + "_" +
+                                           metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL] + "_" +
+                                           metadata.get_values()[ral::cache::WORKER_IDS_METADATA_LABEL];
+        messages_to_wait_for[message_tracker_idx].push_back(message_id_prefix + message_id_to_wait_for);
     }
 
     if(specific_cache != "false") {
@@ -102,7 +105,7 @@ void distributing_kernel::send_total_partition_counts(
                 "", //total_rows
                 message_id_prefix, //message_id_prefix
                 true, //always_add
-                false, //wait_for
+                true, //wait_for
                 message_tracker_idx,
                 extra_metadata);
         }

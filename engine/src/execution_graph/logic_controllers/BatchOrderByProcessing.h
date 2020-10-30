@@ -311,7 +311,6 @@ public:
 
 		context->incrementQuerySubstep();
 
-		std::vector<std::string> messages_to_wait_for;
 		std::map<std::string, std::map<int32_t, int> > node_count;
 		
 		bool ordered = false;
