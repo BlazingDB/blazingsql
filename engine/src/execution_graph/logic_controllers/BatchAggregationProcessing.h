@@ -164,14 +164,12 @@ public:
 
 
         while (input.wait_for_next()) {
-            std::cout<<"batch_count: "<<batch_count<<std::endl;
             auto batch = input.next();
 
             try {
                 // If its an aggregation without group by we want to send all the results to the master node
                 auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
                 if (group_column_indices.size() == 0) {
-                    std::cout<<"group_column_indices.size() == 0 started "<<std::endl;
                     if(this->context->isMasterNode(self_node)) {
                         bool added = this->output_.get_cache()->addToCache(std::move(batch),"",false);
                         if (added) {
@@ -193,7 +191,6 @@ public:
                             "", //cache_id
                             this->context->getMasterNode().id()); //target_id
                     }
-                    std::cout<<"group_column_indices.size() == 0 done "<<std::endl;
                 } else {
                     CudfTableView batch_view = batch->view();
                     std::vector<CudfTableView> partitioned;
@@ -235,17 +232,12 @@ public:
             }
         }
 
-        std::cout<<"send_total_partition_counts started "<<std::endl;
-
         send_total_partition_counts(
             "", //message_prefix
             "" //cache_id
         );
 
-        std::cout<<"send_total_partition_counts done"<<std::endl;
-
         int total_count = get_total_partition_counts();
-        std::cout<<"total_count: "<<total_count<<std::endl;
         this->output_cache()->wait_for_count(total_count);
 
         logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
