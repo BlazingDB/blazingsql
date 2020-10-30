@@ -1,18 +1,18 @@
 #pragma once
 
 #include <bmr/initializer.h>
-#include "tests/utilities/cudf_gtest.hpp"
+#include "cudf_test/cudf_gtest.hpp"
 
 
 struct BlazingUnitTest : public ::testing::Test {
 	static void SetUpTestSuite();
 	static void TearDownTestSuite();
 
-	void SetUp() {
-		BlazingRMMInitialize();
+	virtual void SetUp() override {
+		BlazingRMMInitialize("cuda_memory_resource");
 	}
 
-	void TearDown() { 
+	virtual void TearDown() override {
 		BlazingRMMFinalize();
 	}
 };

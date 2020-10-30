@@ -25,16 +25,6 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 
     # Suppress parentheses warning which causes gmock to fail
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -Wno-parentheses")
-
-    option(CMAKE_CXX11_ABI "Enable the GLIBCXX11 ABI" ON)
-    if(CMAKE_CXX11_ABI)
-        message(STATUS "CUDF: Enabling the GLIBCXX11 ABI")
-    else()
-        message(STATUS "CUDF: Disabling the GLIBCXX11 ABI")
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_GLIBCXX_USE_CXX11_ABI=0")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GLIBCXX_USE_CXX11_ABI=0")
-        set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -D_GLIBCXX_USE_CXX11_ABI=0")
-    endif(CMAKE_CXX11_ABI)
 endif(CMAKE_COMPILER_IS_GNUCXX)
 
 if(CMAKE_CUDA_COMPILER_VERSION)
@@ -48,9 +38,6 @@ endif()
 message(STATUS "CUDA_VERSION_MAJOR: ${CUDA_VERSION_MAJOR}")
 message(STATUS "CUDA_VERSION_MINOR: ${CUDA_VERSION_MINOR}")
 message(STATUS "CUDA_VERSION: ${CUDA_VERSION}")
-
-find_library(CUDFTESTUTIL_LIBRARY "libcudftestutil.a"
-             HINTS "$ENV{CUDF_ROOT}/lib")
 
 # Always set this convenience variable
 set(CUDA_VERSION_STRING "${CUDA_VERSION}")
@@ -104,7 +91,7 @@ endif(CMAKE_CUDA_LINEINFO)
 # Debug options
 if(CMAKE_BUILD_TYPE MATCHES Debug)
     message(STATUS "Building with debugging flags")
-    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -G -Xcompiler -rdynamic")
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -G -g -Xcompiler -rdynamic")
 endif(CMAKE_BUILD_TYPE MATCHES Debug)
 
 # To apply RUNPATH to transitive dependencies (this is a temporary solution)
@@ -170,6 +157,9 @@ elseif (DEFINED ENV{CONDA_PREFIX})
     link_directories($ENV{CONDA_PREFIX}/lib64/)
 
 endif ()
+
+link_directories(${CMAKE_CUDA_IMPLICIT_LINK_DIRECTORIES})
+
 message(WARNING "BSQL_BLD_PREFIX set to: ${BSQL_BLD_PREFIX}")
 message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 
@@ -183,12 +173,36 @@ include(CTest)
 
 find_package(CURL REQUIRED)
 
-find_package(Threads)
+# this breaks powerpc custom compiler
+#find_package(Threads)
+
 find_package(PythonLibs)
 # TODO jp mario c.gonzales we must use find here!
 #find_package(spdlog REQUIRED)
 
 find_package(GTest REQUIRED)
+
+# BEGIN UCX
+set(UCX_INSTALL_DIR $ENV{CONDA_PREFIX})
+set(UCX_INCLUDE_DIR $ENV{CONDA_PREFIX}/include)
+find_package(UCX REQUIRED)
+# END UCX
+
+# BEGIN find arrow
+find_path(ARROW_INCLUDE_DIR "arrow" HINTS "$ENV{ARROW_ROOT}/include")
+find_library(ARROW_LIB "arrow" NAMES libarrow HINTS "$ENV{ARROW_ROOT}/lib" "$ENV{ARROW_ROOT}/build")
+find_library(ARROW_CUDA_LIB "arrow_cuda" NAMES libarrow_cuda HINTS "$ENV{ARROW_ROOT}/lib" "$ENV{ARROW_ROOT}/build")
+message(STATUS "ARROW: ARROW_INCLUDE_DIR set to ${ARROW_INCLUDE_DIR}")
+message(STATUS "ARROW: ARROW_LIB set to ${ARROW_LIB}")
+message(STATUS "ARROW: ARROW_CUDA_LIB set to ${ARROW_CUDA_LIB}")
+add_library(arrow SHARED IMPORTED ${ARROW_LIB})
+add_library(arrow_cuda SHARED IMPORTED ${ARROW_CUDA_LIB})
+
+if(ARROW_INCLUDE_DIR AND ARROW_LIB AND ARROW_CUDA_LIB)
+  set_target_properties(arrow PROPERTIES IMPORTED_LOCATION ${ARROW_LIB})
+  set_target_properties(arrow_cuda PROPERTIES IMPORTED_LOCATION ${ARROW_CUDA_LIB})
+endif(ARROW_INCLUDE_DIR AND ARROW_LIB AND ARROW_CUDA_LIB)
+# END find arrow
 
 # BEGIN MAIN #
 
@@ -196,26 +210,6 @@ find_package(GTest REQUIRED)
 add_definitions(${CXX_DEFINES})
 get_directory_property(CXX_COMPILE_DEFINITIONS DIRECTORY ${CMAKE_SOURCE_DIR} COMPILE_DEFINITIONS)
 message(STATUS "C++ compiler definitions: ${CXX_COMPILE_DEFINITIONS}")
-
-
-###################################################################################################
-# - common test utils -----------------------------------------------------------------------------
-
-set(CUDF_TEST_INCLUDE "$ENV{CUDF_HOME}/cpp")
-
-find_library(CUDFTESTUTIL_LIBRARY "libcudftestutil.a"
-             HINTS "$ENV{CUDF_ROOT}/lib")
-
-message(STATUS "CUDFTESTUTIL: CUDFTESTUTIL_LIBRARY set to ${CUDFTESTUTIL_LIBRARY}")
-message(STATUS "CUDFTESTUTIL: CUDF_TEST_INCLUDE set to ${CUDF_TEST_INCLUDE}")
-
-add_library(cudftestutil STATIC IMPORTED ${CUDFTESTUTIL_LIBRARY})
-
-if (CUDF_TEST_INCLUDE AND CUDFTESTUTIL_LIBRARY)
-    set_target_properties(cudftestutil PROPERTIES IMPORTED_LOCATION ${CUDFTESTUTIL_LIBRARY})
-endif (CUDF_TEST_INCLUDE AND CUDFTESTUTIL_LIBRARY)
-
-###################################################################################################
 
 
 include_directories(
@@ -242,12 +236,8 @@ include_directories(
     $ENV{INSTALL_PREFIX}/include/libcudf/libcudacxx/
     $ENV{INSTALL_PREFIX}/include/blazingdb/io
     ${PYTHON_INCLUDE_DIRS}
-    ${CUDF_TEST_INCLUDE}
+    "${ARROW_INCLUDE_DIR}"
     )
-
-## communication primitives
-add_subdirectory(${CMAKE_SOURCE_DIR}/src/communication)
-get_directory_property(communication_source_files DIRECTORY ${CMAKE_SOURCE_DIR}/src/communication DEFINITION source_files)
 
 ## Target source files
 set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingHostTable.cpp
@@ -260,6 +250,7 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingH
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/kernel.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/distributing_kernel.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/kernel_type.cpp
+              ${CMAKE_SOURCE_DIR}/src/bmr/MemoryMonitor.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/graph.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BatchJoinProcessing.cpp
               ${CMAKE_SOURCE_DIR}/src/config/GPUManager.cu
@@ -293,13 +284,26 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingH
               ${CMAKE_SOURCE_DIR}/src/cython/io.cpp
               ${CMAKE_SOURCE_DIR}/src/cython/errors.cpp
               ${CMAKE_SOURCE_DIR}/src/cython/engine.cpp
-              ${CMAKE_SOURCE_DIR}/src/communication/messages/GPUComponentMessage.cpp
               ${CMAKE_SOURCE_DIR}/src/distribution/primitives.cpp
-              ${CMAKE_SOURCE_DIR}/src/bmr/MemoryMonitor.cpp
-              ${communication_source_files}
+
+              ${CMAKE_SOURCE_DIR}/src/communication/factory/MessageFactory.cpp
+              ${CMAKE_SOURCE_DIR}/src/communication/CommunicationData.cpp
+              ${CMAKE_SOURCE_DIR}/src/communication/messages/MessageUtil.cu
+              ${CMAKE_SOURCE_DIR}/src/communication/messages/GPUComponentMessage.cpp
+              ${CMAKE_SOURCE_DIR}/src/communication/CommunicationInterface/serializer.cpp
+              ${CMAKE_SOURCE_DIR}/src/communication/CommunicationInterface/node.cpp
+              ${CMAKE_SOURCE_DIR}/src/communication/CommunicationInterface/messageReceiver.cpp
+              ${CMAKE_SOURCE_DIR}/src/communication/CommunicationInterface/messageListener.cpp
+              ${CMAKE_SOURCE_DIR}/src/communication/CommunicationInterface/bufferTransport.cpp
+              ${CMAKE_SOURCE_DIR}/src/communication/CommunicationInterface/protocols.cpp
+              ${CMAKE_SOURCE_DIR}/src/communication/CommunicationInterface/messageSender.cpp
         )
 
 link_directories(${BSQL_BLD_PREFIX}/lib)
+
+# These new var are for custom build process (powerpc)
+link_directories($ENV{SNAPPY_INSTALL_DIR})
+link_directories($ENV{LZ4_INSTALL_DIR})
 
 add_library(blazingsql-engine SHARED ${SRC_FILES})
 
@@ -315,21 +319,34 @@ endif()
 set_target_properties(blazingsql-engine PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_link_libraries(blazingsql-engine
     blazingdb-io
-    Threads::Threads
+    #Threads::Threads
+    pthread
     blazingdb-transport
 
-    cudf
-    rmm
+    # TODO: Make this cleaner. Here we just used to link cudf, but cudf got split into a whole bunch of libraries in this PR https://github.com/rapidsai/cudf/pull/6134
+    # cudf
+    libcudf_base.so
+    libcudf_rolling.so
+    libcudf_replace.so
+    libcudf_transpose.so
+    libcudf_reductions.so
+    libcudf_ast.so
+    libcudf_join.so
+    libcudf_reshape.so
+    libcudf_merge.so
+    libcudf_comms.so
+    libcudf_hash.so
+    libcudf_io.so
+    libcudf_interop.so
+    libcudf_partitioning.so
+    
     zmq
     cudart
-    cuda
-    ${CUDA_CUDA_LIBRARY}
-    ${CUDA_NVRTC_LIBRARY}
-    ${CUDA_NVTX_LIBRARY}
+
+    ${UCX_LIBRARIES}
 
     parquet
     arrow
-    thrift
     snappy
 
     zstd
@@ -356,6 +373,7 @@ target_link_libraries(blazingsql-engine
 
 ###################################################################################################
 # - build options ---------------------------------------------------------------------------------
+set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --default-stream=per-thread")
 
 option(USE_NVTX "Build with NVTX support" ON)
 if(USE_NVTX)
@@ -396,6 +414,7 @@ endif()
 
 
 include(ConfigureProductVersion)
+message(STATUS "cmake_cuda_flags = ${CMAKE_CUDA_FLAGS}")
 
 # Print the project summary
 feature_summary(WHAT ALL INCLUDE_QUIET_PACKAGES FATAL_ON_MISSING_REQUIRED_PACKAGES)

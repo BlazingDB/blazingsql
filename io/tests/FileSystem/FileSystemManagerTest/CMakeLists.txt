@@ -1,5 +1,5 @@
 set(FileSystemManagerTest_SRCS
-    ${CMAKE_SOURCE_DIR}/src/Config/Config.cpp
+    ${CMAKE_SOURCE_DIR}/src/Config/BlazingContext.cpp
     FileSystemManagerTest.cpp
 )
 

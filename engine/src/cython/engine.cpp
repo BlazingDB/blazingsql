@@ -1,4 +1,4 @@
-#include "../../include/engine/engine.h"
+#include "engine/engine.h"
 #include "../CalciteInterpreter.h"
 #include "../io/data_parser/ArgsUtil.h"
 #include "../io/data_parser/CSVParser.h"
@@ -11,13 +11,16 @@
 #include "../io/data_provider/UriDataProvider.h"
 #include "../skip_data/SkipDataProcessor.h"
 #include "../execution_graph/logic_controllers/LogicalFilter.h"
-#include "communication/network/Server.h"
+
 #include <numeric>
 #include <map>
 #include "communication/CommunicationData.h"
 #include <spdlog/spdlog.h>
 #include "CodeTimer.h"
+#include "communication/CommunicationInterface/protocols.hpp"
 #include "error.hpp"
+#include "blazingdb/transport/io/reader_writer.h"
+
 
 using namespace fmt::literals;
 
@@ -37,8 +40,7 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 		auto files = filesAll[i];
 		auto fileType = fileTypes[i];
 
-		auto kwargs = ral::io::to_map(tableSchemaCppArgKeys[i], tableSchemaCppArgValues[i]);
-		ral::io::ReaderArgs args = ral::io::getReaderArgs((ral::io::DataType) fileType, kwargs);
+		auto args_map = ral::io::to_map(tableSchemaCppArgKeys[i], tableSchemaCppArgValues[i]);
 
 		std::vector<cudf::type_id> types;
 		for(int col = 0; col < tableSchemas[i].types.size(); col++) {
@@ -57,11 +59,11 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 		} else if(fileType == gdfFileType || fileType == daskFileType) {
 			parser = std::make_shared<ral::io::gdf_parser>(tableSchema.blazingTableViews);
 		} else if(fileType == ral::io::DataType::ORC) {
-			parser = std::make_shared<ral::io::orc_parser>(args.orcReaderArg);
+			parser = std::make_shared<ral::io::orc_parser>(args_map);
 		} else if(fileType == ral::io::DataType::JSON) {
-			parser = std::make_shared<ral::io::json_parser>(args.jsonReaderArg);
+			parser = std::make_shared<ral::io::json_parser>(args_map);
 		} else if(fileType == ral::io::DataType::CSV) {
-			parser = std::make_shared<ral::io::csv_parser>(args.csvReaderArg);
+			parser = std::make_shared<ral::io::csv_parser>(args_map);
 		} else if(fileType == ral::io::DataType::ARROW){
 	     	parser = std::make_shared<ral::io::arrow_parser>(tableSchema.arrow_table);
 		}
@@ -120,7 +122,7 @@ void fix_column_names_duplicated(std::vector<std::string> & col_names){
 }
 
 std::shared_ptr<ral::cache::graph> runGenerateGraph(int32_t masterIndex,
-	std::vector<NodeMetaDataTCP> tcpMetadata,
+	std::vector<std::string> worker_ids,
 	std::vector<std::string> tableNames,
 	std::vector<std::string> tableScans,
 	std::vector<TableSchema> tableSchemas,
@@ -132,7 +134,8 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(int32_t masterIndex,
 	std::string query,
 	uint64_t accessToken,
 	std::vector<std::vector<std::map<std::string, std::string>>> uri_values,
-	std::map<std::string, std::string> config_options ) {
+	std::map<std::string, std::string> config_options,
+	std::string sql ) {
 
 	std::vector<ral::io::data_loader> input_loaders;
 	std::vector<ral::io::Schema> schemas;
@@ -144,36 +147,39 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(int32_t masterIndex,
 	using blazingdb::manager::Context;
 	using blazingdb::transport::Node;
 
+	auto& communicationData = ral::communication::CommunicationData::getInstance();
+
 	std::vector<Node> contextNodes;
-	for(auto currentMetadata : tcpMetadata) {
-		auto address =
-			blazingdb::transport::Address::TCP(currentMetadata.ip, currentMetadata.communication_port, 0);
-		contextNodes.push_back(Node(address, currentMetadata.worker_id));
+	for(auto worker_id : worker_ids) {
+		contextNodes.push_back(Node( worker_id));
 	}
-
 	Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], "", config_options};
-	ral::communication::network::Server::getInstance().registerContext(ctxToken);
-
 	CodeTimer eventTimer(true);
-	logger->info("{ral_id}|{query_id}|{start_time}|{plan}",
-									"ral_id"_a=queryContext.getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+	sql = "'" + sql + "'";
+	logger->info("{ral_id}|{query_id}|{start_time}|{plan}|{sql}",
+									"ral_id"_a=queryContext.getNodeIndex(communicationData.getSelfNode()),
 									"query_id"_a=queryContext.getContextToken(),
 									"start_time"_a=eventTimer.start_time(),
-									"plan"_a=query);
+									"plan"_a=query,
+									"sql"_a=sql);
 
 	auto graph = generate_graph(input_loaders, schemas, tableNames, tableScans, query, accessToken, queryContext);
 
+	comm::graphs_info::getInstance().register_graph(ctxToken, graph);
 	return graph;
 }
 
-std::unique_ptr<PartitionedResultSet> runExecuteGraph(std::shared_ptr<ral::cache::graph> graph) {
+std::unique_ptr<PartitionedResultSet> runExecuteGraph(std::shared_ptr<ral::cache::graph> graph, int32_t ctx_token) {
 	// Execute query
 	std::vector<std::unique_ptr<ral::frame::BlazingTable>> frames;
 	frames = execute_graph(graph);
 
 	std::unique_ptr<PartitionedResultSet> result = std::make_unique<PartitionedResultSet>();
+
 	assert( frames.size()>0 );
+
 	result->names = frames[0]->names();
+
 	fix_column_names_duplicated(result->names);
 
 	for(auto& cudfTable : frames){
@@ -181,11 +187,16 @@ std::unique_ptr<PartitionedResultSet> runExecuteGraph(std::shared_ptr<ral::cache
 	}
 
 	result->skipdata_analysis_fail = false;
+
+	comm::graphs_info::getInstance().deregister_graph(ctx_token);
+	spdlog::get("batch_logger")->info("{allocation_count}|{total_buffer_count}", 
+			"allocation_count"_a=blazingdb::transport::io::getPinnedBufferProvider().get_allocated_buffers(),
+			"total_buffer_count"_a=blazingdb::transport::io::getPinnedBufferProvider().get_total_buffers());
 	return result;
 }
-
+/*
 std::unique_ptr<ResultSet> performPartition(int32_t masterIndex,
-	std::vector<NodeMetaDataTCP> tcpMetadata,
+	
 	int32_t ctxToken,
 	const ral::frame::BlazingTableView & table,
 	std::vector<std::string> column_names) {
@@ -206,7 +217,6 @@ std::unique_ptr<ResultSet> performPartition(int32_t masterIndex,
 		}
 
 		Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], "", std::map<std::string, std::string>()};
-		ral::communication::network::Server::getInstance().registerContext(ctxToken);
 
 		const std::vector<std::string> & table_col_names = table.names();
 
@@ -236,7 +246,7 @@ std::unique_ptr<ResultSet> performPartition(int32_t masterIndex,
 		throw;
 	}
 }
-
+*/
 
 
 std::unique_ptr<ResultSet> runSkipData(ral::frame::BlazingTableView metadata,
@@ -256,13 +266,14 @@ std::unique_ptr<ResultSet> runSkipData(ral::frame::BlazingTableView metadata,
 		return result;
 
 	} catch(const std::exception & e) {
+		std::cerr << "**[runSkipData]** error parsing metadata.\n";
+		std::cerr << e.what() << std::endl;
 		std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
 		logger->error("|||{info}|||||",
 									"info"_a="In runSkipData. What: {}"_format(e.what()));
 		logger->flush();
 
-		std::cerr << "**[runSkipData]** error parsing metadata.\n";
-		std::cerr << e.what() << std::endl;
+
 		throw;
 	}
 }
@@ -276,8 +287,9 @@ TableScanInfo getTableScanInfo(std::string logicalPlan){
 	return TableScanInfo{relational_algebra_steps, table_names, table_columns};
 }
 
-std::pair<std::shared_ptr<ral::cache::graph>, error_code_t> runGenerateGraph_C(int32_t masterIndex,
-	std::vector<NodeMetaDataTCP> tcpMetadata,
+/*
+std::pair<std::unique_ptr<PartitionedResultSet>, error_code_t> runQuery_C(int32_t masterIndex,
+	
 	std::vector<std::string> tableNames,
 	std::vector<std::string> tableScans,
 	std::vector<TableSchema> tableSchemas,
@@ -291,28 +303,6 @@ std::pair<std::shared_ptr<ral::cache::graph>, error_code_t> runGenerateGraph_C(i
 	std::vector<std::vector<std::map<std::string, std::string>>> uri_values,
 	std::map<std::string, std::string> config_options) {
 
-	std::shared_ptr<ral::cache::graph> result = nullptr;
-
-	try {
-		result = runGenerateGraph(masterIndex,
-			tcpMetadata,
-			tableNames,
-			tableScans,
-			tableSchemas,
-			tableSchemaCppArgKeys,
-			tableSchemaCppArgValues,
-			filesAll,
-			fileTypes,
-			ctxToken,
-			query,
-			accessToken,
-			uri_values,
-			config_options);
-		return std::make_pair(result, E_SUCCESS);
-	} catch (std::exception& e) {
-		return std::make_pair(result, E_EXCEPTION);
-	}
-}
 
 std::pair<TableScanInfo, error_code_t> getTableScanInfo_C(std::string logicalPlan) {
 
@@ -342,10 +332,10 @@ std::pair<std::unique_ptr<ResultSet>, error_code_t> runSkipData_C(
 		return std::make_pair(std::move(result), E_EXCEPTION);
 	}
 }
-
+/*
 std::pair<std::unique_ptr<ResultSet>, error_code_t> performPartition_C(
 	int32_t masterIndex,
-	std::vector<NodeMetaDataTCP> tcpMetadata,
+
 	int32_t ctxToken,
 	const ral::frame::BlazingTableView & table,
 	std::vector<std::string> column_names) {
@@ -354,7 +344,6 @@ std::pair<std::unique_ptr<ResultSet>, error_code_t> performPartition_C(
 
 	try {
 		result = std::move(performPartition(masterIndex,
-					tcpMetadata,
 					ctxToken,
 					table,
 					column_names));
@@ -362,4 +351,4 @@ std::pair<std::unique_ptr<ResultSet>, error_code_t> performPartition_C(
 	} catch (std::exception& e) {
 		return std::make_pair(std::move(result), E_EXCEPTION);
 	}
-}
+}*/

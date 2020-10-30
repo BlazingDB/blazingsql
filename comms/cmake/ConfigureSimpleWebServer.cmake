@@ -12,12 +12,6 @@ macro(CONFIGURE_SIMPLEWEBSERVER_EXTERNAL_PROJECT)
     set(SIMPLEWEBSERVER_CMAKE_ARGS
     )
 
-    if(CXX_OLD_ABI)
-        # NOTE enable old ABI for C/C++
-        list(APPEND SIMPLEWEBSERVER_CMAKE_ARGS " -DCMAKE_C_FLAGS=-D_GLIBCXX_USE_CXX11_ABI=0")
-        list(APPEND SIMPLEWEBSERVER_CMAKE_ARGS " -DCMAKE_CXX_FLAGS=-D_GLIBCXX_USE_CXX11_ABI=0")
-    endif()
-
     # Download and unpack simplewebserver at configure time
     configure_file(${CMAKE_CURRENT_LIST_DIR}/SimpleWebServer.CMakeLists.txt.cmake ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/thirdparty/simplewebserver-download/CMakeLists.txt)
 

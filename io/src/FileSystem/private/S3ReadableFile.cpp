@@ -178,11 +178,11 @@ return arrow::Status::OK();
 		}
 		//		results.GetResult().GetBody().read((char*)(out->get()->mutable_data()), bytesRead);
 
-		std::shared_ptr<arrow::ResizableBuffer> buffer;
-		AllocateResizableBuffer(arrow::default_memory_pool(), nbytes, &buffer);
+		arrow::Result<std::unique_ptr<arrow::ResizableBuffer>> buffer = 
+				AllocateResizableBuffer(nbytes, arrow::default_memory_pool());
 
-		results.GetResult().GetBody().read((char *) (buffer->mutable_data()), bytesRead);
-		out = buffer;
+		results.GetResult().GetBody().read((char *) (buffer.ValueOrDie()->mutable_data()), bytesRead);
+		out = std::move(buffer.ValueOrDie());
 
 		return out;
 	}
@@ -293,11 +293,10 @@ arrow::Result<std::shared_ptr<arrow::Buffer>> S3ReadableFile::ReadAt(int64_t pos
 		}
 		//		results.GetResult().GetBody().read((char*)(out->get()->mutable_data()), bytesRead);
 
-		std::shared_ptr<arrow::ResizableBuffer> buffer;
-		AllocateResizableBuffer(arrow::default_memory_pool(), nbytes, &buffer);
+		arrow::Result<std::unique_ptr<arrow::ResizableBuffer>> buffer = AllocateResizableBuffer(nbytes, arrow::default_memory_pool());
 
-		results.GetResult().GetBody().read((char *) (buffer->mutable_data()), bytesRead);
-		out = buffer;
+		results.GetResult().GetBody().read((char *) (buffer.ValueOrDie()->mutable_data()), bytesRead);
+		out = std::move(buffer.ValueOrDie());
 
 		return out;
 	}

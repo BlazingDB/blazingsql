@@ -4,6 +4,7 @@
 #include "kpair.h"
 #include "execution_graph/logic_controllers/CacheMachine.h"
 #include "utilities/ctpl_stl.h"
+#include "bmr/MemoryMonitor.h"
 
 namespace ral {
 namespace cache {
@@ -13,9 +14,10 @@ class kernel;
 static std::shared_ptr<ral::cache::CacheMachine> create_cache_machine( const cache_settings& config) {
 	std::shared_ptr<ral::cache::CacheMachine> machine;
 	if (config.type == CacheType::SIMPLE or config.type == CacheType::FOR_EACH) {
-		machine =  std::make_shared<ral::cache::CacheMachine>(config.context, config.flow_control_bytes_threshold);
+		machine =  std::make_shared<ral::cache::CacheMachine>(config.context);
 	} else if (config.type == CacheType::CONCATENATING) {
-		machine =  std::make_shared<ral::cache::ConcatenatingCacheMachine>(config.context, config.flow_control_bytes_threshold, config.concat_all);
+		machine =  std::make_shared<ral::cache::ConcatenatingCacheMachine>(config.context, 
+			config.concat_cache_num_bytes, config.concat_all);
 	}
 	return machine;
 }
@@ -53,8 +55,15 @@ public:
 		container_[head_id_] = nullptr;	 // sentinel node
 		kernels_edges_logger = spdlog::get("kernels_edges_logger");
 	}
+	~graph() {}
 	graph(const graph &) = default;
 	graph & operator=(const graph &) = default;
+
+	int32_t get_context_token();
+
+	//TODO: add to constructor when i am not exhausted and want to fix all the tests
+	//this would impact
+	void set_context_token(int32_t token);
 
 	void addPair(kpair p);
 
@@ -86,8 +95,8 @@ public:
 	std::shared_ptr<ral::cache::CacheMachine>  get_kernel_output_cache(size_t kernel_id, std::string cache_id = "");
 
 	void set_input_and_output_caches(std::shared_ptr<ral::cache::CacheMachine> input_cache, std::shared_ptr<ral::cache::CacheMachine> output_cache);
-	ral::cache::CacheMachine* get_input_message_cache();
-	ral::cache::CacheMachine* get_output_message_cache();
+	std::shared_ptr<ral::cache::CacheMachine> get_input_message_cache();
+	std::shared_ptr<ral::cache::CacheMachine> get_output_message_cache();
 
 	std::set<Edge> get_neighbours(kernel * from);
 	std::set<Edge> get_neighbours(int32_t id);
@@ -95,7 +104,8 @@ public:
 	std::set<Edge> get_reverse_neighbours(int32_t id);
 
 	void check_for_simple_scan_with_limit_query();
-
+	void set_memory_monitor(std::shared_ptr<ral::MemoryMonitor> mem_monitor);
+	void clear_kernels(); 
 private:
 	const std::int32_t head_id_{-1};
 	std::vector<kernel *> kernels_;
@@ -107,7 +117,8 @@ private:
 	std::shared_ptr<ral::cache::CacheMachine> output_cache_;
 
 	std::shared_ptr<spdlog::logger> kernels_edges_logger;
-	std::shared_ptr<Context> context;
+	int32_t context_token;
+	std::shared_ptr<ral::MemoryMonitor> mem_monitor;
 };
 
 

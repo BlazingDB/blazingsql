@@ -1,8 +1,10 @@
 #pragma once
 
+#include <ucp/api/ucp.h>
 #include <blazingdb/transport/Node.h>
 #include <memory>
 #include <string>
+#include <map>
 
 namespace ral {
 namespace communication {
@@ -11,9 +13,7 @@ class CommunicationData {
 public:
 	static CommunicationData & getInstance();
 
-	void initialize(const std::string & worker_id,
-		const std::string & selfRalIp,
-		int16_t selfRalCommunicationPort);
+	void initialize(const std::string & worker_id);
 
 	const blazingdb::transport::Node & getSelfNode();
 
@@ -25,7 +25,7 @@ public:
 private:
 	CommunicationData();
 
-	blazingdb::transport::Node selfNode;
+	blazingdb::transport::Node _selfNode;
 };
 
 }  // namespace communication

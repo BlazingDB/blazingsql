@@ -10,16 +10,12 @@ CommunicationData & CommunicationData::getInstance() {
 	return communicationData;
 }
 
-void CommunicationData::initialize(const std::string & worker_id,
-	const std::string & selfRalIp,
-	int16_t selfRalCommunicationPort) {
+void CommunicationData::initialize(const std::string & worker_id) {
 
-	auto address = blazingdb::transport::Address::TCP(selfRalIp, selfRalCommunicationPort, 0);
-
-	selfNode = blazingdb::transport::Node(address, worker_id);
+	_selfNode = blazingdb::transport::Node( worker_id);
 }
 
-const blazingdb::transport::Node & CommunicationData::getSelfNode() { return selfNode; }
+const blazingdb::transport::Node & CommunicationData::getSelfNode() { return _selfNode; }
 
 }  // namespace communication
 }  // namespace ral

@@ -1,101 +1,54 @@
-from tornado.ioloop import PeriodicCallback
-import ucp
 from distributed import get_worker
-
+from distributed.comm.addressing import parse_host_port
+from dask.distributed import default_client
+from ucp.endpoint_reuse import EndpointReuse
 from distributed.comm.ucx import UCXListener
 from distributed.comm.ucx import UCXConnector
-from distributed.comm.addressing import parse_host_port
-from distributed.protocol.serialize import to_serialize
-import concurrent.futures
+import netifaces as ni
+import random
+import socket
+import errno
 
-from dask.distributed import default_client
-import time
-
-serde = ("cuda", "dask", "pickle", "error")
-
-async def route_message(msg):
-    
-    worker = get_worker()
-    if msg.metadata["add_to_specific_cache"] == "true":
-        graph = worker.query_graphs[int(msg.metadata["query_id"])]
-        cache = graph.get_kernel_output_cache(
-            int(msg.metadata["kernel_id"]),
-            msg.metadata["cache_id"]
-        )
-        cache.add_to_cache(msg.data)
-    else:
-        cache = worker.input_cache
-        if(msg.data is None):
-            import cudf
-            msg.data = cudf.DataFrame()
-        cache.add_to_cache_with_meta(msg.data, msg.metadata)
-
-
-class PollingPlugin:
-    def __init__(self, *args, **kwargs):
-        pass
-
-    def setup(self, worker=None):
-        self._worker = worker
-        self._pc = PeriodicCallback(callback=self.async_run_polling, callback_time=100)
-        self._pc.start()
-        get_worker().polling = False
-
-
-    async def async_run_polling(self):
-        import asyncio, os
-
-        worker = get_worker()
-        if worker.polling == True:
-            return
-        worker.polling = True
-        
-        while self._worker.output_cache.has_next_now():            
-            df, metadata = self._worker.output_cache.pull_from_cache()
-            if metadata["add_to_specific_cache"] == "false" and len(df) == 0:
-                df = None
-            await UCX.get().send(BlazingMessage(metadata, df))
-        worker.polling = False
-
-
-
-
-CTRL_STOP = "stopit"
-
-
-class BlazingMessage:
-    def __init__(self, metadata, data=None):
-        self.metadata = metadata
-        self.data = data
-
-    def is_valid(self):
-        return ("query_id" in self.metadata and
-                "cache_id" in self.metadata and
-                "worker_ids" in self.metadata and
-                len(self.metadata["worker_ids"]) > 0 and
-                self.data is not None)
 
 def set_id_mappings_on_worker(mapping):
-    get_worker().ucx_addresses = mapping
+    worker = get_worker()
+    worker.ucx_addresses = mapping
 
 
 async def init_endpoints():
     for addr in get_worker().ucx_addresses.values():
         await UCX.get().get_endpoint(addr)
 
-async def listen_async(callback=route_message, client=None):
-    client = client if client is not None else default_client()
-    worker_id_maps = await client.run(UCX.start_listener_on_worker, callback, wait=True)
-    await client.run(set_id_mappings_on_worker, worker_id_maps, wait=True)
-    return worker_id_maps
+
+def checkSocket(socketNum):
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    socket_free = False
+    try:
+        s.bind(("127.0.0.1", socketNum))
+        socket_free = True
+    except socket.error as e:
+        if e.errno == errno.EADDRINUSE:
+            socket_free = False
+        else:
+            # something else raised the socket.error exception
+            print("ERROR: Something happened when checking socket " + str(socketNum))
+    s.close()
+    return socket_free
 
 
+def get_communication_port(network_interface):
+    ralCommunicationPort = random.randint(10000, 32000)
+    workerIp = ni.ifaddresses(network_interface)[ni.AF_INET][0]["addr"]
+    while checkSocket(ralCommunicationPort) is False:
+        ralCommunicationPort = random.randint(10000, 32000)
+    return {"port": ralCommunicationPort, "ip": workerIp}
 
-def listen(callback=route_message, client=None):
-    client = client if client is not None else default_client()
-    worker_id_maps = client.run(UCX.start_listener_on_worker, callback, wait=True)
+
+def listen(client, network_interface=""):
+    worker_id_maps = client.run(get_communication_port, network_interface, wait=True)
+    print(worker_id_maps)
     client.run(set_id_mappings_on_worker, worker_id_maps, wait=True)
-    client.run(UCX.init_handlers,wait=True)
     return worker_id_maps
 
 
@@ -135,44 +88,43 @@ class UCX:
             UCX()
         return UCX.__instance
 
+    # @staticmethod
+    # async def start_listener_on_worker(callback):
+    #     UCX.get().callback = callback
+    #     return await UCX.get().start_listener()
 
-    @staticmethod
-    async def start_listener_on_worker(callback):
-        UCX.get().callback = callback
-        return await UCX.get().start_listener()
+    # @staticmethod
+    # async def init_handlers():
+    #     addresses = get_worker().ucx_addresses
+    #     eps = []
+    #     for address in addresses.values():
+    #         ep = await UCX.get().get_endpoint(address)
 
-    @staticmethod
-    async def init_handlers():
-        addresses = get_worker().ucx_addresses
-        eps = []
-        for address in addresses.values():
-            ep = await UCX.get().get_endpoint(address)
+    # @staticmethod
+    # def get_ucp_worker():
+    #     return ucp.get_ucp_worker()
 
-    @staticmethod
-    def get_ucp_worker():
-        return ucp.get_ucp_worker()
+    # async def start_listener(self):
 
-    async def start_listener(self):
+    #     ip, port = parse_host_port(get_worker().address)
 
-        async def handle_comm(comm):
-            should_stop = False
-            while not comm.closed() and not should_stop:
-                msg = await comm.read()
-                if msg == CTRL_STOP:
-                    should_stop = True
-                else:
-                    msg = BlazingMessage(**{k: v.deserialize()
-                                            for k, v in msg.items()})
-                    self.received += 1
-                    await self.callback(msg)
+    #     async def handle_comm(comm):
+    #         print("oh fuck...")
+    #         should_stop = False
+    #         while not comm.closed() and not should_stop:
+    #             msg = await comm.read()
+    #             if msg == CTRL_STOP:
+    #                 should_stop = True
+    #             else:
+    #                 msg = BlazingMessage(**{k: v.deserialize() for k, v in msg.items()})
+    #                 self.received += 1
+    #                 await self.callback(msg)
 
-        ip, port = parse_host_port(get_worker().address)
+    #     self._listener = await UCXListener(ip, handle_comm)
 
-        self._listener = await UCXListener(ip, handle_comm)
+    #     await self._listener.start()
 
-        await self._listener.start()
-
-        return "ucx://%s:%s" % (ip, self.listener_port())
+    #     return "ucx://%s:%s" % (ip, self.listener_port())
 
     def listener_port(self):
         return self._listener.port
@@ -190,35 +142,6 @@ class UCX:
 
         return ep
 
-    async def send(self, blazing_msg):
-        """
-        Send a BlazingMessage to the workers specified in `worker_ids`
-        field of metadata
-        """
-        local_dask_addr = get_worker().ucx_addresses[get_worker().address]
-        if blazing_msg.metadata["sender_worker_id"] in blazing_msg.metadata["worker_ids"]:
-            print("Error! Sending message to self. Check launch configuration!")
-        for dask_addr in blazing_msg.metadata["worker_ids"]:
-            # Map Dask address to internal ucx endpoint address
-            addr = get_worker().ucx_addresses[dask_addr]
-            ep = await self.get_endpoint(addr)
-            try:
-                to_ser = {"metadata": to_serialize(blazing_msg.metadata)}
-                if blazing_msg.data is not None:
-                    to_ser["data"] = to_serialize(blazing_msg.data)
-            except:
-                print("An error occurred in serialization")
-
-            try:
-                star_time = time.time()
-                await ep.write(msg=to_ser, serializers=serde)
-                end_time = time.time()
-                logging.info("comms::send::write: " +  str(end_time - star_time))
-            except:
-                print("Error occurred during write")
-            self.sent += 1
-
-
     def abort_endpoints(self):
         for addr, ep in self._endpoints.items():
             if not ep.closed():
@@ -229,7 +152,6 @@ class UCX:
     async def stop_endpoints(self):
         for addr, ep in self._endpoints.items():
             if not ep.closed():
-                await ep.write(msg=CTRL_STOP, serializers=serde)
                 await ep.close()
             del ep
         self._endpoints = {}
@@ -241,4 +163,3 @@ class UCX:
     def __del__(self):
         self.abort_endpoints()
         self.stop_listener()
-

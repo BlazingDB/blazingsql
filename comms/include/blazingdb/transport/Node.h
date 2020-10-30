@@ -3,8 +3,6 @@
 #include <memory>
 #include <string>
 
-#include "blazingdb/transport/Address.h"
-
 namespace blazingdb {
 namespace transport {
 
@@ -14,12 +12,11 @@ class Node {
 public:
   // TODO define clear constructors
   Node();
-  Node(const Address & address, const std::string& id, bool isAvailable = true);
+  Node( const std::string& id, bool isAvailable = true);
 
   bool operator==(const Node& rhs) const;
   bool operator!=(const Node& rhs) const;
 
-  const Address& address() const noexcept;
 
   std::string id() const;
 
@@ -33,7 +30,7 @@ public:
 
 
 protected:
-  Address address_;
+
   std::string id_;
   bool isAvailable_{false};
 };

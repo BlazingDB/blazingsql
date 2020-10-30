@@ -4,6 +4,9 @@
 namespace ral {
 namespace cache {
 
+	int32_t graph::get_context_token() { return context_token;	}
+	void graph::set_context_token(int32_t token) { context_token = token; }
+
 	void graph::addPair(kpair p) {
 		std::string source_port_name = std::to_string(p.src->get_id());
 		std::string target_port_name = std::to_string(p.dst->get_id());
@@ -16,7 +19,16 @@ namespace cache {
 		}
 		this->add_edge(p.src, p.dst, source_port_name, target_port_name, p.cache_machine_config);
 	}
-
+	void graph::clear_kernels(){
+		container_.clear();
+		edges_.clear();
+		reverse_edges_.clear();
+		mem_monitor = nullptr;
+	}
+	
+	void graph::set_memory_monitor(std::shared_ptr<ral::MemoryMonitor> mem_monitor){
+		this->mem_monitor = mem_monitor;
+	}
 	void graph::check_and_complete_work_flow() {
 		for(auto node : container_) {
 			std::shared_ptr<kernel> kernel_node = node.second;
@@ -33,9 +45,11 @@ namespace cache {
 	}
 
 	void graph::execute(const std::size_t max_kernel_run_threads) {
+		mem_monitor->start();
 		check_and_complete_work_flow();
 
 		ctpl::thread_pool<BlazingThread> pool(max_kernel_run_threads);
+		std::vector<std::future<void>> futures;
 		std::set<std::pair<size_t, size_t>> visited;
 		std::deque<size_t> Q;
 		for(auto start_node : get_neighbours(head_id_)) {
@@ -59,14 +73,17 @@ namespace cache {
 						if(visited.find(edge_id) == visited.end()) {
 							visited.insert(edge_id);
 							Q.push_back(target_id);
-							pool.push([this, source, source_id, edge] (int thread_id) {
+							futures.push_back(pool.push([this, source, source_id, edge] (int thread_id) {
 								auto state = source->run();
 								if(state == kstatus::proceed) {
 									source->output_.finish();
 								} else if (edge.target != -1) { // not a dummy node
-									std::cout<<"ERROR kernel "<<source_id<<" did not finished successfully"<<std::endl;
+									auto logger = spdlog::get("batch_logger");
+									std::string log_detail = "ERROR kernel " + std::to_string(source_id) + " did not finished successfully";
+									logger->error("|||{info}|||||","info"_a=log_detail);
 								}
-							});
+							}));
+							
 						} else {
 							// TODO: and circular graph is defined here. Report and error
 						}
@@ -76,15 +93,17 @@ namespace cache {
 				Q.push_back(source_id);
 			}
 		}
-		// for(auto & thread : threads) {
-		// 	try{
-		// 		thread.join();
-		// 	}catch(const std::exception& e){
-				
-		// 		throw;
-		// 	}
-
-		// }
+		// Lets iterate through the futures to check for exceptions
+		for(int i = 0; i < futures.size(); i++){
+			try {
+				futures[i].get();
+			} catch (const std::exception& e) {
+				throw;		
+			}
+		}
+		// lets wait untill all tasks are done
+		pool.stop(true);
+		mem_monitor->finalize();
 	}
 
 	void graph::show() {
@@ -184,7 +203,9 @@ namespace cache {
 				return target_kernel->get_estimated_output_num_rows();
 			}
 		}
-		std::cout<<"ERROR: In get_estimated_input_rows_to_cache could not find edge for kernel "<<id<<" cache "<<port_name<<std::endl;
+		auto logger = spdlog::get("batch_logger");
+		std::string log_detail = "ERROR: In get_estimated_input_rows_to_cache could not find edge for kernel " + std::to_string(id) + " cache " + port_name;
+		logger->error("|||{info}|||||","info"_a=log_detail);
 		return std::make_pair(false, 0);
 	}
 
@@ -276,9 +297,9 @@ namespace cache {
 		this->output_cache_ = output_cache;
 	}
 
-	ral::cache::CacheMachine* graph::get_input_message_cache() { return input_cache_.get(); }
+	std::shared_ptr<ral::cache::CacheMachine> graph::get_input_message_cache() { return input_cache_; }
 
-	ral::cache::CacheMachine* graph::get_output_message_cache() {return output_cache_.get(); }
+	std::shared_ptr<ral::cache::CacheMachine> graph::get_output_message_cache() {return output_cache_; }
 
 	std::set<graph::Edge> graph::get_neighbours(kernel * from) { return edges_[from->get_id()]; }
 	std::set<graph::Edge> graph::get_neighbours(int32_t id) { return edges_[id]; }

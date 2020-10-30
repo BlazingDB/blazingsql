@@ -18,7 +18,7 @@
 #include <cudf/stream_compaction.hpp>
 #include <cudf/partitioning.hpp>
 #include <cudf/join.hpp>
-#include "error.hpp"
+#include "utilities/DebuggingUtils.h"
 
 namespace ral {
 namespace batch {
@@ -75,11 +75,7 @@ public:
 		this->leftArrayCache = 	ral::cache::create_cache_machine(cache_machine_config);
 		this->rightArrayCache = ral::cache::create_cache_machine(cache_machine_config);
 
-		std::tie(this->expression, this->condition, this->filter_statement, this->join_type) = parseExpressionToGetTypeAndCondition(this->expression);		
-	}
-
-	bool can_you_throttle_my_input() {
-		return false;  // join has its own sort of limiter, so its not good to try to apply another limiter
+		std::tie(this->expression, this->condition, this->filter_statement, this->join_type) = parseExpressionToGetTypeAndCondition(this->expression);
 	}
 
 	std::unique_ptr<TableSchema> left_schema{nullptr};
@@ -147,7 +143,6 @@ public:
 			}
 			return std::make_tuple(-1, -1);
 		} else {
-			std::cout<<"ERROR out of range in check_for_another_set_to_do_with_data_we_already_have"<<std::endl;
 			return std::make_tuple(-1, -1);
 		}
 	}
@@ -203,14 +198,14 @@ public:
 				if(has_nulls_right){
 					table_right_dropna = cudf::drop_nulls(table_right.view(), right_column_indices);
 				}
-				
+
 				result_table = cudf::inner_join(
 					has_nulls_left ? table_left_dropna->view() : table_left.view(),
 					has_nulls_right ? table_right_dropna->view() : table_right.view(),
 					this->left_column_indices,
 					this->right_column_indices,
 					columns_in_common);
-				
+
 			} else if(this->join_type == LEFT_JOIN) {
 				//Removing nulls on right key columns before joining
 				std::unique_ptr<CudfTable> table_right_dropna;
@@ -236,14 +231,14 @@ public:
 				RAL_FAIL("Unsupported join operator");
 			}
 		}
-		
+
 		return std::make_unique<ral::frame::BlazingTable>(std::move(result_table), this->result_names);
 	}
 
     virtual kstatus run() {
 		CodeTimer timer;
 
-		bool ordered = false; 
+		bool ordered = false;
         this->left_sequence = BatchSequence(this->input_.get_cache("input_a"), this, ordered);
 		this->right_sequence = BatchSequence(this->input_.get_cache("input_b"), this, ordered);
 
@@ -258,11 +253,11 @@ public:
 			try {
 
 				if (left_batch == nullptr && right_batch == nullptr){ // first load
-					
+
 					// before we load anything, lets make sure each side has data to process
 					this->left_sequence.wait_for_next();
 					this->right_sequence.wait_for_next();
-					
+
 					left_batch = load_left_set();
 					right_batch = load_right_set();
 					this->max_left_ind = 0; // we have loaded just once. This is the highest index for now
@@ -366,8 +361,6 @@ public:
 
 						this->add_to_output_cache(std::move(filter_table));
 					} else{
-						// printf("joined table\n");
-						// ral::utilities::print_blazing_table_view(joined->toBlazingTableView());
 						eventTimer.stop();
 						this->add_to_output_cache(std::move(joined));
 					}
@@ -417,6 +410,10 @@ public:
 									"duration"_a=timer.elapsed_time(),
 									"kernel_id"_a=this->get_id());
 
+		// these are intra kernel caches. We want to make sure they are empty before we finish.
+		this->leftArrayCache->clear();
+		this->rightArrayCache->clear();
+
 		return kstatus::proceed;
 	}
 
@@ -432,7 +429,7 @@ private:
 	std::vector<std::vector<bool>> completion_matrix;
 	std::shared_ptr<ral::cache::CacheMachine> leftArrayCache;
 	std::shared_ptr<ral::cache::CacheMachine> rightArrayCache;
-	
+
 	// parsed expression related parameters
 	std::string join_type;
 	std::string condition;
@@ -455,10 +452,6 @@ public:
 		this->output_.add_port("output_a", "output_b");
 
 		std::tie(this->expression, this->condition, this->filter_statement, this->join_type) = parseExpressionToGetTypeAndCondition(this->expression);
-	}
-
-	bool can_you_throttle_my_input() {
-		return true;
 	}
 
 	// this function makes sure that the columns being joined are of the same type so that we can join them properly
@@ -488,7 +481,6 @@ public:
 				spdlog::logger* logger,
 				int table_idx)
 	{
-		using ColumnDataPartitionMessage = ral::communication::messages::ColumnDataPartitionMessage;
 
 		bool done = false;
 		// num_partitions = context->getTotalNodes() will do for now, but may want a function to determine this in the future.
@@ -611,8 +603,6 @@ public:
 		}
 
 		context->incrementQuerySubstep();
-
-		// ral::distribution::distributeLeftRightTableSizeBytes(context.get(), left_bytes_estimate, right_bytes_estimate);
 
 		auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
 		int self_node_idx = context->getNodeIndex(self_node);
@@ -750,7 +740,7 @@ public:
 		std::unique_ptr<ral::frame::BlazingTable> right_batch,
 		BatchSequence left_sequence,
 		BatchSequence right_sequence){
-		using ColumnDataPartitionMessage = ral::communication::messages::ColumnDataPartitionMessage;
+
 
 		this->context->incrementQuerySubstep();
 
@@ -776,19 +766,6 @@ public:
 			this->logger.get(),
 			LEFT_TABLE_IDX);
 
-		// BlazingThread left_consumer([context = this->context, this](){
-		// 	ExternalBatchColumnDataSequence<ColumnDataPartitionMessage> external_input_left(this->context, this->get_message_id(), this);
-		// 	std::unique_ptr<ral::frame::BlazingHostTable> host_table;
-
-		// 	while (host_table = external_input_left.next()) {
-		// 		this->add_to_output_cache(std::move(host_table), "output_a");
-		// 	}
-		// });
-
-		distribute_left_thread.join();
-		int total_count_left = get_total_partition_counts(1); //left
-		this->output_.get_cache("output_a")->wait_for_count(total_count_left);
-
 		BlazingMutableThread distribute_right_thread(&JoinPartitionKernel::partition_table, this, std::to_string(this->get_id()), this->context.get(),
 			this->right_column_indices, std::move(right_batch), std::ref(right_sequence), this->normalize_right, this->join_column_common_types,
 			this->output_.get_cache("output_b").get(),
@@ -796,16 +773,12 @@ public:
 			this->logger.get(),
 			RIGHT_TABLE_IDX);
 
-		// create thread with ExternalBatchColumnDataSequence for the right table being distriubted
-		// BlazingThread right_consumer([cloned_context, this](){
-		// 	ExternalBatchColumnDataSequence<ColumnDataPartitionMessage> external_input_right(cloned_context, this->get_message_id(), this);
-		// 	std::unique_ptr<ral::frame::BlazingHostTable> host_table;
-
-		// 	while (host_table = external_input_right.next()) {
-		// 		this->add_to_output_cache(std::move(host_table), "output_b");
-		// 	}
-		// });
+		distribute_left_thread.join();
 		distribute_right_thread.join();
+
+		int total_count_left = get_total_partition_counts(1); //left
+		this->output_.get_cache("output_a")->wait_for_count(total_count_left);
+
 		int total_count_right = get_total_partition_counts(2); //right
 		this->output_.get_cache("output_b")->wait_for_count(total_count_right);
 	}
@@ -815,7 +788,6 @@ public:
 		BatchSequence small_table_sequence,
 		BatchSequenceBypass big_table_sequence,
 		const std::pair<bool, bool> & scatter_left_right){
-		using ColumnDataMessage = ral::communication::messages::ColumnDataMessage;
 
 		this->context->incrementQuerySubstep();
 
@@ -859,7 +831,6 @@ public:
 					throw;
 				}
 			}
-			// ral::distribution::notifyLastTablePartitions(this->context.get(), ColumnDataMessage::MessageID());
 
 			send_total_partition_counts(
 				"part_count_", //message_prefix
@@ -867,19 +838,6 @@ public:
 				0 //message_tracker_idx
 			);
 		});
-
-		// BlazingThread collect_small_table_thread([this, small_output_cache_name](){
-		// 	ExternalBatchColumnDataSequence<ColumnDataMessage> external_input_left(this->context, this->get_message_id(), this);
-
-		// 	while (external_input_left.wait_for_next()) {
-		// 		std::unique_ptr<ral::frame::BlazingHostTable> host_table = external_input_left.next();
-		// 		this->add_to_output_cache(std::move(host_table), small_output_cache_name);
-		// 	}
-		// });
-		distribute_small_table_thread.join();
-
-		int total_count = get_total_partition_counts();
-		this->output_cache(small_output_cache_name)->wait_for_count(total_count);
 
 		this->add_to_output_cache(std::move(big_table_batch), big_output_cache_name);
 		BlazingThread big_table_passthrough_thread([this, &big_table_sequence, big_output_cache_name](){
@@ -889,8 +847,11 @@ public:
 			}
 		});
 
+		distribute_small_table_thread.join();
 
-		// collect_small_table_thread.join();
+		int total_count = get_total_partition_counts();
+		this->output_cache(small_output_cache_name)->wait_for_count(total_count);
+		
 		big_table_passthrough_thread.join();
 	}
 

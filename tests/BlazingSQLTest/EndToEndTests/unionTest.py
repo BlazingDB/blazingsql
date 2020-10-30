@@ -276,8 +276,12 @@ if __name__ == "__main__":
 
     nRals = Settings.data["RunSettings"]["nRals"]
 
-    main(dask_client, drill, Settings.data["TestSettings"]["dataDirectory"],
-         bc, nRals)
+    main(dask_client,
+        drill,
+        spark,
+        Settings.data["TestSettings"]["dataDirectory"],
+        bc,
+        nRals)
 
     if Settings.execution_mode != ExecutionMode.GENERATOR:
         runTest.save_log()

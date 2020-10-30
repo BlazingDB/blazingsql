@@ -51,10 +51,17 @@ __global__ void setup_rand_kernel(curandState *state, unsigned long long seed )
     curand_init(seed, id, 0, &state[id]);
 }
 
+enum class datetime_component {
+  INVALID = 0,
+  YEAR,
+  MONTH,
+  DAY,
+  WEEKDAY,
+  HOUR,
+  MINUTE,
+  SECOND,
+};
 
-
-
-using cudf::datetime::detail::datetime_component;
 template <typename Timestamp, datetime_component Component>
 struct extract_component_operator {
 	static_assert(cudf::is_timestamp<Timestamp>(), "");
@@ -97,7 +104,7 @@ struct launch_extract_component {
 
 	template <typename Timestamp, std::enable_if_t<cudf::is_timestamp<Timestamp>()> * = nullptr>
 	CUDA_DEVICE_CALLABLE int16_t operator()(int64_t val) {
-		return extract_component_operator<Timestamp, Component>{}(Timestamp{static_cast<typename Timestamp::rep>(val)});
+		return extract_component_operator<Timestamp, Component>{}(Timestamp{static_cast<typename Timestamp::duration>(val)});
 	}
 };
 
@@ -110,9 +117,10 @@ struct cast_to_timestamp_ns {
 
 	template <typename Timestamp, std::enable_if_t<cudf::is_timestamp<Timestamp>()> * = nullptr>
 	CUDA_DEVICE_CALLABLE cudf::timestamp_ns operator()(int64_t val) {
-		return cudf::timestamp_ns{Timestamp{static_cast<typename Timestamp::rep>(val)}};
+		return cudf::timestamp_ns{Timestamp{static_cast<typename Timestamp::duration>(val)}};
 	}
 };
+
 
 CUDA_DEVICE_CALLABLE bool is_float_type(cudf::type_id type) {
 	return (cudf::type_id::FLOAT32 == type || cudf::type_id::FLOAT64 == type);
@@ -325,7 +333,7 @@ private:
 																					cudf::size_type row,
 																					int64_t * buffer,
 																					int position) {
-			out_table.column(col_index).element<ColType>(row) =	static_cast<typename ColType::rep>(*(buffer + (position * blockDim.x + threadIdx.x)));
+			out_table.column(col_index).element<ColType>(row) =	ColType{typename ColType::duration{*(buffer + (position * blockDim.x + threadIdx.x))}};
 		}
 
 		template <typename ColType, std::enable_if_t<cudf::is_compound<ColType>() or cudf::is_duration<ColType>()> * = nullptr>
@@ -720,69 +728,68 @@ private:
 				} else if(oper == operator_type::BLZ_CAST_FLOAT || oper == operator_type::BLZ_CAST_DOUBLE) {
 					store_data_in_buffer(static_cast<double>(left_value), buffer, output_position);
 				} else if(oper == operator_type::BLZ_CAST_DATE) {
+					int64_t val = static_cast<int64_t>(left_value);
 					cudf::timestamp_D computed;
 					switch (left_type_id)
 					{
-					case cudf::type_id::INT8:
-					case cudf::type_id::INT16:
-					case cudf::type_id::INT32:
-					case cudf::type_id::INT64:
-					case cudf::type_id::FLOAT32:
-					case cudf::type_id::FLOAT64:
-					case cudf::type_id::TIMESTAMP_DAYS:
-						computed = cudf::timestamp_D{static_cast<cudf::timestamp_D::rep>(left_value)};
-						break;
-					case cudf::type_id::TIMESTAMP_SECONDS:
-						// computed = cudf::timestamp_D{cudf::timestamp_s{static_cast<cudf::timestamp_s::rep>(left_value)}};
-						computed = cudf::timestamp_D{static_cast<cudf::timestamp_s::rep>(left_value)};
-						break;
-					case cudf::type_id::TIMESTAMP_MILLISECONDS:
-						// computed = cudf::timestamp_D{cudf::timestamp_ms{static_cast<cudf::timestamp_ms::rep>(left_value)}};
-						computed = cudf::timestamp_D{static_cast<cudf::timestamp_ms::rep>(left_value)};
-						break;
-					case cudf::type_id::TIMESTAMP_MICROSECONDS:
-						// computed = cudf::timestamp_D{cudf::timestamp_us{static_cast<cudf::timestamp_us::rep>(left_value)}};
-						computed = cudf::timestamp_D{static_cast<cudf::timestamp_us::rep>(left_value)};
-						break;
-					case cudf::type_id::TIMESTAMP_NANOSECONDS:
-						// computed = cudf::timestamp_D{cudf::timestamp_ns{static_cast<cudf::timestamp_ns::rep>(left_value)}};
-						computed = cudf::timestamp_D{static_cast<cudf::timestamp_ns::rep>(left_value)};
-						break;
-					default:
-						// should not reach here, invalid conversion
-						assert(false);
-						break;
-					}
+						case cudf::type_id::INT8:
+						case cudf::type_id::INT16:
+						case cudf::type_id::INT32:
+						case cudf::type_id::INT64:
+						case cudf::type_id::FLOAT32:
+						case cudf::type_id::FLOAT64:
+						case cudf::type_id::TIMESTAMP_DAYS:
+							computed = cudf::timestamp_D{static_cast<cudf::timestamp_D::duration>(val)};
+							break;
+						case cudf::type_id::TIMESTAMP_SECONDS:
+							computed = simt::std::chrono::time_point_cast<simt::std::chrono::days>(cudf::timestamp_s{static_cast<cudf::timestamp_s::duration>(val)});
+							break;
+						case cudf::type_id::TIMESTAMP_MILLISECONDS:
+							computed = simt::std::chrono::time_point_cast<simt::std::chrono::days>(cudf::timestamp_ms{static_cast<cudf::timestamp_ms::duration>(val)});
+							break;
+						case cudf::type_id::TIMESTAMP_MICROSECONDS:
+							computed = simt::std::chrono::time_point_cast<simt::std::chrono::days>(cudf::timestamp_us{static_cast<cudf::timestamp_us::duration>(val)});
+							break;
+						case cudf::type_id::TIMESTAMP_NANOSECONDS:
+							computed = simt::std::chrono::time_point_cast<simt::std::chrono::days>(cudf::timestamp_ns{static_cast<cudf::timestamp_ns::duration>(val)});
+							break;
+						default:
+							// should not reach here, invalid conversion
+							assert(false);
+							break;
+					}	
+
 					store_data_in_buffer(static_cast<int64_t>(computed.time_since_epoch().count()), buffer, output_position);
 				} else if(oper == operator_type::BLZ_CAST_TIMESTAMP) {
+					int64_t val = static_cast<int64_t>(left_value);
 					cudf::timestamp_ns computed;
 					switch (left_type_id)
 					{
-					case cudf::type_id::INT8:
-					case cudf::type_id::INT16:
-					case cudf::type_id::INT32:
-					case cudf::type_id::INT64:
-					case cudf::type_id::FLOAT32:
-					case cudf::type_id::FLOAT64:
-					case cudf::type_id::TIMESTAMP_NANOSECONDS:
-						computed = cudf::timestamp_ns{static_cast<cudf::timestamp_ns::rep>(left_value)};
-						break;
-					case cudf::type_id::TIMESTAMP_DAYS:
-						computed = cudf::timestamp_ns{cudf::timestamp_D{static_cast<cudf::timestamp_D::rep>(left_value)}};
-						break;
-					case cudf::type_id::TIMESTAMP_SECONDS:
-						computed = cudf::timestamp_ns{cudf::timestamp_s{static_cast<cudf::timestamp_s::rep>(left_value)}};
-						break;
-					case cudf::type_id::TIMESTAMP_MILLISECONDS:
-						computed = cudf::timestamp_ns{cudf::timestamp_ms{static_cast<cudf::timestamp_ms::rep>(left_value)}};
-						break;
-					case cudf::type_id::TIMESTAMP_MICROSECONDS:
-						computed = cudf::timestamp_ns{cudf::timestamp_us{static_cast<cudf::timestamp_us::rep>(left_value)}};
-						break;
-					default:
-						// should not reach here, invalid conversion
-						assert(false);
-						break;
+						case cudf::type_id::INT8:
+						case cudf::type_id::INT16:
+						case cudf::type_id::INT32:
+						case cudf::type_id::INT64:
+						case cudf::type_id::FLOAT32:
+						case cudf::type_id::FLOAT64:
+						case cudf::type_id::TIMESTAMP_NANOSECONDS:
+							computed = cudf::timestamp_ns{static_cast<cudf::timestamp_ns::duration>(val)};
+							break;
+						case cudf::type_id::TIMESTAMP_DAYS:
+							computed = simt::std::chrono::time_point_cast<simt::std::chrono::nanoseconds>(cudf::timestamp_D{static_cast<cudf::timestamp_D::duration>(val)});
+							break;
+						case cudf::type_id::TIMESTAMP_SECONDS:
+							computed = simt::std::chrono::time_point_cast<simt::std::chrono::nanoseconds>(cudf::timestamp_s{static_cast<cudf::timestamp_s::duration>(val)});
+							break;
+						case cudf::type_id::TIMESTAMP_MILLISECONDS:
+							computed = simt::std::chrono::time_point_cast<simt::std::chrono::nanoseconds>(cudf::timestamp_ms{static_cast<cudf::timestamp_ms::duration>(val)});
+							break;
+						case cudf::type_id::TIMESTAMP_MICROSECONDS:
+							computed = simt::std::chrono::time_point_cast<simt::std::chrono::nanoseconds>(cudf::timestamp_us{static_cast<cudf::timestamp_us::duration>(val)});
+							break;
+						default:
+							// should not reach here, invalid conversion
+							assert(false);
+							break;
 					}
 					store_data_in_buffer(static_cast<int64_t>(computed.time_since_epoch().count()), buffer, output_position);
 				} else if(oper == operator_type::BLZ_CHAR_LENGTH) {

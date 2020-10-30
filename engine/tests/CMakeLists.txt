@@ -18,7 +18,7 @@ function(configure_test TEST_NAME Tests_SRCS)
                    ${CMAKE_SOURCE_DIR}/tests/cython_errors_dummy.cpp
                    ${CMAKE_SOURCE_DIR}/tests/utilities/BlazingUnitTest.cpp)
     link_directories($ENV{PREFIX}/lib)
-    # TODO percy do not use libgdf.so here and use gdf (the static lib) instead
+    
     target_link_libraries(${TEST_NAME}
         gmock_main
         gmock
@@ -31,19 +31,29 @@ function(configure_test TEST_NAME Tests_SRCS)
         Threads::Threads
         blazingdb-transport
 
-        cudf
+        # TODO: Make this cleaner. Here we just used to link cudf, but cudf got split into a whole bunch of libraries in this PR https://github.com/rapidsai/cudf/pull/6134
+        # cudf
+        libcudf_base.so
+        libcudf_rolling.so
+        libcudf_replace.so
+        libcudf_transpose.so
+        libcudf_reductions.so
+        libcudf_ast.so
+        libcudf_join.so
+        libcudf_reshape.so
+        libcudf_merge.so
+        libcudf_comms.so
+        libcudf_hash.so
+        libcudf_io.so
+        libcudf_interop.so
+        libcudf_partitioning.so
 
-        rmm
+
         zmq
         cudart
-        cuda
-        ${CUDA_CUDA_LIBRARY}
-        ${CUDA_NVRTC_LIBRARY}
-        ${CUDA_NVTX_LIBRARY}
 
         parquet
         arrow
-        thrift
         snappy
 
         zstd
@@ -90,6 +100,9 @@ add_subdirectory(new-tests)
 add_subdirectory(parser)
 add_subdirectory(skipdata)
 add_subdirectory(sort)
-
+add_subdirectory(communication)
+add_subdirectory(waiting_queue)
+add_subdirectory(kernel_tests)
+add_subdirectory(provider)
 
 message(STATUS "******** Tests are ready ********")

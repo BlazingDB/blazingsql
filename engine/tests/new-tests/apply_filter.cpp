@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-#include <tests/utilities/base_fixture.hpp>
+#include <cudf_test/base_fixture.hpp>
 #include <cudf/table/table_view.hpp>
 #include <cudf/sorting.hpp>
 #include <cudf/copying.hpp>
 #include <cudf/column/column_factories.hpp>
-#include <tests/utilities/column_utilities.hpp>
-#include <tests/utilities/type_lists.hpp>
-#include <tests/utilities/column_wrapper.hpp>
-#include <tests/utilities/table_utilities.hpp>
+#include <cudf_test/column_utilities.hpp>
+#include <cudf_test/type_lists.hpp>
+#include <cudf_test/column_wrapper.hpp>
+#include <cudf_test/table_utilities.hpp>
 #include <execution_graph/logic_controllers/LogicalFilter.h>
 #include "cudf/stream_compaction.hpp"
 #include <cudf/datetime.hpp>
@@ -190,7 +190,7 @@ TYPED_TEST(ApplyFilterDates, interatorWithNull)
     auto valids_iter = cudf::test::make_counting_transform_iterator(0, [](auto i) { return i%2==0? true:false; });
 
     // now we can create the column wrapper using the iterators
-    cudf::test::fixed_width_column_wrapper<T> timestamp_col(timestamp_iter, timestamp_iter + size, valids_iter);    
+    cudf::test::fixed_width_column_wrapper<T, typename T:: rep> timestamp_col(timestamp_iter, timestamp_iter + size, valids_iter);    
     
     // this is an iterator for creating another column, but made from int32
     auto int32_iter = cudf::test::make_counting_transform_iterator(100, [](auto i) { return int32_t(i * 2);});
@@ -218,7 +218,7 @@ TYPED_TEST(ApplyFilterDates, interatorWithNull)
     // but an iterator that uses a vector of valids
     std::vector<bool> expect_valids_vect{1, 0, 1, 1, 0};
     auto expect_valids_iter = cudf::test::make_counting_transform_iterator(0, [expect_valids_vect](auto i){ return expect_valids_vect[i];});
-    cudf::test::fixed_width_column_wrapper<T> expect_col1(expect_timestamp_iter, expect_timestamp_iter + expect_timestamp_ms.size(), expect_valids_iter);
+    cudf::test::fixed_width_column_wrapper<T, typename T::rep> expect_col1(expect_timestamp_iter, expect_timestamp_iter + expect_timestamp_ms.size(), expect_valids_iter);
     // this other column i can just create from vectors
     cudf::test::fixed_width_column_wrapper<int32_t> expect_col2({200, 202, 204, 208, 214}, {1, 0, 1, 1, 0});
     // those two columns become my expect_cudf_table_view

@@ -6,7 +6,7 @@
 
 #include "CalciteExpressionParsing.h"
 #include "CodeTimer.h"
-#include "communication/network/Server.h"
+
 #include "operators/OrderBy.h"
 #include "utilities/CommonOperations.h"
 #include "utilities/StringUtils.h"
@@ -34,18 +34,17 @@ std::shared_ptr<ral::cache::graph> generate_graph(std::vector<ral::io::data_load
 
 	try {
 		assert(input_loaders.size() == table_names.size());
-
-		ral::batch::tree_processor tree{
-			.root = {},
-			.context = queryContext.clone(),
-			.input_loaders = input_loaders,
-			.schemas = schemas,
-			.table_names = table_names,
-			.table_scans = table_scans,
-			.transform_operators_bigger_than_gpu = true
-		};
+		 
+		auto tree = std::make_shared<ral::batch::tree_processor>(
+			ral::batch::node(),
+			queryContext.clone(),
+			input_loaders,
+			schemas,
+			table_names,
+			table_scans,
+			true);
 			
-		auto query_graph_and_max_kernel_id = tree.build_batch_graph(logicalPlan);
+		auto query_graph_and_max_kernel_id = tree->build_batch_graph(logicalPlan);
 		auto query_graph = std::get<0>(query_graph_and_max_kernel_id);
 		auto max_kernel_id = std::get<1>(query_graph_and_max_kernel_id);
 		auto output = std::shared_ptr<ral::cache::kernel>(new ral::batch::OutputKernel(max_kernel_id, queryContext.clone()));
@@ -54,7 +53,7 @@ std::shared_ptr<ral::cache::graph> generate_graph(std::vector<ral::io::data_load
 									"query_id"_a=queryContext.getContextToken(),
 									"step"_a=queryContext.getQueryStep(),
 									"substep"_a=queryContext.getQuerySubstep(),
-									"info"_a="\"Query Start\n{}\""_format(tree.to_string()));
+									"info"_a="\"Query Start\n{}\""_format(tree->to_string()));
 
 		std::string tables_info = "";
 		for (int i = 0; i < table_names.size(); i++){
@@ -103,16 +102,9 @@ std::shared_ptr<ral::cache::graph> generate_graph(std::vector<ral::io::data_load
 
 			// useful when the Algebra Relacional only contains: ScanTable (or BindableScan) and Limit
 			query_graph->check_for_simple_scan_with_limit_query();
-
-			size_t max_kernel_run_threads = 16; //default
-			std::map<std::string, std::string> config_options = queryContext.getConfigOptions();
-			auto it = config_options.find("MAX_KERNEL_RUN_THREADS");
-			if (it != config_options.end()){
-				max_kernel_run_threads = std::stoi(config_options["MAX_KERNEL_RUN_THREADS"]);
-			}
-			
 		}
-
+		auto  mem_monitor = std::make_shared<ral::MemoryMonitor>(tree,config_options);
+		query_graph->set_memory_monitor(mem_monitor);
 		return query_graph;
 	} catch(const std::exception& e) {
 		logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
@@ -139,11 +131,7 @@ std::vector<std::unique_ptr<ral::frame::BlazingTable>> execute_graph(std::shared
 			max_kernel_run_threads = std::stoi(config_options["MAX_KERNEL_RUN_THREADS"]);
 		}
 
-		// TODO: need to be able to get the tree or somehow enable the MemoryMonitor here
-		// ral::MemoryMonitor mem_monitor(&tree, config_options);
-		// mem_monitor.start();
 		graph->execute(max_kernel_run_threads);
-		// mem_monitor.finalize();
 
 		auto output_frame = static_cast<ral::batch::OutputKernel&>(*(graph->get_last_kernel())).release();
 		assert(!output_frame.empty());

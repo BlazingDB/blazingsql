@@ -78,7 +78,7 @@ std::unique_ptr<cudf::scalar> get_max_integer_scalar(cudf::data_type type) {
 }
 
 
-std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_string, cudf::data_type type) {
+std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_string, cudf::data_type type, bool strings_have_quotes) {
 	if (is_null(scalar_string)) {
 		return cudf::make_default_constructed_scalar(type);
 	}
@@ -143,7 +143,11 @@ std::unique_ptr<cudf::scalar> get_scalar_from_string(const std::string & scalar_
 		}
 	}
 	if(type.id() == cudf::type_id::STRING)	{
-		return cudf::make_string_scalar(scalar_string.substr(1, scalar_string.length() - 2));
+		if (strings_have_quotes) {
+			return cudf::make_string_scalar(scalar_string.substr(1, scalar_string.length() - 2));
+		} else {
+			return cudf::make_string_scalar(scalar_string);
+		}
 	}
 
 	assert(false);

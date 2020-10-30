@@ -29,7 +29,7 @@ from libc.stdint cimport (  # noqa: E211
 cdef extern from "../include/engine/errors.h":
     cdef void raiseInitializeError()
     cdef void raiseFinalizeError()
-    cdef void raiseBlazingSetAllocatorError()
+    cdef void raiseGetFreeMemoryError()
     cdef void raiseGetProductDetailsError()
     cdef void raisePerformPartitionError()
     cdef void raiseRunGenerateGraphError()
@@ -180,28 +180,36 @@ cdef extern from * namespace "blazing":
 
         cdef unique_ptr[CacheData] blaz_move2(unique_ptr[GPUCacheDataMetaData]) nogil
 
+cdef extern from "../include/engine/common.h" nogil:
+
+
+    cdef struct NodeMetaDataUCP:
+        string worker_id
+        string ip
+        uintptr_t ep_handle
+        uintptr_t worker_handle
+        uintptr_t context_handle
+        int port
+
+    cdef struct TableScanInfo:
+        vector[string] relational_algebra_steps
+        vector[string] table_names
+        vector[vector[int]] table_columns
+
 cdef extern from "../include/engine/engine.h" nogil:
 
-        unique_ptr[ResultSet] performPartition(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, int ctxToken, BlazingTableView blazingTableView, vector[string] columnNames) except +raisePerformPartitionError
+        shared_ptr[graph] runGenerateGraph(int masterIndex,vector[string] worker_ids, vector[string] tableNames, vector[string] tableScans, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken, vector[vector[map[string,string]]] uri_values_cpp, map[string,string] config_options, string sql) except +raiseRunGenerateGraphError
+        unique_ptr[PartitionedResultSet] runExecuteGraph(shared_ptr[graph], int ctx_token) nogil except +raiseRunExecuteGraphError
 
-        cdef struct NodeMetaDataTCP:
-            string worker_id
-            string ip
-            int communication_port
-        shared_ptr[graph] runGenerateGraph(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[string] tableScans, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken, vector[vector[map[string,string]]] uri_values_cpp, map[string,string] config_options) except +raiseRunGenerateGraphError
-        unique_ptr[PartitionedResultSet] runExecuteGraph(shared_ptr[graph]) nogil except +raiseRunExecuteGraphError
+        #unique_ptr[ResultSet] performPartition(int masterIndex, int ctxToken, BlazingTableView blazingTableView, vector[string] columnNames) except +raisePerformPartitionError
         unique_ptr[ResultSet] runSkipData(BlazingTableView metadata, vector[string] all_column_names, string query) nogil except +raiseRunSkipDataError
 
-        cdef struct TableScanInfo:
-            vector[string] relational_algebra_steps
-            vector[string] table_names
-            vector[vector[int]] table_columns
         TableScanInfo getTableScanInfo(string logicalPlan)
 
-cdef extern from "../include/engine/initialize.h":
-    cdef pair[shared_ptr[CacheMachine], shared_ptr[CacheMachine] ] initialize(int ralId, string worker_id, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options) nogil except +raiseInitializeError
+cdef extern from "../include/engine/initialize.h" nogil:
+    cdef pair[pair[shared_ptr[CacheMachine], shared_ptr[CacheMachine] ], int] initialize(int ralId, string worker_id, int gpuId, string network_iface_name, int ralCommunicationPort, vector[NodeMetaDataUCP] workers_ucp_info, bool singleNode, map[string,string] config_options, string allocation_mode, size_t initial_pool_size, size_t maximum_pool_size,	bool enable_logging) nogil except +raiseInitializeError
     cdef void finalize() nogil except +raiseFinalizeError
-    cdef void blazingSetAllocator(string allocation_mode, size_t initial_pool_size, map[string,string] config_options) nogil except +raiseBlazingSetAllocatorError
+    cdef size_t getFreeMemory() nogil except +raiseGetFreeMemoryError
 
 cdef extern from "../include/engine/static.h" nogil:
     cdef map[string,string] getProductDetails() except +raiseGetProductDetailsError
