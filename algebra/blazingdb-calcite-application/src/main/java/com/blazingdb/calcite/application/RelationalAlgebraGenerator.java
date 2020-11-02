@@ -34,8 +34,8 @@ import org.apache.calcite.rel.type.RelDataTypeSystem;
 import org.apache.calcite.schema.SchemaPlus;
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.SqlOperatorTable;
-import org.apache.calcite.sql.fun.OracleSqlOperatorTable;
-import org.apache.calcite.sql.fun.SqlStdOperatorTable;
+import org.apache.calcite.sql.fun.SqlLibrary;
+import org.apache.calcite.sql.fun.SqlLibraryOperatorTableFactory;
 import org.apache.calcite.sql.parser.SqlParseException;
 import org.apache.calcite.sql.parser.SqlParser;
 import org.apache.calcite.sql.util.ChainedSqlOperatorTable;
@@ -54,6 +54,7 @@ import java.sql.DriverManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.EnumSet;
 
 /**
  * <h1>Generate Relational Algebra</h1>
@@ -114,8 +115,8 @@ public class RelationalAlgebraGenerator {
 			Properties props = new Properties();
 			props.setProperty("defaultSchema", newSchema.getName());
 			List<SqlOperatorTable> sqlOperatorTables = new ArrayList<>();
-			sqlOperatorTables.add(SqlStdOperatorTable.instance());
-			sqlOperatorTables.add(OracleSqlOperatorTable.instance());
+			sqlOperatorTables.add(SqlLibraryOperatorTableFactory.INSTANCE.getOperatorTable(
+				EnumSet.of(SqlLibrary.STANDARD, SqlLibrary.ORACLE)));
 			sqlOperatorTables.add(new CalciteCatalogReader(CalciteSchema.from(schema.getSubSchema(newSchema.getName())),
 				defaultSchema,
 				new JavaTypeFactoryImpl(RelDataTypeSystem.DEFAULT),
