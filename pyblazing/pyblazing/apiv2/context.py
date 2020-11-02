@@ -1174,6 +1174,7 @@ def load_config_options_from_env(user_config_options: dict):
         "BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD": 0.75,
         "BLAZING_LOGGING_DIRECTORY": "blazing_log",
         "BLAZING_CACHE_DIRECTORY": "/tmp/",
+        "BLAZING_LOCAL_LOGGING_DIRECTORY": "blazing_log",
         "MEMORY_MONITOR_PERIOD": 50,
         "MAX_KERNEL_RUN_THREADS": 16,
         "MAX_SEND_MESSAGE_THREADS": 20,
@@ -1324,6 +1325,12 @@ class BlazingContext(object):
                     NOTE: This parameter only works when used in the
                     BlazingContext
                     default: '/tmp/'
+            BLAZING_LOCAL_LOGGING_DIRECTORY : A folder path to place the
+                    client logging file on a dask environment. The path can
+                    be relative or absolute.
+                    NOTE: This parameter only works when used in the
+                    BlazingContext
+                    default: 'blazing_log'
             MEMORY_MONITOR_PERIOD : How often the memory monitor checks memory
                     consumption. The value is in milliseconds.
                     default: 50  (milliseconds)
@@ -1393,14 +1400,16 @@ class BlazingContext(object):
         self.config_options = load_config_options_from_env(config_options)
 
         logging_dir_path = "blazing_log"
-        # want to use config_options and not self.config_options
-        # since its not encoded
         if "BLAZING_LOGGING_DIRECTORY".encode() in self.config_options:
             logging_dir_path = self.config_options["BLAZING_LOGGING_DIRECTORY".encode()].decode()
 
         cache_dir_path = "/tmp"  # default directory to store orc files
         if "BLAZING_CACHE_DIRECTORY".encode() in self.config_options:
             cache_dir_path = self.config_options["BLAZING_CACHE_DIRECTORY".encode()].decode() + "tmp"
+
+        local_logging_dir_path = "blazing_log"
+        if "BLAZING_LOCAL_LOGGING_DIRECTORY".encode() in self.config_options:
+            local_logging_dir_path = self.config_options["BLAZING_LOCAL_LOGGING_DIRECTORY".encode()].decode()
 
         if dask_client == "autocheck":
             try:
@@ -1485,10 +1494,10 @@ class BlazingContext(object):
             # need to initialize this logging independently, in case its set
             # as a relative path and the location from where the python script
             # is running is different than the local dask workers
-            initialize_server_directory(logging_dir_path)
+            initialize_server_directory(local_logging_dir_path)
             # this one is for the non dask side
             FORMAT = '%(asctime)s||%(levelname)s|||"%(message)s"||||||'
-            filename = os.path.join(logging_dir_path, "pyblazing.log")
+            filename = os.path.join(local_logging_dir_path, "pyblazing.log")
             logging.basicConfig(filename=filename, format=FORMAT, level=logging.INFO)
         else:
             initialize_server_directory(logging_dir_path)
