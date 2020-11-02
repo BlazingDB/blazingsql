@@ -829,15 +829,12 @@ def get_current_directory_path():
 
 # Delete all generated (older than 1 hour) orc files
 def remove_orc_files_from_disk(data_dir):
-    if os.path.isfile(data_dir):  # only if data_dir exists
+    if os.path.isdir(data_dir):  # only if data_dir exists
         all_files = os.listdir(data_dir)
-        current_time = time.time()
         for file in all_files:
             if ".blazing-temp" in file:
                 full_path_file = data_dir + "/" + file
-                creation_time = os.path.getctime(full_path_file)
-                if (current_time - creation_time) // (1 * 60 * 60) >= 1:
-                    os.remove(full_path_file)
+                os.remove(full_path_file)
 
 
 # Updates the dtype from `object` to `str` to be more friendly
