@@ -2,6 +2,7 @@
 
 ## New Features
 - #1105 Implement to_date/to_timestamp functions
+- #1077 Allow to create tables from compressed files
 
 
 ## Improvements
@@ -9,6 +10,7 @@
 - #1082 Validate s3 bucket
 - #1093 Logs configurable to have max size and be rotated
 - #1091 Improves the error message problem when validating any GCP bucket
+- #1090 Add tests for Uri Data provider for local uri
 
 
 ## Bug Fixes
