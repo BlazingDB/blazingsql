@@ -12,7 +12,7 @@
 - #1093 Logs configurable to have max size and be rotated
 - #1091 Improves the error message problem when validating any GCP bucket
 - #1090 Add tests for Uri Data provider for local uri
-
+- #1111 output compile json for cppcheck
 
 ## Bug Fixes
 - #1064 Fixed issue when loading parquet files with local_files=True
