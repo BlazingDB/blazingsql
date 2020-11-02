@@ -6,6 +6,7 @@
 
 
 ## Improvements
+- #878 Adding calcite rule for window functions. (Window functions not supported yet)
 - #1081 Add validation for the kwargs when bc API is called
 - #1082 Validate s3 bucket
 - #1093 Logs configurable to have max size and be rotated
