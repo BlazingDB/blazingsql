@@ -1401,15 +1401,21 @@ class BlazingContext(object):
 
         logging_dir_path = "blazing_log"
         if "BLAZING_LOGGING_DIRECTORY".encode() in self.config_options:
-            logging_dir_path = self.config_options["BLAZING_LOGGING_DIRECTORY".encode()].decode()
+            logging_dir_path = self.config_options[
+                "BLAZING_LOGGING_DIRECTORY".encode()
+            ].decode()
 
         cache_dir_path = "/tmp"  # default directory to store orc files
         if "BLAZING_CACHE_DIRECTORY".encode() in self.config_options:
-            cache_dir_path = self.config_options["BLAZING_CACHE_DIRECTORY".encode()].decode() + "tmp"
+            cache_dir_path = (
+                self.config_options["BLAZING_CACHE_DIRECTORY".encode()].decode() + "tmp"
+            )
 
         local_logging_dir_path = "blazing_log"
         if "BLAZING_LOCAL_LOGGING_DIRECTORY".encode() in self.config_options:
-            local_logging_dir_path = self.config_options["BLAZING_LOCAL_LOGGING_DIRECTORY".encode()].decode()
+            local_logging_dir_path = self.config_options[
+                "BLAZING_LOCAL_LOGGING_DIRECTORY".encode()
+            ].decode()
 
         if dask_client == "autocheck":
             try:
