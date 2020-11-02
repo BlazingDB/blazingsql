@@ -8,6 +8,7 @@
 - #1082 Validate s3 bucket
 - #1093 Logs configurable to have max size and be rotated
 - #1091 Improves the error message problem when validating any GCP bucket
+- #1090 Add tests for Uri Data provider for local uri
 
 
 ## Bug Fixes
