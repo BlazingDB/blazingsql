@@ -24,7 +24,6 @@
 #include <blazingdb/io/Library/Logging/CoutOutput.h>
 #include <blazingdb/io/Library/Logging/Logger.h>
 #include "blazingdb/io/Library/Logging/ServiceLogging.h"
-#include "utilities/StringUtils.h"
 
 #include "config/GPUManager.cuh"
 

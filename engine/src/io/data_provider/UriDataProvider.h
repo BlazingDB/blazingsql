@@ -48,10 +48,6 @@ public:
 	 */
 	data_handle get_next(bool open_file = true);
 	
-	/**
-	 * returns any errors that were encountered when opening arrow::io::RandomAccessFile
-	 */
-	std::vector<std::string> get_errors();
 	
 	/**
 	 * Tries to get up to num_files data_handles. We use this instead of a get_all() because if there are too many files, 

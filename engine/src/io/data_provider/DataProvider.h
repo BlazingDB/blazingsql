@@ -62,10 +62,6 @@ public:
 	 * gets us the next arrow::io::RandomAccessFile
 	 */
 	virtual data_handle get_next(bool open_file = true) = 0;
-	/**
-	 * gets any errors that occured while opening the files
-	 */
-	virtual std::vector<std::string> get_errors() = 0;
 
 	/**
 	 * Tries to get up to num_files data_handles. We use this instead of a get_all() because if there are too many files, 

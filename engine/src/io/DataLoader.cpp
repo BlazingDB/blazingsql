@@ -4,7 +4,7 @@
 #include <numeric>
 
 #include "utilities/CommonOperations.h"
-#include "utilities/StringUtils.h"
+
 #include <CodeTimer.h>
 #include <blazingdb/io/Library/Logging/Logger.h>
 #include "blazingdb/concurrency/BlazingThread.h"
