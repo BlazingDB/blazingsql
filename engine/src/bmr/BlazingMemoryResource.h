@@ -5,8 +5,10 @@
 #include <set>
 
 #include <cuda_runtime_api.h>
-
+#include <rmm/cuda_stream_view.hpp>
 #include <rmm/mr/device/device_memory_resource.hpp>
+
+
 #include <rmm/mr/device/owning_wrapper.hpp>
 #include <rmm/mr/device/cuda_memory_resource.hpp>
 #include <rmm/mr/device/managed_memory_resource.hpp>
@@ -64,12 +66,28 @@ public:
             memory_resource_owner = std::make_shared<rmm::mr::managed_memory_resource>();
             memory_resource = memory_resource_owner.get();
         } else if (allocation_mode == "pool_memory_resource") {
-            memory_resource_owner = rmm::mr::make_owning_wrapper<rmm::mr::pool_memory_resource>(
-                std::make_shared<rmm::mr::cuda_memory_resource>(), initial_pool_size, maximum_pool_size);
+            if (initial_pool_size == 0){
+                memory_resource_owner = rmm::mr::make_owning_wrapper<rmm::mr::pool_memory_resource>(
+                    std::make_shared<rmm::mr::cuda_memory_resource>());
+            } else if (maximum_pool_size == 0) {
+                memory_resource_owner = rmm::mr::make_owning_wrapper<rmm::mr::pool_memory_resource>(
+                    std::make_shared<rmm::mr::cuda_memory_resource>(), initial_pool_size);
+            } else {
+                memory_resource_owner = rmm::mr::make_owning_wrapper<rmm::mr::pool_memory_resource>(
+                    std::make_shared<rmm::mr::cuda_memory_resource>(), initial_pool_size, maximum_pool_size);
+            }            
             memory_resource = memory_resource_owner.get();
         } else if (allocation_mode == "managed_pool_memory_resource") {
-            memory_resource_owner = rmm::mr::make_owning_wrapper<rmm::mr::pool_memory_resource>(
-                std::make_shared<rmm::mr::managed_memory_resource>(), initial_pool_size, maximum_pool_size);
+            if (initial_pool_size == 0){
+                memory_resource_owner = rmm::mr::make_owning_wrapper<rmm::mr::pool_memory_resource>(
+                    std::make_shared<rmm::mr::managed_memory_resource>());
+            } else if (maximum_pool_size == 0) {
+                memory_resource_owner = rmm::mr::make_owning_wrapper<rmm::mr::pool_memory_resource>(
+                    std::make_shared<rmm::mr::managed_memory_resource>(), initial_pool_size);
+            } else {
+                memory_resource_owner = rmm::mr::make_owning_wrapper<rmm::mr::pool_memory_resource>(
+                    std::make_shared<rmm::mr::managed_memory_resource>(), initial_pool_size, maximum_pool_size);
+            }            
             memory_resource = memory_resource_owner.get();
         } else if (allocation_mode == "existing"){
             memory_resource = rmm::mr::get_current_device_resource();        
@@ -109,7 +127,7 @@ public:
 	bool supports_get_mem_info() const noexcept override { return memory_resource->supports_get_mem_info(); }
 
 private: 
-	void* do_allocate(size_t bytes, cudaStream_t stream) override {
+	void* do_allocate(size_t bytes, rmm::cuda_stream_view stream) override {
 		if (bytes <= 0) { 
             return nullptr;
 		}
@@ -117,7 +135,7 @@ private:
 		return memory_resource->allocate(bytes, stream);
 	}
 
-	void do_deallocate(void* p, size_t bytes, cudaStream_t stream) override {
+	void do_deallocate(void* p, size_t bytes, rmm::cuda_stream_view stream) override {
 		if (nullptr == p || bytes == 0) return;
 		if (used_memory < bytes) {
 			std::cerr << "blazing_device_memory_resource: Deallocating more bytes than used right now, used_memory: " << used_memory << " less than " << bytes << " bytes." << std::endl;
@@ -133,7 +151,7 @@ private:
 		return memory_resource->is_equal(other);
 	}
 
-	std::pair<size_t, size_t> do_get_mem_info(cudaStream_t stream) const override {
+	std::pair<size_t, size_t> do_get_mem_info(rmm::cuda_stream_view stream) const override {
 		return memory_resource->get_mem_info(stream);
 	}
 
