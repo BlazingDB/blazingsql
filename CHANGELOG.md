@@ -17,7 +17,7 @@
 - #1086 Showing an appropriate error to indicate that we don't support opening directories with wildcards
 - #1088 Fixed issue caused by cudf changing from one .so file to multiple
 - #1094 Fixed logging directory setup
-
+- #1115 Fixed changes to RMM api using cuda_stream_view instead of cudaStream_t now
 
 # BlazingSQL 0.16.0 (October 22, 2020)
 
@@ -56,7 +56,7 @@
 - #1073 Fixed parseSchemaPython can throw exceptions
 - #1074 Remove lock inside grow() method from PinnedBufferProvider
 - #1071 Fix crash when loading an empty folder
-- #1085 Fixed intra-query memory leak in joins. Fixed by clearing array caches after PartwiseJoin is done 
+- #1085 Fixed intra-query memory leak in joins. Fixed by clearing array caches after PartwiseJoin is done
 
 
 # BlazingSQL 0.15.0 (August 31, 2020)
