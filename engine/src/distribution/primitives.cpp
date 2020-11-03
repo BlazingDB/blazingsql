@@ -3,7 +3,7 @@
 #include "communication/CommunicationData.h"
 #include "communication/network/Client.h"
 #include "communication/network/Server.h"
-#include "utilities/StringUtils.h"
+
 #include <cmath>
 
 #include <cudf/search.hpp>
