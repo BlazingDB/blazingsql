@@ -178,6 +178,8 @@ export CUDACXX=/usr/local/cuda/bin/nvcc
 ```
 NOTE: You can do `./build.sh -h` to see more build options.
 
+NOTE: You can perform static analysis with cppcheck with the command `cppcheck  --project=compile_commands.json` in any of the cpp project build directories.
+
 $CONDA_PREFIX now has a folder for the blazingsql repository.
 
 #### Storage plugins
