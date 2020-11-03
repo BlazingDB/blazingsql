@@ -103,5 +103,6 @@ add_subdirectory(sort)
 add_subdirectory(waiting_queue)
 add_subdirectory(kernel_tests)
 add_subdirectory(provider)
+add_subdirectory(logic_controllers)
 
 message(STATUS "******** Tests are ready ********")
