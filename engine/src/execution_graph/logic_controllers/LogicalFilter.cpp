@@ -21,7 +21,7 @@ using namespace fmt::literals;
 #include "distribution/primitives.h"
 #include "communication/CommunicationData.h"
 #include "utilities/CommonOperations.h"
-#include "utilities/StringUtils.h"
+
 #include "error.hpp"
 
 namespace ral {
