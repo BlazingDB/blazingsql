@@ -97,13 +97,13 @@ class distributing_kernel : public kernel {
     /**
      * @brief Sends same table to all other nodes.
      *
-     * @param table_view The table view to be sent.
+     * @param table The table to be broadcast
      * @param output The output cache.
      * @param message_id_prefix The prefix of the identifier of this message.
      * @param cache_id Indicates what cache a message should be routed to.
      * @param message_tracker_idx The message tracker index.
      */
-    void broadcast(ral::frame::BlazingTableView table_view,
+    void broadcast(std::unique_ptr<ral::frame::BlazingTable>,
         ral::cache::CacheMachine* output,
         std::string message_id_prefix,
         std::string cache_id,

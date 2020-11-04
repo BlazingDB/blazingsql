@@ -83,8 +83,11 @@ public:
 
     std::unique_ptr<ral::frame::BlazingTable> load_left_set(){
 
+		std::cout<<"load_left_set start"<<std::endl;
+
 		this->max_left_ind++;
 		std::unique_ptr<ral::frame::BlazingTable> table = this->left_sequence.next();
+		std::cout<<"load_left_set table->num_rows(): "<<table->num_rows()<<std::endl;
 		if (not left_schema && table != nullptr) {
 			left_schema = std::make_unique<TableSchema>(table->get_schema(),  table->names());
 		}
@@ -95,8 +98,11 @@ public:
 	}
 
 	std::unique_ptr<ral::frame::BlazingTable> load_right_set(){
+		std::cout<<"load_right_set start"<<std::endl;
+
 		this->max_right_ind++;
 		std::unique_ptr<ral::frame::BlazingTable> table = this->right_sequence.next();
+		std::cout<<"load_right_set table->num_rows(): "<<table->num_rows()<<std::endl;
 		if (not right_schema && table != nullptr) {
 			right_schema = std::make_unique<TableSchema>(table->get_schema(),  table->names());
 		}
@@ -525,7 +531,7 @@ public:
 				scatter(partitions,
 					output,
 					"", //message_id_prefix
-					"", //cache_id
+					cache_id, //cache_id
 					table_idx  //message_tracker_idx
 				);
 
@@ -549,7 +555,7 @@ public:
 			}
 		}
 
-		send_total_partition_counts(std::to_string(table_idx) + "partition_", cache_id, table_idx);
+		send_total_partition_counts("", cache_id, table_idx);
 	}
 
 	std::pair<bool, bool> determine_if_we_are_scattering_a_small_table(const ral::frame::BlazingTableView & left_batch_view,
@@ -795,21 +801,24 @@ public:
 		assert((scatter_left_right.first || scatter_left_right.second) && not (scatter_left_right.first && scatter_left_right.second));
 
 		std::string small_output_cache_name = scatter_left_right.first ? "output_a" : "output_b";
+		int small_table_idx = scatter_left_right.first ? LEFT_TABLE_IDX : RIGHT_TABLE_IDX;
 		std::string big_output_cache_name = scatter_left_right.first ? "output_b" : "output_a";
+		int big_table_idx = scatter_left_right.first ? RIGHT_TABLE_IDX : LEFT_TABLE_IDX;
 		std::vector<std::string> messages_to_wait_for;
 
-		BlazingThread distribute_small_table_thread([this, &small_table_batch, &small_table_sequence, small_output_cache_name, &messages_to_wait_for](){
+		BlazingThread distribute_small_table_thread([this, &small_table_batch, &small_table_sequence, small_output_cache_name, small_table_idx, &messages_to_wait_for](){
 			bool done = false;
 			int batch_count = 0;
 			auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
 			while (!done) {
 				try {
 					if(small_table_batch != nullptr ) {
-						broadcast(small_table_batch->toBlazingTableView(),
+						std::cout<<"distribute_small_table_thread sent broadcast"<<std::endl;
+						broadcast(std::move(small_table_batch),
 							this->output_.get_cache(small_output_cache_name).get(),
 							"", //message_id_prefix
 							small_output_cache_name, //cache_id
-							0 //message_tracker_idx
+							small_table_idx //message_tracker_idx
 						);
 					}
 
@@ -832,11 +841,13 @@ public:
 				}
 			}
 
+			std::cout<<"distribute_small_table_thread send_total_partition_counts"<<std::endl;
 			send_total_partition_counts(
-				"part_count_", //message_prefix
-				"", //cache_id
-				0 //message_tracker_idx
+				"", //message_prefix
+				small_output_cache_name, //cache_id
+				small_table_idx //message_tracker_idx
 			);
+			std::cout<<"distribute_small_table_thread send_total_partition_counts sent"<<std::endl;
 		});
 
 		this->add_to_output_cache(std::move(big_table_batch), big_output_cache_name);
@@ -849,7 +860,9 @@ public:
 
 		distribute_small_table_thread.join();
 
-		int total_count = get_total_partition_counts();
+		std::cout<<"about to get_total_partition_counts small_table_idx "<<small_table_idx<<" small_output_cache_name "<<small_output_cache_name<<std::endl;
+		int total_count = get_total_partition_counts(small_table_idx);
+		std::cout<<"get_total_partition_counts gpt "<<total_count<<std::endl;
 		this->output_cache(small_output_cache_name)->wait_for_count(total_count);
 		
 		big_table_passthrough_thread.join();
