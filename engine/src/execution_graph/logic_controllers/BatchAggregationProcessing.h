@@ -279,7 +279,6 @@ public:
         int batch_count=0;
         try {
             while (input.wait_for_next()) {
-                std::cout<<"MergeAggregateKernel batch_count: "<<batch_count<<std::endl;
                 auto batch = input.next();
                 batch_count++;
                 tableViewsToConcat.emplace_back(batch->toBlazingTableView());

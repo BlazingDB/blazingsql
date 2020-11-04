@@ -523,7 +523,7 @@ public:
 				}
 
 				scatter(partitions,
-					this->output_.get_cache().get(),
+					output,
 					"", //message_id_prefix
 					"", //cache_id
 					table_idx  //message_tracker_idx

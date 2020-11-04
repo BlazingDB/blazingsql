@@ -8,7 +8,7 @@ distributing_kernel::distributing_kernel(std::size_t kernel_id,
         std::string expr,
         std::shared_ptr<Context> context,
         kernel_type kernel_type_id)
-        : kernel{kernel_id, expr, context, kernel_type::DistributeAggregateKernel},
+        : kernel{kernel_id, expr, context, kernel_type_id},
           node{ral::communication::CommunicationData::getInstance().getSelfNode()} {
 }
 
