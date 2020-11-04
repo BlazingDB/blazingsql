@@ -855,7 +855,7 @@ def kwargs_validation(kwargs, bc_api_str):
     # csv, parquet, orc, json params
     if bc_api_str == "create_table":
         full_kwargs = [
-            "local_files"
+            "local_files",
             "file_format",
             "partitions",
             "partitions_schema",
