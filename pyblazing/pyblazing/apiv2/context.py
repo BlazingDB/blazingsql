@@ -836,12 +836,15 @@ def distributed_initialize_server_directory(client, dir_path):
                 logger = logging.getLogger("blz_client")
                 logger.info("Directory already exists")
 
+
 def initialize_server_directory(dir_path, is_dask):
     if not os.path.exists(dir_path):
         try:
             os.mkdir(dir_path)
         except OSError as error:
-            get_blazing_logger(is_dask).error("Could not create directory: " + str(error))
+            get_blazing_logger(is_dask).error(
+                "Could not create directory: " + str(error)
+            )
             raise
         return True
     else:
@@ -1507,7 +1510,7 @@ class BlazingContext(object):
                         config_options=self.config_options,
                         logging_dir_path=logging_dir_path,
                         workers=[worker],
-                        is_dask=True
+                        is_dask=True,
                     )
                 )
                 worker_list.append(worker)
@@ -1552,7 +1555,7 @@ class BlazingContext(object):
                 enable_logging=enable_logging,
                 config_options=self.config_options,
                 logging_dir_path=logging_dir_path,
-                is_dask=False
+                is_dask=False,
             )
             node = {}
             node["ip"] = ralIp
