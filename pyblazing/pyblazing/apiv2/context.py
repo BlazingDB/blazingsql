@@ -1900,7 +1900,7 @@ class BlazingContext(object):
 
         kwargs_validation(kwargs, "create_table")
 
-        get_blazing_logger(False).info("create_table start for " + table_name)
+        get_blazing_logger(is_dask=False).info("create_table start for " + table_name)
 
         table = None
         extra_kwargs = {}
