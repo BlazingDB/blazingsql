@@ -291,8 +291,7 @@ def collectPartitionsRunQuery(
                     "ERROR: collectPartitionsRunQuery should not be called "
                     + "with an input of dask_cudf.core.DataFrame"
                 )
-                logger = logging.getLogger(worker.id)
-                logger.error(
+                get_blazing_logger(is_dask=True).error(
                     "collectPartitionsRunQuery should not be called "
                     + "with an input of dask_cudf.core.DataFrame"
                 )
@@ -792,8 +791,7 @@ def distributed_initialize_server_directory(client, dir_path):
         for connection in dask_futures:
             made_dir = connection.result()
             if not made_dir:
-                logger = logging.getLogger("blz_client")
-                logger.info("Directory already exists")
+                get_blazing_logger(is_dask=False).info("Directory already exists")
     else:
         # Let's get the current working directory of all workers
         dask_futures = []
@@ -833,8 +831,7 @@ def distributed_initialize_server_directory(client, dir_path):
         for connection in dask_futures:
             made_dir = connection.result()
             if not made_dir:
-                logger = logging.getLogger("blz_client")
-                logger.info("Directory already exists")
+                get_blazing_logger(is_dask=False).info("Directory already exists")
 
 
 def initialize_server_directory(dir_path, is_dask):
@@ -1534,7 +1531,7 @@ class BlazingContext(object):
             FORMAT = '%(asctime)s||%(levelname)s|||"%(message)s"||||||'
             filename = os.path.join(local_logging_dir_path, "pyblazing.log")
 
-            logger = logging.getLogger("blz_client")
+            logger = get_blazing_logger(is_dask=False)
             local_handler = logging.FileHandler(filename)
             local_handler.setFormatter(logging.Formatter(FORMAT))
             logger.addHandler(local_handler)
