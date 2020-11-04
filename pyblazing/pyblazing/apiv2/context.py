@@ -135,7 +135,7 @@ def get_blazing_logger(is_dask):
         Parameters
         ----------
 
-        is_dask : bool, whether the logger is called from a dask environment 
+        is_dask : bool, whether the logger is called from a dask environment
         or locally as a client.
     """
     if is_dask:
