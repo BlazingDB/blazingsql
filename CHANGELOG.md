@@ -1,20 +1,27 @@
 # BlazingSQL 0.17.0 (Date TBS)
 
 ## New Features
+- #1105 Implement to_date/to_timestamp functions
+- #1077 Allow to create tables from compressed files
 
 
 ## Improvements
+- #878 Adding calcite rule for window functions. (Window functions not supported yet)
 - #1081 Add validation for the kwargs when bc API is called
 - #1082 Validate s3 bucket
 - #1093 Logs configurable to have max size and be rotated
 - #1091 Improves the error message problem when validating any GCP bucket
-
+- #1090 Add tests for Uri Data provider for local uri
+- #1111 output compile json for cppcheck
 
 ## Bug Fixes
 - #1064 Fixed issue when loading parquet files with local_files=True
 - #1086 Showing an appropriate error to indicate that we don't support opening directories with wildcards
 - #1088 Fixed issue caused by cudf changing from one .so file to multiple
 - #1094 Fixed logging directory setup
+- #1100 Showing an appropriate error for invalid or unsupported expressions on the logical plan
+- #1115 Fixed changes to RMM api using cuda_stream_view instead of cudaStream_t now
+- #1118 Fixed issue with config_options and adding local_files to valid params
 - #1058 Fixed avg_bytes_per_row value when node 0 has no rows
 
 
@@ -55,7 +62,7 @@
 - #1073 Fixed parseSchemaPython can throw exceptions
 - #1074 Remove lock inside grow() method from PinnedBufferProvider
 - #1071 Fix crash when loading an empty folder
-- #1085 Fixed intra-query memory leak in joins. Fixed by clearing array caches after PartwiseJoin is done 
+- #1085 Fixed intra-query memory leak in joins. Fixed by clearing array caches after PartwiseJoin is done
 
 
 # BlazingSQL 0.15.0 (August 31, 2020)

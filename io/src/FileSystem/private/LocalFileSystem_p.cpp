@@ -33,11 +33,7 @@ const int FILE_RETRY_DELAY = 10000;
 #include "Library/Logging/Logger.h"
 namespace Logging = Library::Logging;
 
-#ifdef RUN_WITHOUT_ROOT
 #define FILE_PERMISSION_BITS_MODE 0700
-#else  // Setting by default: run as root user
-#define FILE_PERMISSION_BITS_MODE 0600
-#endif
 
 LocalFileSystem::Private::Private(const Path & root) : root(root) {}
 
@@ -465,7 +461,7 @@ bool LocalFileSystem::Private::makeDirectory(const Uri & uri) const {
 
 			success = mkdir(path.toString().c_str(), FILE_PERMISSION_BITS_MODE);
 
-			if(countInvalids > 10000) {
+			if(countInvalids > 10) {
 				break;
 			}
 		}

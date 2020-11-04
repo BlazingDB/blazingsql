@@ -124,7 +124,7 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
             int32_t length = arg_tokens.size() == 3 ? std::stoi(arg_tokens[2]) : -1;
             int32_t end = length >= 0 ? start + length : 0;
 
-            computed_col = cudf::strings::slice_strings(column, start, cudf::numeric_scalar<int32_t>(end, length >= 0));            
+            computed_col = cudf::strings::slice_strings(column, start, cudf::numeric_scalar<int32_t>(end, length >= 0));
         } else {
             // TODO: create a version of cudf::strings::slice_strings that uses start and length columns
             // so we can remove all the calculations for start and end
@@ -132,13 +132,13 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
             std::unique_ptr<cudf::column> computed_string_column;
             cudf::column_view column;
             if (is_var_column(arg_tokens[0])) {
-                column = table.column(get_index(arg_tokens[0]));                
+                column = table.column(get_index(arg_tokens[0]));
             } else {
                 auto evaluated_col = evaluate_expressions(table, {arg_tokens[0]});
                 RAL_EXPECTS(evaluated_col.size() == 1 && evaluated_col[0]->view().type().id() == cudf::type_id::STRING, "Expression does not evaluate to a string column");
 
                 computed_string_column = evaluated_col[0]->release();
-                column = computed_string_column->view();                
+                column = computed_string_column->view();
             }
 
             std::unique_ptr<cudf::column> computed_start_column;
@@ -194,7 +194,7 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
                 computed_end_column = cudf::make_column_from_scalar(*end_scalar, table.num_rows());
                 end_column = computed_end_column->view();
             }
-            
+
             computed_col = cudf::strings::slice_strings(column, start_column, end_column);
         }
         break;
@@ -261,12 +261,12 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
             computed_column = evaluated_col[0]->release();
             column = computed_column->view();
         }
-        if (column.type() == cudf::data_type{cudf::type_id::STRING}){
+        if (is_type_string(column.type().id())) {
             // this should not happen, but sometimes calcite produces inefficient plans that ask to cast a string column to a "VARCHAR NOT NULL"
             computed_col = std::make_unique<cudf::column>(column);
         } else {
             computed_col = cudf::type_dispatcher(column.type(), cast_to_str_functor{}, column);
-        }        
+        }
         break;
     }
     case operator_type::BLZ_CAST_TINYINT:
@@ -279,7 +279,7 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         }
 
         cudf::column_view column = table.column(get_index(arg_tokens[0]));
-        if (column.type().id() == cudf::type_id::STRING) {
+        if (is_type_string(column.type().id())) {
             computed_col = cudf::strings::to_integers(column, cudf::data_type{cudf::type_id::INT8});
         }
         break;
@@ -294,7 +294,7 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         }
 
         cudf::column_view column = table.column(get_index(arg_tokens[0]));
-        if (column.type().id() == cudf::type_id::STRING) {
+        if (is_type_string(column.type().id())) {
             computed_col = cudf::strings::to_integers(column, cudf::data_type{cudf::type_id::INT16});
         }
         break;
@@ -309,7 +309,7 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         }
 
         cudf::column_view column = table.column(get_index(arg_tokens[0]));
-        if (column.type().id() == cudf::type_id::STRING) {
+        if (is_type_string(column.type().id())) {
             computed_col = cudf::strings::to_integers(column, cudf::data_type{cudf::type_id::INT32});
         }
         break;
@@ -324,7 +324,7 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         }
 
         cudf::column_view column = table.column(get_index(arg_tokens[0]));
-        if (column.type().id() == cudf::type_id::STRING) {
+        if (is_type_string(column.type().id())) {
             computed_col = cudf::strings::to_integers(column, cudf::data_type{cudf::type_id::INT64});
         }
         break;
@@ -339,7 +339,7 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         }
 
         cudf::column_view column = table.column(get_index(arg_tokens[0]));
-        if (column.type().id() == cudf::type_id::STRING) {
+        if (is_type_string(column.type().id())) {
             computed_col = cudf::strings::to_floats(column, cudf::data_type{cudf::type_id::FLOAT32});
         }
         break;
@@ -354,7 +354,7 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         }
 
         cudf::column_view column = table.column(get_index(arg_tokens[0]));
-        if (column.type().id() == cudf::type_id::STRING) {
+        if (is_type_string(column.type().id())) {
             computed_col = cudf::strings::to_floats(column, cudf::data_type{cudf::type_id::FLOAT64});
         }
         break;
@@ -369,7 +369,7 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         }
 
         cudf::column_view column = table.column(get_index(arg_tokens[0]));
-        if (column.type().id() == cudf::type_id::STRING) {
+        if (is_type_string(column.type().id())) {
             computed_col = cudf::strings::to_timestamps(column, cudf::data_type{cudf::type_id::TIMESTAMP_DAYS}, "%Y-%m-%d");
         }
         break;
@@ -384,9 +384,33 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         }
 
         cudf::column_view column = table.column(get_index(arg_tokens[0]));
-        if (column.type().id() == cudf::type_id::STRING) {
+        if (is_type_string(column.type().id())) {
             computed_col = cudf::strings::to_timestamps(column, cudf::data_type{cudf::type_id::TIMESTAMP_NANOSECONDS}, "%Y-%m-%d %H:%M:%S");
         }
+        break;
+    }
+    case operator_type::BLZ_TO_DATE:
+    {
+        assert(arg_tokens.size() == 2);
+        RAL_EXPECTS(is_var_column(arg_tokens[0]) && is_string(arg_tokens[1]), "TO_DATE operator arguments must be a column and a string format");
+
+        cudf::column_view column = table.column(get_index(arg_tokens[0]));
+        RAL_EXPECTS(is_type_string(column.type().id()), "TO_DATE first argument must be a column of type string");
+
+        std::string format_str = arg_tokens[1].substr(1, arg_tokens[1].length() - 2);
+        computed_col = cudf::strings::to_timestamps(column, cudf::data_type{cudf::type_id::TIMESTAMP_DAYS}, format_str);
+        break;
+    }
+    case operator_type::BLZ_TO_TIMESTAMP:
+    {
+        assert(arg_tokens.size() == 2);
+        RAL_EXPECTS(is_var_column(arg_tokens[0]) && is_string(arg_tokens[1]), "TO_TIMESTAMP operator arguments must be a column and a string format");
+
+        cudf::column_view column = table.column(get_index(arg_tokens[0]));
+        RAL_EXPECTS(is_type_string(column.type().id()), "TO_TIMESTAMP first argument must be a column of type string");
+
+        std::string format_str = arg_tokens[1].substr(1, arg_tokens[1].length() - 2);
+        computed_col = cudf::strings::to_timestamps(column, cudf::data_type{cudf::type_id::TIMESTAMP_NANOSECONDS}, format_str);
         break;
     }
     }
