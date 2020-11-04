@@ -21,6 +21,7 @@
 - #1094 Fixed logging directory setup
 - #1100 Showing an appropriate error for invalid or unsupported expressions on the logical plan
 - #1115 Fixed changes to RMM api using cuda_stream_view instead of cudaStream_t now
+- #1120 Fix missing valid kwargs in create_table
 
 # BlazingSQL 0.16.0 (October 22, 2020)
 
