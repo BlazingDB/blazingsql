@@ -115,6 +115,7 @@ void distributing_kernel::broadcast(std::unique_ptr<ral::frame::BlazingTable> ta
     int self_node_idx = context->getNodeIndex(node);
     auto nodes_to_send = context->getAllOtherNodes(self_node_idx);
     for (auto i = 0; i < nodes_to_send.size(); i++)	{
+        std::cout<<"broadcast is sending"<<std::endl;
         send_message(std::move(table->toBlazingTableView().clone()),
             "true", //specific_cache
             cache_id, //cache_id
@@ -128,6 +129,7 @@ void distributing_kernel::broadcast(std::unique_ptr<ral::frame::BlazingTable> ta
     // now lets add to the self node
     bool added = output->addToCache(std::move(table), message_id_prefix, true);
     if (added) {
+        std::cout<<"broadcast added to output"<<std::endl;
         node_count[message_tracker_idx][node.id()]++;
     }
 }
@@ -164,17 +166,13 @@ void distributing_kernel::scatter(std::vector<ral::frame::BlazingTableView> part
     }
 }
 
-void distributing_kernel::scatterNodeColumnViews(std::vector<ral::distribution::NodeColumnView> partitions,
+void distributing_kernel::scatterParts(std::vector<ral::distribution::NodeColumnView> partitions,
         ral::cache::CacheMachine* output,
         std::string message_id_prefix,
-        std::size_t message_tracker_idx) {
-    auto nodes = context->getAllNodes();
+        std::vector<int32_t> part_ids) {
 
-    std::vector<int32_t> part_ids(partitions.size());
-    int num_partitions_per_node = partitions.size() / this->context->getTotalNodes();
-    num_partitions_per_node = num_partitions_per_node == 0 ? 1 : num_partitions_per_node;
-    std::generate(part_ids.begin(), part_ids.end(), [count=0, num_partitions_per_node] () mutable { return (count++) % (num_partitions_per_node); });
-
+    assert(part_ids.size() == partitions.size());
+    
     for (auto i = 0; i < partitions.size(); i++) {
         blazingdb::transport::Node dest_node;
         ral::frame::BlazingTableView table_view;
@@ -190,7 +188,7 @@ void distributing_kernel::scatterNodeColumnViews(std::vector<ral::distribution::
             message_id_prefix, //message_id_prefix
             true, //always_add
             false, //wait_for
-            message_tracker_idx //message_tracker_idx
+            part_ids[i] //message_tracker_idx
         );
     }
 
@@ -200,7 +198,7 @@ void distributing_kernel::scatterNodeColumnViews(std::vector<ral::distribution::
             std::string cache_id = "output_" + std::to_string(part_ids[i]);
             bool added = output->addToCache(std::move(partition.second.clone()), cache_id, true);
             if (added) {
-                node_count[message_tracker_idx][node.id()]++;
+                node_count[part_ids[i]][node.id()]++;
             }
         }
     }

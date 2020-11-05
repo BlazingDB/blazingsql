@@ -80,16 +80,26 @@ private:
 };
 
 class SortAndSampleKernel : public distributing_kernel {
+
+std::size_t SAMPLES_MESSAGE_TRACKER_IDX = 0;
+std::size_t PARTITION_PLAN_MESSAGE_TRACKER_IDX = 1;
+
 public:
 	SortAndSampleKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
 		: distributing_kernel{kernel_id,queryString, context, kernel_type::SortAndSampleKernel}
 	{
 		this->query_graph = query_graph;
-		set_number_of_message_trackers(1); //default
+		set_number_of_message_trackers(2); //default
 		this->output_.add_port("output_a", "output_b");
 	}
 
 	void compute_partition_plan(std::vector<ral::frame::BlazingTableView> sampledTableViews, std::size_t avg_bytes_per_row, std::size_t local_total_num_rows) {
+
+		std::cout<<"compute_partition_plan start samples"<<std::endl;
+		for (auto samples : sampledTableViews){
+			std::cout<<"sample num rows: "<<samples.num_rows()<<std::endl;
+		}
+
 		if (this->context->getAllNodes().size() == 1){ // single node mode
 			auto partitionPlan = ral::operators::generate_partition_plan(sampledTableViews,
 				local_total_num_rows, avg_bytes_per_row, this->expression, this->context.get());
@@ -102,10 +112,9 @@ public:
 								"substep"_a=(context ? std::to_string(context->getQuerySubstep()) : ""),
 								"info"_a="In SortAndSampleKernel::compute_partition_plan Concatenating Strings will overflow strings length");
 			}
-			auto concatSamples = ral::utilities::concatTables(sampledTableViews);
-			std::vector<ral::frame::BlazingTableView> samples;
+			
+			
 			auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
-			std::unique_ptr<ral::frame::BlazingTable> partitionPlan;
 			if(context->isMasterNode(self_node)) {
 				context->incrementQuerySubstep();
 				auto nodes = context->getAllNodes();
@@ -113,6 +122,7 @@ public:
 				int samples_to_collect = this->context->getAllNodes().size();
 				std::vector<std::unique_ptr<ral::cache::CacheData> >table_scope_holder;
 				std::vector<size_t> total_table_rows;
+				std::vector<ral::frame::BlazingTableView> samples;
 
 				for(std::size_t i = 0; i < nodes.size(); ++i) {
 					if(!(nodes[i] == self_node)) {
@@ -126,36 +136,25 @@ public:
 					}
 				}
 
-				samples.push_back(concatSamples->toBlazingTableView());
+				for (std::size_t i = 0; i < sampledTableViews.size(); i++){
+					samples.push_back(sampledTableViews[i]);
+				}
+				
 				total_table_rows.push_back(local_total_num_rows);
 
 				std::size_t totalNumRows = std::accumulate(total_table_rows.begin(), total_table_rows.end(), std::size_t(0));
-				partitionPlan = ral::operators::generate_partition_plan(samples, totalNumRows, avg_bytes_per_row, this->expression, this->context.get());
+				std::unique_ptr<ral::frame::BlazingTable> partitionPlan = ral::operators::generate_partition_plan(samples, totalNumRows, avg_bytes_per_row, this->expression, this->context.get());
 
-				int self_node_idx = context->getNodeIndex(self_node);
-				auto nodes_to_send = context->getAllOtherNodes(self_node_idx);
-				auto output_cache = this->query_graph->get_output_message_cache();
-				for (auto i = 0; i < nodes_to_send.size(); i++)	{
-					if(nodes_to_send[i].id() != self_node.id()){
-						ral::cache::MetadataDictionary extra_metadata;
-						extra_metadata.add_value(ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL, local_total_num_rows);
-						send_message(std::move(partitionPlan->toBlazingTableView().clone()),
-							"true", //specific_cache
-							"output_b", //cache_id
-							nodes_to_send[i].id(), //target_id
-							"", //message_id_prefix
-							true, //always_add
-							false, //wait_for
-							0, //message_tracker_idx
-							extra_metadata);
-					}
-				}				
-
-				this->add_to_output_cache(std::move(partitionPlan), "output_b");
+				broadcast(std::move(partitionPlan),
+					this->output_.get_cache("output_b").get(),
+					"", // message_id_prefix
+					"output_b", // cache_id
+					PARTITION_PLAN_MESSAGE_TRACKER_IDX); //message_tracker_idx (message tracker for the partitionPlan)
 
 			} else {
 				context->incrementQuerySubstep();
 
+				auto concatSamples = ral::utilities::concatTables(sampledTableViews);
 				concatSamples->ensureOwnership();
 
 				ral::cache::MetadataDictionary extra_metadata;
@@ -167,13 +166,13 @@ public:
 					"", //message_id_prefix
 					true, //always_add
 					false, //wait_for
-					0, //message_tracker_idx
+					SAMPLES_MESSAGE_TRACKER_IDX, //message_tracker_idx (message tracker for samples)
 					extra_metadata);
 
 				context->incrementQuerySubstep();
 			}
 
-			int total_count = get_total_partition_counts();
+			int total_count = get_total_partition_counts(PARTITION_PLAN_MESSAGE_TRACKER_IDX);
 			this->output_cache("output_b")->wait_for_count(total_count);
 		}
 	}
@@ -307,8 +306,10 @@ public:
 	PartitionKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
 		: distributing_kernel{kernel_id, queryString, context, kernel_type::PartitionKernel} {
 		this->query_graph = query_graph;
-		set_number_of_message_trackers(1); //default
 		this->input_.add_port("input_a", "input_b");
+
+		size_t max_num_order_by_partitions_per_node = this->output_.count();
+		set_number_of_message_trackers(max_num_order_by_partitions_per_node);
 	}
 
 	virtual kstatus run() {
@@ -316,7 +317,13 @@ public:
 		CodeTimer timer;
 
 		BatchSequence input_partitionPlan(this->input_.get_cache("input_b"), this);
-		auto partitionPlan = std::move(input_partitionPlan.next());
+		auto partitionPlan = input_partitionPlan.next();
+
+		if (partitionPlan == nullptr){
+			std::cout<<"ERROR: partitionPlan is nullptr"<<std::endl;
+		} else {
+			std::cout<<"OK: partitionPlan is not nullptr. num rows: "<<partitionPlan->num_rows()<<std::endl;
+		}
 
 		context->incrementQuerySubstep();
 
@@ -347,10 +354,13 @@ public:
 				auto batch = input.next();
 
 				std::vector<ral::distribution::NodeColumnView> partitions = ral::distribution::partitionData(this->context.get(), batch->toBlazingTableView(), partitionPlan->toBlazingTableView(), sortColIndices, sortOrderTypes);
+				std::vector<int32_t> part_ids(partitions.size());
+				std::generate(part_ids.begin(), part_ids.end(), [count=0, num_partitions_per_node] () mutable { return (count++) % (num_partitions_per_node); });
 
-				scatterNodeColumnViews(partitions,
+				scatterParts(partitions,
 					this->output_.get_cache().get(),
-					"" //message_id_prefix
+					"", //message_id_prefix
+					part_ids
 				);
 
 				batch_count++;
@@ -366,10 +376,14 @@ public:
 			}
 		}
 
-		send_total_partition_counts(
-			"", //message_prefix
-			"" //cache_id
-		);
+		for (auto i = 0; i < num_partitions_per_node; i++) {
+			std::string cache_id = "output_" + std::to_string(i);
+			send_total_partition_counts(
+				"", //message_prefix
+				cache_id, //cache_id
+				i //message_tracker_idx
+			);
+		}
 
 		for (auto i = 0; i < num_partitions_per_node; i++) {
 			int total_count = get_total_partition_counts(i);

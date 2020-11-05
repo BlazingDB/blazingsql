@@ -186,6 +186,12 @@ std::vector<cudf::table_view> partition_table(const ral::frame::BlazingTableView
 
 std::unique_ptr<ral::frame::BlazingTable> generate_partition_plan(const std::vector<ral::frame::BlazingTableView> & samples,
 	std::size_t table_num_rows, std::size_t avg_bytes_per_row, const std::string & query_part, Context * context){
+
+		std::cout<<"generate_partition_plan start samples"<<std::endl;
+		for (std::size_t i = 0; i < samples.size(); i++){
+			std::cout<<"sample num rows: "<<samples[i].num_rows()<<std::endl;
+		}
+
 	std::vector<cudf::order> sortOrderTypes;
 	std::vector<int> sortColIndices;
 	cudf::size_type limitRows;
