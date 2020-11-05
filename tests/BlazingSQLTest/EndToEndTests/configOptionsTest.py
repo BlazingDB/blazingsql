@@ -134,17 +134,512 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
-            dask_client.run(gc.collect)
-            dask_client.run_on_scheduler(gc.collect)
-            
-        dask_client.close()
-        del bc, dask_client
+            queryId = "TEST_02"
 
+            query = tpch.get_tpch_query(queryId)
+
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_03"
+
+            query = tpch.get_tpch_query(queryId)
+
+            if fileSchemaType == DataType.PARQUET:
+                runTest.run_query(
+                    bc,
+                    spark,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
+            else:
+                runTest.run_query(
+                    bc,
+                    drill,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    0.1,
+                    use_percentage,
+                    fileSchemaType,
+                )
+
+            queryId = "TEST_04"
+
+            query = tpch.get_tpch_query(queryId)
+            
+            if fileSchemaType == DataType.ORC:
+                runTest.run_query(
+                    bc,
+                    spark,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
+            else:
+                runTest.run_query(
+                    bc,
+                    drill,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    True,
+                    fileSchemaType,
+                )
+
+            queryId = "TEST_05"
+
+            query = tpch.get_tpch_query(queryId)
+
+            if fileSchemaType == DataType.ORC:
+                runTest.run_query(
+                    bc,
+                    spark,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
+            else:
+                runTest.run_query(
+                    bc,
+                    drill,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
+
+            queryId = "TEST_06"
+
+            query = tpch.get_tpch_query(queryId)
+            
+            runTest.run_query(
+                    bc,
+                    spark,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    True,
+                    fileSchemaType,
+                )
+
+            queryId = "TEST_07"
+
+            query = tpch.get_tpch_query(queryId)
+
+            if fileSchemaType == DataType.ORC:
+                runTest.run_query(
+                    bc,
+                    spark,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
+            else:
+                runTest.run_query(
+                    bc,
+                    drill,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
+
+            queryId = "TEST_08"
+
+            query = tpch.get_tpch_query(queryId)
+
+            if fileSchemaType == DataType.ORC:
+                runTest.run_query(
+                    bc,
+                    spark,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
+            else:
+                runTest.run_query(
+                    bc,
+                    drill,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
+
+            queryId = "TEST_09"
+
+            query = tpch.get_tpch_query(queryId)
+
+            if fileSchemaType == DataType.ORC:
+                runTest.run_query(
+                    bc,
+                    spark,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    True,
+                    fileSchemaType,
+                )
+            else:
+                runTest.run_query(
+                    bc,
+                    drill,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    True,
+                    fileSchemaType,
+                )
+
+            queryId = "TEST_10"
+
+            query = tpch.get_tpch_query(queryId)
+
+            if fileSchemaType == DataType.ORC:
+                runTest.run_query(
+                    bc,
+                    spark,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
+            else:
+                runTest.run_query(
+                    bc,
+                    drill,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
+
+            queryId = "TEST_11"
+
+            query = tpch.get_tpch_query(queryId)
+
+            # runTest.run_query(
+            #     bc,
+            #     drill,
+            #     query,
+            #     queryId,
+            #     queryType,
+            #     worder,
+            #     "",
+            #     acceptable_difference,
+            #     use_percentage,
+            #     fileSchemaType,
+            # )
+
+            queryId = "TEST_12"
+
+            query = tpch.get_tpch_query(queryId)
+
+            if fileSchemaType == DataType.ORC:
+                runTest.run_query(
+                    bc,
+                    spark,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
+            else:
+                runTest.run_query(
+                    bc,
+                    drill,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
+
+            queryId = "TEST_13"
+
+            query = tpch.get_tpch_query(queryId)
+
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_14"
+
+            query = tpch.get_tpch_query(queryId)
+
+            if fileSchemaType == DataType.ORC:
+                runTest.run_query(
+                    bc,
+                    spark,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
+            else:
+                runTest.run_query(
+                    bc,
+                    drill,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
+
+            queryId = "TEST_15"
+
+            query = tpch.get_tpch_query(queryId)
+
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType
+            )
+
+            queryId = "TEST_16"
+
+            query = tpch.get_tpch_query(queryId)
+
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                '',
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType
+            )
+
+            queryId = "TEST_17"
+
+            query = tpch.get_tpch_query(queryId)
+
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_18"
+
+            query = tpch.get_tpch_query(queryId)
+
+            if fileSchemaType == DataType.ORC:
+                runTest.run_query(
+                    bc,
+                    spark,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
+            else:
+                runTest.run_query(
+                    bc,
+                    drill,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
+
+            queryId = "TEST_19"
+
+            query = tpch.get_tpch_query(queryId)
+
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                True,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_20"
+
+            query = tpch.get_tpch_query(queryId)
+
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                True,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_21"
+
+            query = tpch.get_tpch_query(queryId)
+
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_22"
+
+            query = tpch.get_tpch_query(queryId)
+
+            # runTest.run_query(
+            #     bc,
+            #     drill,
+            #     query,
+            #     queryId,
+            #     queryType,
+            #     worder,
+            #     "",
+            #     acceptable_difference,
+            #     use_percentage,
+            #     fileSchemaType,
+            # )
+
+            if dask_client is not None:
+                dask_client.run(gc.collect)
+                dask_client.run_on_scheduler(gc.collect)
+
+        del bc, dask_client
 
     for setInd, config_options in enumerate(all_set_list):
         executionTest(queryType, setInd, config_options)
         gc.collect()
-        time.sleep(1)
 
     end_mem = gpuMemory.capture_gpu_memory_usage()
 
