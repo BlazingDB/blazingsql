@@ -82,6 +82,9 @@ public:
   }
   void confirm_transmission(){
     ++_buffer_counter;
+    if (_buffer_counter == _raw_buffers.size()) {
+      finish();
+    }
   }
 
   void * get_buffer(uint16_t index){

@@ -18,7 +18,7 @@ namespace io{
 
 namespace comm {
 
- 
+
 
 class ucp_progress_manager{
 
@@ -26,14 +26,13 @@ public:
 
    	static ucp_progress_manager * get_instance(ucp_worker_h ucp_worker, size_t request_size);
     static ucp_progress_manager * get_instance();
-    void add_recv_request(char * request);
-    void add_send_request(char * request,std::atomic<size_t> * counter,std::condition_variable * counter_cv);
+    void add_recv_request(char * request, std::function<void()> callback);
+    void add_send_request(char * request, std::function<void()> callback);
 private:
-   struct request_counter{
+   struct request_struct{
         char * request;
-        std::atomic<size_t> * counter;
-        std::condition_variable * cv;
-        bool operator <(const request_counter & other) const{
+        std::function<void()> callback;
+        bool operator <(const request_struct & other) const{
             return request < other.request;
         }
     };
@@ -42,11 +41,11 @@ private:
 	ucp_progress_manager(const ucp_progress_manager &) = delete;
 	ucp_progress_manager & operator=(ucp_progress_manager &&) = delete;
 	ucp_progress_manager & operator=(const ucp_progress_manager &) = delete;
-    size_t request_size;
+    size_t _request_size;
     std::mutex request_mutex;
     std::condition_variable cv;
-    std::set<request_counter > send_requests;
-    std::set<char * > recv_requests; 
+    std::set<request_struct> send_requests;
+    std::set<request_struct> recv_requests;
     ucp_worker_h ucp_worker;
     void check_progress();
 };

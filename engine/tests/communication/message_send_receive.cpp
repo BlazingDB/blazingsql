@@ -762,11 +762,12 @@ void SenderCall(const UcpWorkerAddress &peerUcpWorkerAddress,
             std::make_unique<ral::cache::GPUCacheDataMetaData>(generate_table_data(), generate_metadata()), "", true);
   }
 
-  comm::message_sender::initialize_instance(output_cache, nodes_info_map, 1, ucp_context, ucp_worker, 0,comm::blazing_protocol::ucx);
+  comm::message_sender::initialize_instance(output_cache, nullptr, nodes_info_map, 1, ucp_context, ucp_worker, 0,comm::blazing_protocol::ucx);
   comm::message_sender::get_instance()->run_polling();
 
+  auto progress_manager = comm::ucp_progress_manager::get_instance(ucp_worker, requestSize);
 
-  std::this_thread::sleep_for(std::chrono::seconds(10));
+  std::this_thread::sleep_for(std::chrono::seconds(10000));
 }
 
 void ReceiverCall(const UcpWorkerAddress &peerUcpWorkerAddress,

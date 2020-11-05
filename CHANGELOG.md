@@ -1,6 +1,21 @@
 # BlazingSQL 0.17.0 (Date TBS)
 
 ## New Features
+
+
+
+## Improvements
+
+
+
+## Bug Fixes
+- #1088 Fixed issue caused by cudf changing from one .so file to multiple
+
+
+
+# BlazingSQL 0.16.0 (Date TBS)
+
+## New Features
 - #981 Added powerPC building script and instructions
 - #912 Added UCX support to how the engine runs
 
