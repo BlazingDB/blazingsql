@@ -63,7 +63,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
     conf_opt_7['ORDER_BY_SAMPLES_RATIO'] = 0.00001
     conf_opt_7['MAX_ORDER_BY_SAMPLES_PER_NODE'] = 5000000
     conf_opt_7['MAX_SEND_MESSAGE_THREADS'] = 1
-    conf_opt_7['TRANSPORT_BUFFER_BYTE_SIZE'] = 100000000   # fails
+    conf_opt_7['TRANSPORT_BUFFER_BYTE_SIZE'] = 100000000
     conf_opt_7['TRANSPORT_POOL_NUM_BUFFERS'] = 100
 
     # conf_opt_8
@@ -72,7 +72,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
     conf_opt_8['MEMORY_MONITOR_PERIOD'] = 5000000
 
     # all sets
-    all_set_list = [conf_opt_1, conf_opt_2, conf_opt_3, conf_opt_4, conf_opt_5, conf_opt_6, conf_opt_8]  # conf_opt_7
+    all_set_list = [conf_opt_1, conf_opt_2, conf_opt_3, conf_opt_4, conf_opt_5, conf_opt_6, conf_opt_7, conf_opt_8]
 
     start_mem = gpuMemory.capture_gpu_memory_usage()
 
