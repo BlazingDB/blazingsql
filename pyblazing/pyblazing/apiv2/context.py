@@ -951,7 +951,8 @@ def kwargs_validation(kwargs, bc_api_str):
                 "ERROR: The parameter '"
                 + arg_i
                 + "' does not exists. Please make sure you are using the correct parameter:"
-                + "\nTo get the correct parameters, check:  " + params_info
+                + "\nTo get the correct parameters, check:  "
+                + params_info
             )
 
 
