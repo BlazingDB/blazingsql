@@ -608,31 +608,27 @@ public:
 		auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
 		int self_node_idx = context->getNodeIndex(self_node);
 		auto nodes_to_send = context->getAllOtherNodes(self_node_idx);
-		std::string worker_ids_metadata;
 		std::vector<std::string> determination_messages_to_wait_for;
-		for (auto i = 0; i < nodes_to_send.size(); i++)	{
-			worker_ids_metadata += nodes_to_send[i].id();
-			determination_messages_to_wait_for.push_back(
-				"determine_if_we_are_scattering_a_small_table_" + std::to_string(this->context->getContextToken()) + "_" +	std::to_string(this->get_id()) +	"_" +	nodes_to_send[i].id());
-
-			if (i < nodes_to_send.size() - 1) {
-				worker_ids_metadata += ",";
-			}
-		}
 
 		ral::cache::MetadataDictionary extra_metadata;
 		extra_metadata.add_value(ral::cache::JOIN_LEFT_BYTES_METADATA_LABEL, std::to_string(left_bytes_estimate));
 		extra_metadata.add_value(ral::cache::JOIN_RIGHT_BYTES_METADATA_LABEL, std::to_string(right_bytes_estimate));
 
-		send_message(nullptr,
-			"false", //specific_cache
-			"", //cache_id
-			worker_ids_metadata, //target_id
-			"determine_if_we_are_scattering_a_small_table_", //message_id_prefix
-			true, //always_add
-			false, //wait_for
-			0, //message_tracker_idx
-			extra_metadata);
+		for (auto i = 0; i < nodes_to_send.size(); i++)	{
+			send_message(nullptr,
+				"false", //specific_cache
+				"", //cache_id
+				nodes_to_send[i].id(), //target_id
+				"determine_if_we_are_scattering_a_small_table_", //message_id_prefix
+				true, //always_add
+				false, //wait_for
+				0, //message_tracker_idx
+				extra_metadata);
+
+			determination_messages_to_wait_for.push_back(
+				"determine_if_we_are_scattering_a_small_table_" + std::to_string(this->context->getContextToken()) + "_" +	std::to_string(this->get_id()) +	"_" +	nodes_to_send[i].id());
+		}
+		
 
 		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
 									"query_id"_a=context->getContextToken(),
