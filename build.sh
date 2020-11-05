@@ -184,6 +184,7 @@ if buildAll || hasArg io; then
     cd ${IO_BUILD_DIR}
     cmake -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} \
           -DBUILD_TESTING=${TESTS} \
+          -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
           -DCMAKE_BUILD_TYPE=${BUILD_TYPE} $disabled_aws_s3_flag $disabled_google_gs_flag ..
 
     if [[ ${TESTS} == "ON" ]]; then
@@ -203,6 +204,7 @@ if buildAll || hasArg comms; then
     cd ${COMMS_BUILD_DIR}
     cmake -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} \
           -DBUILD_TESTING=${TESTS} \
+          -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
           -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ..
 
     if [[ ${TESTS} == "ON" ]]; then
@@ -237,6 +239,7 @@ if buildAll || hasArg libengine; then
           -DBUILD_TESTING=${TESTS} \
           -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
           -DCMAKE_EXE_LINKER_FLAGS="$CXXFLAGS" \
+          -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
           $disabled_aws_s3_flag \
           $disabled_google_gs_flag ..
 

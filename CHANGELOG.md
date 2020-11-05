@@ -1,30 +1,21 @@
 # BlazingSQL 0.17.0 (Date TBS)
 
 ## New Features
-
-
-
-## Improvements
-
-
-
-## Bug Fixes
-- #1088 Fixed issue caused by cudf changing from one .so file to multiple
-
-
-
-# BlazingSQL 0.16.0 (Date TBS)
-
-## New Features
+- #1105 Implement to_date/to_timestamp functions
+- #1077 Allow to create tables from compressed files
 - #981 Added powerPC building script and instructions
 - #912 Added UCX support to how the engine runs
 
 
 ## Improvements
+- #878 Adding calcite rule for window functions. (Window functions not supported yet)
 - #1081 Add validation for the kwargs when bc API is called
 - #1082 Validate s3 bucket
 - #1093 Logs configurable to have max size and be rotated
 - #1091 Improves the error message problem when validating any GCP bucket
+- #1090 Add tests for Uri Data provider for local uri
+- #1117 Add error logging in DataSourceSequence
+- #1111 output compile json for cppcheck
 
 
 ## Bug Fixes
@@ -32,7 +23,9 @@
 - #1086 Showing an appropriate error to indicate that we don't support opening directories with wildcards
 - #1088 Fixed issue caused by cudf changing from one .so file to multiple
 - #1094 Fixed logging directory setup
+- #1100 Showing an appropriate error for invalid or unsupported expressions on the logical plan
 - #1115 Fixed changes to RMM api using cuda_stream_view instead of cudaStream_t now
+- #1118 Fixed issue with config_options and adding local_files to valid params
 
 # BlazingSQL 0.16.0 (October 22, 2020)
 

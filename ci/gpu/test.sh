@@ -1,3 +1,5 @@
+#!/bin/bash
+
 NUMARGS=$#
 ARGS=$*
 
@@ -109,7 +111,7 @@ if testAll || hasArg io; then
     logger "Running IO Unit tests..."
     cd ${WORKSPACE}/io/build
     SECONDS=0
-    ctest
+    ctest --verbose
     duration=$SECONDS
     echo "Total time for IO Unit tests: $(($duration / 60)) minutes and $(($duration % 60)) seconds"
 fi
@@ -118,7 +120,7 @@ if testAll || hasArg comms; then
     logger "Running Comm Unit tests..."
     cd ${WORKSPACE}/comms/build
     SECONDS=0
-    ctest
+    ctest --verbose
     duration=$SECONDS
     echo "Total time for Comm Unit tests: $(($duration / 60)) minutes and $(($duration % 60)) seconds"
 fi
@@ -127,7 +129,7 @@ if testAll || hasArg libengine; then
     logger "Running Engine Unit tests..."
     cd ${WORKSPACE}/engine/build
     SECONDS=0
-    ctest
+    ctest --verbose
     duration=$SECONDS
     echo "Total time for Engine Unit tests: $(($duration / 60)) minutes and $(($duration % 60)) seconds"
 fi

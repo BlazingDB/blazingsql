@@ -247,7 +247,6 @@ void uri_data_provider::close_file_handles() {
 	this->opened_files.resize(0);
 }
 
-std::vector<std::string> uri_data_provider::get_errors() { return this->errors; }
 
 } /* namespace io */
 } /* namespace ral */

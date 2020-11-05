@@ -297,8 +297,15 @@ public:
 
 		lock.unlock();
 
-		auto ret = loader.load_batch(context.get(), projections, schema, local_cur_data_handle, local_cur_file_index, local_all_row_groups);
-		return std::move(ret);
+		try {
+			return loader.load_batch(context.get(), projections, schema, local_cur_data_handle, local_cur_file_index, local_all_row_groups);
+		}	catch(const std::exception& e) {
+			auto logger = spdlog::get("batch_logger");
+			logger->error("{query_id}|||{info}|||||",
+										"query_id"_a=context->getContextToken(),
+										"info"_a="In DataSourceSequence while reading file {}. What: {}"_format(local_cur_data_handle.uri.toString(), e.what()));
+			throw;
+		}
 	}
 
 	/**

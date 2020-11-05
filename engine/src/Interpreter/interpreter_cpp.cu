@@ -30,7 +30,7 @@ struct allocate_device_scalar {
 
     CUDA_TRY(cudaMemcpyAsync(ret.data(), &h_scalar, sizeof(ScalarDeviceType), cudaMemcpyDefault, stream));
 
-		return std::move(ret);
+		return ret;
 	}
 
 	template <typename T, std::enable_if_t<std::is_same<T, cudf::string_view>::value> * = nullptr>
@@ -45,7 +45,7 @@ struct allocate_device_scalar {
 
 		CUDA_TRY(cudaMemcpyAsync(ret.data(), &h_scalar, sizeof(ScalarDeviceType), cudaMemcpyDefault, stream));
 
-		return std::move(ret);
+		return ret;
 	}
 
 	template <typename T, std::enable_if_t<std::is_same<T, cudf::dictionary32>::value> * = nullptr>
@@ -356,7 +356,7 @@ public:
 				left_scalars.emplace_back(nullptr);
 				right_scalars.emplace_back(nullptr);
 			}
-		} else if(is_unary_operator(operation)) {  
+		} else if(is_unary_operator(operation)) {
 			const ral::parser::node * left_operand = node.children[0].get();
 			RAL_EXPECTS(left_operand->type != ral::parser::node_type::LITERAL, "Unary operations on literals is not supported");
 
@@ -495,7 +495,7 @@ void perform_interpreter_operation(cudf::mutable_table_view & out_table,
 	}
 	rmm::device_vector<cudf::detail::scalar_device_view_base *> left_device_scalars(left_device_scalars_raw);
 	rmm::device_vector<cudf::detail::scalar_device_view_base *> right_device_scalars(right_device_scalars_raw);
-	
+
 
 
 	// device left, right and output types
@@ -544,7 +544,7 @@ void perform_interpreter_operation(cudf::mutable_table_view & out_table,
 		}else{
 			output_types_vec[i] = get_output_type(operators[i], left_input_types_vec[i], right_input_types_vec[i]);
 		}
-		
+
 
 		output_map_type[output_index] = output_types_vec[i];
 	}
