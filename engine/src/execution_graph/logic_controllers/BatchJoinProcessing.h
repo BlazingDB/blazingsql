@@ -83,11 +83,8 @@ public:
 
     std::unique_ptr<ral::frame::BlazingTable> load_left_set(){
 
-		std::cout<<"load_left_set start"<<std::endl;
-
 		this->max_left_ind++;
 		std::unique_ptr<ral::frame::BlazingTable> table = this->left_sequence.next();
-		std::cout<<"load_left_set table->num_rows(): "<<table->num_rows()<<std::endl;
 		if (not left_schema && table != nullptr) {
 			left_schema = std::make_unique<TableSchema>(table->get_schema(),  table->names());
 		}
@@ -98,11 +95,9 @@ public:
 	}
 
 	std::unique_ptr<ral::frame::BlazingTable> load_right_set(){
-		std::cout<<"load_right_set start"<<std::endl;
 
 		this->max_right_ind++;
 		std::unique_ptr<ral::frame::BlazingTable> table = this->right_sequence.next();
-		std::cout<<"load_right_set table->num_rows(): "<<table->num_rows()<<std::endl;
 		if (not right_schema && table != nullptr) {
 			right_schema = std::make_unique<TableSchema>(table->get_schema(),  table->names());
 		}
@@ -614,10 +609,10 @@ public:
 		int self_node_idx = context->getNodeIndex(self_node);
 		auto nodes_to_send = context->getAllOtherNodes(self_node_idx);
 		std::string worker_ids_metadata;
-		std::vector<std::string> messages_to_wait_for;
+		std::vector<std::string> determination_messages_to_wait_for;
 		for (auto i = 0; i < nodes_to_send.size(); i++)	{
 			worker_ids_metadata += nodes_to_send[i].id();
-			messages_to_wait_for.push_back(
+			determination_messages_to_wait_for.push_back(
 				"determine_if_we_are_scattering_a_small_table_" + std::to_string(this->context->getContextToken()) + "_" +	std::to_string(this->get_id()) +	"_" +	nodes_to_send[i].id());
 
 			if (i < nodes_to_send.size() - 1) {
@@ -633,7 +628,6 @@ public:
 			"false", //specific_cache
 			"", //cache_id
 			worker_ids_metadata, //target_id
-			"", //total_rows
 			"determine_if_we_are_scattering_a_small_table_", //message_id_prefix
 			true, //always_add
 			false, //wait_for
@@ -653,8 +647,8 @@ public:
 
 
 		int64_t prev_total_rows = 0;
-		for (auto i = 0; i < messages_to_wait_for.size(); i++)	{
-			auto message = this->query_graph->get_input_message_cache()->pullCacheData(messages_to_wait_for[i]);
+		for (auto i = 0; i < determination_messages_to_wait_for.size(); i++)	{
+			auto message = this->query_graph->get_input_message_cache()->pullCacheData(determination_messages_to_wait_for[i]);
 			auto message_with_metadata = static_cast<ral::cache::GPUCacheDataMetaData*>(message.get());
 			int node_idx = context->getNodeIndex(context->getNode(message_with_metadata->getMetadata().get_values()[ral::cache::SENDER_WORKER_ID_METADATA_LABEL]));
 			nodes_num_bytes_left[node_idx] = std::stoll(message_with_metadata->getMetadata().get_values()[ral::cache::JOIN_LEFT_BYTES_METADATA_LABEL]);
@@ -747,7 +741,6 @@ public:
 		BatchSequence left_sequence,
 		BatchSequence right_sequence){
 
-
 		this->context->incrementQuerySubstep();
 
 		// parsing more of the expression here because we need to have the number of columns of the tables
@@ -787,6 +780,7 @@ public:
 
 		int total_count_right = get_total_partition_counts(RIGHT_TABLE_IDX); //right
 		this->output_.get_cache("output_b")->wait_for_count(total_count_right);
+
 	}
 
 	void small_table_scatter_distribution(std::unique_ptr<ral::frame::BlazingTable> small_table_batch,
@@ -813,7 +807,6 @@ public:
 			while (!done) {
 				try {
 					if(small_table_batch != nullptr ) {
-						std::cout<<"distribute_small_table_thread sent broadcast"<<std::endl;
 						broadcast(std::move(small_table_batch),
 							this->output_.get_cache(small_output_cache_name).get(),
 							"", //message_id_prefix
@@ -841,13 +834,11 @@ public:
 				}
 			}
 
-			std::cout<<"distribute_small_table_thread send_total_partition_counts"<<std::endl;
 			send_total_partition_counts(
 				"", //message_prefix
 				small_output_cache_name, //cache_id
 				small_table_idx //message_tracker_idx
 			);
-			std::cout<<"distribute_small_table_thread send_total_partition_counts sent"<<std::endl;
 		});
 
 		this->add_to_output_cache(std::move(big_table_batch), big_output_cache_name);
@@ -860,9 +851,7 @@ public:
 
 		distribute_small_table_thread.join();
 
-		std::cout<<"about to get_total_partition_counts small_table_idx "<<small_table_idx<<" small_output_cache_name "<<small_output_cache_name<<std::endl;
 		int total_count = get_total_partition_counts(small_table_idx);
-		std::cout<<"get_total_partition_counts gpt "<<total_count<<std::endl;
 		this->output_cache(small_output_cache_name)->wait_for_count(total_count);
 		
 		big_table_passthrough_thread.join();

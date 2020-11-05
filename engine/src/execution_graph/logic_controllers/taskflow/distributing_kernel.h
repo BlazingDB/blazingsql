@@ -46,7 +46,6 @@ class distributing_kernel : public kernel {
      * @param specific_cache Indicates if a message should be routed to a specific cache or to the global input cache.
      * @param cache_id Indicates what cache a message should be routed to.
      * @param target_id Indicates what worker is sending this message.
-     * @param total_rows Indicates how many rows are in this message.
      * @param message_id_prefix The prefix of the identifier of this message.
      * @param always_add Forces to always add the table to the output cache.
      * @param wait_for Indicates if this message must be registered to wait for back.
@@ -57,7 +56,6 @@ class distributing_kernel : public kernel {
         std::string specific_cache,
         std::string cache_id,
         std::string target_id,
-        std::string total_rows = "",
         std::string message_id_prefix = "",
         bool always_add = false,
         bool wait_for = false,
@@ -103,11 +101,12 @@ class distributing_kernel : public kernel {
      * @param cache_id Indicates what cache a message should be routed to.
      * @param message_tracker_idx The message tracker index.
      */
-    void broadcast(std::unique_ptr<ral::frame::BlazingTable>,
+    void broadcast(std::unique_ptr<ral::frame::BlazingTable> table,
         ral::cache::CacheMachine* output,
         std::string message_id_prefix,
         std::string cache_id,
         std::size_t message_tracker_idx = 0);
+
 
     /**
      * @brief Sends the partition counter to all other nodes.

@@ -21,7 +21,6 @@ void distributing_kernel::send_message(std::unique_ptr<ral::frame::BlazingTable>
         std::string specific_cache,
         std::string cache_id,
         std::string target_id,
-        std::string total_rows,
         std::string message_id_prefix,
         bool always_add,
         bool wait_for,
@@ -34,10 +33,6 @@ void distributing_kernel::send_message(std::unique_ptr<ral::frame::BlazingTable>
     metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, cache_id);
     metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, node.id());
     metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, target_id);
-
-    if (total_rows!="") {
-        metadata.add_value(ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL, total_rows);
-    }
 
     const std::string MESSAGE_ID_CONTENT = metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL] + "_" +
                                            metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL] + "_" +
@@ -98,13 +93,10 @@ void distributing_kernel::send_total_partition_counts(
             ral::cache::MetadataDictionary extra_metadata;
             extra_metadata.add_value(ral::cache::PARTITION_COUNT, std::to_string(node_count[message_tracker_idx][nodes[i].id()]));
 
-            std::cout<<"send_total_partition_counts sending: "<<node_count[message_tracker_idx][nodes[i].id()]<<std::endl;
-
             send_message(nullptr,
                 "false", //specific_cache
                 cache_id, //cache_id
                 nodes[i].id(), //target_id
-                "", //total_rows
                 message_id_prefix, //message_id_prefix
                 true, //always_add
                 true, //wait_for
@@ -119,24 +111,19 @@ void distributing_kernel::broadcast(std::unique_ptr<ral::frame::BlazingTable> ta
         std::string message_id_prefix,
         std::string cache_id,
         std::size_t message_tracker_idx) {
-    auto nodes = context->getAllNodes();
-
+   
     int self_node_idx = context->getNodeIndex(node);
     auto nodes_to_send = context->getAllOtherNodes(self_node_idx);
-    std::string worker_ids_metadata;
     for (auto i = 0; i < nodes_to_send.size(); i++)	{
-        if(nodes_to_send[i].id() != node.id()){
-            send_message(std::move(table->toBlazingTableView().clone()),
-                "true", //specific_cache
-                cache_id, //cache_id
-                nodes_to_send[i].id(), //target_id
-                "", //total_rows
-                message_id_prefix, //message_id_prefix
-                true, //always_add
-                false, //wait_for
-                message_tracker_idx //message_tracker_idx
-            );           
-        } 
+        send_message(std::move(table->toBlazingTableView().clone()),
+            "true", //specific_cache
+            cache_id, //cache_id
+            nodes_to_send[i].id(), //target_id
+            message_id_prefix, //message_id_prefix
+            true, //always_add
+            false, //wait_for
+            message_tracker_idx //message_tracker_idx
+        );
     }
     // now lets add to the self node
     bool added = output->addToCache(std::move(table), message_id_prefix, true);
@@ -144,6 +131,7 @@ void distributing_kernel::broadcast(std::unique_ptr<ral::frame::BlazingTable> ta
         node_count[message_tracker_idx][node.id()]++;
     }
 }
+
 
 void distributing_kernel::scatter(std::vector<ral::frame::BlazingTableView> partitions,
         ral::cache::CacheMachine* output,
@@ -167,7 +155,6 @@ void distributing_kernel::scatter(std::vector<ral::frame::BlazingTableView> part
                 "true", //specific_cache
                 cache_id, //cache_id
                 nodes[i].id(), //target_id
-                "", //total_rows
                 message_id_prefix, //message_id_prefix
                 true, //always_add
                 false, //wait_for
@@ -200,7 +187,6 @@ void distributing_kernel::scatterNodeColumnViews(std::vector<ral::distribution::
             "true", //specific_cache
             "output_" + std::to_string(part_ids[i]), //cache_id
             dest_node.id(), //target_id
-            "", //total_rows
             message_id_prefix, //message_id_prefix
             true, //always_add
             false, //wait_for

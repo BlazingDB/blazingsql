@@ -123,6 +123,7 @@ void recv_begin_callback_c(ucp_tag_recv_info_t *info, size_t request_size) {
 
 void tcp_message_listener::start_polling() {
 	if(!polling_started) {
+		polling_started=true;
 		int socket_fd;
 
 		struct sockaddr_in server_address;

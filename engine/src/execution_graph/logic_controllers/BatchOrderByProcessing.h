@@ -137,13 +137,17 @@ public:
 				auto output_cache = this->query_graph->get_output_message_cache();
 				for (auto i = 0; i < nodes_to_send.size(); i++)	{
 					if(nodes_to_send[i].id() != self_node.id()){
+						ral::cache::MetadataDictionary extra_metadata;
+						extra_metadata.add_value(ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL, local_total_num_rows);
 						send_message(std::move(partitionPlan->toBlazingTableView().clone()),
 							"true", //specific_cache
 							"output_b", //cache_id
 							nodes_to_send[i].id(), //target_id
-							std::to_string(local_total_num_rows), //total_rows
 							"", //message_id_prefix
-							true); //always_add						
+							true, //always_add
+							false, //wait_for
+							0, //message_tracker_idx
+							extra_metadata);
 					}
 				}				
 
@@ -153,13 +157,18 @@ public:
 				context->incrementQuerySubstep();
 
 				concatSamples->ensureOwnership();
+
+				ral::cache::MetadataDictionary extra_metadata;
+				extra_metadata.add_value(ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL, local_total_num_rows);
 				send_message(std::move(concatSamples),
 					"false", //specific_cache
 					"", //cache_id
 					this->context->getMasterNode().id(), //target_id
-					std::to_string(local_total_num_rows), //total_rows
 					"", //message_id_prefix
-					true); //always_add
+					true, //always_add
+					false, //wait_for
+					0, //message_tracker_idx
+					extra_metadata);
 
 				context->incrementQuerySubstep();
 			}
@@ -514,13 +523,17 @@ public:
 			auto nodes_to_send = context->getAllOtherNodes(self_node_idx);
 			std::vector<std::string> messages_to_wait_for;
 			for (auto i = 0; i < nodes_to_send.size(); i++)	{
+				ral::cache::MetadataDictionary extra_metadata;
+				extra_metadata.add_value(ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL, total_batch_rows);
 				send_message(nullptr, //empty table
 					"false", //specific_cache
 					"", //cache_id
 					nodes_to_send[i].id(), //target_id
-					std::to_string(total_batch_rows), //total_rows
 					"", //message_id_prefix
-					true); //always_add
+					true, //always_add
+					false, //wait_for
+					0, //message_tracker_idx
+					extra_metadata);
 
 				messages_to_wait_for.push_back(
 					std::to_string(this->context->getContextToken()) + "_" +	std::to_string(this->get_id()) +	"_" +	nodes_to_send[i].id());				
