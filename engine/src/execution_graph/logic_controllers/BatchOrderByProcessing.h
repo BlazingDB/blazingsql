@@ -518,23 +518,6 @@ public:
 				} else if(tableViews.size() == 1) {
 					this->add_to_output_cache(std::move(tables.front()));
 				} else {
-
-					size_t total_bytes_to_merge = 0;
-					for (int i = 0; i < tableViews.size(); i++){
-						total_bytes_to_merge += tableViews[i].sizeInBytes();
-					}
-					std::string info = "About to do Merge of " + std::to_string(tableViews.size()) + " table views with total bytes: " + std::to_string(total_bytes_to_merge);
-					info += "  " + blazing_device_memory_resource::getInstance().get_full_memory_summary();
-					
-					logger->info("{query_id}|{step}|{substep}|{info}|{duration}||||",
-												"query_id"_a=context->getContextToken(),
-												"step"_a=context->getQueryStep(),
-												"substep"_a=context->getQuerySubstep(),
-												"info"_a=info,
-												"duration"_a="");
-
-
-
 					auto output = ral::operators::merge(tableViews, this->expression);
 					this->add_to_output_cache(std::move(output));
 				}

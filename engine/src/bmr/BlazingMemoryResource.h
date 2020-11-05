@@ -58,9 +58,6 @@ public:
             throw std::runtime_error("Cannot allocate this Pool memory size on the GPU.");
         }
 
-        std::cout<<get_full_memory_summary()<<std::endl;
-        std::cout<<"initial_pool_size: "<<initial_pool_size<<"  maximum_pool_size: "<<maximum_pool_size<<std::endl;
-
         if (allocation_mode == "cuda_memory_resource"){
             memory_resource_owner = std::make_shared<rmm::mr::cuda_memory_resource>();
             memory_resource = memory_resource_owner.get();
