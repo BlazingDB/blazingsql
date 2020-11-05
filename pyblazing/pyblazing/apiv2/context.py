@@ -947,13 +947,12 @@ def kwargs_validation(kwargs, bc_api_str):
 
     for arg_i in kwargs.keys():
         if arg_i not in full_kwargs:
-            print(
-                "The parameter '"
+            raise Exception(
+                "ERROR: The parameter '"
                 + arg_i
                 + "' does not exists. Please make sure you are using the correct parameter:"
+                + "\nTo get the correct parameters, check:  " + params_info
             )
-            print("To get the correct parameters, check:  " + params_info)
-            sys.exit()
 
 
 class BlazingTable(object):
