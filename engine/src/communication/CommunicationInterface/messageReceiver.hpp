@@ -99,7 +99,7 @@ public:
   void finish(cudaStream_t stream = 0) {
     std::unique_ptr<ral::frame::BlazingTable> table = deserialize_from_gpu_raw_buffers(_column_transports, _raw_buffers,stream);
     if ( _metadata.get_values()[ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL] == "true"){
-       _output_cache->addToCache(std::move(table),  _metadata.get_values()[ral::cache::MESSAGE_ID], true);
+       _output_cache->addToCache(std::move(table),  _metadata.get_values()[ral::cache::MESSAGE_ID], true, true);
     } else {
       _output_cache->addCacheData(
               std::make_unique<ral::cache::GPUCacheDataMetaData>(std::move(table), _metadata), _metadata.get_values()[ral::cache::MESSAGE_ID], true);

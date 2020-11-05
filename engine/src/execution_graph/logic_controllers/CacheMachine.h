@@ -892,7 +892,7 @@ public:
 
 	virtual void clear();
 
-	virtual bool addToCache(std::unique_ptr<ral::frame::BlazingTable> table, const std::string & message_id = "", bool always_add = false);
+	virtual bool addToCache(std::unique_ptr<ral::frame::BlazingTable> table, const std::string & message_id = "", bool always_add = false, bool force_cache = false);
 
 	virtual bool addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, const std::string & message_id = "", bool always_add = false);
 
