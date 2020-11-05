@@ -18,8 +18,9 @@ def main(dask_client, dir_data_file, bc, nRals):
         print(queryType)
         print("==============================")
 
+        # this query outputs how long each query took
         queryId = "TEST_01"
-        query = """select * from bsql_logs"""
+        query = """SELECT log_time, query_id, duration FROM bsql_logs WHERE info = 'Query Execution Done' ORDER BY log_time DESC"""
         runTest.run_query_log(
             bc,
             query,
@@ -27,8 +28,20 @@ def main(dask_client, dir_data_file, bc, nRals):
             queryType,
         )
 
+        # this query determines the data load time and total time for all queries
         queryId = "TEST_02"
-        query = """SELECT log_time, query_id, duration FROM bsql_logs WHERE info = 'Query Execution Done' ORDER BY log_time DESC"""
+        query = """SELECT
+                    query_id, node_id,
+                    SUM(CASE WHEN info = 'evaluate_split_query load_data' THEN duration ELSE 0 END) AS load_time,
+                    SUM(CASE WHEN info = 'Query Execution Done' THEN duration ELSE 0 END) AS total_time,
+                    MAX(log_time) AS end_time
+                FROM
+                    bsql_logs
+                WHERE
+                    info = 'evaluate_split_query load_data'
+                    OR info = 'Query Execution Done'
+                GROUP BY
+                    node_id, query_id"""
         runTest.run_query_log(
             bc,
             query,
