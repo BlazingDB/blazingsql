@@ -112,13 +112,16 @@ def try_to_get_dask_client(n_workers, n_gpus):
     raise ValueError("ERROR: Bad dask connection '%s'" % daskConnection)
 
 
-def init_context():
+def init_context(config_options=None):
     bc = None
     dask_client = None
     nRals = int(Settings.data["RunSettings"]["nRals"])
     nGpus = int(Settings.data["RunSettings"]["nGPUs"])
     if nRals == 1:
-        bc = BlazingContext()
+        if config_options is None:
+            bc = BlazingContext()
+        else:
+            bc = BlazingContext(config_options=config_options)
     else:
         os.chdir(Settings.data["TestSettings"]["logDirectory"])
         dask_client = try_to_get_dask_client(nRals, nGpus)
@@ -128,14 +131,27 @@ def init_context():
             print("Using dask: " + dask_conn)
             if "local" != dask_conn:
                 dask_client.restart()
-            bc = BlazingContext(
-                dask_client=dask_client,
-                network_interface=iface,
-                pool=False,
-                initial_pool_size=None,
-                allocator="managed",
-            )
+            if config_options is None:
+                bc = BlazingContext(
+                    dask_client=dask_client,
+                    network_interface=iface,
+                    pool=False,
+                    initial_pool_size=None,
+                    allocator="managed",
+                )
+            else:
+                bc = BlazingContext(
+                    dask_client=dask_client,
+                    network_interface=iface,
+                    pool=False,
+                    initial_pool_size=None,
+                    allocator="managed",
+                    config_options=config_options,
+                )
         else:
             # Fallback: could not found a valid dask server
-            bc = BlazingContext()
+            if config_options is None:
+                bc = BlazingContext()
+            else:
+                bc = BlazingContext(config_options=config_options)
     return (bc, dask_client)

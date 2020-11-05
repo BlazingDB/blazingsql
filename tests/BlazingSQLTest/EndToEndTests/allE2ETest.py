@@ -58,6 +58,7 @@ from EndToEndTests import useLimitTest
 from EndToEndTests import whereClauseTest as whereClauseTest
 from EndToEndTests import wildCardTest
 from EndToEndTests import messageValidationTest
+from EndToEndTests import configOptionsTest
 from pynvml import nvmlInit
 from Runner import runTest
 from Utils import Execution, init_context
@@ -238,6 +239,9 @@ def main():
 
     if runAllTests or ("messageValidationTest" in targetTestGroups):
         messageValidationTest.main(dask_client, drill, dir_data_file, bc, nRals)
+
+    if runAllTests or ("configOptionsTest" in targetTestGroups):
+        configOptionsTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     if Settings.execution_mode != ExecutionMode.GPUCI:
         if runAllTests or ("fileSystemS3Test" in targetTestGroups):
