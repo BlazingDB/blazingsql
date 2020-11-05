@@ -3,7 +3,7 @@
 ## New Features
 - #1105 Implement to_date/to_timestamp functions
 - #1077 Allow to create tables from compressed files
-
+- #1122 Add ConfigOptionsTest as a set of different config_options
 
 ## Improvements
 - #878 Adding calcite rule for window functions. (Window functions not supported yet)
