@@ -11,6 +11,7 @@
 #include "operators/OrderBy.h"
 #include "CodeTimer.h"
 #include <blazingdb/io/Util/StringUtil.h>
+#include <bmr/BlazingMemoryResource.h>
 
 namespace ral {
 namespace batch {
@@ -532,7 +533,7 @@ public:
 												"query_id"_a=context->getContextToken(),
 												"step"_a=context->getQueryStep(),
 												"substep"_a=context->getQuerySubstep(),
-												"info"_a="In MergeStream kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
+												"info"_a="In MergeStream kernel batch {} for {}. What: {} . max_memory_used: {}"_format(batch_count, expression, e.what(), blazing_device_memory_resource::getInstance().get_full_memory_summary()),
 												"duration"_a="");
 				throw;
 			}

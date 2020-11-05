@@ -1,8 +1,8 @@
-set(message_receiver_tests_SRCS
-    message_receiver_tests.cpp
-)
+# set(message_receiver_tests_SRCS
+#     message_receiver_tests.cpp
+# )
 
-configure_test(message_receiver_test "${message_receiver_tests_SRCS}")
+# configure_test(message_receiver_test "${message_receiver_tests_SRCS}")
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -14,10 +14,10 @@ configure_test(message_sender_test "${message_sender_tests_SRCS}")
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-set(message_send_receive_tests_SRCS
-    message_send_receive.cpp
-)
+# set(message_send_receive_tests_SRCS
+#     message_send_receive.cpp
+# )
 
-configure_test(message_send_receive_test "${message_send_receive_tests_SRCS}")
+# configure_test(message_send_receive_test "${message_send_receive_tests_SRCS}")
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

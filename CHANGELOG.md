@@ -19,6 +19,7 @@
 - #981 Added powerPC building script and instructions
 - #912 Added UCX support to how the engine runs
 
+# BlazingSQL 0.16.0 (October 22, 2020)
 
 ## Improvements
 - #1081 Add validation for the kwargs when bc API is called

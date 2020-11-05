@@ -204,7 +204,7 @@ bool CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_dat
 		ral::cache::CacheDataType type = cache_data->get_type();
 		if (type == ral::cache::CacheDataType::GPU || type == ral::cache::CacheDataType::GPU_METADATA){
 			cacheIndex = 0;
-		} else if (type == ral::cache::CacheDataType::GPU){
+		} else if (type == ral::cache::CacheDataType::CPU){
 			cacheIndex = 1;
 		} else {
 			cacheIndex = 2;
@@ -279,7 +279,9 @@ bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, c
 		num_bytes_added += table->sizeInBytes();
 		int cacheIndex = 0;
 		while(cacheIndex < memory_resources.size()) {
+			
 			auto memory_to_use = (this->memory_resources[cacheIndex]->get_memory_used() + table->sizeInBytes());
+
 			if( memory_to_use < this->memory_resources[cacheIndex]->get_memory_limit()) {
 				if(cacheIndex == 0) {
 					if(logger != nullptr) {

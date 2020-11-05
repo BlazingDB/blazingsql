@@ -23,7 +23,7 @@ Add any other context or screenshots about the feature request here.
 **How and where should this be implemented?**
 What part of the code should be feature be implemented? What should the APIs and/or classes look like?
 
-**Other design considerations **
+**Other design considerations**
 What components of the engine could be affected by this? What functions should we make sure we use/reuse?
 
 **Testing considerations?**
