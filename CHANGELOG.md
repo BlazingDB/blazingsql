@@ -13,6 +13,7 @@
 - #1091 Improves the error message problem when validating any GCP bucket
 - #1090 Add tests for Uri Data provider for local uri
 - #1117 Add error logging in DataSourceSequence
+- #1111 output compile json for cppcheck
 
 
 ## Bug Fixes
@@ -21,7 +22,8 @@
 - #1088 Fixed issue caused by cudf changing from one .so file to multiple
 - #1094 Fixed logging directory setup
 - #1100 Showing an appropriate error for invalid or unsupported expressions on the logical plan
-
+- #1115 Fixed changes to RMM api using cuda_stream_view instead of cudaStream_t now
+- #1118 Fixed issue with config_options and adding local_files to valid params
 
 # BlazingSQL 0.16.0 (October 22, 2020)
 
