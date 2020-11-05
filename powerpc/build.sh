@@ -407,6 +407,7 @@ if [ "$machine_processor_architecture" = "ppc64le" ] || [ "$machine_processor_ar
     echo "### BEGIN Pip dependencies ###"
     # pip install -r requirements.txt
     pip install numba==0.50.1
+    pip install scipy==1.5.2
     pip install scikit-learn==0.23.1
     pip install flake8==3.8.3
     pip install ipython==7.17.0
@@ -414,7 +415,6 @@ if [ "$machine_processor_architecture" = "ppc64le" ] || [ "$machine_processor_ar
     pip install sphinx-rtd-theme==0.5.0
     pip install cysignals==1.10.2
     pip install numpydoc==1.1.0
-    pip install scipy==1.5.2
     pip install pynvml==8.0.4
     pip install networkx==2.4
     pip install jupyterlab==2.2.4
