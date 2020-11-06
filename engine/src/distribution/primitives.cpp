@@ -2,7 +2,6 @@
 #include "CalciteExpressionParsing.h"
 #include "communication/CommunicationData.h"
 
-#include "utilities/StringUtils.h"
 #include <cmath>
 
 #include <cudf/search.hpp>

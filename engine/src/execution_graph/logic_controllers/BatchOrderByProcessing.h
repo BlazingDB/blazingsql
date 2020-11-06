@@ -12,6 +12,7 @@
 #include "CodeTimer.h"
 #include "taskflow/distributing_kernel.h"
 #include <blazingdb/io/Util/StringUtil.h>
+#include <bmr/BlazingMemoryResource.h>
 
 namespace ral {
 namespace batch {
@@ -328,7 +329,7 @@ public:
 		context->incrementQuerySubstep();
 
 		std::map<std::string, std::map<int32_t, int> > node_count;
-		
+
 		bool ordered = false;
 		BatchSequence input(this->input_.get_cache("input_a"), this, ordered);
 		int batch_count = 0;
@@ -340,7 +341,7 @@ public:
 
 		// If we have no partitionPlan, its because we have no data, therefore its one partition per node
 		int num_partitions_per_node = partitionPlan->num_rows() == 0 ? 1 : (partitionPlan->num_rows() + 1) / this->context->getTotalNodes();
-	
+
 		std::map<int32_t, int> temp_partitions_map;
 		for (size_t i = 0; i < num_partitions_per_node; i++) {
 			temp_partitions_map[i] = 0;
@@ -475,7 +476,7 @@ public:
 												"query_id"_a=context->getContextToken(),
 												"step"_a=context->getQueryStep(),
 												"substep"_a=context->getQuerySubstep(),
-												"info"_a="In MergeStream kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
+												"info"_a="In MergeStream kernel batch {} for {}. What: {} . max_memory_used: {}"_format(batch_count, expression, e.what(), blazing_device_memory_resource::getInstance().get_full_memory_summary()),
 												"duration"_a="");
 				throw;
 			}
@@ -510,7 +511,7 @@ public:
 		set_number_of_message_trackers(1); //default
 	}
 
-	
+
 	virtual kstatus run() {
 		CodeTimer timer;
 		CodeTimer eventTimer(false);
@@ -535,27 +536,31 @@ public:
 			auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
 			int self_node_idx = context->getNodeIndex(self_node);
 			auto nodes_to_send = context->getAllOtherNodes(self_node_idx);
-			std::vector<std::string> messages_to_wait_for;
+			std::string worker_ids_metadata;
+			std::vector<std::string> limit_messages_to_wait_for;
 			for (auto i = 0; i < nodes_to_send.size(); i++)	{
-				ral::cache::MetadataDictionary extra_metadata;
-				extra_metadata.add_value(ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL, total_batch_rows);
-				send_message(nullptr, //empty table
-					"false", //specific_cache
-					"", //cache_id
-					nodes_to_send[i].id(), //target_id
-					"", //message_id_prefix
-					true, //always_add
-					false, //wait_for
-					0, //message_tracker_idx
-					extra_metadata);
-
-				messages_to_wait_for.push_back(
-					std::to_string(this->context->getContextToken()) + "_" +	std::to_string(this->get_id()) +	"_" +	nodes_to_send[i].id());				
+				worker_ids_metadata += nodes_to_send[i].id();
+				if (i < nodes_to_send.size() - 1) {
+					worker_ids_metadata += ",";
+				}
+				limit_messages_to_wait_for.push_back(
+					std::to_string(this->context->getContextToken()) + "_" +	std::to_string(this->get_id()) +	"_" +	nodes_to_send[i].id());
 			}
-			
+			ral::cache::MetadataDictionary extra_metadata;
+			extra_metadata.add_value(ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL, total_batch_rows);
+			send_message(nullptr, //empty table
+				"false", //specific_cache
+				"", //cache_id
+				worker_ids_metadata, //target_id
+				"", //message_id_prefix
+				true, //always_add
+				false, //wait_for
+				0, //message_tracker_idx
+				extra_metadata);
+	
 			int64_t prev_total_rows = 0;
-			for (auto i = 0; i < messages_to_wait_for.size(); i++)	{
-				auto meta_message = this->query_graph->get_input_message_cache()->pullCacheData(messages_to_wait_for[i]);
+			for (auto i = 0; i < limit_messages_to_wait_for.size(); i++)	{
+				auto meta_message = this->query_graph->get_input_message_cache()->pullCacheData(limit_messages_to_wait_for[i]);
 				if(i < context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode())){
 					prev_total_rows += std::stoi(static_cast<ral::cache::GPUCacheDataMetaData*>(meta_message.get())->getMetadata().get_values()[ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL]);
 				}

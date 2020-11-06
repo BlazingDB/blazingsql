@@ -614,22 +614,26 @@ public:
 		extra_metadata.add_value(ral::cache::JOIN_LEFT_BYTES_METADATA_LABEL, std::to_string(left_bytes_estimate));
 		extra_metadata.add_value(ral::cache::JOIN_RIGHT_BYTES_METADATA_LABEL, std::to_string(right_bytes_estimate));
 
+		std::string worker_ids_metadata;
 		for (auto i = 0; i < nodes_to_send.size(); i++)	{
-			send_message(nullptr,
+			worker_ids_metadata += nodes_to_send[i].id();
+			if (i < nodes_to_send.size() - 1) {
+				worker_ids_metadata += ",";
+			}
+			determination_messages_to_wait_for.push_back(
+				"determine_if_we_are_scattering_a_small_table_" + std::to_string(this->context->getContextToken()) + "_" +	std::to_string(this->get_id()) +	"_" +	nodes_to_send[i].id());
+		}
+		send_message(nullptr,
 				"false", //specific_cache
 				"", //cache_id
-				nodes_to_send[i].id(), //target_id
+				worker_ids_metadata, //target_id
 				"determine_if_we_are_scattering_a_small_table_", //message_id_prefix
 				true, //always_add
 				false, //wait_for
 				0, //message_tracker_idx
 				extra_metadata);
 
-			determination_messages_to_wait_for.push_back(
-				"determine_if_we_are_scattering_a_small_table_" + std::to_string(this->context->getContextToken()) + "_" +	std::to_string(this->get_id()) +	"_" +	nodes_to_send[i].id());
-		}
 		
-
 		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
 									"query_id"_a=context->getContextToken(),
 									"step"_a=context->getQueryStep(),
@@ -794,9 +798,8 @@ public:
 		int small_table_idx = scatter_left_right.first ? LEFT_TABLE_IDX : RIGHT_TABLE_IDX;
 		std::string big_output_cache_name = scatter_left_right.first ? "output_b" : "output_a";
 		int big_table_idx = scatter_left_right.first ? RIGHT_TABLE_IDX : LEFT_TABLE_IDX;
-		std::vector<std::string> messages_to_wait_for;
-
-		BlazingThread distribute_small_table_thread([this, &small_table_batch, &small_table_sequence, small_output_cache_name, small_table_idx, &messages_to_wait_for](){
+		
+		BlazingThread distribute_small_table_thread([this, &small_table_batch, &small_table_sequence, small_output_cache_name, small_table_idx](){
 			bool done = false;
 			int batch_count = 0;
 			auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
@@ -849,7 +852,7 @@ public:
 
 		int total_count = get_total_partition_counts(small_table_idx);
 		this->output_cache(small_output_cache_name)->wait_for_count(total_count);
-		
+
 		big_table_passthrough_thread.join();
 	}
 

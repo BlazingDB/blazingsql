@@ -150,8 +150,7 @@ public:
 
         std::vector<cudf::size_type> columns_to_hash;
         std::transform(group_column_indices.begin(), group_column_indices.end(), std::back_inserter(columns_to_hash), [](int index) { return (cudf::size_type)index; });
-        std::vector<std::string> messages_to_wait_for;
-		std::map<std::string, int> node_count;
+        std::map<std::string, int> node_count;
 
         // num_partitions = context->getTotalNodes() will do for now, but may want a function to determine this in the future.
         // If we do partition into something other than the number of nodes, then we have to use part_ids and change up more of the logic

@@ -48,6 +48,7 @@ from EndToEndTests import (
     tablesFromPandasTest,
     # timestampdiffTest,
     timestampTest,
+    toTimestampTest,
     tpchQueriesTest,
 )
 from EndToEndTests import unaryOpsTest as unaryOpsTest
@@ -130,6 +131,9 @@ def main():
 
     if runAllTests or ("timestampTest" in targetTestGroups):
         timestampTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
+
+    if runAllTests or ("toTimestampTest" in targetTestGroups):
+        toTimestampTest.main(dask_client, spark, dir_data_file, bc, nRals)
 
     if runAllTests or ("fullOuterJoinsTest" in targetTestGroups):
         fullOuterJoinsTest.main(dask_client, drill, dir_data_file, bc, nRals)
@@ -233,7 +237,7 @@ def main():
         fileSystemLocalTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     if runAllTests or ("messageValidationTest" in targetTestGroups):
-        messageValidationTest.main(dask_client, drill, dir_data_file, bc, nRals) 
+        messageValidationTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     if Settings.execution_mode != ExecutionMode.GPUCI:
         if runAllTests or ("fileSystemS3Test" in targetTestGroups):

@@ -207,6 +207,16 @@ public:
 	void set_values(std::map<std::string,std::string> new_values){
 		this->values= new_values;
 	}
+
+	/**
+	* Checks if metadata has a specific key
+	* @param key The key to check if is in the metadata
+	* @return true if the key is in the metadata, otherwise return false
+	*/
+	bool has_value(std::string key){
+		auto it = this->values.find(key);
+		return it != this->values.end();
+	}
 private:
 	std::map<std::string,std::string> values; /**< Stores the mapping of metdata label to metadata value */
 };

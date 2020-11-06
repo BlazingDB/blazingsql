@@ -114,22 +114,26 @@ void distributing_kernel::broadcast(std::unique_ptr<ral::frame::BlazingTable> ta
    
     int self_node_idx = context->getNodeIndex(node);
     auto nodes_to_send = context->getAllOtherNodes(self_node_idx);
+    std::string worker_ids_metadata;
     for (auto i = 0; i < nodes_to_send.size(); i++)	{
-        std::cout<<"broadcast is sending"<<std::endl;
-        send_message(std::move(table->toBlazingTableView().clone()),
-            "true", //specific_cache
-            cache_id, //cache_id
-            nodes_to_send[i].id(), //target_id
-            message_id_prefix, //message_id_prefix
-            true, //always_add
-            false, //wait_for
-            message_tracker_idx //message_tracker_idx
-        );
+        worker_ids_metadata += nodes_to_send[i].id();
+        if (i < nodes_to_send.size() - 1) {
+            worker_ids_metadata += ",";
+        }
     }
+    send_message(std::move(table->toBlazingTableView().clone()),
+        "true", //specific_cache
+        cache_id, //cache_id
+        worker_ids_metadata, //target_id
+        message_id_prefix, //message_id_prefix
+        true, //always_add
+        false, //wait_for
+        message_tracker_idx //message_tracker_idx
+    );
+    
     // now lets add to the self node
     bool added = output->addToCache(std::move(table), message_id_prefix, true);
     if (added) {
-        std::cout<<"broadcast added to output"<<std::endl;
         node_count[message_tracker_idx][node.id()]++;
     }
 }
@@ -186,7 +190,7 @@ void distributing_kernel::scatterParts(std::vector<ral::distribution::NodeColumn
             "output_" + std::to_string(part_ids[i]), //cache_id
             dest_node.id(), //target_id
             message_id_prefix, //message_id_prefix
-            true, //always_add
+            false, //always_add
             false, //wait_for
             part_ids[i] //message_tracker_idx
         );
