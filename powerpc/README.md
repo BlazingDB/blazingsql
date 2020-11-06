@@ -28,21 +28,6 @@ You need these dependencies, they can be provided by OS package system (e.g. apt
 - hwloc
 - gdrcopy
 
-If running on Summit and using lmod and your system has the necessary modules you can use:
-```shell
-module load gcc/7.4.0
-module load python/3.7.0
-module load cmake/3.17.3
-module load boost/1.66.0
-module load cuda/10.1.243
-module load zlib
-module load texinfo
-module load openblas
-module load netlib-lapack
-module load hwloc
-module load gdrcopy
-```
-
 ### Setup the environment
 Using regular python you just need to make sure that you have an environment.
 NOTE: if using Lmod, make sure you have loaded your python packages before creating or starting your python environment.
@@ -68,14 +53,14 @@ It is recommended you setup a build folder and export to the following variable 
 Run the build script and pass your environment folder (prefix path) as argument:
 ```shell
 cd blazingsql
-bash powerpc/build.sh $VIRTUAL_ENV
+source powerpc/build.sh $VIRTUAL_ENV
 ```
 
 It is recommented to pipe the output of the installation to a file, so that if the terminal is closed or something goes wrong
 you can maintain a copy of the installation output:
 ```shell
 cd blazingsql
-bash powerpc/build.sh $VIRTUAL_ENV | tee out.txt
+source powerpc/build.sh $VIRTUAL_ENV | tee out.txt
 ```
 
 Notes:
@@ -85,22 +70,41 @@ Notes:
 
 
 ### Build & install BlazingSQL on Summit
-The `summit_install.sh` script will create the python virtual environment for you an load all the lmod modules for you.
+The following instructions are for building on Summit. They are similar to the instructions above:
 
-It is recommended you setup a build folder and export to the following variable before you begin building:
-`export BLAZINGSQL_POWERPC_TMP_BUILD_DIR=PATH_TO_A_BUILD_FOLDER`
-
-Run the installation script and pass your environment folder (prefix path) as argument:
+Use lmod to load up all the dependencies:
 ```shell
-cd blazingsql
-bash powerpc/summit_install.sh $VIRTUAL_ENV
+module load gcc/7.4.0
+module load python/3.7.0
+module load cmake/3.17.3
+module load boost/1.66.0
+module load cuda/10.1.243
+module load zlib
+module load texinfo
+module load openblas
+module load netlib-lapack
+module load hwloc
+module load gdrcopy
 ```
 
-It is recommented to pipe the output of the installation to a file, so that if the terminal is closed or something goes wrong
-you can maintain a copy of the installation output:
+Export the environment variables for your Virtual Environment and Build folder and make sure the folders exist:
+```shell
+export VIRTUAL_ENV=PATH_TO_YOUR_ENV_PREFIX
+mkdir $VIRTUAL_ENV
+export BLAZINGSQL_POWERPC_TMP_BUILD_DIR=PATH_TO_A_BUILD_FOLDER
+mkdir $BLAZINGSQL_POWERPC_TMP_BUILD_DIR
+```
+
+Create your virtual environment and activate it:
+```shell
+python -m venv $VIRTUAL_ENV
+source $VIRTUAL_ENV/bin/activate
+```
+
+Make sure you are in the `blazingsql` folder and run the build script and pass your environment folder as argument:
 ```shell
 cd blazingsql
-bash powerpc/summit_install.sh $VIRTUAL_ENV | tee out.txt
+source powerpc/build.sh $VIRTUAL_ENV  | tee out.txt
 ```
 
 Notes:
