@@ -309,7 +309,12 @@ public:
 		this->query_graph = query_graph;
 		this->input_.add_port("input_a", "input_b");
 
-		size_t max_num_order_by_partitions_per_node = this->output_.count();
+		std::map<std::string, std::string> config_options = context->getConfigOptions();
+		int max_num_order_by_partitions_per_node = 8;
+		auto it = config_options.find("MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE");
+		if (it != config_options.end()){
+			max_num_order_by_partitions_per_node = std::stoi(config_options["MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE"]);
+		}
 		set_number_of_message_trackers(max_num_order_by_partitions_per_node);
 	}
 
