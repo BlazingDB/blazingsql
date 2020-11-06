@@ -709,6 +709,10 @@ private:
 					int64_t computed = cudf::type_dispatcher(cudf::data_type{left_type_id},
 						launch_extract_component<datetime_component::DAY>{}, static_cast<int64_t>(left_value));
 					store_data_in_buffer(computed, buffer, output_position);
+				} else if(oper == operator_type::BLZ_DAYOFWEEK) {
+					int64_t computed = cudf::type_dispatcher(cudf::data_type{left_type_id},
+						launch_extract_component<datetime_component::WEEKDAY>{},	static_cast<int64_t>(left_value));
+					store_data_in_buffer(computed, buffer, output_position);
 				} else if(oper == operator_type::BLZ_HOUR) {
 					int64_t computed = cudf::type_dispatcher(cudf::data_type{left_type_id},
 						launch_extract_component<datetime_component::HOUR>{},	static_cast<int64_t>(left_value));
