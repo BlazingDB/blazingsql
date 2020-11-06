@@ -83,12 +83,10 @@ class distributing_kernel : public kernel {
      * More than one partition can belong to the same node.
      *
      * @param partitions The table partitions to be sent represented as node column views.
-     * @param output The output cache.
      * @param message_id_prefix The prefix of the identifier of this message.
      * @param part_ids A vector the same size as partitions, telling which part_id each partition corresponds to.
      */
     void scatterParts(std::vector<ral::distribution::NodeColumnView> partitions,
-        ral::cache::CacheMachine* output,
         std::string message_id_prefix,
         std::vector<int32_t> part_ids);
 

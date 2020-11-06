@@ -324,11 +324,7 @@ public:
 		BatchSequence input_partitionPlan(this->input_.get_cache("input_b"), this);
 		auto partitionPlan = input_partitionPlan.next();
 
-		if (partitionPlan == nullptr){
-			std::cout<<"ERROR: partitionPlan is nullptr"<<std::endl;
-		} else {
-			std::cout<<"OK: partitionPlan is not nullptr. num rows: "<<partitionPlan->num_rows()<<std::endl;
-		}
+		assert(partitionPlan != nullptr);
 
 		context->incrementQuerySubstep();
 
@@ -363,7 +359,6 @@ public:
 				std::generate(part_ids.begin(), part_ids.end(), [count=0, num_partitions_per_node] () mutable { return (count++) % (num_partitions_per_node); });
 
 				scatterParts(partitions,
-					this->output_.get_cache().get(),
 					"", //message_id_prefix
 					part_ids
 				);

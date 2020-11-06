@@ -171,7 +171,6 @@ void distributing_kernel::scatter(std::vector<ral::frame::BlazingTableView> part
 }
 
 void distributing_kernel::scatterParts(std::vector<ral::distribution::NodeColumnView> partitions,
-        ral::cache::CacheMachine* output,
         std::string message_id_prefix,
         std::vector<int32_t> part_ids) {
 
@@ -200,7 +199,7 @@ void distributing_kernel::scatterParts(std::vector<ral::distribution::NodeColumn
         auto & partition = partitions[i];
         if(partition.first == node) {
             std::string cache_id = "output_" + std::to_string(part_ids[i]);
-            bool added = output->addToCache(std::move(partition.second.clone()), cache_id, true);
+            bool added = this->add_to_output_cache(std::move(partition.second.clone()), cache_id);
             if (added) {
                 node_count[part_ids[i]][node.id()]++;
             }
