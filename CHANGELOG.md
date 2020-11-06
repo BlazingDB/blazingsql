@@ -5,6 +5,7 @@
 - #1077 Allow to create tables from compressed files
 - #1126 Add DAYOFWEEK function
 
+
 ## Improvements
 - #878 Adding calcite rule for window functions. (Window functions not supported yet)
 - #1081 Add validation for the kwargs when bc API is called
