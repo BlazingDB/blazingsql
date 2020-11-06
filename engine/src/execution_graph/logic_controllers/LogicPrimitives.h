@@ -25,6 +25,7 @@ typedef cudf::column CudfColumn;
 typedef cudf::column_view CudfColumnView;
 
 namespace ral {
+
 namespace frame {
 
 class BlazingTable;

@@ -76,7 +76,7 @@ CacheMachine::CacheMachine(std::shared_ptr<Context> context): ctx(context), cach
 {
 	CacheMachine::cache_count++;
 
-	waitingCache = std::make_unique<WaitingQueue>();
+	waitingCache = std::make_unique<WaitingQueue <std::unique_ptr <message> > >();
 	this->memory_resources.push_back( &blazing_device_memory_resource::getInstance() );
 	this->memory_resources.push_back( &blazing_host_memory_resource::getInstance() );
 	this->memory_resources.push_back( &blazing_disk_memory_resource::getInstance() );
@@ -107,7 +107,7 @@ CacheMachine::CacheMachine(std::shared_ptr<Context> context, std::size_t flow_co
 {
 	CacheMachine::cache_count++;
 
-	waitingCache = std::make_unique<WaitingQueue>();
+	waitingCache = std::make_unique<WaitingQueue <std::unique_ptr< message> > >();
 	this->memory_resources.push_back( &blazing_device_memory_resource::getInstance() );
 	this->memory_resources.push_back( &blazing_host_memory_resource::getInstance() );
 	this->memory_resources.push_back( &blazing_disk_memory_resource::getInstance() );

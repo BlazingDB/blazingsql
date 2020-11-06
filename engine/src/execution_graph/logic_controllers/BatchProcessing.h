@@ -1014,6 +1014,14 @@ public:
 	 */
 	OutputKernel(std::size_t kernel_id, std::shared_ptr<Context> context) : kernel(kernel_id,"OutputKernel", context, kernel_type::OutputKernel) { }
 
+	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+		std::shared_ptr<ral::cache::CacheMachine> output,
+		cudaStream_t stream, std::string kernel_process_name) override{
+			//for now the output kernel is not using do_process
+			//i believe the output should be a cachemachine itself
+			//obviating this concern
+			
+		}
 	/**
 	 * Executes the batch processing.
 	 * Loads the data from their input port, and after processing it,

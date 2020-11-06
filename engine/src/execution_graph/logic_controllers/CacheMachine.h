@@ -264,6 +264,9 @@ public:
 		return this->data->toBlazingTableView();
 	}
 
+	void set_data(std::unique_ptr<ral::frame::BlazingTable> table ){
+		this->data = std::move(table);
+	}
 protected:
 	std::unique_ptr<ral::frame::BlazingTable> data; /**< Stores the data to be returned in decache */
 };
@@ -489,9 +492,9 @@ protected:
 * many compute resources.This is accomplished through the use of a
 * condition_variable and mutex locks.
 */
+template <typename message_ptr>
 class WaitingQueue {
 public:
-	using message_ptr = std::unique_ptr<message>;
 
 	/**
 	* Constructor
@@ -937,7 +940,7 @@ protected:
 	static std::size_t cache_count;
 
 	/// This property represents a waiting queue object which stores all CacheData Objects
-	std::unique_ptr<WaitingQueue> waitingCache;
+	std::unique_ptr<WaitingQueue< std::unique_ptr<message> > > waitingCache;
 
 	/// References to the properties of the multi-tier cache system
 	std::vector<BlazingMemoryResource*> memory_resources;
@@ -965,7 +968,7 @@ protected:
 class HostCacheMachine {
 public:
 	HostCacheMachine(std::shared_ptr<Context> context, const std::size_t id) : ctx(context), cache_id(id) {
-		waitingCache = std::make_unique<WaitingQueue>();
+		waitingCache = std::make_unique<WaitingQueue <std::unique_ptr< message> > >();
 		logger = spdlog::get("batch_logger");
 		something_added = false;
 
@@ -1040,7 +1043,7 @@ public:
 	}
 
 protected:
-	std::unique_ptr<WaitingQueue> waitingCache;
+	std::unique_ptr<WaitingQueue <std::unique_ptr<message> > > waitingCache;
 	std::shared_ptr<Context> ctx;
 	std::shared_ptr<spdlog::logger> logger;
 	bool something_added;
@@ -1084,4 +1087,6 @@ public:
 
 
 }  // namespace cache
+
+
 } // namespace ral

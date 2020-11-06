@@ -5,6 +5,7 @@
 #include "graph.h"
 #include "communication/CommunicationData.h"
 #include "CodeTimer.h"
+#include "utilities/ctpl_stl.h"
 
 namespace ral {
 namespace cache {
@@ -294,6 +295,18 @@ public:
 		this->output_.get_cache(cache_id)->wait_if_cache_is_saturated();
 	}
 
+	void process(std::vector<std::unique_ptr<ral::cache::CacheData > > * inputs,
+		std::shared_ptr<ral::cache::CacheMachine> output,
+		cudaStream_t stream, std::string kernel_process_name);
+
+	virtual void do_process(std::vector<std::unique_ptr<ral::frame::BlazingTable> > inputs,
+		std::shared_ptr<ral::cache::CacheMachine> output,
+		cudaStream_t stream,std::string kernel_process_name){
+			
+		}
+	void notify_complete(size_t task_id);
+	void add_task(size_t task_id);
+	
 protected:
 
 
@@ -318,4 +331,97 @@ public:
 
 
 }  // namespace cache
+
+
+namespace execution{
+
+class prioirity {
+public:
+
+private:
+	size_t priority_num_query; //can be used to prioritize one query over another
+	size_t priority_num_kernel; //can be 
+	
+};
+
+class executor;
+
+
+
+class task {
+public:
+	
+	/**
+	* Function which runs the kernel process on the inputs and puts results into output.
+	* This function does not modify the inputs and can throw an exception. In the case it throws an exception it 
+	* gets placed back in the executor if it was a memory exception.
+	*/
+	void run(cudaStream_t stream, executor * executor);
+	void complete();
+protected:
+	
+	std::shared_ptr<ral::cache::CacheMachine> output;
+	size_t task_id;
+	ral::cache::kernel * kernel;
+	size_t attempts = 0;
+	size_t attempts_limit;
+	std::string kernel_process_name = "";
+};
+
+class cache_data_task : public task{
+	cache_data_task(std::vector<std::unique_ptr<ral::cache::CacheData > > inputs,
+			std::shared_ptr<ral::cache::CacheMachine> output,
+			size_t task_id,
+			ral::cache::kernel * kernel,
+			size_t attempts_limit,
+			std::string kernel_process_name);
+protected:
+	std::vector<std::unique_ptr<ral::cache::CacheData > > inputs;	
+};
+
+class data_source_task : public task{
+	data_source_task( ral::batch::DataSourceSequence * inputs,
+			std::shared_ptr<ral::cache::CacheMachine> output,
+			size_t task_id,
+			ral::cache::kernel * kernel,
+			size_t attempts_limit,
+			std::string kernel_process_name);
+protected:
+	ral::batch::DataSourceSequence * inputs
+};
+
+class executor{
+public:
+	executor(int num_threads);
+	void execute();
+	size_t add_task(std::vector<std::unique_ptr<ral::cache::CacheData > > inputs,
+		std::shared_ptr<ral::cache::CacheMachine> output,
+		ral::cache::kernel * kernel,std::string kernel_process_name);
+	void add_task(std::vector<std::unique_ptr<ral::cache::CacheData > > inputs,
+		std::shared_ptr<ral::cache::CacheMachine> output,
+		ral::cache::kernel * kernel,
+		size_t attempts,
+		size_t task_id,std::string kernel_process_name);
+	
+	void add_task(ral::batch::DataSourceSequence * inputs,
+				std::shared_ptr<ral::cache::CacheMachine> output,
+		ral::cache::kernel * kernel,std::string kernel_process_name);
+	
+	void add_task(ral::batch::DataSourceSequence * inputs,
+		std::shared_ptr<ral::cache::CacheMachine> output,
+		ral::cache::kernel * kernel,
+		size_t attempts,
+		size_t task_id,std::string kernel_process_name);
+
+private:
+	ctpl::thread_pool<BlazingThread> pool;
+	std::vector<cudaStream_t> streams; //one stream per thread
+	ral::cache::WaitingQueue< std::unique_ptr<task> > task_queue;
+	int shutdown = 0;
+
+};
+
+
+} // namespace execution
+
 }  // namespace ral

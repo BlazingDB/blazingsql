@@ -201,17 +201,22 @@ std::shared_ptr<ReceivedMessage> deserialize_from_gpu(const MessageMetadata & me
 std::unique_ptr<ral::frame::BlazingTable> deserialize_from_cpu(const ral::frame::BlazingHostTable* host_table){
 	std::vector<rmm::device_buffer> gpu_raw_buffers;
 	const auto & raw_buffers = host_table->get_raw_buffers();
-	for(int index = 0; index < raw_buffers.size(); ++index) {
-		auto buffer_sz = raw_buffers[index].size();
-		rmm::device_buffer dev_buffer(buffer_sz);
-		int currentDeviceId = 0; // TODO: CHECK device_id
-		cudaSetDevice(currentDeviceId);
-		cudaMemcpy((void *)dev_buffer.data(),
-			(const void *) raw_buffers[index].data(),
-			buffer_sz,
-			cudaMemcpyHostToDevice);
-		gpu_raw_buffers.emplace_back(std::move(dev_buffer));
+	try{
+		for(int index = 0; index < raw_buffers.size(); ++index) {
+				auto buffer_sz = raw_buffers[index].size();
+				rmm::device_buffer dev_buffer(buffer_sz);
+				int currentDeviceId = 0; // TODO: CHECK device_id
+				cudaSetDevice(currentDeviceId);
+				cudaMemcpy((void *)dev_buffer.data(),
+					(const void *) raw_buffers[index].data(),
+					buffer_sz,
+					cudaMemcpyHostToDevice);
+				gpu_raw_buffers.emplace_back(std::move(dev_buffer));
+		}
+	}catch(std::exception e){
+		throw;
 	}
+	
 	return deserialize_from_gpu_raw_buffers(host_table->get_columns_offsets(), gpu_raw_buffers);
 }
 
