@@ -1,5 +1,5 @@
 #include "utilities/CommonOperations.h"
-#include "utilities/StringUtils.h"
+
 #include "error.hpp"
 
 #include "CalciteExpressionParsing.h"
