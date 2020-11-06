@@ -265,7 +265,7 @@ bool CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_dat
 	return false;
 }
 
-bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, const std::string & message_id, bool always_add, bool force_cache) {
+bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, const std::string & message_id, bool always_add) {
 	// we dont want to add empty tables to a cache, unless we have never added anything
 	if (!this->something_added || table->num_rows() > 0 || always_add){
 		for (auto col_ind = 0; col_ind < table->num_columns(); col_ind++){
@@ -277,7 +277,7 @@ bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, c
 		}
 		num_rows_added += table->num_rows();
 		num_bytes_added += table->sizeInBytes();
-		int cacheIndex = force_cache ? 1 : 0;
+		int cacheIndex = 0;
 		while(cacheIndex < memory_resources.size()) {
 			auto memory_to_use = (this->memory_resources[cacheIndex]->get_memory_used() + table->sizeInBytes());
 			if( memory_to_use < this->memory_resources[cacheIndex]->get_memory_limit()) {
