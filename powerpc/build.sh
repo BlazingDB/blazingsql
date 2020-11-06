@@ -589,7 +589,7 @@ if [ ! -d cppzmq ]; then
   git checkout $cppzmq_version
   mkdir build
   cd build
-  cmake -DCMAKE_INSTALL_PREFIX=$tmp_dir ..
+  cmake -DCMAKE_INSTALL_PREFIX=$tmp_dir -DCPPZMQ_BUILD_TESTS=OFF ..
   make -j$MAKEJ install
 fi
 echo "END cppzmq"
