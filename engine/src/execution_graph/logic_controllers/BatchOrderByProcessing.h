@@ -173,8 +173,7 @@ public:
 				context->incrementQuerySubstep();
 			}
 
-			int total_count = get_total_partition_counts(PARTITION_PLAN_MESSAGE_TRACKER_IDX);
-			this->output_cache("output_b")->wait_for_count(total_count);
+			this->output_cache("output_b")->wait_for_count(1); // waiting for the partition_plan to arrive before continuing
 		}
 	}
 
