@@ -20,7 +20,7 @@ function logger() {
 REPODIR=$(cd $(dirname $0); pwd)
 
 # TODO william kharoly felipe we should try to enable and use this param in the future (compare result from spreadsheet): add -c
-VALIDARGS="io comms libengine algebra e2e -t -v -h tests"
+VALIDARGS="io comms libengine algebra pyblazing e2e -t -v -h tests"
 HELP="$0 [-v] [-h] [-t] [-c] [e2e_test=\"test1,test2,...,testn\"]
    io           - test the IO C++ code only
    comms        - test the communications C++ code only
