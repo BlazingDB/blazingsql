@@ -67,6 +67,7 @@ echo "BlazingSQL deps installed"
 # install cudf
 echo "conda install --yes dask-cuda=${MINOR_VERSION} dask-cudf=${MINOR_VERSION} ucx-py=${MINOR_VERSION} ucx-proc=*=gpu cudf=${MINOR_VERSION} python=$PYTHON_VER cudatoolkit=$CUDA_REL"
 conda install --yes dask-cuda=${MINOR_VERSION} dask-cudf=${MINOR_VERSION} ucx-py=${MINOR_VERSION} ucx-proc=*=gpu cudf=${MINOR_VERSION} python=$PYTHON_VER cudatoolkit=$CUDA_REL
+
 echo "cudf and other rapids dependencies installed"
 
 # install end to end tests dependencies
