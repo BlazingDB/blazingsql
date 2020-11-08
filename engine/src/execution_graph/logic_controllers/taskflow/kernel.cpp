@@ -49,35 +49,18 @@ void kernel::process(std::vector<std::unique_ptr<ral::cache::CacheData > > * inp
 namespace execution{
 
 task::task(
+    std::vector<std::unique_ptr<ral::cache::CacheData > > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
     size_t task_id,
     ral::cache::kernel * kernel, size_t attempts_limit,
     std::string kernel_process_name) : 
+    inputs(std::move(inputs)),
     task_id(task_id), output(output),
     kernel(kernel), attempts_limit(attempts_limit),
     kernel_process_name(kernel_process_name) {
 
 }
 
-cache_data_task::cache_data_task(std::vector<std::unique_ptr<ral::cache::CacheData > > inputs,
-    std::shared_ptr<ral::cache::CacheMachine> output,
-    size_t task_id,
-    ral::cache::kernel * kernel, size_t attempts_limit,
-    std::string kernel_process_name) : 
-    inputs(std::move(inputs)),
-    task(task_id,kernel,attempts_limit,kernel_process_name){
-
-}
-
-data_source_task::data_source_task(ral::batch::DataSourceSequence * inputs,
-    std::shared_ptr<ral::cache::CacheMachine> output,
-    size_t task_id,
-    ral::cache::kernel * kernel, size_t attempts_limit,
-    std::string kernel_process_name) : 
-    inputs(inputs),
-    task(task_id,kernel,attempts_limit,kernel_process_name){
-
-}
 
 void task::run(cudaStream_t stream, executor * executor){
     try{

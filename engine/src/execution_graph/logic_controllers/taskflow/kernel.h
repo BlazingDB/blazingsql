@@ -350,7 +350,12 @@ class executor;
 
 class task {
 public:
-	
+	task(
+    std::vector<std::unique_ptr<ral::cache::CacheData > > inputs,
+    std::shared_ptr<ral::cache::CacheMachine> output,
+    size_t task_id,
+    ral::cache::kernel * kernel, size_t attempts_limit,
+    std::string kernel_process_name);
 	/**
 	* Function which runs the kernel process on the inputs and puts results into output.
 	* This function does not modify the inputs and can throw an exception. In the case it throws an exception it 
@@ -359,7 +364,7 @@ public:
 	void run(cudaStream_t stream, executor * executor);
 	void complete();
 protected:
-	
+	std::vector<std::unique_ptr<ral::cache::CacheData > > inputs;	
 	std::shared_ptr<ral::cache::CacheMachine> output;
 	size_t task_id;
 	ral::cache::kernel * kernel;
@@ -368,27 +373,7 @@ protected:
 	std::string kernel_process_name = "";
 };
 
-class cache_data_task : public task{
-	cache_data_task(std::vector<std::unique_ptr<ral::cache::CacheData > > inputs,
-			std::shared_ptr<ral::cache::CacheMachine> output,
-			size_t task_id,
-			ral::cache::kernel * kernel,
-			size_t attempts_limit,
-			std::string kernel_process_name);
-protected:
-	std::vector<std::unique_ptr<ral::cache::CacheData > > inputs;	
-};
 
-class data_source_task : public task{
-	data_source_task( ral::batch::DataSourceSequence * inputs,
-			std::shared_ptr<ral::cache::CacheMachine> output,
-			size_t task_id,
-			ral::cache::kernel * kernel,
-			size_t attempts_limit,
-			std::string kernel_process_name);
-protected:
-	ral::batch::DataSourceSequence * inputs
-};
 
 class executor{
 public:
@@ -402,16 +387,18 @@ public:
 		ral::cache::kernel * kernel,
 		size_t attempts,
 		size_t task_id,std::string kernel_process_name);
-	
+
+/*	
 	void add_task(ral::batch::DataSourceSequence * inputs,
 				std::shared_ptr<ral::cache::CacheMachine> output,
-		ral::cache::kernel * kernel,std::string kernel_process_name);
+		ral::cache::kernel * kernel,std::string kernel_process_name); 
 	
 	void add_task(ral::batch::DataSourceSequence * inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
 		ral::cache::kernel * kernel,
 		size_t attempts,
 		size_t task_id,std::string kernel_process_name);
+*/
 
 private:
 	ctpl::thread_pool<BlazingThread> pool;
