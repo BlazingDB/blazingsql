@@ -2,7 +2,8 @@ import collections
 import json
 import re
 
-__all__ = ['get_json_plan']
+__all__ = ["get_json_plan"]
+
 
 def get_json_plan(algebra):
     lines = algebra.split("\n")
@@ -25,7 +26,9 @@ def _visit(lines):
         child_level, expr = lines[index]
         if child_level == root_level + 1:
             new_dicc = {"expr": expr, "children": []}
-            if len(dicc["children"]) == 0: #No es necesario, deberia funcionar con solo append
+            if (
+                len(dicc["children"]) == 0
+            ):  # No es necesario, deberia funcionar con solo append
                 dicc["children"] = [new_dicc]
             else:
                 dicc["children"].append(new_dicc)
@@ -79,17 +82,22 @@ def _validate_indendation(indentation_type, current_indentation):
     if not current_indentation:
         return
 
-    match = re.search('^(' + indentation_type + ')+$', current_indentation)
+    match = re.search("^(" + indentation_type + ")+$", current_indentation)
     if not match:
         raise Exception(
-        "Indentation invalid, current indentation is (" + indentation_type + "), but (" + current_indentation + ") was received.")
+            "Indentation invalid, current indentation is ("
+            + indentation_type
+            + "), but ("
+            + current_indentation
+            + ") was received."
+        )
 
 
 def _replace_indentation_for_tabs(lines):
-    indentation_type = ''
+    indentation_type = ""
     for i in range(len(lines)):
         lines[i] = lines[i].rstrip()
-        match = re.search(r'(^\s+)(.*)',lines[i])
+        match = re.search(r"(^\s+)(.*)", lines[i])
 
         if match:
             if not indentation_type:
@@ -103,7 +111,7 @@ def _replace_indentation_for_tabs(lines):
 
         beginning_spaces = len(lines[i]) - len(expr)
         if beginning_spaces > 0:
-            lines[i] = ("\t" * (beginning_spaces // len(indentation_type) )) + expr
+            lines[i] = ("\t" * (beginning_spaces // len(indentation_type))) + expr
 
     return lines
 
