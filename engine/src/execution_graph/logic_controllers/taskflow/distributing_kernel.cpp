@@ -88,12 +88,12 @@ void distributing_kernel::send_total_partition_counts(
         std::size_t message_tracker_idx) {
     auto nodes = context->getAllNodes();
 
+    message_id_prefix = "tableidx" + std::to_string(message_tracker_idx) + "_" + message_id_prefix;
+    
     for(std::size_t i = 0; i < nodes.size(); ++i) {
         if(!(nodes[i] == node)) {
             ral::cache::MetadataDictionary extra_metadata;
             extra_metadata.add_value(ral::cache::PARTITION_COUNT, std::to_string(node_count[message_tracker_idx][nodes[i].id()]));
-
-            message_id_prefix += "tableidx" + std::to_string(message_tracker_idx) + "_";
 
             send_message(nullptr,
                 "false", //specific_cache
