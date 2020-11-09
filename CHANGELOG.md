@@ -7,8 +7,6 @@
 - #912 Added UCX support to how the engine runs
 - #1125 Implement new TCP and UCX comms layer, exposed graph to python
 
-# BlazingSQL 0.16.0 (October 22, 2020)
-
 ## Improvements
 - #878 Adding calcite rule for window functions. (Window functions not supported yet)
 - #1081 Add validation for the kwargs when bc API is called
@@ -19,7 +17,7 @@
 - #1119 Add tests for transform json tree and get json plan
 - #1117 Add error logging in DataSourceSequence
 - #1111 output compile json for cppcheck
-
+- #1132 Refactoring new comms 
 
 ## Bug Fixes
 - #1064 Fixed issue when loading parquet files with local_files=True
