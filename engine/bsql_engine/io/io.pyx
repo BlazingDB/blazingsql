@@ -294,7 +294,6 @@ cpdef initializeCaller(int ralId, string worker_id, int gpuId, string network_if
     transport_out.c_cache = caches.first
     transport_in = PyBlazingCache()
     transport_in.c_cache = caches.second
-    print("got transports!")
     return (transport_out,transport_in, port)
 
 

@@ -15,11 +15,6 @@ def set_id_mappings_on_worker(mapping):
     worker.ucx_addresses = mapping
 
 
-async def init_endpoints():
-    for addr in get_worker().ucx_addresses.values():
-        await UCX.get().get_endpoint(addr)
-
-
 def checkSocket(socketNum):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)

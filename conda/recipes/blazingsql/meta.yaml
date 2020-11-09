@@ -33,6 +33,8 @@ requirements:
         - openjdk >=8.0
         - maven
         - cudf {{ minor_version }}.*
+        - ucx-py {{ minor_version }}.*
+        - ucx-proc=*=gpu
         - dlpack
         - cudatoolkit {{ cuda_version }}.*
     run:

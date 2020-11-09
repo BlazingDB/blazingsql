@@ -260,16 +260,6 @@ if buildAll || hasArg libengine; then
 fi
 
 if buildAll || hasArg engine; then
-    if [[ $CONDA_BUILD -eq 1 ]]; then
-        cd ${REPODIR}
-        # WARNING DO NOT TOUCH OR CHANGE THESE PATHS (felipe william mario c.gonzales)
-        echo "==>> In conda build env (folder for the ral cython wrapper)"
-        echo "==>> Current working directory: $PWD"
-        conda_bld_dir=/conda/envs/gdf/conda-bld/
-        echo "==>> conda_bld_dir: $conda_bld_dir"
-        cp --remove-destination -rfu $conda_bld_dir/blazingsql_*/_h_env*/include/blazingdb/ $conda_bld_dir/blazingsql_*/_build_env/include/
-        cp --remove-destination -rfu $conda_bld_dir/blazingsql_*/_h_env*/lib/libblazing*.so $conda_bld_dir/blazingsql_*/_build_env/lib/
-    fi
 
     echo "Building engine (cython wrapper)"
     cd ${ENGINE_BUILD_DIR}
