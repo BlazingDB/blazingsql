@@ -5,6 +5,7 @@ from libcpp.string cimport string
 from libcpp.vector cimport vector
 from libcpp.pair cimport pair
 from libcpp.map cimport map
+from libcpp.set cimport set
 from libcpp.memory cimport shared_ptr
 from cudf._lib.column cimport Column
 
@@ -38,6 +39,7 @@ cdef extern from "../include/engine/errors.h":
     cdef void raiseRegisterFileSystemGCSError()
     cdef void raiseRegisterFileSystemS3Error()
     cdef void raiseRegisterFileSystemLocalError()
+    cdef void raiseInferFolderPartitionMetadataError()
 
 
 from cudf._lib.cpp.column cimport *
@@ -114,6 +116,10 @@ cdef extern from "../include/io/io.h" nogil:
         bool useDefaultAdcJsonFile
         string adcJsonFile
 
+    cdef struct FolderPartitionMetadata:
+        string name;
+        set[string] values;
+        type_id data_type;
 
     pair[bool, string] registerFileSystemHDFS(HDFS hdfs, string root, string authority) except +raiseRegisterFileSystemHDFSError
     pair[bool, string] registerFileSystemGCS( GCS gcs, string root, string authority) except +raiseRegisterFileSystemGCSError
@@ -121,6 +127,7 @@ cdef extern from "../include/io/io.h" nogil:
     pair[bool, string] registerFileSystemLocal(  string root, string authority) except +raiseRegisterFileSystemLocalError
     TableSchema parseSchema(vector[string] files, string file_format_hint, vector[string] arg_keys, vector[string] arg_values, vector[pair[string,type_id]] types, bool ignore_missing_paths) except +raiseParseSchemaError
     unique_ptr[ResultSet] parseMetadata(vector[string] files, pair[int,int] offsets, TableSchema schema, string file_format_hint, vector[string] arg_keys, vector[string] arg_values) except +raiseParseSchemaError
+    vector[FolderPartitionMetadata] inferFolderPartitionMetadata(string folder_path) except +raiseInferFolderPartitionMetadataError
 
 cdef extern from "../src/execution_graph/logic_controllers/LogicPrimitives.h" namespace "ral::frame":
         cdef cppclass BlazingTable:
