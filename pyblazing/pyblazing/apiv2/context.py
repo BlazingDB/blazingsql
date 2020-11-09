@@ -1462,7 +1462,7 @@ class BlazingContext(object):
                 enable_logging=enable_logging,
                 config_options=self.config_options,
             )
-            self.node_log_paths.append(log_path)
+            self.node_log_paths.add(log_path)
 
         self.fs = FileSystem()
 
