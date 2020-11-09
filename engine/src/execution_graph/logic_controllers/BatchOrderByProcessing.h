@@ -96,11 +96,6 @@ public:
 
 	void compute_partition_plan(std::vector<ral::frame::BlazingTableView> sampledTableViews, std::size_t avg_bytes_per_row, std::size_t local_total_num_rows) {
 
-		std::cout<<"compute_partition_plan start samples"<<std::endl;
-		for (auto samples : sampledTableViews){
-			std::cout<<"sample num rows: "<<samples.num_rows()<<std::endl;
-		}
-
 		if (this->context->getAllNodes().size() == 1){ // single node mode
 			auto partitionPlan = ral::operators::generate_partition_plan(sampledTableViews,
 				local_total_num_rows, avg_bytes_per_row, this->expression, this->context.get());
