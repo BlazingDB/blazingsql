@@ -125,6 +125,17 @@ def compare_results(pdf1, pdf2, acceptable_difference, use_percentage, engine):
     else:
         msg = "PySpark"
 
+    msg = ""
+    if not isinstance(engine, str):
+        if isinstance(engine, PyDrill):
+            msg = "PyDrill"
+        else:
+            msg = "PySpark"
+    elif engine=="drill":
+        msg = "PyDrill"
+    else:
+        msg = "PySpark"
+
     if pdf1.shape[0] == pdf2.shape[0]:
         if pdf1.shape[1] == pdf2.shape[1]:
 
@@ -1357,6 +1368,7 @@ def run_query(
     input_type,
     **kwargs
 ):
+    print(query)
 
     query_spark = kwargs.get("query_spark", query)
 

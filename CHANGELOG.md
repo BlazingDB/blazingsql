@@ -3,7 +3,11 @@
 ## New Features
 - #1105 Implement to_date/to_timestamp functions
 - #1077 Allow to create tables from compressed files
+- #981 Added powerPC building script and instructions
+- #912 Added UCX support to how the engine runs
+- #1125 Implement new TCP and UCX comms layer, exposed graph to python
 
+# BlazingSQL 0.16.0 (October 22, 2020)
 
 ## Improvements
 - #878 Adding calcite rule for window functions. (Window functions not supported yet)
