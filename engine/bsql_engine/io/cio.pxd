@@ -116,7 +116,7 @@ cdef extern from "../include/io/io.h" nogil:
         bool useDefaultAdcJsonFile
         string adcJsonFile
 
-
+    vector[string] list_files(string path) except +
     pair[bool, string] registerFileSystemHDFS(HDFS hdfs, string root, string authority) except +raiseRegisterFileSystemHDFSError
     pair[bool, string] registerFileSystemGCS( GCS gcs, string root, string authority) except +raiseRegisterFileSystemGCSError
     pair[bool, string] registerFileSystemS3( S3 s3, string root, string authority) except +raiseRegisterFileSystemS3Error

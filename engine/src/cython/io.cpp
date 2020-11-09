@@ -294,3 +294,12 @@ std::pair<std::pair<bool, std::string>, error_code_t> registerFileSystemLocal_C(
 		return std::make_pair(result, E_EXCEPTION);
 	}
 }
+
+std::vector<std::string> list_files(std::string path){
+	auto uri = Uri(path);
+	auto files = BlazingContext::getInstance()->getFileSystemManager()->listResourceNames(uri);
+	for(auto file : files){
+		std::cout<<file<<std::endl;
+	}
+	return files;
+}

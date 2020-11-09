@@ -115,4 +115,6 @@ std::pair<std::pair<bool, std::string>, error_code_t> registerFileSystemGCS_C(GC
 std::pair<std::pair<bool, std::string>, error_code_t> registerFileSystemS3_C(S3 s3, std::string root, std::string authority);
 std::pair<std::pair<bool, std::string>, error_code_t> registerFileSystemLocal_C(std::string root, std::string authority);
 
+std::vector<std::string> list_files(std::string path);
+
 } // extern "C"

@@ -380,8 +380,8 @@ std::vector<std::string> LocalFileSystem::Private::listResourceNames(
 				if(skip) {
 					continue;
 				}
-
-				const bool pass = WildcardFilter::match(name, finalWildcard);
+				const Path listedPath = uriWithRoot.getPath() + name;
+				const bool pass = WildcardFilter::match(listedPath.toString(), finalWildcard);
 
 				if(pass) {
 					response.push_back(name);
