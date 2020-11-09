@@ -1,6 +1,7 @@
 import collections
 import json
 import re
+
 __all__ = ['get_json_plan']
 
 def get_json_plan(algebra):

@@ -1,5 +1,6 @@
-from pyblazing.apiv2.algebra import get_json_plan
 import pytest
+from pyblazing.apiv2.algebra import get_json_plan
+
 
 @pytest.mark.parametrize("type_indentation", [' ','  ','   ','    ','\t','\t\t','\t\t\t','\t\t ',' \t','  \t'])
 @pytest.mark.parametrize("multiple_line_break", ['','\n','\n\n','\n\n\n'])
