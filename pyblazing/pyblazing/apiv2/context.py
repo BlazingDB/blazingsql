@@ -12,11 +12,11 @@ from urllib.parse import urlparse
 
 from threading import Lock
 from weakref import ref
+import asyncio
 from pyblazing.apiv2.filesystem import FileSystem
 from pyblazing.apiv2 import DataType
-import asyncio
-
 from pyblazing.apiv2.comms import listen
+from pyblazing.apiv2.algebra import get_json_plan
 
 import json
 import collections
@@ -624,88 +624,6 @@ def mergeMetadata(curr_table, fileMetadata, hiveMetadata):
     frame = OrderedDict((key, value) for (key, value) in zip(final_names, series))
     result = cudf.DataFrame(frame)
     return result
-
-
-def is_double_children(expr):
-    return "LogicalJoin" in expr or "LogicalUnion" in expr
-
-
-def visit(lines):
-    stack = collections.deque()
-    root_level = 0
-    dicc = {"expr": lines[root_level][1], "children": []}
-    processed = set()
-    for index in range(len(lines)):
-        child_level, expr = lines[index]
-        if child_level == root_level + 1:
-            new_dicc = {"expr": expr, "children": []}
-            if len(dicc["children"]) == 0:
-                dicc["children"] = [new_dicc]
-            else:
-                dicc["children"].append(new_dicc)
-            stack.append((index, child_level, expr, new_dicc))
-            processed.add(index)
-
-    for index in processed:
-        lines[index][0] = -1
-
-    while len(stack) > 0:
-        curr_index, curr_level, curr_expr, curr_dicc = stack.pop()
-        processed = set()
-
-        if curr_index < len(lines) - 1:  # is brother
-            child_level, expr = lines[curr_index + 1]
-            if child_level == curr_level:
-                continue
-            elif child_level == curr_level + 1:
-                index = curr_index + 1
-                if is_double_children(curr_expr):
-                    while index < len(lines) and len(curr_dicc["children"]) < 2:
-                        child_level, expr = lines[index]
-                        if child_level == curr_level + 1:
-                            new_dicc = {"expr": expr, "children": []}
-                            if len(curr_dicc["children"]) == 0:
-                                curr_dicc["children"] = [new_dicc]
-                            else:
-                                curr_dicc["children"].append(new_dicc)
-                            processed.add(index)
-                            stack.append((index, child_level, expr, new_dicc))
-                        index += 1
-                else:
-                    while index < len(lines) and len(curr_dicc["children"]) < 1:
-                        child_level, expr = lines[index]
-                        if child_level == curr_level + 1:
-                            new_dicc = {"expr": expr, "children": []}
-                            if len(curr_dicc["children"]) == 0:
-                                curr_dicc["children"] = [new_dicc]
-                            else:
-                                curr_dicc["children"].append(new_dicc)
-                            processed.add(index)
-                            stack.append((index, child_level, expr, new_dicc))
-                        index += 1
-
-        for index in processed:
-            lines[index][0] = -1
-    return json.dumps(dicc)
-
-
-def get_plan(algebra):
-    lines = algebra.split("\n")
-    for i in range(len(lines) - 1):
-        lstrip_ = lines[i].lstrip()
-        index = len(lines[i]) - len(lstrip_)
-        lines[i] = ("\t" * (index // 2)) + lstrip_
-
-    # algebra plan was provided and only contains one-line as logical plan
-    if len(lines) == 1:
-        algebra += "\n"
-        lines = algebra.split("\n")
-    new_lines = []
-    for i in range(len(lines) - 1):
-        line = lines[i]
-        level = line.count("\t")
-        new_lines.append([level, line.replace("\t", "")])
-    return visit(new_lines)
 
 
 def resolve_relative_path(files):
@@ -2884,7 +2802,7 @@ class BlazingContext(object):
         ctxToken = random.randint(0, np.iinfo(np.int32).max)
         accessToken = 0
 
-        algebra = get_plan(algebra)
+        algebra = get_json_plan(algebra)
 
         if self.dask_client is None:
             try:
