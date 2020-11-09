@@ -214,7 +214,6 @@ include_directories(
 set(SRC_FILES         src/blazingdb/concurrency/BlazingExceptionHolder.cpp
         src/blazingdb/concurrency/BlazingThread.cpp
         src/blazingdb/transport/Node.cc
-        src/blazingdb/transport/io/reader_writer.cpp
         src/blazingdb/manager/Context.cc
         )
 
