@@ -1963,13 +1963,17 @@ class BlazingContext(object):
             location = None
             if isinstance(input, str):
                 location = input
-            elif isinstance(input, list) and len(input) == 1 and isinstance(input[0], str):
+            elif (
+                isinstance(input, list)
+                and len(input) == 1
+                and isinstance(input[0], str)
+            ):
                 location = input[0]
 
             if (
-                user_partitions is None and
-                user_partitions_schema is None and
-                location is not None
+                user_partitions is None
+                and user_partitions_schema is None
+                and location is not None
             ):
                 folder_metadata = cio.inferFolderPartitionMetadataCaller(location)
                 if len(folder_metadata) > 0:
@@ -1977,7 +1981,9 @@ class BlazingContext(object):
                     user_partitions_schema = []
                     for metadata in folder_metadata:
                         user_partitions[metadata["name"]] = metadata["values"]
-                        user_partitions_schema.append((metadata["name"], metadata["data_type"]))
+                        user_partitions_schema.append(
+                            (metadata["name"], metadata["data_type"])
+                        )
 
             if user_partitions is not None:
                 if user_partitions_schema is None:
@@ -2012,14 +2018,20 @@ class BlazingContext(object):
 
                 hive_schema = {}
                 hive_schema["location"] = location
-                hive_schema["partitions"] = getPartitionsFromUserPartitions(user_partitions)
+                hive_schema["partitions"] = getPartitionsFromUserPartitions(
+                    user_partitions
+                )
                 input = getFolderListFromPartitions(
                     hive_schema["partitions"], hive_schema["location"]
                 )
 
                 extra_columns = []
                 for part_schema in user_partitions_schema:
-                    cudf_type = convertTypeNameStrToCudfType(part_schema[1]) if isinstance(part_schema[1], str) else part_schema[1]
+                    cudf_type = (
+                        convertTypeNameStrToCudfType(part_schema[1])
+                        if isinstance(part_schema[1], str)
+                        else part_schema[1]
+                    )
                     extra_columns.append((part_schema[0], cudf_type))
 
         if isinstance(input, str):
