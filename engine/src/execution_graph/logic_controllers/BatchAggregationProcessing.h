@@ -188,7 +188,7 @@ public:
                         send_message(std::move(batch),
                             "true", //specific_cache
                             "", //cache_id
-                            this->context->getMasterNode().id()); //target_id
+                            {this->context->getMasterNode().id()}); //target_id
                     }
                 } else {
                     CudfTableView batch_view = batch->view();

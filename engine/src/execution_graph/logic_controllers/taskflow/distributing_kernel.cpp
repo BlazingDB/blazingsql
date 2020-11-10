@@ -20,19 +20,28 @@ void distributing_kernel::set_number_of_message_trackers(std::size_t num_message
 void distributing_kernel::send_message(std::unique_ptr<ral::frame::BlazingTable> table,
         std::string specific_cache,
         std::string cache_id,
-        std::string target_id,
+        std::vector<std::string> target_ids,
         std::string message_id_prefix,
         bool always_add,
         bool wait_for,
         std::size_t message_tracker_idx,
         ral::cache::MetadataDictionary extra_metadata) {
+
+    std::string worker_ids_metadata;
+    for (auto i = 0; i < target_ids.size(); i++)	{
+        worker_ids_metadata += target_ids[i];
+        if (i < target_ids.size() - 1) {
+            worker_ids_metadata += ",";
+        }
+    }
+    
     ral::cache::MetadataDictionary metadata;
     metadata.add_value(ral::cache::KERNEL_ID_METADATA_LABEL, std::to_string(kernel_id));
     metadata.add_value(ral::cache::QUERY_ID_METADATA_LABEL, std::to_string(context->getContextToken()));
     metadata.add_value(ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL, specific_cache);
     metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, cache_id);
     metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, node.id());
-    metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, target_id);
+    metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, worker_ids_metadata);
 
     const std::string MESSAGE_ID_CONTENT = metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL] + "_" +
                                            metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL] + "_" +
@@ -60,15 +69,20 @@ void distributing_kernel::send_message(std::unique_ptr<ral::frame::BlazingTable>
     }
 
     if(wait_for) {
-        const std::string message_id_to_wait_for = metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL] + "_" +
+        for (auto target_id : target_ids) {
+            const std::string message_id_to_wait_for = metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL] + "_" +
                                            metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL] + "_" +
-                                           metadata.get_values()[ral::cache::WORKER_IDS_METADATA_LABEL];
-        messages_to_wait_for[message_tracker_idx].push_back(message_id_prefix + message_id_to_wait_for);
+                                           target_id;
+            messages_to_wait_for[message_tracker_idx].push_back(message_id_prefix + message_id_to_wait_for);            
+        }
+        
     }
 
     if(specific_cache != "false") {
         if (added) {
-            node_count[message_tracker_idx][target_id]++;
+            for (auto target_id : target_ids) {
+                node_count[message_tracker_idx][target_id]++;
+            }
         }
     }
 }
@@ -98,7 +112,7 @@ void distributing_kernel::send_total_partition_counts(
             send_message(nullptr,
                 "false", //specific_cache
                 cache_id, //cache_id
-                nodes[i].id(), //target_id
+                {nodes[i].id()}, //target_id
                 message_id_prefix, //message_id_prefix
                 true, //always_add
                 true, //wait_for
@@ -112,21 +126,19 @@ void distributing_kernel::broadcast(std::unique_ptr<ral::frame::BlazingTable> ta
         ral::cache::CacheMachine* output,
         std::string message_id_prefix,
         std::string cache_id,
-        std::size_t message_tracker_idx) {
+        std::size_t message_tracker_idx,
+        bool always_add) {
    
     int self_node_idx = context->getNodeIndex(node);
     auto nodes_to_send = context->getAllOtherNodes(self_node_idx);
-    std::string worker_ids_metadata;
-    for (auto i = 0; i < nodes_to_send.size(); i++)	{
-        worker_ids_metadata += nodes_to_send[i].id();
-        if (i < nodes_to_send.size() - 1) {
-            worker_ids_metadata += ",";
-        }
+    std::vector<std::string> target_ids;
+		for (auto i = 0; i < nodes_to_send.size(); i++)	{
+			target_ids.push_back(nodes_to_send[i].id());
     }
     send_message(std::move(table->toBlazingTableView().clone()),
         "true", //specific_cache
         cache_id, //cache_id
-        worker_ids_metadata, //target_id
+        target_ids, //target_ids
         message_id_prefix, //message_id_prefix
         true, //always_add
         false, //wait_for
@@ -162,7 +174,7 @@ void distributing_kernel::scatter(std::vector<ral::frame::BlazingTableView> part
             send_message(std::move(partitions[i].clone()),
                 "true", //specific_cache
                 cache_id, //cache_id
-                nodes[i].id(), //target_id
+                {nodes[i].id()}, //target_id
                 message_id_prefix, //message_id_prefix
                 true, //always_add
                 false, //wait_for
@@ -189,7 +201,7 @@ void distributing_kernel::scatterParts(std::vector<ral::distribution::NodeColumn
         send_message(std::move(table_view.clone()),
             "true", //specific_cache
             "output_" + std::to_string(part_ids[i]), //cache_id
-            dest_node.id(), //target_id
+            {dest_node.id()}, //target_id
             message_id_prefix, //message_id_prefix
             false, //always_add
             false, //wait_for

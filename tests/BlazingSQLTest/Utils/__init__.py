@@ -144,7 +144,8 @@ def init_context():
                 # initial_pool_size=300000000,
                 allocator="default",
                 config_options={
-                    "PROTOCOL":"TCP"
+                    "BLAZING_DEVICE_MEM_CONSUMPTION_THRESHOLD":"0.3"
+
                 }
             )
         else:

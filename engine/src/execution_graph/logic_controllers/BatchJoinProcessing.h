@@ -608,25 +608,22 @@ public:
 		auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
 		int self_node_idx = context->getNodeIndex(self_node);
 		auto nodes_to_send = context->getAllOtherNodes(self_node_idx);
-		std::vector<std::string> determination_messages_to_wait_for;
-
+		
 		ral::cache::MetadataDictionary extra_metadata;
 		extra_metadata.add_value(ral::cache::JOIN_LEFT_BYTES_METADATA_LABEL, std::to_string(left_bytes_estimate));
 		extra_metadata.add_value(ral::cache::JOIN_RIGHT_BYTES_METADATA_LABEL, std::to_string(right_bytes_estimate));
 
-		std::string worker_ids_metadata;
+		std::vector<std::string> determination_messages_to_wait_for;
+		std::vector<std::string> target_ids;
 		for (auto i = 0; i < nodes_to_send.size(); i++)	{
-			worker_ids_metadata += nodes_to_send[i].id();
-			if (i < nodes_to_send.size() - 1) {
-				worker_ids_metadata += ",";
-			}
+			target_ids.push_back(nodes_to_send[i].id());
 			determination_messages_to_wait_for.push_back(
 				"determine_if_we_are_scattering_a_small_table_" + std::to_string(this->context->getContextToken()) + "_" +	std::to_string(this->get_id()) +	"_" +	nodes_to_send[i].id());
 		}
 		send_message(nullptr,
 				"false", //specific_cache
 				"", //cache_id
-				worker_ids_metadata, //target_id
+				target_ids, //target_ids
 				"determine_if_we_are_scattering_a_small_table_", //message_id_prefix
 				true, //always_add
 				false, //wait_for
@@ -840,11 +837,18 @@ public:
 			);
 		});
 
-		this->add_to_output_cache(std::move(big_table_batch), big_output_cache_name);
-		BlazingThread big_table_passthrough_thread([this, &big_table_sequence, big_output_cache_name](){
+		auto self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
+		bool added = this->add_to_output_cache(std::move(big_table_batch), big_output_cache_name);
+		if (added) {
+			increment_node_count(self_node.id(), big_table_idx);
+		}
+		BlazingThread big_table_passthrough_thread([this, &big_table_sequence, big_output_cache_name, big_table_idx, self_node](){
 			while (big_table_sequence.wait_for_next()) {
 				auto batch = big_table_sequence.next();
-				this->add_to_output_cache(std::move(batch), big_output_cache_name);
+				bool added = this->add_to_output_cache(std::move(batch), big_output_cache_name);
+				if (added) {
+					increment_node_count(self_node.id(), big_table_idx);
+				}
 			}
 		});
 

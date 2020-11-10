@@ -45,7 +45,7 @@ class distributing_kernel : public kernel {
      * @param table The table to be sent. If table is a nullptr, an empty table is sent anyways.
      * @param specific_cache Indicates if a message should be routed to a specific cache or to the global input cache.
      * @param cache_id Indicates what cache a message should be routed to.
-     * @param target_id Indicates what worker is sending this message.
+     * @param target_id Vector of workers that will be receiving this message.
      * @param message_id_prefix The prefix of the identifier of this message.
      * @param always_add Forces to always add the table to the output cache.
      * @param wait_for Indicates if this message must be registered to wait for back.
@@ -55,7 +55,7 @@ class distributing_kernel : public kernel {
     void send_message(std::unique_ptr<ral::frame::BlazingTable> table,
         std::string specific_cache,
         std::string cache_id,
-        std::string target_id,
+        std::vector<std::string> target_ids,
         std::string message_id_prefix = "",
         bool always_add = false,
         bool wait_for = false,
@@ -98,12 +98,14 @@ class distributing_kernel : public kernel {
      * @param message_id_prefix The prefix of the identifier of this message.
      * @param cache_id Indicates what cache a message should be routed to.
      * @param message_tracker_idx The message tracker index.
+     * @param always_add Forces to always send the message
      */
     void broadcast(std::unique_ptr<ral::frame::BlazingTable> table,
         ral::cache::CacheMachine* output,
         std::string message_id_prefix,
         std::string cache_id,
-        std::size_t message_tracker_idx = 0);
+        std::size_t message_tracker_idx = 0,
+        bool always_add = false);
 
 
     /**

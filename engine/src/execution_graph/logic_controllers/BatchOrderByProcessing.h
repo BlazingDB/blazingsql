@@ -145,7 +145,8 @@ public:
 					this->output_.get_cache("output_b").get(),
 					"", // message_id_prefix
 					"output_b", // cache_id
-					PARTITION_PLAN_MESSAGE_TRACKER_IDX); //message_tracker_idx (message tracker for the partitionPlan)
+					PARTITION_PLAN_MESSAGE_TRACKER_IDX, //message_tracker_idx (message tracker for the partitionPlan)
+					true); // always_add
 
 			} else {
 				context->incrementQuerySubstep();
@@ -158,7 +159,7 @@ public:
 				send_message(std::move(concatSamples),
 					"false", //specific_cache
 					"", //cache_id
-					this->context->getMasterNode().id(), //target_id
+					{this->context->getMasterNode().id()}, //target_id
 					"", //message_id_prefix
 					true, //always_add
 					false, //wait_for
@@ -530,13 +531,11 @@ public:
 			auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
 			int self_node_idx = context->getNodeIndex(self_node);
 			auto nodes_to_send = context->getAllOtherNodes(self_node_idx);
-			std::string worker_ids_metadata;
+			
 			std::vector<std::string> limit_messages_to_wait_for;
+			std::vector<std::string> target_ids;
 			for (auto i = 0; i < nodes_to_send.size(); i++)	{
-				worker_ids_metadata += nodes_to_send[i].id();
-				if (i < nodes_to_send.size() - 1) {
-					worker_ids_metadata += ",";
-				}
+				target_ids.push_back(nodes_to_send[i].id());
 				limit_messages_to_wait_for.push_back(
 					std::to_string(this->context->getContextToken()) + "_" +	std::to_string(this->get_id()) +	"_" +	nodes_to_send[i].id());
 			}
@@ -545,7 +544,7 @@ public:
 			send_message(nullptr, //empty table
 				"false", //specific_cache
 				"", //cache_id
-				worker_ids_metadata, //target_id
+				target_ids, //target_ids
 				"", //message_id_prefix
 				true, //always_add
 				false, //wait_for
