@@ -3,6 +3,7 @@
 ## New Features
 - #1105 Implement to_date/to_timestamp functions
 - #1077 Allow to create tables from compressed files
+- #1126 Add DAYOFWEEK function
 - #981 Added powerPC building script and instructions
 - #912 Added UCX support to how the engine runs
 - #1125 Implement new TCP and UCX comms layer, exposed graph to python
