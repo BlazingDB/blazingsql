@@ -1,6 +1,17 @@
 #!/bin/bash
 
+NUMARGS=$#
+if (( ${NUMARGS} != 1 )); then
+  echo "Only one argument expected which should be environment prefix path"
+  exit 1
+fi
+
 env_prefix=$1
+
+if [ ! -d $env_prefix ]; then
+    echo "The environment prefix path does not exist"
+    exit 1
+fi
 
 # NOTE always run this script from blazingsql root folder
 blazingsql_project_root_dir=$PWD
@@ -236,20 +247,6 @@ fi
 echo "END spdlog"
 #END spdlog
 
-
-cudf_version=0.16
-
-# BEGIN RMM
-echo "BEGIN RMM"
-cd $build_dir
-if [ ! -d rmm ]; then
-    git clone --depth 1 https://github.com/rapidsai/rmm.git --branch "branch-$cudf_version" --single-branch
-    cd rmm
-    INSTALL_PREFIX=$tmp_dir CUDACXX=$CUDA_HOME/bin/nvcc ./build.sh  -v clean librmm rmm
-fi
-echo "END RMM"
-# END RMM
-
 # BEGIN DLPACK
 echo "BEGIN dlpack"
 cd $build_dir
@@ -268,51 +265,6 @@ if [ ! -d dlpack ]; then
 fi
 echo "END dlpack"
 # END DLPACK
-
-# BEGIN CUDF c++
-cd $build_dir
-
-export GPU_ARCH="-DGPU_ARCHS=ALL"
-export BUILD_NVTX=ON
-export BUILD_BENCHMARKS=OFF
-export BUILD_DISABLE_DEPRECATION_WARNING=ON
-export BUILD_PER_THREAD_DEFAULT_STREAM=OFF
-export ARROW_ROOT=$tmp_dir
-
-echo "BEGIN cudf"
-if [ ! -d cudf ]; then
-    cd $build_dir
-    echo "### Cudf ###"
-   git clone --depth 1 https://github.com/rapidsai/cudf.git --branch "branch-$cudf_version" --single-branch
-    cd cudf
-
-    #git submodule update --init --remote --recursive
-    #export CUDA_HOME=/usr/local/cuda/
-    #export PARALLEL_LEVEL=$build_mode
-    #CUDACXX=/usr/local/cuda/bin/nvcc ./build.sh
-    #cmake -D GPU_ARCHS=70 -DBUILD_TESTS=ON -DCMAKE_INSTALL_PREFIX=$tmp_dir ./cpp
-    #echo "make"
-    #make -j4 install
-
-    cd cpp
-    mkdir -p build
-    cd build
-    cmake -DCMAKE_INSTALL_PREFIX=$tmp_dir \
-          ${GPU_ARCH} \
-          -DUSE_NVTX=${BUILD_NVTX} \
-          -DBUILD_BENCHMARKS=${BUILD_BENCHMARKS} \
-          -DDISABLE_DEPRECATION_WARNING=${BUILD_DISABLE_DEPRECATION_WARNING} \
-          -DPER_THREAD_DEFAULT_STREAM=${BUILD_PER_THREAD_DEFAULT_STREAM} \
-          -DBOOST_ROOT=$tmp_dir \
-          -DBoost_NO_SYSTEM_PATHS=ON \
-          -DCMAKE_BUILD_TYPE=Release \
-          -DBUILD_TESTS=ON \
-          ..
-    make -j$MAKEJ_CUDF install
-fi
-echo "END cudf"
-
-# END CUDF c++
 
 # BEGIN GOLD
 echo "BEGIN binutils"
@@ -395,29 +347,53 @@ if [ "$machine_processor_architecture" = "ppc64le" ] || [ "$machine_processor_ar
 
     echo "### BEGIN Pip dependencies ###"
     # pip install -r requirements.txt
+    echo "### pip installing numba ###"
     pip install numba==0.50.1
-    pip install scikit-learn==0.23.1
-    pip install flake8==3.8.3
-    pip install ipython==7.17.0
-    pip install pytest-timeout==1.4.2
-    pip install sphinx-rtd-theme==0.5.0
-    pip install cysignals==1.10.2
-    pip install numpydoc==1.1.0
+    echo "### pip installing scipy ###"
     pip install scipy==1.5.2
-    pip install pynvml==8.0.4
-    pip install networkx==2.4
-    pip install jupyterlab==2.2.4
-    pip install notebook==6.1.3
-    pip install joblib==0.16.0
-    pip install fastrlock==0.5
+    echo "### pip installing scikit-learn ###"
+    pip install scikit-learn==0.23.1
+    echo "### pip installing flake8 ###"
+    pip install flake8==3.8.3
+    echo "### pip installing ipython ###"
+    pip install ipython==7.17.0
+    echo "### pip installing pytest-timeout ###"
     pip install pytest-timeout==1.4.2
+    echo "### pip installing sphinx-rtd-theme ###"
+    pip install sphinx-rtd-theme==0.5.0
+    echo "### pip installing cysignals ###"
+    pip install cysignals==1.10.2
+    echo "### pip installing numpydoc ###"
+    pip install numpydoc==1.1.0
+    echo "### pip installing pynvml ###"
+    pip install pynvml==8.0.4
+    echo "### pip installing networkx ###"
+    pip install networkx==2.4
+    echo "### pip installing jupyterlab ###"
+    pip install jupyterlab==2.2.4
+    echo "### pip installing notebook ###"
+    pip install notebook==6.1.3
+    echo "### pip installing joblib ###"
+    pip install joblib==0.16.0
+    echo "### pip installing fastrlock ###"
+    pip install fastrlock==0.5
+    echo "### pip installing pytest-timeout ###"
+    pip install pytest-timeout==1.4.2
+    echo "### pip installing hypothesis ###"
     pip install hypothesis==5.26.0
+    echo "### pip installing python-louvain ###"
     pip install python-louvain==0.14
+    echo "### pip installing jupyter-server-proxy ###"
     pip install jupyter-server-proxy==1.5.0
+    echo "### pip installing statsmodels ###"
     pip install statsmodels==0.11.1
+    echo "### pip installing pyhive ###"
     pip install pyhive==0.6.2
+    echo "### pip installing thrift ###"
     pip install thrift==0.13.0
+    echo "### pip installing jpype1 ###"
     pip install jpype1==1.0.2
+    echo "### pip installing netifaces ###"
     pip install netifaces==0.10.9
     echo "### END Pip dependencies ###"
     echo "---->>> finished llvmlite"
@@ -437,6 +413,66 @@ mv ld ld.gold
 # FSSPEC
 echo "---->>> install fsspec"
 pip install --no-binary fsspec fsspec
+
+
+cudf_version=0.16
+
+# BEGIN RMM
+echo "BEGIN RMM"
+cd $build_dir
+if [ ! -d rmm ]; then
+    git clone --depth 1 https://github.com/rapidsai/rmm.git --branch "branch-$cudf_version" --single-branch
+    cd rmm
+    INSTALL_PREFIX=$tmp_dir CUDACXX=$CUDA_HOME/bin/nvcc ./build.sh  -v clean librmm rmm
+fi
+echo "END RMM"
+# END RMM
+
+# BEGIN CUDF c++
+cd $build_dir
+
+export GPU_ARCH="-DGPU_ARCHS=ALL"
+export BUILD_NVTX=ON
+export BUILD_BENCHMARKS=OFF
+export BUILD_DISABLE_DEPRECATION_WARNING=ON
+export BUILD_PER_THREAD_DEFAULT_STREAM=OFF
+export ARROW_ROOT=$tmp_dir
+
+echo "BEGIN cudf"
+if [ ! -d cudf ]; then
+    cd $build_dir
+    echo "### Cudf ###"
+   git clone --depth 1 https://github.com/rapidsai/cudf.git --branch "branch-$cudf_version" --single-branch
+    cd cudf
+
+    #git submodule update --init --remote --recursive
+    #export CUDA_HOME=/usr/local/cuda/
+    #export PARALLEL_LEVEL=$build_mode
+    #CUDACXX=/usr/local/cuda/bin/nvcc ./build.sh
+    #cmake -D GPU_ARCHS=70 -DBUILD_TESTS=ON -DCMAKE_INSTALL_PREFIX=$tmp_dir ./cpp
+    #echo "make"
+    #make -j4 install
+
+    cd cpp
+    mkdir -p build
+    cd build
+    cmake -DCMAKE_INSTALL_PREFIX=$tmp_dir \
+          ${GPU_ARCH} \
+          -DUSE_NVTX=${BUILD_NVTX} \
+          -DBUILD_BENCHMARKS=${BUILD_BENCHMARKS} \
+          -DDISABLE_DEPRECATION_WARNING=${BUILD_DISABLE_DEPRECATION_WARNING} \
+          -DPER_THREAD_DEFAULT_STREAM=${BUILD_PER_THREAD_DEFAULT_STREAM} \
+          -DBOOST_ROOT=$tmp_dir \
+          -DBoost_NO_SYSTEM_PATHS=ON \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DBUILD_TESTS=ON \
+          ..
+    make -j$MAKEJ_CUDF install
+fi
+echo "END cudf"
+
+# END CUDF c++
+
 
 # BEGIN CUPY
 echo "BEGIN CUPY"
@@ -553,7 +589,7 @@ if [ ! -d cppzmq ]; then
   git checkout $cppzmq_version
   mkdir build
   cd build
-  cmake -DCMAKE_INSTALL_PREFIX=$tmp_dir ..
+  cmake -DCMAKE_INSTALL_PREFIX=$tmp_dir -DCPPZMQ_BUILD_TESTS=OFF ..
   make -j$MAKEJ install
 fi
 echo "END cppzmq"
