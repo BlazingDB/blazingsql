@@ -113,9 +113,11 @@ void data_loader::get_schema(Schema & schema, std::vector<std::pair<std::string,
 		}
 	}
 	if (!got_schema){
-		std::cout<<"ERROR: Could not get schema"<<std::endl;
+		auto logger = spdlog::get("batch_logger");
+		std::string log_detail = "ERROR: Could not get schema";
+		logger->error("|||{info}|||||","info"_a=log_detail);
 	}
-
+		
 	bool open_file = false;
 	while (this->provider->has_next()){
 		std::vector<data_handle> handles = this->provider->get_some(64, open_file);

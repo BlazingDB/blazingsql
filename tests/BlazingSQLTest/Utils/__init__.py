@@ -125,16 +125,16 @@ def init_context(config_options={}):
         if dask_client is not None:
             dask_conn = Settings.data["TestSettings"]["daskConnection"]
             iface = Settings.data["RunSettings"]["networkInterface"]
-            print("Using dask: " + dask_conn)
-            if "local" != dask_conn:
-                dask_client.restart()
+            # print("Using dask: " + dask_conn)
+            # if "local" != dask_conn:
+
             bc = BlazingContext(
                 dask_client=dask_client,
                 network_interface=iface,
-                pool=False,
-                initial_pool_size=None,
-                allocator="managed",
-                config_options=config_options,
+                # pool=True,
+                # initial_pool_size=300000000,
+                allocator="default",
+                config_options=config_options
             )
         else:
             # Fallback: could not found a valid dask server

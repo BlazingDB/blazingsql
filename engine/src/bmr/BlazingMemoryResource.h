@@ -13,6 +13,7 @@
 #include <rmm/mr/device/cuda_memory_resource.hpp>
 #include <rmm/mr/device/managed_memory_resource.hpp>
 #include <rmm/mr/device/pool_memory_resource.hpp>
+#include <rmm/mr/device/arena_memory_resource.hpp>
 #include <rmm/mr/device/logging_resource_adaptor.hpp>
 #include <rmm/mr/device/per_device_resource.hpp>
 
@@ -29,7 +30,7 @@
 */
 class BlazingMemoryResource {
 public:
-	virtual size_t get_from_driver_available_memory() = 0 ; // driver.get_available_memory()
+	virtual size_t get_from_driver_used_memory() = 0 ; // driver.get_available_memory()
 	virtual size_t get_memory_limit() = 0 ; // memory_limite = total_memory * threshold
 
 	virtual size_t get_memory_used() = 0 ; // atomic 
@@ -89,6 +90,10 @@ public:
                     std::make_shared<rmm::mr::managed_memory_resource>(), initial_pool_size, maximum_pool_size);
             }            
             memory_resource = memory_resource_owner.get();
+        } else if (allocation_mode == "arena_memory_resource") {
+            memory_resource_owner = rmm::mr::make_owning_wrapper<rmm::mr::arena_memory_resource>(
+                std::make_shared<rmm::mr::cuda_memory_resource>(), initial_pool_size, maximum_pool_size);
+            memory_resource = memory_resource_owner.get();
         } else if (allocation_mode == "existing"){
             memory_resource = rmm::mr::get_current_device_resource();        
         } else {
@@ -101,6 +106,7 @@ public:
                 memory_resource, allocator_logging_file, /*auto_flush=*/true));
             memory_resource = logging_adaptor.get();
         }
+        max_used_memory=0;
 	}
 
 	virtual ~internal_blazing_device_memory_resource() = default;
@@ -108,7 +114,10 @@ public:
 	size_t get_memory_used() {
 		return used_memory;
 	}
-    size_t get_from_driver_available_memory() {
+    size_t get_max_memory_used() {
+        return max_used_memory;
+    }
+    size_t get_from_driver_used_memory() {
 	    return ral::config::gpuUsedMemory();
     }
 
@@ -126,19 +135,34 @@ public:
 	bool supports_streams() const noexcept override { return memory_resource->supports_streams(); }
 	bool supports_get_mem_info() const noexcept override { return memory_resource->supports_get_mem_info(); }
 
+    std::string get_full_memory_summary() {
+        std::string summary = "";
+        summary += "Memory Resource Summary:: Type: " + this->type;
+        summary += " | Used Memory: " + std::to_string(this->used_memory);
+        summary += " | Max Used Memory: " + std::to_string(this->max_used_memory);
+        summary += " | Available Memory from driver: " + std::to_string(this->get_from_driver_used_memory());
+        summary += " | Total Memory: " + std::to_string(this->total_memory_size);
+        summary += " | Memory Limit: " + std::to_string(this->memory_limit);
+        return summary;
+    }
+
 private: 
 	void* do_allocate(size_t bytes, rmm::cuda_stream_view stream) override {
 		if (bytes <= 0) { 
             return nullptr;
 		}
 		used_memory += bytes;
+        if (max_used_memory < used_memory){
+            max_used_memory += bytes;
+        }        
+        
 		return memory_resource->allocate(bytes, stream);
 	}
 
 	void do_deallocate(void* p, size_t bytes, rmm::cuda_stream_view stream) override {
 		if (nullptr == p || bytes == 0) return;
 		if (used_memory < bytes) {
-			std::cerr << "blazing_device_memory_resource: Deallocating more bytes than used right now, used_memory: " << used_memory << " less than " << bytes << " bytes." << std::endl;
+			std::cerr << "blazing_device_memory_resource: Deallocating more bytes than used right now, used_memory: " << used_memory.load() << " less than " << bytes << " bytes." << std::endl;
 			used_memory = 0;
 		} else {
 			used_memory -= bytes;
@@ -158,6 +182,7 @@ private:
 	size_t total_memory_size;
 	size_t memory_limit;
 	std::atomic<size_t> used_memory;
+    std::atomic<size_t> max_used_memory;
     std::shared_ptr<rmm::mr::device_memory_resource> memory_resource_owner;
     rmm::mr::device_memory_resource * memory_resource;
     std::unique_ptr<rmm::mr::logging_resource_adaptor<rmm::mr::device_memory_resource>> logging_adaptor;
@@ -191,12 +216,16 @@ public:
 		return initialized_resource->get_memory_used();
 	}
 
+    size_t get_max_memory_used() {
+        return initialized_resource->get_max_memory_used();
+    }
+
 	size_t get_total_memory() {
 		return initialized_resource->get_total_memory() ;
 	}
 
-    size_t get_from_driver_available_memory()  {
-        return initialized_resource->get_from_driver_available_memory();
+    size_t get_from_driver_used_memory()  {
+        return initialized_resource->get_from_driver_used_memory();
     }
 	size_t get_memory_limit() {
 		return initialized_resource->get_memory_limit() ;
@@ -204,6 +233,10 @@ public:
 
     std::string get_type() {
 		return initialized_resource->get_type() ;
+    }
+
+    std::string get_full_memory_summary() {
+        return initialized_resource->get_full_memory_summary() ;
     }
 
   /** -----------------------------------------------------------------------*
@@ -309,7 +342,7 @@ public:
 		used_memory_size -= bytes;
 	}
 
-	size_t get_from_driver_available_memory()  {
+	size_t get_from_driver_used_memory()  {
         struct sysinfo si;
 		sysinfo (&si);
         // NOTE: sync point 
@@ -356,7 +389,6 @@ public:
     }
 
 	size_t get_memory_used() override {
-		// std::cout << "blazing_host_memory_resource: " << initialized_resource->get_memory_used() << std::endl; 
 		return initialized_resource->get_memory_used();
 	}
 
@@ -364,8 +396,8 @@ public:
 		return initialized_resource->get_total_memory() ;
 	}
 
-    size_t get_from_driver_available_memory()  {
-        return initialized_resource->get_from_driver_available_memory();
+    size_t get_from_driver_used_memory()  {
+        return initialized_resource->get_from_driver_used_memory();
     }
 	size_t get_memory_limit() {
 		return initialized_resource->get_memory_limit() ;
@@ -460,7 +492,7 @@ public:
 
 	virtual ~blazing_disk_memory_resource() = default;
 
-	virtual size_t get_from_driver_available_memory()  {
+	virtual size_t get_from_driver_used_memory()  {
         struct sysinfo si;
         sysinfo (&si);
         // NOTE: sync point 

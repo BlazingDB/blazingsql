@@ -4,6 +4,9 @@
 - #1105 Implement to_date/to_timestamp functions
 - #1077 Allow to create tables from compressed files
 - #1122 Add ConfigOptionsTest, a test with different config_options
+- #981 Added powerPC building script and instructions
+- #912 Added UCX support to how the engine runs
+- #1125 Implement new TCP and UCX comms layer, exposed graph to python
 
 ## Improvements
 - #878 Adding calcite rule for window functions. (Window functions not supported yet)
@@ -12,6 +15,7 @@
 - #1093 Logs configurable to have max size and be rotated
 - #1091 Improves the error message problem when validating any GCP bucket
 - #1090 Add tests for Uri Data provider for local uri
+- #1119 Add tests for transform json tree and get json plan
 - #1117 Add error logging in DataSourceSequence
 - #1111 output compile json for cppcheck
 
