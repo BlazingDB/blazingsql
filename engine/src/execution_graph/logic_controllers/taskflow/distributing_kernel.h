@@ -53,7 +53,7 @@ class distributing_kernel : public kernel {
      * @param extra_metadata The cache identifier.
      */
     void send_message(std::unique_ptr<ral::frame::BlazingTable> table,
-        std::string specific_cache,
+        bool specific_cache,
         std::string cache_id,
         std::vector<std::string> target_ids,
         std::string message_id_prefix = "",

@@ -157,7 +157,7 @@ public:
 				ral::cache::MetadataDictionary extra_metadata;
 				extra_metadata.add_value(ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL, local_total_num_rows);
 				send_message(std::move(concatSamples),
-					"false", //specific_cache
+					false, //specific_cache
 					"", //cache_id
 					{this->context->getMasterNode().id()}, //target_id
 					"", //message_id_prefix
@@ -542,7 +542,7 @@ public:
 			ral::cache::MetadataDictionary extra_metadata;
 			extra_metadata.add_value(ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL, total_batch_rows);
 			send_message(nullptr, //empty table
-				"false", //specific_cache
+				false, //specific_cache
 				"", //cache_id
 				target_ids, //target_ids
 				"", //message_id_prefix

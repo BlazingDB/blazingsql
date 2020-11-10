@@ -621,7 +621,7 @@ public:
 				"determine_if_we_are_scattering_a_small_table_" + std::to_string(this->context->getContextToken()) + "_" +	std::to_string(this->get_id()) +	"_" +	nodes_to_send[i].id());
 		}
 		send_message(nullptr,
-				"false", //specific_cache
+				false, //specific_cache
 				"", //cache_id
 				target_ids, //target_ids
 				"determine_if_we_are_scattering_a_small_table_", //message_id_prefix

@@ -186,7 +186,7 @@ public:
                         }
 
                         send_message(std::move(batch),
-                            "true", //specific_cache
+                            true, //specific_cache
                             "", //cache_id
                             {this->context->getMasterNode().id()}); //target_id
                     }

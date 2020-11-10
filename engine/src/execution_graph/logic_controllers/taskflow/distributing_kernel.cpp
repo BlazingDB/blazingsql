@@ -18,7 +18,7 @@ void distributing_kernel::set_number_of_message_trackers(std::size_t num_message
 }
 
 void distributing_kernel::send_message(std::unique_ptr<ral::frame::BlazingTable> table,
-        std::string specific_cache,
+        bool specific_cache,
         std::string cache_id,
         std::vector<std::string> target_ids,
         std::string message_id_prefix,
@@ -38,7 +38,7 @@ void distributing_kernel::send_message(std::unique_ptr<ral::frame::BlazingTable>
     ral::cache::MetadataDictionary metadata;
     metadata.add_value(ral::cache::KERNEL_ID_METADATA_LABEL, std::to_string(kernel_id));
     metadata.add_value(ral::cache::QUERY_ID_METADATA_LABEL, std::to_string(context->getContextToken()));
-    metadata.add_value(ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL, specific_cache);
+    metadata.add_value(ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL, specific_cache ? "true" : "false");
     metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, cache_id);
     metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, node.id());
     metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, worker_ids_metadata);
@@ -78,7 +78,7 @@ void distributing_kernel::send_message(std::unique_ptr<ral::frame::BlazingTable>
         
     }
 
-    if(specific_cache != "false") {
+    if(!specific_cache) {
         if (added) {
             for (auto target_id : target_ids) {
                 node_count[message_tracker_idx][target_id]++;
@@ -110,7 +110,7 @@ void distributing_kernel::send_total_partition_counts(
             extra_metadata.add_value(ral::cache::PARTITION_COUNT, std::to_string(node_count[message_tracker_idx][nodes[i].id()]));
 
             send_message(nullptr,
-                "false", //specific_cache
+                false, //specific_cache
                 cache_id, //cache_id
                 {nodes[i].id()}, //target_id
                 message_id_prefix, //message_id_prefix
@@ -136,7 +136,7 @@ void distributing_kernel::broadcast(std::unique_ptr<ral::frame::BlazingTable> ta
 			target_ids.push_back(nodes_to_send[i].id());
     }
     send_message(std::move(table->toBlazingTableView().clone()),
-        "true", //specific_cache
+        true, //specific_cache
         cache_id, //cache_id
         target_ids, //target_ids
         message_id_prefix, //message_id_prefix
@@ -172,7 +172,7 @@ void distributing_kernel::scatter(std::vector<ral::frame::BlazingTableView> part
             }
         } else {
             send_message(std::move(partitions[i].clone()),
-                "true", //specific_cache
+                true, //specific_cache
                 cache_id, //cache_id
                 {nodes[i].id()}, //target_id
                 message_id_prefix, //message_id_prefix
@@ -199,7 +199,7 @@ void distributing_kernel::scatterParts(std::vector<ral::distribution::NodeColumn
         }
 
         send_message(std::move(table_view.clone()),
-            "true", //specific_cache
+            true, //specific_cache
             "output_" + std::to_string(part_ids[i]), //cache_id
             {dest_node.id()}, //target_id
             message_id_prefix, //message_id_prefix
