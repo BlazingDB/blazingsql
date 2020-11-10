@@ -143,10 +143,7 @@ def init_context():
                 # pool=True,
                 # initial_pool_size=300000000,
                 allocator="default",
-                config_options={
-                    "BLAZING_DEVICE_MEM_CONSUMPTION_THRESHOLD":"0.3"
-
-                }
+                config_options={}
             )
         else:
             # Fallback: could not found a valid dask server

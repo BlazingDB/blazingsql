@@ -74,17 +74,16 @@ void distributing_kernel::send_message(std::unique_ptr<ral::frame::BlazingTable>
                                            metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL] + "_" +
                                            target_id;
             messages_to_wait_for[message_tracker_idx].push_back(message_id_prefix + message_id_to_wait_for);            
-        }
-        
+        }        
     }
 
-    if(!specific_cache) {
+    if(specific_cache) {
         if (added) {
             for (auto target_id : target_ids) {
                 node_count[message_tracker_idx][target_id]++;
             }
         }
-    }
+    }    
 }
 
 int distributing_kernel::get_total_partition_counts(std::size_t message_tracker_idx) {
@@ -132,8 +131,8 @@ void distributing_kernel::broadcast(std::unique_ptr<ral::frame::BlazingTable> ta
     int self_node_idx = context->getNodeIndex(node);
     auto nodes_to_send = context->getAllOtherNodes(self_node_idx);
     std::vector<std::string> target_ids;
-		for (auto i = 0; i < nodes_to_send.size(); i++)	{
-			target_ids.push_back(nodes_to_send[i].id());
+    for (auto i = 0; i < nodes_to_send.size(); i++)	{
+        target_ids.push_back(nodes_to_send[i].id());
     }
     send_message(std::move(table->toBlazingTableView().clone()),
         true, //specific_cache
