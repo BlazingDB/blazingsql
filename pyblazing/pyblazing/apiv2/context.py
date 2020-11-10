@@ -1337,9 +1337,11 @@ class BlazingContext(object):
         # want to use config_options and not self.config_options
         # since its not encoded
         if "BLAZING_LOGGING_DIRECTORY".encode() in self.config_options:
+            print("found config")
             logging_dir_path = self.config_options[
                 "BLAZING_LOGGING_DIRECTORY".encode()
             ].decode()
+            print(logging_dir_path)
 
         cache_dir_path = "/tmp"  # default directory to store orc files
         if "BLAZING_CACHE_DIRECTORY".encode() in self.config_options:
@@ -1427,6 +1429,7 @@ class BlazingContext(object):
                         maximum_pool_size=maximum_pool_size,
                         enable_logging=enable_logging,
                         config_options=self.config_options,
+                        logging_dir_path=logging_dir_path,
                         workers=[worker],
                     )
                 )
@@ -1461,6 +1464,7 @@ class BlazingContext(object):
                 maximum_pool_size=maximum_pool_size,
                 enable_logging=enable_logging,
                 config_options=self.config_options,
+                logging_dir_path=logging_dir_path,
             )
             self.node_log_paths.add(log_path)
 
