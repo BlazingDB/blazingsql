@@ -62,10 +62,11 @@ void distributing_kernel::send_message(std::unique_ptr<ral::frame::BlazingTable>
     std::shared_ptr<ral::cache::CacheMachine> output_cache = query_graph->get_output_message_cache();
 
     bool added;
+    std::string message_id = metadata.get_values()[ral::cache::MESSAGE_ID_CONTENT];
     if(table==nullptr) {
-        added = output_cache->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(ral::utilities::create_empty_table({}, {}), metadata), "", always_add);
+        added = output_cache->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(ral::utilities::create_empty_table({}, {}), metadata), message_id, always_add);
     } else {
-        added = output_cache->addCacheData(std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(std::move(table), metadata)), "", always_add);
+        added = output_cache->addCacheData(std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(std::move(table), metadata)), message_id, always_add);
     }
 
     if(wait_for) {
