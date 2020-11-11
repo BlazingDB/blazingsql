@@ -3,7 +3,12 @@
 ## New Features
 - #1105 Implement to_date/to_timestamp functions
 - #1077 Allow to create tables from compressed files
+- #1126 Add DAYOFWEEK function
+- #981 Added powerPC building script and instructions
+- #912 Added UCX support to how the engine runs
+- #1125 Implement new TCP and UCX comms layer, exposed graph to python
 - #1122 Add ConfigOptionsTest, a test with different config_options
+
 
 ## Improvements
 - #878 Adding calcite rule for window functions. (Window functions not supported yet)
@@ -12,8 +17,11 @@
 - #1093 Logs configurable to have max size and be rotated
 - #1091 Improves the error message problem when validating any GCP bucket
 - #1090 Add tests for Uri Data provider for local uri
+- #1119 Add tests for transform json tree and get json plan
 - #1117 Add error logging in DataSourceSequence
 - #1111 output compile json for cppcheck
+- #1078 Bump junit from 4.12 to 4.13.1 in /algebra 
+- #1144 update with changes from main 
 
 
 ## Bug Fixes
@@ -62,7 +70,9 @@
 - #1073 Fixed parseSchemaPython can throw exceptions
 - #1074 Remove lock inside grow() method from PinnedBufferProvider
 - #1071 Fix crash when loading an empty folder
-- #1085 Fixed intra-query memory leak in joins. Fixed by clearing array caches after PartwiseJoin is done
+- #1085 Fixed intra-query memory leak in joins. Fixed by clearing array caches after PartwiseJoin is done 
+- #1096 Backport from branch-0.17 with these PRs: #1094, #1086, #1093 and #1091
+- #1099 Fixed issue with config_options 
 
 
 # BlazingSQL 0.15.0 (August 31, 2020)

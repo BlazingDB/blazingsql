@@ -36,6 +36,7 @@ bool is_unary_operator(operator_type op) {
 	case operator_type::BLZ_YEAR:
 	case operator_type::BLZ_MONTH:
 	case operator_type::BLZ_DAY:
+	case operator_type::BLZ_DAYOFWEEK:
 	case operator_type::BLZ_HOUR:
 	case operator_type::BLZ_MINUTE:
 	case operator_type::BLZ_SECOND:
@@ -130,6 +131,7 @@ cudf::type_id get_output_type(operator_type op, cudf::type_id input_left_type) {
 	case operator_type::BLZ_YEAR:
 	case operator_type::BLZ_MONTH:
 	case operator_type::BLZ_DAY:
+	case operator_type::BLZ_DAYOFWEEK:
 	case operator_type::BLZ_HOUR:
 	case operator_type::BLZ_MINUTE:
 	case operator_type::BLZ_SECOND:
@@ -250,6 +252,7 @@ operator_type map_to_operator_type(const std::string & operator_token) {
 		{"BL_YEAR", operator_type::BLZ_YEAR},
 		{"BL_MONTH", operator_type::BLZ_MONTH},
 		{"BL_DAY", operator_type::BLZ_DAY},
+		{"BL_DOW", operator_type::BLZ_DAYOFWEEK},
 		{"BL_HOUR", operator_type::BLZ_HOUR},
 		{"BL_MINUTE", operator_type::BLZ_MINUTE},
 		{"BL_SECOND", operator_type::BLZ_SECOND},
@@ -576,6 +579,7 @@ std::string replace_calcite_regex(const std::string & expression) {
 	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(YEAR), ", "BL_YEAR(");
 	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(MONTH), ", "BL_MONTH(");
 	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(DAY), ", "BL_DAY(");
+	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(DOW), ", "BL_DOW(");
 	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(HOUR), ", "BL_HOUR(");
 	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(MINUTE), ", "BL_MINUTE(");
 	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(SECOND), ", "BL_SECOND(");

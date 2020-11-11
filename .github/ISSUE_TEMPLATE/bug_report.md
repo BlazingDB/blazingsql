@@ -21,7 +21,7 @@ A clear and concise description of what you expected to happen.
 
 **Environment overview (please complete the following information)**
  - Environment location: [Bare-metal, Docker, Cloud(specify cloud provider)]
- - Method of cuDF install: [conda, Docker, or from source]
+ - Method of BlazingSQL install: [conda, Docker, or from source]
    - If method of install is [Docker], provide `docker pull` & `docker run` commands used
 
 **Environment details**

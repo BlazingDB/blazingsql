@@ -30,7 +30,7 @@
 #include "execution_graph/logic_controllers/BlazingColumnView.h"
 #include <bmr/BlazingMemoryResource.h>
 #include "communication/CommunicationData.h"
-
+#include <exception>
 
 
 using namespace std::chrono_literals;
@@ -195,7 +195,8 @@ public:
 	* Gets the map storing the metadata.
 	* @return the map storing all of the metadata.
 	*/
-	std::map<std::string,std::string> get_values(){
+
+	std::map<std::string,std::string> get_values() const {
 		return this->values;
 	}
 
@@ -205,7 +206,16 @@ public:
 	*/
 	void set_values(std::map<std::string,std::string> new_values){
 		this->values= new_values;
-		print();
+	}
+
+	/**
+	* Checks if metadata has a specific key
+	* @param key The key to check if is in the metadata
+	* @return true if the key is in the metadata, otherwise return false
+	*/
+	bool has_value(std::string key){
+		auto it = this->values.find(key);
+		return it != this->values.end();
 	}
 private:
 	std::map<std::string,std::string> values; /**< Stores the mapping of metdata label to metadata value */
@@ -562,7 +572,7 @@ public:
 
 		std::unique_lock<std::mutex> lock(mutex_);
 		condition_variable_.wait(lock, [&, this] () {
-			if (count > this->processed){
+			if (count < this->processed){
 				throw std::runtime_error("WaitingQueue::wait_for_count encountered " + std::to_string(this->processed) + " when expecting " + std::to_string(count));
 			}
 			return count == this->processed;
@@ -581,7 +591,7 @@ public:
 
 		CodeTimer blazing_timer;
 		std::unique_lock<std::mutex> lock(mutex_);
-		while(!condition_variable_.wait_for(lock, timeout*1ms, [&, this] {
+		/*while(!condition_variable_.wait_for(lock, timeout*1ms, [&, this] {
 				bool done_waiting = this->finished.load(std::memory_order_seq_cst) or !this->empty();
 				if (!done_waiting && blazing_timer.elapsed_time() > 59000){
 					auto logger = spdlog::get("batch_logger");
@@ -592,8 +602,11 @@ public:
 					}
 				}
 				return done_waiting;
-			})){}
+			})){}*/
 
+		condition_variable_.wait(lock,[&, this] {
+				return this->finished.load(std::memory_order_seq_cst) or !this->empty();
+		});
 		if(this->message_queue_.size() == 0) {
 			return nullptr;
 		}
@@ -701,7 +714,7 @@ public:
 	size_t get_next_size_in_bytes(){
 		std::unique_lock<std::mutex> lock(mutex_);
 		if (message_queue_.size() > 0){
-			message_queue_[0]->get_data().sizeInBytes();
+			return message_queue_[0]->get_data().sizeInBytes();
 		} else {
 			return 0;
 		}
@@ -737,7 +750,9 @@ public:
 					}
 				}
 				return done_waiting;
-			})){}
+			})){
+
+			}
 		if(this->message_queue_.size() == 0) {
 			return nullptr;
 		}
@@ -832,6 +847,11 @@ public:
 	}
 
 
+	void put_all(std::vector<message_ptr> messages){
+		std::unique_lock<std::mutex> lock(mutex_);
+		put_all_unsafe(std::move(messages));
+		condition_variable_.notify_all();
+	}
 private:
 	/**
 	* Checks if the WaitingQueue is empty.
@@ -874,8 +894,6 @@ class CacheMachine {
 public:
 	CacheMachine(std::shared_ptr<Context> context);
 
-	CacheMachine(std::shared_ptr<Context> context, std::size_t flow_control_bytes_threshold);
-
 	~CacheMachine();
 
 	virtual void put(size_t message_id, std::unique_ptr<ral::frame::BlazingTable> table);
@@ -884,11 +902,11 @@ public:
 
 	virtual void clear();
 
-	virtual void addToCache(std::unique_ptr<ral::frame::BlazingTable> table, const std::string & message_id = "", bool always_add = false);
+	virtual bool addToCache(std::unique_ptr<ral::frame::BlazingTable> table, const std::string & message_id = "", bool always_add = false);
 
-	virtual void addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, const std::string & message_id = "", bool always_add = false);
+	virtual bool addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, const std::string & message_id = "", bool always_add = false);
 
-	virtual void addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> table, const std::string & message_id = "");
+	virtual bool addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> table, const std::string & message_id = "");
 
 	virtual void finish();
 
@@ -913,6 +931,11 @@ public:
 	}
 	virtual std::unique_ptr<ral::frame::BlazingTable> pullFromCache();
 
+	std::vector<std::unique_ptr<ral::cache::CacheData> > pull_all_cache_data();
+
+	void put_all_cache_data( std::vector<std::unique_ptr<ral::cache::CacheData> > messages, std::vector<std::string> message_ids);
+
+	
 
 	virtual std::unique_ptr<ral::cache::CacheData> pullCacheData(std::string message_id);
 
@@ -920,10 +943,6 @@ public:
 
 
 	virtual std::unique_ptr<ral::cache::CacheData> pullCacheData();
-
-	bool thresholds_are_met(std::size_t bytes_count);
-
-	virtual void wait_if_cache_is_saturated();
 
 	void wait_for_count(int count){
 		return this->waitingCache->wait_for_count(count);
@@ -949,12 +968,6 @@ protected:
 	std::shared_ptr<spdlog::logger> logger;
 	std::shared_ptr<spdlog::logger> cache_events_logger;
 	const std::size_t cache_id;
-
-	std::size_t flow_control_bytes_threshold;
-	std::size_t flow_control_bytes_count;
-	std::mutex flow_control_mutex;
-	std::condition_variable flow_control_condition_variable;
-
 };
 
 /**
@@ -1059,7 +1072,7 @@ class ConcatenatingCacheMachine : public CacheMachine {
 public:
 	ConcatenatingCacheMachine(std::shared_ptr<Context> context);
 
-	ConcatenatingCacheMachine(std::shared_ptr<Context> context, std::size_t flow_control_bytes_threshold, 
+	ConcatenatingCacheMachine(std::shared_ptr<Context> context, 
 			std::size_t concat_cache_num_bytes, bool concat_all);
 
 	~ConcatenatingCacheMachine() = default;
