@@ -495,6 +495,7 @@ echo "END CUPY"
 # END CUPY
 
 export CUDF_ROOT=$build_dir/cudf/cpp/build
+export PROTOC=$BLAZINGSQL_POWERPC_TMP_BUILD_DIR/arrow/cpp/build/protobuf_ep-install/bin/protoc
 
 # BEGIN cudf python
 echo "BEGIN cudf python"
