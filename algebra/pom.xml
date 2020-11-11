@@ -24,7 +24,7 @@
 		<project.reporting.outputEncoding>${sourceEncoding}</project.reporting.outputEncoding>
 		<java.version>1.8</java.version>
 		<org.slf4j-version>1.7.29</org.slf4j-version>
-		<junit.version>4.12</junit.version>
+		<junit.version>4.13.1</junit.version>
 		<org.testng.version>6.14.3</org.testng.version>
 	</properties>
 

@@ -91,8 +91,17 @@ public:
             }            
             memory_resource = memory_resource_owner.get();
         } else if (allocation_mode == "arena_memory_resource") {
-            memory_resource_owner = rmm::mr::make_owning_wrapper<rmm::mr::arena_memory_resource>(
-                std::make_shared<rmm::mr::cuda_memory_resource>(), initial_pool_size, maximum_pool_size);
+            if (initial_pool_size == 0){
+                memory_resource_owner = rmm::mr::make_owning_wrapper<rmm::mr::arena_memory_resource>(
+                    std::make_shared<rmm::mr::cuda_memory_resource>());
+            } else if (maximum_pool_size == 0) {
+                memory_resource_owner = rmm::mr::make_owning_wrapper<rmm::mr::arena_memory_resource>(
+                    std::make_shared<rmm::mr::cuda_memory_resource>(), initial_pool_size);
+            } else {
+                memory_resource_owner = rmm::mr::make_owning_wrapper<rmm::mr::arena_memory_resource>(
+                    std::make_shared<rmm::mr::cuda_memory_resource>(), initial_pool_size, maximum_pool_size);
+            }         
+            
             memory_resource = memory_resource_owner.get();
         } else if (allocation_mode == "existing"){
             memory_resource = rmm::mr::get_current_device_resource();        
