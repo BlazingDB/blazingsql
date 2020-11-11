@@ -58,6 +58,9 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$tmp_dir/lib
 
 export CMAKE_PREFIX_PATH=$VIRTUAL_ENV:$CMAKE_PREFIX_PATH
 
+# we want to make sure CONDA_PREFIX is not set to not confuse the arrow build
+unset CONDA_PREFIX
+
 echo "### Vars ###"
 echo "CC="$CC
 echo "CXX="$CXX
