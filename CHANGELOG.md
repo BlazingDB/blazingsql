@@ -7,7 +7,7 @@
 - #981 Added powerPC building script and instructions
 - #912 Added UCX support to how the engine runs
 - #1125 Implement new TCP and UCX comms layer, exposed graph to python
-- #1122 Add ConfigOptionsTest, a test with different config_options
+- #1122 Add ConfigOptionsTest, a test with different config_options values
 
 
 ## Improvements
