@@ -237,7 +237,7 @@ if [ "$BLAZING_GPUCI_JOB" = "" ] || [ "$BLAZING_GPUCI_JOB" = "cpu-build" ]; then
         -e CUDA_VER=${CUDA_VERSION} -e PYTHON=$PYTHON_VERSION \
         -e CONDA_USERNAME=$CONDA_USERNAME -e MY_UPLOAD_KEY=$MY_UPLOAD_KEY \
         -e UPLOAD_BLAZING=$UPLOAD_BLAZING -e CUSTOM_LABEL=$CUSTOM_LABEL \
-        -e GIT_BRANCH="master" -e SOURCE_BRANCH="master" \
+        -e GIT_BRANCH="main" -e SOURCE_BRANCH="main" \
         -e WORKSPACE=$WORKSPACE \
         -v /etc/passwd:/etc/passwd \
         -v ${WORKSPACE}:${WORKSPACE} -w ${WORKSPACE} \
@@ -248,7 +248,7 @@ if [ "$BLAZING_GPUCI_JOB" = "" ] || [ "$BLAZING_GPUCI_JOB" = "cpu-build" ]; then
         -e CUDA_VER=${CUDA_VERSION} -e PYTHON=$PYTHON_VERSION \
         -e CONDA_USERNAME=$CONDA_USERNAME -e MY_UPLOAD_KEY=$MY_UPLOAD_KEY \
         -e UPLOAD_BLAZING=$UPLOAD_BLAZING -e CUSTOM_LABEL=$CUSTOM_LABEL \
-        -e GIT_BRANCH="master" -e SOURCE_BRANCH="master" \
+        -e GIT_BRANCH="main" -e SOURCE_BRANCH="main" \
         -e WORKSPACE=$WORKSPACE \
         -v /etc/passwd:/etc/passwd \
         -v ${WORKSPACE}:${WORKSPACE} -w ${WORKSPACE} \

@@ -136,7 +136,7 @@ The build process will checkout the BlazingSQL repository and will build and ins
 cd $CONDA_PREFIX
 git clone https://github.com/BlazingDB/blazingsql.git
 cd blazingsql
-git checkout master
+git checkout main
 export CUDACXX=/usr/local/cuda/bin/nvcc
 ./build.sh
 ```
