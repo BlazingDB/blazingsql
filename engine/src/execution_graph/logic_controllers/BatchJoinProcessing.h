@@ -72,8 +72,10 @@ public:
 		cache_machine_config.type = ral::cache::CacheType::SIMPLE;
 		cache_machine_config.context = context->clone();
 
-		this->leftArrayCache = 	ral::cache::create_cache_machine(cache_machine_config);
-		this->rightArrayCache = ral::cache::create_cache_machine(cache_machine_config);
+		std::string left_array_cache_name = std::to_string(this->get_id()) + "_left_array";
+		this->leftArrayCache = 	ral::cache::create_cache_machine(cache_machine_config, left_array_cache_name);
+		std::string right_array_cache_name = std::to_string(this->get_id()) + "_right_array";
+		this->rightArrayCache = ral::cache::create_cache_machine(cache_machine_config, right_array_cache_name);
 
 		std::tie(this->expression, this->condition, this->filter_statement, this->join_type) = parseExpressionToGetTypeAndCondition(this->expression);
 	}

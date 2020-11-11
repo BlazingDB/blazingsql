@@ -11,22 +11,29 @@ namespace cache {
 
 class kernel;
 
-static std::shared_ptr<ral::cache::CacheMachine> create_cache_machine( const cache_settings& config) {
+static std::shared_ptr<ral::cache::CacheMachine> create_cache_machine( const cache_settings& config, std::string cache_machine_name) {
 	std::shared_ptr<ral::cache::CacheMachine> machine;
 	if (config.type == CacheType::SIMPLE or config.type == CacheType::FOR_EACH) {
-		machine =  std::make_shared<ral::cache::CacheMachine>(config.context);
+		machine =  std::make_shared<ral::cache::CacheMachine>(config.context, cache_machine_name);
 	} else if (config.type == CacheType::CONCATENATING) {
 		machine =  std::make_shared<ral::cache::ConcatenatingCacheMachine>(config.context, 
-			config.concat_cache_num_bytes, config.concat_all);
+			config.concat_cache_num_bytes, config.concat_all, cache_machine_name);
 	}
 	return machine;
 }
 
-static std::vector<std::shared_ptr<ral::cache::CacheMachine>> create_cache_machines(const cache_settings& config) {
+static std::vector<std::shared_ptr<ral::cache::CacheMachine>> create_cache_machines(const cache_settings& config, std::string source_port, int32_t source_kernel_id) {
 	std::vector<std::shared_ptr<ral::cache::CacheMachine>> machines;
-	for (size_t i = 0; i < config.num_partitions; i++) {
-		machines.push_back(create_cache_machine(config));
+	if (config.num_partitions > 1){
+		for (size_t i = 0; i < config.num_partitions; i++) {
+			std::string cache_machine_name = std::to_string(source_kernel_id) + "_" + source_port + "_" + std::to_string(i);
+			machines.push_back(create_cache_machine(config, cache_machine_name));
+		}
+	} else {
+		std::string cache_machine_name = std::to_string(source_kernel_id) + "_" + source_port;
+		machines.push_back(create_cache_machine(config, cache_machine_name));
 	}
+	
 	return machines;
 }
 

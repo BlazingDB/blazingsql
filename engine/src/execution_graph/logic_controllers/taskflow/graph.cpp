@@ -241,7 +241,7 @@ namespace cache {
 
 		target->set_parent(source->get_id());
 		{
-			std::vector<std::shared_ptr<CacheMachine>> cache_machines = create_cache_machines(config);
+			std::vector<std::shared_ptr<CacheMachine>> cache_machines = create_cache_machines(config, source_port, source->get_id());
 			if(config.type == CacheType::FOR_EACH) {
 				for(size_t index = 0; index < cache_machines.size(); index++) {
 
