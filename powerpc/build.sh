@@ -56,6 +56,8 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/
 
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$tmp_dir/lib
 
+export CMAKE_PREFIX_PATH=$VIRTUAL_ENV:$CMAKE_PREFIX_PATH
+
 echo "### Vars ###"
 echo "CC="$CC
 echo "CXX="$CXX
@@ -344,63 +346,62 @@ if [ "$machine_processor_architecture" = "ppc64le" ] || [ "$machine_processor_ar
     git clone --depth 1 https://github.com/numba/llvmlite.git --branch "release$llvmlite_version_from_pip" --single-branch
     cd llvmlite/
     pip install .
-
-    echo "### BEGIN Pip dependencies ###"
-    # pip install -r requirements.txt
-    echo "### pip installing numba ###"
-    pip install numba==0.50.1
-    echo "### pip installing scipy ###"
-    pip install scipy==1.5.2
-    echo "### pip installing scikit-learn ###"
-    pip install scikit-learn==0.23.1
-    echo "### pip installing flake8 ###"
-    pip install flake8==3.8.3
-    echo "### pip installing ipython ###"
-    pip install ipython==7.17.0
-    echo "### pip installing pytest-timeout ###"
-    pip install pytest-timeout==1.4.2
-    echo "### pip installing sphinx-rtd-theme ###"
-    pip install sphinx-rtd-theme==0.5.0
-    echo "### pip installing cysignals ###"
-    pip install cysignals==1.10.2
-    echo "### pip installing numpydoc ###"
-    pip install numpydoc==1.1.0
-    echo "### pip installing pynvml ###"
-    pip install pynvml==8.0.4
-    echo "### pip installing networkx ###"
-    pip install networkx==2.4
-    echo "### pip installing jupyterlab ###"
-    pip install jupyterlab==2.2.4
-    echo "### pip installing notebook ###"
-    pip install notebook==6.1.3
-    echo "### pip installing joblib ###"
-    pip install joblib==0.16.0
-    echo "### pip installing fastrlock ###"
-    pip install fastrlock==0.5
-    echo "### pip installing pytest-timeout ###"
-    pip install pytest-timeout==1.4.2
-    echo "### pip installing hypothesis ###"
-    pip install hypothesis==5.26.0
-    echo "### pip installing python-louvain ###"
-    pip install python-louvain==0.14
-    echo "### pip installing jupyter-server-proxy ###"
-    pip install jupyter-server-proxy==1.5.0
-    echo "### pip installing statsmodels ###"
-    pip install statsmodels==0.11.1
-    echo "### pip installing pyhive ###"
-    pip install pyhive==0.6.2
-    echo "### pip installing thrift ###"
-    pip install thrift==0.13.0
-    echo "### pip installing jpype1 ###"
-    pip install jpype1==1.0.2
-    echo "### pip installing netifaces ###"
-    pip install netifaces==0.10.9
-    echo "### END Pip dependencies ###"
-    echo "---->>> finished llvmlite"
  fi
 fi
 echo "END llvmlite"
 
+echo "### BEGIN Pip dependencies ###"
+# pip install -r requirements.txt
+echo "### pip installing numba ###"
+pip install numba==0.50.1
+echo "### pip installing scipy ###"
+LDFLAGS="-shared" pip install scipy==1.5.2
+echo "### pip installing scikit-learn ###"
+LDFLAGS="-shared" pip install scikit-learn==0.23.1
+echo "### pip installing flake8 ###"
+pip install flake8==3.8.3
+echo "### pip installing ipython ###"
+pip install ipython==7.17.0
+echo "### pip installing pytest-timeout ###"
+pip install pytest-timeout==1.4.2
+echo "### pip installing sphinx-rtd-theme ###"
+pip install sphinx-rtd-theme==0.5.0
+echo "### pip installing cysignals ###"
+pip install cysignals==1.10.2
+echo "### pip installing numpydoc ###"
+pip install numpydoc==1.1.0
+echo "### pip installing pynvml ###"
+pip install pynvml==8.0.4
+echo "### pip installing networkx ###"
+pip install networkx==2.4
+echo "### pip installing jupyterlab ###"
+pip install jupyterlab==2.2.4
+echo "### pip installing notebook ###"
+pip install notebook==6.1.3
+echo "### pip installing joblib ###"
+pip install joblib==0.16.0
+echo "### pip installing fastrlock ###"
+pip install fastrlock==0.5
+echo "### pip installing pytest-timeout ###"
+pip install pytest-timeout==1.4.2
+echo "### pip installing hypothesis ###"
+pip install hypothesis==5.26.0
+echo "### pip installing python-louvain ###"
+pip install python-louvain==0.14
+echo "### pip installing jupyter-server-proxy ###"
+pip install jupyter-server-proxy==1.5.0
+echo "### pip installing statsmodels ###"
+pip install statsmodels==0.11.1
+echo "### pip installing pyhive ###"
+pip install pyhive==0.6.2
+echo "### pip installing thrift ###"
+pip install thrift==0.13.0
+echo "### pip installing jpype1 ###"
+pip install jpype1==1.0.2
+echo "### pip installing netifaces ###"
+pip install netifaces==0.10.9
+echo "### END Pip dependencies ###"
+echo "---->>> finished llvmlite"
 
 # END numba llvmlite
 

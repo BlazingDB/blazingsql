@@ -70,9 +70,11 @@ Notes:
 
 
 ### Build & install BlazingSQL on Summit
-The following instructions are for building on Summit. They are similar to the instructions above:
+The following instructions are for building on Summit. They are similar to the instructions above.
 
-Use lmod to load up all the dependencies:
+**The order of the following steps is important, because the python module needs to be loaded first before creating the virtual environment.**
+
+1. Use lmod to load up all the dependencies.
 ```shell
 module load gcc/7.4.0
 module load python/3.7.0
@@ -90,7 +92,7 @@ module load gdrcopy
 module list
 ```
 
-Export the environment variables for your Virtual Environment and Build folder and make sure the folders exist:
+2. Export the environment variables for your Virtual Environment and Build folder and make sure the folders exist:
 ```shell
 export VIRTUAL_ENV=PATH_TO_YOUR_ENV_PREFIX
 mkdir $VIRTUAL_ENV
@@ -98,13 +100,13 @@ export BLAZINGSQL_POWERPC_TMP_BUILD_DIR=PATH_TO_A_BUILD_FOLDER
 mkdir $BLAZINGSQL_POWERPC_TMP_BUILD_DIR
 ```
 
-Create your virtual environment and activate it:
+3. Create your virtual environment and activate it:
 ```shell
 python -m venv $VIRTUAL_ENV
 source $VIRTUAL_ENV/bin/activate
 ```
 
-Make sure you are in the `blazingsql` folder and run the build script and pass your environment folder as argument:
+4. Make sure you are in the `blazingsql` folder and run the build script and pass your environment folder as argument:
 ```shell
 cd blazingsql
 source powerpc/build.sh $VIRTUAL_ENV  | tee out.txt
