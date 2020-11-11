@@ -139,7 +139,7 @@ void distributing_kernel::broadcast(std::unique_ptr<ral::frame::BlazingTable> ta
         cache_id, //cache_id
         target_ids, //target_ids
         message_id_prefix, //message_id_prefix
-        false, //always_add
+        always_add, //always_add
         false, //wait_for
         message_tracker_idx //message_tracker_idx
     );
