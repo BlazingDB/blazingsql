@@ -9,7 +9,7 @@ namespace config {
 size_t gpuFreeMemory() {
 	int currentDeviceId = 0;
 	struct cudaDeviceProp props;
-	CUDA_TRY( cudaSetDevice(currentDeviceId) );
+	// CUDA_TRY( cudaSetDevice(currentDeviceId) );
 	cudaGetDeviceProperties(&props, currentDeviceId);
 	size_t free, total;
 	cudaMemGetInfo(&free, &total);
@@ -20,7 +20,7 @@ size_t gpuFreeMemory() {
 size_t gpuTotalMemory() {
 	int currentDeviceId = 0;
 	struct cudaDeviceProp props;
-	CUDA_TRY( cudaSetDevice(currentDeviceId) );
+	// CUDA_TRY( cudaSetDevice(currentDeviceId) );
 	cudaGetDeviceProperties(&props, currentDeviceId);
 	size_t free, total;
 	cudaMemGetInfo(&free, &total);
@@ -31,7 +31,7 @@ size_t gpuTotalMemory() {
 size_t gpuUsedMemory() {
 	int currentDeviceId = 0;
 	struct cudaDeviceProp props;
-	CUDA_TRY( cudaSetDevice(currentDeviceId) );
+	// CUDA_TRY( cudaSetDevice(currentDeviceId) );
 	cudaGetDeviceProperties(&props, currentDeviceId);
 	size_t free, total;
 	cudaMemGetInfo(&free, &total);

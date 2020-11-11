@@ -33,6 +33,8 @@ requirements:
         - openjdk >=8.0
         - maven
         - cudf {{ minor_version }}.*
+        - ucx-py {{ minor_version }}.*
+        - ucx-proc=*=gpu
         - dlpack
         - cudatoolkit {{ cuda_version }}.*
     run:
@@ -45,6 +47,8 @@ requirements:
         - {{ pin_compatible('gtest', max_pin='x.x') }}
         - dask-cudf {{ minor_version }}.*
         - dask-cuda {{ minor_version }}.*
+        - ucx-py {{ minor_version }}.*
+        - ucx-proc=*=gpu
 
 test:
     requires:
