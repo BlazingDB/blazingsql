@@ -843,6 +843,7 @@ public:
 	void put_all_unsafe(std::vector<message_ptr> messages) {
 		for(size_t i = 0; i < messages.size(); i++) {
 			putWaitingQueue(std::move(messages[i]));
+			processed++;
 		}
 	}
 

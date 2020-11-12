@@ -169,7 +169,7 @@ bool CacheMachine::addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTa
 }
 
 void CacheMachine::put(size_t message_id, std::unique_ptr<ral::frame::BlazingTable> table) {
-	this->addToCache(std::move(table), std::to_string(message_id));
+	this->addToCache(std::move(table), this->cache_machine_name + "_" + std::to_string(message_id), true);
 }
 
 void CacheMachine::clear() {
@@ -376,11 +376,21 @@ void CacheMachine::wait_until_finished() {
 
 
 std::unique_ptr<ral::frame::BlazingTable> CacheMachine::get_or_wait(size_t index) {
-	std::unique_ptr<message> message_data = waitingCache->get_or_wait(std::to_string(index));
-	if (message_data == nullptr) {
+	std::unique_ptr<message> message_data = waitingCache->get_or_wait(this->cache_machine_name + "_" + std::to_string(index));
+	if (message_data == nullptr) {		
 		return nullptr;
+	} 
+	if (logger != nullptr){
+		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+								"info"_a="CacheMachine::get_or_wait pulling from cache ",
+								"duration"_a="",
+								"kernel_id"_a=message_data->get_message_id(),
+								"rows"_a=message_data->get_data().num_rows());
 	}
-
+	
 	std::unique_ptr<ral::frame::BlazingTable> output = message_data->get_data().decache();
 	return std::move(output);
 }
