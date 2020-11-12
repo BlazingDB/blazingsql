@@ -89,3 +89,4 @@ TEST_F(ParquetMetadataTest, typed_test) {
     process_minmax_metadata<int64_t, parquet::Type::type::INT64>();
     process_minmax_metadata<double, parquet::Type::type::DOUBLE>();
 }
+

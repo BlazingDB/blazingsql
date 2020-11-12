@@ -231,11 +231,9 @@ std::basic_string<char> get_typed_vector_content(cudf::type_id dtype, std::vecto
 	}
 	case cudf::type_id::FLOAT32: {
 		std::vector<float> typed_v(vector.size());
-
 		for(size_t I=0;I<vector.size();I++){
 			typed_v[I] = *(reinterpret_cast<float*>(&(vector[I])));
 		}
-
 		output = std::basic_string<char>((char *)typed_v.data(), typed_v.size() * sizeof(float));
 		break;
 	}
