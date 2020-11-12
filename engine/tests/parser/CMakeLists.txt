@@ -14,3 +14,8 @@ set(split_inequality_join_sources
     split_inequality_join_test.cpp
 )
 configure_test(split_inequality_join_test "${split_inequality_join_sources}")
+
+set(parquet_metadata_sources
+    parquet_metadata_test.cpp
+)
+configure_test(parquet_metadata_test "${parquet_metadata_sources}")
