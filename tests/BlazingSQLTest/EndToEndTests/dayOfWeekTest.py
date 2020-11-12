@@ -180,7 +180,7 @@ def main(dask_client, spark, dir_data_file, bc, nRals):
                 use_percentage,
                 fileSchemaType,
             )
-            
+
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")
                 break
@@ -204,16 +204,15 @@ if __name__ == "__main__":
     if "compare_results" in Settings.data["RunSettings"]:
         compareResults = Settings.data["RunSettings"]["compare_results"]
 
-    if ((Settings.execution_mode == ExecutionMode.FULL and
-         compareResults == "true") or
-            Settings.execution_mode == ExecutionMode.GENERATOR):
+    if (
+        Settings.execution_mode == ExecutionMode.FULL and compareResults == "true"
+    ) or Settings.execution_mode == ExecutionMode.GENERATOR:
 
         # Create Table Spark -------------------------------------------------
         from pyspark.sql import SparkSession
 
         spark = SparkSession.builder.appName("timestampTest").getOrCreate()
-        cs.init_spark_schema(spark,
-                             Settings.data["TestSettings"]["dataDirectory"])
+        cs.init_spark_schema(spark, Settings.data["TestSettings"]["dataDirectory"])
 
     # Create Context For BlazingSQL
     bc, dask_client = init_context()
@@ -221,12 +220,7 @@ if __name__ == "__main__":
     nRals = Settings.data["RunSettings"]["nRals"]
 
     main(
-        dask_client,
-
-        spark,
-        Settings.data["TestSettings"]["dataDirectory"],
-        bc,
-        nRals,
+        dask_client, spark, Settings.data["TestSettings"]["dataDirectory"], bc, nRals,
     )
 
     if Settings.execution_mode != ExecutionMode.GENERATOR:
