@@ -150,6 +150,8 @@ def initializeBlazing(
     allocator="default",
     pool=True,
     initial_pool_size=None,
+    maximum_pool_size=None,
+    enable_logging=False,
     config_options={},
     logging_dir_path="blazing_log",
     is_dask=False,
