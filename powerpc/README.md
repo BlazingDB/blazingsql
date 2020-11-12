@@ -76,6 +76,7 @@ The following instructions are for building on Summit. They are similar to the i
 
 1. Use lmod to load up all the dependencies.
 ```shell
+unset CMAKE_PREFIX_PATH # make sure no conflicting library versions are found
 module load gcc/7.4.0
 module load python/3.7.0
 module load cmake/3.17.3
@@ -109,7 +110,7 @@ source $VIRTUAL_ENV/bin/activate
 4. Make sure you are in the `blazingsql` folder and run the build script and pass your environment folder as argument:
 ```shell
 cd blazingsql
-source powerpc/build.sh $VIRTUAL_ENV  | tee out.txt
+nohup sh powerpc/build.sh $VIRTUAL_ENV &
 ```
 
 Notes:
@@ -117,13 +118,13 @@ Notes:
 * Near the end of the process, you will be prompted to answer some questions for the installation of JAVA.
 * This build process will install cudf and its dependencies (dask-cudf, arrow, etc.), llvm, compiled python packages like (llvmlite, cupy, etc.) and blazingsql.
 
-
-
+5. Add the library directory to your `LD_LIBRARY_PATH`, e.g. upon activation of the environment:
+```shell
+patch $VIRTUAL_ENV/bin/activate powerpc/activate.patch
+```
 ## Use BlazingSQL
 For now we need to export some env vars before run python with blazingsql:
 ```shell
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib64/:/usr/local/lib
-export LD_LIBRARY_PATH=$VIRTUAL_ENV/lib:$LD_LIBRARY_PATH
 export CONDA_PREFIX=$VIRTUAL_ENV
 export PATH=$BLAZINGSQL_POWERPC_TMP_BUILD_DIR/ibm-java-ppc64le-80/bin:$PATH
 export JAVA_HOME=$BLAZINGSQL_POWERPC_TMP_BUILD_DIR/ibm-java-ppc64le-80/jre
