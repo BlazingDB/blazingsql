@@ -21,7 +21,7 @@ using namespace fmt::literals;
 #include "distribution/primitives.h"
 #include "communication/CommunicationData.h"
 #include "utilities/CommonOperations.h"
-#include "utilities/StringUtils.h"
+
 #include "error.hpp"
 
 namespace ral {
@@ -77,64 +77,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_filter(
     typedef std::pair<blazingdb::transport::Node, ral::frame::BlazingTableView > NodeColumnView;
   }
 
-  std::unique_ptr<ral::frame::BlazingTable> process_distribution_table(
-  	const ral::frame::BlazingTableView & table,
-    std::vector<int> & columnIndices,
-    blazingdb::manager::Context * context) {
-
-    std::vector<NodeColumnView > partitions;
-    std::unique_ptr<CudfTable> hashed_data;
-    if (table.num_rows() > 0){
-      //TODO: CACHE_POINT (ask felipe)
-      std::vector<cudf::size_type> columns_to_hash;
-      std::transform(columnIndices.begin(), columnIndices.end(), std::back_inserter(columns_to_hash), [](int index) { return (cudf::size_type)index; });
-
-      std::vector<cudf::size_type> hased_data_offsets;
-      std::tie(hashed_data, hased_data_offsets) = cudf::hash_partition(table.view(),
-              columns_to_hash, context->getTotalNodes());
-
-      // the offsets returned by hash_partition will always start at 0, which is a value we want to ignore for cudf::split
-      std::vector<cudf::size_type> split_indexes(hased_data_offsets.begin() + 1, hased_data_offsets.end());
-      std::vector<CudfTableView> partitioned = cudf::split(hashed_data->view(), split_indexes);
-
-      for(int nodeIndex = 0; nodeIndex < context->getTotalNodes(); nodeIndex++ ){
-          partitions.emplace_back(
-            std::make_pair(context->getNode(nodeIndex), ral::frame::BlazingTableView(partitioned[nodeIndex], table.names())));
-      }
-    } else {
-      for(int nodeIndex = 0; nodeIndex < context->getTotalNodes(); nodeIndex++ ){
-        partitions.emplace_back(
-          std::make_pair(context->getNode(nodeIndex), ral::frame::BlazingTableView(table.view(), table.names())));
-      }
-    }
-
-  	context->incrementQuerySubstep();
-    ral::distribution::distributePartitions(context, partitions);
-    std::vector<NodeColumn> remote_node_columns = ral::distribution::collectPartitions(context);
-
-    std::vector<ral::frame::BlazingTableView> partitions_to_concat;
-    for (int i = 0; i < remote_node_columns.size(); i++){
-      partitions_to_concat.emplace_back(remote_node_columns[i].second->toBlazingTableView());
-    }
-    bool found_self_partition = false;
-    for (auto partition : partitions){
-      if (partition.first == ral::communication::CommunicationData::getInstance().getSelfNode()){
-        partitions_to_concat.emplace_back(partition.second);
-        found_self_partition = true;
-        break;
-      }
-    }
-    assert(found_self_partition);
-
-    if( ral::utilities::checkIfConcatenatingStringsWillOverflow(partitions_to_concat) ) {
-      auto logger = spdlog::get("batch_logger");
-      logger->warn("|||{info}|||||",
-                  "info"_a="In process_distribution_table Concatenating will overflow strings length");
-    }
-
-    return ral::utilities::concatTables(partitions_to_concat);
-  }
-
+  
 bool check_if_has_nulls(CudfTableView const& input, std::vector<cudf::size_type> const& keys){
   auto keys_view = input.select(keys);
   if (keys_view.num_columns() != 0 && keys_view.num_rows() != 0 && cudf::has_nulls(keys_view)) {

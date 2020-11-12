@@ -1,0 +1,669 @@
+
+Currently Loaded Modules:
+  1) hsi/5.0.2.p5                     9) cmake/3.17.3
+  2) xalt/1.2.0                      10) boost/1.66.0
+  3) lsf-tools/2.0                   11) cuda/10.1.243
+  4) darshan-runtime/3.1.7           12) zlib/1.2.11
+  5) DefApps                         13) texinfo/6.5
+  6) gcc/7.4.0                       14) openblas/0.3.9-omp
+  7) spectrum-mpi/10.3.1.2-20200121  15) netlib-lapack/3.8.0
+  8) python/3.7.0
+
+ 
+
+distributed.scheduler - INFO - -----------------------------------------------
+distributed.scheduler - INFO - -----------------------------------------------
+distributed.scheduler - INFO - Clear task state
+distributed.scheduler - INFO -   Scheduler at:     tcp://10.41.0.45:8786
+distributed.scheduler - INFO -   dashboard at:           10.41.0.45:8787
+distributed.nanny - INFO -         Start Nanny at: 'tcp://10.41.20.68:44505'
+distributed.nanny - INFO -         Start Nanny at: 'tcp://10.41.20.68:41089'
+distributed.nanny - INFO -         Start Nanny at: 'tcp://10.41.20.68:37709'
+distributed.nanny - INFO -         Start Nanny at: 'tcp://10.41.20.68:43885'
+distributed.nanny - INFO -         Start Nanny at: 'tcp://10.41.20.68:40553'
+distributed.nanny - INFO -         Start Nanny at: 'tcp://10.41.20.68:41559'
+
+libgomp: Logical CPU number 64 out of range
+
+libgomp: Invalid value for environment variable OMP_PLACES
+
+libgomp: Logical CPU number 64 out of range
+
+libgomp: Invalid value for environment variable OMP_PLACES
+
+libgomp: Logical CPU number 64 out of range
+
+libgomp: Invalid value for environment variable OMP_PLACES
+
+libgomp: Logical CPU number 64 out of range
+
+libgomp: Invalid value for environment variable OMP_PLACES
+distributed.nanny - INFO -         Start Nanny at: 'tcp://10.41.20.41:33213'
+distributed.nanny - INFO -         Start Nanny at: 'tcp://10.41.20.41:41465'
+
+libgomp: Logical CPU number 64 out of range
+
+libgomp: Invalid value for environment variable OMP_PLACES
+
+libgomp: Logical CPU number 64 out of range
+
+libgomp: Invalid value for environment variable OMP_PLACES
+distributed.nanny - INFO -         Start Nanny at: 'tcp://10.41.20.41:42719'
+distributed.nanny - INFO -         Start Nanny at: 'tcp://10.41.20.41:34953'
+distributed.nanny - INFO -         Start Nanny at: 'tcp://10.41.20.41:43129'
+distributed.nanny - INFO -         Start Nanny at: 'tcp://10.41.20.41:46117'
+
+libgomp: Logical CPU number 64 out of range
+
+libgomp: Invalid value for environment variable OMP_PLACES
+
+libgomp: Logical CPU number 64 out of range
+
+libgomp: Invalid value for environment variable OMP_PLACES
+
+libgomp: Logical CPU number 64 out of range
+
+libgomp: Invalid value for environment variable OMP_PLACES
+
+libgomp: Logical CPU number 64 out of range
+
+libgomp: Invalid value for environment variable OMP_PLACES
+
+libgomp: Logical CPU number 64 out of range
+
+libgomp: Invalid value for environment variable OMP_PLACES
+
+libgomp: Logical CPU number 64 out of range
+
+libgomp: Invalid value for environment variable OMP_PLACES
+distributed.preloading - INFO - Import preload module: dask_cuda.initialize
+distributed.preloading - INFO - Import preload module: dask_cuda.initialize
+distributed.preloading - INFO - Import preload module: dask_cuda.initialize
+distributed.preloading - INFO - Import preload module: dask_cuda.initialize
+distributed.preloading - INFO - Import preload module: dask_cuda.initialize
+distributed.preloading - INFO - Import preload module: dask_cuda.initialize
+distributed.worker - INFO -       Start worker at:    tcp://10.41.20.68:44299
+distributed.worker - INFO -          Listening to:    tcp://10.41.20.68:44299
+distributed.worker - INFO -          dashboard at:          10.41.20.68:44817
+distributed.worker - INFO - Waiting to connect to:      tcp://10.41.0.45:8786
+distributed.worker - INFO - -------------------------------------------------
+distributed.worker - INFO -               Threads:                          1
+distributed.worker - INFO -                Memory:                  330.00 GB
+distributed.worker - INFO -       Local Directory: /mnt/bb/wmalpica/dask-worker-space/worker-mqhb8jd4
+distributed.worker - INFO - Starting Worker plugin <dask_cuda.utils.CPUAffinity object at 0x200071023-faae132a-a4d6-488b-a317-fbe40eff0b62
+distributed.worker - INFO - Starting Worker plugin <dask_cuda.utils.RMMSetup object at 0x200071023f28-ead3dab0-aba7-435e-abce-b21fe25b4ff3
+distributed.worker - INFO - -------------------------------------------------
+distributed.worker - INFO -       Start worker at:    tcp://10.41.20.68:41509
+distributed.worker - INFO -          Listening to:    tcp://10.41.20.68:41509
+distributed.worker - INFO -          dashboard at:          10.41.20.68:42265
+distributed.worker - INFO - Waiting to connect to:      tcp://10.41.0.45:8786
+distributed.worker - INFO - -------------------------------------------------
+distributed.worker - INFO -               Threads:                          1
+distributed.worker - INFO -                Memory:                  330.00 GB
+distributed.worker - INFO -       Local Directory: /mnt/bb/wmalpica/dask-worker-space/worker-ucqgwa8u
+distributed.worker - INFO - Starting Worker plugin <dask_cuda.utils.CPUAffinity object at 0x200071031-9954123c-4a04-42ae-b018-7c9ea19a34e5
+distributed.worker - INFO - Starting Worker plugin <dask_cuda.utils.RMMSetup object at 0x200071022fd0-ebca4846-6cd5-4d9a-98b1-27630e4c2126
+distributed.worker - INFO - -------------------------------------------------
+distributed.worker - INFO -       Start worker at:    tcp://10.41.20.68:39207
+distributed.worker - INFO -          Listening to:    tcp://10.41.20.68:39207
+distributed.worker - INFO -          dashboard at:          10.41.20.68:39995
+distributed.worker - INFO - Waiting to connect to:      tcp://10.41.0.45:8786
+distributed.worker - INFO - -------------------------------------------------
+distributed.worker - INFO -               Threads:                          1
+distributed.worker - INFO -                Memory:                  330.00 GB
+distributed.worker - INFO -       Local Directory: /mnt/bb/wmalpica/dask-worker-space/worker-eujvh2lt
+distributed.worker - INFO - Starting Worker plugin <dask_cuda.utils.CPUAffinity object at 0x200071031-a3f9bff1-083e-4696-9ffc-7c4b9b2f3ed2
+distributed.worker - INFO - Starting Worker plugin <dask_cuda.utils.RMMSetup object at 0x200071031048-ce5e9c27-b3f9-405f-bb63-4b58b05d96e1
+distributed.worker - INFO - -------------------------------------------------
+distributed.worker - INFO -       Start worker at:    tcp://10.41.20.68:37083
+distributed.worker - INFO -          Listening to:    tcp://10.41.20.68:37083
+distributed.worker - INFO -          dashboard at:          10.41.20.68:34395
+distributed.worker - INFO - Waiting to connect to:      tcp://10.41.0.45:8786
+distributed.worker - INFO - -------------------------------------------------
+distributed.worker - INFO -               Threads:                          1
+distributed.worker - INFO -                Memory:                  330.00 GB
+distributed.worker - INFO -       Local Directory: /mnt/bb/wmalpica/dask-worker-space/worker-3deohzh6
+distributed.worker - INFO - Starting Worker plugin <dask_cuda.utils.CPUAffinity object at 0x200071031-2093376d-bec0-497b-992d-3e223965dcc2
+distributed.worker - INFO - Starting Worker plugin <dask_cuda.utils.RMMSetup object at 0x200071022fd0-5c7501b2-09d1-4245-a17e-c8204eb092ef
+distributed.worker - INFO - -------------------------------------------------
+distributed.worker - INFO -       Start worker at:    tcp://10.41.20.68:42059
+distributed.worker - INFO -          Listening to:    tcp://10.41.20.68:42059
+distributed.worker - INFO -          dashboard at:          10.41.20.68:33871
+distributed.worker - INFO - Waiting to connect to:      tcp://10.41.0.45:8786
+distributed.worker - INFO - -------------------------------------------------
+distributed.worker - INFO -               Threads:                          1
+distributed.worker - INFO -                Memory:                  330.00 GB
+distributed.worker - INFO -       Local Directory: /mnt/bb/wmalpica/dask-worker-space/worker-nuhnksp1
+distributed.worker - INFO - Starting Worker plugin <dask_cuda.utils.CPUAffinity object at 0x200071024-b4dd9bc8-4712-45e7-8832-5a26a54d903f
+distributed.worker - INFO - Starting Worker plugin <dask_cuda.utils.RMMSetup object at 0x200071024ef0-dab59416-e965-48d2-937d-e1b92b9c2f1c
+distributed.worker - INFO - -------------------------------------------------
+distributed.worker - INFO -       Start worker at:    tcp://10.41.20.68:45689
+distributed.worker - INFO -          Listening to:    tcp://10.41.20.68:45689
+distributed.worker - INFO -          dashboard at:          10.41.20.68:41041
+distributed.worker - INFO - Waiting to connect to:      tcp://10.41.0.45:8786
+distributed.worker - INFO - -------------------------------------------------
+distributed.worker - INFO -               Threads:                          1
+distributed.worker - INFO -                Memory:                  330.00 GB
+distributed.worker - INFO -       Local Directory: /mnt/bb/wmalpica/dask-worker-space/worker-jv9u0mx5
+distributed.worker - INFO - Starting Worker plugin <dask_cuda.utils.CPUAffinity object at 0x200071022-174c940c-c47d-4ba2-a7a7-8d2b4d6b79c0
+distributed.worker - INFO - Starting Worker plugin <dask_cuda.utils.RMMSetup object at 0x200071022f28-1c6b7ca5-8959-41f8-a108-025797695863
+distributed.worker - INFO - -------------------------------------------------
+distributed.scheduler - INFO - Register worker <Worker 'tcp://10.41.20.68:44299', name: tcp://10.41.20.68:44299, memory: 0, processing: 0>
+distributed.scheduler - INFO - Starting worker compute stream, tcp://10.41.20.68:44299
+distributed.core - INFO - Starting established connection
+distributed.worker - INFO -         Registered to:      tcp://10.41.0.45:8786
+distributed.worker - INFO - -------------------------------------------------
+distributed.scheduler - INFO - Register worker <Worker 'tcp://10.41.20.68:41509', name: tcp://10.41.20.68:41509, memory: 0, processing: 0>
+distributed.core - INFO - Starting established connection
+distributed.scheduler - INFO - Starting worker compute stream, tcp://10.41.20.68:41509
+distributed.core - INFO - Starting established connection
+distributed.worker - INFO -         Registered to:      tcp://10.41.0.45:8786
+distributed.worker - INFO - -------------------------------------------------
+distributed.core - INFO - Starting established connection
+distributed.scheduler - INFO - Register worker <Worker 'tcp://10.41.20.68:39207', name: tcp://10.41.20.68:39207, memory: 0, processing: 0>
+distributed.scheduler - INFO - Starting worker compute stream, tcp://10.41.20.68:39207
+distributed.core - INFO - Starting established connection
+distributed.worker - INFO -         Registered to:      tcp://10.41.0.45:8786
+distributed.worker - INFO - -------------------------------------------------
+distributed.core - INFO - Starting established connection
+distributed.scheduler - INFO - Register worker <Worker 'tcp://10.41.20.68:37083', name: tcp://10.41.20.68:37083, memory: 0, processing: 0>
+distributed.scheduler - INFO - Starting worker compute stream, tcp://10.41.20.68:37083
+distributed.core - INFO - Starting established connection
+distributed.worker - INFO -         Registered to:      tcp://10.41.0.45:8786
+distributed.worker - INFO - -------------------------------------------------
+distributed.core - INFO - Starting established connection
+distributed.scheduler - INFO - Register worker <Worker 'tcp://10.41.20.68:42059', name: tcp://10.41.20.68:42059, memory: 0, processing: 0>
+distributed.scheduler - INFO - Starting worker compute stream, tcp://10.41.20.68:42059
+distributed.core - INFO - Starting established connection
+distributed.worker - INFO -         Registered to:      tcp://10.41.0.45:8786
+distributed.worker - INFO - -------------------------------------------------
+distributed.scheduler - INFO - Register worker <Worker 'tcp://10.41.20.68:45689', name: tcp://10.41.20.68:45689, memory: 0, processing: 0>
+distributed.core - INFO - Starting established connection
+distributed.scheduler - INFO - Starting worker compute stream, tcp://10.41.20.68:45689
+distributed.core - INFO - Starting established connection
+distributed.worker - INFO -         Registered to:      tcp://10.41.0.45:8786
+distributed.worker - INFO - -------------------------------------------------
+distributed.core - INFO - Starting established connection
+distributed.preloading - INFO - Import preload module: dask_cuda.initialize
+distributed.preloading - INFO - Import preload module: dask_cuda.initialize
+distributed.preloading - INFO - Import preload module: dask_cuda.initialize
+distributed.preloading - INFO - Import preload module: dask_cuda.initialize
+distributed.preloading - INFO - Import preload module: dask_cuda.initialize
+distributed.preloading - INFO - Import preload module: dask_cuda.initialize
+distributed.worker - INFO -       Start worker at:    tcp://10.41.20.41:44395
+distributed.worker - INFO -          Listening to:    tcp://10.41.20.41:44395
+distributed.worker - INFO -          dashboard at:          10.41.20.41:42841
+distributed.worker - INFO - Waiting to connect to:      tcp://10.41.0.45:8786
+distributed.worker - INFO - -------------------------------------------------
+distributed.worker - INFO -               Threads:                          1
+distributed.worker - INFO -                Memory:                  330.00 GB
+distributed.worker - INFO -       Local Directory: /mnt/bb/wmalpica/dask-worker-space/worker-nr4aatva
+distributed.worker - INFO - Starting Worker plugin <dask_cuda.utils.CPUAffinity object at 0x200071023-3f035103-d70a-4e40-a04f-4b1779b57cea
+distributed.worker - INFO - Starting Worker plugin <dask_cuda.utils.RMMSetup object at 0x200071031048-fd043d96-c8d3-4be1-9515-198a229ed684
+distributed.worker - INFO - -------------------------------------------------
+distributed.worker - INFO -       Start worker at:    tcp://10.41.20.41:33391
+distributed.worker - INFO -          Listening to:    tcp://10.41.20.41:33391
+distributed.worker - INFO -          dashboard at:          10.41.20.41:37815
+distributed.worker - INFO - Waiting to connect to:      tcp://10.41.0.45:8786
+distributed.worker - INFO - -------------------------------------------------
+distributed.worker - INFO -               Threads:                          1
+distributed.worker - INFO -                Memory:                  330.00 GB
+distributed.worker - INFO -       Local Directory: /mnt/bb/wmalpica/dask-worker-space/worker-k3vlxpxw
+distributed.worker - INFO - Starting Worker plugin <dask_cuda.utils.RMMSetup object at 0x200071024f28-03f14fbd-8c43-45d6-a7f8-6e06d1e749f4
+distributed.worker - INFO - Starting Worker plugin <dask_cuda.utils.CPUAffinity object at 0x200071024-0169b137-fafe-4ebd-8ec1-38866051107a
+distributed.worker - INFO - -------------------------------------------------
+distributed.scheduler - INFO - Register worker <Worker 'tcp://10.41.20.41:44395', name: tcp://10.41.20.41:44395, memory: 0, processing: 0>
+distributed.scheduler - INFO - Starting worker compute stream, tcp://10.41.20.41:44395
+distributed.core - INFO - Starting established connection
+distributed.worker - INFO -         Registered to:      tcp://10.41.0.45:8786
+distributed.worker - INFO - -------------------------------------------------
+distributed.core - INFO - Starting established connection
+distributed.worker - INFO -       Start worker at:    tcp://10.41.20.41:33085
+distributed.worker - INFO -          Listening to:    tcp://10.41.20.41:33085
+distributed.worker - INFO -          dashboard at:          10.41.20.41:35873
+distributed.worker - INFO - Waiting to connect to:      tcp://10.41.0.45:8786
+distributed.worker - INFO - -------------------------------------------------
+distributed.worker - INFO -               Threads:                          1
+distributed.worker - INFO -                Memory:                  330.00 GB
+distributed.worker - INFO -       Local Directory: /mnt/bb/wmalpica/dask-worker-space/worker-rjycxmwp
+distributed.worker - INFO - Starting Worker plugin <dask_cuda.utils.RMMSetup object at 0x200071022f28-38493b25-4935-4000-a0ff-4caa49d9e6ec
+distributed.worker - INFO - Starting Worker plugin <dask_cuda.utils.CPUAffinity object at 0x200071022-4218b65b-c9ff-401b-8020-36e8852c784f
+distributed.worker - INFO - -------------------------------------------------
+distributed.worker - INFO -       Start worker at:    tcp://10.41.20.41:41479
+distributed.worker - INFO -          Listening to:    tcp://10.41.20.41:41479
+distributed.worker - INFO -          dashboard at:          10.41.20.41:39613
+distributed.worker - INFO - Waiting to connect to:      tcp://10.41.0.45:8786
+distributed.worker - INFO - -------------------------------------------------
+distributed.worker - INFO -               Threads:                          1
+distributed.worker - INFO -                Memory:                  330.00 GB
+distributed.worker - INFO -       Local Directory: /mnt/bb/wmalpica/dask-worker-space/worker-npr8cs0k
+distributed.worker - INFO - Starting Worker plugin <dask_cuda.utils.CPUAffinity object at 0x200071023-f98a93f4-d244-49a5-b26d-6fd19029fd03
+distributed.worker - INFO - Starting Worker plugin <dask_cuda.utils.RMMSetup object at 0x200071023f28-8d253258-0192-4e36-abfc-ef504bd89920
+distributed.worker - INFO -       Start worker at:    tcp://10.41.20.41:41085
+distributed.worker - INFO - -------------------------------------------------
+distributed.worker - INFO -          Listening to:    tcp://10.41.20.41:41085
+distributed.worker - INFO -          dashboard at:          10.41.20.41:35073
+distributed.worker - INFO - Waiting to connect to:      tcp://10.41.0.45:8786
+distributed.worker - INFO - -------------------------------------------------
+distributed.worker - INFO -               Threads:                          1
+distributed.worker - INFO -                Memory:                  330.00 GB
+distributed.worker - INFO -       Local Directory: /mnt/bb/wmalpica/dask-worker-space/worker-aa6ylioo
+distributed.worker - INFO - Starting Worker plugin <dask_cuda.utils.RMMSetup object at 0x200071023fd0-7f7c992e-ea07-4be8-9279-e83cb915e427
+distributed.worker - INFO - Starting Worker plugin <dask_cuda.utils.CPUAffinity object at 0x200071023-e8cc5b76-9804-423e-b7bc-fdbc21d93932
+distributed.worker - INFO - -------------------------------------------------
+distributed.worker - INFO -       Start worker at:    tcp://10.41.20.41:34547
+distributed.worker - INFO -          Listening to:    tcp://10.41.20.41:34547
+distributed.worker - INFO -          dashboard at:          10.41.20.41:44397
+distributed.worker - INFO - Waiting to connect to:      tcp://10.41.0.45:8786
+distributed.worker - INFO - -------------------------------------------------
+distributed.worker - INFO -               Threads:                          1
+distributed.worker - INFO -                Memory:                  330.00 GB
+distributed.worker - INFO -       Local Directory: /mnt/bb/wmalpica/dask-worker-space/worker-4x4s8m2z
+distributed.worker - INFO - Starting Worker plugin <dask_cuda.utils.CPUAffinity object at 0x200071024-9c6e618a-05de-4cad-9563-2d1e774a7d9c
+distributed.worker - INFO - Starting Worker plugin <dask_cuda.utils.RMMSetup object at 0x200071024f28-03e477e5-e15c-4b5a-bd5d-a757e44ba40d
+distributed.worker - INFO - -------------------------------------------------
+distributed.scheduler - INFO - Register worker <Worker 'tcp://10.41.20.41:33391', name: tcp://10.41.20.41:33391, memory: 0, processing: 0>
+distributed.scheduler - INFO - Starting worker compute stream, tcp://10.41.20.41:33391
+distributed.core - INFO - Starting established connection
+distributed.worker - INFO -         Registered to:      tcp://10.41.0.45:8786
+distributed.worker - INFO - -------------------------------------------------
+distributed.core - INFO - Starting established connection
+distributed.scheduler - INFO - Register worker <Worker 'tcp://10.41.20.41:33085', name: tcp://10.41.20.41:33085, memory: 0, processing: 0>
+distributed.scheduler - INFO - Starting worker compute stream, tcp://10.41.20.41:33085
+distributed.core - INFO - Starting established connection
+distributed.worker - INFO -         Registered to:      tcp://10.41.0.45:8786
+distributed.worker - INFO - -------------------------------------------------
+distributed.core - INFO - Starting established connection
+distributed.scheduler - INFO - Register worker <Worker 'tcp://10.41.20.41:41085', name: tcp://10.41.20.41:41085, memory: 0, processing: 0>
+distributed.scheduler - INFO - Starting worker compute stream, tcp://10.41.20.41:41085
+distributed.core - INFO - Starting established connection
+distributed.worker - INFO -         Registered to:      tcp://10.41.0.45:8786
+distributed.worker - INFO - -------------------------------------------------
+distributed.core - INFO - Starting established connection
+distributed.scheduler - INFO - Register worker <Worker 'tcp://10.41.20.41:41479', name: tcp://10.41.20.41:41479, memory: 0, processing: 0>
+distributed.scheduler - INFO - Starting worker compute stream, tcp://10.41.20.41:41479
+distributed.core - INFO - Starting established connection
+distributed.worker - INFO -         Registered to:      tcp://10.41.0.45:8786
+distributed.worker - INFO - -------------------------------------------------
+distributed.core - INFO - Starting established connection
+distributed.scheduler - INFO - Register worker <Worker 'tcp://10.41.20.41:34547', name: tcp://10.41.20.41:34547, memory: 0, processing: 0>
+distributed.scheduler - INFO - Starting worker compute stream, tcp://10.41.20.41:34547
+distributed.core - INFO - Starting established connection
+distributed.worker - INFO -         Registered to:      tcp://10.41.0.45:8786
+distributed.worker - INFO - -------------------------------------------------
+distributed.core - INFO - Starting established connection
+distributed.scheduler - INFO - Receive client connection: Client-7628b67a-fdf8-11ea-b7c6-70e28414416b
+distributed.core - INFO - Starting established connection
+log4j:ERROR setFile(null,false) call failed.
+java.io.FileNotFoundException: algebra.log (Read-only file system)
+	at java.io.FileOutputStream.open0(Native Method)
+	at java.io.FileOutputStream.open(FileOutputStream.java:286)
+	at java.io.FileOutputStream.<init>(FileOutputStream.java:226)
+	at java.io.FileOutputStream.<init>(FileOutputStream.java:144)
+	at org.apache.log4j.FileAppender.setFile(FileAppender.java:294)
+	at org.apache.log4j.FileAppender.activateOptions(FileAppender.java:165)
+	at org.apache.log4j.config.PropertySetter.activate(PropertySetter.java:307)
+	at org.apache.log4j.xml.DOMConfigurator.parseAppender(DOMConfigurator.java:295)
+	at org.apache.log4j.xml.DOMConfigurator.findAppenderByName(DOMConfigurator.java:176)
+	at org.apache.log4j.xml.DOMConfigurator.findAppenderByReference(DOMConfigurator.java:191)
+	at org.apache.log4j.xml.DOMConfigurator.parseChildrenOfLoggerElement(DOMConfigurator.java:523)
+	at org.apache.log4j.xml.DOMConfigurator.parseRoot(DOMConfigurator.java:492)
+	at org.apache.log4j.xml.DOMConfigurator.parse(DOMConfigurator.java:1006)
+	at org.apache.log4j.xml.DOMConfigurator.doConfigure(DOMConfigurator.java:872)
+	at org.apache.log4j.xml.DOMConfigurator.doConfigure(DOMConfigurator.java:778)
+	at org.apache.log4j.helpers.OptionConverter.selectAndConfigure(OptionConverter.java:526)
+	at org.apache.log4j.LogManager.<clinit>(LogManager.java:127)
+	at org.slf4j.impl.Log4jLoggerFactory.getLogger(Log4jLoggerFactory.java:64)
+	at org.slf4j.LoggerFactory.getLogger(LoggerFactory.java:358)
+	at org.slf4j.LoggerFactory.getLogger(LoggerFactory.java:383)
+	at com.blazingdb.calcite.schema.BlazingSchema.<clinit>(BlazingSchema.java:28)
+	at java.lang.Class.forNameImpl(Native Method)
+	at java.lang.Class.forName(Class.java:337)
+	at org.jpype.manager.TypeManager.lookupByName(Unknown Source)
+	at org.jpype.manager.TypeManager.findClassByName(Unknown Source)
+log4j:ERROR setFile(null,false) call failed.
+java.io.FileNotFoundException: algebra.log (Read-only file system)
+	at java.io.FileOutputStream.open0(Native Method)
+	at java.io.FileOutputStream.open(FileOutputStream.java:286)
+	at java.io.FileOutputStream.<init>(FileOutputStream.java:226)
+	at java.io.FileOutputStream.<init>(FileOutputStream.java:144)
+	at org.apache.log4j.FileAppender.setFile(FileAppender.java:294)
+	at org.apache.log4j.FileAppender.activateOptions(FileAppender.java:165)
+	at org.apache.log4j.config.PropertySetter.activate(PropertySetter.java:307)
+	at org.apache.log4j.xml.DOMConfigurator.parseAppender(DOMConfigurator.java:295)
+log4j:ERROR setFile(null,false) call failed.
+	at org.apache.log4j.xml.DOMConfigurator.findAppenderByName(DOMConfigurator.java:176)
+	at org.apache.log4j.xml.DOMConfigurator.findAppenderByReference(DOMConfigurator.java:191)
+	at org.apache.log4j.xml.DOMConfigurator.parseChildrenOfLoggerElement(DOMConfigurator.java:523)
+java.io.FileNotFoundException: algebra.log (Read-only file system)
+	at org.apache.log4j.xml.DOMConfigurator.parseRoot(DOMConfigurator.java:492)
+	at org.apache.log4j.xml.DOMConfigurator.parse(DOMConfigurator.java:1006)	at java.io.FileOutputStream.open0(Native Method)
+
+	at java.io.FileOutputStream.open(FileOutputStream.java:286)
+	at org.apache.log4j.xml.DOMConfigurator.doConfigure(DOMConfigurator.java:872)
+	at java.io.FileOutputStream.<init>(FileOutputStream.java:226)	at org.apache.log4j.xml.DOMConfigurator.doConfigure(DOMConfigurator.java:778)
+	at java.io.FileOutputStream.<init>(FileOutputStream.java:144)
+
+	at org.apache.log4j.helpers.OptionConverter.selectAndConfigure(OptionConverter.java:526)	at org.apache.log4j.FileAppender.setFile(FileAppender.java:294)
+
+	at org.apache.log4j.LogManager.<clinit>(LogManager.java:127)log4j:ERROR setFile(null,false) call failed.	at org.apache.log4j.FileAppender.activateOptions(FileAppender.java:165)
+
+
+	at org.apache.log4j.config.PropertySetter.activate(PropertySetter.java:307)	at org.slf4j.impl.Log4jLoggerFactory.getLogger(Log4jLoggerFactory.java:64)
+
+	at org.slf4j.LoggerFactory.getLogger(LoggerFactory.java:358)
+	at org.apache.log4j.xml.DOMConfigurator.parseAppender(DOMConfigurator.java:295)
+	at org.slf4j.LoggerFactory.getLogger(LoggerFactory.java:383)
+	at org.apache.log4j.xml.DOMConfigurator.findAppenderByName(DOMConfigurator.java:176)
+	at com.blazingdb.calcite.schema.BlazingSchema.<clinit>(BlazingSchema.java:28)
+	at org.apache.log4j.xml.DOMConfigurator.findAppenderByReference(DOMConfigurator.java:191)
+	at java.lang.Class.forNameImpl(Native Method)	at org.apache.log4j.xml.DOMConfigurator.parseChildrenOfLoggerElement(DOMConfigurator.java:523)
+	at java.lang.Class.forName(Class.java:337)
+	at org.apache.log4j.xml.DOMConfigurator.parseRoot(DOMConfigurator.java:492)
+
+	at org.jpype.manager.TypeManager.lookupByName(Unknown Source)
+java.io.FileNotFoundException: algebra.log (Read-only file system)	at org.apache.log4j.xml.DOMConfigurator.parse(DOMConfigurator.java:1006)
+
+	at org.jpype.manager.TypeManager.findClassByName(Unknown Source)	at org.apache.log4j.xml.DOMConfigurator.doConfigure(DOMConfigurator.java:872)
+
+	at org.apache.log4j.xml.DOMConfigurator.doConfigure(DOMConfigurator.java:778)
+	at org.apache.log4j.helpers.OptionConverter.selectAndConfigure(OptionConverter.java:526)
+	at org.apache.log4j.LogManager.<clinit>(LogManager.java:127)	at java.io.FileOutputStream.open0(Native Method)
+
+	at org.slf4j.impl.Log4jLoggerFactory.getLogger(Log4jLoggerFactory.java:64)	at java.io.FileOutputStream.open(FileOutputStream.java:286)
+
+	at org.slf4j.LoggerFactory.getLogger(LoggerFactory.java:358)	at java.io.FileOutputStream.<init>(FileOutputStream.java:226)
+
+	at org.slf4j.LoggerFactory.getLogger(LoggerFactory.java:383)	at java.io.FileOutputStream.<init>(FileOutputStream.java:144)
+
+	at com.blazingdb.calcite.schema.BlazingSchema.<clinit>(BlazingSchema.java:28)	at org.apache.log4j.FileAppender.setFile(FileAppender.java:294)
+
+	at java.lang.Class.forNameImpl(Native Method)	at org.apache.log4j.FileAppender.activateOptions(FileAppender.java:165)
+
+	at java.lang.Class.forName(Class.java:337)
+	at org.apache.log4j.config.PropertySetter.activate(PropertySetter.java:307)
+	at org.jpype.manager.TypeManager.lookupByName(Unknown Source)	at org.apache.log4j.xml.DOMConfigurator.parseAppender(DOMConfigurator.java:295)
+
+	at org.jpype.manager.TypeManager.findClassByName(Unknown Source)
+	at org.apache.log4j.xml.DOMConfigurator.findAppenderByName(DOMConfigurator.java:176)
+	at org.apache.log4j.xml.DOMConfigurator.findAppenderByReference(DOMConfigurator.java:191)
+	at org.apache.log4j.xml.DOMConfigurator.parseChildrenOfLoggerElement(DOMConfigurator.java:523)
+	at org.apache.log4j.xml.DOMConfigurator.parseRoot(DOMConfigurator.java:492)
+	at org.apache.log4j.xml.DOMConfigurator.parse(DOMConfigurator.java:1006)
+	at org.apache.log4j.xml.DOMConfigurator.doConfigure(DOMConfigurator.java:872)
+	at org.apache.log4j.xml.DOMConfigurator.doConfigure(DOMConfigurator.java:778)
+	at org.apache.log4j.helpers.OptionConverter.selectAndConfigure(OptionConverter.java:526)
+	at org.apache.log4j.LogManager.<clinit>(LogManager.java:127)
+	at org.slf4j.impl.Log4jLoggerFactory.getLogger(Log4jLoggerFactory.java:64)
+	at org.slf4j.LoggerFactory.getLogger(LoggerFactory.java:358)
+	at org.slf4j.LoggerFactory.getLogger(LoggerFactory.java:383)
+	at com.blazingdb.calcite.schema.BlazingSchema.<clinit>(BlazingSchema.java:28)
+	at java.lang.Class.forNameImpl(Native Method)
+	at java.lang.Class.forName(Class.java:337)
+	at org.jpype.manager.TypeManager.lookupByName(Unknown Source)
+	at org.jpype.manager.TypeManager.findClassByName(Unknown Source)
+log4j:ERROR setFile(null,false) call failed.
+java.io.FileNotFoundException: algebra.log (Read-only file system)
+	at java.io.FileOutputStream.open0(Native Method)
+	at java.io.FileOutputStream.open(FileOutputStream.java:286)
+	at java.io.FileOutputStream.<init>(FileOutputStream.java:226)
+	at java.io.FileOutputStream.<init>(FileOutputStream.java:144)
+	at org.apache.log4j.FileAppender.setFile(FileAppender.java:294)
+	at org.apache.log4j.FileAppender.activateOptions(FileAppender.java:165)
+	at org.apache.log4j.config.PropertySetter.activate(PropertySetter.java:307)
+	at org.apache.log4j.xml.DOMConfigurator.parseAppender(DOMConfigurator.java:295)
+	at org.apache.log4j.xml.DOMConfigurator.findAppenderByName(DOMConfigurator.java:176)
+	at org.apache.log4j.xml.DOMConfigurator.findAppenderByReference(DOMConfigurator.java:191)
+	at org.apache.log4j.xml.DOMConfigurator.parseChildrenOfLoggerElement(DOMConfigurator.java:523)
+	at org.apache.log4j.xml.DOMConfigurator.parseRoot(DOMConfigurator.java:492)
+	at org.apache.log4j.xml.DOMConfigurator.parse(DOMConfigurator.java:1006)
+	at org.apache.log4j.xml.DOMConfigurator.doConfigure(DOMConfigurator.java:872)
+	at org.apache.log4j.xml.DOMConfigurator.doConfigure(DOMConfigurator.java:778)
+	at org.apache.log4j.helpers.OptionConverter.selectAndConfigure(OptionConverter.java:526)
+	at org.apache.log4j.LogManager.<clinit>(LogManager.java:127)
+	at org.slf4j.impl.Log4jLoggerFactory.getLogger(Log4jLoggerFactory.java:64)
+	at org.slf4j.LoggerFactory.getLogger(LoggerFactory.java:358)
+	at org.slf4j.LoggerFactory.getLogger(LoggerFactory.java:383)
+	at com.blazingdb.calcite.schema.BlazingSchema.<clinit>(BlazingSchema.java:28)
+	at java.lang.Class.forNameImpl(Native Method)
+	at java.lang.Class.forName(Class.java:337)
+	at org.jpype.manager.TypeManager.lookupByName(Unknown Source)
+	at org.jpype.manager.TypeManager.findClassByName(Unknown Source)
+log4j:ERROR setFile(null,false) call failed.
+java.io.FileNotFoundException: algebra.log (Read-only file system)
+	at java.io.FileOutputStream.open0(Native Method)
+	at java.io.FileOutputStream.open(FileOutputStream.java:286)
+	at java.io.FileOutputStream.<init>(FileOutputStream.java:226)
+	at java.io.FileOutputStream.<init>(FileOutputStream.java:144)
+	at org.apache.log4j.FileAppender.setFile(FileAppender.java:294)
+	at org.apache.log4j.FileAppender.activateOptions(FileAppender.java:165)
+	at org.apache.log4j.config.PropertySetter.activate(PropertySetter.java:307)
+	at org.apache.log4j.xml.DOMConfigurator.parseAppender(DOMConfigurator.java:295)
+	at org.apache.log4j.xml.DOMConfigurator.findAppenderByName(DOMConfigurator.java:176)
+	at org.apache.log4j.xml.DOMConfigurator.findAppenderByReference(DOMConfigurator.java:191)
+	at org.apache.log4j.xml.DOMConfigurator.parseChildrenOfLoggerElement(DOMConfigurator.java:523)
+	at org.apache.log4j.xml.DOMConfigurator.parseRoot(DOMConfigurator.java:492)
+	at org.apache.log4j.xml.DOMConfigurator.parse(DOMConfigurator.java:1006)
+	at org.apache.log4j.xml.DOMConfigurator.doConfigure(DOMConfigurator.java:872)
+	at org.apache.log4j.xml.DOMConfigurator.doConfigure(DOMConfigurator.java:778)
+	at org.apache.log4j.helpers.OptionConverter.selectAndConfigure(OptionConverter.java:526)
+	at org.apache.log4j.LogManager.<clinit>(LogManager.java:127)
+	at org.slf4j.impl.Log4jLoggerFactory.getLogger(Log4jLoggerFactory.java:64)
+	at org.slf4j.LoggerFactory.getLogger(LoggerFactory.java:358)
+	at org.slf4j.LoggerFactory.getLogger(LoggerFactory.java:383)
+	at com.blazingdb.calcite.schema.BlazingSchema.<clinit>(BlazingSchema.java:28)
+	at java.lang.Class.forNameImpl(Native Method)
+	at java.lang.Class.forName(Class.java:337)
+	at org.jpype.manager.TypeManager.lookupByName(Unknown Source)
+	at org.jpype.manager.TypeManager.findClassByName(Unknown Source)
+log4j:ERROR setFile(null,false) call failed.
+java.io.FileNotFoundException: algebra.log (Read-only file system)
+	at java.io.FileOutputStream.open0(Native Method)
+	at java.io.FileOutputStream.open(FileOutputStream.java:286)
+	at java.io.FileOutputStream.<init>(FileOutputStream.java:226)
+	at java.io.FileOutputStream.<init>(FileOutputStream.java:144)
+	at org.apache.log4j.FileAppender.setFile(FileAppender.java:294)
+	at org.apache.log4j.FileAppender.activateOptions(FileAppender.java:165)
+	at org.apache.log4j.config.PropertySetter.activate(PropertySetter.java:307)
+	at org.apache.log4j.xml.DOMConfigurator.parseAppender(DOMConfigurator.java:295)
+	at org.apache.log4j.xml.DOMConfigurator.findAppenderByName(DOMConfigurator.java:176)
+	at org.apache.log4j.xml.DOMConfigurator.findAppenderByReference(DOMConfigurator.java:191)
+	at org.apache.log4j.xml.DOMConfigurator.parseChildrenOfLoggerElement(DOMConfigurator.java:523)
+	at org.apache.log4j.xml.DOMConfigurator.parseRoot(DOMConfigurator.java:492)
+	at org.apache.log4j.xml.DOMConfigurator.parse(DOMConfigurator.java:1006)
+	at org.apache.log4j.xml.DOMConfigurator.doConfigure(DOMConfigurator.java:872)
+	at org.apache.log4j.xml.DOMConfigurator.doConfigure(DOMConfigurator.java:778)
+	at org.apache.log4j.helpers.OptionConverter.selectAndConfigure(OptionConverter.java:526)
+	at org.apache.log4j.LogManager.<clinit>(LogManager.java:127)
+	at org.slf4j.impl.Log4jLoggerFactory.getLogger(Log4jLoggerFactory.java:64)
+	at org.slf4j.LoggerFactory.getLogger(LoggerFactory.java:358)
+	at org.slf4j.LoggerFactory.getLogger(LoggerFactory.java:383)
+	at com.blazingdb.calcite.schema.BlazingSchema.<clinit>(BlazingSchema.java:28)
+	at java.lang.Class.forNameImpl(Native Method)
+	at java.lang.Class.forName(Class.java:337)
+	at org.jpype.manager.TypeManager.lookupByName(Unknown Source)
+	at org.jpype.manager.TypeManager.findClassByName(Unknown Source)
+log4j:ERROR setFile(null,false) call failed.
+java.io.FileNotFoundException: algebra.log (Read-only file system)
+	at java.io.FileOutputStream.open0(Native Method)
+	at java.io.FileOutputStream.open(FileOutputStream.java:286)
+	at java.io.FileOutputStream.<init>(FileOutputStream.java:226)
+	at java.io.FileOutputStream.<init>(FileOutputStream.java:144)
+	at org.apache.log4j.FileAppender.setFile(FileAppender.java:294)
+	at org.apache.log4j.FileAppender.activateOptions(FileAppender.java:165)
+	at org.apache.log4j.config.PropertySetter.activate(PropertySetter.java:307)
+	at org.apache.log4j.xml.DOMConfigurator.parseAppender(DOMConfigurator.java:295)
+	at org.apache.log4j.xml.DOMConfigurator.findAppenderByName(DOMConfigurator.java:176)
+	at org.apache.log4j.xml.DOMConfigurator.findAppenderByReference(DOMConfigurator.java:191)
+	at org.apache.log4j.xml.DOMConfigurator.parseChildrenOfLoggerElement(DOMConfigurator.java:523)
+	at org.apache.log4j.xml.DOMConfigurator.parseRoot(DOMConfigurator.java:492)
+	at org.apache.log4j.xml.DOMConfigurator.parse(DOMConfigurator.java:1006)
+	at org.apache.log4j.xml.DOMConfigurator.doConfigure(DOMConfigurator.java:872)
+	at org.apache.log4j.xml.DOMConfigurator.doConfigure(DOMConfigurator.java:778)
+	at org.apache.log4j.helpers.OptionConverter.selectAndConfigure(OptionConverter.java:526)
+	at org.apache.log4j.LogManager.<clinit>(LogManager.java:127)
+	at org.slf4j.impl.Log4jLoggerFactory.getLogger(Log4jLoggerFactory.java:64)
+	at org.slf4j.LoggerFactory.getLogger(LoggerFactory.java:358)
+	at org.slf4j.LoggerFactory.getLogger(LoggerFactory.java:383)
+	at com.blazingdb.calcite.schema.BlazingSchema.<clinit>(BlazingSchema.java:28)
+	at java.lang.Class.forNameImpl(Native Method)
+	at java.lang.Class.forName(Class.java:337)
+	at org.jpype.manager.TypeManager.lookupByName(Unknown Source)
+	at org.jpype.manager.TypeManager.findClassByName(Unknown Source)
+log4j:ERROR setFile(null,false) call failed.
+java.io.FileNotFoundException: algebra.log (Read-only file system)
+	at java.io.FileOutputStream.open0(Native Method)
+	at java.io.FileOutputStream.open(FileOutputStream.java:286)
+	at java.io.FileOutputStream.<init>(FileOutputStream.java:226)
+	at java.io.FileOutputStream.<init>(FileOutputStream.java:144)
+	at org.apache.log4j.FileAppender.setFile(FileAppender.java:294)
+	at org.apache.log4j.FileAppender.activateOptions(FileAppender.java:165)
+	at org.apache.log4j.config.PropertySetter.activate(PropertySetter.java:307)
+	at org.apache.log4j.xml.DOMConfigurator.parseAppender(DOMConfigurator.java:295)
+	at org.apache.log4j.xml.DOMConfigurator.findAppenderByName(DOMConfigurator.java:176)
+	at org.apache.log4j.xml.DOMConfigurator.findAppenderByReference(DOMConfigurator.java:191)
+	at org.apache.log4j.xml.DOMConfigurator.parseChildrenOfLoggerElement(DOMConfigurator.java:523)
+	at org.apache.log4j.xml.DOMConfigurator.parseRoot(DOMConfigurator.java:492)
+	at org.apache.log4j.xml.DOMConfigurator.parse(DOMConfigurator.java:1006)
+	at org.apache.log4j.xml.DOMConfigurator.doConfigure(DOMConfigurator.java:872)
+	at org.apache.log4j.xml.DOMConfigurator.doConfigure(DOMConfigurator.java:778)
+	at org.apache.log4j.helpers.OptionConverter.selectAndConfigure(OptionConverter.java:526)
+	at org.apache.log4j.LogManager.<clinit>(LogManager.java:127)
+	at org.slf4j.impl.Log4jLoggerFactory.getLogger(Log4jLoggerFactory.java:64)
+	at org.slf4j.LoggerFactory.getLogger(LoggerFactory.java:358)
+	at org.slf4j.LoggerFactory.getLogger(LoggerFactory.java:383)
+	at com.blazingdb.calcite.schema.BlazingSchema.<clinit>(BlazingSchema.java:28)
+	at java.lang.Class.forNameImpl(Native Method)
+	at java.lang.Class.forName(Class.java:337)
+	at org.jpype.manager.TypeManager.lookupByName(Unknown Source)
+	at org.jpype.manager.TypeManager.findClassByName(Unknown Source)
+log4j:ERROR setFile(null,false) call failed.
+java.io.FileNotFoundException: algebra.log (Read-only file system)
+	at java.io.FileOutputStream.open0(Native Method)
+	at java.io.FileOutputStream.open(FileOutputStream.java:286)
+	at java.io.FileOutputStream.<init>(FileOutputStream.java:226)
+	at java.io.FileOutputStream.<init>(FileOutputStream.java:144)
+	at org.apache.log4j.FileAppender.setFile(FileAppender.java:294)
+	at org.apache.log4j.FileAppender.activateOptions(FileAppender.java:165)
+	at org.apache.log4j.config.PropertySetter.activate(PropertySetter.java:307)
+	at org.apache.log4j.xml.DOMConfigurator.parseAppender(DOMConfigurator.java:295)
+	at org.apache.log4j.xml.DOMConfigurator.findAppenderByName(DOMConfigurator.java:176)
+	at org.apache.log4j.xml.DOMConfigurator.findAppenderByReference(DOMConfigurator.java:191)
+	at org.apache.log4j.xml.DOMConfigurator.parseChildrenOfLoggerElement(DOMConfigurator.java:523)
+	at org.apache.log4j.xml.DOMConfigurator.parseRoot(DOMConfigurator.java:492)
+	at org.apache.log4j.xml.DOMConfigurator.parse(DOMConfigurator.java:1006)
+	at org.apache.log4j.xml.DOMConfigurator.doConfigure(DOMConfigurator.java:872)
+	at org.apache.log4j.xml.DOMConfigurator.doConfigure(DOMConfigurator.java:778)
+	at org.apache.log4j.helpers.OptionConverter.selectAndConfigure(OptionConverter.java:526)
+	at org.apache.log4j.LogManager.<clinit>(LogManager.java:127)
+	at org.slf4j.impl.Log4jLoggerFactory.getLogger(Log4jLoggerFactory.java:64)
+	at org.slf4j.LoggerFactory.getLogger(LoggerFactory.java:358)
+	at org.slf4j.LoggerFactory.getLogger(LoggerFactory.java:383)
+	at com.blazingdb.calcite.schema.BlazingSchema.<clinit>(BlazingSchema.java:28)
+	at java.lang.Class.forNameImpl(Native Method)
+	at java.lang.Class.forName(Class.java:337)
+	at org.jpype.manager.TypeManager.lookupByName(Unknown Source)
+	at org.jpype.manager.TypeManager.findClassByName(Unknown Source)
+log4j:ERROR setFile(null,false) call failed.
+java.io.FileNotFoundException: algebra.log (Read-only file system)
+	at java.io.FileOutputStream.open0(Native Method)
+	at java.io.FileOutputStream.open(FileOutputStream.java:286)
+	at java.io.FileOutputStream.<init>(FileOutputStream.java:226)
+	at java.io.FileOutputStream.<init>(FileOutputStream.java:144)
+	at org.apache.log4j.FileAppender.setFile(FileAppender.java:294)
+	at org.apache.log4j.FileAppender.activateOptions(FileAppender.java:165)
+	at org.apache.log4j.config.PropertySetter.activate(PropertySetter.java:307)
+	at org.apache.log4j.xml.DOMConfigurator.parseAppender(DOMConfigurator.java:295)
+	at org.apache.log4j.xml.DOMConfigurator.findAppenderByName(DOMConfigurator.java:176)
+	at org.apache.log4j.xml.DOMConfigurator.findAppenderByReference(DOMConfigurator.java:191)
+	at org.apache.log4j.xml.DOMConfigurator.parseChildrenOfLoggerElement(DOMConfigurator.java:523)
+	at org.apache.log4j.xml.DOMConfigurator.parseRoot(DOMConfigurator.java:492)
+	at org.apache.log4j.xml.DOMConfigurator.parse(DOMConfigurator.java:1006)
+	at org.apache.log4j.xml.DOMConfigurator.doConfigure(DOMConfigurator.java:872)
+	at org.apache.log4j.xml.DOMConfigurator.doConfigure(DOMConfigurator.java:778)
+	at org.apache.log4j.helpers.OptionConverter.selectAndConfigure(OptionConverter.java:526)
+	at org.apache.log4j.LogManager.<clinit>(LogManager.java:127)
+	at org.slf4j.impl.Log4jLoggerFactory.getLogger(Log4jLoggerFactory.java:64)
+	at org.slf4j.LoggerFactory.getLogger(LoggerFactory.java:358)
+	at org.slf4j.LoggerFactory.getLogger(LoggerFactory.java:383)
+	at com.blazingdb.calcite.schema.BlazingSchema.<clinit>(BlazingSchema.java:28)
+	at java.lang.Class.forNameImpl(Native Method)
+	at java.lang.Class.forName(Class.java:337)
+	at org.jpype.manager.TypeManager.lookupByName(Unknown Source)
+	at org.jpype.manager.TypeManager.findClassByName(Unknown Source)
+log4j:ERROR setFile(null,false) call failed.
+java.io.FileNotFoundException: algebra.log (Read-only file system)
+	at java.io.FileOutputStream.open0(Native Method)
+	at java.io.FileOutputStream.open(FileOutputStream.java:286)
+	at java.io.FileOutputStream.<init>(FileOutputStream.java:226)
+	at java.io.FileOutputStream.<init>(FileOutputStream.java:144)
+	at org.apache.log4j.FileAppender.setFile(FileAppender.java:294)
+	at org.apache.log4j.FileAppender.activateOptions(FileAppender.java:165)
+	at org.apache.log4j.config.PropertySetter.activate(PropertySetter.java:307)
+	at org.apache.log4j.xml.DOMConfigurator.parseAppender(DOMConfigurator.java:295)
+	at org.apache.log4j.xml.DOMConfigurator.findAppenderByName(DOMConfigurator.java:176)
+	at org.apache.log4j.xml.DOMConfigurator.findAppenderByReference(DOMConfigurator.java:191)
+	at org.apache.log4j.xml.DOMConfigurator.parseChildrenOfLoggerElement(DOMConfigurator.java:523)
+	at org.apache.log4j.xml.DOMConfigurator.parseRoot(DOMConfigurator.java:492)
+	at org.apache.log4j.xml.DOMConfigurator.parse(DOMConfigurator.java:1006)
+	at org.apache.log4j.xml.DOMConfigurator.doConfigure(DOMConfigurator.java:872)
+	at org.apache.log4j.xml.DOMConfigurator.doConfigure(DOMConfigurator.java:778)
+	at org.apache.log4j.helpers.OptionConverter.selectAndConfigure(OptionConverter.java:526)
+	at org.apache.log4j.LogManager.<clinit>(LogManager.java:127)
+	at org.slf4j.impl.Log4jLoggerFactory.getLogger(Log4jLoggerFactory.java:64)
+	at org.slf4j.LoggerFactory.getLogger(LoggerFactory.java:358)
+	at org.slf4j.LoggerFactory.getLogger(LoggerFactory.java:383)
+	at com.blazingdb.calcite.schema.BlazingSchema.<clinit>(BlazingSchema.java:28)
+	at java.lang.Class.forNameImpl(Native Method)
+	at java.lang.Class.forName(Class.java:337)
+	at org.jpype.manager.TypeManager.lookupByName(Unknown Source)
+	at org.jpype.manager.TypeManager.findClassByName(Unknown Source)
+listening: tcp://*:15332
+listening: tcp://*:26710
+listening: tcp://*:23968
+listening: tcp://*:17648
+listening: tcp://*:26241
+listening: tcp://*:31553
+listening: tcp://*:15106
+listening: tcp://*:20609
+listening: tcp://*:17594
+listening: tcp://*:24379
+listening: tcp://*:11012
+listening: tcp://*:22502
+distributed.scheduler - INFO - End scheduler at 'tcp://10.41.0.45:8786'
+Could not read jskill result from pmix server
+Traceback (most recent call last):
+  File "/gpfs/alpine/gen119/proj-shared/bsql_shared/bsql_env2/bin/dask-scheduler", line 8, in <module>
+    sys.exit(go())
+  File "/gpfs/alpine/gen119/proj-shared/bsql_shared/bsql_env2/lib/python3.7/site-packages/distributed/cli/dask_scheduler.py", line 226, in go
+    main()
+  File "/gpfs/alpine/gen119/proj-shared/bsql_shared/bsql_env2/lib/python3.7/site-packages/click/core.py", line 829, in __call__
+    return self.main(*args, **kwargs)
+  File "/gpfs/alpine/gen119/proj-shared/bsql_shared/bsql_env2/lib/python3.7/site-packages/click/core.py", line 782, in main
+    rv = self.invoke(ctx)
+  File "/gpfs/alpine/gen119/proj-shared/bsql_shared/bsql_env2/lib/python3.7/site-packages/click/core.py", line 1066, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+  File "/gpfs/alpine/gen119/proj-shared/bsql_shared/bsql_env2/lib/python3.7/site-packages/click/core.py", line 610, in invoke
+    return callback(*args, **kwargs)
+  File "/gpfs/alpine/gen119/proj-shared/bsql_shared/bsql_env2/lib/python3.7/site-packages/distributed/cli/dask_scheduler.py", line 217, in main
+    loop.run_sync(run)
+  File "/gpfs/alpine/gen119/proj-shared/bsql_shared/bsql_env2/lib/python3.7/site-packages/tornado/ioloop.py", line 531, in run_sync
+    raise TimeoutError("Operation timed out after %s seconds" % timeout)
+tornado.util.TimeoutError: Operation timed out after None seconds
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@batch5>
+Subject: Job 363119: <dask_rapids> in cluster <summit> Exited
+
+Job <dask_rapids> was submitted from host <login4> by user <wmalpica> in cluster <summit> at Wed Sep 23 19:54:02 2020
+Job was executed on host(s) <1*batch5>, in queue <batch>, as user <wmalpica> in cluster <summit> at Wed Sep 23 19:54:28 2020
+                            <42*h26n15>
+                            <42*h28n06>
+</ccs/home/wmalpica> was used as the home directory.
+</ccs/home/wmalpica/blazingsql> was used as the working directory.
+Started at Wed Sep 23 19:54:28 2020
+Terminated at Wed Sep 23 19:58:22 2020
+Results reported at Wed Sep 23 19:58:22 2020
+
+The output (if any) is above this job summary.
+

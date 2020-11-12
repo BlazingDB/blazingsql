@@ -10,43 +10,61 @@ set -e
 alias python=python3
 
 # NOTE tmp_dir is the prefix (bin, lib, include, build)
-#tmp_dir=$working_directory/tmp
-# TODO mario
 tmp_dir=$env_prefix
 
 # if you want to build in other place just set BLAZINGSQL_POWERPC_TMP_BUILD_DIR before run
-
 if [ -z $BLAZINGSQL_POWERPC_TMP_BUILD_DIR ]; then
   BLAZINGSQL_POWERPC_TMP_BUILD_DIR=/tmp/blazingsql_powerpc_tmp_build_dir/
 fi
-
 build_dir=$BLAZINGSQL_POWERPC_TMP_BUILD_DIR
 
-MAKEJ=$(nproc)
-MAKEJ_CUDF=$(( `nproc` / 2 ))
+MAKEJ=8
+MAKEJ_CUDF=2
+
+# use this if you want to skip the steps of building and installing python side of cudf and dask-cudf
+# export SKIP_CUDF=1
+
+export CC=$(which gcc)
+export CXX=$(which g++)
+export CUDA_HOME=$CUDAPATH
+export CUDACXX=$CUDAPATH/bin/nvcc
+export BOOST_ROOT=$OLCF_BOOST_ROOT
+export LAPACK=$OLCF_NETLIB_LAPACK_ROOT/lib64/liblapack.so
+export BLAS=$OLCF_NETLIB_LAPACK_ROOT/lib64/libcblas.so
+# NOTE percy mario this var is used by rmm build.sh and by pycudf setup.py
+export PARALLEL_LEVEL=$MAKEJ
+export LDFLAGS="-L$CUDA_HOME/lib64"
+export LIBRARY_PATH="$CUDA_HOME/lib64":$LIBRARY_PATH
+
+# add g++ libs to the lib path for arrow and pycudf
+# TODO: we need to be sure about /usr/local/lib64. This may not be necessary
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib64/
+# add python libs
+# TODO: we need to be sure about /usr/local/lib. This may not be necessary
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/
+
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$tmp_dir/lib
 
 echo "### Vars ###"
-export CC=/usr/local/bin/gcc
-export CXX=/usr/local/bin/g++
-export CUDACXX=/usr/local/cuda/bin/nvcc
 echo "CC="$CC
 echo "CXX="$CXX
 echo "CUDACXX="$CUDACXX
 echo "MAKEJ="$MAKEJ
 echo "MAKEJ_CUDF="$MAKEJ_CUDF
 echo "PATH="$PATH
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib:/usr/local/lib64:/usr/local/nvidia/lib:/usr/local/nvidia/lib64
 echo "LD_LIBRARY_PATH="$LD_LIBRARY_PATH
-#C_INCLUDE_PATH=/app/tmp/include/
-#CPLUS_INCLUDE_PATH=/app/tmp/include/
 echo "CPLUS_INCLUDE_PATH="$CPLUS_INCLUDE_PATH
 echo "build_dir="$build_dir
 echo "blazingsql_project_root_dir=$blazingsql_project_root_dir"
 
+echo "### Pip upgrade ###"
+pip install --upgrade pip
+
+echo "### Cython ###"
+pip install wheel
+pip install cython==0.29.21
 mkdir -p $build_dir
 
-export CUDA_HOME=/usr/local/cuda/
-export CUDACXX=$CUDA_HOME/bin/nvcc
 
 #BEGIN zstd
 cd $build_dir
@@ -118,9 +136,13 @@ function run_cmake_for_arrow() {
 arrow_install_dir=$tmp_dir
 echo "arrow_install_dir: "$arrow_install_dir
 if [ ! -d arrow ]; then
+    pip install --no-binary numpy numpy
     echo "### Arrow - start ###"
     arrow_version=apache-arrow-1.0.1
-    git clone --depth 1 https://github.com/apache/arrow.git --branch $arrow_version --single-branch
+ #   git clone --depth 1 https://github.com/apache/arrow.git --branch $arrow_version --single-branch
+    
+    # patched version
+    git clone -b fix/power9 --depth 1  https://github.com/williamBlazing/arrow 
     cd arrow/
 
     echo "### Arrow - cmake ###"
@@ -128,7 +150,6 @@ if [ ! -d arrow ]; then
     # -DARROW_IPC=ON \ # need ipc for blazingdb-ral (because cudf)
     # -DARROW_HDFS=ON \ # blazingdb-io use arrow for hdfs
     
-    export BOOST_ROOT=$env_prefix
 
     cd cpp/
     mkdir -p build
@@ -152,38 +173,49 @@ if [ ! -d arrow ]; then
     make -j$MAKEJ install
 
     echo "### Arrow - end ###"
+    
+    # BEGIN pyarrow
+
+    export ARROW_HOME=$tmp_dir
+    export PARQUET_HOME=$tmp_dir
+    #export SETUPTOOLS_SCM_PRETEND_VERSION=$PKG_VERSION
+    export PYARROW_BUILD_TYPE=release
+    export PYARROW_WITH_DATASET=1
+    export PYARROW_WITH_PARQUET=1
+    export PYARROW_WITH_ORC=1
+    export PYARROW_WITH_PLASMA=1
+    export PYARROW_WITH_CUDA=1
+    export PYARROW_WITH_GANDIVA=0
+    export PYARROW_WITH_FLIGHT=0
+    export PYARROW_WITH_S3=0
+    export PYARROW_WITH_HDFS=0
+
+    #python -c "import pyarrow"
+    #if [ $? != 0 ]; then
+        echo "### PyArrow installation ###"
+        cd $build_dir/arrow/python
+        python setup.py build_ext install --single-version-externally-managed --record=record.txt
+    #fi
+    echo "pyarrow done"
+
+# END pyarrow
 fi
+
+export ARROW_HOME=$tmp_dir
+export PARQUET_HOME=$tmp_dir
+
 
 # reenable the error catch system for the shell
 set -e
 
 #END arrow
 
-# BEGIN pyarrow
-
-export ARROW_HOME=$tmp_dir
-export PARQUET_HOME=$tmp_dir
-#export SETUPTOOLS_SCM_PRETEND_VERSION=$PKG_VERSION
-export PYARROW_BUILD_TYPE=release
-export PYARROW_WITH_DATASET=1
-export PYARROW_WITH_PARQUET=1
-export PYARROW_WITH_ORC=1
-export PYARROW_WITH_PLASMA=1
-export PYARROW_WITH_CUDA=1
-export PYARROW_WITH_GANDIVA=0
-export PYARROW_WITH_FLIGHT=0
-export PYARROW_WITH_S3=0
-export PYARROW_WITH_HDFS=0
-
-cd $build_dir/arrow/python
-python setup.py build_ext install --single-version-externally-managed --record=record.txt
-
-# END pyarrow
 
 #BEGIN spdlog
+echo "BEGIN spdlog"
 cd $build_dir
 if [ ! -d spdlog ]; then
-    spdlog_version=v1.x
+    spdlog_version=v1.7.0 # v1.8 has issues for us
     git clone --depth 1 https://github.com/gabime/spdlog.git --branch $spdlog_version --single-branch
     cd spdlog/
 
@@ -201,24 +233,25 @@ if [ ! -d spdlog ]; then
     cp -rf $build_dir/spdlog/install/include/spdlog/* $env_prefix/include/spdlog
     cp -rf $build_dir/spdlog/install/lib64/* $env_prefix/lib64
 fi
+echo "END spdlog"
 #END spdlog
 
-# NOTE percy mario this var is used by rmm build.sh and by pycudf setup.py
-export PARALLEL_LEVEL=$MAKEJ
 
 cudf_version=0.16
-export CUDA_HOME=/usr/local/cuda/
 
 # BEGIN RMM
+echo "BEGIN RMM"
 cd $build_dir
 if [ ! -d rmm ]; then
     git clone --depth 1 https://github.com/rapidsai/rmm.git --branch "branch-$cudf_version" --single-branch
     cd rmm
     INSTALL_PREFIX=$tmp_dir CUDACXX=$CUDA_HOME/bin/nvcc ./build.sh  -v clean librmm rmm
 fi
+echo "END RMM"
 # END RMM
 
 # BEGIN DLPACK
+echo "BEGIN dlpack"
 cd $build_dir
 if [ ! -d dlpack ]; then
     dlpack_version=cudf
@@ -233,6 +266,7 @@ if [ ! -d dlpack ]; then
     cp -rf $build_dir/dlpack/myinstall/include/* $env_prefix/include/
     cp -rf $build_dir/dlpack/myinstall/lib64/* $env_prefix/lib64
 fi
+echo "END dlpack"
 # END DLPACK
 
 # BEGIN CUDF c++
@@ -245,10 +279,11 @@ export BUILD_DISABLE_DEPRECATION_WARNING=ON
 export BUILD_PER_THREAD_DEFAULT_STREAM=OFF
 export ARROW_ROOT=$tmp_dir
 
+echo "BEGIN cudf"
 if [ ! -d cudf ]; then
     cd $build_dir
     echo "### Cudf ###"
-    git clone --depth 1 https://github.com/rapidsai/cudf.git --branch "branch-$cudf_version" --single-branch
+   git clone --depth 1 https://github.com/rapidsai/cudf.git --branch "branch-$cudf_version" --single-branch
     cd cudf
 
     #git submodule update --init --remote --recursive
@@ -275,10 +310,12 @@ if [ ! -d cudf ]; then
           ..
     make -j$MAKEJ_CUDF install
 fi
+echo "END cudf"
 
 # END CUDF c++
 
 # BEGIN GOLD
+echo "BEGIN binutils"
 cd $build_dir
 if [ ! -d binutils ]; then
   # this hash was used to make this work
@@ -291,6 +328,7 @@ if [ ! -d binutils ]; then
   cp gold/ld-new $tmp_dir/bin/ld
   make -j$MAKEJ
 fi
+echo "END binutils"
 # END GOLD
 
 # NOTE LINKER: replace
@@ -303,6 +341,7 @@ cp binutils/nm-new $tmp_dir/bin/nm
 
 machine_processor_architecture=`uname -m`
 
+echo "BEGIN llvm-project"
 cd $build_dir
 if [ ! -d llvm-project ]; then
   llvm_target=""
@@ -328,8 +367,9 @@ if [ ! -d llvm-project ]; then
   mkdir -p build
   cd build
   cmake -D CMAKE_INSTALL_PREFIX=$tmp_dir -DLLVM_ENABLE_PROJECTS=clang -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD=$llvm_target -D LLVM_BINUTILS_INCDIR=$build_dir/binutils/include/ ../
-  make -j$MAKEJ install
+  make -j1 install
 fi
+echo "END llvm-project"
 
 export LLVM_CONFIG=$tmp_dir/bin/llvm-config
 
@@ -340,20 +380,51 @@ export LLVM_CONFIG=$tmp_dir/bin/llvm-config
 # install LLVMgold.so as plugin to 'ar'
 cd $build_dir
 
+echo "BEGIN llvmlite"
 if [ "$machine_processor_architecture" = "ppc64le" ] || [ "$machine_processor_architecture" = "ppc64" ]; then
   if [ ! -d llvmlite ]; then
     mkdir -p $tmp_dir/lib/bfd-plugins
     cp $tmp_dir/lib/LLVMgold.so $tmp_dir/lib/bfd-plugins
-    llvmlite_version_from_pip=$(pip show llvmlite |grep Version|awk '{print $2}') # => e.g. 0.33.3
-    llvmlite_version_from_pip=${llvmlite_version_from_pip%.*} # => e.g. 0.33
+  #  llvmlite_version_from_pip=$(pip show llvmlite |grep Version|awk '{print $2}') # => e.g. 0.33.3
+  #  llvmlite_version_from_pip=${llvmlite_version_from_pip%.*} # => e.g. 0.33
+    llvmlite_version_from_pip=0.33
     echo "---->>> llvmlite_version_from_pip: $llvmlite_version_from_pip"
     git clone --depth 1 https://github.com/numba/llvmlite.git --branch "release$llvmlite_version_from_pip" --single-branch
     cd llvmlite/
-    python setup.py install
-    # test
-    python -c "import numba"
-  fi
+    pip install .
+
+    echo "### BEGIN Pip dependencies ###"
+    # pip install -r requirements.txt
+    pip install numba==0.50.1
+    pip install scikit-learn==0.23.1
+    pip install flake8==3.8.3
+    pip install ipython==7.17.0
+    pip install pytest-timeout==1.4.2
+    pip install sphinx-rtd-theme==0.5.0
+    pip install cysignals==1.10.2
+    pip install numpydoc==1.1.0
+    pip install scipy==1.5.2
+    pip install pynvml==8.0.4
+    pip install networkx==2.4
+    pip install jupyterlab==2.2.4
+    pip install notebook==6.1.3
+    pip install joblib==0.16.0
+    pip install fastrlock==0.5
+    pip install pytest-timeout==1.4.2
+    pip install hypothesis==5.26.0
+    pip install python-louvain==0.14
+    pip install jupyter-server-proxy==1.5.0
+    pip install statsmodels==0.11.1
+    pip install pyhive==0.6.2
+    pip install thrift==0.13.0
+    pip install jpype1==1.0.2
+    pip install netifaces==0.10.9
+    echo "### END Pip dependencies ###"
+    echo "---->>> finished llvmlite"
+ fi
 fi
+echo "END llvmlite"
+
 
 # END numba llvmlite
 
@@ -364,73 +435,84 @@ mv nm nm-new
 mv ld ld.gold
 
 # FSSPEC
+echo "---->>> install fsspec"
 pip install --no-binary fsspec fsspec
 
 # BEGIN CUPY
+echo "BEGIN CUPY"
 cd $build_dir
 if [ ! -d cupy ]; then
     cupy_version=v7.7.0
     git clone --recurse-submodules --depth 1 https://github.com/cupy/cupy.git --branch $cupy_version --single-branch
     cd cupy
-    python3 setup.py install
+    pip install .
 fi
+echo "END CUPY"
 # END CUPY
 
 export CUDF_ROOT=$build_dir/cudf/cpp/build
 
-# TODO Mario percy the user will need to do this ... for now
-# add arrow libs to the lib path for arrow and pycudf
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$tmp_dir/lib
-
-# add g++ libs to the lib path for arrow and pycudf
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib64/
-
-# add python libs
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/
-
 # BEGIN cudf python
-
-cd $build_dir/cudf/python/cudf
-PARALLEL_LEVEL=$MAKEJ python setup.py build_ext --inplace
-python setup.py install --single-version-externally-managed --record=record.txt
-
+echo "BEGIN cudf python"
+if [ -z ${SKIP_CUDF+x} ]; then
+# TODO: have better solution for detecting if this step needs to be executed
+#if [ ! -d $build_dir/cudf ]; then
+    cd $build_dir/cudf/python/cudf
+    PARALLEL_LEVEL=$MAKEJ python setup.py build_ext --inplace
+    python setup.py install --single-version-externally-managed --record=record.txt 
+#fi
+fi
+echo "END cudf python"
 # END cudf python
 
 dask_version=2.23.0
 
 # BEGIN dask distributed
+echo "BEGIN dask distributed"
 cd $build_dir
 if [ ! -d distributed ]; then
   git clone --depth 1 https://github.com/dask/distributed.git --branch $dask_version --single-branch
   cd distributed
-  python setup.py install
+  pip install .
 fi
+echo "END dask distributed"
 # END dask distributed
 
 # BEGIN dask
+echo "BEGIN dask"
 cd $build_dir
 if [ ! -d dask ]; then
   git clone --depth 1 https://github.com/dask/dask.git --branch $dask_version --single-branch
   cd dask
-  python setup.py install
+  pip install .
 fi
+echo "END dask"
 # END dask
 
 # BEGIN dask-cuda
+echo "BEGIN dask-cuda"
 cd $build_dir
 if [ ! -d dask-cuda ]; then
   git clone --depth 1 https://github.com/rapidsai/dask-cuda.git --branch "branch-$cudf_version" --single-branch
   cd dask-cuda
-  python setup.py install
+  pip install .
 fi
+echo "END dask-cuda"
 # END dask-cuda
 
-# BEGIN dask-cudf
-cd $build_dir/cudf/python/dask_cudf
-python setup.py install --single-version-externally-managed --record=record.txt
-# END dask-cudf
+if [ -z ${SKIP_CUDF+x} ]; then
+# TODO: have better solution for detecting if this step needs to be executed
+#if [ ! -d $build_dir/cudf ]; then
+    # BEGIN dask-cudf
+    echo "BEGIN dask-cudf"
+    cd $build_dir/cudf/python/dask_cudf
+    python setup.py install --single-version-externally-managed --record=record.txt
+    echo "END dask-cudf"
+    # END dask-cudf
+#fi
+fi
 
-# BEGIN gtest
+echo "BEGIN gtest"
 # google test
 cd $build_dir
 if [ ! -d googletest ]; then
@@ -442,10 +524,11 @@ if [ ! -d googletest ]; then
   cmake -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=$tmp_dir ..
   make -j$MAKEJ install
 fi
-# END gtest
+echo "END gtest"
 
 # BEGIN zmq
 
+echo "BEGIN zmq"
 # zmq
 cd $build_dir
 if [ ! -d libzmq ]; then
@@ -458,7 +541,9 @@ if [ ! -d libzmq ]; then
   cmake -DCMAKE_INSTALL_PREFIX=$tmp_dir -D ZMQ_BUILD_TESTS=OFF ..
   make -j$MAKEJ install
 fi
+echo "END zmq"
 
+echo "BEGIN cppzmq"
 # cppzmq
 cd $build_dir
 if [ ! -d cppzmq ]; then
@@ -471,15 +556,103 @@ if [ ! -d cppzmq ]; then
   cmake -DCMAKE_INSTALL_PREFIX=$tmp_dir ..
   make -j$MAKEJ install
 fi
-
+echo "END cppzmq"
 # ENDzmq
+
+
+#BEGIN UCX requirements
+echo "BEGIN UCX requirements"
+
+# BEGIN UCX
+echo "BEGIN UCX"
+# this assumes you have hwloc and gdrcopy
+# module load hwloc
+# module load gdrcopy
+cd $build_dir
+if [ ! -d ucx ]; then
+  git clone https://github.com/openucx/ucx
+  cd ucx
+  #git checkout v1.8.1
+  git checkout master
+  ./autogen.sh
+  mkdir build
+  cd build
+  # Performance build
+  ../contrib/configure-release --with-gdrcopy=$OLCF_GDRCOPY_ROOT --prefix=$tmp_dir --with-cuda=$OLCF_CUDA_ROOT --enable-mt CPPFLAGS="-I/$OLCF_CUDA_ROOT/include"
+  # Debug build
+  # ../contrib/configure-release --with-gdrcopy=$OLCF_GDRCOPY_ROOT --prefix=$VIRTUAL_ENV --with-cuda=$OLCF_CUDA_ROOT --enable-mt CPPFLAGS="-I/$OLCF_CUDA_ROOT/include"
+  make -j$MAKEJ install
+fi
+echo "END UCX"
+# END UCX
+
+# ucx-py
+echo "BEGIN UCX"
+cd $build_dir
+if [ ! -d ucx-py ]; then
+  git clone https://github.com/rapidsai/ucx-py.git
+  cd ucx-py
+  pip install .
+fi
+echo "END UCX"
+
+# lz4 bindings
+echo "BEGIN python-lz4"
+cd $build_dir
+if [ ! -d python-lz4 ]; then
+  git clone https://github.com/python-lz4/python-lz4
+  cd python-lz4
+  pip install .
+fi
+echo "END python-lz4"
+
+# bokeh for dask scheduler
+echo "BEGIN bokeh"
+pip install --no-binary bokeh bokeh
+echo "END bokeh"
+
+# forward dask dashboard
+echo "BEGIN dask dashboard"
+pip install --no-binary jupyter-server-proxy jupyter-server-proxy
+jupyter serverextension enable --sys-prefix jupyter_server_proxy
+echo "END dask dashboard"
+
+echo "END UCX requirements"
+#END UCX requirements
+
+
+
+# BEGIN JAVA
+echo "BEGIN JAVA"
+cd $build_dir
+if [ ! -f ibm-java-sdk-8.0-6.11-ppc64le-archive.bin ]; then
+    wget http://public.dhe.ibm.com/ibmdl/export/pub/systems/cloud/runtimes/java/8.0.6.11/linux/ppc64le/ibm-java-sdk-8.0-6.11-ppc64le-archive.bin
+    chmod +x ibm-java-sdk-8.0-6.11-ppc64le-archive.bin
+    ./ibm-java-sdk-8.0-6.11-ppc64le-archive.bin
+fi
+export PATH=$PWD/ibm-java-ppc64le-80/bin:$PATH
+export JAVA_HOME=$PWD/ibm-java-ppc64le-80/jre
+echo "ENV JAVA"
+# ENV JAVA
+
+echo "BEGIN mvn"
+cd $build_dir
+if [ ! -d $VIRTUAL_ENV/apache-maven-3.6.3 ]; then
+    wget https://downloads.apache.org/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz
+    tar xvfz apache-maven-3.6.3-bin.tar.gz
+    mv apache-maven-3.6.3 $VIRTUAL_ENV/
+fi
+export PATH=$VIRTUAL_ENV/apache-maven-3.6.3/bin:$PATH
+echo "ENV mvn"
+
+
+
 
 # BEGIN blazingsql
 cd $blazingsql_project_root_dir
 #cd $build_dir
 #git clone https://github.com/aucahuasi/blazingsql.git
 #cd blazingsql
-#git checkout feature/powerpc
 #git pull
 export INSTALL_PREFIX=$tmp_dir
 export BOOST_ROOT=$tmp_dir

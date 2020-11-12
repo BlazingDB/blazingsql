@@ -284,13 +284,14 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
 		std::string expression = unique_expressions[u];
 
 		CudfColumnView aggregation_input; // this is the input from which we will crete the aggregation request
+		bool got_aggregation_input = false;
 		std::vector<std::unique_ptr<cudf::aggregation>> agg_ops_for_request;
 		for (size_t i = 0; i < aggregation_input_expressions.size(); i++){
 			if (expression == aggregation_input_expressions[i]){
 
 				int column_index = -1;
 				// need to calculate or determine the aggregation input only once
-				if (aggregation_input.size() == 0) {
+				if (!got_aggregation_input) {
 					if(expression == "" && aggregation_types[i] == AggregateKind::COUNT_ALL ) { // this is COUNT(*). Lets just pick the first column
 						aggregation_input = table.view().column(0);
 					} else if(is_var_column(expression) || is_number(expression)) {
@@ -301,6 +302,7 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
 						aggregation_inputs_scope_holder.insert(aggregation_inputs_scope_holder.end(), std::make_move_iterator(computed_columns.begin()), std::make_move_iterator(computed_columns.end()));
 						aggregation_input = aggregation_inputs_scope_holder.back()->view();
 					}
+					got_aggregation_input = true;
 				}
 				agg_ops_for_request.push_back(std::make_unique<cudf::aggregation>(convertAggregationCudf(aggregation_types[i])));
 				agg_out_indices.push_back(i);  // this is to know what is the desired order of aggregations output

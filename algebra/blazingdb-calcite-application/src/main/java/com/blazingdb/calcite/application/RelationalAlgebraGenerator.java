@@ -29,6 +29,7 @@ import org.apache.calcite.rel.rules.ProjectMergeRule;
 import org.apache.calcite.rel.rules.ProjectRemoveRule;
 import org.apache.calcite.rel.rules.AggregateReduceFunctionsRule;
 import org.apache.calcite.rel.rules.ReduceExpressionsRule;
+import org.apache.calcite.rel.rules.ProjectToWindowRule;
 import org.apache.calcite.rex.RexExecutorImpl;
 import org.apache.calcite.rel.type.RelDataTypeSystem;
 import org.apache.calcite.schema.SchemaPlus;
@@ -181,6 +182,7 @@ public class RelationalAlgebraGenerator {
 	getOptimizedRelationalAlgebra(RelNode nonOptimizedPlan) throws RelConversionException {
 		if(rules == null) {
 			program = new HepProgramBuilder()
+						  .addRuleInstance(ProjectToWindowRule.PROJECT)
 						  .addRuleInstance(AggregateExpandDistinctAggregatesRule.JOIN)
 						  .addRuleInstance(FilterAggregateTransposeRule.INSTANCE)
 						  .addRuleInstance(FilterJoinRule.JoinConditionPushRule.FILTER_ON_JOIN)
