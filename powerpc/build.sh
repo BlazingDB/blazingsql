@@ -61,6 +61,9 @@ export CMAKE_PREFIX_PATH=$VIRTUAL_ENV:$CMAKE_PREFIX_PATH
 # we want to make sure CONDA_PREFIX is not set to not confuse the arrow build
 unset CONDA_PREFIX
 
+# also do not use any existing JAVA installation (to avoid confusing the ucx build)
+unset JAVA_HOME
+
 echo "### Vars ###"
 echo "CC="$CC
 echo "CXX="$CXX
@@ -618,7 +621,7 @@ if [ ! -d ucx ]; then
   mkdir build
   cd build
   # Performance build
-  ../contrib/configure-release --with-gdrcopy=$OLCF_GDRCOPY_ROOT --prefix=$tmp_dir --with-cuda=$OLCF_CUDA_ROOT --enable-mt CPPFLAGS="-I/$OLCF_CUDA_ROOT/include"
+  ../contrib/configure-release --with-gdrcopy=$OLCF_GDRCOPY_ROOT --prefix=$tmp_dir --with-cuda=$OLCF_CUDA_ROOT --without-java --enable-mt CPPFLAGS="-I/$OLCF_CUDA_ROOT/include"
   # Debug build
   # ../contrib/configure-release --with-gdrcopy=$OLCF_GDRCOPY_ROOT --prefix=$VIRTUAL_ENV --with-cuda=$OLCF_CUDA_ROOT --enable-mt CPPFLAGS="-I/$OLCF_CUDA_ROOT/include"
   make -j$MAKEJ install
