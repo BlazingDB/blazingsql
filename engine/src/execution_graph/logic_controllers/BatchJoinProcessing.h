@@ -571,7 +571,7 @@ public:
 									"query_id"_a=context->getContextToken(),
 									"step"_a=context->getQueryStep(),
 									"substep"_a=context->getQuerySubstep(),
-									"info"_a="left_num_rows_estimate was " + left_num_rows_estimate.first ? " valid" : " invalid",
+									"info"_a=left_num_rows_estimate.first ? "left_num_rows_estimate was valid" : "left_num_rows_estimate was invalid",
 									"duration"_a="",
 									"kernel_id"_a=this->get_id(),
 									"rows"_a=left_num_rows_estimate.second);
@@ -581,7 +581,7 @@ public:
 									"query_id"_a=context->getContextToken(),
 									"step"_a=context->getQueryStep(),
 									"substep"_a=context->getQuerySubstep(),
-									"info"_a="right_num_rows_estimate was " + right_num_rows_estimate.first ? " valid" : " invalid",
+									"info"_a=right_num_rows_estimate.first ? "right_num_rows_estimate was valid" : "right_num_rows_estimate was invalid",
 									"duration"_a="",
 									"kernel_id"_a=this->get_id(),
 									"rows"_a=right_num_rows_estimate.second);
