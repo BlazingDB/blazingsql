@@ -1509,7 +1509,7 @@ class BlazingContext(object):
                 maximum_pool_size=maximum_pool_size,
                 enable_logging=enable_logging,
                 config_options=self.config_options,
-                logging_dir_path=logging_dir_path, #TODO Rommel check this
+                logging_dir_path=logging_dir_path,  # TODO Rommel check this
                 is_dask=False,
             )
             self.node_log_paths.add(log_path)
