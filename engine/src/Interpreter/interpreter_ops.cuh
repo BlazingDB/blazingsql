@@ -306,6 +306,7 @@ private:
 			out_table.column(col_index).element<ColType>(row) =	static_cast<ColType>(*(buffer + (position * blockDim.x + threadIdx.x)));
 		}
 
+
 		template <typename ColType, std::enable_if_t<cudf::is_fixed_point<ColType>()> * = nullptr>
 		CUDA_DEVICE_CALLABLE void operator() (cudf::mutable_table_device_view & out_table,
 																					cudf::size_type col_index,
@@ -315,6 +316,7 @@ private:
 			//TODO: implement fixed point
 			//out_table.column(col_index).element<ColType>(row) =	static_cast<ColType>(*(buffer + (position * blockDim.x + threadIdx.x)));
 		}
+
 
 		template <typename ColType, std::enable_if_t<std::is_floating_point<ColType>::value> * = nullptr>
 		CUDA_DEVICE_CALLABLE void operator() (cudf::mutable_table_device_view & out_table,
@@ -708,6 +710,10 @@ private:
 				} else if(oper == operator_type::BLZ_DAY) {
 					int64_t computed = cudf::type_dispatcher(cudf::data_type{left_type_id},
 						launch_extract_component<datetime_component::DAY>{}, static_cast<int64_t>(left_value));
+					store_data_in_buffer(computed, buffer, output_position);
+				} else if(oper == operator_type::BLZ_DAYOFWEEK) {
+					int64_t computed = cudf::type_dispatcher(cudf::data_type{left_type_id},
+						launch_extract_component<datetime_component::WEEKDAY>{},	static_cast<int64_t>(left_value));
 					store_data_in_buffer(computed, buffer, output_position);
 				} else if(oper == operator_type::BLZ_HOUR) {
 					int64_t computed = cudf::type_dispatcher(cudf::data_type{left_type_id},

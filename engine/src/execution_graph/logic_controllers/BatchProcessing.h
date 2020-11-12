@@ -6,9 +6,7 @@
 #include "io/DataLoader.h"
 #include "io/Schema.h"
 #include "utilities/CommonOperations.h"
-#include "communication/messages/ComponentMessages.h"
-#include "communication/network/Server.h"
-#include <src/communication/network/Client.h>
+
 #include "parser/expression_utils.hpp"
 
 #include <cudf/types.hpp>
@@ -227,100 +225,7 @@ private:
 	const ral::cache::kernel * kernel; /**< Pointer to the kernel that will receive the cache data. */
 };
 
-using ral::communication::network::Server;
-using ral::communication::network::Client;
-using ral::communication::messages::ReceivedHostMessage;
 
-/**
- * @brief Connects a HostCacheMachine to a server receiving certain types of messages,
- * so that basically the data sequencer is effectively iterating through batches
- * received from another node via out communication layer.
- */
-template<class MessageType>
-class ExternalBatchColumnDataSequence {
-public:
-	/**
-	 * Constructor for the ExternalBatchColumnDataSequence
-	 * @param context Shared context associated to the running query.
-	 * @param message_id Message identifier which will be associated with the underlying cache.
-	 * @param kernel The kernel that will actually receive the pulled data.
-	 */
-	ExternalBatchColumnDataSequence(std::shared_ptr<Context> context, const std::string & message_id, const ral::cache::kernel * kernel = nullptr)
-		: context{context}, last_message_counter{context->getTotalNodes() - 1}, kernel{kernel}
-	{
-		host_cache = std::make_shared<ral::cache::HostCacheMachine>(context, 0); //todo assing right id
-		std::string context_comm_token = context->getContextCommunicationToken();
-		const uint32_t context_token = context->getContextToken();
-		std::string comms_message_token = MessageType::MessageID() + "_" + context_comm_token;
-
-		BlazingMutableThread t([this, comms_message_token, context_token, message_id](){
-			while(true){
-					auto message = Server::getInstance().getHostMessage(context_token, comms_message_token);
-					if(!message) {
-						--last_message_counter;
-						if (last_message_counter == 0 ){
-							this->host_cache->finish();
-							break;
-						}
-					}	else{
-						auto concreteMessage = std::static_pointer_cast<ReceivedHostMessage>(message);
-						assert(concreteMessage != nullptr);
-						auto host_table = concreteMessage->releaseBlazingHostTable();
-						host_table->setPartitionId(concreteMessage->getPartitionId());
-						this->host_cache->addToCache(std::move(host_table), message_id);
-					}
-			}
-		});
-		t.detach();
-	}
-
-	/**
-	 * Blocks executing thread until a new message is ready or when the message queue is empty.
-	 * @return true A new message is ready.
-	 * @return false There are no more messages on the host cache.
-	 */
-	bool wait_for_next() {
-		return host_cache->wait_for_next();
-	}
-
-	/**
-	 * Get the next message as a BlazingHostTable.
-	 * @return BlazingHostTable containing the next released message.
-	 */
-	std::unique_ptr<ral::frame::BlazingHostTable> next() {
-		std::shared_ptr<spdlog::logger> cache_events_logger;
-		cache_events_logger = spdlog::get("cache_events_logger");
-
-		CodeTimer cacheEventTimer(false);
-
-		cacheEventTimer.start();
-		auto output = host_cache->pullFromCache(context.get());
-		cacheEventTimer.stop();
-
-		if(output){
-			auto num_rows = output->num_rows();
-			auto num_bytes = output->sizeInBytes();
-
-			cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-							"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-							"query_id"_a=context->getContextToken(),
-							"source"_a=host_cache->get_id(),
-							"sink"_a=kernel->get_id(),
-							"num_rows"_a=num_rows,
-							"num_bytes"_a=num_bytes,
-							"event_type"_a="removeCache",
-							"timestamp_begin"_a=cacheEventTimer.start_time(),
-							"timestamp_end"_a=cacheEventTimer.end_time());
-		}
-
-		return output;
-	}
-private:
-	std::shared_ptr<Context> context; /**< Pointer to the shared query context. */
-	std::shared_ptr<ral::cache::HostCacheMachine> host_cache; /**< Host cache machine from which the data will be pulled. */
-	const ral::cache::kernel * kernel; /**< Pointer to the kernel that will receive the cache data. */
-	int last_message_counter; /**< Allows to stop waiting for messages keeping track of the last message received from each other node. */
-};
 
 /**
  * @brief Gets data from a data source, such as a set of files or from a DataFrame.
@@ -392,8 +297,15 @@ public:
 
 		lock.unlock();
 
-		auto ret = loader.load_batch(context.get(), projections, schema, local_cur_data_handle, local_cur_file_index, local_all_row_groups);
-		return std::move(ret);
+		try {
+			return loader.load_batch(context.get(), projections, schema, local_cur_data_handle, local_cur_file_index, local_all_row_groups);
+		}	catch(const std::exception& e) {
+			auto logger = spdlog::get("batch_logger");
+			logger->error("{query_id}|||{info}|||||",
+										"query_id"_a=context->getContextToken(),
+										"info"_a="In DataSourceSequence while reading file {}. What: {}"_format(local_cur_data_handle.uri.toString(), e.what()));
+			throw;
+		}
 	}
 
 	/**
@@ -470,15 +382,7 @@ public:
 		this->query_graph = query_graph;
 	}
 
-	/**
-	 * Indicates whether the cache load can be throttling.
-	 * @return true If the pace of cache loading may be throttled.
-	 * @return false If cache should be loaded according to the default pace.
-	 */
-	bool can_you_throttle_my_input() {
-		return false;
-	}
-
+	
 	/**
 	 * Executes the batch processing.
 	 * Loads the data from their input port, and after processing it,
@@ -508,8 +412,6 @@ public:
 			threads.push_back(BlazingThread([this, &has_limit, &limit_, &current_rows]() {
 				CodeTimer eventTimer(false);
 
-				this->output_cache()->wait_if_cache_is_saturated();
-
 				std::unique_ptr<ral::frame::BlazingTable> batch;
 				while(batch = input.next()) {
 					eventTimer.start();
@@ -529,8 +431,7 @@ public:
 									"timestamp_end"_a=eventTimer.end_time());
 
 					this->add_to_output_cache(std::move(batch));
-					this->output_cache()->wait_if_cache_is_saturated();
-
+					
 					if (has_limit && current_rows >= limit_) {
 						break;
 					}
@@ -594,15 +495,7 @@ public:
 		this->query_graph = query_graph;
 	}
 
-	/**
-	 * Indicates whether the cache load can be throttling.
-	 * @return true If the pace of cache loading may be throttled.
-	 * @return false If cache should be loaded according to the default pace.
-	 */
-	bool can_you_throttle_my_input() {
-		return false;
-	}
-
+	
 	/**
 	 * Executes the batch processing.
 	 * Loads the data from their input port, and after processing it,
@@ -630,7 +523,6 @@ public:
 
 				CodeTimer eventTimer(false);
 
-				this->output_cache()->wait_if_cache_is_saturated();
 				std::unique_ptr<ral::frame::BlazingTable> batch;
 
 				while(batch = input.next()) {
@@ -686,8 +578,6 @@ public:
 
 							this->add_to_output_cache(std::move(batch));
 						}
-
-						this->output_cache()->wait_if_cache_is_saturated();
 
 						// useful when the Algebra Relacional only contains: BindableTableScan and LogicalLimit
 						if (has_limit && current_rows >= limit_) {
@@ -759,15 +649,7 @@ public:
 		this->query_graph = query_graph;
 	}
 
-	/**
-	 * Indicates whether the cache load can be throttling.
-	 * @return true If the pace of cache loading may be throttled.
-	 * @return false If cache should be loaded according to the default pace.
-	 */
-	bool can_you_throttle_my_input() {
-		return true;
-	}
-
+	
 	/**
 	 * Executes the batch processing.
 	 * Loads the data from their input port, and after processing it,
@@ -782,8 +664,6 @@ public:
 		int batch_count = 0;
 		while (input.wait_for_next()) {
 			try {
-				this->output_cache()->wait_if_cache_is_saturated();
-
 				auto batch = input.next();
 
 				auto log_input_num_rows = batch ? batch->num_rows() : 0;
@@ -861,15 +741,7 @@ public:
 		this->query_graph = query_graph;
 	}
 
-	/**
-	 * Indicates whether the cache load can be throttling.
-	 * @return true If the pace of cache loading may be throttled.
-	 * @return false If cache should be loaded according to the default pace.
-	 */
-	bool can_you_throttle_my_input() {
-		return true;
-	}
-
+	
 	/**
 	 * Executes the batch processing.
 	 * Loads the data from their input port, and after processing it,
@@ -884,8 +756,6 @@ public:
 		int batch_count = 0;
 		while (input.wait_for_next()) {
 			try {
-				this->output_cache()->wait_if_cache_is_saturated();
-
 				auto batch = input.next();
 
 				auto log_input_num_rows = batch->num_rows();
@@ -970,15 +840,6 @@ public:
 	Print(std::ostream & stream) : kernel(0,"Print", nullptr, kernel_type::PrintKernel) { ofs = &stream; }
 
 	/**
-	 * Indicates whether the cache load can be throttling.
-	 * @return true If the pace of cache loading may be throttled.
-	 * @return false If cache should be loaded according to the default pace.
-	 */
-	bool can_you_throttle_my_input() {
-		return false;
-	}
-
-	/**
 	 * Executes the batch processing.
 	 * Loads the data from their input port, and after processing it,
 	 * the results are stored in their output port.
@@ -1050,15 +911,7 @@ public:
 		return kstatus::stop;
 	}
 
-	/**
-	 * Indicates whether the cache load can be throttling.
-	 * @return true If the pace of cache loading may be throttled.
-	 * @return false If cache should be loaded according to the default pace.
-	 */
-	bool can_you_throttle_my_input() {
-		return false;
-	}
-
+	
 	/**
 	 * Returns the vector containing the final processed output.
 	 * @return frame_type A vector of unique_ptr of BlazingTables.

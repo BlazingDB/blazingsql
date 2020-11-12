@@ -64,7 +64,9 @@ PARALLEL_LEVEL=${PARALLEL_LEVEL:=""}
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$INSTALL_PREFIX/lib:$INSTALL_PREFIX/lib64
 export CXXFLAGS="-L$INSTALL_PREFIX/lib"
 export CFLAGS=$CXXFLAGS
-export CUDACXX=/usr/local/cuda/bin/nvcc
+if [ -z $CUDACXX ]; then
+    export CUDACXX=/usr/local/cuda/bin/nvcc
+fi
 
 function hasArg {
     (( ${NUMARGS} != 0 )) && (echo " ${ARGS} " | grep -q " $1 ")
@@ -258,6 +260,7 @@ if buildAll || hasArg libengine; then
 fi
 
 if buildAll || hasArg engine; then
+
     echo "Building engine (cython wrapper)"
     cd ${ENGINE_BUILD_DIR}
     rm -f ./bsql_engine/io/io.h
@@ -286,7 +289,6 @@ if buildAll || hasArg engine; then
 fi
 
 if buildAll || hasArg pyblazing; then
-
     cd ${PYBLAZING_BUILD_DIR}
     if [[ ${INSTALL_TARGET} != "" ]]; then
         python setup.py build_ext --inplace
@@ -311,7 +313,6 @@ if buildAll || hasArg pyblazing; then
 fi
 
 if buildAll || hasArg algebra; then
-
     cd ${ALGEBRA_BUILD_DIR}
     if [[ ${TESTS} == "ON" ]]; then
         mvn clean install -f pom.xml -Dmaven.repo.local=$INSTALL_PREFIX/blazing-protocol-mvn/ $QUIET
