@@ -109,7 +109,7 @@ source $VIRTUAL_ENV/bin/activate
 4. Make sure you are in the `blazingsql` folder and run the build script and pass your environment folder as argument:
 ```shell
 cd blazingsql
-source powerpc/build.sh $VIRTUAL_ENV  | tee out.txt
+nohup sh powerpc/build.sh $VIRTUAL_ENV &
 ```
 
 Notes:
