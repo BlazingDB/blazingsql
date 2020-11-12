@@ -12,8 +12,7 @@ import blazingsql
 # import git
 import numpy as np
 import pandas as pd
-from pydrill.client import PyDrill
-from pyspark.sql.session import SparkSession
+
 from BlazingLogging import loggingHandler as lhandler
 from Configuration import ExecutionMode
 from Configuration import Settings as Settings

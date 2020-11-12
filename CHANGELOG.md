@@ -7,6 +7,8 @@
 - #981 Added powerPC building script and instructions
 - #912 Added UCX support to how the engine runs
 - #1125 Implement new TCP and UCX comms layer, exposed graph to python
+- #1148 Add e2e test for DAYOFWEEK
+
 
 ## Improvements
 - #878 Adding calcite rule for window functions. (Window functions not supported yet)
