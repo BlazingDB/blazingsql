@@ -30,6 +30,7 @@
 - #1100 Showing an appropriate error for invalid or unsupported expressions on the logical plan
 - #1115 Fixed changes to RMM api using cuda_stream_view instead of cudaStream_t now
 - #1118 Fixed issue with config_options and adding local_files to valid params
+- #1133 Fixed adressing issue in float columns when parsing parquet metadata
 
 # BlazingSQL 0.16.0 (October 22, 2020)
 
