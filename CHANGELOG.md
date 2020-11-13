@@ -7,6 +7,7 @@
 - #981 Added powerPC building script and instructions
 - #912 Added UCX support to how the engine runs
 - #1125 Implement new TCP and UCX comms layer, exposed graph to python
+- #1110 Adding local logging directory to BlazingContext
 
 ## Improvements
 - #878 Adding calcite rule for window functions. (Window functions not supported yet)
@@ -19,8 +20,8 @@
 - #1117 Add error logging in DataSourceSequence
 - #1111 output compile json for cppcheck
 - #1132 Refactoring new comms 
-- #1078 Bump junit from 4.12 to 4.13.1 in /algebra 
-- #1144 update with changes from main 
+- #1078 Bump junit from 4.12 to 4.13.1 in /algebra
+- #1144 update with changes from main
 
 
 ## Bug Fixes
@@ -30,6 +31,7 @@
 - #1094 Fixed logging directory setup
 - #1100 Showing an appropriate error for invalid or unsupported expressions on the logical plan
 - #1115 Fixed changes to RMM api using cuda_stream_view instead of cudaStream_t now
+- #1120 Fix missing valid kwargs in create_table
 - #1118 Fixed issue with config_options and adding local_files to valid params
 - #1133 Fixed adressing issue in float columns when parsing parquet metadata
 
@@ -70,9 +72,9 @@
 - #1073 Fixed parseSchemaPython can throw exceptions
 - #1074 Remove lock inside grow() method from PinnedBufferProvider
 - #1071 Fix crash when loading an empty folder
-- #1085 Fixed intra-query memory leak in joins. Fixed by clearing array caches after PartwiseJoin is done 
+- #1085 Fixed intra-query memory leak in joins. Fixed by clearing array caches after PartwiseJoin is done
 - #1096 Backport from branch-0.17 with these PRs: #1094, #1086, #1093 and #1091
-- #1099 Fixed issue with config_options 
+- #1099 Fixed issue with config_options
 
 
 # BlazingSQL 0.15.0 (August 31, 2020)
