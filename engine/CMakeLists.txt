@@ -322,7 +322,6 @@ target_link_libraries(blazingsql-engine
     blazingdb-io
     #Threads::Threads
     pthread
-    blazingdb-transport
 
     # TODO: Make this cleaner. Here we just used to link cudf, but cudf got split into a whole bunch of libraries in this PR https://github.com/rapidsai/cudf/pull/6134
     # cudf
