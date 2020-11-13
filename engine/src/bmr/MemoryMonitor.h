@@ -2,7 +2,7 @@
 #include <condition_variable>
 #include <mutex>
 #include <chrono>
-#include "blazingdb/concurrency/BlazingThread.h"
+#include "ExceptionHandling/BlazingThread.h"
 #include <map>
 
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <blazingdb/transport/ColumnTransport.h>
+#include <transport/ColumnTransport.h>
 #include <atomic>
 
 #include "bufferTransport.hpp"

@@ -25,7 +25,7 @@
 #include <utility>
 #include <memory>
 
-#include <blazingdb/transport/io/reader_writer.h>
+#include <transport/io/reader_writer.h>
 
 #include <blazingdb/io/Config/BlazingContext.h>
 #include <blazingdb/io/Library/Logging/CoutOutput.h>

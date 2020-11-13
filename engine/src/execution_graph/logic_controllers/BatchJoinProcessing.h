@@ -12,7 +12,7 @@
 #include "execution_graph/logic_controllers/LogicalFilter.h"
 #include "distribution/primitives.h"
 #include "error.hpp"
-#include "blazingdb/concurrency/BlazingThread.h"
+#include "ExceptionHandling/BlazingThread.h"
 #include "CodeTimer.h"
 #include <cudf/stream_compaction.hpp>
 #include <cudf/partitioning.hpp>

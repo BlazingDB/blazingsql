@@ -1,5 +1,5 @@
 #include "BlazingHostTable.h"
-#include <blazingdb/transport/ColumnTransport.h>
+#include <transport/ColumnTransport.h>
 
 #include <vector>
 #include <string>

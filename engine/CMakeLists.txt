@@ -295,6 +295,9 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingH
               ${CMAKE_SOURCE_DIR}/src/communication/CommunicationInterface/bufferTransport.cpp
               ${CMAKE_SOURCE_DIR}/src/communication/CommunicationInterface/protocols.cpp
               ${CMAKE_SOURCE_DIR}/src/communication/CommunicationInterface/messageSender.cpp
+
+              ${CMAKE_SOURCE_DIR}/src/transport/Node.cc
+              ${CMAKE_SOURCE_DIR}/src/transport/io/reader_writer.cpp
         )
 
 link_directories(${BSQL_BLD_PREFIX}/lib)
@@ -332,7 +335,6 @@ target_link_libraries(blazingsql-engine
     libcudf_join.so
     libcudf_reshape.so
     libcudf_merge.so
-    libcudf_comms.so
     libcudf_hash.so
     libcudf_io.so
     libcudf_interop.so

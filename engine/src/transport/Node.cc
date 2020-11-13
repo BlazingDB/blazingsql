@@ -1,4 +1,4 @@
-#include "blazingdb/transport/Node.h"
+#include "Node.h"
 
 #include <iostream>
 

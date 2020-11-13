@@ -23,7 +23,7 @@
 
 #include "error.hpp"
 #include "CodeTimer.h"
-#include <blazingdb/manager/Context.h>
+#include <execution_graph/Context.h>
 #include <communication/messages/GPUComponentMessage.h>
 #include "execution_graph/logic_controllers/BlazingColumn.h"
 #include "execution_graph/logic_controllers/BlazingColumnOwner.h"
