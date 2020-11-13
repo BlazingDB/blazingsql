@@ -2,6 +2,8 @@
 
 #include <cassert>
 #include <cuda_runtime.h>
+
+#pragma GCC diagnostic ignored "-Wunknown-pragmas"
 #include <cudf/column/column_device_view.cuh>
 #include <cudf/datetime.hpp>
 #include <cudf/scalar/scalar_device_view.cuh>
@@ -12,6 +14,8 @@
 #include <cudf/utilities/error.hpp>
 #include <cudf/utilities/traits.hpp>
 #include <cudf/utilities/type_dispatcher.hpp>
+#pragma GCC diagnostic pop
+
 #include <limits>
 #include <numeric>
 #include <simt/chrono>

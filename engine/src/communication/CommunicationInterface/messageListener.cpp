@@ -161,7 +161,7 @@ void tcp_message_listener::start_polling() {
 
 								io::read_from_socket(connection_fd, pinned_buffer->data, chunk_size);
 
-								auto buffer_chunk_start = buffer + (chunk * pinned_buffer_size);
+								auto buffer_chunk_start = static_cast<char*>(buffer) + (chunk * pinned_buffer_size);
 								cudaMemcpyAsync(buffer_chunk_start,
 									pinned_buffer->data,
 									chunk_size,

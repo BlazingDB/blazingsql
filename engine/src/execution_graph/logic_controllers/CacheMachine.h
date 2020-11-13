@@ -474,7 +474,7 @@ using frame_type = std::unique_ptr<ral::frame::BlazingTable>;
 class message { //TODO: the cache_data object can store its id. This is not needed.
 public:
 	message(std::unique_ptr<CacheData> content, std::string message_id = "")
-		: data(std::move(content)), message_id(message_id)
+		: message_id(message_id), data(std::move(content))
 	{
 		assert(data != nullptr);
 	}
@@ -687,8 +687,8 @@ public:
 				bool done_waiting = this->finished.load(std::memory_order_seq_cst);
 				if (!done_waiting) {
 					size_t total_bytes = 0;
-					for (int i = 0; i < message_queue_.size(); i++){
-						total_bytes += message_queue_[i]->get_data().sizeInBytes();
+					for (auto & i : message_queue_){
+						total_bytes += i->get_data().sizeInBytes();
 					}
 					done_waiting = total_bytes > num_bytes;
 				}

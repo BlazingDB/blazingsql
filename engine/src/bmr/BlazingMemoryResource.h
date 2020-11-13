@@ -5,10 +5,10 @@
 #include <set>
 
 #include <cuda_runtime_api.h>
+
+#pragma GCC diagnostic ignored "-Wreorder"
 #include <rmm/cuda_stream_view.hpp>
 #include <rmm/mr/device/device_memory_resource.hpp>
-
-
 #include <rmm/mr/device/owning_wrapper.hpp>
 #include <rmm/mr/device/cuda_memory_resource.hpp>
 #include <rmm/mr/device/managed_memory_resource.hpp>
@@ -16,6 +16,7 @@
 #include <rmm/mr/device/arena_memory_resource.hpp>
 #include <rmm/mr/device/logging_resource_adaptor.hpp>
 #include <rmm/mr/device/per_device_resource.hpp>
+#pragma GCC diagnostic pop
 
 #include "config/GPUManager.cuh"
 
@@ -490,7 +491,7 @@ public:
 	// TODO: percy, cordova.Improve the design of get memory in real time 
 	blazing_disk_memory_resource(float custom_threshold = 0.75) {
 		struct statvfs stat_disk;
-		int ret = statvfs("/", &stat_disk);
+		statvfs("/", &stat_disk);
 
 		total_memory_size = (size_t)(stat_disk.f_blocks * stat_disk.f_frsize);
 		size_t available_disk_size = (size_t)(stat_disk.f_bfree * stat_disk.f_frsize);
