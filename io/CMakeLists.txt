@@ -20,7 +20,7 @@ PROJECT(blazingdb-io)
 
 cmake_minimum_required(VERSION 3.11)
 
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/" ${CMAKE_MODULE_PATH})
+set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/" ${CMAKE_MODULE_PATH})
 message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
@@ -90,66 +90,66 @@ endif(ARROW_INCLUDE_DIR AND ARROW_LIB AND ARROW_CUDA_LIB)
 # END find arrow
 
 set(FILESYSTEM_SRC_FILES
-    ${CMAKE_SOURCE_DIR}/src/FileSystem/FileSystemType.cpp
-    ${CMAKE_SOURCE_DIR}/src/FileSystem/Path.cpp
-    ${CMAKE_SOURCE_DIR}/src/FileSystem/Uri.cpp
-    ${CMAKE_SOURCE_DIR}/src/FileSystem/FileStatus.cpp
-    ${CMAKE_SOURCE_DIR}/src/FileSystem/FileFilter.cpp
-    ${CMAKE_SOURCE_DIR}/src/FileSystem/FileSystemConnection.cpp
-    ${CMAKE_SOURCE_DIR}/src/FileSystem/FileSystemException.cpp
-    ${CMAKE_SOURCE_DIR}/src/FileSystem/LocalFileSystem.cpp
-    ${CMAKE_SOURCE_DIR}/src/FileSystem/HadoopFileSystem.cpp
-    ${CMAKE_SOURCE_DIR}/src/FileSystem/FileSystemManager.cpp
-    ${CMAKE_SOURCE_DIR}/src/FileSystem/FileSystemEntity.cpp
-    ${CMAKE_SOURCE_DIR}/src/FileSystem/FileSystemRepository.cpp
-    ${CMAKE_SOURCE_DIR}/src/FileSystem/private/LocalFileSystem_p.cpp
-    ${CMAKE_SOURCE_DIR}/src/FileSystem/private/HadoopFileSystem_p.cpp
-    ${CMAKE_SOURCE_DIR}/src/FileSystem/private/FileSystemManager_p.cpp
-    ${CMAKE_SOURCE_DIR}/src/FileSystem/private/FileSystemFactory.cpp
-    ${CMAKE_SOURCE_DIR}/src/FileSystem/private/FileSystemRepository_p.cpp)
+    ${PROJECT_SOURCE_DIR}/src/FileSystem/FileSystemType.cpp
+    ${PROJECT_SOURCE_DIR}/src/FileSystem/Path.cpp
+    ${PROJECT_SOURCE_DIR}/src/FileSystem/Uri.cpp
+    ${PROJECT_SOURCE_DIR}/src/FileSystem/FileStatus.cpp
+    ${PROJECT_SOURCE_DIR}/src/FileSystem/FileFilter.cpp
+    ${PROJECT_SOURCE_DIR}/src/FileSystem/FileSystemConnection.cpp
+    ${PROJECT_SOURCE_DIR}/src/FileSystem/FileSystemException.cpp
+    ${PROJECT_SOURCE_DIR}/src/FileSystem/LocalFileSystem.cpp
+    ${PROJECT_SOURCE_DIR}/src/FileSystem/HadoopFileSystem.cpp
+    ${PROJECT_SOURCE_DIR}/src/FileSystem/FileSystemManager.cpp
+    ${PROJECT_SOURCE_DIR}/src/FileSystem/FileSystemEntity.cpp
+    ${PROJECT_SOURCE_DIR}/src/FileSystem/FileSystemRepository.cpp
+    ${PROJECT_SOURCE_DIR}/src/FileSystem/private/LocalFileSystem_p.cpp
+    ${PROJECT_SOURCE_DIR}/src/FileSystem/private/HadoopFileSystem_p.cpp
+    ${PROJECT_SOURCE_DIR}/src/FileSystem/private/FileSystemManager_p.cpp
+    ${PROJECT_SOURCE_DIR}/src/FileSystem/private/FileSystemFactory.cpp
+    ${PROJECT_SOURCE_DIR}/src/FileSystem/private/FileSystemRepository_p.cpp)
 
 set(LOGGING_SRC_FILES
-    ${CMAKE_SOURCE_DIR}/src/Library/Logging/BlazingLogger.cpp
-    ${CMAKE_SOURCE_DIR}/src/Library/Logging/CoutOutput.cpp
-    ${CMAKE_SOURCE_DIR}/src/Library/Logging/FileOutput.cpp
-    ${CMAKE_SOURCE_DIR}/src/Library/Logging/Logger.cpp
-    ${CMAKE_SOURCE_DIR}/src/Library/Logging/LoggingLevel.cpp
-    ${CMAKE_SOURCE_DIR}/src/Library/Logging/ServiceLogging.cpp
-    ${CMAKE_SOURCE_DIR}/src/Library/Logging/TcpOutput.cpp)
+    ${PROJECT_SOURCE_DIR}/src/Library/Logging/BlazingLogger.cpp
+    ${PROJECT_SOURCE_DIR}/src/Library/Logging/CoutOutput.cpp
+    ${PROJECT_SOURCE_DIR}/src/Library/Logging/FileOutput.cpp
+    ${PROJECT_SOURCE_DIR}/src/Library/Logging/Logger.cpp
+    ${PROJECT_SOURCE_DIR}/src/Library/Logging/LoggingLevel.cpp
+    ${PROJECT_SOURCE_DIR}/src/Library/Logging/ServiceLogging.cpp
+    ${PROJECT_SOURCE_DIR}/src/Library/Logging/TcpOutput.cpp)
 
 set(EXCEPTION_SRC_FILES
-    ${CMAKE_SOURCE_DIR}/src/ExceptionHandling/BlazingThread.cpp
-    ${CMAKE_SOURCE_DIR}/src/ExceptionHandling/BlazingException.cpp
-    ${CMAKE_SOURCE_DIR}/src/ExceptionHandling/BlazingExceptionHolder.cpp)
+    ${PROJECT_SOURCE_DIR}/src/ExceptionHandling/BlazingThread.cpp
+    ${PROJECT_SOURCE_DIR}/src/ExceptionHandling/BlazingException.cpp
+    ${PROJECT_SOURCE_DIR}/src/ExceptionHandling/BlazingExceptionHolder.cpp)
 
 set(UTIL_SRC_FILES
-    ${CMAKE_SOURCE_DIR}/src/Util/StringUtil.cpp
-    ${CMAKE_SOURCE_DIR}/src/Util/EncryptionUtil.cpp
-    ${CMAKE_SOURCE_DIR}/src/Util/FileUtil.cpp
-    ${CMAKE_SOURCE_DIR}/src/Config/BlazingContext.cpp)
+    ${PROJECT_SOURCE_DIR}/src/Util/StringUtil.cpp
+    ${PROJECT_SOURCE_DIR}/src/Util/EncryptionUtil.cpp
+    ${PROJECT_SOURCE_DIR}/src/Util/FileUtil.cpp
+    ${PROJECT_SOURCE_DIR}/src/Config/BlazingContext.cpp)
 
 if(GCS_SUPPORT)
     add_definitions(-DGCS_SUPPORT)
     find_package(storage_client REQUIRED)
     set(GCS_FILESYSTEM_SRC_FILES
-        ${CMAKE_SOURCE_DIR}/src/FileSystem/GoogleCloudStorage.cpp
-        ${CMAKE_SOURCE_DIR}/src/FileSystem/private/GoogleCloudStorageReadableFile.cpp
-        ${CMAKE_SOURCE_DIR}/src/FileSystem/private/GoogleCloudStorageOutputStream.cpp
-        ${CMAKE_SOURCE_DIR}/src/FileSystem/private/GoogleCloudStorage_p.cpp)
+        ${PROJECT_SOURCE_DIR}/src/FileSystem/GoogleCloudStorage.cpp
+        ${PROJECT_SOURCE_DIR}/src/FileSystem/private/GoogleCloudStorageReadableFile.cpp
+        ${PROJECT_SOURCE_DIR}/src/FileSystem/private/GoogleCloudStorageOutputStream.cpp
+        ${PROJECT_SOURCE_DIR}/src/FileSystem/private/GoogleCloudStorage_p.cpp)
     set(GCS_LIBRARY storage_client)
 endif()
 
 if(S3_SUPPORT)
     add_definitions(-DS3_SUPPORT)
     set(S3_FILESYSTEM_SRC_FILES
-        ${CMAKE_SOURCE_DIR}/src/FileSystem/S3FileSystem.cpp
-        ${CMAKE_SOURCE_DIR}/src/FileSystem/private/S3ReadableFile.cpp
-        ${CMAKE_SOURCE_DIR}/src/FileSystem/private/S3OutputStream.cpp
-        ${CMAKE_SOURCE_DIR}/src/FileSystem/private/S3FileSystem_p.cpp)
+        ${PROJECT_SOURCE_DIR}/src/FileSystem/S3FileSystem.cpp
+        ${PROJECT_SOURCE_DIR}/src/FileSystem/private/S3ReadableFile.cpp
+        ${PROJECT_SOURCE_DIR}/src/FileSystem/private/S3OutputStream.cpp
+        ${PROJECT_SOURCE_DIR}/src/FileSystem/private/S3FileSystem_p.cpp)
     set(S3_LIBRARY aws-cpp-sdk-core aws-cpp-sdk-s3 aws-cpp-sdk-s3-encryption)
 endif()
 
-include_directories(blazingdb-io ${CMAKE_SOURCE_DIR}/src $ENV{CONDA_PREFIX}/include "${ARROW_INCLUDE_DIR}")
+include_directories(blazingdb-io ${PROJECT_SOURCE_DIR}/src $ENV{CONDA_PREFIX}/include "${ARROW_INCLUDE_DIR}")
 link_directories($ENV{CONDA_PREFIX}/lib)
 
 add_library(blazingdb-io SHARED
@@ -165,7 +165,7 @@ target_link_libraries(blazingdb-io ${CURL_LIBRARIES} ${GCS_LIBRARY} ${S3_LIBRARY
 
 # Install target and headers
 install(TARGETS blazingdb-io DESTINATION lib)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/ DESTINATION include/blazingdb/io FILES_MATCHING PATTERN "*.h")
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/src/ DESTINATION include/blazingdb/io FILES_MATCHING PATTERN "*.h")
 
 # Tests
 if(BUILD_TESTING)
