@@ -19,7 +19,8 @@
 - #1117 Add error logging in DataSourceSequence
 - #1111 output compile json for cppcheck
 - #1078 Bump junit from 4.12 to 4.13.1 in /algebra 
-- #1144 update with changes from main 
+- #1144 update with changes from main
+- #1154 Recompute the avg_bytes_per_row value
 
 
 ## Bug Fixes
