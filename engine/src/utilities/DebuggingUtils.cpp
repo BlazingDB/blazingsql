@@ -1,9 +1,11 @@
 #include <sstream>
-
 #include "DebuggingUtils.h"
+
+#pragma GCC diagnostic ignored "-Wunknown-pragmas"
 #include <cudf/utilities/type_dispatcher.hpp>
 #include <cudf/strings/string_view.cuh>
-#include <cudf_test/column_utilities.hpp> 
+#include <cudf_test/column_utilities.hpp>
+#pragma GCC diagnostic pop
 
 namespace ral {
 namespace utilities {

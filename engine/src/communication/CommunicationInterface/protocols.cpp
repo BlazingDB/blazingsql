@@ -25,7 +25,7 @@ namespace io{
 		int bytes_read = 0;
 		int count_invalids = 0;
 		while (amount_read < read_size && count_invalids < NUMBER_RETRIES) {
-			bytes_read = read(socket_fd, data + amount_read, read_size - amount_read);
+			bytes_read = read(socket_fd, static_cast<char*>(data) + amount_read, read_size - amount_read);
 			if (bytes_read != -1) {
 				amount_read += bytes_read;
 				count_invalids = 0;
@@ -46,7 +46,7 @@ namespace io{
 		int bytes_written = 0;
 		int count_invalids = 0;
 		while (amount_written < write_size && count_invalids < NUMBER_RETRIES) {
-			bytes_written = write(socket_fd, data + amount_written, write_size - amount_written);
+			bytes_written = write(socket_fd, static_cast<char*>(data) + amount_written, write_size - amount_written);
 
 			if (bytes_written != -1) {
 				amount_written += bytes_written;
@@ -206,7 +206,7 @@ std::atomic<int> atomic_message_id(0);
 
 ucp_tag_t ucx_buffer_transport::generate_message_tag() {
 	auto current_message_id = atomic_message_id.fetch_add(1);
-	blazing_ucp_tag blazing_tag = {current_message_id, ral_id, 0u};
+	blazing_ucp_tag blazing_tag = {current_message_id, static_cast<uint16_t>(ral_id), 0u};
 	this->message_id = blazing_tag.message_id;
 	return *reinterpret_cast<ucp_tag_t *>(&blazing_tag);
 }

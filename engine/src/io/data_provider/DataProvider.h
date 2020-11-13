@@ -14,12 +14,15 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 
 #include <arrow/io/interfaces.h>
+
+#pragma GCC diagnostic ignored "-Wunknown-pragmas"
 //#include <cudf/cudf.h>
 #include <cudf/scalar/scalar.hpp>
 #include <cudf/scalar/scalar_factories.hpp>
 #include <cudf/types.hpp>
 #include <cudf/utilities/type_dispatcher.hpp>
 #include <cudf/scalar/scalar_device_view.cuh>
+#pragma GCC diagnostic pop
 
 #include <map>
 #include <memory>

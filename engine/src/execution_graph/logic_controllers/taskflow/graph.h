@@ -24,7 +24,7 @@ static std::shared_ptr<ral::cache::CacheMachine> create_cache_machine( const cac
 
 static std::vector<std::shared_ptr<ral::cache::CacheMachine>> create_cache_machines(const cache_settings& config) {
 	std::vector<std::shared_ptr<ral::cache::CacheMachine>> machines;
-	for (size_t i = 0; i < config.num_partitions; i++) {
+	for (int i = 0; i < config.num_partitions; i++) {
 		machines.push_back(create_cache_machine(config));
 	}
 	return machines;

@@ -26,8 +26,8 @@ public:
 	 * @param context Shared context associated to the running query.
 	 * @param kernel_type_id Identifier representing the kernel type.
 	 */
-	kernel(std::size_t kernel_id, std::string expr, std::shared_ptr<Context> context, kernel_type kernel_type_id) : expression{expr}, kernel_id(kernel_id), context{context}, kernel_type_id{kernel_type_id} {
-
+	kernel(std::size_t kernel_id, std::string expr, std::shared_ptr<Context> context, kernel_type kernel_type_id)
+		: expression{expr}, kernel_id(kernel_id), kernel_type_id{kernel_type_id}, context{context} {
 		parent_id_ = -1;
 		has_limit_ = false;
 		limit_rows_ = -1;

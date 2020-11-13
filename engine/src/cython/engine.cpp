@@ -153,7 +153,7 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(int32_t masterIndex,
 	for(auto worker_id : worker_ids) {
 		contextNodes.push_back(Node( worker_id));
 	}
-	Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], "", config_options};
+	Context queryContext{static_cast<uint32_t>(ctxToken), contextNodes, contextNodes[masterIndex], "", config_options};
 	CodeTimer eventTimer(true);
 	sql = "'" + sql + "'";
 	logger->info("{ral_id}|{query_id}|{start_time}|{plan}|{sql}",
