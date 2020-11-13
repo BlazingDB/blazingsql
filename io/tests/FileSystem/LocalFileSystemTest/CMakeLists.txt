@@ -1,5 +1,5 @@
 set(LocalFileSystemTest_SRCS
-    ${CMAKE_SOURCE_DIR}/src/Config/BlazingContext.cpp
+    ${PROJECT_SOURCE_DIR}/src/Config/BlazingContext.cpp
     LocalFileSystemTest.cpp
 )
 

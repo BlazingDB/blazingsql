@@ -117,7 +117,7 @@ endif(CUDA_STATIC_RUNTIME)
 
 ###################################################################################################
 
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/" ${CMAKE_MODULE_PATH})
+set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/" ${CMAKE_MODULE_PATH})
 message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 
 ###################################################################################################
@@ -177,16 +177,16 @@ include(CTest)
 
 # TODO percy move this to tool-chain and add support for cuda def and more than 1 defs
 add_definitions(${CXX_DEFINES})
-get_directory_property(CXX_COMPILE_DEFINITIONS DIRECTORY ${CMAKE_SOURCE_DIR} COMPILE_DEFINITIONS)
+get_directory_property(CXX_COMPILE_DEFINITIONS DIRECTORY ${PROJECT_SOURCE_DIR} COMPILE_DEFINITIONS)
 message(STATUS "C++ compiler definitions: ${CXX_COMPILE_DEFINITIONS}")
 
 include_directories(
     ${PROJECT_BINARY_DIR}
-    ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR}
+    ${PROJECT_SOURCE_DIR} ${CMAKE_BINARY_DIR}
     ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/include
-    ${CMAKE_SOURCE_DIR}/thirdparty/jitify
+    ${PROJECT_SOURCE_DIR}/src
+    ${PROJECT_SOURCE_DIR}/include
+    ${PROJECT_SOURCE_DIR}/thirdparty/jitify
     ${BSQL_BLD_PREFIX}/include
     ${BSQL_BLD_PREFIX}/include/cudf
     ${BSQL_BLD_PREFIX}/include/bsql-rapids-thirdparty/cub
@@ -261,10 +261,10 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libblazingdb-transport.so DESTINATION 
 install(TARGETS blazingdb-transport DESTINATION lib)
 
 # NOTE do not change how we install the headers
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/blazingdb/concurrency DESTINATION include/blazingdb)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/blazingdb/manager DESTINATION include/blazingdb)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/blazingdb/network DESTINATION include/blazingdb)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/blazingdb/transport DESTINATION include/blazingdb)
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/blazingdb/concurrency DESTINATION include/blazingdb)
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/blazingdb/manager DESTINATION include/blazingdb)
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/blazingdb/network DESTINATION include/blazingdb)
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/blazingdb/transport DESTINATION include/blazingdb)
 
 # Tests
 # if(BUILD_TESTING)
