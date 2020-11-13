@@ -420,8 +420,9 @@ public:
 	* @param table The BlazingTable that is converted into an ORC file and stored
 	* on disk.
 	* @ param orc_files_path The path where the file should be stored.
+	* @ param ctx_id The context token to identify the query that generated the file.
 	*/
-	CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable> table, std::string orc_files_path);
+	CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable> table, std::string orc_files_path, std::string ctx_token);
 
 	/**
 	* Constructor
@@ -935,7 +936,7 @@ public:
 
 	void put_all_cache_data( std::vector<std::unique_ptr<ral::cache::CacheData> > messages, std::vector<std::string> message_ids);
 
-	
+
 
 	virtual std::unique_ptr<ral::cache::CacheData> pullCacheData(std::string message_id);
 
@@ -1072,7 +1073,7 @@ class ConcatenatingCacheMachine : public CacheMachine {
 public:
 	ConcatenatingCacheMachine(std::shared_ptr<Context> context);
 
-	ConcatenatingCacheMachine(std::shared_ptr<Context> context, 
+	ConcatenatingCacheMachine(std::shared_ptr<Context> context,
 			std::size_t concat_cache_num_bytes, bool concat_all);
 
 	~ConcatenatingCacheMachine() = default;

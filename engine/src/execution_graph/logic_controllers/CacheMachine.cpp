@@ -52,11 +52,11 @@ std::unique_ptr<ral::frame::BlazingTable> CacheDataLocalFile::decache() {
 	return std::make_unique<ral::frame::BlazingTable>(std::move(result.tbl), this->names());
 }
 
-CacheDataLocalFile::CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable> table, std::string orc_files_path)
+CacheDataLocalFile::CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable> table, std::string orc_files_path, std::string ctx_token)
 	: CacheData(CacheDataType::LOCAL_FILE, table->names(), table->get_schema(), table->num_rows())
 {
 	this->size_in_bytes = table->sizeInBytes();
-	this->filePath_ = orc_files_path + "/.blazing-temp-" + randomString(64) + ".orc";
+	this->filePath_ = orc_files_path + "/.blazing-temp-" + ctx_token + "-" + randomString(64) + ".orc";
 
 	cudf::io::table_metadata metadata;
 	for(auto name : table->names()) {
@@ -188,7 +188,7 @@ void CacheMachine::put_all_cache_data( std::vector<std::unique_ptr<ral::cache::C
 	std::vector<std::unique_ptr<message > > wrapped_messages(messages.size());
 	int i = 0;
 	for(int i = 0; i < messages.size();i++){
-		wrapped_messages[i] = 
+		wrapped_messages[i] =
 			std::make_unique<message>(std::move(messages[i]), message_ids[i]);
 	}
 	this->waitingCache->put_all(std::move(wrapped_messages));
@@ -279,7 +279,7 @@ bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, c
 		num_bytes_added += table->sizeInBytes();
 		int cacheIndex = 0;
 		while(cacheIndex < memory_resources.size()) {
-			
+
 			auto memory_to_use = (this->memory_resources[cacheIndex]->get_memory_used() + table->sizeInBytes());
 
 			if( memory_to_use < this->memory_resources[cacheIndex]->get_memory_limit()) {
@@ -338,7 +338,7 @@ bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, c
 						if (it != config_options.end()) {
 							orc_files_path = config_options["BLAZING_CACHE_DIRECTORY"];
 						}
-						auto cache_data = std::make_unique<CacheDataLocalFile>(std::move(table), orc_files_path);
+						auto cache_data = std::make_unique<CacheDataLocalFile>(std::move(table), orc_files_path, (ctx ? std::to_string(ctx->getContextToken()) : "none"));
 						auto item =	std::make_unique<message>(std::move(cache_data), message_id);
 						this->waitingCache->put(std::move(item));
 						// NOTE: Wait don't kill the main process until the last thread is finished!
@@ -521,7 +521,7 @@ size_t CacheMachine::downgradeCacheData() {
 						if (it != config_options.end()) {
 							orc_files_path = config_options["BLAZING_CACHE_DIRECTORY"];
 						}
-						auto cache_data = std::make_unique<CacheDataLocalFile>(std::move(table), orc_files_path);
+						auto cache_data = std::make_unique<CacheDataLocalFile>(std::move(table), orc_files_path, (ctx ? std::to_string(ctx->getContextToken()) : "none"));
 						auto new_message = std::make_unique<message>(std::move(cache_data), message_id);
 						all_messages[i] = std::move(new_message);
 					}
@@ -540,10 +540,10 @@ size_t CacheMachine::downgradeCacheData() {
 ConcatenatingCacheMachine::ConcatenatingCacheMachine(std::shared_ptr<Context> context)
 	: CacheMachine(context) {}
 
-ConcatenatingCacheMachine::ConcatenatingCacheMachine(std::shared_ptr<Context> context, 
+ConcatenatingCacheMachine::ConcatenatingCacheMachine(std::shared_ptr<Context> context,
 			std::size_t concat_cache_num_bytes, bool concat_all)
 	: CacheMachine(context), concat_cache_num_bytes(concat_cache_num_bytes), concat_all(concat_all) {
-		
+
 	}
 
 // This method does not guarantee the relative order of the messages to be preserved
