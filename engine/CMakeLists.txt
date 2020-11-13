@@ -249,6 +249,7 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingH
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/port.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/kernel.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/kernel_type.cpp
+              ${CMAKE_SOURCE_DIR}/src/execution_graph/Context.cpp
               ${CMAKE_SOURCE_DIR}/src/bmr/MemoryMonitor.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/graph.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BatchJoinProcessing.cpp
@@ -296,7 +297,7 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingH
               ${CMAKE_SOURCE_DIR}/src/communication/CommunicationInterface/protocols.cpp
               ${CMAKE_SOURCE_DIR}/src/communication/CommunicationInterface/messageSender.cpp
 
-              ${CMAKE_SOURCE_DIR}/src/transport/Node.cc
+              ${CMAKE_SOURCE_DIR}/src/transport/Node.cpp
               ${CMAKE_SOURCE_DIR}/src/transport/io/reader_writer.cpp
         )
 
