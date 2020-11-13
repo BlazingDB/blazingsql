@@ -864,6 +864,7 @@ def kwargs_validation(kwargs, bc_api_str):
             "skiprows",
             "num_rows",
             "use_index",
+            "max_bytes_chunk_read",  # Used for reading CSV files in chunks
             "local_files",
         ]
         params_info = "https://docs.blazingdb.com/docs/create_table"
