@@ -111,6 +111,7 @@ public:
 				int samples_to_collect = this->context->getAllNodes().size();
 				std::vector<std::unique_ptr<ral::cache::CacheData> >table_scope_holder;
 				std::vector<size_t> total_table_rows;
+				std::vector<size_t> total_avg_bytes_per_row;
 
 				for(std::size_t i = 0; i < nodes.size(); ++i) {
 					if(!(nodes[i] == self_node)) {
@@ -121,16 +122,28 @@ public:
 						ral::cache::GPUCacheDataMetaData * cache_ptr = static_cast<ral::cache::GPUCacheDataMetaData *> (table_scope_holder[table_scope_holder.size() - 1].get());
 
 						total_table_rows.push_back(std::stoll(cache_ptr->getMetadata().get_values()[ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL]));
+						total_avg_bytes_per_row.push_back(std::stoi(cache_ptr->getMetadata().get_values()[ral::cache::AVG_BYTES_PER_ROW_METADATA_LABEL]));
 						samples.push_back(cache_ptr->getTableView());
 					}
 				}
 
 				samples.push_back(concatSamples->toBlazingTableView());
 				total_table_rows.push_back(local_total_num_rows);
+				total_avg_bytes_per_row.push_back(avg_bytes_per_row);
+
+				// let's recompute the `avg_bytes_per_row` using info from all the other nodes
+				size_t total_bytes = 0; 
+				size_t total_rows = 0;
+				for(std::size_t i = 0; i < nodes.size(); ++i) {
+					total_bytes += total_avg_bytes_per_row[i] * total_table_rows[i];
+					total_rows += total_table_rows[i];
+				}
+				// just in case there is no data
+				size_t final_avg_bytes_per_row = total_rows <= 0 ? 1 : total_bytes / total_rows;
 
 
 				std::size_t totalNumRows = std::accumulate(total_table_rows.begin(), total_table_rows.end(), std::size_t(0));
-				partitionPlan = ral::operators::generate_partition_plan(samples, totalNumRows, avg_bytes_per_row, this->expression, this->context.get());
+				partitionPlan = ral::operators::generate_partition_plan(samples, totalNumRows, final_avg_bytes_per_row, this->expression, this->context.get());
 
 				int self_node_idx = context->getNodeIndex(self_node);
 				auto nodes_to_send = context->getAllOtherNodes(self_node_idx);
@@ -165,6 +178,7 @@ public:
 				metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, self_node.id());
 				metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, this->context->getMasterNode().id());
 				metadata.add_value(ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL, std::to_string(local_total_num_rows));
+				metadata.add_value(ral::cache::AVG_BYTES_PER_ROW_METADATA_LABEL, avg_bytes_per_row);
 				std::string message_id = std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + self_node.id();
 				metadata.add_value(ral::cache::MESSAGE_ID, message_id);
 
