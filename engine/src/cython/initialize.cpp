@@ -137,7 +137,7 @@ void create_logger(std::string fileName,
 
 	// TODO: discuss how we should handle this
 	// if max_num_files = 4 -> will have: RAL.0.log, RAL.0.1.log, RAL.0.2.log, RAL.0.3.log, RAL.0.4.log
-    auto max_num_files = 0;
+	auto max_num_files = 0;
 	auto rotating_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt> (fileName, max_size_logging, max_num_files);
 	if (simple_log) {
 		rotating_sink->set_pattern(fmt::format("%v"));
