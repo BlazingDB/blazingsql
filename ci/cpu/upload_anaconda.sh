@@ -2,11 +2,11 @@
 
 set -e
 
-SOURCE_BRANCH="master"
+SOURCE_BRANCH="main"
 
 export BLAZINGSQL_FILE=`conda build conda/recipes/blazingsql/ --python=$PYTHON --output`
 
-# Restrict uploads to master branch
+# Restrict uploads to main branch
 if [ ${GIT_BRANCH} != ${SOURCE_BRANCH} ]; then
     echo "Skipping upload"
     return 0

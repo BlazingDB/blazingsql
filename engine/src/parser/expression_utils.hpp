@@ -28,6 +28,7 @@ enum class operator_type {
 	BLZ_YEAR,
 	BLZ_MONTH,
 	BLZ_DAY,
+	BLZ_DAYOFWEEK,
 	BLZ_HOUR,
 	BLZ_MINUTE,
 	BLZ_SECOND,
@@ -67,7 +68,9 @@ enum class operator_type {
 	BLZ_MAGIC_IF_NOT,
 	BLZ_STR_LIKE,
 	BLZ_STR_SUBSTRING,
-	BLZ_STR_CONCAT
+	BLZ_STR_CONCAT,
+	BLZ_TO_DATE,
+	BLZ_TO_TIMESTAMP
 };
 
 

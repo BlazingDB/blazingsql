@@ -1,3 +1,5 @@
+#!/bin/bash
+
 NUMARGS=$#
 ARGS=$*
 
@@ -18,12 +20,13 @@ function logger() {
 REPODIR=$(cd $(dirname $0); pwd)
 
 # TODO william kharoly felipe we should try to enable and use this param in the future (compare result from spreadsheet): add -c
-VALIDARGS="io comms libengine algebra e2e -t -v -h tests"
+VALIDARGS="io comms libengine algebra pyblazing e2e -t -v -h tests"
 HELP="$0 [-v] [-h] [-t] [-c] [e2e_test=\"test1,test2,...,testn\"]
    io           - test the IO C++ code only
    comms        - test the communications C++ code only
    libengine    - test the engine C++ code only
    algebra      - test the algebra package
+   pyblazing    - test the pyblazing interface
    e2e          - test the end to end tests
    -t           - skip end to end tests (force not run 'e2e' tests)
    -v           - verbose test mode
@@ -109,7 +112,7 @@ if testAll || hasArg io; then
     logger "Running IO Unit tests..."
     cd ${WORKSPACE}/io/build
     SECONDS=0
-    ctest
+    ctest --verbose
     duration=$SECONDS
     echo "Total time for IO Unit tests: $(($duration / 60)) minutes and $(($duration % 60)) seconds"
 fi
@@ -118,7 +121,7 @@ if testAll || hasArg comms; then
     logger "Running Comm Unit tests..."
     cd ${WORKSPACE}/comms/build
     SECONDS=0
-    ctest
+    ctest --verbose
     duration=$SECONDS
     echo "Total time for Comm Unit tests: $(($duration / 60)) minutes and $(($duration % 60)) seconds"
 fi
@@ -127,7 +130,7 @@ if testAll || hasArg libengine; then
     logger "Running Engine Unit tests..."
     cd ${WORKSPACE}/engine/build
     SECONDS=0
-    ctest
+    ctest --verbose
     duration=$SECONDS
     echo "Total time for Engine Unit tests: $(($duration / 60)) minutes and $(($duration % 60)) seconds"
 fi
@@ -135,6 +138,15 @@ fi
 if testAll || hasArg algebra; then
     # TODO mario
     echo "TODO"
+fi
+
+if testAll || hasArg pyblazing; then
+    logger "Running Pyblazing Unit tests..."
+    SECONDS=0
+    cd ${WORKSPACE}/pyblazing/tests
+    pytest
+    duration=$SECONDS
+    echo "Total time for Pyblazing Unit tests: $(($duration / 60)) minutes and $(($duration % 60)) seconds"
 fi
 
 if [ "$TESTS" == "OFF" ]; then

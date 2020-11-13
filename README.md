@@ -90,22 +90,22 @@ BlazingSQL can be installed with conda ([miniconda](https://conda.io/miniconda.h
 
 ## Stable Version
 ```bash
-conda install -c blazingsql/label/cuda$CUDA_VERSION -c rapidsai -c nvidia -c conda-forge -c defaults blazingsql python=$PYTHON_VERSION
+conda install -c blazingsql/label/cuda$CUDA_VERSION -c rapidsai -c nvidia -c conda-forge -c defaults blazingsql python=$PYTHON_VERSION cudatoolkit=$CUDA_VERSION
 ```
 Where $CUDA_VERSION is 10.1, 10.2 or 11.0  and $PYTHON_VERSION is 3.7 or 3.8
 *For example for CUDA 10.1 and Python 3.7:*
 ```bash
-conda install -c blazingsql/label/cuda10.1 -c rapidsai -c nvidia -c conda-forge -c defaults blazingsql python=3.7
+conda install -c blazingsql/label/cuda10.1 -c rapidsai -c nvidia -c conda-forge -c defaults blazingsql python=3.7 cudatoolkit=10.1
 ``` 
 
 ## Nightly Version
 ```bash
-conda install -c blazingsql-nightly/label/cuda$CUDA_VERSION -c rapidsai-nightly -c nvidia -c conda-forge -c defaults blazingsql python=$PYTHON_VERSION
+conda install -c blazingsql-nightly/label/cuda$CUDA_VERSION -c rapidsai-nightly -c nvidia -c conda-forge -c defaults blazingsql python=$PYTHON_VERSION  cudatoolkit=$CUDA_VERSION
 ```
 Where $CUDA_VERSION is 10.1, 10.2 or 11.0 and $PYTHON_VERSION is 3.7 or 3.8
 *For example for CUDA 10.1 and Python 3.7:*
 ```bash
-conda install -c blazingsql-nightly/label/cuda10.1 -c rapidsai-nightly -c nvidia -c conda-forge -c defaults blazingsql python=3.7
+conda install -c blazingsql-nightly/label/cuda10.1 -c rapidsai-nightly -c nvidia -c conda-forge -c defaults blazingsql python=3.7  cudatoolkit=10.1
 ```
 
 # Build/Install from Source (Conda Environment)
@@ -138,7 +138,7 @@ The build process will checkout the BlazingSQL repository and will build and ins
 cd $CONDA_PREFIX
 git clone https://github.com/BlazingDB/blazingsql.git
 cd blazingsql
-git checkout master
+git checkout main
 export CUDACXX=/usr/local/cuda/bin/nvcc
 ./build.sh
 ```
@@ -153,7 +153,7 @@ $CONDA_PREFIX now has a folder for the blazingsql repository.
 conda create -n bsql python=$PYTHON_VERSION
 conda activate bsql
 conda install --yes -c conda-forge spdlog=1.7.0 google-cloud-cpp=1.16 ninja
-conda install --yes -c rapidsai-nightly -c nvidia -c conda-forge -c defaults dask-cuda=0.17 dask-cudf=0.17 cudf=0.17 python=3.7 cudatoolkit=$CUDA_VERSION
+conda install --yes -c rapidsai-nightly -c nvidia -c conda-forge -c defaults dask-cuda=0.17 dask-cudf=0.17 cudf=0.17 ucx-py=0.17 ucx-proc=*=gpu python=3.7 cudatoolkit=$CUDA_VERSION
 conda install --yes -c conda-forge cmake gtest gmock cppzmq cython=0.29 openjdk=8.0 maven jpype1 netifaces pyhive
 ```
 Where $CUDA_VERSION is is 10.1, 10.2 or 11.0 and $PYTHON_VERSION is 3.7 or 3.8
@@ -162,7 +162,7 @@ Where $CUDA_VERSION is is 10.1, 10.2 or 11.0 and $PYTHON_VERSION is 3.7 or 3.8
 conda create -n bsql python=3.7
 conda activate bsql
 conda install --yes -c conda-forge spdlog=1.7.0 google-cloud-cpp=1.16 ninja
-conda install --yes -c rapidsai-nightly -c nvidia -c conda-forge -c defaults dask-cuda=0.17 dask-cudf=0.17 cudf=0.17 python=3.7 cudatoolkit=10.1
+conda install --yes -c rapidsai-nightly -c nvidia -c conda-forge -c defaults dask-cuda=0.17 dask-cudf=0.17 cudf=0.17 ucx-py=0.17 ucx-proc=*=gpu python=3.7 cudatoolkit=10.1
 conda install --yes -c conda-forge cmake gtest gmock cppzmq cython=0.29 openjdk=8.0 maven jpype1 netifaces pyhive
 ```
 
@@ -177,6 +177,8 @@ export CUDACXX=/usr/local/cuda/bin/nvcc
 ./build.sh
 ```
 NOTE: You can do `./build.sh -h` to see more build options.
+
+NOTE: You can perform static analysis with cppcheck with the command `cppcheck  --project=compile_commands.json` in any of the cpp project build directories.
 
 $CONDA_PREFIX now has a folder for the blazingsql repository.
 

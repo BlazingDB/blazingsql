@@ -61,12 +61,13 @@ echo "BlazingSQL dev basic deps installed"
 
 # NOTE cython must be the same of cudf (for 0.11 and 0.12 cython is >=0.29,<0.30)
 echo "conda install --yes openjdk=8.0 maven cmake gtest gmock rapidjson cppzmq cython=0.29 jpype1 netifaces pyhive"
-conda install --yes openjdk=8.0 maven cmake gtest gmock rapidjson cppzmq cython=0.29 jpype1 netifaces pyhive
+conda install --yes openjdk=8.0 maven cmake gtest gmock rapidjson cppzmq cython=0.29 jpype1 netifaces pyhive pytest
 echo "BlazingSQL deps installed"
 
 # install cudf
-echo "conda install --yes dask-cuda=${MINOR_VERSION} dask-cudf=${MINOR_VERSION} cudf=${MINOR_VERSION} python=$PYTHON_VER cudatoolkit=$CUDA_REL"
-conda install --yes dask-cuda=${MINOR_VERSION} dask-cudf=${MINOR_VERSION} cudf=${MINOR_VERSION} python=$PYTHON_VER cudatoolkit=$CUDA_REL
+echo "conda install --yes dask-cuda=${MINOR_VERSION} dask-cudf=${MINOR_VERSION} ucx-py=${MINOR_VERSION} ucx-proc=*=gpu cudf=${MINOR_VERSION} python=$PYTHON_VER cudatoolkit=$CUDA_REL"
+conda install --yes dask-cuda=${MINOR_VERSION} dask-cudf=${MINOR_VERSION} ucx-py=${MINOR_VERSION} ucx-proc=*=gpu cudf=${MINOR_VERSION} python=$PYTHON_VER cudatoolkit=$CUDA_REL
+
 echo "cudf and other rapids dependencies installed"
 
 # install end to end tests dependencies

@@ -113,7 +113,7 @@ def compare_results(pdf1, pdf2, acceptable_difference, use_percentage, engine):
 
     if pdf1.size == 0 and pdf2.size == 0:
         return "Success"
-    
+
     msg = ""
     if not isinstance(engine, str):
         if isinstance(engine, PyDrill):
@@ -121,9 +121,20 @@ def compare_results(pdf1, pdf2, acceptable_difference, use_percentage, engine):
         else:
             msg = "PySpark"
     elif engine=="drill":
-        msg = "PyDrill" 
-    else: 
-        msg = "PySpark" 
+        msg = "PyDrill"
+    else:
+        msg = "PySpark"
+
+    msg = ""
+    if not isinstance(engine, str):
+        if isinstance(engine, PyDrill):
+            msg = "PyDrill"
+        else:
+            msg = "PySpark"
+    elif engine=="drill":
+        msg = "PyDrill"
+    else:
+        msg = "PySpark"
 
     if pdf1.shape[0] == pdf2.shape[0]:
         if pdf1.shape[1] == pdf2.shape[1]:
@@ -155,7 +166,7 @@ def compare_results(pdf1, pdf2, acceptable_difference, use_percentage, engine):
             tmp_pdf1 = pdf1.select_dtypes(include=np.inexact)
             tmp_pdf2 = pdf2.select_dtypes(include=np.inexact)
 
-            
+
             if use_percentage:
                 relative_tolerance = acceptable_difference
                 absolute_tolerance = 0
@@ -166,7 +177,7 @@ def compare_results(pdf1, pdf2, acceptable_difference, use_percentage, engine):
             #    absolute(a - b) <= (absolute_tolerance + relative_tolerance * absolute(b))
 
             res = np.all(exac_comp) and np.allclose(
-                tmp_pdf1.values, tmp_pdf2.values, relative_tolerance, 
+                tmp_pdf1.values, tmp_pdf2.values, relative_tolerance,
                 absolute_tolerance, equal_nan=True
             )
             if res:
@@ -178,7 +189,7 @@ def compare_results(pdf1, pdf2, acceptable_difference, use_percentage, engine):
                     "Fail: Different number of columns blzSQLresult: "
                     + str(pdf1.shape[1])
                     + " "
-                    + msg 
+                    + msg
                     + " result: "
                     + str(pdf2.shape[1])
                 )
@@ -286,6 +297,7 @@ def get_codTest(test_name):
         "Tables from Pandas": "TBLPANDAS",
         "Timestampdiff": "TIMESTAMPD",
         "Timestamp": "TIMESTAMP",
+        "To_timestamp": "TO_TIMESTAMP",
         "TPCH Queries": "TPCH",
         "Unary ops": "UNARYOPS",
         "Unify Tables": "UNIFYTBL",
@@ -359,7 +371,7 @@ def print_query_results(
             else:
                 print("#PYSPARK:")
             print(pdf2)
-        else: 
+        else:
             if engine=="drill":
                 print("#DRILL:")
             else:
@@ -550,7 +562,7 @@ class Test:
         self.fail_ids = []
 
 
-def save_log(gpu_ci_mode):
+def save_log(gpu_ci_mode=False):
 
     c = 1
     cadena = []
@@ -1356,6 +1368,7 @@ def run_query(
     input_type,
     **kwargs
 ):
+    print(query)
 
     query_spark = kwargs.get("query_spark", query)
 
@@ -1369,7 +1382,7 @@ def run_query(
 
     message_validation = kwargs.get("message_validation", "")
     if message_validation is None:
-        message_validation = False    
+        message_validation = False
 
     data_type = cs.get_extension(input_type)
 
@@ -1462,7 +1475,7 @@ def run_query(
                         queryType,
                         error_message,
                         message_validation
-                )   
+                )
     elif not isinstance(engine, str):
         if isinstance(engine, PyDrill):
             # Drill
@@ -1660,7 +1673,7 @@ def run_query(
                 print_query_results2(
                     query, queryId, queryType, result_gdf.error_message
                 )
-                                
+
 
 def run_query_performance(
     bc,
