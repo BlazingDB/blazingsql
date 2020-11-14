@@ -42,7 +42,6 @@ public:
 	 * returns data into a std::unique_ptr<ral::frame::BlazingTable>
 	 */
 	std::unique_ptr<ral::frame::BlazingTable>  load_batch(
-		Context * context,
 		const std::vector<int> & column_indices_in,
 		const Schema & schema,
 		data_handle file_data_handle,

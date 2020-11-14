@@ -253,6 +253,7 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingH
               ${CMAKE_SOURCE_DIR}/src/operators/OrderBy.cpp
               ${CMAKE_SOURCE_DIR}/src/operators/GroupBy.cpp
               ${CMAKE_SOURCE_DIR}/src/io/data_provider/UriDataProvider.cpp
+              ${CMAKE_SOURCE_DIR}/src/io/data_provider/GDFDataProvider.cpp
               ${CMAKE_SOURCE_DIR}/src/io/Schema.cpp
               ${CMAKE_SOURCE_DIR}/src/io/data_parser/ParquetParser.cpp
               ${CMAKE_SOURCE_DIR}/src/io/data_parser/CSVParser.cpp

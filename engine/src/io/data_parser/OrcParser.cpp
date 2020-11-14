@@ -34,11 +34,13 @@ cudf_io::table_with_metadata get_new_orc(cudf_io::orc_reader_options orc_opts,
 }
 
 std::unique_ptr<ral::frame::BlazingTable> orc_parser::parse_batch(
-	std::shared_ptr<arrow::io::RandomAccessFile> file,
+	ral::io::data_handle handle,
 	const Schema & schema,
 	std::vector<int> column_indices,
 	std::vector<cudf::size_type> row_groups)
 {
+
+	std::shared_ptr<arrow::io::RandomAccessFile> file = handle.file_handle;
 	if(file == nullptr) {
 		return schema.makeEmptyBlazingTable(column_indices);
 	}

@@ -373,7 +373,7 @@ public:
 		}
 
 		if(is_gdf_parser){
-			auto ret = loader.load_batch(context.get(), projections, schema, ral::io::data_handle(), 0, std::vector<cudf::size_type>(1, cur_row_group_index));
+			auto ret = loader.load_batch(projections, schema, ral::io::data_handle(), 0, std::vector<cudf::size_type>(1, cur_row_group_index));
 			batch_index++;
 			cur_row_group_index++;
 
@@ -392,7 +392,7 @@ public:
 
 		lock.unlock();
 
-		auto ret = loader.load_batch(context.get(), projections, schema, local_cur_data_handle, local_cur_file_index, local_all_row_groups);
+		auto ret = loader.load_batch(projections, schema, local_cur_data_handle, local_cur_file_index, local_all_row_groups);
 		return std::move(ret);
 	}
 
@@ -464,8 +464,9 @@ public:
 	 * @param context Shared context associated to the running query.
 	 * @param query_graph Shared pointer of the current execution graph.
 	 */
-	TableScan(std::size_t kernel_id, const std::string & queryString, ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-	: kernel(kernel_id, queryString, context, kernel_type::TableScanKernel), input(loader, schema, context)
+
+	TableScan(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<ral::io::data_provider> provider, std::shared_ptr<ral::io::data_parser> parser, ral::io::Schema & schema, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
+	: kernel(kernel_id, queryString, context, kernel_type::TableScanKernel), provider(provider), parser(parser)
 	{
 		this->query_graph = query_graph;
 	}
@@ -503,6 +504,29 @@ public:
 		}
 
 		cudf::size_type current_rows = 0;
+		size_t file_index = 0;
+		//if its empty we can just add it to the cache without scheduling
+		if (!provider->has_next()) {
+			this->add_to_output_cache(std::move(schema.makeEmptyBlazingTable(projections)));
+			return;
+		}
+
+
+		std::vector<int> projections(schema.get_num_columns());
+		std::iota(projections.begin(), projections.end(), 0);
+
+		while(provider->has_next()){
+			//retrieve the file handle but do not open the file
+			//this will allow us to prevent from having too many open file handles by being
+			//able to limit the number of file tasks
+			auto data_handle = provider->get_next(false);
+			auto file_schema = schema.fileSchema(file_index);
+			auto row_group_ids = schema.get_rowgroup_ids(file_index);
+			//this is the part where we make the task now
+
+			file_index++;
+		}
+
 		std::vector<BlazingThread> threads;
 		for (int i = 0; i < table_scan_kernel_num_threads; i++) {
 			threads.push_back(BlazingThread([this, &has_limit, &limit_, &current_rows]() {
@@ -568,7 +592,27 @@ public:
 	}
 
 private:
-	DataSourceSequence input; /**< Input data source sequence. */
+	std::shared_ptr<ral::io::data_provider> provider;
+	std::shared_ptr<ral::io::data_parser> parser;
+	 
+
+
+
+// std::shared_ptr<Context> context; /**< Pointer to the shared query context. */
+// 	std::vector<int> projections; /**< List of columns that will be selected if they were previously settled. */
+// 	ral::io::data_loader loader; /**< Data loader responsible for executing the batching load. */
+// 	ral::io::Schema  schema; /**< Table schema associated to the data to be loaded. */
+// 	size_t cur_file_index; /**< Current file index. */
+// 	size_t cur_row_group_index; /**< Current rowgroup index. */
+// 	std::vector<std::vector<int>> all_row_groups;
+// 	std::atomic<size_t> batch_index; /**< Current batch index. */
+// 	size_t n_batches; /**< Number of batches. */
+// 	size_t n_files; /**< Number of files. */
+// 	bool is_empty_data_source; /**< Indicates whether the data source is empty. */
+// 	bool is_gdf_parser; /**< Indicates whether the parser is a gdf one. */
+
+// 	std::mutex mutex_; /**< Mutex for making the loading batch thread-safe. */
+
 };
 
 /**

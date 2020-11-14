@@ -393,7 +393,7 @@ public:
 				std::shared_ptr<ral::cache::CacheMachine> output,
 		ral::cache::kernel * kernel,std::string kernel_process_name); 
 	
-	void add_task(ral::batch::DataSourceSequence * inputs,
+	void add_task(ral::batch::DataSourceSe@rodquence * inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
 		ral::cache::kernel * kernel,
 		size_t attempts,

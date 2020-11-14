@@ -19,9 +19,6 @@ namespace ral {
 // TODO: namespace frame should be remove from here
 namespace io {
 
-namespace {
-using blazingdb::manager::Context;
-}  // namespace
 
 data_loader::data_loader(std::shared_ptr<data_parser> _parser, std::shared_ptr<data_provider> _data_provider)
 	: provider(_data_provider), parser(_parser) {}
@@ -35,7 +32,6 @@ data_loader::~data_loader() {}
 
 
 std::unique_ptr<ral::frame::BlazingTable> data_loader::load_batch(
-	Context * context,
 	const std::vector<int> & column_indices_in,
 	const Schema & schema,
 	data_handle file_data_handle,
