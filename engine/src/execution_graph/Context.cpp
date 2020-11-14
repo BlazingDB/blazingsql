@@ -1,4 +1,4 @@
-#include "blazingdb/manager/Context.h"
+#include "Context.h"
 #include <algorithm>
 #include <climits>
 #include <mutex>

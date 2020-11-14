@@ -2,7 +2,6 @@
 
 #include "LogicPrimitives.h"
 
-
 #include <random>
 
 #include "cudf/column/column_factories.hpp"
