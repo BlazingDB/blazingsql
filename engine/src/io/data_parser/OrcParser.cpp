@@ -46,7 +46,7 @@ std::unique_ptr<ral::frame::BlazingTable> orc_parser::parse_batch(
 		// Fill data to orc_opts
 		auto arrow_source = cudf_io::arrow_io_source{file};
 		cudf::io::orc_reader_options orc_opts = getOrcReaderOptions(args_map, arrow_source);
-		
+
 		std::vector<std::string> col_names;
 		col_names.resize(column_indices.size());
 
@@ -58,7 +58,7 @@ std::unique_ptr<ral::frame::BlazingTable> orc_parser::parse_batch(
 		orc_opts.set_stripes(row_groups);
 
 		auto result = cudf_io::read_orc(orc_opts);
-		file->Close();
+
 		return std::make_unique<ral::frame::BlazingTable>(std::move(result.tbl), result.metadata.column_names);
 	}
 	return nullptr;
@@ -70,7 +70,7 @@ void orc_parser::parse_schema(
 	auto arrow_source = cudf_io::arrow_io_source{file};
 	cudf::io::orc_reader_options orc_opts = getOrcReaderOptions(args_map, arrow_source);
 	orc_opts.set_num_rows(1);
-	
+
 	cudf_io::table_with_metadata table_out = cudf_io::read_orc(orc_opts);
 	file->Close();
 
