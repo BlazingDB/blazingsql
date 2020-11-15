@@ -108,14 +108,12 @@ public:
 				context->incrementQuerySubstep();
 				auto nodes = context->getAllNodes();
 
-				int samples_to_collect = this->context->getAllNodes().size();
 				std::vector<std::unique_ptr<ral::cache::CacheData> >table_scope_holder;
 				std::vector<size_t> total_table_rows;
 
 				for(std::size_t i = 0; i < nodes.size(); ++i) {
 					if(!(nodes[i] == self_node)) {
 						std::string message_id = std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + nodes[i].id();
-
 
 						table_scope_holder.push_back(this->query_graph->get_input_message_cache()->pullCacheData(message_id));
 						ral::cache::GPUCacheDataMetaData * cache_ptr = static_cast<ral::cache::GPUCacheDataMetaData *> (table_scope_holder[table_scope_holder.size() - 1].get());
@@ -127,7 +125,6 @@ public:
 
 				samples.push_back(concatSamples->toBlazingTableView());
 				total_table_rows.push_back(local_total_num_rows);
-
 
 				std::size_t totalNumRows = std::accumulate(total_table_rows.begin(), total_table_rows.end(), std::size_t(0));
 				partitionPlan = ral::operators::generate_partition_plan(samples, totalNumRows, avg_bytes_per_row, this->expression, this->context.get());
@@ -173,7 +170,6 @@ public:
 				output_cache->addCacheData(std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(std::move(concatSamples), metadata)),"",true);
 
 				context->incrementQuerySubstep();
-
 			}
 
 			this->output_cache("output_b")->wait_for_count(1);
@@ -287,7 +283,6 @@ public:
 			size_t avg_bytes_per_row = localTotalNumRows == 0 ? 1 : localTotalBytes/localTotalNumRows;
 			compute_partition_plan(sampledTableViews, avg_bytes_per_row, localTotalNumRows);
 		}
-
 
 		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
 									"query_id"_a=context->getContextToken(),

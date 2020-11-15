@@ -697,8 +697,6 @@ public:
 		std::vector<int64_t> nodes_num_bytes_left(this->context->getTotalNodes());
 		std::vector<int64_t> nodes_num_bytes_right(this->context->getTotalNodes());
 
-
-		int64_t prev_total_rows = 0;
 		for (auto i = 0; i < messages_to_wait_for.size(); i++)	{
 			auto message = this->query_graph->get_input_message_cache()->pullCacheData(messages_to_wait_for[i]);
 			auto message_with_metadata = static_cast<ral::cache::GPUCacheDataMetaData*>(message.get());

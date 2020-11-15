@@ -368,7 +368,6 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 
 	std::vector<std::vector<std::vector<int64_t>>> minmax_metadata_table_per_file(parquet_readers.size());
 
-	size_t file_index = 0;
 	std::vector<BlazingThread> threads(parquet_readers.size());
 	std::mutex guard;
 	for (size_t file_index = 0; file_index < parquet_readers.size(); file_index++){
