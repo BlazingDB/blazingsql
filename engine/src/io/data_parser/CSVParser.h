@@ -33,6 +33,10 @@ public:
 
 	void parse_schema(std::shared_ptr<arrow::io::RandomAccessFile> file, ral::io::Schema & schema);
 
+	size_t max_bytes_chuck_size() const;
+
+	DataType type() const override { return DataType::CSV; }
+
 private:
 	std::map<std::string, std::string> args_map;
 };
