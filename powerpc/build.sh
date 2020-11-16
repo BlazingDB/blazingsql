@@ -54,7 +54,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib64/
 # TODO: we need to be sure about /usr/local/lib. This may not be necessary
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/
 
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$tmp_dir/lib
+export LD_LIBRARY_PATH=$tmp_dir/lib:$LD_LIBRARY_PATH
 
 export CMAKE_PREFIX_PATH=$VIRTUAL_ENV:$CMAKE_PREFIX_PATH
 
@@ -406,6 +406,10 @@ echo "### pip installing jpype1 ###"
 pip install jpype1==1.0.2
 echo "### pip installing netifaces ###"
 pip install netifaces==0.10.9
+echo "### pip installing nvtx ###"
+pip install nvtx
+echo "### pip installing protobuf ###"
+pip install protobuf
 echo "### END Pip dependencies ###"
 echo "---->>> finished llvmlite"
 
