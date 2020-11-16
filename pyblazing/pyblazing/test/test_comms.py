@@ -1,18 +1,17 @@
 import asyncio
-import pytest
-
-import ucp
-import cudf
-from cudf.tests import utils as cudf_test
 
 import numpy as np
 
+import cudf
+import pytest
+import ucp
+from cudf.tests import utils as cudf_test
 from dask_cuda import LocalCUDACluster
-from distributed import Client, Worker, Scheduler, wait, get_worker
-from distributed.comm import ucx, listen, connect
-from ..apiv2.comms import listen_async, BlazingMessage, UCX, cleanup
+from distributed import Client, Scheduler, Worker, get_worker, wait
+from distributed.comm import connect, listen, ucx
 from distributed.utils_test import cleanup as dask_cleanup  # noqa: 401
 
+from ..apiv2.comms import UCX, BlazingMessage, cleanup, listen_async
 
 enable_tcp_over_ucx = True
 enable_nvlink = False

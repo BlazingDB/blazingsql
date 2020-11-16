@@ -369,33 +369,6 @@ def executeGraph(ctxToken):
     return query_partids, meta, worker.name
 
 
-def collectPartitionsPerformPartition(
-    masterIndex, nodes, ctxToken, input, partition_keys_mapping, df_schema, by, i
-):
-    import dask.distributed
-
-    worker = dask.distributed.get_worker()
-    worker_id = nodes[i]["worker"]
-
-    if worker_id in partition_keys_mapping:
-        partition_keys = partition_keys_mapping[worker_id]
-        if len(partition_keys) > 1:
-            node_inputs = []
-            for key in partition_keys:
-                node_inputs.append(worker.data[key])
-            # TODO, eventually we want the engine side of the
-            # partition function to handle the table in parts
-            node_input = cudf.concat(node_inputs)
-        elif len(partition_keys) == 1:
-            node_input = worker.data[partition_keys[0]]
-        else:
-            node_input = df_schema
-    else:
-        node_input = df_schema
-
-    return cio.performPartitionCaller(masterIndex, nodes, ctxToken, node_input, by)
-
-
 # returns a map of table names to the indices of the columns needed.
 # If there are more than one table scan for one table, it merged the
 # needed columns if the column list is empty, it means we want all columns
@@ -2622,63 +2595,14 @@ class BlazingContext(object):
                     return current_table.getSlicesByWorker(len(self.nodes))
 
     """
-    Partition a dask_cudf DataFrame based on one or more columns.
-
-    Parameters
-    ----------
-
-    input : the dask_cudf.DataFrame you want to partition
-    by : a list of strings of the column names by which you want to partition.
-
-    Examples
-    --------
-
-    >>> bc = BlazingContext(dask_client=client)
-    >>> bc.create_table('product_reviews', "product_reviews/*.parquet")
-    >>> query_1= "SELECT pr_item_sk, pr_review_content, pr_review_sk
-        FROM product_reviews where pr_review_content IS NOT NULL"
-    >>> product_reviews_df = bc.sql(query_1)
-    >>> product_reviews_df = bc.partition(product_reviews_df,
-                                by=["pr_item_sk",
-                                    "pr_review_content",
-                                    "pr_review_sk"])
-    >>> sentences = product_reviews_df.map_partitions(
-                        create_sentences_from_reviews)
+    This function has been Deprecated. It is recommended to use ddf.shuffle(on=[colnames])
 
     """
 
     def partition(self, input, by=[]):
-        masterIndex = 0
-        ctxToken = random.randint(0, np.iinfo(np.int32).max)
-
-        if self.dask_client is None:
-            print("Not supported...")
-        else:
-            if not isinstance(input, dask_cudf.core.DataFrame):
-                print("Not supported...")
-            else:
-                partition_keys_mapping = getNodePartitionKeys(input, self.dask_client)
-                df_schema = input._meta
-
-                dask_futures = []
-                for i, node in enumerate(self.nodes):
-                    worker = node["worker"]
-                    dask_futures.append(
-                        self.dask_client.submit(
-                            collectPartitionsPerformPartition,
-                            masterIndex,
-                            self.nodes,
-                            ctxToken,
-                            input,
-                            partition_keys_mapping,
-                            df_schema,
-                            by,
-                            i,  # node number
-                            workers=[worker],
-                        )
-                    )
-                result = dask.dataframe.from_delayed(dask_futures)
-            return result
+        print(
+            "This function has been Deprecated. It is recommended to use ddf.shuffle(on=[colnames])"
+        )
 
     def sql(
         self,
