@@ -46,7 +46,7 @@ def create_json():
     executionEnv = os.getenv("BLAZINGSQL_E2E_EXECUTION_ENV", "local")
     daskConnection = os.getenv(
         "BLAZINGSQL_E2E_DASK_CONNECTION", "local"
-    )  # use 127.0.0.1:8786 for manual dask
+    )  # use 127.0.0.1:8786 for manual dask. You can also pass it a scheduler.json file
 
     # AWS S3 env vars
     awsS3BucketName = os.getenv("BLAZINGSQL_E2E_AWS_S3_BUCKET_NAME", "")

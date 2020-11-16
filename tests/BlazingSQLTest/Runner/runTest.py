@@ -275,6 +275,7 @@ def get_codTest(test_name):
         "Count without group by": "COUNTWOGRBY",
         "Cross join": "CROSSJOIN",
         "Date": "DATE",
+        "DayOfWeek": "DAYOFWEEK",
         "Dir": "DIR",
         "File System Google Storage": "FSGS",
         "Hdfs FileSystem": "FSHDFS",

@@ -8,10 +8,9 @@
 #ifndef BLAZINGTHREAD_H_
 #define BLAZINGTHREAD_H_
 
-#include "BlazingException.h"
 #include "BlazingExceptionHolder.h"
-#include <functional>
 #include <thread>
+#include <functional>
 
 class BlazingThread {
 public:
