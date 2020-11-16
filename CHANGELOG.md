@@ -23,6 +23,7 @@
 - #1132 Refactoring new comms 
 - #1078 Bump junit from 4.12 to 4.13.1 in /algebra
 - #1144 update with changes from main
+- #1156 Added scheduler file support for e2e testing framework
 - #1158 Deprecated bc.partition 
 
 
