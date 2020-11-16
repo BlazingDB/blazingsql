@@ -1,7 +1,5 @@
 #include "Context.h"
 #include <algorithm>
-#include <climits>
-#include <mutex>
 
 namespace blazingdb {
 namespace manager {

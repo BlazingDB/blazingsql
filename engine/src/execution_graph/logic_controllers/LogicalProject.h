@@ -1,12 +1,10 @@
 #pragma once
 
 #include <execution_graph/Context.h>
-
 #include "LogicPrimitives.h"
 #include "execution_graph/logic_controllers/BlazingColumn.h"
 
 namespace ral{
-
 namespace processor{
 
 std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
