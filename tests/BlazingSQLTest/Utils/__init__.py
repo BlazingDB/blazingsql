@@ -90,14 +90,22 @@ class LocalBlazingSQLCluster(LocalCUDACluster):
         return {worker_count: spec}
 
 
-def try_to_get_dask_client(n_workers, n_gpus):
+def try_to_get_dask_client(n_workers, n_gpus, iface):
     daskConnection = Settings.data["TestSettings"].get("daskConnection")
     if (daskConnection is not None) or (type(daskConnection) is not str):
         if n_gpus < 1:
             raise ValueError("n gpus must be at least 1")
         try:
             if daskConnection == "local":
-                cluster = LocalBlazingSQLCluster(n_gpus, n_workers=n_workers)
+                # cluster = LocalBlazingSQLCluster(n_gpus, n_workers=n_workers)
+                cluster = LocalBlazingSQLCluster(n_gpus,  n_workers=n_workers,
+                    interface=iface,
+                    protocol="ucx",
+                    enable_tcp_over_ucx=True,
+                    enable_infiniband=False,
+                    enable_nvlink=False,
+                    # asynchronous=True,
+                )
                 return Client(cluster)
             else:
                 return Client(daskConnection)
@@ -121,10 +129,11 @@ def init_context():
         bc = BlazingContext()
     else:
         os.chdir(Settings.data["TestSettings"]["logDirectory"])
-        dask_client = try_to_get_dask_client(nRals, nGpus)
+        iface = Settings.data["RunSettings"]["networkInterface"]
+        dask_client = try_to_get_dask_client(nRals, nGpus, iface)
         if dask_client is not None:
             dask_conn = Settings.data["TestSettings"]["daskConnection"]
-            iface = Settings.data["RunSettings"]["networkInterface"]
+            
             # print("Using dask: " + dask_conn)
             # if "local" != dask_conn:
 
@@ -134,9 +143,7 @@ def init_context():
                 # pool=True,
                 # initial_pool_size=300000000,
                 allocator="default",
-                config_options={
-                    "PROTOCOL":"TCP"
-                }
+                config_options={}
             )
         else:
             # Fallback: could not found a valid dask server
