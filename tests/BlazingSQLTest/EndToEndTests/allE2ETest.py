@@ -58,6 +58,7 @@ from EndToEndTests import useLimitTest
 from EndToEndTests import whereClauseTest as whereClauseTest
 from EndToEndTests import wildCardTest
 from EndToEndTests import messageValidationTest
+from EndToEndTests import loggingTest
 from EndToEndTests import dayOfWeekTest
 from pynvml import nvmlInit
 from Runner import runTest
@@ -249,6 +250,9 @@ def main():
 
         if runAllTests or ("fileSystemGSTest" in targetTestGroups):
             fileSystemGSTest.main(dask_client, drill, dir_data_file, bc, nRals)
+
+    if runAllTests or ("loggingTest" in targetTestGroups):
+        loggingTest.main(dask_client, dir_data_file, bc, nRals)
 
     # timestampdiffTest.main(dask_client, spark, dir_data_file, bc, nRals)
 

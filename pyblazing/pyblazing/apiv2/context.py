@@ -119,6 +119,22 @@ RelConversionExceptionClass = jpype.JClass(
 )
 
 
+def get_blazing_logger(is_dask):
+    """
+        Returns the corresponding logger according to the input flag.
+
+        Parameters
+        ----------
+
+        is_dask : bool, whether the logger is called from a dask environment
+        or locally as a client.
+    """
+    if is_dask:
+        return logging.getLogger(dask.distributed.get_worker().id)
+    else:
+        return logging.getLogger("blz_client")
+
+
 class blazing_allocation_mode(IntEnum):
     CudaDefaultAllocation = (0,)
     PoolAllocation = (1,)
@@ -138,16 +154,23 @@ def initializeBlazing(
     enable_logging=False,
     config_options={},
     logging_dir_path="blazing_log",
+    is_dask=False,
 ):
 
     last_str = '|%(levelname)s|||"%(message)s"||||||'
     FORMAT = "%(asctime)s|" + str(ralId) + last_str
     filename = os.path.join(logging_dir_path, "pyblazing." + str(ralId) + ".log")
-    logging.basicConfig(filename=filename, format=FORMAT, level=logging.INFO)
+    logger = get_blazing_logger(is_dask)
+    handler = logging.FileHandler(filename)
+    handler.setFormatter(logging.Formatter(FORMAT))
+    logger.addHandler(handler)
+    logger.setLevel(logging.INFO)
+    logger.propagate = False
+
     workerIp = ni.ifaddresses(networkInterface)[ni.AF_INET][0]["addr"]
     ralCommunicationPort = random.randint(10000, 32000) + ralId
 
-    logging.info("Worker IP: %s   Port: %d", workerIp, ralCommunicationPort)
+    logger.info("Worker IP: %s   Port: %d", workerIp, ralCommunicationPort)
 
     if not pool:
         initial_pool_size = 0
@@ -284,7 +307,7 @@ def generateGraphs(
                     "ERROR: collectPartitionsRunQuery should not be called "
                     + "with an input of dask_cudf.core.DataFrame"
                 )
-                logging.error(
+                get_blazing_logger(is_dask=True).error(
                     "collectPartitionsRunQuery should not be called "
                     + "with an input of dask_cudf.core.DataFrame"
                 )
@@ -706,6 +729,7 @@ def distributed_initialize_server_directory(client, dir_path):
                 client.submit(
                     initialize_server_directory,
                     dir_path,
+                    True,
                     workers=[worker_list[0]],
                     pure=False,
                 )
@@ -714,7 +738,7 @@ def distributed_initialize_server_directory(client, dir_path):
         for connection in dask_futures:
             made_dir = connection.result()
             if not made_dir:
-                logging.info("Directory already exists")
+                get_blazing_logger(is_dask=False).info("Directory already exists")
     else:
         # Let's get the current working directory of all workers
         dask_futures = []
@@ -745,6 +769,7 @@ def distributed_initialize_server_directory(client, dir_path):
                     client.submit(
                         initialize_server_directory,
                         dir_path,
+                        True,
                         workers=[worker_list[0]],
                         pure=False,
                     )
@@ -753,15 +778,17 @@ def distributed_initialize_server_directory(client, dir_path):
         for connection in dask_futures:
             made_dir = connection.result()
             if not made_dir:
-                logging.info("Directory already exists")
+                get_blazing_logger(is_dask=False).info("Directory already exists")
 
 
-def initialize_server_directory(dir_path):
+def initialize_server_directory(dir_path, is_dask):
     if not os.path.exists(dir_path):
         try:
             os.mkdir(dir_path)
         except OSError as error:
-            logging.error(f"Could not create directory: {dir_path}" + str(error))
+            get_blazing_logger(is_dask).error(
+                f"Could not create directory: {dir_path}" + str(error)
+            )
             raise
         return True
     else:
@@ -800,7 +827,12 @@ def kwargs_validation(kwargs, bc_api_str):
     # csv, parquet, orc, json params
     if bc_api_str == "create_table":
         full_kwargs = [
+            "local_files",
             "file_format",
+            "partitions",
+            "partitions_schema",
+            "hive_table_name",
+            "hive_database_name",
             "names",
             "dtype",
             "delimiter",
@@ -832,6 +864,7 @@ def kwargs_validation(kwargs, bc_api_str):
             "skiprows",
             "num_rows",
             "use_index",
+            "max_bytes_chunk_read",  # Used for reading CSV files in chunks
             "local_files",
         ]
         params_info = "https://docs.blazingdb.com/docs/create_table"
@@ -867,13 +900,13 @@ def kwargs_validation(kwargs, bc_api_str):
 
     for arg_i in kwargs.keys():
         if arg_i not in full_kwargs:
-            print(
-                "The parameter '"
+            raise Exception(
+                "ERROR: The parameter '"
                 + arg_i
                 + "' does not exists. Please make sure you are using the correct parameter:"
+                + "\nTo get the correct parameters, check:  "
+                + params_info
             )
-            print("To get the correct parameters, check:  " + params_info)
-            sys.exit()
 
 
 class BlazingTable(object):
@@ -1119,6 +1152,7 @@ def load_config_options_from_env(user_config_options: dict):
         "BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD": 0.75,
         "BLAZING_LOGGING_DIRECTORY": "blazing_log",
         "BLAZING_CACHE_DIRECTORY": "/tmp/",
+        "BLAZING_LOCAL_LOGGING_DIRECTORY": "blazing_log",
         "MEMORY_MONITOR_PERIOD": 50,
         "MAX_KERNEL_RUN_THREADS": 16,
         "MAX_SEND_MESSAGE_THREADS": 20,
@@ -1265,6 +1299,12 @@ class BlazingContext(object):
                     NOTE: This parameter only works when used in the
                     BlazingContext
                     default: '/tmp/'
+            BLAZING_LOCAL_LOGGING_DIRECTORY : A folder path to place the
+                    client logging file on a dask environment. The path can
+                    be relative or absolute.
+                    NOTE: This parameter only works when used in the
+                    BlazingContext
+                    default: 'blazing_log'
             MEMORY_MONITOR_PERIOD : How often the memory monitor checks memory
                     consumption. The value is in milliseconds.
                     default: 50  (milliseconds)
@@ -1334,18 +1374,24 @@ class BlazingContext(object):
         self.config_options = load_config_options_from_env(config_options)
 
         logging_dir_path = "blazing_log"
-        # want to use config_options and not self.config_options
-        # since its not encoded
         if "BLAZING_LOGGING_DIRECTORY".encode() in self.config_options:
+            print("found config")
             logging_dir_path = self.config_options[
                 "BLAZING_LOGGING_DIRECTORY".encode()
             ].decode()
+            print(logging_dir_path)
 
         cache_dir_path = "/tmp"  # default directory to store orc files
         if "BLAZING_CACHE_DIRECTORY".encode() in self.config_options:
             cache_dir_path = (
                 self.config_options["BLAZING_CACHE_DIRECTORY".encode()].decode() + "tmp"
             )
+
+        local_logging_dir_path = "blazing_log"
+        if "BLAZING_LOCAL_LOGGING_DIRECTORY".encode() in self.config_options:
+            local_logging_dir_path = self.config_options[
+                "BLAZING_LOCAL_LOGGING_DIRECTORY".encode()
+            ].decode()
 
         if dask_client == "autocheck":
             try:
@@ -1427,7 +1473,9 @@ class BlazingContext(object):
                         maximum_pool_size=maximum_pool_size,
                         enable_logging=enable_logging,
                         config_options=self.config_options,
+                        logging_dir_path=logging_dir_path,
                         workers=[worker],
+                        is_dask=True,
                     )
                 )
                 i = i + 1
@@ -1436,14 +1484,23 @@ class BlazingContext(object):
                 ralPort, ralIp, log_path = connection.result()
                 self.node_log_paths.add(log_path)
 
-            initialize_server_directory(logging_dir_path)
+            # need to initialize this logging independently, in case its set
+            # as a relative path and the location from where the python script
+            # is running is different than the local dask workers
+            initialize_server_directory(local_logging_dir_path, False)
             # this one is for the non dask side
             FORMAT = '%(asctime)s||%(levelname)s|||"%(message)s"||||||'
-            filename = os.path.join(logging_dir_path, "pyblazing.log")
-            logging.basicConfig(filename=filename, format=FORMAT, level=logging.INFO)
+            filename = os.path.join(local_logging_dir_path, "pyblazing.log")
+
+            logger = get_blazing_logger(is_dask=False)
+            local_handler = logging.FileHandler(filename)
+            local_handler.setFormatter(logging.Formatter(FORMAT))
+            logger.addHandler(local_handler)
+            logger.setLevel(logging.INFO)
+            logger.propagate = False
         else:
-            initialize_server_directory(logging_dir_path)
-            initialize_server_directory(cache_dir_path)
+            initialize_server_directory(logging_dir_path, False)
+            initialize_server_directory(cache_dir_path, False)
 
             node = {}
             node["worker"] = ""
@@ -1461,6 +1518,8 @@ class BlazingContext(object):
                 maximum_pool_size=maximum_pool_size,
                 enable_logging=enable_logging,
                 config_options=self.config_options,
+                logging_dir_path=logging_dir_path,
+                is_dask=False,
             )
             self.node_log_paths.add(log_path)
 
@@ -1801,7 +1860,7 @@ class BlazingContext(object):
 
         kwargs_validation(kwargs, "create_table")
 
-        logging.info("create_table start for " + table_name)
+        get_blazing_logger(is_dask=False).info("create_table start for " + table_name)
 
         table = None
         extra_kwargs = {}
@@ -1822,7 +1881,7 @@ class BlazingContext(object):
                  object of the form partitions={'col_nameA':[val, val],
                  'col_nameB':['str_val', 'str_val']}"""
             )
-            logging.error(
+            get_blazing_logger(is_dask=False).error(
                 """ERROR: User defined partitions should be a dictionary
                  object of the form partitions={'col_nameA':[val, val],
                   'col_nameB':['str_val', 'str_val']}"""
@@ -1840,7 +1899,7 @@ class BlazingContext(object):
                     + " was not. The parameter 'partitions_schema' is only"
                     + " to be used when defining 'partitions'"
                 )
-                logging.error(
+                get_blazing_logger(is_dask=False).error(
                     "ERROR: 'partitions_schema' was defined, but 'partitions'"
                     + " was not. The parameter 'partitions_schema' is only"
                     + " to be used when defining 'partitions'"
@@ -1855,7 +1914,7 @@ class BlazingContext(object):
                     + "partitions_schema="
                     + "[('col_nameA','int32','col_nameB','str')]"
                 )
-                logging.error(
+                get_blazing_logger(is_dask=False).error(
                     "ERROR: 'partitions_schema' should be a list of tuples of"
                     + " the column name and column type of the form "
                     + "partitions_schema="
@@ -1867,7 +1926,7 @@ class BlazingContext(object):
                     "ERROR: The number of columns in 'partitions' should be"
                     + " the same as 'partitions_schema'"
                 )
-                logging.error(
+                get_blazing_logger(is_dask=False).error(
                     "ERROR: The number of columns in 'partitions' should be"
                     + " the same as 'partitions_schema'"
                 )
@@ -1897,7 +1956,7 @@ class BlazingContext(object):
                     + str(hive_file_format_hint)
                     + "). Using user specified file_format"
                 )
-                logging.warning(
+                get_blazing_logger(is_dask=False).warning(
                     "WARNING: file_format specified ("
                     + str(file_format_hint)
                     + ") does not match the file_format infered by"
@@ -1918,7 +1977,7 @@ class BlazingContext(object):
                      the form partitions_schema=
                      [('col_nameA','int32','col_nameB','str')]"""
                 )
-                logging.error(
+                get_blazing_logger(is_dask=False).error(
                     """ERROR: When using 'partitions' without a Hive cursor,
                      you also need to set 'partitions_schema' which should be
                      a list of tuples of the column name and column type of
@@ -1938,7 +1997,7 @@ class BlazingContext(object):
                      the input needs to be a path to the base folder
                      of the partitioned data"""
                 )
-                logging.error(
+                get_blazing_logger(is_dask=False).error(
                     """ERROR: When using 'partitions' without a Hive cursor,
                      the input needs to be a path to the base folder
                      of the partitioned data"""
@@ -2052,7 +2111,7 @@ class BlazingContext(object):
                         """ERROR: number of hive_schema columns does not
                         match number of parsedSchema columns"""
                     )
-                    logging.error(
+                    get_blazing_logger(is_dask=False).error(
                         """ERROR: number of hive_schema columns does not
                         match number of parsedSchema columns"""
                     )
