@@ -6,7 +6,7 @@ from pynvml import nvmlInit
 from Runner import runTest
 from Utils import Execution, gpuMemory, init_context, skip_test
 
-queryType = "dayOfWeek"
+queryType = "DayOfWeek"
 
 
 def main(dask_client, spark, dir_data_file, bc, nRals):
