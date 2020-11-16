@@ -2600,7 +2600,9 @@ class BlazingContext(object):
     """
 
     def partition(self, input, by=[]):
-        print('This function has been Deprecated. It is recommended to use ddf.shuffle(on=[colnames])')
+        print(
+            "This function has been Deprecated. It is recommended to use ddf.shuffle(on=[colnames])"
+        )
 
     def sql(
         self,
