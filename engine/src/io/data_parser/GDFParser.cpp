@@ -33,7 +33,7 @@ std::unique_ptr<ral::frame::BlazingTable> gdf_parser::parse_batch(
 	indices.reserve(column_indices.size());
 	std::transform(
 		column_indices.cbegin(), column_indices.cend(), std::back_inserter(indices), [](std::size_t x) { return x; });
-	CudfTableView tableView = data_handle.table_view;
+	CudfTableView tableView = data_handle.table_view.view().select(indices);
 
 	if(tableView.num_columns() <= 0) {
 		Library::Logging::Logger().logWarn("gdf_parser::parse_batch no columns were read");
@@ -45,7 +45,7 @@ std::unique_ptr<ral::frame::BlazingTable> gdf_parser::parse_batch(
 	// we need to output the same column names of tableView
 	for (size_t i = 0; i < column_indices.size(); ++i) {
 		size_t idx = column_indices[i];
-		column_names_out[i] = blazingTableViews_[0].names()[idx];
+		column_names_out[i] = data_handle.table_view.names()[idx];
 	}
 
 	return std::make_unique<ral::frame::BlazingTable>(tableView, column_names_out);

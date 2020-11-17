@@ -9,6 +9,9 @@
 #define DATAPARSER_H_
 
 #include "../Schema.h"
+#include "../DataType.h"
+#include "../data_provider/DataProvider.h"
+
 #include "execution_graph/logic_controllers/LogicPrimitives.h"
 #include "arrow/io/interfaces.h"
 #include <memory>
@@ -38,6 +41,8 @@ public:
 	virtual std::unique_ptr<ral::frame::BlazingTable> get_metadata(std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, int offset) {
 		return nullptr;
 	}
+
+	virtual DataType type() const { return 	DataType::UNDEFINED; }
 };
 
 } /* namespace io */

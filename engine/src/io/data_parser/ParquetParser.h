@@ -8,8 +8,8 @@
 #ifndef PARQUETPARSER_H_
 #define PARQUETPARSER_H_
 
+#include "../data_provider/DataProvider.h"
 #include "DataParser.h"
-#include "DataProvider.h"
 #include "arrow/io/interfaces.h"
 #include <memory>
 #include <vector>
@@ -25,7 +25,7 @@ public:
 	virtual ~parquet_parser();
 
 	std::unique_ptr<ral::frame::BlazingTable> parse_batch(
-		ral::io::data_handle,
+		ral::io::data_handle handle,
 		const Schema & schema,
 		std::vector<int> column_indices,
 		std::vector<cudf::size_type> row_groups);
@@ -34,6 +34,7 @@ public:
 
 	std::unique_ptr<ral::frame::BlazingTable> get_metadata(std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, int offset);
 
+	DataType type() const override { return DataType::PARQUET; }
 };
 
 } /* namespace io */

@@ -88,6 +88,8 @@ public:
 
 	cudf::size_type num_rows() const { return table.num_rows(); }
 
+	unsigned long long sizeInBytes();
+
 	std::unique_ptr<BlazingTable> clone() const;
 
 private:

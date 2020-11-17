@@ -7,9 +7,10 @@
  * 2019 Percy Camilo Triveño Aucahuasi <percy@blazingsql.com>
  */
 
-#include "UriDataProvider.h"
+#include "GDFDataProvider.h"
 #include "Config/BlazingContext.h"
 #include "arrow/status.h"
+#include <blazingdb/io/FileSystem/Uri.h>
 #include <blazingdb/io/Util/StringUtil.h>
 
 using namespace fmt::literals;
@@ -17,16 +18,19 @@ using namespace fmt::literals;
 namespace ral {
 namespace io {
 
-gdf_data_provider::gdf_data_provider(std::vector<ral::frame::BlazingTableView> table_views)
-: table_views(table_views), current_file(0)
+gdf_data_provider::gdf_data_provider(std::vector<ral::frame::BlazingTableView> table_views, std::vector< std::map<std::string,std::string> > column_values)
+: table_views(table_views), current_file(0), column_values(column_values)
 {
 
 }
 
+size_t gdf_data_provider::get_num_handles(){
+	return table_views.size();
+}
 
 
 std::shared_ptr<data_provider> gdf_data_provider::clone() {
-	return std::make_shared<gdf_data_provider>(this->table_views);
+	return std::make_shared<gdf_data_provider>(this->table_views, this->column_values);
 }
 
 gdf_data_provider::~gdf_data_provider() {
@@ -59,7 +63,7 @@ std::vector<data_handle> gdf_data_provider::get_some(std::size_t num_files, bool
 
 data_handle gdf_data_provider::get_next(bool open_file) {
 	
-	data_handle handle(nullptr,column_values,"gdf",table_views(current_file));
+	data_handle handle(nullptr,column_values[current_file],Uri("gdf"),table_views[current_file]);
 	current_file++;
 	return handle;
 	

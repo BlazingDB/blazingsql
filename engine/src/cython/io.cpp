@@ -63,8 +63,8 @@ TableSchema parseSchema(std::vector<std::string> files,
 		bool got_schema = false;
 		while (!got_schema && provider->has_next()){
 			ral::io::data_handle handle = provider->get_next();
-			if (handle.fileHandle != nullptr){
-				parser->parse_schema(handle.fileHandle, schema);
+			if (handle.file_handle != nullptr){
+				parser->parse_schema(handle.file_handle, schema);
 				if (schema.get_num_columns() > 0){
 					got_schema = true;
 					schema.add_file(handle.uri.toString(true));

@@ -36,8 +36,18 @@ struct data_handle {
 	std::map<std::string, std::string> column_values;  // allows us to add hive values
 	Uri uri;										  // in case the data was loaded from a file
 	frame::BlazingTableView table_view;
+	data_handle(){}
+	data_handle(
+		std::shared_ptr<arrow::io::RandomAccessFile> file_handle,
+		std::map<std::string, std::string> column_values,
+		Uri uri,										 
+		frame::BlazingTableView table_view) 
+	: file_handle(file_handle), column_values(column_values), uri(uri), table_view(table_view) {
+
+	}
+
 	bool is_valid(){
-		return fileHandle != nullptr || !uri.isEmpty() ;
+		return file_handle != nullptr || !uri.isEmpty() ;
 	}
 };
 
@@ -63,10 +73,6 @@ public:
 	 * gets us the next arrow::io::RandomAccessFile
 	 */
 	virtual data_handle get_next(bool open_file = true) = 0;
-	/**
-	 * gets any errors that occured while opening the files
-	 */
-	virtual std::vector<std::string> get_errors() = 0;
 
 	/**
 	 * Tries to get up to num_files data_handles. We use this instead of a get_all() because if there are too many files, 
@@ -79,7 +85,12 @@ public:
 	 */
 	virtual void close_file_handles() = 0;
 
-private:
+	/**
+	 * Get the number of data_handles that will be provided. 
+	 */ 
+	virtual size_t get_num_handles() = 0;
+
+
 };
 
 } /* namespace io */

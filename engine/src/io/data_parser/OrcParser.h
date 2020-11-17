@@ -2,7 +2,7 @@
 #define ORCPARSER_H_
 
 #include "DataParser.h"
-#include "DataProvider.h"
+
 #include "arrow/io/interfaces.h"
 #include <memory>
 #include <vector>
@@ -28,6 +28,8 @@ public:
 		std::vector<cudf::size_type> row_groups);
 
 	void parse_schema(std::shared_ptr<arrow::io::RandomAccessFile> file, Schema & schema);
+
+	DataType type() const override { return DataType::ORC; }
 
 private:
 	std::map<std::string, std::string> args_map;

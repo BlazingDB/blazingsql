@@ -5,13 +5,14 @@
  *      Author: felipe
  */
 
-#ifndef URIDATAPROVIDER_H_
-#define URIDATAPROVIDER_H_
+#ifndef GDFDATAPROVIDER_H_
+#define GDFDATAPROVIDER_H_
 
 #include "DataProvider.h"
 #include <arrow/io/interfaces.h>
 #include <blazingdb/io/FileSystem/Uri.h>
 #include <vector>
+#include <map>
 
 #include <memory>
 
@@ -25,7 +26,7 @@ namespace io {
 class gdf_data_provider : public data_provider {
 public:
 
-	gdf_data_provider(std::vector<ral::frame::BlazingTableView> table_views);
+	gdf_data_provider(std::vector<ral::frame::BlazingTableView> table_views, std::vector<std::map<std::string,std::string> > column_values);
 
 	std::shared_ptr<data_provider> clone() override; 
 
@@ -61,6 +62,7 @@ public:
 	 */
 	void close_file_handles();
 
+	size_t get_num_handles();
 
 private:
 	
@@ -69,10 +71,10 @@ private:
 	 * stores an index to the current file being used
 	 */
 	size_t current_file;
-	
+	std::vector< std::map<std::string,std::string> > column_values;
 };
 
 } /* namespace io */
 } /* namespace ral */
 
-#endif /* URIDATAPROVIDER_H_ */
+#endif /* GDFDATAPROVIDER_H_ */

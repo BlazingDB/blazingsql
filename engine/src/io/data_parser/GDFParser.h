@@ -15,7 +15,7 @@ namespace io {
 
 class gdf_parser : public data_parser {
 public:
-	gdf_parser(std::vector<frame::BlazingTableView> blazingTableViews);
+	gdf_parser();
 
 	size_t get_num_partitions();
 
@@ -29,8 +29,10 @@ public:
 
 	void parse_schema(std::shared_ptr<arrow::io::RandomAccessFile> file, ral::io::Schema & schema);
 
+	DataType type() const override { return DataType::CUDF; }
+
 private:
-	std::vector<frame::BlazingTableView> blazingTableViews_;
+
 };
 
 } /* namespace io */

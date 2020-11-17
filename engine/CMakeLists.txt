@@ -91,7 +91,7 @@ endif(CMAKE_CUDA_LINEINFO)
 # Debug options
 if(CMAKE_BUILD_TYPE MATCHES Debug)
     message(STATUS "Building with debugging flags")
-    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -G -Xcompiler -rdynamic")
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -G -g -Xcompiler -rdynamic")
 endif(CMAKE_BUILD_TYPE MATCHES Debug)
 
 # To apply RUNPATH to transitive dependencies (this is a temporary solution)
@@ -182,6 +182,12 @@ find_package(PythonLibs)
 
 find_package(GTest REQUIRED)
 
+# BEGIN UCX
+set(UCX_INSTALL_DIR $ENV{CONDA_PREFIX})
+set(UCX_INCLUDE_DIR $ENV{CONDA_PREFIX}/include)
+find_package(UCX REQUIRED)
+# END UCX
+
 # BEGIN find arrow
 find_path(ARROW_INCLUDE_DIR "arrow" HINTS "$ENV{ARROW_ROOT}/include")
 find_library(ARROW_LIB "arrow" NAMES libarrow HINTS "$ENV{ARROW_ROOT}/lib" "$ENV{ARROW_ROOT}/build")
@@ -233,10 +239,6 @@ include_directories(
     "${ARROW_INCLUDE_DIR}"
     )
 
-## communication primitives
-add_subdirectory(${CMAKE_SOURCE_DIR}/src/communication)
-get_directory_property(communication_source_files DIRECTORY ${CMAKE_SOURCE_DIR}/src/communication DEFINITION source_files)
-
 ## Target source files
 set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingHostTable.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/CacheMachine.cpp
@@ -247,6 +249,7 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingH
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/port.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/kernel.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/kernel_type.cpp
+              ${CMAKE_SOURCE_DIR}/src/bmr/MemoryMonitor.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/graph.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BatchJoinProcessing.cpp
               ${CMAKE_SOURCE_DIR}/src/config/GPUManager.cu
@@ -264,7 +267,6 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingH
               ${CMAKE_SOURCE_DIR}/src/io/data_parser/ArgsUtil.cpp
               ${CMAKE_SOURCE_DIR}/src/io/data_parser/metadata/parquet_metadata.cpp
               ${CMAKE_SOURCE_DIR}/src/utilities/CommonOperations.cpp
-              ${CMAKE_SOURCE_DIR}/src/utilities/StringUtils.cpp
               ${CMAKE_SOURCE_DIR}/src/utilities/scalar_timestamp_parser.cpp
               ${CMAKE_SOURCE_DIR}/src/utilities/DebuggingUtils.cpp
               ${CMAKE_SOURCE_DIR}/src/utilities/transform.cu
@@ -281,10 +283,19 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingH
               ${CMAKE_SOURCE_DIR}/src/cython/io.cpp
               ${CMAKE_SOURCE_DIR}/src/cython/errors.cpp
               ${CMAKE_SOURCE_DIR}/src/cython/engine.cpp
-              ${CMAKE_SOURCE_DIR}/src/communication/messages/GPUComponentMessage.cpp
               ${CMAKE_SOURCE_DIR}/src/distribution/primitives.cpp
-              ${CMAKE_SOURCE_DIR}/src/bmr/MemoryMonitor.cpp
-              ${communication_source_files}
+
+              ${CMAKE_SOURCE_DIR}/src/communication/factory/MessageFactory.cpp
+              ${CMAKE_SOURCE_DIR}/src/communication/CommunicationData.cpp
+              ${CMAKE_SOURCE_DIR}/src/communication/messages/MessageUtil.cu
+              ${CMAKE_SOURCE_DIR}/src/communication/messages/GPUComponentMessage.cpp
+              ${CMAKE_SOURCE_DIR}/src/communication/CommunicationInterface/serializer.cpp
+              ${CMAKE_SOURCE_DIR}/src/communication/CommunicationInterface/node.cpp
+              ${CMAKE_SOURCE_DIR}/src/communication/CommunicationInterface/messageReceiver.cpp
+              ${CMAKE_SOURCE_DIR}/src/communication/CommunicationInterface/messageListener.cpp
+              ${CMAKE_SOURCE_DIR}/src/communication/CommunicationInterface/bufferTransport.cpp
+              ${CMAKE_SOURCE_DIR}/src/communication/CommunicationInterface/protocols.cpp
+              ${CMAKE_SOURCE_DIR}/src/communication/CommunicationInterface/messageSender.cpp
         )
 
 link_directories(${BSQL_BLD_PREFIX}/lib)
@@ -331,6 +342,8 @@ target_link_libraries(blazingsql-engine
     zmq
     cudart
 
+    ${UCX_LIBRARIES}
+
     parquet
     arrow
     snappy
@@ -359,6 +372,7 @@ target_link_libraries(blazingsql-engine
 
 ###################################################################################################
 # - build options ---------------------------------------------------------------------------------
+set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --default-stream=per-thread")
 
 option(USE_NVTX "Build with NVTX support" ON)
 if(USE_NVTX)
@@ -399,6 +413,7 @@ endif()
 
 
 include(ConfigureProductVersion)
+message(STATUS "cmake_cuda_flags = ${CMAKE_CUDA_FLAGS}")
 
 # Print the project summary
 feature_summary(WHAT ALL INCLUDE_QUIET_PACKAGES FATAL_ON_MISSING_REQUIRED_PACKAGES)

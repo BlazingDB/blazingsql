@@ -124,7 +124,7 @@ std::unique_ptr<ral::frame::BlazingHostTable> serialize_gpu_message_to_host_tabl
 		std::basic_string<char> buffer;
 		buffer.resize(buffer_sizes[index]);
 		int currentDeviceId = 0; // TODO: CHECK device_id
-		cudaSetDevice(currentDeviceId);
+		// cudaSetDevice(currentDeviceId);
 		cudaMemcpy((void *)buffer.data(), raw_buffers[index], buffer_sizes[index], cudaMemcpyHostToHost);
 		cpu_raw_buffers.emplace_back(buffer);
 	}
@@ -181,21 +181,6 @@ auto deserialize_from_gpu_raw_buffers(const std::vector<ColumnTransport> & colum
 	return std::make_unique<ral::frame::BlazingTable>(std::move(unique_table), column_names);
 }
 
-std::shared_ptr<ReceivedMessage> deserialize_from_gpu(const MessageMetadata & message_metadata,
-		const Address::MetaData & address_metadata,
-		const std::vector<ColumnTransport> & columns_offsets,
-		const std::vector<rmm::device_buffer> & raw_buffers) {
-
-	auto node = Node(Address::TCP(address_metadata.ip, address_metadata.comunication_port, address_metadata.protocol_port));
-
-	auto received_table = deserialize_from_gpu_raw_buffers(columns_offsets, raw_buffers);
-
-    return std::make_shared<ReceivedDeviceMessage>(message_metadata.messageToken,
-        message_metadata.contextToken,
-        node,
-        std::move(received_table),
-        message_metadata.total_row_size);
-}
 
 //TODO: get column size_in_bytes
 std::unique_ptr<ral::frame::BlazingTable> deserialize_from_cpu(const ral::frame::BlazingHostTable* host_table){
@@ -205,8 +190,8 @@ std::unique_ptr<ral::frame::BlazingTable> deserialize_from_cpu(const ral::frame:
 		for(int index = 0; index < raw_buffers.size(); ++index) {
 				auto buffer_sz = raw_buffers[index].size();
 				rmm::device_buffer dev_buffer(buffer_sz);
-				int currentDeviceId = 0; // TODO: CHECK device_id
-				cudaSetDevice(currentDeviceId);
+				//int currentDeviceId = 0; // TODO: CHECK device_id
+				//cudaSetDevice(currentDeviceId);
 				cudaMemcpy((void *)dev_buffer.data(),
 					(const void *) raw_buffers[index].data(),
 					buffer_sz,

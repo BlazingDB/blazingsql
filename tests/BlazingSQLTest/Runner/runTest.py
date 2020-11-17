@@ -8,6 +8,7 @@ import re
 import time
 
 import blazingsql
+from blazingsql import DataType
 
 # import git
 import numpy as np
@@ -113,6 +114,17 @@ def compare_results(pdf1, pdf2, acceptable_difference, use_percentage, engine):
 
     if pdf1.size == 0 and pdf2.size == 0:
         return "Success"
+
+    msg = ""
+    if not isinstance(engine, str):
+        if isinstance(engine, PyDrill):
+            msg = "PyDrill"
+        else:
+            msg = "PySpark"
+    elif engine=="drill":
+        msg = "PyDrill"
+    else:
+        msg = "PySpark"
 
     msg = ""
     if not isinstance(engine, str):
@@ -691,7 +703,7 @@ def create_summary_detail(df, no_color):
     pd.set_option("display.max_columns", None)
     pd.set_option("display.width", 2000)
     pd.set_option("display.float_format", "{:20,.2f}".format)
-    pd.set_option("display.max_colwidth", -1)
+    pd.set_option("display.max_colwidth", None)
     print(
         pdf_fail.groupby(["TestGroup", "InputType", "Result"])["TestId"]
         .apply(",".join)
@@ -1357,6 +1369,7 @@ def run_query(
     input_type,
     **kwargs
 ):
+    print(query)
 
     query_spark = kwargs.get("query_spark", query)
 
@@ -1662,6 +1675,37 @@ def run_query(
                     query, queryId, queryType, result_gdf.error_message
                 )
 
+def run_query_log(
+    bc,
+    query,
+    queryId,
+    queryType,
+    **kwargs
+):
+    result_gdf = None
+    error_message = ""
+    message_validation = ""
+
+    try:
+        result_gdf = bc.log(query)
+    except Exception as e:
+        error_message=str(e)
+
+    if result_gdf is not None:
+        if result_gdf.columns is not None:
+            # FOR DASK CUDF
+            import dask_cudf
+
+            if type(result_gdf) is dask_cudf.core.DataFrame:
+                result_gdf = result_gdf.compute()
+
+            print_query_results2(
+                query, queryId, DataType.CUDF, queryType, error_message, message_validation
+            )
+    else:
+        print_query_results2(
+            query, queryId, DataType.CUDF, queryType, error_message, message_validation
+        )
 
 def run_query_performance(
     bc,

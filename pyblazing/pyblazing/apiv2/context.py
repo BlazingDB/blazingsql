@@ -1,18 +1,25 @@
 # NOTE WARNING NEVER CHANGE THIS FIRST LINE!!!! NEVER EVER
 import cudf
 
+
+from cudf.core.column.column import build_column
+from dask.distributed import get_worker
+
+
 from collections import OrderedDict
 
 from urllib.parse import urlparse
 
 from threading import Lock
 from weakref import ref
+import asyncio
 from pyblazing.apiv2.filesystem import FileSystem
 from pyblazing.apiv2 import DataType
+from pyblazing.apiv2.comms import listen
+from pyblazing.apiv2.algebra import get_json_plan
 
 import json
 import collections
-
 from pyhive import hive
 from .hive import (
     convertTypeNameStrToCudfType,
@@ -86,7 +93,8 @@ if not os.path.isfile(jvm_path):
             + "/default/libjvm.so"
         )
 
-jpype.startJVM("-ea", convertStrings=False, jvmpath=jvm_path)
+# jpype.startJVM("-ea", convertStrings=False, jvmpath=jvm_path)
+jpype.startJVM()
 
 ArrayClass = jpype.JClass("java.util.ArrayList")
 ColumnTypeClass = jpype.JClass(
@@ -111,21 +119,20 @@ RelConversionExceptionClass = jpype.JClass(
 )
 
 
-def checkSocket(socketNum):
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    socket_free = False
-    try:
-        s.bind(("127.0.0.1", socketNum))
-        socket_free = True
-    except socket.error as e:
-        if e.errno == errno.EADDRINUSE:
-            socket_free = False
-        else:
-            # something else raised the socket.error exception
-            print("ERROR: Something happened when checking socket " + str(socketNum))
-    s.close()
-    return socket_free
+def get_blazing_logger(is_dask):
+    """
+        Returns the corresponding logger according to the input flag.
+
+        Parameters
+        ----------
+
+        is_dask : bool, whether the logger is called from a dask environment
+        or locally as a client.
+    """
+    if is_dask:
+        return logging.getLogger(dask.distributed.get_worker().id)
+    else:
+        return logging.getLogger("blz_client")
 
 
 class blazing_allocation_mode(IntEnum):
@@ -136,37 +143,42 @@ class blazing_allocation_mode(IntEnum):
 
 def initializeBlazing(
     ralId=0,
+    worker_id="",
     networkInterface="lo",
     singleNode=False,
-    allocator="managed",
-    pool=False,
+    nodes=[],
+    allocator="default",
+    pool=True,
     initial_pool_size=None,
     maximum_pool_size=None,
     enable_logging=False,
     config_options={},
     logging_dir_path="blazing_log",
+    is_dask=False,
 ):
+
     last_str = '|%(levelname)s|||"%(message)s"||||||'
     FORMAT = "%(asctime)s|" + str(ralId) + last_str
     filename = os.path.join(logging_dir_path, "pyblazing." + str(ralId) + ".log")
-    logging.basicConfig(filename=filename, format=FORMAT, level=logging.INFO)
+    logger = get_blazing_logger(is_dask)
+    handler = logging.FileHandler(filename)
+    handler.setFormatter(logging.Formatter(FORMAT))
+    logger.addHandler(handler)
+    logger.setLevel(logging.INFO)
+    logger.propagate = False
+
     workerIp = ni.ifaddresses(networkInterface)[ni.AF_INET][0]["addr"]
     ralCommunicationPort = random.randint(10000, 32000) + ralId
 
-    logging.info("Worker IP: %s   Port: %d", workerIp, ralCommunicationPort)
-
-    while checkSocket(ralCommunicationPort) is False:
-        ralCommunicationPort = random.randint(10000, 32000) + ralId
+    logger.info("Worker IP: %s   Port: %d", workerIp, ralCommunicationPort)
 
     if not pool:
         initial_pool_size = 0
         maximum_pool_size = 0
     elif pool and initial_pool_size is None:
         initial_pool_size = 0
-    elif pool and initial_pool_size == 0:
-        initial_pool_size = 1
 
-    if maximum_pool_size is None:
+    if maximum_pool_size is None or maximum_pool_size == 0:
         maximum_pool_size = 0
     elif maximum_pool_size < initial_pool_size:
         maximum_pool_size = initial_pool_size
@@ -179,6 +191,7 @@ def initializeBlazing(
         "managed_memory_resource",
         "pool_memory_resource",
         "managed_pool_memory_resource",
+        "arena_memory_resource",
     ]
     if allocator not in possible_allocators:
         print(
@@ -198,12 +211,33 @@ def initializeBlazing(
     elif pool and allocator == "managed":
         allocator = "managed_pool_memory_resource"
 
-    cio.initializeCaller(
+    import ucp.core as ucp_core
+
+    workers_ucp_info = []
+    self_port = 0
+    if singleNode is False:
+        worker = dask.distributed.get_worker()
+        for dask_addr in worker.ucx_addresses:
+            other_worker = worker.ucx_addresses[dask_addr]
+            workers_ucp_info.append(
+                {
+                    "worker_id": dask_addr.encode(),
+                    "ip": other_worker["ip"].encode(),
+                    "port": other_worker["port"],
+                    "ep_handle": 0,
+                    "worker_handle": 0,
+                    "context_handle": ucp_core._get_ctx().context.handle,
+                }
+            )
+        self_port = worker.ucx_addresses[worker_id]["port"]
+
+    output_cache, input_cache, self_port = cio.initializeCaller(
         ralId,
+        worker_id.encode(),
         0,
         networkInterface.encode(),
-        workerIp.encode(),
-        ralCommunicationPort,
+        self_port,
+        workers_ucp_info,
         singleNode,
         config_options,
         allocator.encode(),
@@ -211,13 +245,15 @@ def initializeBlazing(
         maximum_pool_size,
         enable_logging,
     )
+    if singleNode is False:
+        worker.output_cache = output_cache
+        worker.input_cache = input_cache
 
     if os.path.isabs(logging_dir_path):
         log_path = logging_dir_path
     else:
         log_path = os.path.join(os.getcwd(), logging_dir_path)
-
-    return ralCommunicationPort, workerIp, log_path
+    return self_port, ni.ifaddresses(networkInterface)[ni.AF_INET][0]["addr"], log_path
 
 
 def getNodePartitionKeys(df, client):
@@ -245,7 +281,7 @@ def get_element(query_partid):
     return df
 
 
-def collectPartitionsRunQuery(
+def generateGraphs(
     masterIndex,
     nodes,
     tables,
@@ -255,6 +291,7 @@ def collectPartitionsRunQuery(
     algebra,
     accessToken,
     config_options,
+    sql,
     single_gpu=False,
 ):
 
@@ -270,7 +307,7 @@ def collectPartitionsRunQuery(
                     "ERROR: collectPartitionsRunQuery should not be called "
                     + "with an input of dask_cudf.core.DataFrame"
                 )
-                logging.error(
+                get_blazing_logger(is_dask=True).error(
                     "collectPartitionsRunQuery should not be called "
                     + "with an input of dask_cudf.core.DataFrame"
                 )
@@ -284,9 +321,9 @@ def collectPartitionsRunQuery(
                     tables[table_index].input.append(worker.data[key])
 
     try:
-        dfs = cio.runQueryCaller(
+        graph = cio.runGenerateGraphCaller(
             masterIndex,
-            nodes,
+            worker.ucx_addresses.keys(),
             tables,
             table_scans,
             fileTypes,
@@ -294,18 +331,31 @@ def collectPartitionsRunQuery(
             algebra,
             accessToken,
             config_options,
-            is_single_node=False,
+            sql,
         )
-    except cio.RunQueryError as e:
-        print(">>>>>>>> ", e)
-        raise e
+        graph.set_input_and_output_caches(worker.input_cache, worker.output_cache)
     except Exception as e:
         raise e
 
-    meta = dask.dataframe.utils.make_meta(dfs[0])
-    query_partids = []
-
     with worker._lock:
+        if not hasattr(worker, "query_graphs"):
+            worker.query_graphs = {}
+
+    worker.query_graphs[ctxToken] = graph
+
+
+def executeGraph(ctxToken):
+    import dask.distributed
+
+    worker = dask.distributed.get_worker()
+
+    graph = worker.query_graphs[ctxToken]
+    del worker.query_graphs[ctxToken]
+    with worker._lock:
+        dfs = cio.runExecuteGraphCaller(graph, ctxToken, is_single_node=False)
+        meta = dask.dataframe.utils.make_meta(dfs[0])
+        query_partids = []
+
         if not hasattr(worker, "query_parts"):
             worker.query_parts = {}
 
@@ -599,88 +649,6 @@ def mergeMetadata(curr_table, fileMetadata, hiveMetadata):
     return result
 
 
-def is_double_children(expr):
-    return "LogicalJoin" in expr or "LogicalUnion" in expr
-
-
-def visit(lines):
-    stack = collections.deque()
-    root_level = 0
-    dicc = {"expr": lines[root_level][1], "children": []}
-    processed = set()
-    for index in range(len(lines)):
-        child_level, expr = lines[index]
-        if child_level == root_level + 1:
-            new_dicc = {"expr": expr, "children": []}
-            if len(dicc["children"]) == 0:
-                dicc["children"] = [new_dicc]
-            else:
-                dicc["children"].append(new_dicc)
-            stack.append((index, child_level, expr, new_dicc))
-            processed.add(index)
-
-    for index in processed:
-        lines[index][0] = -1
-
-    while len(stack) > 0:
-        curr_index, curr_level, curr_expr, curr_dicc = stack.pop()
-        processed = set()
-
-        if curr_index < len(lines) - 1:  # is brother
-            child_level, expr = lines[curr_index + 1]
-            if child_level == curr_level:
-                continue
-            elif child_level == curr_level + 1:
-                index = curr_index + 1
-                if is_double_children(curr_expr):
-                    while index < len(lines) and len(curr_dicc["children"]) < 2:
-                        child_level, expr = lines[index]
-                        if child_level == curr_level + 1:
-                            new_dicc = {"expr": expr, "children": []}
-                            if len(curr_dicc["children"]) == 0:
-                                curr_dicc["children"] = [new_dicc]
-                            else:
-                                curr_dicc["children"].append(new_dicc)
-                            processed.add(index)
-                            stack.append((index, child_level, expr, new_dicc))
-                        index += 1
-                else:
-                    while index < len(lines) and len(curr_dicc["children"]) < 1:
-                        child_level, expr = lines[index]
-                        if child_level == curr_level + 1:
-                            new_dicc = {"expr": expr, "children": []}
-                            if len(curr_dicc["children"]) == 0:
-                                curr_dicc["children"] = [new_dicc]
-                            else:
-                                curr_dicc["children"].append(new_dicc)
-                            processed.add(index)
-                            stack.append((index, child_level, expr, new_dicc))
-                        index += 1
-
-        for index in processed:
-            lines[index][0] = -1
-    return json.dumps(dicc)
-
-
-def get_plan(algebra):
-    lines = algebra.split("\n")
-    for i in range(len(lines) - 1):
-        lstrip_ = lines[i].lstrip()
-        index = len(lines[i]) - len(lstrip_)
-        lines[i] = ("\t" * (index // 2)) + lstrip_
-
-    # algebra plan was provided and only contains one-line as logical plan
-    if len(lines) == 1:
-        algebra += "\n"
-        lines = algebra.split("\n")
-    new_lines = []
-    for i in range(len(lines) - 1):
-        line = lines[i]
-        level = line.count("\t")
-        new_lines.append([level, line.replace("\t", "")])
-    return visit(new_lines)
-
-
 def resolve_relative_path(files):
     files_out = []
     for file in files:
@@ -761,6 +729,7 @@ def distributed_initialize_server_directory(client, dir_path):
                 client.submit(
                     initialize_server_directory,
                     dir_path,
+                    True,
                     workers=[worker_list[0]],
                     pure=False,
                 )
@@ -769,7 +738,7 @@ def distributed_initialize_server_directory(client, dir_path):
         for connection in dask_futures:
             made_dir = connection.result()
             if not made_dir:
-                logging.info("Directory already exists")
+                get_blazing_logger(is_dask=False).info("Directory already exists")
     else:
         # Let's get the current working directory of all workers
         dask_futures = []
@@ -800,6 +769,7 @@ def distributed_initialize_server_directory(client, dir_path):
                     client.submit(
                         initialize_server_directory,
                         dir_path,
+                        True,
                         workers=[worker_list[0]],
                         pure=False,
                     )
@@ -808,19 +778,21 @@ def distributed_initialize_server_directory(client, dir_path):
         for connection in dask_futures:
             made_dir = connection.result()
             if not made_dir:
-                logging.info("Directory already exists")
+                get_blazing_logger(is_dask=False).info("Directory already exists")
 
 
-def initialize_server_directory(dir_path):
+def initialize_server_directory(dir_path, is_dask):
     if not os.path.exists(dir_path):
         try:
             os.mkdir(dir_path)
         except OSError as error:
-            logging.error("Could not create directory: " + str(error))
+            get_blazing_logger(is_dask).error(
+                f"Could not create directory: {dir_path}" + str(error)
+            )
             raise
         return True
     else:
-        return False
+        return True
 
 
 def get_current_directory_path():
@@ -855,7 +827,12 @@ def kwargs_validation(kwargs, bc_api_str):
     # csv, parquet, orc, json params
     if bc_api_str == "create_table":
         full_kwargs = [
+            "local_files",
             "file_format",
+            "partitions",
+            "partitions_schema",
+            "hive_table_name",
+            "hive_database_name",
             "names",
             "dtype",
             "delimiter",
@@ -887,6 +864,8 @@ def kwargs_validation(kwargs, bc_api_str):
             "skiprows",
             "num_rows",
             "use_index",
+            "max_bytes_chunk_read",  # Used for reading CSV files in chunks
+            "local_files",
         ]
         params_info = "https://docs.blazingdb.com/docs/create_table"
 
@@ -921,13 +900,13 @@ def kwargs_validation(kwargs, bc_api_str):
 
     for arg_i in kwargs.keys():
         if arg_i not in full_kwargs:
-            print(
-                "The parameter '"
+            raise Exception(
+                "ERROR: The parameter '"
                 + arg_i
                 + "' does not exists. Please make sure you are using the correct parameter:"
+                + "\nTo get the correct parameters, check:  "
+                + params_info
             )
-            print("To get the correct parameters, check:  " + params_info)
-            sys.exit()
 
 
 class BlazingTable(object):
@@ -1173,6 +1152,7 @@ def load_config_options_from_env(user_config_options: dict):
         "BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD": 0.75,
         "BLAZING_LOGGING_DIRECTORY": "blazing_log",
         "BLAZING_CACHE_DIRECTORY": "/tmp/",
+        "BLAZING_LOCAL_LOGGING_DIRECTORY": "blazing_log",
         "MEMORY_MONITOR_PERIOD": 50,
         "MAX_KERNEL_RUN_THREADS": 16,
         "MAX_SEND_MESSAGE_THREADS": 20,
@@ -1216,7 +1196,7 @@ class BlazingContext(object):
         self,
         dask_client="autocheck",
         network_interface=None,
-        allocator="managed",
+        allocator="default",
         pool=False,
         initial_pool_size=None,
         maximum_pool_size=None,
@@ -1287,10 +1267,6 @@ class BlazingContext(object):
             MAX_DATA_LOAD_CONCAT_CACHE_BYTE_SIZE : The max size in bytes to
                     concatenate the batches read from the scan kernels
                     default: 400000000
-            FLOW_CONTROL_BYTES_THRESHOLD: If an output cache surpasses this
-                    value in bytes, the kernel will try to stop
-                    execution until the output cache contains less.
-                    default: max size_t (makes it not applicable)
             ORDER_BY_SAMPLES_RATIO : The ratio to multiply the estimated total
                     number of rows in the SortAndSampleKernel to calculate
                     the number of samples
@@ -1323,6 +1299,12 @@ class BlazingContext(object):
                     NOTE: This parameter only works when used in the
                     BlazingContext
                     default: '/tmp/'
+            BLAZING_LOCAL_LOGGING_DIRECTORY : A folder path to place the
+                    client logging file on a dask environment. The path can
+                    be relative or absolute.
+                    NOTE: This parameter only works when used in the
+                    BlazingContext
+                    default: 'blazing_log'
             MEMORY_MONITOR_PERIOD : How often the memory monitor checks memory
                     consumption. The value is in milliseconds.
                     default: 50  (milliseconds)
@@ -1392,14 +1374,22 @@ class BlazingContext(object):
         self.config_options = load_config_options_from_env(config_options)
 
         logging_dir_path = "blazing_log"
-        # want to use config_options and not self.config_options
-        # since its not encoded
-        if "BLAZING_LOGGING_DIRECTORY" in self.config_options:
-            logging_dir_path = config_options["BLAZING_LOGGING_DIRECTORY"]
+        if "BLAZING_LOGGING_DIRECTORY".encode() in self.config_options:
+            logging_dir_path = self.config_options[
+                "BLAZING_LOGGING_DIRECTORY".encode()
+            ].decode()
 
         cache_dir_path = "/tmp"  # default directory to store orc files
-        if "BLAZING_CACHE_DIRECTORY" in self.config_options:
-            cache_dir_path = config_options["BLAZING_CACHE_DIRECTORY"] + "tmp"
+        if "BLAZING_CACHE_DIRECTORY".encode() in self.config_options:
+            cache_dir_path = (
+                self.config_options["BLAZING_CACHE_DIRECTORY".encode()].decode() + "tmp"
+            )
+
+        local_logging_dir_path = "blazing_log"
+        if "BLAZING_LOCAL_LOGGING_DIRECTORY".encode() in self.config_options:
+            local_logging_dir_path = self.config_options[
+                "BLAZING_LOCAL_LOGGING_DIRECTORY".encode()
+            ].decode()
 
         if dask_client == "autocheck":
             try:
@@ -1438,82 +1428,96 @@ class BlazingContext(object):
                 if network_interface is None:
                     network_interface = "eth0"
 
-            worker_list = []
             dask_futures = []
             i = 0
-
-            if "BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD" in config_options:
-                host_memory_quota = float(
-                    self.config_options["BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD".encode()]
-                )
 
             # If all workers are on the same machine, the memory threshold is
             # split between the workers, here we are assuming that there are
             # the same number of GPUs/workers per server.
             workers_info = self.dask_client.scheduler_info()["workers"]
+            if len(workers_info) == 0:
+                raise Exception("No workers registered on the scheduler")
+
             host_list = [value["host"] for key, value in workers_info.items()]
             self.config_options["BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD".encode()] = str(
                 host_memory_quota * len(set(host_list)) / len(workers_info)
             ).encode()
+            # Start listener on each worker to send received messages to router
+            worker_maps = listen(self.dask_client, network_interface=network_interface)
+            workers = list(self.dask_client.scheduler_info()["workers"])
 
-            for worker in list(self.dask_client.scheduler_info()["workers"]):
+            self.nodes = []
+            for node_name in worker_maps:
+                node = {}
+                node["worker"] = node_name
+                node["ip"] = worker_maps[node_name]["ip"]
+                node["communication_port"] = worker_maps[node_name]["port"]
+                self.nodes.append(node)
+
+            i = 0
+            dask_futures = []
+            for worker in workers:
                 dask_futures.append(
                     self.dask_client.submit(
                         initializeBlazing,
                         ralId=i,
+                        worker_id=worker,
                         networkInterface=network_interface,
                         singleNode=False,
+                        nodes=self.nodes,
                         allocator=allocator,
                         pool=pool,
                         initial_pool_size=initial_pool_size,
                         maximum_pool_size=maximum_pool_size,
                         enable_logging=enable_logging,
                         config_options=self.config_options,
-                        logging_dir_path=logging_dir_path,
                         workers=[worker],
+                        is_dask=True,
                     )
                 )
-                worker_list.append(worker)
                 i = i + 1
-            i = 0
+
             for connection in dask_futures:
                 ralPort, ralIp, log_path = connection.result()
-                node = {}
-                node["worker"] = worker_list[i]
-                node["ip"] = ralIp
-                node["communication_port"] = ralPort
-                self.nodes.append(node)
                 self.node_log_paths.add(log_path)
-                i = i + 1
 
             # need to initialize this logging independently, in case its set
             # as a relative path and the location from where the python script
             # is running is different than the local dask workers
-            initialize_server_directory(logging_dir_path)
+            initialize_server_directory(local_logging_dir_path, False)
             # this one is for the non dask side
             FORMAT = '%(asctime)s||%(levelname)s|||"%(message)s"||||||'
-            filename = os.path.join(logging_dir_path, "pyblazing.log")
-            logging.basicConfig(filename=filename, format=FORMAT, level=logging.INFO)
+            filename = os.path.join(local_logging_dir_path, "pyblazing.log")
+
+            logger = get_blazing_logger(is_dask=False)
+            local_handler = logging.FileHandler(filename)
+            local_handler.setFormatter(logging.Formatter(FORMAT))
+            logger.addHandler(local_handler)
+            logger.setLevel(logging.INFO)
+            logger.propagate = False
         else:
-            initialize_server_directory(logging_dir_path)
-            initialize_server_directory(cache_dir_path)
+            initialize_server_directory(logging_dir_path, False)
+            initialize_server_directory(cache_dir_path, False)
+
+            node = {}
+            node["worker"] = ""
+            self.nodes.append(node)
 
             ralPort, ralIp, log_path = initializeBlazing(
                 ralId=0,
+                worker_id="",
                 networkInterface="lo",
                 singleNode=True,
+                nodes=self.nodes,
                 allocator=allocator,
                 pool=pool,
                 initial_pool_size=initial_pool_size,
                 maximum_pool_size=maximum_pool_size,
                 enable_logging=enable_logging,
                 config_options=self.config_options,
-                logging_dir_path=logging_dir_path,
+                logging_dir_path=logging_dir_path,  # TODO Rommel check this
+                is_dask=False,
             )
-            node = {}
-            node["ip"] = ralIp
-            node["communication_port"] = ralPort
-            self.nodes.append(node)
             self.node_log_paths.add(log_path)
 
         self.fs = FileSystem()
@@ -1853,7 +1857,7 @@ class BlazingContext(object):
 
         kwargs_validation(kwargs, "create_table")
 
-        logging.info("create_table start for " + table_name)
+        get_blazing_logger(is_dask=False).info("create_table start for " + table_name)
 
         table = None
         extra_kwargs = {}
@@ -1874,7 +1878,7 @@ class BlazingContext(object):
                  object of the form partitions={'col_nameA':[val, val],
                  'col_nameB':['str_val', 'str_val']}"""
             )
-            logging.error(
+            get_blazing_logger(is_dask=False).error(
                 """ERROR: User defined partitions should be a dictionary
                  object of the form partitions={'col_nameA':[val, val],
                   'col_nameB':['str_val', 'str_val']}"""
@@ -1892,7 +1896,7 @@ class BlazingContext(object):
                     + " was not. The parameter 'partitions_schema' is only"
                     + " to be used when defining 'partitions'"
                 )
-                logging.error(
+                get_blazing_logger(is_dask=False).error(
                     "ERROR: 'partitions_schema' was defined, but 'partitions'"
                     + " was not. The parameter 'partitions_schema' is only"
                     + " to be used when defining 'partitions'"
@@ -1907,7 +1911,7 @@ class BlazingContext(object):
                     + "partitions_schema="
                     + "[('col_nameA','int32','col_nameB','str')]"
                 )
-                logging.error(
+                get_blazing_logger(is_dask=False).error(
                     "ERROR: 'partitions_schema' should be a list of tuples of"
                     + " the column name and column type of the form "
                     + "partitions_schema="
@@ -1919,7 +1923,7 @@ class BlazingContext(object):
                     "ERROR: The number of columns in 'partitions' should be"
                     + " the same as 'partitions_schema'"
                 )
-                logging.error(
+                get_blazing_logger(is_dask=False).error(
                     "ERROR: The number of columns in 'partitions' should be"
                     + " the same as 'partitions_schema'"
                 )
@@ -1949,7 +1953,7 @@ class BlazingContext(object):
                     + str(hive_file_format_hint)
                     + "). Using user specified file_format"
                 )
-                logging.warning(
+                get_blazing_logger(is_dask=False).warning(
                     "WARNING: file_format specified ("
                     + str(file_format_hint)
                     + ") does not match the file_format infered by"
@@ -1970,7 +1974,7 @@ class BlazingContext(object):
                      the form partitions_schema=
                      [('col_nameA','int32','col_nameB','str')]"""
                 )
-                logging.error(
+                get_blazing_logger(is_dask=False).error(
                     """ERROR: When using 'partitions' without a Hive cursor,
                      you also need to set 'partitions_schema' which should be
                      a list of tuples of the column name and column type of
@@ -1990,7 +1994,7 @@ class BlazingContext(object):
                      the input needs to be a path to the base folder
                      of the partitioned data"""
                 )
-                logging.error(
+                get_blazing_logger(is_dask=False).error(
                     """ERROR: When using 'partitions' without a Hive cursor,
                      the input needs to be a path to the base folder
                      of the partitioned data"""
@@ -2104,7 +2108,7 @@ class BlazingContext(object):
                         """ERROR: number of hive_schema columns does not
                         match number of parsedSchema columns"""
                     )
-                    logging.error(
+                    get_blazing_logger(is_dask=False).error(
                         """ERROR: number of hive_schema columns does not
                         match number of parsedSchema columns"""
                     )
@@ -2747,6 +2751,7 @@ class BlazingContext(object):
 
         Docs: https://docs.blazingdb.com/docs/single-gpu
         """
+
         # TODO: remove hardcoding
         masterIndex = 0
         nodeTableList = [[] for _ in range(len(self.nodes))]
@@ -2789,15 +2794,14 @@ class BlazingContext(object):
         else:
             worker = tuple(self.dask_client.scheduler_info()["workers"])[0]
             connection = self.dask_client.submit(
-                cio.getTableScanInfoCaller, algebra, workers=[worker]
+                cio.getTableScanInfoCaller, algebra, workers=[worker], pure=False
             )
             table_names, table_scans = connection.result()
 
         query_tables = [self.tables[table_name] for table_name in table_names]
 
         # this was for ARROW tables which are currently deprecated
-        # algebra = modifyAlgebraForDataframesWithOnlyWantedColumns(
-        #   algebra, relational_algebra_steps,self.tables)
+        # algebra = modifyAlgebraForDataframesWithOnlyWantedColumns(algebra, relational_algebra_steps,self.tables)
 
         for table_idx, query_table in enumerate(query_tables):
             fileTypes.append(query_table.fileType)
@@ -2854,13 +2858,13 @@ class BlazingContext(object):
         ctxToken = random.randint(0, np.iinfo(np.int32).max)
         accessToken = 0
 
-        algebra = get_plan(algebra)
+        algebra = get_json_plan(algebra)
 
         if self.dask_client is None:
             try:
-                result = cio.runQueryCaller(
+                graph = cio.runGenerateGraphCaller(
                     masterIndex,
-                    self.nodes,
+                    ["self"],
                     nodeTableList[0],
                     table_scans,
                     fileTypes,
@@ -2868,26 +2872,25 @@ class BlazingContext(object):
                     algebra,
                     accessToken,
                     query_config_options,
-                    is_single_node=True,
+                    query,
                 )
+                result = cio.runExecuteGraphCaller(graph, ctxToken, is_single_node=True)
             except cio.RunQueryError as e:
                 print(">>>>>>>> ", e)
                 result = cudf.DataFrame()
             except Exception as e:
                 raise e
-
         else:
-            if single_gpu:
-                # the following is wrapped in an array because
-                # .sql expects to return
+            if single_gpu is True:
+                # the following is wrapped in an array because .sql expects to return
                 # an array of dask_futures or a df, this makes it consistent
                 worker = self.nodes[self.single_gpu_idx]["worker"]
                 self.single_gpu_idx = self.single_gpu_idx + 1
                 if self.single_gpu_idx >= len(self.nodes):
                     self.single_gpu_idx = 0
-                dask_futures = [
+                graph_futures = [
                     self.dask_client.submit(
-                        collectPartitionsRunQuery,
+                        generateGraphs,
                         masterIndex,
                         [self.nodes[0],],
                         nodeTableList[0],
@@ -2897,17 +2900,28 @@ class BlazingContext(object):
                         algebra,
                         accessToken,
                         query_config_options,
+                        query,
                         single_gpu=True,
+                        pure=False,
+                        workers=[worker],
                     )
                 ]
+                self.dask_client.gather(graph_futures)
+
+                dask_futures = [
+                    self.dask_client.submit(executeGraph, ctxToken, pure=False)
+                ]
             else:
-                dask_futures = []
+                worker_ids = []
+                for worker in self.dask_client.scheduler_info()["workers"]:
+                    worker_ids.append(worker)
+                graph_futures = []
                 i = 0
                 for node in self.nodes:
                     worker = node["worker"]
-                    dask_futures.append(
+                    graph_futures.append(
                         self.dask_client.submit(
-                            collectPartitionsRunQuery,
+                            generateGraphs,
                             masterIndex,
                             self.nodes,
                             nodeTableList[i],
@@ -2917,10 +2931,22 @@ class BlazingContext(object):
                             algebra,
                             accessToken,
                             query_config_options,
+                            query,
                             workers=[worker],
+                            pure=False,
                         )
                     )
                     i = i + 1
+                graph_futures = self.dask_client.gather(graph_futures)
+
+                dask_futures = []
+                for node in self.nodes:
+                    worker = node["worker"]
+                    dask_futures.append(
+                        self.dask_client.submit(
+                            executeGraph, ctxToken, workers=[worker], pure=False
+                        )
+                    )
 
             if return_futures:
                 result = dask_futures
@@ -2932,7 +2958,10 @@ class BlazingContext(object):
                     for query_partid in query_partids:
                         futures.append(
                             self.dask_client.submit(
-                                get_element, query_partid, workers=[worker_id]
+                                get_element,
+                                query_partid,
+                                workers=[worker_id],
+                                pure=False,
                             )
                         )
 

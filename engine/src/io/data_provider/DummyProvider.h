@@ -36,11 +36,10 @@ public:
 
 	data_handle get_next(bool open_file = true) {
 		data_handle handle;
-		handle.fileHandle = nullptr;
+		handle.file_handle = nullptr;
 		return handle;
 	}
 
-	std::vector<std::string> get_errors() { return {}; }
 
 	/**
 	 * Tries to get up to num_files data_handles. We use this instead of a get_all() because if there are too many files, 
@@ -55,6 +54,9 @@ public:
 		// does nothing
 	}
 	
+	size_t get_num_handles(){
+		return 1;
+	}
 
 private:
 };
