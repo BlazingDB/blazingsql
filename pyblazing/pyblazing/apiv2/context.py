@@ -1481,7 +1481,7 @@ class BlazingContext(object):
 
             ralPort, ralIp, log_path = initializeBlazing(
                 ralId=0,
-                worker_id="",
+                worker_id="self",
                 networkInterface="lo",
                 singleNode=True,
                 nodes=self.nodes,
