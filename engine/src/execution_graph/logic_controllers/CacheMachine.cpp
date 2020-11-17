@@ -164,7 +164,7 @@ bool CacheMachine::addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTa
 }
 
 void CacheMachine::put(size_t message_id, std::unique_ptr<ral::frame::BlazingTable> table) {
-	this->addToCache(std::move(table), std::to_string(message_id));
+	this->addToCache(std::move(table), std::to_string(message_id), true);
 }
 
 void CacheMachine::clear() {
