@@ -40,6 +40,7 @@
 - #1120 Fix missing valid kwargs in create_table
 - #1118 Fixed issue with config_options and adding local_files to valid params
 - #1133 Fixed adressing issue in float columns when parsing parquet metadata
+- #1163 added empty line to trigger build 
 
 # BlazingSQL 0.16.0 (October 22, 2020)
 
