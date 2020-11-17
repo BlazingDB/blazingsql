@@ -14,6 +14,10 @@ bool Node::operator==(const Node &rhs) const {
   return id_ == rhs.id_;
 }
 
+bool Node::operator!=(const Node &rhs) const {
+  return !(*this == rhs);
+}
+
 std::string Node::id() const { return id_; }
 
 bool Node::isAvailable() const { return isAvailable_; }
