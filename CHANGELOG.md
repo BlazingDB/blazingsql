@@ -1,5 +1,6 @@
 # BlazingSQL 0.17.0 (Date TBS)
 
+
 ## New Features
 - #1105 Implement to_date/to_timestamp functions
 - #1077 Allow to create tables from compressed files
