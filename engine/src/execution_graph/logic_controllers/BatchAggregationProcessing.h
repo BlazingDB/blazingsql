@@ -315,8 +315,7 @@ public:
                 output = ral::operators::compute_groupby_without_aggregations(
                         concatenated->toBlazingTableView(), mod_group_column_indices);
             } else if (group_column_indices.size() == 0) {
-                // aggregations without groupby are only merged on the master node
-                if(context->isMasterNode(ral::communication::CommunicationData::getInstance().getSelfNode())) {
+                if( (context->getTotalNodes() == 1) ||  (context->isMasterNode(ral::communication::CommunicationData::getInstance().getSelfNode()))  ) {
                     output = ral::operators::compute_aggregations_without_groupby(
                             concatenated->toBlazingTableView(), mod_aggregation_input_expressions, mod_aggregation_types,
                             mod_aggregation_column_assigned_aliases);
