@@ -152,7 +152,7 @@ public:
 				size_t final_avg_bytes_per_row = total_rows <= 0 ? 1 : total_bytes / total_rows;
 
 				std::size_t totalNumRows = std::accumulate(total_table_rows.begin(), total_table_rows.end(), std::size_t(0));
-				std::unique_ptr<ral::frame::BlazingTable> partitionPlan = ral::operators::generate_partition_plan(samples, totalNumRows, avg_bytes_per_row, this->expression, this->context.get());
+				std::unique_ptr<ral::frame::BlazingTable> partitionPlan = ral::operators::generate_partition_plan(samples, totalNumRows, final_avg_bytes_per_row, this->expression, this->context.get());
 
 				broadcast(std::move(partitionPlan),
 					this->output_.get_cache("output_b").get(),
