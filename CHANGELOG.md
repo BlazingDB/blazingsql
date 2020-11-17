@@ -1,5 +1,6 @@
 # BlazingSQL 0.17.0 (Date TBS)
 
+
 ## New Features
 - #1105 Implement to_date/to_timestamp functions
 - #1077 Allow to create tables from compressed files
@@ -39,6 +40,7 @@
 - #1120 Fix missing valid kwargs in create_table
 - #1118 Fixed issue with config_options and adding local_files to valid params
 - #1133 Fixed adressing issue in float columns when parsing parquet metadata
+- #1163 added empty line to trigger build 
 
 # BlazingSQL 0.16.0 (October 22, 2020)
 
