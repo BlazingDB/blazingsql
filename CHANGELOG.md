@@ -1,5 +1,6 @@
 # BlazingSQL 0.17.0 (Date TBS)
 
+
 ## New Features
 - #1105 Implement to_date/to_timestamp functions
 - #1077 Allow to create tables from compressed files
@@ -8,6 +9,8 @@
 - #912 Added UCX support to how the engine runs
 - #1125 Implement new TCP and UCX comms layer, exposed graph to python
 - #1110 Adding local logging directory to BlazingContext
+- #1148 Add e2e test for DAYOFWEEK
+
 
 ## Improvements
 - #878 Adding calcite rule for window functions. (Window functions not supported yet)
@@ -21,8 +24,10 @@
 - #1117 Add error logging in DataSourceSequence
 - #1111 output compile json for cppcheck
 - #1132 Refactoring new comms 
-- #1078 Bump junit from 4.12 to 4.13.1 in /algebra 
-- #1144 update with changes from main 
+- #1078 Bump junit from 4.12 to 4.13.1 in /algebra
+- #1144 update with changes from main
+- #1156 Added scheduler file support for e2e testing framework
+- #1158 Deprecated bc.partition 
 - #1153 Fix all warnings in build
 
 
@@ -36,6 +41,7 @@
 - #1120 Fix missing valid kwargs in create_table
 - #1118 Fixed issue with config_options and adding local_files to valid params
 - #1133 Fixed adressing issue in float columns when parsing parquet metadata
+- #1163 added empty line to trigger build 
 
 # BlazingSQL 0.16.0 (October 22, 2020)
 
