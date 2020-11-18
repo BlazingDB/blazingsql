@@ -7,19 +7,14 @@ set -e
 NUMARGS=$#
 ARGS=$*
 
-# Logger function for build status output
-function logger() {
-  echo -e "\n>>>> $@\n"
-}
-
 # Arg parsing function
 function hasArg {
     (( ${NUMARGS} != 0 )) && (echo " ${ARGS} " | grep -q " $1 ")
 }
 
 # Set path and build parallel level
-export PATH=/usr/local/cuda/bin:$PATH:/conda/bin
-export PARALLEL_LEVEL=4
+export PATH=/opt/conda/bin:/usr/local/cuda/bin:$PATH
+export PARALLEL_LEVEL=${PARALLEL_LEVEL:-4}
 export CUDA_REL=${CUDA_VERSION%.*}
 
 # Set home to the job's workspace
@@ -39,54 +34,49 @@ export LIBCUDF_KERNEL_CACHE_PATH="$HOME/.jitify-cache"
 # SETUP - Check environment
 ################################################################################
 
-logger "Check environment..."
+gpuci_logger "Check environment"
 env
 echo "  - blazingsql-nightly" >> /conda/.condarc
 
-logger "Check GPU usage..."
+gpuci_logger "Check GPU usage"
 nvidia-smi
 
-logger "Activate conda env..."
+gpuci_logger "Activate conda env"
 conda create python=$PYTHON_VER -y -n bsql
 source activate bsql
 
-echo "Installing BlazingSQL dev environment"
+gpuci_logger "Installing BlazingSQL dev environment"
 
 # NOTE: needing to manually install spdlog here because v1.8 is causing issues https://github.com/gabime/spdlog/issues/1662
 
-# install deps
-echo "conda install --yes -c conda-forge spdlog=1.7.0 google-cloud-cpp=1.16 ninja"
-conda install --yes -c conda-forge spdlog=1.7.0 google-cloud-cpp=1.16 ninja
-echo "BlazingSQL dev basic deps installed"
+gpuci_logger "Install Dependencies"
+gpuci_conda_retry install --yes -c conda-forge spdlog=1.7.0 google-cloud-cpp=1.16 ninja
 
 # NOTE cython must be the same of cudf (for 0.11 and 0.12 cython is >=0.29,<0.30)
-echo "conda install --yes openjdk=8.0 maven cmake gtest gmock rapidjson cppzmq cython=0.29 jpype1 netifaces pyhive"
-conda install --yes openjdk=8.0 maven cmake gtest gmock rapidjson cppzmq cython=0.29 jpype1 netifaces pyhive pytest
-echo "BlazingSQL deps installed"
+gpuci_conda_retry install --yes openjdk=8.0 maven cmake gtest gmock rapidjson cppzmq cython=0.29 jpype1 netifaces pyhive pytest
 
-# install cudf
-echo "conda install --yes dask-cuda=${MINOR_VERSION} dask-cudf=${MINOR_VERSION} ucx-py=${MINOR_VERSION} ucx-proc=*=gpu cudf=${MINOR_VERSION} python=$PYTHON_VER cudatoolkit=$CUDA_REL"
-conda install --yes dask-cuda=${MINOR_VERSION} dask-cudf=${MINOR_VERSION} ucx-py=${MINOR_VERSION} ucx-proc=*=gpu cudf=${MINOR_VERSION} python=$PYTHON_VER cudatoolkit=$CUDA_REL
+gpuci_logger "Install RAPIDS dependencies"
+gpuci_conda_retry install --yes dask-cuda=${MINOR_VERSION} dask-cudf=${MINOR_VERSION} ucx-py=${MINOR_VERSION} ucx-proc=*=gpu cudf=${MINOR_VERSION} python=$PYTHON_VER cudatoolkit=$CUDA_REL
 
-echo "cudf and other rapids dependencies installed"
-
-# install end to end tests dependencies
-
-echo "pip install openpyxl pymysql gitpython pynvml gspread oauth2client"
+gpuci_logger "Install E2E test dependencies"
 pip install openpyxl pymysql gitpython pynvml gspread oauth2client
 echo "BlazingSQL end to end tests dependencies installed"
 
-logger "Check versions..."
+gpuci_logger "Check versions"
 python --version
 $CC --version
 $CXX --version
-conda list
+
+gpuci_logger "Conda Information"
+conda info
+conda config --show-sources
+conda list --show-channel-urls
 
 ################################################################################
 # BUILD - Build from Source
 ################################################################################
 
-logger "Build BlazingSQL"
+gpuci_logger "Build BlazingSQL"
 #export DISTUTILS_DEBUG=1
 ${WORKSPACE}/build.sh
 
@@ -95,12 +85,12 @@ ${WORKSPACE}/build.sh
 ################################################################################
 
 if hasArg --skip-tests; then
-    logger "Skipping Tests..."
+    gpuci_logger "Skipping Tests"
 else
     INSTALL_PREFIX=${INSTALL_PREFIX:=${PREFIX:=${CONDA_PREFIX}}}
     export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$INSTALL_PREFIX/lib:$INSTALL_PREFIX/lib64
 
-    logger "Check GPU usage..."
+    gpuci_logger "Check GPU usage"
     nvidia-smi
 
     export BLAZINGSQL_E2E_IN_GPUCI_ENV="true"

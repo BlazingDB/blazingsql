@@ -1,19 +1,14 @@
 #!/bin/bash
-# Copyright (c) 2019, BLAZINGSQL.
+# Copyright (c) 2020, BLAZINGSQL.
 ###########################################
 # BlazingDB CPU conda build script for CI #
 ###########################################
 set -e
 
-# Logger function for build status output
-function logger() {
-  echo -e "\n>>>> $@\n"
-}
-
-export PARALLEL_LEVEL=4
+export PARALLEL_LEVEL=${PARALLEL_LEVEL:-4}
 
 # Set home to the job's workspace
-export PATH=/usr/local/cuda/bin:$PATH:/conda/bin
+export PATH=/opt/conda/bin:/usr/local/cuda/bin:$PATH
 export HOME=$WORKSPACE
 
 # Switch to project root; also root of repo checkout
@@ -29,28 +24,33 @@ export GIT_DESCRIBE_NUMBER=`git rev-list ${GIT_DESCRIBE_TAG}..HEAD --count`
 # SETUP - Check environment
 ################################################################################
 
-logger "Get env..."
+gpuci_logger "Get env"
 env
 echo "  - blazingsql-nightly" >> /conda/.condarc
 
-logger "Activate conda env..."
-source activate gdf
+gpuci_logger "Activate conda env"
+. /opt/conda/etc/profile.d/conda.sh
+conda activate rapids
 
-logger "Check versions..."
+gpuci_logger "Check versions"
 python --version
 gcc --version
 g++ --version
-conda list
 
-# FIX Added to deal with Anancoda SSL verification issues during conda builds
+gpuci_logger "Conda Information"
+conda info
+conda config --show-sources
+conda list --show-channel-urls
+
 conda config --set ssl_verify False
 
 ################################################################################
 # BUILD - Conda package builds
 ################################################################################
 
-logger "Build conda pkg for blazingsql..."
-source ci/cpu/blazingsql/build_blazingsql.sh
+gpuci_logger "Build conda pkg for blazingsql"
+gpuci_conda_retry build conda/recipes/blazingsql --python=$PYTHON
 
-logger "Upload conda pkg for blazingsql..."
-source ci/cpu/upload_anaconda.sh
+gpuci_logger "Upload conda pkg for blazingsql"
+source ci/cpu/upload.sh
+
