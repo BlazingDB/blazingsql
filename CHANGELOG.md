@@ -10,6 +10,7 @@
 - #1125 Implement new TCP and UCX comms layer, exposed graph to python
 - #1110 Adding local logging directory to BlazingContext
 - #1148 Add e2e test for DAYOFWEEK
+- #1130 Infer hive folder partition
 
 
 ## Improvements
@@ -42,9 +43,11 @@
 - #1120 Fix missing valid kwargs in create_table
 - #1118 Fixed issue with config_options and adding local_files to valid params
 - #1133 Fixed adressing issue in float columns when parsing parquet metadata
-- #1163 added empty line to trigger build 
+- #1163 added empty line to trigger build
+- #1168 Fix SSL errors for conda 
 - #1165 E2e tests, distributed mode, again tcp
 - #1164 MergeAggr when single node has multiple batches
+
 
 # BlazingSQL 0.16.0 (October 22, 2020)
 
