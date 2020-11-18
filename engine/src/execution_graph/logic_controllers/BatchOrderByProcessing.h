@@ -129,7 +129,7 @@ public:
 						ral::cache::GPUCacheDataMetaData * cache_ptr = static_cast<ral::cache::GPUCacheDataMetaData *> (table_scope_holder[table_scope_holder.size() - 1].get());
 
 						total_table_rows.push_back(std::stoll(cache_ptr->getMetadata().get_values()[ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL]));
-						total_avg_bytes_per_row.push_back(std::stoi(cache_ptr->getMetadata().get_values()[ral::cache::AVG_BYTES_PER_ROW_METADATA_LABEL]));
+						total_avg_bytes_per_row.push_back(std::stoll(cache_ptr->getMetadata().get_values()[ral::cache::AVG_BYTES_PER_ROW_METADATA_LABEL]));
 						samples.push_back(cache_ptr->getTableView());
 					}
 				}
@@ -169,6 +169,7 @@ public:
 
 				ral::cache::MetadataDictionary extra_metadata;
 				extra_metadata.add_value(ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL, local_total_num_rows);
+				extra_metadata.add_value(ral::cache::AVG_BYTES_PER_ROW_METADATA_LABEL, avg_bytes_per_row);
 				send_message(std::move(concatSamples),
 					false, //specific_cache
 					"", //cache_id
