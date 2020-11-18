@@ -29,6 +29,7 @@
 - #1156 Added scheduler file support for e2e testing framework
 - #1158 Deprecated bc.partition
 - #1155 Removing comms subproject and cleaning some related code
+- #1166 Moving code from header files to implementation files
 
 
 ## Bug Fixes
