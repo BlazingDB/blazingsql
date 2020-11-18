@@ -46,6 +46,7 @@
 - #1163 added empty line to trigger build
 - #1168 Fix SSL errors for conda 
 - #1165 E2e tests, distributed mode, again tcp
+- #1179 Fix ignore headers when multiple CSV files was provided
 
 
 # BlazingSQL 0.16.0 (October 22, 2020)
