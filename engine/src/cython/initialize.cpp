@@ -113,10 +113,10 @@ auto log_level_str_to_enum(std::string level) {
 		return spdlog::level::debug;
 	}
 	else if (level == "trace") {
-		return spdlog::level::trace;		
+		return spdlog::level::trace;
 	}
 	else if (level == "warn") {
-		return spdlog::level::warn;		
+		return spdlog::level::warn;
 	}
 	else {
 		return spdlog::level::off;
@@ -152,7 +152,7 @@ void create_logger(std::string fileName,
 
 	// level of logs
 	logger->set_level(log_level_str_to_enum(logger_level_wanted));
-	
+
 	spdlog::register_logger(logger);
 
 	spdlog::flush_on(log_level_str_to_enum(flush_level));
@@ -280,7 +280,7 @@ public:
       throw std::runtime_error("listen server");
     }
 
-   
+
     // dsock_ = accept(lsock_, NULL, NULL);
     // if (dsock_ < 0) {
     //   std::cout << "accept server" << std::endl;
@@ -376,9 +376,9 @@ public:
     std::memcpy(&conn_addr.sin_addr, he->h_addr_list[0], he->h_length);
     std::memset(conn_addr.sin_zero, 0, sizeof(conn_addr.sin_zero));
 
-  
+
     int num_attempts = 50;
-    int attempt = 0;    
+    int attempt = 0;
     while (attempt < num_attempts){
         ret = connect(connfd, (struct sockaddr *) &conn_addr, sizeof(conn_addr));
         if (ret < 0) {
@@ -533,7 +533,7 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 	std::map<std::string, std::string> config_options,
 	std::string allocation_mode,
 	std::size_t initial_pool_size,
-	std::size_t maximum_pool_size, 
+	std::size_t maximum_pool_size,
 	bool enable_logging) {
 
 	float device_mem_resouce_consumption_thresh = 0.95;
@@ -580,7 +580,7 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 	const char * env_cuda_device = std::getenv("CUDA_VISIBLE_DEVICES");
 	std::string env_cuda_device_str = env_cuda_device == nullptr ? "" : std::string(env_cuda_device);
 	initLogMsg = initLogMsg + "CUDA_VISIBLE_DEVICES is set to: " + env_cuda_device_str + ", ";
-	
+
 	size_t buffers_size = 1048576;  // 10 MBs
 	auto iter = config_options.find("TRANSPORT_BUFFER_BYTE_SIZE");
 	if (iter != config_options.end()){
@@ -590,7 +590,7 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 	iter = config_options.find("MAX_SEND_MESSAGE_THREADS");
 	if (iter != config_options.end()){
 		num_comm_threads = std::stoi(config_options["MAX_SEND_MESSAGE_THREADS"]);
-	}	
+	}
 	int num_buffers = 100;
 	iter = config_options.find("TRANSPORT_POOL_NUM_BUFFERS");
 	if (iter != config_options.end()){
@@ -618,7 +618,7 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 	if (log_it != config_options.end()){
 		flush_level = config_options["LOGGING_FLUSH_LEVEL"];
 	}
-	
+
 	std::string logger_level_wanted = "trace";
 	auto log_level_it = config_options.find("LOGGING_LEVEL");
 	if (log_level_it != config_options.end()){
@@ -708,17 +708,24 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 	logger->debug("|||{info}|||||","info"_a=alloc_info);
 
 
+	std::string orc_files_path;
+	iter = config_options.find("BLAZING_CACHE_DIRECTORY");
+	if (iter != config_options.end()) {
+		orc_files_path = config_options["BLAZING_CACHE_DIRECTORY"];
+	}
+	if (!singleNode) {
+		orc_files_path += "/" + ralId;
+	}
+
 	auto & communicationData = ral::communication::CommunicationData::getInstance();
+	communicationData.initialize(worker_id, orc_files_path);
 
 	auto output_input_caches = std::make_pair(std::make_shared<CacheMachine>(nullptr),std::make_shared<CacheMachine>(nullptr));
 
 	// start ucp servers
-
-	communicationData.initialize(worker_id);
-	
 	if(!singleNode){
 		std::map<std::string, comm::node> nodes_info_map;
-	
+
 		comm::blazing_protocol protocol = comm::blazing_protocol::tcp;
 		if(config_options.find("PROTOCOL") != config_options.end()){
 			if(config_options["PROTOCOL"] == "UCX"){
@@ -730,7 +737,7 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 		if(protocol == comm::blazing_protocol::ucx){
 
 			ucp_context = reinterpret_cast<ucp_context_h>(workers_ucp_info[0].context_handle);
-			
+
 			self_worker = CreatetUcpWorker(ucp_context);
 
 			UcpWorkerAddress ucpWorkerAddress = GetUcpWorkerAddress(self_worker);
@@ -835,7 +842,7 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 				if(worker_info.worker_id == worker_id){
 					continue;
 				}
-			
+
 				nodes_info_map.emplace(worker_info.worker_id, comm::node(ralId, worker_info.worker_id, worker_info.ip, worker_info.port));
 			}
 
@@ -852,7 +859,7 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 		output_input_caches.second = comm::message_sender::get_instance()->get_input_cache();
 	}
 
-	return std::make_pair(output_input_caches, ralCommunicationPort);	
+	return std::make_pair(output_input_caches, ralCommunicationPort);
 }
 
 void finalize() {
@@ -910,4 +917,3 @@ size_t getFreeMemory() {
 	size_t total_free_memory = resource->get_memory_limit() - resource->get_memory_used();
 	return total_free_memory;
 }
-

@@ -13,6 +13,7 @@ from urllib.parse import urlparse
 from threading import Lock
 from weakref import ref
 import asyncio
+from distributed import client
 from pyblazing.apiv2.filesystem import FileSystem
 from pyblazing.apiv2 import DataType
 from pyblazing.apiv2.comms import listen
@@ -781,13 +782,44 @@ def remove_orc_files_from_disk(data_dir, query_id=None):
             if ".blazing-temp" in file:
                 full_path_file = data_dir + "/" + file
                 if query_id is not None:
-                    if "-{}-".format(query_id) in file or "-none-" in file:
+                    if f"-{query_id}-" in file or "-none-" in file:
                         os.remove(full_path_file)
                 else:
                     creation_time = os.path.getctime(full_path_file)
                     if (current_time - creation_time) // (1 * 60 * 60) >= 1:
                         os.remove(full_path_file)
 
+def distributed_remove_orc_files_from_disk(client, data_dir, query_id=None):
+    workers = list(client.scheduler_info()["workers"])
+    dask_futures = []
+    for i, worker in enumerate(workers):
+        worker_path = os.path.join(data_dir, f"{i}")
+        dask_futures.append(
+            client.submit(
+                remove_orc_files_from_disk,
+                worker_path,
+                query_id=query_id,
+                workers=[worker]
+            )
+        )
+
+    client.gather(dask_futures)
+
+def initialize_orc_files_folder(client, data_dir):
+    workers = list(client.scheduler_info()["workers"])
+    dask_futures = []
+    for i, worker in enumerate(workers):
+        worker_path = os.path.join(data_dir, f"{i}")
+        dask_futures.append(
+            client.submit(
+                initialize_server_directory,
+                worker_path,
+                True,
+                workers=[worker]
+            )
+        )
+
+    client.gather(dask_futures)
 
 # Updates the dtype from `object` to `str` to be more friendly
 def convert_friendly_dtype_to_string(list_types):
@@ -1352,11 +1384,9 @@ class BlazingContext(object):
 
         logging_dir_path = "blazing_log"
         if "BLAZING_LOGGING_DIRECTORY".encode() in self.config_options:
-            print("found config")
             logging_dir_path = self.config_options[
                 "BLAZING_LOGGING_DIRECTORY".encode()
             ].decode()
-            print(logging_dir_path)
 
         self.cache_dir_path = "/tmp"  # default directory to store orc files
         if "BLAZING_CACHE_DIRECTORY".encode() in self.config_options:
@@ -1379,9 +1409,6 @@ class BlazingContext(object):
 
         self.dask_client = dask_client
 
-        # remove if exists older orc tmp files
-        remove_orc_files_from_disk(self.cache_dir_path)
-
         host_memory_quota = 0.75
         if not "BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD".encode() in self.config_options:
             self.config_options["BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD".encode()] = str(
@@ -1390,9 +1417,9 @@ class BlazingContext(object):
 
         if dask_client is not None:
             distributed_initialize_server_directory(self.dask_client, logging_dir_path)
-            distributed_initialize_server_directory(
-                self.dask_client, self.cache_dir_path
-            )
+
+            distributed_remove_orc_files_from_disk(self.dask_client, self.cache_dir_path)
+            initialize_orc_files_folder(self.dask_client, self.cache_dir_path)
 
             if network_interface is None:
                 import psutil
@@ -1479,6 +1506,9 @@ class BlazingContext(object):
             logger.propagate = False
         else:
             initialize_server_directory(logging_dir_path, False)
+
+            # remove if exists older orc tmp files
+            remove_orc_files_from_disk(self.cache_dir_path)
             initialize_server_directory(self.cache_dir_path, False)
 
             node = {}
@@ -2888,7 +2918,7 @@ class BlazingContext(object):
                 try:
                     meta_results = self.dask_client.gather(dask_futures)
                 except Exception as e:
-                    remove_orc_files_from_disk(self.cache_dir_path, ctxToken)
+                    distributed_remove_orc_files_from_disk(self.dask_client, self.cache_dir_path, ctxToken)
                     raise e
 
                 futures = []
