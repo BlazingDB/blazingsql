@@ -11,7 +11,7 @@
 #include "data_parser/DataParser.h"
 #include "data_provider/DataProvider.h"
 #include <arrow/io/interfaces.h>
-#include <blazingdb/manager/Context.h>
+#include <execution_graph/Context.h>
 #include <vector>
 
 #include <memory>

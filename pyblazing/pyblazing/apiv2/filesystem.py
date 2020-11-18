@@ -1,7 +1,6 @@
 from collections import OrderedDict
 
 import cio
-
 from pyblazing.apiv2 import S3EncryptionType
 
 

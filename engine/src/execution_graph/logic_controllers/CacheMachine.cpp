@@ -2,10 +2,7 @@
 #include <sys/stat.h>
 #include <random>
 #include <utilities/CommonOperations.h>
-#include <utilities/DebuggingUtils.h>
 #include <cudf/io/orc.hpp>
-#include "communication/CommunicationData.h"
-#include <stdio.h>
 
 using namespace std::chrono_literals;
 namespace ral {
@@ -164,7 +161,7 @@ bool CacheMachine::addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTa
 }
 
 void CacheMachine::put(size_t message_id, std::unique_ptr<ral::frame::BlazingTable> table) {
-	this->addToCache(std::move(table), std::to_string(message_id));
+	this->addToCache(std::move(table), std::to_string(message_id), true);
 }
 
 void CacheMachine::clear() {

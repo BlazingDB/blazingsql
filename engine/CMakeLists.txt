@@ -248,7 +248,9 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingH
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingColumnOwner.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/port.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/kernel.cpp
+              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/distributing_kernel.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/kernel_type.cpp
+              ${CMAKE_SOURCE_DIR}/src/execution_graph/Context.cpp
               ${CMAKE_SOURCE_DIR}/src/bmr/MemoryMonitor.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/graph.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BatchJoinProcessing.cpp
@@ -295,6 +297,9 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingH
               ${CMAKE_SOURCE_DIR}/src/communication/CommunicationInterface/bufferTransport.cpp
               ${CMAKE_SOURCE_DIR}/src/communication/CommunicationInterface/protocols.cpp
               ${CMAKE_SOURCE_DIR}/src/communication/CommunicationInterface/messageSender.cpp
+
+              ${CMAKE_SOURCE_DIR}/src/transport/Node.cpp
+              ${CMAKE_SOURCE_DIR}/src/transport/io/reader_writer.cpp
         )
 
 link_directories(${BSQL_BLD_PREFIX}/lib)
@@ -319,7 +324,6 @@ target_link_libraries(blazingsql-engine
     blazingdb-io
     #Threads::Threads
     pthread
-    blazingdb-transport
 
     # TODO: Make this cleaner. Here we just used to link cudf, but cudf got split into a whole bunch of libraries in this PR https://github.com/rapidsai/cudf/pull/6134
     # cudf
@@ -332,7 +336,6 @@ target_link_libraries(blazingsql-engine
     libcudf_join.so
     libcudf_reshape.so
     libcudf_merge.so
-    libcudf_comms.so
     libcudf_hash.so
     libcudf_io.so
     libcudf_interop.so

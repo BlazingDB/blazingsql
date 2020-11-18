@@ -25,7 +25,7 @@
 #include <utility>
 #include <memory>
 
-#include <blazingdb/transport/io/reader_writer.h>
+#include <transport/io/reader_writer.h>
 
 #include <blazingdb/io/Config/BlazingContext.h>
 #include <blazingdb/io/Library/Logging/CoutOutput.h>
@@ -156,7 +156,6 @@ void create_logger(std::string fileName,
 	spdlog::register_logger(logger);
 
 	spdlog::flush_on(log_level_str_to_enum(flush_level));
-
 	spdlog::flush_every(std::chrono::seconds(1));
 }
 

@@ -1,4 +1,4 @@
-#include "blazingdb/transport/Node.h"
+#include "Node.h"
 
 #include <iostream>
 
@@ -12,6 +12,10 @@ Node::Node(const std::string& id, bool isAvailable)
 
 bool Node::operator==(const Node &rhs) const {
   return id_ == rhs.id_;
+}
+
+bool Node::operator!=(const Node &rhs) const {
+  return !(*this == rhs);
 }
 
 std::string Node::id() const { return id_; }
