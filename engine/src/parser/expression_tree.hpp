@@ -253,7 +253,7 @@ public:
     constexpr static char NULL_REGEX_STR[] = R"(null)";
     constexpr static char BOOLEAN_REGEX_STR[] = R"(true|false)";
     constexpr static char NUMBER_REGEX_STR[] = R"([-+]?\d*\.?\d+([eE][-+]?\d+)?)";
-    constexpr static char TIMESTAMP_REGEX_STR[] = R"(\d{4}-\d{2}-\d{2}(?: \d{2}:\d{2}:\d{2})?)";
+    constexpr static char TIMESTAMP_REGEX_STR[] = R"(\d{4}-\d{2}-\d{2}(?:[ T]\d{2}:\d{2}:\d{2})?)";
     constexpr static char STRING_REGEX_STR[] = R"((["'])(?:(?!\1|\\).|\\.)*?\1)";
 
     enum class token_type
@@ -297,6 +297,10 @@ private:
     std::regex string_regex{"^" + std::string(lexer::STRING_REGEX_STR)};
 };
 
+cudf::data_type infer_type_from_literal_token(const lexer::token & token);
+
+cudf::data_type type_from_type_token(const lexer::token & token);
+
 class expr_parser {
 public:
     explicit expr_parser(const std::string & expr_str);
@@ -315,10 +319,6 @@ private:
     std::vector<std::unique_ptr<node>> func_args();
 
     std::unique_ptr<node> literal();
-
-    cudf::data_type infer_type_from_literal_token(const lexer::token & token);
-
-    cudf::data_type type_from_type_token(const lexer::token & token);
 
     lexer lexer_;
     lexer::token token_;
