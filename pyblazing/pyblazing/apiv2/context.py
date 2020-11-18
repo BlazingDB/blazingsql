@@ -12,8 +12,6 @@ from urllib.parse import urlparse
 
 from threading import Lock
 from weakref import ref
-import asyncio
-from distributed import client
 from pyblazing.apiv2.filesystem import FileSystem
 from pyblazing.apiv2 import DataType
 from pyblazing.apiv2.comms import listen
@@ -789,6 +787,7 @@ def remove_orc_files_from_disk(data_dir, query_id=None):
                     if (current_time - creation_time) // (1 * 60 * 60) >= 1:
                         os.remove(full_path_file)
 
+
 def distributed_remove_orc_files_from_disk(client, data_dir, query_id=None):
     workers = list(client.scheduler_info()["workers"])
     dask_futures = []
@@ -799,11 +798,12 @@ def distributed_remove_orc_files_from_disk(client, data_dir, query_id=None):
                 remove_orc_files_from_disk,
                 worker_path,
                 query_id=query_id,
-                workers=[worker]
+                workers=[worker],
             )
         )
 
     client.gather(dask_futures)
+
 
 def initialize_orc_files_folder(client, data_dir):
     workers = list(client.scheduler_info()["workers"])
@@ -812,14 +812,12 @@ def initialize_orc_files_folder(client, data_dir):
         worker_path = os.path.join(data_dir, f"{i}")
         dask_futures.append(
             client.submit(
-                initialize_server_directory,
-                worker_path,
-                True,
-                workers=[worker]
+                initialize_server_directory, worker_path, True, workers=[worker]
             )
         )
 
     client.gather(dask_futures)
+
 
 # Updates the dtype from `object` to `str` to be more friendly
 def convert_friendly_dtype_to_string(list_types):
@@ -1418,7 +1416,9 @@ class BlazingContext(object):
         if dask_client is not None:
             distributed_initialize_server_directory(self.dask_client, logging_dir_path)
 
-            distributed_remove_orc_files_from_disk(self.dask_client, self.cache_dir_path)
+            distributed_remove_orc_files_from_disk(
+                self.dask_client, self.cache_dir_path
+            )
             initialize_orc_files_folder(self.dask_client, self.cache_dir_path)
 
             if network_interface is None:
@@ -2918,7 +2918,9 @@ class BlazingContext(object):
                 try:
                     meta_results = self.dask_client.gather(dask_futures)
                 except Exception as e:
-                    distributed_remove_orc_files_from_disk(self.dask_client, self.cache_dir_path, ctxToken)
+                    distributed_remove_orc_files_from_disk(
+                        self.dask_client, self.cache_dir_path, ctxToken
+                    )
                     raise e
 
                 futures = []
