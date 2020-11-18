@@ -1,7 +1,6 @@
 #pragma once
 
 #include <execution_graph/Context.h>
-
 #include "LogicPrimitives.h"
 
 namespace ral{

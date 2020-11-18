@@ -500,7 +500,7 @@ kstatus LimitKernel::run() {
         auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
         int self_node_idx = context->getNodeIndex(self_node);
         auto nodes_to_send = context->getAllOtherNodes(self_node_idx);
-        
+
         std::vector<std::string> limit_messages_to_wait_for;
         std::vector<std::string> target_ids;
         for (auto i = 0; i < nodes_to_send.size(); i++)	{
