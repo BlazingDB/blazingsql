@@ -10,6 +10,7 @@
 - #1125 Implement new TCP and UCX comms layer, exposed graph to python
 - #1110 Adding local logging directory to BlazingContext
 - #1148 Add e2e test for DAYOFWEEK
+- #1130 Infer hive folder partition
 
 
 ## Improvements
