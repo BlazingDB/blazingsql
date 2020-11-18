@@ -29,6 +29,7 @@
 - #1156 Added scheduler file support for e2e testing framework
 - #1158 Deprecated bc.partition 
 - #1154 Recompute the avg_bytes_per_row value
+- #1155 Removing comms subproject and cleaning some related code
 
 
 ## Bug Fixes
@@ -42,6 +43,7 @@
 - #1118 Fixed issue with config_options and adding local_files to valid params
 - #1133 Fixed adressing issue in float columns when parsing parquet metadata
 - #1163 added empty line to trigger build 
+- #1165 E2e tests, distributed mode, again tcp
 
 # BlazingSQL 0.16.0 (October 22, 2020)
 

@@ -5,6 +5,7 @@
 
 #include "SkipDataProcessor.h"
 
+#include "execution_graph/logic_controllers/BlazingColumnView.h"
 #include <cudf/column/column_factories.hpp>
 #include "CalciteExpressionParsing.h"
 #include "execution_graph/logic_controllers/LogicalFilter.h"

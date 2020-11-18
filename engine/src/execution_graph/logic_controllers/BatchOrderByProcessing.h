@@ -115,7 +115,6 @@ public:
 				context->incrementQuerySubstep();
 				auto nodes = context->getAllNodes();
 
-				int samples_to_collect = this->context->getAllNodes().size();
 				std::vector<std::unique_ptr<ral::cache::CacheData> >table_scope_holder;
 				std::vector<size_t> total_table_rows;
 				std::vector<size_t> total_avg_bytes_per_row;
@@ -294,7 +293,6 @@ public:
 			size_t avg_bytes_per_row = localTotalNumRows == 0 ? 1 : localTotalBytes/localTotalNumRows;
 			compute_partition_plan(sampledTableViews, avg_bytes_per_row, localTotalNumRows);
 		}
-
 
 		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
 									"query_id"_a=context->getContextToken(),
