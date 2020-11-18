@@ -2131,6 +2131,8 @@ class BlazingContext(object):
             # the same types, so we are setting it in the args
             table.args["names"] = table.column_names
             table.args["names"] = [i.decode() for i in table.args["names"]]
+            # TODO: cordova this is the only place to set this value?
+            table.args["has_header_csv"] = parsedSchema["has_header_csv"]
 
             dtypes_list = []
             for i in range(0, len(table.column_types)):
