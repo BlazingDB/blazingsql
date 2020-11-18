@@ -1,11 +1,9 @@
 
 
 #include "LogicPrimitives.h"
-
-
-#include <random>
-
 #include "cudf/column/column_factories.hpp"
+#include "execution_graph/logic_controllers/BlazingColumnView.h"
+#include "execution_graph/logic_controllers/BlazingColumnOwner.h"
 
 namespace ral {
 

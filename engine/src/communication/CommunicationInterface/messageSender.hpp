@@ -1,12 +1,12 @@
 #pragma once
 
-#include <blazingdb/transport/ColumnTransport.h>
+#include <transport/ColumnTransport.h>
 #include <memory>
 #include <rmm/device_buffer.hpp>
 #include <utility>
 #include <Util/StringUtil.h>
 
-#include "blazingdb/concurrency/BlazingThread.h"
+#include "ExceptionHandling/BlazingThread.h"
 #include "node.hpp"
 #include "serializer.hpp"
 #include "execution_graph/logic_controllers/CacheMachine.h"

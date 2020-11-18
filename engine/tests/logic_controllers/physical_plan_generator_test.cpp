@@ -1,6 +1,6 @@
 #include "tests/utilities/BlazingUnitTest.h"
 #include "execution_graph/logic_controllers/PhysicalPlanGenerator.h"
-#include <blazingdb/transport/Node.h>
+#include <transport/Node.h>
 
 using blazingdb::transport::Node;
 

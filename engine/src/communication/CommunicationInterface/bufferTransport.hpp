@@ -4,7 +4,7 @@
 #include <vector>
 #include <exception>
 #include <blazingdb/io/Util/StringUtil.h>
-#include <blazingdb/transport/ColumnTransport.h>
+#include <transport/ColumnTransport.h>
 
 #include "node.hpp"
 #include "execution_graph/logic_controllers/CacheMachine.h"
