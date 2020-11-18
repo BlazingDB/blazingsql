@@ -81,6 +81,7 @@ python --version
 $CC --version
 $CXX --version
 conda list
+conda config --set ssl_verify False
 
 ################################################################################
 # BUILD - Build from Source
