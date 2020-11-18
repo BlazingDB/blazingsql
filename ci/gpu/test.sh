@@ -20,10 +20,9 @@ function logger() {
 REPODIR=$(cd $(dirname $0); pwd)
 
 # TODO william kharoly felipe we should try to enable and use this param in the future (compare result from spreadsheet): add -c
-VALIDARGS="io comms libengine algebra pyblazing e2e -t -v -h tests"
+VALIDARGS="io libengine algebra pyblazing e2e -t -v -h tests"
 HELP="$0 [-v] [-h] [-t] [-c] [e2e_test=\"test1,test2,...,testn\"]
    io           - test the IO C++ code only
-   comms        - test the communications C++ code only
    libengine    - test the engine C++ code only
    algebra      - test the algebra package
    pyblazing    - test the pyblazing interface
@@ -115,15 +114,6 @@ if testAll || hasArg io; then
     ctest --verbose
     duration=$SECONDS
     echo "Total time for IO Unit tests: $(($duration / 60)) minutes and $(($duration % 60)) seconds"
-fi
-
-if testAll || hasArg comms; then
-    logger "Running Comm Unit tests..."
-    cd ${WORKSPACE}/comms/build
-    SECONDS=0
-    ctest --verbose
-    duration=$SECONDS
-    echo "Total time for Comm Unit tests: $(($duration / 60)) minutes and $(($duration % 60)) seconds"
 fi
 
 if testAll || hasArg libengine; then

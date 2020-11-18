@@ -39,7 +39,7 @@
 #include "distribution/primitives.h"
 #include "config/GPUManager.cuh"
 #include "CacheMachine.h"
-#include "blazingdb/concurrency/BlazingThread.h"
+#include "ExceptionHandling/BlazingThread.h"
 
 #include "taskflow/graph.h"
 #include "communication/CommunicationData.h"

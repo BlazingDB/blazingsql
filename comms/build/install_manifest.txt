@@ -1,0 +1,12 @@
+/home/christian/miniconda3/envs/bsql17/lib/libblazingdb-transport.so
+/home/christian/miniconda3/envs/bsql17/lib/libblazingdb-transport.so
+/home/christian/miniconda3/envs/bsql17/include/blazingdb/concurrency/BlazingExceptionHolder.h
+/home/christian/miniconda3/envs/bsql17/include/blazingdb/concurrency/BlazingThread.h
+/home/christian/miniconda3/envs/bsql17/include/blazingdb/manager/Context.h
+/home/christian/miniconda3/envs/bsql17/include/blazingdb/network/TCPSocket.h
+/home/christian/miniconda3/envs/bsql17/include/blazingdb/transport/Status.h
+/home/christian/miniconda3/envs/bsql17/include/blazingdb/transport/common/macros.hpp
+/home/christian/miniconda3/envs/bsql17/include/blazingdb/transport/common/dbg.hpp
+/home/christian/miniconda3/envs/bsql17/include/blazingdb/transport/ColumnTransport.h
+/home/christian/miniconda3/envs/bsql17/include/blazingdb/transport/Node.h
+/home/christian/miniconda3/envs/bsql17/include/blazingdb/transport/io/reader_writer.h

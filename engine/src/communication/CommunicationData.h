@@ -1,7 +1,7 @@
 #pragma once
 
 #include <ucp/api/ucp.h>
-#include <blazingdb/transport/Node.h>
+#include <transport/Node.h>
 #include <memory>
 #include <string>
 #include <map>

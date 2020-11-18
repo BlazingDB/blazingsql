@@ -1,27 +1,9 @@
-#include <stack>
-
 #include <spdlog/spdlog.h>
-#include <spdlog/async.h>
-#include <spdlog/sinks/basic_file_sink.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
-using namespace fmt::literals;
-
-#include <cudf/table/table_view.hpp>
-#include <cudf/join.hpp>
 #include <cudf/stream_compaction.hpp>
-#include <cudf/column/column_factories.hpp>
 #include <cudf/copying.hpp>
-#include <cudf/partitioning.hpp>
-
 #include "LogicalFilter.h"
 #include "LogicalProject.h"
-#include "CalciteExpressionParsing.h"
 #include "parser/expression_utils.hpp"
-
-#include "distribution/primitives.h"
-#include "communication/CommunicationData.h"
-#include "utilities/CommonOperations.h"
-
 #include "error.hpp"
 
 namespace ral {
