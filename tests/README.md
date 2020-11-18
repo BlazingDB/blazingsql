@@ -100,8 +100,8 @@ export BLAZINGSQL_E2E_COMPARE_BY_PERCENTAJE=false
 export BLAZINGSQL_E2E_ACCEPTABLE_DIFERENCE=0.01
 ```
 
-If you don't want to use the stored parquet results (BLAZINGSQL_E2E_FILE_RESULT_DIRECTORY) and you want to compare directly against Drill and Spark then you can change the execution mode variable BLAZINGSQL_E2E_EXEC_MODE from "gpuci" to "full"
-Please, note that if you want to run on full mode you must have a Drill instance running.
+If you don't want to use the stored parquet results (BLAZINGSQL_E2E_FILE_RESULT_DIRECTORY) and you want to compare directly against `Drill` or `Spark` then you can change the execution mode variable BLAZINGSQL_E2E_EXEC_MODE from `"gpuci"` to `"full"`. 
+Please, note that if you want to run on `full` mode you must have a `Drill` instance running.
 
 If you want to run a test with n rals/workers where n>1 you need to change the environment variable BLAZINGSQL_E2E_N_RALS.
 Also, remember that when running a distributed tests the variable BLAZINGSQL_E2E_DASK_CONNECTION must be set to either "local" or "dask-scheduler-ip:port".
@@ -130,10 +130,6 @@ cd blazingsql
 
 # I/O unit tests
 ./test.sh io
-
-# communication tests
-cd blazingsql
-./test.sh comms
 ```
 
 ### Testing artifacts

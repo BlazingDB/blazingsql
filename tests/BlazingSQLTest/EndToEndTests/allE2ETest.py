@@ -60,6 +60,7 @@ from EndToEndTests import wildCardTest
 from EndToEndTests import messageValidationTest
 from EndToEndTests import configOptionsTest
 from EndToEndTests import loggingTest
+from EndToEndTests import dayOfWeekTest
 from pynvml import nvmlInit
 from Runner import runTest
 from Utils import Execution, init_context
@@ -136,6 +137,9 @@ def main():
 
     if runAllTests or ("toTimestampTest" in targetTestGroups):
         toTimestampTest.main(dask_client, spark, dir_data_file, bc, nRals)
+
+    if runAllTests or ("dayOfWeekTest" in targetTestGroups):
+        dayOfWeekTest.main(dask_client, spark, dir_data_file, bc, nRals)
 
     if runAllTests or ("fullOuterJoinsTest" in targetTestGroups):
         fullOuterJoinsTest.main(dask_client, drill, dir_data_file, bc, nRals)

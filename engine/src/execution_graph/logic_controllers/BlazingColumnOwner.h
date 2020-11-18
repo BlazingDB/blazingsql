@@ -1,12 +1,9 @@
 #pragma once
 
-#include "execution_graph/logic_controllers/LogicPrimitives.h"
 #include "execution_graph/logic_controllers/BlazingColumn.h"
 
 namespace ral {
-
 namespace frame {
-
 
 class BlazingColumnOwner : public BlazingColumn {
 	public:
@@ -27,5 +24,4 @@ class BlazingColumnOwner : public BlazingColumn {
 
 
 }  // namespace frame
-
 }  // namespace ral
