@@ -1976,7 +1976,7 @@ class BlazingContext(object):
                         the form partitions_schema=
                         [('col_nameA','int32','col_nameB','str')]"""
                     )
-                    logging.error(
+                    get_blazing_logger(is_dask=False).error(
                         """ERROR: When using 'partitions' without a Hive cursor,
                         you also need to set 'partitions_schema' which should be
                         a list of tuples of the column name and column type of
