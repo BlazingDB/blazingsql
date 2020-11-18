@@ -1,23 +1,6 @@
 #include "CalciteInterpreter.h"
-
-#include <blazingdb/io/Util/StringUtil.h>
-
-#include <regex>
-
-#include "CalciteExpressionParsing.h"
 #include "CodeTimer.h"
-
-#include "operators/OrderBy.h"
-#include "utilities/CommonOperations.h"
-
-
-#include "execution_graph/logic_controllers/LogicalFilter.h"
-#include "execution_graph/logic_controllers/LogicalProject.h"
-#include "execution_graph/logic_controllers/BatchProcessing.h"
 #include "execution_graph/logic_controllers/PhysicalPlanGenerator.h"
-#include "bmr/MemoryMonitor.h"
-
-
 
 using namespace fmt::literals;
 
