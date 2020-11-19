@@ -31,7 +31,7 @@
 - #1158 Deprecated bc.partition
 - #1154 Recompute the avg_bytes_per_row value
 - #1155 Removing comms subproject and cleaning some related code
-
+- #1170 Improve gpuCI scripts
 
 ## Bug Fixes
 - #1064 Fixed issue when loading parquet files with local_files=True
