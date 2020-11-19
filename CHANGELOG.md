@@ -46,7 +46,7 @@
 - #1163 added empty line to trigger build
 - #1168 Fix SSL errors for conda 
 - #1165 E2e tests, distributed mode, again tcp
-
+- #1181 Remove unnecesary prints (cluster and logging info)
 
 # BlazingSQL 0.16.0 (October 22, 2020)
 
