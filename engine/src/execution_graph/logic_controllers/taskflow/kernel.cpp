@@ -93,6 +93,8 @@ void task::complete(){
     kernel->notify_complete(task_id);
 }
 
+executor * executor::_instance;
+
 executor::executor(int num_threads) :
  pool(num_threads) {
      for( int i = 0; i < num_threads; i++){

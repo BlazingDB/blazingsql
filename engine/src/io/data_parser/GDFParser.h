@@ -15,13 +15,11 @@ namespace io {
 
 class gdf_parser : public data_parser {
 public:
-	gdf_parser(){
-		
-	}
-
-	size_t get_num_partitions();
+	gdf_parser();
 
 	virtual ~gdf_parser();
+
+	size_t get_num_partitions();
 
 	std::unique_ptr<ral::frame::BlazingTable> parse_batch(
 		ral::io::data_handle handle,

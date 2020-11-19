@@ -381,7 +381,7 @@ public:
 	static void init_executor(int num_threads){
 		if(!_instance){
 			_instance = new executor(num_threads);
-			std::thread([_instance]{
+			std::thread([]{
 				_instance->execute();
 			});
 		}
