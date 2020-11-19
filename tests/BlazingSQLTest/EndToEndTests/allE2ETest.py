@@ -45,6 +45,7 @@ from EndToEndTests import (
     simpleDistributionTest,
     stringTests,
     substringTest,
+    stringCaseTest,
     tablesFromPandasTest,
     # timestampdiffTest,
     timestampTest,
@@ -228,6 +229,9 @@ def main():
 
     if runAllTests or ("substringTest" in targetTestGroups):
         substringTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
+    
+    if runAllTests or ("stringCaseTest" in targetTestGroups):
+        stringCaseTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     if runAllTests or ("wildCardTest" in targetTestGroups):
         wildCardTest.main(dask_client, drill, dir_data_file, bc, nRals)

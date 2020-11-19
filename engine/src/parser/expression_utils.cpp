@@ -52,6 +52,8 @@ bool is_unary_operator(operator_type op) {
 	case operator_type::BLZ_CAST_TIMESTAMP:
 	case operator_type::BLZ_CAST_VARCHAR:
 	case operator_type::BLZ_CHAR_LENGTH:
+	case operator_type::BLZ_STR_LOWER:
+	case operator_type::BLZ_STR_UPPER:
 		return true;
 	default:
 		return false;
@@ -220,6 +222,10 @@ cudf::type_id get_output_type(operator_type op, cudf::type_id input_left_type, c
 	case operator_type::BLZ_STR_SUBSTRING:
 	case operator_type::BLZ_STR_CONCAT:
 		return cudf::type_id::STRING;
+	case operator_type::BLZ_STR_LOWER:
+		return cudf::type_id::STRING;
+	case operator_type::BLZ_STR_UPPER:
+		return cudf::type_id::STRING;
 	case operator_type::BLZ_TO_DATE:
 		return cudf::type_id::TIMESTAMP_DAYS;
 	case operator_type::BLZ_TO_TIMESTAMP:
@@ -269,6 +275,8 @@ operator_type map_to_operator_type(const std::string & operator_token) {
 		{"CAST_VARCHAR", operator_type::BLZ_CAST_VARCHAR},
 		{"CAST_CHAR", operator_type::BLZ_CAST_VARCHAR},
 		{"CHAR_LENGTH", operator_type::BLZ_CHAR_LENGTH},
+		{"LOWER", operator_type::BLZ_STR_LOWER},
+		{"UPPER", operator_type::BLZ_STR_UPPER},
 
 		// Binary operators
 		{"=", operator_type::BLZ_EQUAL},
