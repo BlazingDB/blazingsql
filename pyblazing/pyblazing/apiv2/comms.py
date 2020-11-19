@@ -1,13 +1,13 @@
-from distributed import get_worker
-from distributed.comm.addressing import parse_host_port
-from dask.distributed import default_client
-from ucp.endpoint_reuse import EndpointReuse
-from distributed.comm.ucx import UCXListener
-from distributed.comm.ucx import UCXConnector
-import netifaces as ni
+import errno
 import random
 import socket
-import errno
+
+import netifaces as ni
+from dask.distributed import default_client
+from distributed import get_worker
+from distributed.comm.addressing import parse_host_port
+from distributed.comm.ucx import UCXConnector, UCXListener
+from ucp.endpoint_reuse import EndpointReuse
 
 
 def set_id_mappings_on_worker(mapping):
@@ -42,6 +42,5 @@ def get_communication_port(network_interface):
 
 def listen(client, network_interface=""):
     worker_id_maps = client.run(get_communication_port, network_interface, wait=True)
-    print(worker_id_maps)
     client.run(set_id_mappings_on_worker, worker_id_maps, wait=True)
     return worker_id_maps

@@ -3,7 +3,9 @@
 #include <tuple>
 
 #include "BatchProcessing.h"
-#include "BlazingColumn.h"
+#include "ExceptionHandling/BlazingThread.h"
+#include "taskflow/distributing_kernel.h"
+/*#include "BlazingColumn.h"
 #include "LogicPrimitives.h"
 #include "CacheMachine.h"
 #include "io/Schema.h"
@@ -13,12 +15,11 @@
 #include "distribution/primitives.h"
 #include "taskflow/distributing_kernel.h"
 #include "error.hpp"
-#include "blazingdb/concurrency/BlazingThread.h"
+#include "blazingdb/concurrency/BlazingThread.h"*/
 #include "CodeTimer.h"
 #include <cudf/stream_compaction.hpp>
 #include <cudf/partitioning.hpp>
 #include <cudf/join.hpp>
-#include "utilities/DebuggingUtils.h"
 
 namespace ral {
 namespace batch {
@@ -644,8 +645,6 @@ public:
 		std::vector<int64_t> nodes_num_bytes_left(this->context->getTotalNodes());
 		std::vector<int64_t> nodes_num_bytes_right(this->context->getTotalNodes());
 
-
-		int64_t prev_total_rows = 0;
 		for (auto i = 0; i < determination_messages_to_wait_for.size(); i++)	{
 			auto message = this->query_graph->get_input_message_cache()->pullCacheData(determination_messages_to_wait_for[i]);
 			auto message_with_metadata = static_cast<ral::cache::GPUCacheDataMetaData*>(message.get());

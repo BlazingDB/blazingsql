@@ -69,7 +69,7 @@ TEST_F(CacheMachineTest, CacheMachineTest) {
 	std::map<std::string, std::string> config_options;
 
 	std::shared_ptr<Context> context = std::make_shared<Context>(0, nodes, master_node, logicalPlan, config_options);
-	ral::cache::CacheMachine cacheMachine(context);
+	ral::cache::CacheMachine cacheMachine(context, "");
 
 	for(int i = 0; i < 10; ++i) {
 		auto table = build_custom_table();

@@ -115,9 +115,9 @@ public:
 				context->incrementQuerySubstep();
 				auto nodes = context->getAllNodes();
 
-				int samples_to_collect = this->context->getAllNodes().size();
 				std::vector<std::unique_ptr<ral::cache::CacheData> >table_scope_holder;
 				std::vector<size_t> total_table_rows;
+				std::vector<size_t> total_avg_bytes_per_row;
 				std::vector<ral::frame::BlazingTableView> samples;
 
 				for(std::size_t i = 0; i < nodes.size(); ++i) {
@@ -128,6 +128,7 @@ public:
 						ral::cache::GPUCacheDataMetaData * cache_ptr = static_cast<ral::cache::GPUCacheDataMetaData *> (table_scope_holder[table_scope_holder.size() - 1].get());
 
 						total_table_rows.push_back(std::stoll(cache_ptr->getMetadata().get_values()[ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL]));
+						total_avg_bytes_per_row.push_back(std::stoll(cache_ptr->getMetadata().get_values()[ral::cache::AVG_BYTES_PER_ROW_METADATA_LABEL]));
 						samples.push_back(cache_ptr->getTableView());
 					}
 				}
@@ -137,9 +138,20 @@ public:
 				}
 				
 				total_table_rows.push_back(local_total_num_rows);
+				total_avg_bytes_per_row.push_back(avg_bytes_per_row);
+
+				// let's recompute the `avg_bytes_per_row` using info from all the other nodes
+				size_t total_bytes = 0; 
+				size_t total_rows = 0;
+				for(std::size_t i = 0; i < nodes.size(); ++i) {
+					total_bytes += total_avg_bytes_per_row[i] * total_table_rows[i];
+					total_rows += total_table_rows[i];
+				}
+				// just in case there is no data
+				size_t final_avg_bytes_per_row = total_rows <= 0 ? 1 : total_bytes / total_rows;
 
 				std::size_t totalNumRows = std::accumulate(total_table_rows.begin(), total_table_rows.end(), std::size_t(0));
-				std::unique_ptr<ral::frame::BlazingTable> partitionPlan = ral::operators::generate_partition_plan(samples, totalNumRows, avg_bytes_per_row, this->expression, this->context.get());
+				std::unique_ptr<ral::frame::BlazingTable> partitionPlan = ral::operators::generate_partition_plan(samples, totalNumRows, final_avg_bytes_per_row, this->expression, this->context.get());
 
 				broadcast(std::move(partitionPlan),
 					this->output_.get_cache("output_b").get(),
@@ -156,6 +168,7 @@ public:
 
 				ral::cache::MetadataDictionary extra_metadata;
 				extra_metadata.add_value(ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL, local_total_num_rows);
+				extra_metadata.add_value(ral::cache::AVG_BYTES_PER_ROW_METADATA_LABEL, avg_bytes_per_row);
 				send_message(std::move(concatSamples),
 					false, //specific_cache
 					"", //cache_id
@@ -280,7 +293,6 @@ public:
 			size_t avg_bytes_per_row = localTotalNumRows == 0 ? 1 : localTotalBytes/localTotalNumRows;
 			compute_partition_plan(sampledTableViews, avg_bytes_per_row, localTotalNumRows);
 		}
-
 
 		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
 									"query_id"_a=context->getContextToken(),

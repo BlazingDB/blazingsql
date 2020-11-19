@@ -97,18 +97,21 @@ def try_to_get_dask_client(n_workers, n_gpus, iface):
             raise ValueError("n gpus must be at least 1")
         try:
             if daskConnection == "local":
-                # cluster = LocalBlazingSQLCluster(n_gpus, n_workers=n_workers)
-                cluster = LocalBlazingSQLCluster(n_gpus,  n_workers=n_workers,
-                    interface=iface,
-                    protocol="ucx",
-                    enable_tcp_over_ucx=True,
-                    enable_infiniband=False,
-                    enable_nvlink=False,
-                    # asynchronous=True,
-                )
+                cluster = LocalBlazingSQLCluster(n_gpus, n_workers=n_workers)
+                # cluster = LocalBlazingSQLCluster(n_gpus,  n_workers=n_workers,
+                #   interface=iface,
+                #    protocol="ucx",
+                #    enable_tcp_over_ucx=True,
+                #    enable_infiniband=False,
+                #    enable_nvlink=False,
+                #    # asynchronous=True,
+                #)
                 return Client(cluster)
             else:
-                return Client(daskConnection)
+                if daskConnection.endswith('.json'): #assuming a scheduler file
+                    return Client(scheduler_file=daskConnection)
+                else:
+                    return Client(daskConnection)
         except Exception as e:
             # TODO: exceptions from cluster creation or dask connection
             raise EnvironmentError(

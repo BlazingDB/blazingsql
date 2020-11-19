@@ -19,6 +19,8 @@ public:
 
 	void parse_schema(std::shared_ptr<arrow::io::RandomAccessFile> file, Schema & schema);
 
+	DataType type() const override { return DataType::JSON; }
+
 private:
 	std::map<std::string, std::string> args_map;
 };

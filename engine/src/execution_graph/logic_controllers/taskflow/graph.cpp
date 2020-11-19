@@ -1,5 +1,6 @@
 #include "graph.h"
 #include "operators/OrderBy.h"
+#include "utilities/ctpl_stl.h"
 
 namespace ral {
 namespace cache {

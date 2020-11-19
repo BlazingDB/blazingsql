@@ -144,7 +144,7 @@ class WaitingQueueTestTimeoutParamFixture :
 TEST_F(WaitingQueueTestFixture, putPop) {
    DESCR("simple test of single put-pop");
 
-   cache::WaitingQueue wq(WAITING_QUEUE_TIMEOUT);
+   cache::WaitingQueue wq("", WAITING_QUEUE_TIMEOUT);
    std::string msgId = "uniqueId1";
 
    wq.put(createCacheMsg(msgId));
@@ -158,7 +158,7 @@ TEST_F(WaitingQueueTestFixture, putPop) {
 TEST_F(WaitingQueueTestFixture, putPopSeveral) {
    DESCR("test of several put-pop operations ensuring proper ordering");
 
-   cache::WaitingQueue wq(WAITING_QUEUE_TIMEOUT);
+   cache::WaitingQueue wq("", WAITING_QUEUE_TIMEOUT);
    int totalNumItems = 99;
 
    for(int i=0; i<totalNumItems; ++i) {
@@ -178,7 +178,7 @@ TEST_F(WaitingQueueTestFixture, putMultiThreadsPopAtEnd) {
    DESCR("test of several put operations from different threads "
          "asynchronously, ensuring all msgs processed");
 
-   cache::WaitingQueue wq(WAITING_QUEUE_TIMEOUT);
+   cache::WaitingQueue wq("", WAITING_QUEUE_TIMEOUT);
    int totalNumItems = 99;
 
    // Create all the IDs upfront and use the vector for adding messages to a
@@ -223,7 +223,7 @@ TEST_F(WaitingQueueTestFixture, putMultiThreadsPopAtEnd) {
 TEST_F(WaitingQueueTestFixture, putWaitForPop) {
    DESCR("ensures pop_or_wait() properly waits for a message");
 
-   cache::WaitingQueue wq(WAITING_QUEUE_TIMEOUT);
+   cache::WaitingQueue wq("", WAITING_QUEUE_TIMEOUT);
    std::string msgId = "uniqueId1";
    auto msg = createCacheMsg(msgId);
 
@@ -251,7 +251,7 @@ TEST_P(WaitingQueueTestTimeoutParamFixture, putAndPopMultiThreads) {
    // being triggered.
 
    // Prepopulate the queue with 100 msgs
-   cache::WaitingQueue wq(WAITING_QUEUE_TIMEOUT);
+   cache::WaitingQueue wq("", WAITING_QUEUE_TIMEOUT);
    int numItems = 0;
 
    for(; numItems<100; ++numItems) {
@@ -311,7 +311,7 @@ TEST_P(WaitingQueueTestTimeoutParamFixture, putAndPopMultiThreads) {
 TEST_F(WaitingQueueTestFixture, putGet) {
    DESCR("simple test of single put-get");
 
-   cache::WaitingQueue wq(WAITING_QUEUE_TIMEOUT);
+   cache::WaitingQueue wq("", WAITING_QUEUE_TIMEOUT);
    std::string msgId = "uniqueId1";
 
    wq.put(createCacheMsg(msgId));
@@ -326,7 +326,7 @@ TEST_F(WaitingQueueTestFixture, putGet) {
 TEST_F(WaitingQueueTestFixture, putGetWaitForId) {
    DESCR("ensures get waits for msg with proper ID");
 
-   cache::WaitingQueue wq(WAITING_QUEUE_TIMEOUT);
+   cache::WaitingQueue wq("", WAITING_QUEUE_TIMEOUT);
    std::string msgId1 = "uniqueId1";
    std::string msgId2 = "uniqueId2";
 
@@ -352,7 +352,7 @@ TEST_F(WaitingQueueTestFixture, putGetWaitForId) {
 TEST_F(WaitingQueueTestFixture, DISABLED_putGetWaitForNonexistantId) {
    DESCR("ensures a get_or_wait() call on a non-existant ID can be cancelled");
 
-   cache::WaitingQueue wq(WAITING_QUEUE_TIMEOUT);
+   cache::WaitingQueue wq("", WAITING_QUEUE_TIMEOUT);
    std::string msgId1 = "uniqueId1";
    std::string msgId2 = "uniqueId2";
 
@@ -378,7 +378,7 @@ TEST_P(WaitingQueueTestTimeoutParamFixture, waitForNextMultiThreads) {
    // inserted.
    // This uses both a short and long delay to ensure the timeout for logging is
    // being triggered.
-   cache::WaitingQueue wq(WAITING_QUEUE_TIMEOUT);
+   cache::WaitingQueue wq("", WAITING_QUEUE_TIMEOUT);
 
    ThreadIDPairsVect threadIdPairs;
    for(int i=0; i<4; ++i) {
@@ -415,7 +415,7 @@ TEST_P(WaitingQueueTestTimeoutParamFixture, waitUntilFinishedMultiThreads) {
    // This uses both a short and long delay to ensure the timeout for logging is
    // being triggered.
 
-   cache::WaitingQueue wq(WAITING_QUEUE_TIMEOUT);
+   cache::WaitingQueue wq("", WAITING_QUEUE_TIMEOUT);
 
    // Create 100 threads that all wait for finish()
    ThreadIDPairsVect threadIdPairs;
@@ -446,7 +446,7 @@ TEST_P(WaitingQueueTestTimeoutParamFixture, getAllOrWaitMultiThreads) {
    // get_all_or_wait()
    // This uses both a short and long delay to ensure the timeout for logging is
    // being triggered.
-   cache::WaitingQueue wq(WAITING_QUEUE_TIMEOUT);
+   cache::WaitingQueue wq("", WAITING_QUEUE_TIMEOUT);
    int totalNumItems = 100;
 
    // Set up a call to get_all_or_wait() after 1ms in another thread which will
@@ -489,7 +489,7 @@ TEST_F(WaitingQueueTestFixture, popUnsafe) {
    // make sure that you have the same messages back in a fifo order
 
    // Prepopulate the queue with 100 msgs
-   cache::WaitingQueue wq(WAITING_QUEUE_TIMEOUT);
+   cache::WaitingQueue wq("", WAITING_QUEUE_TIMEOUT);
    int totalNumItems = 100;
 
    for(int i=0; i<totalNumItems; ++i) {
@@ -514,7 +514,7 @@ TEST_F(WaitingQueueTestFixture, getAllUnsafe) {
    // ensure you got all of the messages that were in the dequeue
 
    // Prepopulate the queue with 100 msgs
-   cache::WaitingQueue wq(WAITING_QUEUE_TIMEOUT);
+   cache::WaitingQueue wq("", WAITING_QUEUE_TIMEOUT);
    int totalNumItems = 100;
 
    for(int i=0; i<totalNumItems; ++i) {
@@ -539,7 +539,7 @@ TEST_F(WaitingQueueTestFixture, getAllUnsafe) {
 TEST_F(WaitingQueueTestFixture, putAllUnsafe) {
    DESCR("tests put_all_unsafe() by ensuring it queued all messages put");
 
-   cache::WaitingQueue wq(WAITING_QUEUE_TIMEOUT);
+   cache::WaitingQueue wq("", WAITING_QUEUE_TIMEOUT);
 
    // Create a vector of totalNumItems messages to pass to put_all_unsafe().
    int totalNumItems = 100;

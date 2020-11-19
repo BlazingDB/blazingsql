@@ -2,10 +2,7 @@
 #include <sys/stat.h>
 #include <random>
 #include <utilities/CommonOperations.h>
-#include <utilities/DebuggingUtils.h>
 #include <cudf/io/orc.hpp>
-#include "communication/CommunicationData.h"
-#include <stdio.h>
 
 using namespace std::chrono_literals;
 namespace ral {
@@ -73,11 +70,11 @@ std::unique_ptr<GPUCacheDataMetaData> cast_cache_data_to_gpu_with_meta(std::uniq
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CacheMachine::CacheMachine(std::shared_ptr<Context> context, std::string cache_machine_name): ctx(context), cache_id(CacheMachine::cache_count), cache_machine_name(cache_machine_name)
+CacheMachine::CacheMachine(std::shared_ptr<Context> context, std::string cache_machine_name, bool log_timeout): ctx(context), cache_id(CacheMachine::cache_count), cache_machine_name(cache_machine_name)
 {
 	CacheMachine::cache_count++;
 
-	waitingCache = std::make_unique<WaitingQueue>(cache_machine_name);
+	waitingCache = std::make_unique<WaitingQueue>(cache_machine_name, 60000, log_timeout);
 	this->memory_resources.push_back( &blazing_device_memory_resource::getInstance() );
 	this->memory_resources.push_back( &blazing_host_memory_resource::getInstance() );
 	this->memory_resources.push_back( &blazing_disk_memory_resource::getInstance() );
@@ -193,7 +190,7 @@ void CacheMachine::put_all_cache_data( std::vector<std::unique_ptr<ral::cache::C
 	std::vector<std::unique_ptr<message > > wrapped_messages(messages.size());
 	int i = 0;
 	for(int i = 0; i < messages.size();i++){
-		wrapped_messages[i] = 
+		wrapped_messages[i] =
 			std::make_unique<message>(std::move(messages[i]), message_ids[i]);
 	}
 	this->waitingCache->put_all(std::move(wrapped_messages));
@@ -292,7 +289,7 @@ bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, s
 		num_bytes_added += table->sizeInBytes();
 		int cacheIndex = 0;
 		while(cacheIndex < memory_resources.size()) {
-			
+
 			auto memory_to_use = (this->memory_resources[cacheIndex]->get_memory_used() + table->sizeInBytes());
 
 			if( memory_to_use < this->memory_resources[cacheIndex]->get_memory_limit()) {

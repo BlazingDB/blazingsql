@@ -29,6 +29,8 @@ public:
 
 	void parse_schema(std::shared_ptr<arrow::io::RandomAccessFile> file, ral::io::Schema & schema);
 
+	DataType type() const override { return DataType::CUDF; }
+
 private:
 	std::vector<frame::BlazingTableView> blazingTableViews_;
 };
