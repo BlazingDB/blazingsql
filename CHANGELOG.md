@@ -32,6 +32,7 @@
 - #1154 Recompute the avg_bytes_per_row value
 - #1155 Removing comms subproject and cleaning some related code
 - #1186 Removing cuda labels to install due cudatoolkit version
+- #1189 Rollback of Cuda labels
 
 
 ## Bug Fixes
