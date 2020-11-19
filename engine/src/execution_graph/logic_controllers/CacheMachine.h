@@ -829,8 +829,7 @@ public:
 	*/
 	void put_all_unsafe(std::vector<message_ptr> messages) {
 		for(size_t i = 0; i < messages.size(); i++) {
-			putWaitingQueue(std::move(messages[i]));
-			processed++;
+			putWaitingQueue(std::move(messages[i]));			
 		}
 	}
 
@@ -838,6 +837,7 @@ public:
 	void put_all(std::vector<message_ptr> messages){
 		std::unique_lock<std::mutex> lock(mutex_);
 		put_all_unsafe(std::move(messages));
+		processed += messages.size();
 		condition_variable_.notify_all();
 	}
 private:
