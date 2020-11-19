@@ -2,15 +2,8 @@
 
 #include <vector>
 #include <string>
-#include "cudf/table/table.hpp"
-
-namespace blazingdb {
-namespace transport {
-
-struct ColumnTransport;
-
-}  // namespace transport
-}  // namespace blazingdb
+#include "cudf/types.hpp"
+#include "transport/ColumnTransport.h"
 
 namespace ral {
 namespace frame {

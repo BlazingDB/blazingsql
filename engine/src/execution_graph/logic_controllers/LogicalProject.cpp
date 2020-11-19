@@ -1,12 +1,5 @@
 #include <spdlog/spdlog.h>
-#include <spdlog/async.h>
-#include <spdlog/sinks/basic_file_sink.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
-
-#include <cudf/column/column_view.hpp>
-#include <cudf/column/column_factories.hpp>
 #include <cudf/copying.hpp>
-#include <cudf/filling.hpp>
 #include <cudf/strings/combine.hpp>
 #include <cudf/strings/contains.hpp>
 #include <cudf/strings/substring.hpp>
@@ -15,14 +8,8 @@
 #include <cudf/strings/convert/convert_floats.hpp>
 #include <cudf/strings/convert/convert_integers.hpp>
 #include <cudf/unary.hpp>
-#include <regex>
-#include <algorithm>
-
+#include "execution_graph/logic_controllers/BlazingColumnOwner.h"
 #include "LogicalProject.h"
-#include "CalciteExpressionParsing.h"
-#include "parser/expression_tree.hpp"
-#include "error.hpp"
-#include "utilities/CommonOperations.h"
 #include "utilities/transform.hpp"
 #include "Interpreter/interpreter_cpp.h"
 

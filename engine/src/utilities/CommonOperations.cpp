@@ -12,6 +12,7 @@
 #include <cudf/column/column_factories.hpp>
 #include <cudf/strings/strings_column_view.hpp>
 #include <numeric>
+#include "execution_graph/logic_controllers/BlazingColumnOwner.h"
 
 namespace ral {
 namespace utilities {

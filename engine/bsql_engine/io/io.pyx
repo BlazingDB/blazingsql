@@ -126,6 +126,10 @@ class RegisterFileSystemLocalError(BlazingError):
     """RegisterFileSystemLocal Error."""
 cdef public PyObject * RegisterFileSystemLocalError_ = <PyObject *>RegisterFileSystemLocalError
 
+class InferFolderPartitionMetadataError(BlazingError):
+    """InferFolderPartitionMetadata Error."""
+cdef public PyObject * InferFolderPartitionMetadataError_ = <PyObject *>InferFolderPartitionMetadataError
+
 cdef cio.TableSchema parseSchemaPython(vector[string] files, string file_format_hint, vector[string] arg_keys, vector[string] arg_values,vector[pair[string,type_id]] extra_columns, bool ignore_missing_paths) nogil except *:
     with nogil:
         return cio.parseSchema(files,file_format_hint,arg_keys,arg_values,extra_columns, ignore_missing_paths)
@@ -172,6 +176,10 @@ cdef size_t getFreeMemoryPython() nogil except *:
 cdef map[string, string] getProductDetailsPython() nogil except *:
     with nogil:
         return cio.getProductDetails()
+
+cdef vector[cio.FolderPartitionMetadata] inferFolderPartitionMetadataPython(string folder_path) nogil except *:
+    with nogil:
+        return cio.inferFolderPartitionMetadata(folder_path)
 
 cpdef pair[bool, string] registerFileSystemCaller(fs, root, authority):
     cdef HDFS hdfs
@@ -397,6 +405,22 @@ cpdef parseMetadataCaller(fileList, offset, schema, file_format_hint, args):
     df._rename_columns(decoded_names)
     return df
 
+cpdef inferFolderPartitionMetadataCaller(folder_path):
+    folderMetadataArr = inferFolderPartitionMetadataPython(folder_path.encode())
+
+    return_array = []
+    for metadata in folderMetadataArr:
+        decoded_values = []
+        for value in metadata.values:
+            decoded_values.append(value.decode('utf-8'))
+
+        return_array.append({
+            'name': metadata.name.decode('utf-8'),
+            'values': decoded_values,
+            'data_type': <underlying_type_t_type_id>(metadata.data_type)
+        })
+
+    return return_array
 
 
 cdef class PyBlazingGraph:

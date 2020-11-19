@@ -28,7 +28,7 @@ DataType inferDataType(std::string file_format_hint) {
 	return DataType::UNDEFINED;
 }
 
-DataType inferFileType(std::vector<std::string> files, DataType data_type_hint) {
+DataType inferFileType(std::vector<std::string> files, DataType data_type_hint, bool ignore_missing_paths) {
 	if(data_type_hint == DataType::PARQUET || data_type_hint == DataType::CSV || data_type_hint == DataType::JSON ||
 		data_type_hint == DataType::ORC) {
 		return data_type_hint;
@@ -37,7 +37,7 @@ DataType inferFileType(std::vector<std::string> files, DataType data_type_hint) 
 	std::vector<Uri> uris;
 	std::transform(
 		files.begin(), files.end(), std::back_inserter(uris), [](std::string uri) -> Uri { return Uri(uri); });
-	ral::io::uri_data_provider udp(uris);
+	ral::io::uri_data_provider udp(uris, ignore_missing_paths);
 	bool open_file = false;
 	const ral::io::data_handle dh = udp.get_next(open_file);
 	std::string ext = dh.uri.getPath().getFileExtension();
@@ -77,7 +77,7 @@ std::vector<int> to_vector_int(std::string value) {
 }
 
 cudf::io::json_reader_options getJsonReaderOptions(const std::map<std::string, std::string> & args, cudf::io::arrow_io_source & arrow_source) {
-	
+
 	cudf::io::json_reader_options reader_opts = cudf::io::json_reader_options::builder(cudf::io::source_info{&arrow_source});
 	reader_opts.enable_lines(true);
 	if(map_contains("dtype", args)) {
@@ -99,7 +99,7 @@ cudf::io::json_reader_options getJsonReaderOptions(const std::map<std::string, s
 }
 
 cudf::io::orc_reader_options getOrcReaderOptions(const std::map<std::string, std::string> & args, cudf::io::arrow_io_source & arrow_source) {
-	
+
 	cudf::io::orc_reader_options reader_opts = cudf::io::orc_reader_options::builder(cudf::io::source_info{&arrow_source});
 	if(map_contains("stripes", args)) {
 		reader_opts.set_stripes(to_vector_int(args.at("stripes")));

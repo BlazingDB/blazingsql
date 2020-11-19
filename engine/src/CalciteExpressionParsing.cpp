@@ -188,7 +188,6 @@ int find_closing_char(const std::string & expression, int start) {
 	}
 
 	int curInd = start + 1;
-	int closePos = curInd;
 	int depth = 1;
 	bool inQuotes = false;
 

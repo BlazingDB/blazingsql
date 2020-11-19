@@ -7,7 +7,7 @@
 #include <numeric>
 
 #include <arrow/io/file.h>
-#include "blazingdb/concurrency/BlazingThread.h"
+#include "ExceptionHandling/BlazingThread.h"
 
 #include <parquet/column_writer.h>
 #include <parquet/file_writer.h>
