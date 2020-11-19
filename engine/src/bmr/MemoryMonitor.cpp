@@ -5,8 +5,7 @@
 namespace ral {
 
     MemoryMonitor::MemoryMonitor(std::shared_ptr<ral::batch::tree_processor> tree, std::map<std::string, std::string> config_options) : tree(tree), finished(false), resource(&blazing_device_memory_resource::getInstance()){
-        
-        
+
         period = std::chrono::milliseconds(50); 
         auto it = config_options.find("MEMORY_MONITOR_PERIOD");
         if (it != config_options.end()){
@@ -23,11 +22,11 @@ namespace ral {
         finished = true;
         lock.unlock();
         condition.notify_all();
-        this->monitor_thread.join();                
+        this->monitor_thread.join();
     }
 
     void MemoryMonitor::start(){
-        
+
         this->monitor_thread = BlazingThread([this](){
             std::unique_lock<std::mutex> lock(finished_lock);
             while(!condition.wait_for(lock, period, [this] { return this->finished; })){
@@ -35,7 +34,7 @@ namespace ral {
                     downgradeCaches(&tree->root);
                 }
             }
-        });        
+        });
     }
 
     void MemoryMonitor::downgradeCaches(ral::batch::node* starting_node){
@@ -61,7 +60,7 @@ namespace ral {
                 for(auto & thread : threads) {
                     thread.join();
                 }
-            }            
-        } 
+            }
+        }
     }
 }  // namespace ral
