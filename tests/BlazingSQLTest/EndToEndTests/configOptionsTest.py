@@ -12,8 +12,9 @@ import time
 
 def main(dask_client, drill, spark, dir_data_file, bc, nRals):
 
-    del bc
-    del dask_client
+    dask_client.close()
+    dask_client.shutdown()
+    del bc, dask_client
 
     # conf_opt_1
     conf_opt_1 = {}
@@ -631,10 +632,12 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             #     fileSchemaType,
             # )
 
-            if dask_client is not None:
-                dask_client.run(gc.collect)
-                dask_client.run_on_scheduler(gc.collect)
+        if dask_client is not None:
+            dask_client.run(gc.collect)
+            dask_client.run_on_scheduler(gc.collect)
 
+        dask_client.close()
+        dask_client.shutdown()
         del bc, dask_client
 
     for setInd, config_options in enumerate(all_set_list):
