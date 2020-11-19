@@ -49,7 +49,7 @@ requirements:
         - dask-cuda {{ minor_version }}.*
         - ucx-py {{ minor_version }}.*
         - ucx-proc=*=gpu
-        - {{ pin_compatible('cudatoolkit', max_pin='x.x') }}
+        - cudatoolkit {{ cuda_version }}.*
 
 test:
     requires:
