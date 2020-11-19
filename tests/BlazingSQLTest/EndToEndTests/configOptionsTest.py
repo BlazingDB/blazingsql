@@ -12,9 +12,11 @@ import time
 
 def main(dask_client, drill, spark, dir_data_file, bc, nRals):
 
-    dask_client.close()
-    dask_client.shutdown()
-    del bc, dask_client
+    if dask_client is not None:
+        dask_client.close()
+        dask_client.shutdown()
+        del dask_client
+    del bc
 
     # conf_opt_1
     conf_opt_1 = {}
