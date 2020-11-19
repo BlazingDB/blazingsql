@@ -1349,11 +1349,9 @@ class BlazingContext(object):
 
         logging_dir_path = "blazing_log"
         if "BLAZING_LOGGING_DIRECTORY".encode() in self.config_options:
-            print("found config")
             logging_dir_path = self.config_options[
                 "BLAZING_LOGGING_DIRECTORY".encode()
             ].decode()
-            print(logging_dir_path)
 
         cache_dir_path = "/tmp"  # default directory to store orc files
         if "BLAZING_CACHE_DIRECTORY".encode() in self.config_options:
@@ -1482,7 +1480,7 @@ class BlazingContext(object):
 
             ralPort, ralIp, log_path = initializeBlazing(
                 ralId=0,
-                worker_id="",
+                worker_id="self",
                 networkInterface="lo",
                 singleNode=True,
                 nodes=self.nodes,
