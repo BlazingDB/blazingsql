@@ -31,6 +31,7 @@
 - #1158 Deprecated bc.partition
 - #1154 Recompute the avg_bytes_per_row value
 - #1155 Removing comms subproject and cleaning some related code
+- #1187 Enable MySQL-specific SQL operators in addition to Standard and Oracle
 
 
 ## Bug Fixes
