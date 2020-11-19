@@ -11,6 +11,7 @@
 - #1110 Adding local logging directory to BlazingContext
 - #1148 Add e2e test for DAYOFWEEK
 - #1130 Infer hive folder partition
+- #1188 Implement upper/lower operators
 
 
 ## Improvements
