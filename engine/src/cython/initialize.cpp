@@ -46,7 +46,7 @@
 #include "communication/CommunicationInterface/protocols.hpp"
 #include "communication/CommunicationInterface/messageSender.hpp"
 #include "communication/CommunicationInterface/messageListener.hpp"
-
+#include "execution_graph/logic_controllers/taskflow/kernel.h"
 
 #include "error.hpp"
 
@@ -613,7 +613,14 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 
 	spdlog::init_thread_pool(8192, 1);
 
+	int executor_threads = 10;
+	auto exec_it = config_options.find("EXECUTOR_THREADS");
+	if (exec_it != config_options.end()){
+		executor_threads = std::stoi(config_options["EXECUTOR_THREADS"]);
+	}
+	
 	std::string flush_level = "warn";
+	
 	auto log_it = config_options.find("LOGGING_FLUSH_LEVEL");
 	if (log_it != config_options.end()){
 		flush_level = config_options["LOGGING_FLUSH_LEVEL"];
@@ -852,6 +859,7 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 		output_input_caches.second = comm::message_sender::get_instance()->get_input_cache();
 	}
 
+	ral::execution::executor::init_executor(executor_threads);
 	return std::make_pair(output_input_caches, ralCommunicationPort);	
 }
 

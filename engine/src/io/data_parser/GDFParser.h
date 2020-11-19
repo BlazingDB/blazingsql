@@ -15,7 +15,9 @@ namespace io {
 
 class gdf_parser : public data_parser {
 public:
-	gdf_parser();
+	gdf_parser(){
+		
+	}
 
 	size_t get_num_partitions();
 

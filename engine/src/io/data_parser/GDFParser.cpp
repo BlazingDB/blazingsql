@@ -14,7 +14,7 @@
 namespace ral {
 namespace io {
 
-gdf_parser::gdf_parser() {}
+//gdf_parser::gdf_parser() {}
 
 
 gdf_parser::~gdf_parser() {}

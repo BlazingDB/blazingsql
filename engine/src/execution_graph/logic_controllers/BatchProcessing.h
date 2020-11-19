@@ -43,7 +43,7 @@
 
 #include "taskflow/graph.h"
 #include "communication/CommunicationData.h"
-
+#include "execution_graph/logic_controllers/taskflow/kernel.h"
 #include "CodeTimer.h"
 
 namespace ral {
@@ -461,6 +461,17 @@ public:
 	}
 
 	
+	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+		std::shared_ptr<ral::cache::CacheMachine> output,
+		cudaStream_t stream, std::string kernel_process_name) override{
+			//for now the output kernel is not using do_process
+			//i believe the output should be a cachemachine itself
+			//obviating this concern
+		output->addToCache(std::move(inputs[0]), std::string(""));
+
+		
+	}
+
 	/**
 	 * Executes the batch processing.
 	 * Loads the data from their input port, and after processing it,
@@ -502,10 +513,22 @@ public:
 			//retrieve the file handle but do not open the file
 			//this will allow us to prevent from having too many open file handles by being
 			//able to limit the number of file tasks
-			auto data_handle = provider->get_next(false);
+			auto handle = provider->get_next(false);
 			auto file_schema = schema.fileSchema(file_index);
 			auto row_group_ids = schema.get_rowgroup_ids(file_index);
 			//this is the part where we make the task now
+			std::unique_ptr<ral::cache::CacheData> input = 
+				std::make_unique<ral::cache::CacheDataIO>(handle,parser,schema,file_schema,row_group_ids,projections);
+			std::vector<std::unique_ptr<ral::cache::CacheData> > inputs;
+			inputs.push_back(std::move(input));
+			
+			add_task(
+				ral::execution::executor::get_instance()->add_task(
+					std::move(inputs),
+					this->output_.get_cache(std::to_string(this->get_id())),
+					this,std::string("scan")
+				)
+			);
 
 			file_index++;
 		}
@@ -553,6 +576,10 @@ public:
 									"duration"_a=timer.elapsed_time(),
 									"kernel_id"_a=this->get_id());
 
+		std::unique_lock<std::mutex> lock(kernel_mutex);
+		kernel_cv.wait(lock,[this]{
+			return this->tasks.empty();
+		});
 		return kstatus::proceed;
 	}
 

@@ -296,9 +296,13 @@ public:
 		}
 	void notify_complete(size_t task_id);
 	void add_task(size_t task_id);
-	
+	bool finished_tasks(){
+		return tasks.empty();
+	}
 protected:
-
+	std::set<size_t> tasks;
+	std::mutex kernel_mutex;
+	std::condition_variable kernel_cv;
 
 public:
 	std::string expression; /**< Stores the logical expression being processed. */
@@ -367,16 +371,36 @@ protected:
 
 class executor{
 public:
-	executor(int num_threads);
+	static executor * get_instance(){
+		if(_instance == nullptr){
+			throw std::runtime_error("Executor not initialized.");
+		}
+		return _instance;
+	}
+
+	static void init_executor(int num_threads){
+		if(!_instance){
+			_instance = new executor(num_threads);
+			std::thread([_instance]{
+				_instance->execute();
+			});
+		}
+
+	}
+
 	void execute();
 	size_t add_task(std::vector<std::unique_ptr<ral::cache::CacheData > > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
-		ral::cache::kernel * kernel,std::string kernel_process_name);
+		ral::cache::kernel * kernel,std::string kernel_process_name){
+
+		}
 	void add_task(std::vector<std::unique_ptr<ral::cache::CacheData > > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
 		ral::cache::kernel * kernel,
 		size_t attempts,
-		size_t task_id,std::string kernel_process_name);
+		size_t task_id,std::string kernel_process_name){
+			
+		}
 
 /*	
 	void add_task(ral::batch::DataSourceSequence * inputs,
@@ -391,10 +415,12 @@ public:
 */
 
 private:
+	executor(int num_threads);
 	ctpl::thread_pool<BlazingThread> pool;
 	std::vector<cudaStream_t> streams; //one stream per thread
 	ral::cache::WaitingQueue< std::unique_ptr<task> > task_queue;
 	int shutdown = 0;
+	static executor * _instance;
 
 };
 

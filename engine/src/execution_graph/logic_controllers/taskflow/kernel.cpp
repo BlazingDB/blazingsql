@@ -44,6 +44,17 @@ void kernel::process(std::vector<std::unique_ptr<ral::cache::CacheData > > * inp
  
 }
 
+void kernel::add_task(size_t task_id){
+    std::lock_guard<std::mutex> lock(kernel_mutex);
+    this->tasks.insert(task_id);
+}
+
+void kernel::notify_complete(size_t task_id){
+    std::lock_guard<std::mutex> lock(kernel_mutex);
+    this->tasks.erase(task_id);
+    kernel_cv.notify_one();
+}
+
 }  // end namespace cache
 
 namespace execution{
@@ -65,6 +76,7 @@ task::task(
 void task::run(cudaStream_t stream, executor * executor){
     try{
         kernel->process(&inputs,output,stream,kernel_process_name);
+        kernel->notify_complete(task_id);
     }catch(rmm::bad_alloc e){
         this->attempts++;
         if(this->attempts < this->attempts_limit){
@@ -91,7 +103,7 @@ executor::executor(int num_threads) :
 }
 void executor::execute(){
 
-    while(shutdown != 0){
+    while(shutdown == 0){
         //consider using get_all and calling in a loop.
         auto cur_task = this->task_queue.pop_or_wait();
         pool.push([cur_task{std::move(cur_task)},this](int thread_id){
