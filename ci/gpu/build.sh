@@ -44,6 +44,7 @@ nvidia-smi
 gpuci_logger "Activate conda env"
 conda create python=$PYTHON_VER -y -n bsql
 source activate bsql
+conda config --set ssl_verify False
 
 gpuci_logger "Installing BlazingSQL dev environment"
 
@@ -72,7 +73,6 @@ conda info
 conda config --show-sources
 conda list --show-channel-urls
 conda config --set ssl_verify False
-
 ################################################################################
 # BUILD - Build from Source
 ################################################################################
