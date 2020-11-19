@@ -49,6 +49,7 @@
 - #1171 Don't log timeout in output/input caches
 - #1168 Fix SSL errors for conda 
 - #1164 MergeAggr when single node has multiple batches
+- #1181 Remove unnecesary prints (cluster and logging info)
 
 
 # BlazingSQL 0.16.0 (October 22, 2020)
