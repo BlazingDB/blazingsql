@@ -24,11 +24,11 @@
 - #1119 Add tests for transform json tree and get json plan
 - #1117 Add error logging in DataSourceSequence
 - #1111 output compile json for cppcheck
-- #1132 Refactoring new comms 
+- #1132 Refactoring new comms
 - #1078 Bump junit from 4.12 to 4.13.1 in /algebra
 - #1144 update with changes from main
 - #1156 Added scheduler file support for e2e testing framework
-- #1158 Deprecated bc.partition 
+- #1158 Deprecated bc.partition
 - #1154 Recompute the avg_bytes_per_row value
 - #1155 Removing comms subproject and cleaning some related code
 - #1166 Moving code from header files to implementation files
@@ -45,8 +45,10 @@
 - #1118 Fixed issue with config_options and adding local_files to valid params
 - #1133 Fixed adressing issue in float columns when parsing parquet metadata
 - #1163 added empty line to trigger build
-- #1168 Fix SSL errors for conda 
 - #1165 E2e tests, distributed mode, again tcp
+- #1171 Don't log timeout in output/input caches
+- #1168 Fix SSL errors for conda 
+- #1164 MergeAggr when single node has multiple batches
 
 
 # BlazingSQL 0.16.0 (October 22, 2020)
