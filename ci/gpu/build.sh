@@ -71,6 +71,7 @@ gpuci_logger "Conda Information"
 conda info
 conda config --show-sources
 conda list --show-channel-urls
+conda config --set ssl_verify False
 
 ################################################################################
 # BUILD - Build from Source
