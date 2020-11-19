@@ -4,7 +4,6 @@
 #include "LogicPrimitives.h"
 
 namespace ral{
-
 namespace processor{
 
 bool is_logical_filter(const std::string & query_part);

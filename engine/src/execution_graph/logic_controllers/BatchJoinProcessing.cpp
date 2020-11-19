@@ -6,6 +6,7 @@
 #include <cudf/partitioning.hpp>
 #include <cudf/join.hpp>
 #include <cudf/stream_compaction.hpp>
+#include <src/execution_graph/logic_controllers/LogicalFilter.h>
 
 namespace ral {
 namespace batch {

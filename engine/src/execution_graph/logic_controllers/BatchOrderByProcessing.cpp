@@ -1,6 +1,6 @@
 #include "BatchOrderByProcessing.h"
 #include "CodeTimer.h"
-
+#include <src/utilities/CommonOperations.h>
 namespace ral {
 namespace batch {
 

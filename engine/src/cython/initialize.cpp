@@ -32,8 +32,6 @@
 #include <blazingdb/io/Library/Logging/Logger.h>
 #include "blazingdb/io/Library/Logging/ServiceLogging.h"
 
-#include "config/GPUManager.cuh"
-
 #include "communication/CommunicationData.h"
 
 #include <bmr/initializer.h>
