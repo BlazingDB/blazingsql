@@ -32,6 +32,7 @@
 - #1158 Deprecated bc.partition
 - #1154 Recompute the avg_bytes_per_row value
 - #1155 Removing comms subproject and cleaning some related code
+- #1194 Powerpc building scripts
 - #1186 Removing cuda labels to install due cudatoolkit version
 
 
@@ -48,10 +49,12 @@
 - #1163 added empty line to trigger build
 - #1165 E2e tests, distributed mode, again tcp
 - #1171 Don't log timeout in output/input caches
-- #1168 Fix SSL errors for conda 
+- #1168 Fix SSL errors for conda
 - #1164 MergeAggr when single node has multiple batches
+- #1191 Fix graph thread pool hang when exception is thrown
 - #1181 Remove unnecesary prints (cluster and logging info)
 - #1179 Fix ignore headers when multiple CSV files was provided
+- #1185 Create table in distributed mode crash with a InferFolderPartitionMetadata Error
 
 
 # BlazingSQL 0.16.0 (October 22, 2020)
