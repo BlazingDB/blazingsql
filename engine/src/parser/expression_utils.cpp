@@ -128,6 +128,8 @@ cudf::type_id get_output_type(operator_type op, cudf::type_id input_left_type) {
 		return cudf::type_id::TIMESTAMP_DAYS;
 	case operator_type::BLZ_CAST_TIMESTAMP:
 		return cudf::type_id::TIMESTAMP_NANOSECONDS;
+	case operator_type::BLZ_STR_LOWER:
+	case operator_type::BLZ_STR_UPPER:
 	case operator_type::BLZ_CAST_VARCHAR:
 		return cudf::type_id::STRING;
 	case operator_type::BLZ_YEAR:
@@ -221,10 +223,6 @@ cudf::type_id get_output_type(operator_type op, cudf::type_id input_left_type, c
 		return cudf::type_id::BOOL8;
 	case operator_type::BLZ_STR_SUBSTRING:
 	case operator_type::BLZ_STR_CONCAT:
-		return cudf::type_id::STRING;
-	case operator_type::BLZ_STR_LOWER:
-		return cudf::type_id::STRING;
-	case operator_type::BLZ_STR_UPPER:
 		return cudf::type_id::STRING;
 	case operator_type::BLZ_TO_DATE:
 		return cudf::type_id::TIMESTAMP_DAYS;
