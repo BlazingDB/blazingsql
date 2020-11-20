@@ -32,6 +32,7 @@
 - #1158 Deprecated bc.partition
 - #1154 Recompute the avg_bytes_per_row value
 - #1155 Removing comms subproject and cleaning some related code
+- #1194 Powerpc building scripts
 - #1186 Removing cuda labels to install due cudatoolkit version
 
 
