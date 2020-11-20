@@ -27,12 +27,6 @@ void kernel::process(std::vector<std::unique_ptr<ral::cache::CacheData > > & inp
             throw e;
         }
         
-        try{
-            do_process(std::move(input_gpu),output,stream,kernel_process_name);            
-        }
-        catch(std::exception e){
-            throw e;
-        }
 
     }
 
@@ -62,7 +56,6 @@ void kernel::notify_complete(size_t task_id){
     std::lock_guard<std::mutex> lock(kernel_mutex);
     this->tasks.erase(task_id);
     kernel_cv.notify_one();
-    std::cout<<"notifying complete"<<std::endl;
 }
 
 }  // end namespace cache
