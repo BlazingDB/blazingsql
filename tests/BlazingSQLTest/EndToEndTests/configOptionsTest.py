@@ -638,9 +638,10 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             dask_client.run(gc.collect)
             dask_client.run_on_scheduler(gc.collect)
 
-        dask_client.close()
-        dask_client.shutdown()
-        del bc, dask_client
+            dask_client.close()
+            dask_client.shutdown()
+            del dask_client
+        del bc
 
     for setInd, config_options in enumerate(all_set_list):
         executionTest(queryType, setInd, config_options)
