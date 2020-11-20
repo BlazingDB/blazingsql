@@ -140,8 +140,6 @@ def init_context(config_options={}):
             # print("Using dask: " + dask_conn)
             # if "local" != dask_conn:
 
-            config_options["PROTOCOL"] = "TCP"
-            print(config_options)
             bc = BlazingContext(
                 dask_client=dask_client,
                 network_interface=iface,
