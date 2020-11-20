@@ -2193,6 +2193,9 @@ class BlazingContext(object):
                     row_groups_ids.append(row_group_ids)
                 table.row_groups_ids = row_groups_ids
 
+            # want all `column_names` be a list of strings
+            table.column_names = [i.decode() for i in table.column_names]
+
         elif isinstance(input, dask_cudf.core.DataFrame):
             table = BlazingTable(
                 table_name, input, DataType.DASK_CUDF, client=self.dask_client
@@ -2264,8 +2267,7 @@ class BlazingContext(object):
         """
         all_table_names = self.list_tables()
         if table_name in all_table_names:
-            column_names_bytes = self.tables[table_name].column_names
-            column_names = [x.decode("utf-8") for x in column_names_bytes]
+            column_names = self.tables[table_name].column_names
             column_types_int = self.tables[table_name].column_types
             column_types_np = [
                 cio.cudf_type_int_to_np_types(t) for t in column_types_int
