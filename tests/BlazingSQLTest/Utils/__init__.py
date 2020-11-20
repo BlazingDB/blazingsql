@@ -123,13 +123,13 @@ def try_to_get_dask_client(n_workers, n_gpus, iface):
     raise ValueError("ERROR: Bad dask connection '%s'" % daskConnection)
 
 
-def init_context():
+def init_context(config_options={}):
     bc = None
     dask_client = None
     nRals = int(Settings.data["RunSettings"]["nRals"])
     nGpus = int(Settings.data["RunSettings"]["nGPUs"])
     if nRals == 1:
-        bc = BlazingContext()
+        bc = BlazingContext(config_options=config_options)
     else:
         os.chdir(Settings.data["TestSettings"]["logDirectory"])
         iface = Settings.data["RunSettings"]["networkInterface"]
@@ -146,9 +146,9 @@ def init_context():
                 # pool=True,
                 # initial_pool_size=300000000,
                 allocator="default",
-                config_options={}
+                config_options=config_options,
             )
         else:
             # Fallback: could not found a valid dask server
-            bc = BlazingContext()
+            bc = BlazingContext(config_options=config_options)
     return (bc, dask_client)
