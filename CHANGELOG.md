@@ -46,8 +46,9 @@
 - #1163 added empty line to trigger build
 - #1165 E2e tests, distributed mode, again tcp
 - #1171 Don't log timeout in output/input caches
-- #1168 Fix SSL errors for conda 
+- #1168 Fix SSL errors for conda
 - #1164 MergeAggr when single node has multiple batches
+- #1191 Fix graph thread pool hang when exception is thrown
 
 
 # BlazingSQL 0.16.0 (October 22, 2020)
