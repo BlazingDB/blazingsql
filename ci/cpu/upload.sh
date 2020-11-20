@@ -34,7 +34,7 @@ export BLAZINGSQL_FILE=`conda build conda/recipes/blazingsql/ --python=$PYTHON -
 ################################################################################
 
 if [ "$UPLOAD_BLAZING" == "1" ]; then
-    LABEL_OPTION="--label main --label cuda"$CUDA
+    LABEL_OPTION="--label main"
     if [ ! -z "$CUSTOM_LABEL" ]; then
         LABEL_OPTION="--label "$CUSTOM_LABEL
     fi
