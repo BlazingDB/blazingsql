@@ -245,9 +245,6 @@ def main():
     if runAllTests or ("messageValidationTest" in targetTestGroups):
         messageValidationTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
-    if runAllTests or ("configOptionsTest" in targetTestGroups):
-        configOptionsTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
-
     if Settings.execution_mode != ExecutionMode.GPUCI:
         if runAllTests or ("fileSystemS3Test" in targetTestGroups):
             fileSystemS3Test.main(dask_client, drill, dir_data_file, bc, nRals)
@@ -259,6 +256,10 @@ def main():
         loggingTest.main(dask_client, dir_data_file, bc, nRals)
 
     # timestampdiffTest.main(dask_client, spark, dir_data_file, bc, nRals)
+
+    # This Test must be the last one to test
+    if runAllTests or ("configOptionsTest" in targetTestGroups):
+        configOptionsTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     if Settings.execution_mode != ExecutionMode.GENERATOR:
 
