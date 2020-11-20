@@ -50,6 +50,7 @@
 - #1171 Don't log timeout in output/input caches
 - #1168 Fix SSL errors for conda
 - #1164 MergeAggr when single node has multiple batches
+- #1191 Fix graph thread pool hang when exception is thrown
 - #1181 Remove unnecesary prints (cluster and logging info)
 - #1185 Create table in distributed mode crash with a InferFolderPartitionMetadata Error
 

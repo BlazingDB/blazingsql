@@ -26,7 +26,7 @@ namespace cache {
 		reverse_edges_.clear();
 		mem_monitor = nullptr;
 	}
-	
+
 	void graph::set_memory_monitor(std::shared_ptr<ral::MemoryMonitor> mem_monitor){
 		this->mem_monitor = mem_monitor;
 	}
@@ -75,16 +75,19 @@ namespace cache {
 							visited.insert(edge_id);
 							Q.push_back(target_id);
 							futures.push_back(pool.push([this, source, source_id, edge] (int thread_id) {
-								auto state = source->run();
-								if(state == kstatus::proceed) {
+								try	{
+									auto state = source->run();
 									source->output_.finish();
-								} else if (edge.target != -1) { // not a dummy node
-									auto logger = spdlog::get("batch_logger");
-									std::string log_detail = "ERROR kernel " + std::to_string(source_id) + " did not finished successfully";
-									logger->error("|||{info}|||||","info"_a=log_detail);
+									if (state != kstatus::proceed && edge.target != -1 /* not a dummy node */) {
+										auto logger = spdlog::get("batch_logger");
+										std::string log_detail = "ERROR kernel " + std::to_string(source_id) + " did not finished successfully";
+										logger->error("|||{info}|||||","info"_a=log_detail);
+									}
+								}	catch(...) {
+									source->output_.finish();
+									throw;
 								}
 							}));
-							
 						} else {
 							// TODO: and circular graph is defined here. Report and error
 						}
@@ -96,14 +99,9 @@ namespace cache {
 		}
 		// Lets iterate through the futures to check for exceptions
 		for(int i = 0; i < futures.size(); i++){
-			try {
-				futures[i].get();
-			} catch (const std::exception& e) {
-				throw;		
-			}
+			futures[i].get();
 		}
-		// lets wait untill all tasks are done
-		pool.stop(true);
+
 		mem_monitor->finalize();
 	}
 
