@@ -609,7 +609,7 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 	BlazingContext::getInstance()->initExternalSystems();
 
 	// spdlog batch logger
-	spdlog::shutdown();
+	//spdlog::shutdown();
 
 	spdlog::init_thread_pool(8192, 1);
 
@@ -735,7 +735,7 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 		ucp_context_h ucp_context = nullptr;
 		ucp_worker_h self_worker = nullptr;
 		if(protocol == comm::blazing_protocol::ucx){
-
+			std::cout<<"def wrong"<<std::endl;
 			ucp_context = reinterpret_cast<ucp_context_h>(workers_ucp_info[0].context_handle);
 			
 			self_worker = CreatetUcpWorker(ucp_context);

@@ -89,6 +89,7 @@ std::vector<cudf::data_type> Schema::get_data_types() const {
 	for(auto type_id : this->types){
 		data_types.push_back(cudf::data_type(type_id));
 	}
+	return data_types;
 }
 
 std::vector<std::string> Schema::get_files() const { return this->files; }
