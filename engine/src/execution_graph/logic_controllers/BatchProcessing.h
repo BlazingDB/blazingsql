@@ -513,7 +513,7 @@ public:
 			//retrieve the file handle but do not open the file
 			//this will allow us to prevent from having too many open file handles by being
 			//able to limit the number of file tasks
-			auto handle = provider->get_next(false);
+			auto handle = provider->get_next(true);
 			auto file_schema = schema.fileSchema(file_index);
 			auto row_group_ids = schema.get_rowgroup_ids(file_index);
 			//this is the part where we make the task now
