@@ -58,6 +58,7 @@ from EndToEndTests import useLimitTest
 from EndToEndTests import whereClauseTest as whereClauseTest
 from EndToEndTests import wildCardTest
 from EndToEndTests import messageValidationTest
+from EndToEndTests import configOptionsTest
 from EndToEndTests import loggingTest
 from EndToEndTests import dayOfWeekTest
 from pynvml import nvmlInit
@@ -255,6 +256,10 @@ def main():
         loggingTest.main(dask_client, dir_data_file, bc, nRals)
 
     # timestampdiffTest.main(dask_client, spark, dir_data_file, bc, nRals)
+
+    # This Test must be the last one to test
+    if runAllTests or ("configOptionsTest" in targetTestGroups):
+        configOptionsTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     if Settings.execution_mode != ExecutionMode.GENERATOR:
 
