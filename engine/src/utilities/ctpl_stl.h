@@ -78,11 +78,7 @@ namespace ctpl {
 
         // the destructor waits for all the functions in the queue to be finished
         ~thread_pool() {
-            /* TODO: this is commented out so that if we catch an exception, 
-            we ca throw it and the pool wont try to wait untill all threads are done.
-            This is particularly problematic for the execution kernel threads.
-            If we can get an exception in any kernel to shutdown all kernels then we wont need to comment this out.*/
-            // this->stop(true);
+            this->stop(true);
         }
 
         // get the number of running threads in the pool
