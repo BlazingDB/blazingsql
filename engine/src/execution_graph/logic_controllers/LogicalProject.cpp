@@ -3,6 +3,7 @@
 #include <cudf/strings/combine.hpp>
 #include <cudf/strings/contains.hpp>
 #include <cudf/strings/substring.hpp>
+#include <cudf/strings/case.hpp>
 #include <cudf/strings/convert/convert_booleans.hpp>
 #include <cudf/strings/convert/convert_datetime.hpp>
 #include <cudf/strings/convert/convert_floats.hpp>
@@ -400,6 +401,28 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         computed_col = cudf::strings::to_timestamps(column, cudf::data_type{cudf::type_id::TIMESTAMP_NANOSECONDS}, format_str);
         break;
     }
+    case operator_type::BLZ_STR_LOWER:
+    {
+        assert(arg_tokens.size() == 1);
+        RAL_EXPECTS(!is_literal(arg_tokens[0]), "LOWER operator not supported for literals");
+        
+        cudf::column_view column = table.column(get_index(arg_tokens[0]));
+        RAL_EXPECTS(is_type_string(column.type().id()), "LOWER argument must be a column of type string");
+        
+        computed_col = cudf::strings::to_lower(column);
+        break;         
+    }
+    case operator_type::BLZ_STR_UPPER:
+    {
+        assert(arg_tokens.size() == 1);
+        RAL_EXPECTS(!is_literal(arg_tokens[0]), "UPPER operator not supported for literals");
+        
+        cudf::column_view column = table.column(get_index(arg_tokens[0]));
+        RAL_EXPECTS(is_type_string(column.type().id()), "UPPER argument must be a column of type string");
+        
+        computed_col = cudf::strings::to_upper(column);
+        break;         
+    }        
     }
 
     return computed_col;

@@ -309,6 +309,7 @@ def get_codTest(test_name):
         "Where clause": "WHERE",
         "Wild Card": "WILDCARD",
         "Simple String": "SSTRING",
+        "String case": "STRINGCASE",
         "Message Validation": "MESSAGEVAL"
     }
 
