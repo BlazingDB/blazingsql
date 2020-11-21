@@ -6,7 +6,7 @@
 #include "communication/CommunicationData.h"
 #include "CodeTimer.h"
 #include "utilities/ctpl_stl.h"
-#include "blazingdb/concurrency/BlazingThread.h"
+#include "ExceptionHandling/BlazingThread.h"
 #include <atomic>
 
 namespace ral {
