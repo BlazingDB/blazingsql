@@ -12,7 +12,7 @@
 - #1110 Adding local logging directory to BlazingContext
 - #1148 Add e2e test for DAYOFWEEK
 - #1130 Infer hive folder partition
-
+- #1139 Adding centralized task executor for kernels
 
 ## Improvements
 - #878 Adding calcite rule for window functions. (Window functions not supported yet)
