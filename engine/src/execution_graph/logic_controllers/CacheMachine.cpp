@@ -143,11 +143,7 @@ CacheMachine::CacheMachine(std::shared_ptr<Context> context, bool log_timeout): 
 {
 	CacheMachine::cache_count++;
 
-<<<<<<< HEAD
-	waitingCache = std::make_unique<WaitingQueue <std::unique_ptr <message> > >();
-=======
-	waitingCache = std::make_unique<WaitingQueue>(60000, log_timeout);
->>>>>>> origin/branch-0.17
+	waitingCache = std::make_unique<WaitingQueue <std::unique_ptr <message> > >(60000, log_timeout);
 	this->memory_resources.push_back( &blazing_device_memory_resource::getInstance() );
 	this->memory_resources.push_back( &blazing_host_memory_resource::getInstance() );
 	this->memory_resources.push_back( &blazing_disk_memory_resource::getInstance() );
