@@ -12,6 +12,7 @@
 - #1110 Adding local logging directory to BlazingContext
 - #1148 Add e2e test for DAYOFWEEK
 - #1130 Infer hive folder partition
+- #1188 Implement upper/lower operators
 
 
 ## Improvements
@@ -33,6 +34,7 @@
 - #1154 Recompute the avg_bytes_per_row value
 - #1155 Removing comms subproject and cleaning some related code
 - #1170 Improve gpuCI scripts
+- #1194 Powerpc building scripts
 - #1186 Removing cuda labels to install due cudatoolkit version
 
 
@@ -51,6 +53,7 @@
 - #1171 Don't log timeout in output/input caches
 - #1168 Fix SSL errors for conda
 - #1164 MergeAggr when single node has multiple batches
+- #1191 Fix graph thread pool hang when exception is thrown
 - #1181 Remove unnecesary prints (cluster and logging info)
 - #1185 Create table in distributed mode crash with a InferFolderPartitionMetadata Error
 
