@@ -8,6 +8,7 @@
 #include "../io/data_provider/UriDataProvider.h"
 
 #include "utilities/CommonOperations.h"
+#include "parser/expression_tree.hpp"
 
 #include <blazingdb/io/Config/BlazingContext.h>
 
@@ -26,14 +27,14 @@ TableSchema parseSchema(std::vector<std::string> files,
 	std::vector<std::string> arg_values,
 	std::vector<std::pair<std::string, cudf::type_id>> extra_columns,
 	bool ignore_missing_paths) {
-	
+
 	// sanitize and normalize paths
 	for (int i = 0; i < files.size(); ++i) {
 		files[i] = Uri(files[i]).toString(true);
 	}
-	
+
 	const DataType data_type_hint = ral::io::inferDataType(file_format_hint);
-	const DataType fileType = inferFileType(files, data_type_hint);
+	const DataType fileType = inferFileType(files, data_type_hint, ignore_missing_paths);
 	auto args_map = ral::io::to_map(arg_keys, arg_values);
 	TableSchema tableSchema;
 	tableSchema.data_type = fileType;
@@ -115,7 +116,7 @@ std::unique_ptr<ResultSet> parseMetadata(std::vector<std::string> files,
 	std::vector<std::string> arg_values) {
 	if (offset.second == 0) {
 		// cover case for empty files to parse
-		
+
 		std::vector<size_t> column_indices(2 * schema.types.size() + 2);
 		std::iota(column_indices.begin(), column_indices.end(), 0);
 
@@ -130,7 +131,7 @@ std::unique_ptr<ResultSet> parseMetadata(std::vector<std::string> files,
 
 			dtypes[2*index] = dtype;
 			dtypes[2*index + 1] = dtype;
-			
+
 			auto col_name_min = "min_" + std::to_string(index) + "_" + schema.names[index];
 			auto col_name_max = "max_" + std::to_string(index)  + "_" + schema.names[index];
 
@@ -152,7 +153,7 @@ std::unique_ptr<ResultSet> parseMetadata(std::vector<std::string> files,
 	const DataType data_type_hint = ral::io::inferDataType(file_format_hint);
 	const DataType fileType = inferFileType(files, data_type_hint);
 	std::map<std::string, std::string> args_map = ral::io::to_map(arg_keys, arg_values);
-	
+
 	std::shared_ptr<ral::io::data_parser> parser;
 	if(fileType == ral::io::DataType::PARQUET) {
 		parser = std::make_shared<ral::io::parquet_parser>();
@@ -235,6 +236,76 @@ std::pair<bool, std::string> registerFileSystemS3(S3 s3, std::string root, std::
 std::pair<bool, std::string> registerFileSystemLocal(std::string root, std::string authority) {
 	FileSystemConnection fileSystemConnection = FileSystemConnection(FileSystemType::LOCAL);
 	return registerFileSystem(fileSystemConnection, root, authority);
+}
+
+void visitPartitionFolder(Uri folder_uri, std::vector<FolderPartitionMetadata>& metadata, int depth) {
+	auto fs = BlazingContext::getInstance()->getFileSystemManager();
+
+	auto matches = fs->list(folder_uri, "*=*");
+	for (auto &&uri : matches) {
+		auto status = fs->getFileStatus(uri);
+		if (!status.isDirectory()) {
+			continue;
+		}
+
+		std::string name = uri.getPath().getResourceName();
+		auto parts = StringUtil::split(name, '=');
+
+		if (metadata.size() < depth + 1) {
+			metadata.resize(depth + 1);
+		}
+
+		metadata[depth].name = parts[0];
+		metadata[depth].values.insert(parts[1]);
+
+		visitPartitionFolder(uri, metadata, depth + 1);
+	}
+}
+
+std::vector<FolderPartitionMetadata> inferFolderPartitionMetadata(std::string folder_path) {
+	Uri folder_uri{folder_path};
+
+	auto fs = BlazingContext::getInstance()->getFileSystemManager();
+	if (!fs->exists(folder_uri)) {
+		return {};
+	}
+
+	auto status = fs->getFileStatus(folder_uri);
+	if (!status.isDirectory()) {
+		return {};
+	}
+
+	std::vector<FolderPartitionMetadata> metadata;
+	visitPartitionFolder(folder_uri, metadata, 0);
+
+	static std::regex boolean_regex{std::string(ral::parser::detail::lexer::BOOLEAN_REGEX_STR)};
+  static std::regex number_regex{std::string(ral::parser::detail::lexer::NUMBER_REGEX_STR)};
+  static std::regex timestamp_regex{std::string(ral::parser::detail::lexer::TIMESTAMP_REGEX_STR)};
+
+	for (auto &&m : metadata) {
+		m.data_type = cudf::type_id::EMPTY;
+		for (auto &&value : m.values) {
+			ral::parser::detail::lexer::token token;
+		 	if (std::regex_match(value, boolean_regex)) {
+				token = {ral::parser::detail::lexer::token_type::Boolean, value};
+			} else if (std::regex_match(value, timestamp_regex)) {
+				token = {ral::parser::detail::lexer::token_type::Timestamp, value};
+			} else if (std::regex_match(value, number_regex)) {
+				token = {ral::parser::detail::lexer::token_type::Number, value};
+			} else {
+				token = {ral::parser::detail::lexer::token_type::String, value};
+			}
+
+			cudf::data_type inferred_type = ral::parser::detail::infer_type_from_literal_token(token);
+			if (m.data_type == cudf::type_id::EMPTY)		{
+				m.data_type = inferred_type.id();
+			} else {
+				m.data_type = ral::utilities::get_common_type(cudf::data_type{m.data_type}, inferred_type, false).id();
+			}
+		}
+	}
+
+	return metadata;
 }
 
 std::pair<TableSchema, error_code_t> parseSchema_C(std::vector<std::string> files,

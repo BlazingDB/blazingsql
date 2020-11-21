@@ -130,10 +130,6 @@ cd blazingsql
 
 # I/O unit tests
 ./test.sh io
-
-# communication tests
-cd blazingsql
-./test.sh comms
 ```
 
 ### Testing artifacts

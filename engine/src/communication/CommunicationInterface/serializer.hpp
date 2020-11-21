@@ -5,7 +5,7 @@
 #include <memory>
 #include <tuple>
 #include <rmm/device_buffer.hpp>
-#include <blazingdb/transport/ColumnTransport.h>
+#include <transport/ColumnTransport.h>
 #include "execution_graph/logic_controllers/LogicPrimitives.h"
 
 namespace comm {

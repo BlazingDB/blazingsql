@@ -1,8 +1,7 @@
 #include "kernel.h"
+
 namespace ral {
 namespace cache {
-
-
 
 // this function gets the estimated num_rows for the output
 // the default is that its the same as the input (i.e. project, sort, ...)

@@ -1,7 +1,7 @@
 #include "messageListener.hpp"
 #include <sys/socket.h>
 
-#include "blazingdb/transport/io/reader_writer.h"
+#include "transport/io/reader_writer.h"
 #include "CodeTimer.h"
 
 namespace comm {

@@ -8,8 +8,10 @@
 - #981 Added powerPC building script and instructions
 - #912 Added UCX support to how the engine runs
 - #1125 Implement new TCP and UCX comms layer, exposed graph to python
+- #1122 Add ConfigOptionsTest, a test with different config_options values
 - #1110 Adding local logging directory to BlazingContext
 - #1148 Add e2e test for DAYOFWEEK
+- #1130 Infer hive folder partition
 
 
 ## Improvements
@@ -23,11 +25,15 @@
 - #1119 Add tests for transform json tree and get json plan
 - #1117 Add error logging in DataSourceSequence
 - #1111 output compile json for cppcheck
-- #1132 Refactoring new comms 
+- #1132 Refactoring new comms
 - #1078 Bump junit from 4.12 to 4.13.1 in /algebra
 - #1144 update with changes from main
 - #1156 Added scheduler file support for e2e testing framework
-- #1158 Deprecated bc.partition 
+- #1158 Deprecated bc.partition
+- #1154 Recompute the avg_bytes_per_row value
+- #1155 Removing comms subproject and cleaning some related code
+- #1194 Powerpc building scripts
+- #1186 Removing cuda labels to install due cudatoolkit version
 
 
 ## Bug Fixes
@@ -40,7 +46,15 @@
 - #1120 Fix missing valid kwargs in create_table
 - #1118 Fixed issue with config_options and adding local_files to valid params
 - #1133 Fixed adressing issue in float columns when parsing parquet metadata
-- #1163 added empty line to trigger build 
+- #1163 added empty line to trigger build
+- #1165 E2e tests, distributed mode, again tcp
+- #1171 Don't log timeout in output/input caches
+- #1168 Fix SSL errors for conda
+- #1164 MergeAggr when single node has multiple batches
+- #1191 Fix graph thread pool hang when exception is thrown
+- #1181 Remove unnecesary prints (cluster and logging info)
+- #1185 Create table in distributed mode crash with a InferFolderPartitionMetadata Error
+
 
 # BlazingSQL 0.16.0 (October 22, 2020)
 

@@ -7,7 +7,7 @@
 
 #include <CodeTimer.h>
 #include <blazingdb/io/Library/Logging/Logger.h>
-#include "blazingdb/concurrency/BlazingThread.h"
+#include "ExceptionHandling/BlazingThread.h"
 #include <cudf/filling.hpp>
 #include <cudf/column/column_factories.hpp>
 #include "CalciteExpressionParsing.h"

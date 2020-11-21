@@ -1,6 +1,6 @@
 #pragma once
 
-#include "blazingdb/manager/Context.h"
+#include "execution_graph/Context.h"
 #include "communication/factory/MessageFactory.h"
 #include <vector>
 #include "execution_graph/logic_controllers/LogicPrimitives.h"

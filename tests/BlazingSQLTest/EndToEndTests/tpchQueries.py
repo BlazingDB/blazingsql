@@ -483,6 +483,7 @@ def get_tpch_query(test_id):
                     l.l_shipdate >= date '1995-09-01'
                     and l.l_shipdate < date '1995-09-01' + interval '1' month
             """,
+
         "TEST_15": """
                 with revenue (suplier_no, total_revenue) as (
                     select

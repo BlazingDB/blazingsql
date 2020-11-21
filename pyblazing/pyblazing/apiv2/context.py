@@ -1134,6 +1134,7 @@ def load_config_options_from_env(user_config_options: dict):
         "LOGGING_MAX_SIZE_PER_FILE": 1073741824,  # 1 GB
         "TRANSPORT_BUFFER_BYTE_SIZE": 1048576,  # 10 MB in bytes
         "TRANSPORT_POOL_NUM_BUFFERS": 100,
+        "PROTOCOL": "TCP",
     }
 
     # key: option_name, value: default_value
@@ -1348,11 +1349,9 @@ class BlazingContext(object):
 
         logging_dir_path = "blazing_log"
         if "BLAZING_LOGGING_DIRECTORY".encode() in self.config_options:
-            print("found config")
             logging_dir_path = self.config_options[
                 "BLAZING_LOGGING_DIRECTORY".encode()
             ].decode()
-            print(logging_dir_path)
 
         cache_dir_path = "/tmp"  # default directory to store orc files
         if "BLAZING_CACHE_DIRECTORY".encode() in self.config_options:
@@ -1481,7 +1480,7 @@ class BlazingContext(object):
 
             ralPort, ralIp, log_path = initializeBlazing(
                 ralId=0,
-                worker_id="",
+                worker_id="self",
                 networkInterface="lo",
                 singleNode=True,
                 nodes=self.nodes,
@@ -1941,53 +1940,80 @@ class BlazingContext(object):
             kwargs.update(extra_kwargs)
             input = folder_list
             is_hive_input = True
-        elif user_partitions is not None:
-            if user_partitions_schema is None:
-                print(
-                    """ERROR: When using 'partitions' without a Hive cursor,
-                     you also need to set 'partitions_schema' which should be
-                     a list of tuples of the column name and column type of
-                     the form partitions_schema=
-                     [('col_nameA','int32','col_nameB','str')]"""
-                )
-                get_blazing_logger(is_dask=False).error(
-                    """ERROR: When using 'partitions' without a Hive cursor,
-                     you also need to set 'partitions_schema' which should be
-                     a list of tuples of the column name and column type of
-                     the form partitions_schema=
-                     [('col_nameA','int32','col_nameB','str')]"""
-                )
-                return
-
-            hive_schema = {}
+        else:
+            location = None
             if isinstance(input, str):
-                hive_schema["location"] = input
-            elif isinstance(input, list) and len(input) == 1:
-                hive_schema["location"] = input[0]
-            else:
-                print(
-                    """ERROR: When using 'partitions' without a Hive cursor,
-                     the input needs to be a path to the base folder
-                     of the partitioned data"""
-                )
-                get_blazing_logger(is_dask=False).error(
-                    """ERROR: When using 'partitions' without a Hive cursor,
-                     the input needs to be a path to the base folder
-                     of the partitioned data"""
-                )
-                return
-            partitions_users = getPartitionsFromUserPartitions(user_partitions)
-            hive_schema["partitions"] = partitions_users
-            input = getFolderListFromPartitions(
-                hive_schema["partitions"], hive_schema["location"]
-            )
+                location = input
+            elif (
+                isinstance(input, list)
+                and len(input) == 1
+                and isinstance(input[0], str)
+            ):
+                location = input[0]
 
-        if user_partitions_schema is not None:
-            extra_columns = []
-            for part_schema in user_partitions_schema:
-                extra_columns.append(
-                    (part_schema[0], convertTypeNameStrToCudfType(part_schema[1]))
+            if (
+                user_partitions is None
+                and user_partitions_schema is None
+                and location is not None
+            ):
+                folder_metadata = cio.inferFolderPartitionMetadataCaller(location)
+                if len(folder_metadata) > 0:
+                    user_partitions = {}
+                    user_partitions_schema = []
+                    for metadata in folder_metadata:
+                        user_partitions[metadata["name"]] = metadata["values"]
+                        user_partitions_schema.append(
+                            (metadata["name"], metadata["data_type"])
+                        )
+
+            if user_partitions is not None:
+                if user_partitions_schema is None:
+                    print(
+                        """ERROR: When using 'partitions' without a Hive cursor,
+                        you also need to set 'partitions_schema' which should be
+                        a list of tuples of the column name and column type of
+                        the form partitions_schema=
+                        [('col_nameA','int32','col_nameB','str')]"""
+                    )
+                    get_blazing_logger(is_dask=False).error(
+                        """ERROR: When using 'partitions' without a Hive cursor,
+                        you also need to set 'partitions_schema' which should be
+                        a list of tuples of the column name and column type of
+                        the form partitions_schema=
+                        [('col_nameA','int32','col_nameB','str')]"""
+                    )
+                    return
+
+                if location is None:
+                    print(
+                        """ERROR: When using 'partitions' without a Hive cursor,
+                        the input needs to be a path to the base folder
+                        of the partitioned data"""
+                    )
+                    get_blazing_logger(is_dask=False).error(
+                        """ERROR: When using 'partitions' without a Hive cursor,
+                        the input needs to be a path to the base folder
+                        of the partitioned data"""
+                    )
+                    return
+
+                hive_schema = {}
+                hive_schema["location"] = location
+                hive_schema["partitions"] = getPartitionsFromUserPartitions(
+                    user_partitions
                 )
+                input = getFolderListFromPartitions(
+                    hive_schema["partitions"], hive_schema["location"]
+                )
+
+                extra_columns = []
+                for part_schema in user_partitions_schema:
+                    cudf_type = (
+                        convertTypeNameStrToCudfType(part_schema[1])
+                        if isinstance(part_schema[1], str)
+                        else part_schema[1]
+                    )
+                    extra_columns.append((part_schema[0], cudf_type))
 
         if isinstance(input, str):
             input = [

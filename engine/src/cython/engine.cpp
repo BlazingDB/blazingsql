@@ -19,7 +19,7 @@
 #include "CodeTimer.h"
 #include "communication/CommunicationInterface/protocols.hpp"
 #include "error.hpp"
-#include "blazingdb/transport/io/reader_writer.h"
+#include "transport/io/reader_writer.h"
 
 
 using namespace fmt::literals;

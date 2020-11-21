@@ -4,18 +4,12 @@
 #include "cudf/column/column_view.hpp"
 #include "cudf/table/table.hpp"
 #include "cudf/table/table_view.hpp"
-#include <future>
 #include <memory>
-#include <mutex>
-#include <queue>
 #include <string>
-#include <typeindex>
 #include <vector>
 #include <string>
 #include <bmr/BlazingMemoryResource.h>
 #include "execution_graph/logic_controllers/BlazingColumn.h"
-#include "execution_graph/logic_controllers/BlazingColumnOwner.h"
-#include "execution_graph/logic_controllers/BlazingColumnView.h"
 
 #include "BlazingHostTable.h"
 

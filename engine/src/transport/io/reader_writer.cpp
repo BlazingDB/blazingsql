@@ -1,4 +1,4 @@
-#include "blazingdb/transport/io/reader_writer.h"
+#include "reader_writer.h"
 #include <cuda.h>
 #include <cuda_runtime_api.h>
 
@@ -11,11 +11,11 @@
 
 #include <cassert>
 #include <queue>
-#include "blazingdb/transport/ColumnTransport.h"
-#include "blazingdb/concurrency/BlazingThread.h"
+#include "transport/ColumnTransport.h"
+#include "ExceptionHandling/BlazingThread.h"
 #include <rmm/device_buffer.hpp>
 
-#include "../engine/src/CodeTimer.h"
+#include "CodeTimer.h"
 using namespace std::chrono_literals;
 
 #include <spdlog/spdlog.h>
