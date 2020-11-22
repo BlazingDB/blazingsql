@@ -651,9 +651,9 @@ public:
 
 			auto columns = ral::processor::process_filter(input->toBlazingTableView(), expression, this->context.get());
 			columns->setNames(fix_column_aliases(columns->names(), expression));
+
 			output->addToCache(std::move(columns), std::string(""));
 		}else{
-
 			input->setNames(fix_column_aliases(input->names(), expression));
 			output->addToCache(std::move(input), std::string(""));
 
@@ -681,7 +681,9 @@ public:
 		
 		//if its empty we can just add it to the cache without scheduling
 		if (!provider->has_next()) {
-			this->add_to_output_cache(std::move(schema.makeEmptyBlazingTable(projections)));
+			auto empty = schema.makeEmptyBlazingTable(projections);
+			empty->setNames(fix_column_aliases(empty->names(), expression));
+			this->add_to_output_cache(std::move(empty));
 			return kstatus::proceed;
 		}
 

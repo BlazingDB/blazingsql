@@ -980,6 +980,10 @@ public:
 	bool has_next_now() {
 		return this->waitingCache->has_next_now();
 	}
+
+	std::size_t get_num_batches(){
+		return cache_count;
+	}
 	virtual std::unique_ptr<ral::frame::BlazingTable> pullFromCache();
 
 	std::vector<std::unique_ptr<ral::cache::CacheData> > pull_all_cache_data();
