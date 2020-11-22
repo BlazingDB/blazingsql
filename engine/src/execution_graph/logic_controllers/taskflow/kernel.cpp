@@ -14,6 +14,12 @@ void kernel::process(std::vector<std::unique_ptr<ral::cache::CacheData > > & inp
 		cudaStream_t stream,
         std::string kernel_process_name = ""){
     std::vector< std::unique_ptr<ral::frame::BlazingTable> > input_gpu;
+
+    
+    if (this->has_limit_ && output->get_num_rows_added() >= this->limit_rows_) {
+        return;
+    }
+
     for(auto & input : inputs){
         try{
             //if its in gpu this wont fail

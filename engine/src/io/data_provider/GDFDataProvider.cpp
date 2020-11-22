@@ -57,16 +57,23 @@ std::vector<data_handle> gdf_data_provider::get_some(std::size_t num_files, bool
 			file_handles.emplace_back(std::move(handle));
 		count++;
 	}
+	this->current_file += count;
 	return file_handles;
 }
 
 
 data_handle gdf_data_provider::get_next(bool open_file) {
-	
-	data_handle handle(nullptr,column_values[current_file],Uri("gdf"),table_views[current_file]);
-	current_file++;
-	return handle;
-	
+	if(column_values.size() == 0){
+		data_handle handle(nullptr,{},Uri("gdf"),table_views[current_file]);
+		current_file++;
+		return handle;
+
+	}else{
+		data_handle handle(nullptr,column_values[current_file],Uri("gdf"),table_views[current_file]);
+		current_file++;
+		return handle;
+	}
+
 }
 
 /**
