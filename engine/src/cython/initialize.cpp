@@ -609,7 +609,7 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 	BlazingContext::getInstance()->initExternalSystems();
 
 	// spdlog batch logger
-	//spdlog::shutdown();
+	spdlog::shutdown();
 
 	spdlog::init_thread_pool(8192, 1);
 
