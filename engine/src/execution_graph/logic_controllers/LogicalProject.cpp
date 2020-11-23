@@ -2,6 +2,8 @@
 #include <cudf/copying.hpp>
 #include <cudf/strings/combine.hpp>
 #include <cudf/strings/contains.hpp>
+#include <cudf/strings/replace.hpp>
+#include <cudf/strings/replace_re.hpp>
 #include <cudf/strings/substring.hpp>
 #include <cudf/strings/case.hpp>
 #include <cudf/strings/convert/convert_booleans.hpp>
@@ -99,6 +101,23 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         std::string regex = like_expression_to_regex_str(arg_tokens[1].substr(1, arg_tokens[1].size() - 2));
 
         computed_col = cudf::strings::contains_re(column, regex);
+        break;
+    }
+    case operator_type::BLZ_STR_REGEXP_REPLACE:
+    {
+        // required args: string column, search, replacement
+        assert(arg_tokens.size() == 3);
+        RAL_EXPECTS(!is_literal(arg_tokens[0]), "REGEXP_REPLACE function not supported for string literals");
+
+        cudf::column_view column = table.column(get_index(arg_tokens[0]));
+        RAL_EXPECTS(is_type_string(column.type().id()), "REGEXP_REPLACE argument must be a column of type string");
+
+        // remove the raw single quotes
+        std::string encapsulation = "'";
+        std::string target = StringUtil::removeEncapsulation(arg_tokens[1], encapsulation);
+        std::string repl = StringUtil::removeEncapsulation(arg_tokens[2], encapsulation);
+
+        computed_col = cudf::strings::replace_with_backrefs(column, target, repl);
         break;
     }
     case operator_type::BLZ_STR_SUBSTRING:

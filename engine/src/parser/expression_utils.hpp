@@ -72,6 +72,7 @@ enum class operator_type {
 	BLZ_STR_SUBSTRING,
 	BLZ_STR_CONCAT,
 	BLZ_TO_DATE,
+    BLZ_STR_REGEXP_REPLACE,
 	BLZ_TO_TIMESTAMP
 };
 
