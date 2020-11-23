@@ -73,6 +73,9 @@ public:
 		}
 	}
 
+	bool get_has_header_csv() const;
+	void set_has_header_csv(bool has_header);
+
 	void add_file(std::string file);
 
 	void add_column(std::string name,
@@ -94,6 +97,7 @@ private:
 	std::vector<cudf::type_id> types;
 	std::vector<bool> in_file;
 	std::vector<std::string> files;
+	bool has_header_csv = false;
 
 	std::vector<std::vector<int>> row_groups_ids;
 };

@@ -369,6 +369,7 @@ cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns, ignore_
         return_object['types'].append(<underlying_type_t_type_id>(type))
     return_object['names'] = tableSchema.names
     return_object['calcite_to_file_indices']= tableSchema.calcite_to_file_indices
+    return_object['has_header_csv']= tableSchema.has_header_csv
 
     return return_object
 
