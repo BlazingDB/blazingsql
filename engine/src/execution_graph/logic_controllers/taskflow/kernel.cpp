@@ -17,7 +17,7 @@ void kernel::process(std::vector<std::unique_ptr<ral::cache::CacheData > > & inp
 
     
     if (this->has_limit_ && output->get_num_rows_added() >= this->limit_rows_) {
-        return;
+  //      return;
     }
 
     for(auto & input : inputs){

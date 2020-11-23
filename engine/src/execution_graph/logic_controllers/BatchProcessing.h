@@ -519,7 +519,7 @@ public:
 			);
 
 			if (this->has_limit_ && output_cache->get_num_rows_added() >= this->limit_rows_) {
-				break;
+			//	break;
 			}
 			file_index++;
 		}
@@ -714,7 +714,7 @@ public:
 
 			file_index++;
 			if (this->has_limit_ && output_cache->get_num_rows_added() >= this->limit_rows_) {
-				break;
+			//	break;
 			}
 
 		}
