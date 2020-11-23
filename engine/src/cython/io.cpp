@@ -241,6 +241,11 @@ std::vector<FolderPartitionMetadata> inferFolderPartitionMetadata(std::string fo
 		return {};
 	}
 
+	auto status = fs->getFileStatus(folder_uri);
+	if (!status.isDirectory()) {
+		return {};
+	}
+
 	std::vector<FolderPartitionMetadata> metadata;
 	visitPartitionFolder(folder_uri, metadata, 0);
 
