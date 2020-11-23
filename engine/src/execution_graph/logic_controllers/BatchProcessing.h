@@ -775,7 +775,17 @@ public:
 		this->query_graph = query_graph;
 	}
 
-	
+	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+		std::shared_ptr<ral::cache::CacheMachine> output,
+		cudaStream_t stream, std::string kernel_process_name) override{
+			//for now the output kernel is not using do_process
+			//i believe the output should be a cachemachine itself
+			//obviating this concern
+		auto & input = inputs[0];
+		auto columns = ral::processor::process_project(std::move(input), expression, this->context.get());
+		output->addToCache(std::move(columns), std::string(""));
+	}
+
 	/**
 	 * Executes the batch processing.
 	 * Loads the data from their input port, and after processing it,
@@ -786,52 +796,25 @@ public:
 		CodeTimer timer;
 		CodeTimer eventTimer(false);
 
-		BatchSequence input(this->input_cache(), this);
-		int batch_count = 0;
-		while (input.wait_for_next()) {
-			try {
-				auto batch = input.next();
-
-				auto log_input_num_rows = batch ? batch->num_rows() : 0;
-				auto log_input_num_bytes = batch ? batch->sizeInBytes() : 0;
-
-				eventTimer.start();
-				auto columns = ral::processor::process_project(std::move(batch), expression, context.get());
-				eventTimer.stop();
-
-				if(columns){
-					auto log_output_num_rows = columns->num_rows();
-					auto log_output_num_bytes = columns->sizeInBytes();
-					if(events_logger != nullptr) {
-						events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-									"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-									"query_id"_a=context->getContextToken(),
-									"kernel_id"_a=this->get_id(),
-									"input_num_rows"_a=log_input_num_rows,
-									"input_num_bytes"_a=log_input_num_bytes,
-									"output_num_rows"_a=log_output_num_rows,
-									"output_num_bytes"_a=log_output_num_bytes,
-									"event_type"_a="compute",
-									"timestamp_begin"_a=eventTimer.start_time(),
-									"timestamp_end"_a=eventTimer.end_time());
-					}
-				}
-
-				this->add_to_output_cache(std::move(columns));
-				batch_count++;
-			} catch(const std::exception& e) {
-				// TODO add retry here
-				if(logger != nullptr) {
-					logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
-											"query_id"_a=context->getContextToken(),
-											"step"_a=context->getQueryStep(),
-											"substep"_a=context->getQuerySubstep(),
-											"info"_a="In Projection kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
-											"duration"_a="");
-				}
-				throw;
-			}
+		std::unique_ptr <ral::cache::CacheData> cache_data =  this->input_cache()->pullCacheData();
+		while(cache_data != nullptr ){
+			std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
+			inputs.push_back(std::move(cache_data));
+			auto output_cache = this->output_.get_cache(std::to_string(this->get_id()));
+			add_task(
+				ral::execution::executor::get_instance()->add_task(
+					std::move(inputs),
+					output_cache,
+					this,std::string("filter")
+				)
+			);
+			cache_data =  this->input_cache()->pullCacheData();
 		}
+
+		std::unique_lock<std::mutex> lock(kernel_mutex);
+		kernel_cv.wait(lock,[this]{
+			return this->tasks.empty();
+		});
 
 		if(logger != nullptr) {
 			logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
@@ -867,7 +850,18 @@ public:
 		this->query_graph = query_graph;
 	}
 
-	
+
+void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+		std::shared_ptr<ral::cache::CacheMachine> output,
+		cudaStream_t stream, std::string kernel_process_name) override{
+			//for now the output kernel is not using do_process
+			//i believe the output should be a cachemachine itself
+			//obviating this concern
+		auto & input = inputs[0];
+		auto columns = ral::processor::process_filter(input->toBlazingTableView(), expression, this->context.get());
+		output->addToCache(std::move(columns), std::string(""));
+	}
+
 	/**
 	 * Executes the batch processing.
 	 * Loads the data from their input port, and after processing it,
@@ -878,47 +872,25 @@ public:
 		CodeTimer timer;
 		CodeTimer eventTimer(false);
 
-		BatchSequence input(this->input_cache(), this);
-		int batch_count = 0;
-		while (input.wait_for_next()) {
-			try {
-				auto batch = input.next();
-
-				auto log_input_num_rows = batch->num_rows();
-				auto log_input_num_bytes = batch->sizeInBytes();
-
-				eventTimer.start();
-				auto columns = ral::processor::process_filter(batch->toBlazingTableView(), expression, context.get());
-				eventTimer.stop();
-
-				auto log_output_num_rows = columns->num_rows();
-				auto log_output_num_bytes = columns->sizeInBytes();
-
-				events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-								"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-								"query_id"_a=context->getContextToken(),
-								"kernel_id"_a=this->get_id(),
-								"input_num_rows"_a=log_input_num_rows,
-								"input_num_bytes"_a=log_input_num_bytes,
-								"output_num_rows"_a=log_output_num_rows,
-								"output_num_bytes"_a=log_output_num_bytes,
-								"event_type"_a="compute",
-								"timestamp_begin"_a=eventTimer.start_time(),
-								"timestamp_end"_a=eventTimer.end_time());
-
-				this->add_to_output_cache(std::move(columns));
-				batch_count++;
-			} catch(const std::exception& e) {
-				// TODO add retry here
-				logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
-											"query_id"_a=context->getContextToken(),
-											"step"_a=context->getQueryStep(),
-											"substep"_a=context->getQuerySubstep(),
-											"info"_a="In Filter kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
-											"duration"_a="");
-				throw;
-			}
+		std::unique_ptr <ral::cache::CacheData> cache_data =  this->input_cache()->pullCacheData();
+		while(cache_data != nullptr ){
+			std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
+			inputs.push_back(std::move(cache_data));
+			auto output_cache = this->output_.get_cache(std::to_string(this->get_id()));
+			add_task(
+				ral::execution::executor::get_instance()->add_task(
+					std::move(inputs),
+					output_cache,
+					this,std::string("filter")
+				)
+			);
+			cache_data =  this->input_cache()->pullCacheData();
 		}
+
+		std::unique_lock<std::mutex> lock(kernel_mutex);
+		kernel_cv.wait(lock,[this]{
+			return this->tasks.empty();
+		});
 
 		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
 									"query_id"_a=context->getContextToken(),
@@ -948,7 +920,7 @@ public:
 		} else {
 			return std::make_pair(false, 0);
 		}
-    }
+	}
 
 private:
 
