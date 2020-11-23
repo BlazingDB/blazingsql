@@ -55,6 +55,7 @@
 - #1191 Fix graph thread pool hang when exception is thrown
 - #1181 Remove unnecesary prints (cluster and logging info)
 - #1185 Create table in distributed mode crash with a InferFolderPartitionMetadata Error
+- #1179 Fix ignore headers when multiple CSV files was provided
 
 
 # BlazingSQL 0.16.0 (October 22, 2020)

@@ -35,6 +35,7 @@ struct TableSchema {
 	std::vector<size_t> calcite_to_file_indices;
 	std::vector<bool> in_file;
 	int data_type;
+	bool has_header_csv = false;
 
 	ral::frame::BlazingTableView metadata;
 	std::vector<std::vector<int>> row_groups_ids;
