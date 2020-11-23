@@ -2,7 +2,6 @@
 #include <cudf/copying.hpp>
 #include <cudf/strings/combine.hpp>
 #include <cudf/strings/contains.hpp>
-#include <cudf/strings/replace.hpp>
 #include <cudf/strings/replace_re.hpp>
 #include <cudf/strings/substring.hpp>
 #include <cudf/strings/case.hpp>
