@@ -2060,7 +2060,7 @@ class BlazingContext(object):
                 local_files,
             )
 
-            parsedSchema['names'] = [i.decode() for i in parsedSchema['names']]
+            parsedSchema["names"] = [i.decode() for i in parsedSchema["names"]]
 
             if is_hive_input or user_partitions is not None:
                 uri_values = get_uri_values(
