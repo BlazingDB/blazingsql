@@ -443,7 +443,7 @@ def parseHiveMetadata(curr_table, uri_values):
 
     dtypes = [cio.cudf_type_int_to_np_types(t) for t in curr_table.column_types]
 
-    columns = [name.decode() for name in curr_table.column_names]
+    columns = curr_table.column_names
     for index in range(n_cols):
         col_name = columns[index]
         names.append("min_" + str(index) + "_" + col_name)
@@ -590,7 +590,7 @@ def mergeMetadata(curr_table, fileMetadata, hiveMetadata):
         return hiveMetadata
 
     result = fileMetadata
-    columns = [c.decode() for c in curr_table.column_names]
+    columns = curr_table.column_names
     n_cols = len(curr_table.column_names)
 
     names = []
@@ -2060,6 +2060,8 @@ class BlazingContext(object):
                 local_files,
             )
 
+            parsedSchema['names'] = [i.decode() for i in parsedSchema['names']]
+
             if is_hive_input or user_partitions is not None:
                 uri_values = get_uri_values(
                     parsedSchema["files"],
@@ -2128,7 +2130,6 @@ class BlazingContext(object):
             # it only did so for the first file. For the rest we want to guarantee that they are all returning
             # the same types, so we are setting it in the args
             table.args["names"] = table.column_names
-            table.args["names"] = [i.decode() for i in table.args["names"]]
 
             dtypes_list = []
             for i in range(0, len(table.column_types)):
@@ -2192,9 +2193,6 @@ class BlazingContext(object):
                     row_group_ids = [row_groups_col[i] for i in row_indices]
                     row_groups_ids.append(row_group_ids)
                 table.row_groups_ids = row_groups_ids
-
-            # want all `column_names` be a list of strings
-            table.column_names = [i.decode() for i in table.column_names]
 
         elif isinstance(input, dask_cudf.core.DataFrame):
             table = BlazingTable(
@@ -2379,6 +2377,11 @@ class BlazingContext(object):
             return parsed_schema, {"localhost": parsed_schema["files"]}
 
     def _parseMetadata(self, file_format_hint, currentTableNodes, schema, kwargs):
+
+        # To have compatibility in cython side
+        schema["names"] = [i.encode() for i in schema["names"]]
+        kwargs["names"] = [i.encode() for i in kwargs["names"]]
+
         if self.dask_client:
             dask_futures = []
             workers = tuple(self.dask_client.scheduler_info()["workers"])
