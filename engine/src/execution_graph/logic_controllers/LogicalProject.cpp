@@ -78,6 +78,7 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
                                                         const std::vector<std::string> & arg_tokens)
 {
     std::unique_ptr<cudf::column> computed_col;
+    std::string encapsulation_character = "'";
 
     switch (op)
     {
@@ -111,9 +112,9 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         cudf::column_view column = table.column(get_index(arg_tokens[0]));
         RAL_EXPECTS(is_type_string(column.type().id()), "REPLACE argument must be a column of type string");
 
-        // remove the raw single quotes
-        std::string target = arg_tokens[1].substr(1, arg_tokens[1].size() - 2);
-        std::string repl = arg_tokens[2].substr(1, arg_tokens[2].size() - 2);
+        // remove the string encapsulation character
+        std::string target = StringUtil::removeEncapsulation(arg_tokens[1], encapsulation_character);
+        std::string repl = StringUtil::removeEncapsulation(arg_tokens[2], encapsulation_character);
 
         computed_col = cudf::strings::replace(column, target, repl);
         break;
