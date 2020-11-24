@@ -722,7 +722,6 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 		comm::blazing_protocol protocol = comm::blazing_protocol::tcp;
 		if(config_options.find("PROTOCOL") != config_options.end()){
 			if(config_options["PROTOCOL"] == "UCX"){
-				std::cout<<"using ucx!"<<std::endl;
 				protocol = comm::blazing_protocol::ucx;
 			}
 		}
