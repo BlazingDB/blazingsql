@@ -331,7 +331,7 @@ public:
 									"query_id"_a=context->getContextToken(),
 									"step"_a=context->getQueryStep(),
 									"substep"_a=context->getQuerySubstep(),
-									"info"_a="TableScan Kernel Completed",
+									"info"_a="TableScan Kernel tasks created",
 									"duration"_a=timer.elapsed_time(),
 									"kernel_id"_a=this->get_id());
 
@@ -339,6 +339,15 @@ public:
 		kernel_cv.wait(lock,[this]{
 			return this->tasks.empty();
 		});
+
+		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="TableScan Kernel Completed",
+									"duration"_a=timer.elapsed_time(),
+									"kernel_id"_a=this->get_id());
+
 		return kstatus::proceed;
 	}
 
@@ -467,13 +476,22 @@ public:
 									"query_id"_a=context->getContextToken(),
 									"step"_a=context->getQueryStep(),
 									"substep"_a=context->getQuerySubstep(),
-									"info"_a="BindableTableScan Kernel Completed",
+									"info"_a="BindableTableScan Kernel tasks created",
 									"duration"_a=timer.elapsed_time(),
 									"kernel_id"_a=this->get_id());
+
 		std::unique_lock<std::mutex> lock(kernel_mutex);
 		kernel_cv.wait(lock,[this]{
 			return this->tasks.empty();
 		});
+
+		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="BindableTableScan Kernel Completed",
+									"duration"_a=timer.elapsed_time(),
+									"kernel_id"_a=this->get_id());
 		return kstatus::proceed;
 	}
 
@@ -552,6 +570,16 @@ public:
 			cache_data =  this->input_cache()->pullCacheData();
 		}
 
+		if(logger != nullptr) {
+			logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="Projection Kernel tasks created",
+									"duration"_a=timer.elapsed_time(),
+									"kernel_id"_a=this->get_id());
+		}
+
 		std::unique_lock<std::mutex> lock(kernel_mutex);
 		kernel_cv.wait(lock,[this]{
 			return this->tasks.empty();
@@ -623,6 +651,14 @@ void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
 			);
 			cache_data =  this->input_cache()->pullCacheData();
 		}
+
+		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="Filter Kernel tasks created",
+									"duration"_a=timer.elapsed_time(),
+									"kernel_id"_a=this->get_id());
 
 		std::unique_lock<std::mutex> lock(kernel_mutex);
 		kernel_cv.wait(lock,[this]{
