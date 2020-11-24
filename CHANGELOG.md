@@ -13,6 +13,7 @@
 - #1148 Add e2e test for DAYOFWEEK
 - #1130 Infer hive folder partition
 - #1188 Implement upper/lower operators
+- #1193 Implement string REPLACE
 
 
 ## Improvements
