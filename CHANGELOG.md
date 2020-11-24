@@ -59,6 +59,7 @@
 - #1185 Create table in distributed mode crash with a InferFolderPartitionMetadata Error
 - #1179 Fix ignore headers when multiple CSV files was provided
 - #1196 Fix column_names (table) always as list of string
+- #1203 Changed code back so that parquet is not read a single rowgroup at a time 
 
 
 # BlazingSQL 0.16.0 (October 22, 2020)
