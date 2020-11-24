@@ -35,6 +35,7 @@
 - #1155 Removing comms subproject and cleaning some related code
 - #1194 Powerpc building scripts
 - #1186 Removing cuda labels to install due cudatoolkit version
+- #1187 Enable MySQL-specific SQL operators in addition to Standard and Oracle
 
 
 ## Bug Fixes
