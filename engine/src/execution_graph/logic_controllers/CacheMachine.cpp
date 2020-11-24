@@ -201,6 +201,10 @@ uint64_t CacheMachine::get_num_rows_added(){
 	return num_rows_added.load();
 }
 
+uint64_t CacheMachine::get_num_batches_added(){
+	return this->waitingCache->processed_parts();
+}
+
 bool CacheMachine::addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> host_table, const std::string & message_id) {
 
 	// we dont want to add empty tables to a cache, unless we have never added anything

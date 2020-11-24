@@ -69,6 +69,14 @@ uint64_t port::total_rows_added(){
 	return total;
 }
 
+uint64_t port::total_batches_added(){
+	uint64_t total = 0;
+	for (auto cache : cache_machines_){
+		total += cache.second->get_num_batches_added();
+	}
+	return total;
+}
+
 uint64_t port::get_num_rows_added(const std::string & port_name){
 	if(port_name.length() == 0) {
 		// NOTE: id is the `default` cache_machine name
