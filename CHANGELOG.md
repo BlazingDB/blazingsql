@@ -56,6 +56,7 @@
 - #1181 Remove unnecesary prints (cluster and logging info)
 - #1185 Create table in distributed mode crash with a InferFolderPartitionMetadata Error
 - #1179 Fix ignore headers when multiple CSV files was provided
+- #1199 Fix non thread-safe access to map containing tag to message_metadata for ucx
 
 
 # BlazingSQL 0.16.0 (October 22, 2020)
