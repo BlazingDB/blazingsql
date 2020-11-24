@@ -587,6 +587,7 @@ public:
 	* @return number of partitions that have been inserted into this WaitingQueue.
 	*/
 	int processed_parts(){
+		std::unique_lock<std::mutex> lock(mutex_);
 		return processed;
 	}
 
@@ -966,6 +967,8 @@ public:
 	uint64_t get_num_bytes_added();
 
 	uint64_t get_num_rows_added();
+
+	uint64_t get_num_batches_added();
 
 	void wait_until_finished();
 

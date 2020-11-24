@@ -348,13 +348,12 @@ public:
 	 */
 	virtual std::pair<bool, uint64_t> get_estimated_output_num_rows(){
 
-		double rows_so_far = (double)this->output_.total_rows_added();
-		
-		double current_batch = (double)file_index;
-		if (current_batch == 0 || num_batches == 0){
+		double rows_so_far = (double)this->output_.total_rows_added();		
+		double batches_so_far = (double)this->output_.total_batches_added();
+		if (batches_so_far == 0 || num_batches == 0){
 			return std::make_pair(false, 0);
 		} else {
-			return std::make_pair(true, (uint64_t)(rows_so_far/(current_batch/((double)num_batches))));
+			return std::make_pair(true, (uint64_t)(rows_so_far/(batches_so_far/((double)num_batches))));
 		}
 	}
 
