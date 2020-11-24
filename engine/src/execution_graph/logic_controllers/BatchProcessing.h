@@ -42,6 +42,7 @@
 #include "ExceptionHandling/BlazingThread.h"
 
 #include "taskflow/graph.h"
+#include "taskflow/executor.h"
 #include "communication/CommunicationData.h"
 #include "execution_graph/logic_controllers/taskflow/kernel.h"
 #include "CodeTimer.h"
@@ -312,7 +313,7 @@ public:
 				std::make_unique<ral::cache::CacheDataIO>(handle,parser,schema,file_schema,row_group_ids,projections);
 			std::vector<std::unique_ptr<ral::cache::CacheData> > inputs;
 			inputs.push_back(std::move(input));
-			auto output_cache = this->output_.get_cache(std::to_string(this->get_id()));
+			auto output_cache = this->output_cache(std::to_string(this->get_id()));
 			add_task(
 				ral::execution::executor::get_instance()->add_task(
 					std::move(inputs),
@@ -448,7 +449,7 @@ public:
 			std::vector<std::unique_ptr<ral::cache::CacheData> > inputs;
 			inputs.push_back(std::move(input));
 
-			auto output_cache = this->output_.get_cache(std::to_string(this->get_id()));
+			auto output_cache = this->output_cache(std::to_string(this->get_id()));
 			add_task(
 				ral::execution::executor::get_instance()->add_task(
 					std::move(inputs),
