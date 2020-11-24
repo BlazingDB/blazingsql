@@ -2381,7 +2381,8 @@ class BlazingContext(object):
 
         # To have compatibility in cython side
         schema["names"] = [i.encode() for i in schema["names"]]
-        kwargs["names"] = [i.encode() for i in kwargs["names"]]
+        if "names" in kwargs:
+            kwargs["names"] = [i.encode() for i in kwargs["names"]]
 
         if self.dask_client:
             dask_futures = []
