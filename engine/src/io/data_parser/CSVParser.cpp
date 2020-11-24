@@ -112,7 +112,7 @@ void csv_parser::parse_schema(
 	}
 }
 
-size_t csv_parser::max_bytes_chuck_size() const {
+size_t csv_parser::max_bytes_chunk_size() const {
 	auto iter = args_map.find("max_bytes_chunk_read");
 	if(iter == args_map.end()) {
 		return 0;
