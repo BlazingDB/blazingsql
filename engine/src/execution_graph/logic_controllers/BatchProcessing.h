@@ -241,7 +241,7 @@ public:
 	 * @param context Shared context associated to the running query.
 	 */
 	DataSourceSequence(ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context)
-		: context(context), loader(loader), schema(schema), batch_index{0}, n_batches{0}
+		: context(context), loader(loader), schema(schema), batch_index{0}, cur_file_index{0}, n_batches{0}
 	{
 		// n_partitions{n_partitions}: TODO Update n_batches using data_loader
 		this->provider = loader.get_provider();
@@ -280,10 +280,6 @@ public:
 		}	else {
 			n_batches = n_files;
 		}
-
-		if (!is_empty_data_source && !is_gdf_parser && has_next()) {
-			current_data_handle = provider->get_next();
-		}
 	}
 
 	/**
@@ -313,6 +309,7 @@ public:
 		auto local_cur_data_handle = current_data_handle;
 		auto local_cur_file_index = cur_file_index;
 		auto local_all_row_groups = all_row_groups[cur_file_index];
+
 		// we have a separate flow for CSV because csv handles multiple reads for one file due to max_bytes_chuck_size
 		if (parser->type() == ral::io::DataType::CSV) { 
 			if (file_batch_index > 0 && file_batch_index >= local_all_row_groups.size()) {
