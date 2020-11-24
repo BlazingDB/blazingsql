@@ -89,6 +89,9 @@ cudf::io::json_reader_options getJsonReaderOptions(const std::map<std::string, s
 	if(map_contains("lines", args)) {
 		reader_opts.enable_lines(to_bool(args.at("lines")));
 	}
+	if(map_contains("dayfirst", args)) {
+		reader_opts.enable_dayfirst(to_bool(args.at("dayfirst")));
+	}
 	if(map_contains("byte_range_offset", args)) {
 		reader_opts.set_byte_range_offset( (size_t) to_int(args.at("byte_range_offset")) );
 	}

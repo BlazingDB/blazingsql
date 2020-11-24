@@ -2,8 +2,8 @@
 #include <blazingdb/io/Library/Logging/Logger.h>
 #include <numeric>
 
-#include "JSONParser.h"
 #include "ArgsUtil.h"
+#include "JSONParser.h"
 
 namespace ral {
 namespace io {
@@ -11,46 +11,45 @@ namespace io {
 json_parser::json_parser(std::map<std::string, std::string> args_map_) : args_map{args_map_} {}
 
 json_parser::~json_parser() {
-	// TODO Auto-generated destructor stub
+
 }
 
+std::unique_ptr<ral::frame::BlazingTable> json_parser::parse_batch(ral::io::data_handle handle,
+	const Schema & schema,
+	std::vector<int> column_indices,
+	std::vector<cudf::size_type> row_groups) {
+	std::shared_ptr<arrow::io::RandomAccessFile> file = handle.file_handle;
+	if(file == nullptr) {
+		return schema.makeEmptyBlazingTable(column_indices);
+	}
 
-// std::unique_ptr<ral::frame::BlazingTable> json_parser::parse(
-// 	std::shared_ptr<arrow::io::RandomAccessFile> file,
-// 	const Schema & schema,
-// 	std::vector<size_t> column_indices) {
+	if(column_indices.size() > 0) {
+		auto arrow_source = cudf::io::arrow_io_source{file};
+		cudf::io::json_reader_options json_opts = getJsonReaderOptions(args_map, arrow_source);
 
-// 	if(file == nullptr) {
-// 		return nullptr;
-// 	}
+		cudf::io::table_with_metadata json_table = cudf::io::read_json(json_opts);
 
-// 	cudf::io::read_json_args new_json_args = args;
+		auto columns = json_table.tbl->release();
+		auto column_names = std::move(json_table.metadata.column_names);
 
-// 	// All json columns are be read
-// 	auto table_and_metadata = read_json_file(args, file);
+		// We just need the columns in column_indices
+		std::vector<std::unique_ptr<cudf::column>> selected_columns;
+		selected_columns.reserve(column_indices.size());
+		std::vector<std::string> selected_column_names;
+		selected_column_names.reserve(column_indices.size());
+		for(auto && i : column_indices) {
+			selected_columns.push_back(std::move(columns[i]));
+			selected_column_names.push_back(std::move(column_names[i]));
+		}
 
-// 	if(table_and_metadata.tbl->num_columns() <= 0)
-// 		Library::Logging::Logger().logWarn("json_parser::parse no columns were read");
+		return std::make_unique<ral::frame::BlazingTable>(
+			std::make_unique<cudf::table>(std::move(selected_columns)), selected_column_names);
+	}
 
-// 	auto columns = table_and_metadata.tbl->release();
-// 	auto column_names = std::move(table_and_metadata.metadata.column_names);
+	return nullptr;
+}
 
-// 	// We just need the columns in column_indices
-// 	std::vector<std::unique_ptr<cudf::column>> selected_columns;
-// 	selected_columns.reserve(column_indices.size());
-// 	std::vector<std::string> selected_column_names;
-// 	selected_column_names.reserve(column_indices.size());
-// 	for (auto &&i : column_indices) {
-// 		selected_columns.push_back(std::move(columns[i]));
-// 		selected_column_names.push_back(std::move(column_names[i]));
-// 	}
-
-// 	return std::make_unique<ral::frame::BlazingTable>(std::make_unique<cudf::table>(std::move(selected_columns)), selected_column_names);	
-// }
-
-void json_parser::parse_schema(
-	std::shared_ptr<arrow::io::RandomAccessFile> file, ral::io::Schema & schema) {
-
+void json_parser::parse_schema(std::shared_ptr<arrow::io::RandomAccessFile> file, ral::io::Schema & schema) {
 	auto arrow_source = cudf::io::arrow_io_source{file};
 	cudf::io::json_reader_options args = getJsonReaderOptions(args_map, arrow_source);
 
@@ -65,7 +64,7 @@ void json_parser::parse_schema(
 
 	cudf::io::table_with_metadata table_and_metadata = cudf::io::read_json(args);
 	file->Close();
-	
+
 	for(auto i = 0; i < table_and_metadata.tbl->num_columns(); i++) {
 		std::string name = table_and_metadata.metadata.column_names[i];
 		cudf::type_id type = table_and_metadata.tbl->get_column(i).type().id();
