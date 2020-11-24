@@ -46,9 +46,9 @@ cudf::strings::strip_type map_trim_flag_to_strip_type(const std::string & trim_f
     if (trim_flag == "BOTH")
         return cudf::strings::strip_type::BOTH;
     else if (trim_flag == "LEADING")
-        return cudf::strings::strip_type::RIGHT;
-    else if (trim_flag == "TRAILING")
         return cudf::strings::strip_type::LEFT;
+    else if (trim_flag == "TRAILING")
+        return cudf::strings::strip_type::RIGHT;
     else
         // Should not reach here
         assert(false);
