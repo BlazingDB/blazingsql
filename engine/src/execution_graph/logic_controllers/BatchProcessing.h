@@ -423,11 +423,8 @@ public:
 	TableScan(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<ral::io::data_provider> provider, std::shared_ptr<ral::io::data_parser> parser, ral::io::Schema & schema, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
 	: kernel(kernel_id, queryString, context, kernel_type::TableScanKernel),schema(schema), provider(provider), parser(parser)
 	{
-
-
-
 		size_t n_batches;
-		if(parser->type() == ral::io::DataType::CUDF){
+		if(parser->type() == ral::io::DataType::CUDF || parser->type() == ral::io::DataType::DASK_CUDF){
 			n_batches = std::max(provider->get_num_handles(), (size_t)1);
 		} else if (parser->type() == ral::io::DataType::CSV)	{
 			auto csv_parser = static_cast<ral::io::csv_parser*>(parser.get());
@@ -460,16 +457,10 @@ public:
 		this->query_graph = query_graph;
 	}
 
-	
 	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
 		cudaStream_t stream, std::string kernel_process_name) override{
-			//for now the output kernel is not using do_process
-			//i believe the output should be a cachemachine itself
-			//obviating this concern
 		output->addToCache(std::move(inputs[0]), std::string(""));
-
-		
 	}
 
 	/**
@@ -481,8 +472,6 @@ public:
 	virtual kstatus run() {
 		CodeTimer timer;
 
-
-
 		std::vector<int> projections(schema.get_num_columns());
 		std::iota(projections.begin(), projections.end(), 0);
 
@@ -493,9 +482,6 @@ public:
 			this->add_to_output_cache(std::move(schema.makeEmptyBlazingTable(projections)));
 			return kstatus::proceed;
 		}
-
-
-
 
 		while(provider->has_next()){
 			//retrieve the file handle but do not open the file
@@ -524,41 +510,6 @@ public:
 			file_index++;
 		}
 
-		/*std::vector<BlazingThread> threads;
-		for (int i = 0; i < table_scan_kernel_num_threads; i++) {
-			threads.push_back(BlazingThread([this, &has_limit, &limit_, &current_rows]() {
-				CodeTimer eventTimer(false);
-
-				std::unique_ptr<ral::frame::BlazingTable> batch;
-				while(batch = input.next()) {
-					eventTimer.start();
-					eventTimer.stop();
-					current_rows += batch->num_rows();
-
-					events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-									"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-									"query_id"_a=context->getContextToken(),
-									"kernel_id"_a=this->get_id(),
-									"input_num_rows"_a=batch->num_rows(),
-									"input_num_bytes"_a=batch->sizeInBytes(),
-									"output_num_rows"_a=batch->num_rows(),
-									"output_num_bytes"_a=batch->sizeInBytes(),
-									"event_type"_a="compute",
-									"timestamp_begin"_a=eventTimer.start_time(),
-									"timestamp_end"_a=eventTimer.end_time());
-
-					this->add_to_output_cache(std::move(batch));
-					
-					if (has_limit && current_rows >= limit_) {
-						break;
-					}
-				}
-			}));
-		}
-		for (auto &&t : threads) {
-			t.join();
-		}
-*/
 		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
 									"query_id"_a=context->getContextToken(),
 									"step"_a=context->getQueryStep(),
@@ -642,21 +593,16 @@ public:
 	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
 		cudaStream_t stream, std::string kernel_process_name) override{
-			//for now the output kernel is not using do_process
-			//i believe the output should be a cachemachine itself
-			//obviating this concern
-		
-		auto & input = inputs[0];			
+		auto & input = inputs[0];
 		if(this->filtered) {
 
 			auto columns = ral::processor::process_filter(input->toBlazingTableView(), expression, this->context.get());
 			columns->setNames(fix_column_aliases(columns->names(), expression));
 
-			output->addToCache(std::move(columns), std::string(""));
+			output->addToCache(std::move(columns));
 		}else{
 			input->setNames(fix_column_aliases(input->names(), expression));
-			output->addToCache(std::move(input), std::string(""));
-
+			output->addToCache(std::move(input));
 		}
 	}
 
@@ -686,9 +632,6 @@ public:
 			this->add_to_output_cache(std::move(empty));
 			return kstatus::proceed;
 		}
-
-
-
 
 		while(provider->has_next()){
 			//retrieve the file handle but do not open the file
@@ -778,12 +721,9 @@ public:
 	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
 		cudaStream_t stream, std::string kernel_process_name) override{
-			//for now the output kernel is not using do_process
-			//i believe the output should be a cachemachine itself
-			//obviating this concern
 		auto & input = inputs[0];
 		auto columns = ral::processor::process_project(std::move(input), expression, this->context.get());
-		output->addToCache(std::move(columns), std::string(""));
+		output->addToCache(std::move(columns));
 	}
 
 	/**
@@ -850,16 +790,12 @@ public:
 		this->query_graph = query_graph;
 	}
 
-
 void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
 		cudaStream_t stream, std::string kernel_process_name) override{
-			//for now the output kernel is not using do_process
-			//i believe the output should be a cachemachine itself
-			//obviating this concern
 		auto & input = inputs[0];
 		auto columns = ral::processor::process_filter(input->toBlazingTableView(), expression, this->context.get());
-		output->addToCache(std::move(columns), std::string(""));
+		output->addToCache(std::move(columns));
 	}
 
 	/**
