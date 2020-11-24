@@ -278,10 +278,7 @@ public:
 				n_batches = n_files;
 			}
 		}	else {
-			n_batches = 0;
-			for (auto &&row_group : all_row_groups) {
-				n_batches += std::max(row_group.size(), (size_t)1);
-			}
+			n_batches = n_files;
 		}
 
 		if (!is_empty_data_source && !is_gdf_parser && has_next()) {
@@ -316,31 +313,38 @@ public:
 		auto local_cur_data_handle = current_data_handle;
 		auto local_cur_file_index = cur_file_index;
 		auto local_all_row_groups = all_row_groups[cur_file_index];
-		if (file_batch_index > 0 && file_batch_index >= local_all_row_groups.size()) {
-			// a file handle that we can use in case errors occur to tell the user which file had parsing issues
-			assert(provider->has_next());
-			current_data_handle = provider->get_next();
+		// we have a separate flow for CSV because csv handles multiple reads for one file due to max_bytes_chuck_size
+		if (parser->type() == ral::io::DataType::CSV) { 
+			if (file_batch_index > 0 && file_batch_index >= local_all_row_groups.size()) {
+				// a file handle that we can use in case errors occur to tell the user which file had parsing issues
+				assert(provider->has_next());
+				current_data_handle = provider->get_next();
 
-			file_batch_index = 0;
+				file_batch_index = 0;
+				cur_file_index++;
+
+				local_cur_data_handle = current_data_handle;
+				local_cur_file_index = cur_file_index;
+				local_all_row_groups = all_row_groups[cur_file_index];
+			}
+
+			if (!local_all_row_groups.empty()) {
+				local_all_row_groups = { local_all_row_groups[file_batch_index] };
+			}
+
+			file_batch_index++;
+			batch_index++;
+		} else {
+			local_cur_data_handle = this->provider->get_next();
+
+			batch_index++;
 			cur_file_index++;
-
-			local_cur_data_handle = current_data_handle;
-			local_cur_file_index = cur_file_index;
-			local_all_row_groups = all_row_groups[cur_file_index];
 		}
-
-		std::vector<cudf::size_type> local_row_group;
-		if (!local_all_row_groups.empty()) {
-			local_row_group = { local_all_row_groups[file_batch_index] };
-		}
-
-		file_batch_index++;
-		batch_index++;
 
 		lock.unlock();
 
 		try {
-			return loader.load_batch(context.get(), projections, schema, local_cur_data_handle, local_cur_file_index, local_row_group);
+			return loader.load_batch(context.get(), projections, schema, local_cur_data_handle, local_cur_file_index, local_all_row_groups);
 		}	catch(const std::exception& e) {
 			auto logger = spdlog::get("batch_logger");
 			logger->error("{query_id}|||{info}|||||",
