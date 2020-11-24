@@ -13,6 +13,7 @@
 - #1148 Add e2e test for DAYOFWEEK
 - #1130 Infer hive folder partition
 - #1188 Implement upper/lower operators
+- #1193 Implement string REPLACE
 
 
 ## Improvements
@@ -35,6 +36,7 @@
 - #1155 Removing comms subproject and cleaning some related code
 - #1194 Powerpc building scripts
 - #1186 Removing cuda labels to install due cudatoolkit version
+- #1187 Enable MySQL-specific SQL operators in addition to Standard and Oracle
 
 
 ## Bug Fixes
@@ -55,6 +57,9 @@
 - #1191 Fix graph thread pool hang when exception is thrown
 - #1181 Remove unnecesary prints (cluster and logging info)
 - #1185 Create table in distributed mode crash with a InferFolderPartitionMetadata Error
+- #1179 Fix ignore headers when multiple CSV files was provided
+- #1199 Fix non thread-safe access to map containing tag to message_metadata for ucx
+- #1196 Fix column_names (table) always as list of string
 
 
 # BlazingSQL 0.16.0 (October 22, 2020)

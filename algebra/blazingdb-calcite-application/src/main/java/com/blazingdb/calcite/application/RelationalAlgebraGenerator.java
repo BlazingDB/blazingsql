@@ -117,7 +117,7 @@ public class RelationalAlgebraGenerator {
 			props.setProperty("defaultSchema", newSchema.getName());
 			List<SqlOperatorTable> sqlOperatorTables = new ArrayList<>();
 			sqlOperatorTables.add(SqlLibraryOperatorTableFactory.INSTANCE.getOperatorTable(
-				EnumSet.of(SqlLibrary.STANDARD, SqlLibrary.ORACLE)));
+				EnumSet.of(SqlLibrary.STANDARD, SqlLibrary.ORACLE, SqlLibrary.MYSQL)));
 			sqlOperatorTables.add(new CalciteCatalogReader(CalciteSchema.from(schema.getSubSchema(newSchema.getName())),
 				defaultSchema,
 				new JavaTypeFactoryImpl(RelDataTypeSystem.DEFAULT),

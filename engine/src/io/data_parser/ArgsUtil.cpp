@@ -151,13 +151,14 @@ cudf::io::csv_reader_options getCsvReaderOptions(const std::map<std::string, std
 	if(map_contains("skipfooter", args)) {
 		reader_opts.set_skipfooter((cudf::size_type) to_int(args.at("skipfooter")));
 	}
-	if(map_contains("header", args) && args.at("header") != "None" ) { // this is how it was in branch-0.14 at some point, but it makes testing fail
-		reader_opts.set_header((cudf::size_type) to_int(args.at("header")));
-	} else if((map_contains("header", args) && args.at("header") == "None") || (!map_contains("header", args) && map_contains("names", args))) {
-		reader_opts.set_header(-1);
-	}
 	if(map_contains("names", args)) {
 		reader_opts.set_names(to_vector_string(args.at("names")));
+		reader_opts.set_header(-1);
+	} else {
+		reader_opts.set_header(0);
+	}
+	if(map_contains("header", args)) {
+		reader_opts.set_header((cudf::size_type) to_int(args.at("header")));
 	}
 	if(map_contains("dtype", args)) {
 		reader_opts.set_dtypes(to_vector_string(args.at("dtype")));
