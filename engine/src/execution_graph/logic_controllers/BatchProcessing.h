@@ -277,6 +277,10 @@ public:
 			} else {
 				n_batches = n_files;
 			}
+			if (!is_empty_data_source && has_next()) {	
+				current_data_handle = provider->get_next();	
+			}
+
 		}	else {
 			n_batches = n_files;
 		}
