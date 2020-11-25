@@ -61,7 +61,7 @@
 - #1199 Fix non thread-safe access to map containing tag to message_metadata for ucx
 - #1196 Fix column_names (table) always as list of string
 - #1203 Changed code back so that parquet is not read a single rowgroup at a time 
-
+- #1207 Calcite uses literal as int32 if not explicit CAST was provided
 
 # BlazingSQL 0.16.0 (October 22, 2020)
 
