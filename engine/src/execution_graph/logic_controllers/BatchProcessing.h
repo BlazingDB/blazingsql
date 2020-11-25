@@ -313,15 +313,13 @@ public:
 				std::make_unique<ral::cache::CacheDataIO>(handle,parser,schema,file_schema,row_group_ids,projections);
 			std::vector<std::unique_ptr<ral::cache::CacheData> > inputs;
 			inputs.push_back(std::move(input));
-			auto output_cache = this->output_cache(std::to_string(this->get_id()));
-			add_task(
-				ral::execution::executor::get_instance()->add_task(
+			auto output_cache = this->output_cache();
+			
+			ral::execution::executor::get_instance()->add_task(
 					std::move(inputs),
 					output_cache,
-					this,std::string("scan")
-				)
-			);
-
+					this,std::string("scan"));
+			
 			if (this->has_limit_ && output_cache->get_num_rows_added() >= this->limit_rows_) {
 			//	break;
 			}
@@ -457,15 +455,13 @@ public:
 			std::vector<std::unique_ptr<ral::cache::CacheData> > inputs;
 			inputs.push_back(std::move(input));
 
-			auto output_cache = this->output_cache(std::to_string(this->get_id()));
-			add_task(
-				ral::execution::executor::get_instance()->add_task(
+			auto output_cache = this->output_cache();
+			
+			ral::execution::executor::get_instance()->add_task(
 					std::move(inputs),
 					output_cache,
-					this,std::string("scan")
-				)
-			);
-
+					this,std::string("scan"));
+			
 			file_index++;
 			if (this->has_limit_ && output_cache->get_num_rows_added() >= this->limit_rows_) {
 			//	break;
@@ -560,14 +556,12 @@ public:
 		while(cache_data != nullptr ){
 			std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
 			inputs.push_back(std::move(cache_data));
-			auto output_cache = this->output_.get_cache(std::to_string(this->get_id()));
-			add_task(
-				ral::execution::executor::get_instance()->add_task(
+			
+			ral::execution::executor::get_instance()->add_task(
 					std::move(inputs),
-					output_cache,
-					this,std::string("filter")
-				)
-			);
+					this->output_cache(),
+					this,std::string("filter"));
+
 			cache_data =  this->input_cache()->pullCacheData();
 		}
 
@@ -642,14 +636,12 @@ void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		while(cache_data != nullptr ){
 			std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
 			inputs.push_back(std::move(cache_data));
-			auto output_cache = this->output_.get_cache(std::to_string(this->get_id()));
-			add_task(
-				ral::execution::executor::get_instance()->add_task(
+			
+			ral::execution::executor::get_instance()->add_task(
 					std::move(inputs),
-					output_cache,
-					this,std::string("filter")
-				)
-			);
+					this->output_cache(),
+					this,std::string("filter"));
+
 			cache_data =  this->input_cache()->pullCacheData();
 		}
 

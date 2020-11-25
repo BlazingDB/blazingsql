@@ -9,6 +9,8 @@ size_t executor::add_task(std::vector<std::unique_ptr<ral::cache::CacheData > > 
 
     auto task_id = task_id_counter.fetch_add(1, std::memory_order_relaxed);
 
+    kernel->add_task(task_id);
+
     auto task_added = std::make_unique<task>(
         std::move(inputs),output,task_id, kernel, attempts_limit,kernel_process_name
     );
