@@ -52,6 +52,7 @@ public:
 		}
 	}
 
+	virtual std::string name() { return "baseKernel"; };
 	/**
 	 * @brief Sets its parent kernel.
 	 *
@@ -283,17 +284,16 @@ public:
 	 * is that its the same as the input (i.e. project, sort, ...).
 	 */
 	virtual std::pair<bool, uint64_t> get_estimated_output_num_rows();
-	
 
 	void process(std::vector<std::unique_ptr<ral::cache::CacheData > > & inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
-		cudaStream_t stream, std::string kernel_process_name);
+		cudaStream_t stream);
 
 	virtual void do_process(std::vector<std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
-		cudaStream_t stream,std::string kernel_process_name){
-			
+		cudaStream_t stream){
 		}
+
 	void notify_complete(size_t task_id);
 	void add_task(size_t task_id);
 	bool finished_tasks(){

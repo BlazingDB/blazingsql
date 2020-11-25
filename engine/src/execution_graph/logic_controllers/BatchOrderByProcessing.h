@@ -31,6 +31,8 @@ public:
 		this->input_.add_port("input_a", "input_b");
 	}
 
+	std::string name() { return "PartitionSingleNode"; }
+
 	virtual kstatus run() {
 		CodeTimer timer;
 
@@ -426,6 +428,8 @@ public:
 		: kernel{kernel_id, queryString, context, kernel_type::MergeStreamKernel}  {
 		this->query_graph = query_graph;
 	}
+
+	std::string name() { return "MergeStream"; }
 
 	virtual kstatus run() {
 		CodeTimer timer;

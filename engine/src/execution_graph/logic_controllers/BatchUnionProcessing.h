@@ -28,6 +28,8 @@ public:
         this->input_.add_port("input_a", "input_b");
 	}
 
+    std::string name() { return "Union"; }
+
    virtual kstatus run() {
 		CodeTimer timer;
 

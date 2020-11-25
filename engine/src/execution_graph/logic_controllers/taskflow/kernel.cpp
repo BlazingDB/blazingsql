@@ -11,11 +11,9 @@ std::pair<bool, uint64_t> kernel::get_estimated_output_num_rows(){
 
 void kernel::process(std::vector<std::unique_ptr<ral::cache::CacheData > > & inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
-		cudaStream_t stream,
-        std::string kernel_process_name = ""){
+		cudaStream_t stream){
     std::vector< std::unique_ptr<ral::frame::BlazingTable> > input_gpu;
 
-    
     if (this->has_limit_ && output->get_num_rows_added() >= this->limit_rows_) {
   //      return;
     }
@@ -31,19 +29,17 @@ void kernel::process(std::vector<std::unique_ptr<ral::cache::CacheData > > & inp
         }catch(std::exception e){
             throw e;
         }
-        
-
     }
 
     try{
-       do_process(std::move(input_gpu),output,stream, kernel_process_name);
+       do_process(std::move(input_gpu), output, stream);
     }catch(std::exception e){
         //remake inputs here
         int i = 0;
         for(auto & input : inputs){
             if (input->get_type() == ral::cache::CacheDataType::GPU || input->get_type() == ral::cache::CacheDataType::GPU_METADATA){
                 //this was a gpu cachedata so now its not valid
-                static_cast<ral::cache::GPUCacheData *>(input.get())->set_data(std::move(input_gpu[i]));                 
+                static_cast<ral::cache::GPUCacheData *>(input.get())->set_data(std::move(input_gpu[i]));
             }
             i++;
         }

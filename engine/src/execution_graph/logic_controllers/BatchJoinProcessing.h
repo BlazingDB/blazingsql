@@ -79,8 +79,10 @@ public:
 		std::tie(this->expression, this->condition, this->filter_statement, this->join_type) = parseExpressionToGetTypeAndCondition(this->expression);
 	}
 
+	std::string name() { return "PartwiseJoin"; }
+
 	std::unique_ptr<TableSchema> left_schema{nullptr};
- 	std::unique_ptr<TableSchema> right_schema{nullptr};
+	std::unique_ptr<TableSchema> right_schema{nullptr};
 
     std::unique_ptr<ral::frame::BlazingTable> load_left_set(){
 

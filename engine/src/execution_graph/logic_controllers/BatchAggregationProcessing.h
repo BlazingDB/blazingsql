@@ -29,6 +29,8 @@ public:
         this->query_graph = query_graph;
 	}
 
+    std::string name() { return "ComputeAggregate"; }
+
     virtual kstatus run() {
 		CodeTimer timer;
         CodeTimer eventTimer(false);
@@ -262,6 +264,8 @@ public:
 		: kernel{kernel_id, queryString, context, kernel_type::MergeAggregateKernel} {
         this->query_graph = query_graph;
 	}
+
+    std::string name() { return "MergeAggregate"; }
 
     virtual kstatus run() {
         CodeTimer timer;

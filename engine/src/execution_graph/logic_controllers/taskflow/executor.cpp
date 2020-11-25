@@ -5,30 +5,29 @@ namespace execution{
 
 size_t executor::add_task(std::vector<std::unique_ptr<ral::cache::CacheData > > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
-    ral::cache::kernel * kernel,std::string kernel_process_name) {
+    ral::cache::kernel * kernel) {
 
     auto task_id = task_id_counter.fetch_add(1, std::memory_order_relaxed);
 
     kernel->add_task(task_id);
 
     auto task_added = std::make_unique<task>(
-        std::move(inputs),output,task_id, kernel, attempts_limit,kernel_process_name
+        std::move(inputs), output, task_id, kernel, attempts_limit, kernel->name()
     );
 
     task_queue.put(std::move(task_added));
     return task_id;
-
 }
 
 
 void executor::add_task(std::vector<std::unique_ptr<ral::cache::CacheData > > inputs,
-		std::shared_ptr<ral::cache::CacheMachine> output,
-		ral::cache::kernel * kernel,
-		size_t attempts,
-		size_t task_id,std::string kernel_process_name){
+        std::shared_ptr<ral::cache::CacheMachine> output,
+        ral::cache::kernel * kernel,
+        size_t attempts,
+        size_t task_id){
 
     auto task_added = std::make_unique<task>(
-        std::move(inputs),output,task_id, kernel, attempts_limit,kernel_process_name, attempts
+        std::move(inputs), output,task_id, kernel, attempts_limit, kernel->name(), attempts
     );
     task_queue.put(std::move(task_added));
 }
@@ -44,18 +43,17 @@ task::task(
     task_id(task_id), output(output),
     kernel(kernel), attempts_limit(attempts_limit),
     kernel_process_name(kernel_process_name), attempts(attempts) {
-
 }
 
 
 void task::run(cudaStream_t stream, executor * executor){
     try{
-        kernel->process(inputs,output,stream,kernel_process_name);
+        kernel->process(inputs, output, stream);
         complete();
     }catch(rmm::bad_alloc e){
         this->attempts++;
         if(this->attempts < this->attempts_limit){
-            executor->add_task(std::move(inputs), output, kernel, attempts, task_id, kernel_process_name);
+            executor->add_task(std::move(inputs), output, kernel, attempts, task_id);
         }else{
             throw;
         }
