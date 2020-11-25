@@ -164,12 +164,12 @@ void tcp_message_listener::start_polling() {
 								if((chunk + 1) == num_chunks) {	 // if its the last chunk, we chunk_size is different
 									chunk_size = buffer_size - (chunk * pinned_buffer_size);
 								}
-								auto pinned_buffer = blazingdb::transport::io::getPinnedBufferProvider().getBuffer();
+								auto *pinned_buffer = blazingdb::transport::io::getPinnedBufferProvider().getBuffer();
 								pinned_buffer->use_size = chunk_size;
 
 								io::read_from_socket(connection_fd, pinned_buffer->data, chunk_size);
 
-								auto buffer_chunk_start = static_cast<char*>(buffer) + (chunk * pinned_buffer_size);
+								auto *buffer_chunk_start = static_cast<uint8_t*>(buffer) + (chunk * pinned_buffer_size);
 								cudaMemcpyAsync(buffer_chunk_start,
 									pinned_buffer->data,
 									chunk_size,
