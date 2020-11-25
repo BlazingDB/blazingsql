@@ -408,7 +408,6 @@ public:
 		cudaStream_t stream) override{
 		auto & input = inputs[0];
 		if(this->filtered) {
-
 			auto columns = ral::processor::process_filter(input->toBlazingTableView(), expression, this->context.get());
 			columns->setNames(fix_column_aliases(columns->names(), expression));
 
@@ -428,13 +427,11 @@ public:
 	virtual kstatus run() {
 		CodeTimer timer;
 
-
 		std::vector<int> projections = get_projections(expression);
 		if(projections.size() == 0){
 			projections.resize(schema.get_num_columns());
 			std::iota(projections.begin(), projections.end(), 0);
 		}
-
 
 		cudf::size_type current_rows = 0;
 		
@@ -555,9 +552,8 @@ public:
 	 */
 	virtual kstatus run() {
 		CodeTimer timer;
-		CodeTimer eventTimer(false);
 
-		std::unique_ptr <ral::cache::CacheData> cache_data =  this->input_cache()->pullCacheData();
+		std::unique_ptr <ral::cache::CacheData> cache_data = this->input_cache()->pullCacheData();
 		while(cache_data != nullptr ){
 			std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
 			inputs.push_back(std::move(cache_data));
@@ -567,7 +563,7 @@ public:
 					this->output_cache(),
 					this);
 
-			cache_data =  this->input_cache()->pullCacheData();
+			cache_data = this->input_cache()->pullCacheData();
 		}
 
 		if(logger != nullptr) {

@@ -24,87 +24,76 @@ using namespace fmt::literals;
 
 class ComputeAggregateKernel : public kernel {
 public:
-	ComputeAggregateKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: kernel{kernel_id, queryString, context, kernel_type::ComputeAggregateKernel} {
+    ComputeAggregateKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
+        : kernel{kernel_id, queryString, context, kernel_type::ComputeAggregateKernel} {
         this->query_graph = query_graph;
-	}
+    }
 
     std::string name() { return "ComputeAggregate"; }
 
-    virtual kstatus run() {
-		CodeTimer timer;
-        CodeTimer eventTimer(false);
+    void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+        std::shared_ptr<ral::cache::CacheMachine> output,
+        cudaStream_t stream) override{
+        auto & input = inputs[0];
 
-        std::vector<std::string> aggregation_input_expressions, aggregation_column_assigned_aliases;
+        std::unique_ptr<ral::frame::BlazingTable> columns;
+        if(this->aggregation_types.size() == 0) {
+            columns = ral::operators::compute_groupby_without_aggregations(
+                    input->toBlazingTableView(), this->group_column_indices);
+        } else if (this->group_column_indices.size() == 0) {
+            columns = ral::operators::compute_aggregations_without_groupby(
+                    input->toBlazingTableView(), aggregation_input_expressions, this->aggregation_types, aggregation_column_assigned_aliases);
+        } else {
+            columns = ral::operators::compute_aggregations_with_groupby(
+                input->toBlazingTableView(), aggregation_input_expressions, this->aggregation_types, aggregation_column_assigned_aliases, group_column_indices);
+        }
+
+        output->addToCache(std::move(columns));
+    }
+
+    virtual kstatus run() {
+        CodeTimer timer;
+
         std::tie(this->group_column_indices, aggregation_input_expressions, this->aggregation_types,
             aggregation_column_assigned_aliases) = ral::operators::parseGroupByExpression(this->expression);
 
-        bool ordered = false; // If we start using sort based aggregations this may need to change
-        BatchSequence input(this->input_cache(), this, ordered);
-        int batch_count = 0;
-        while (input.wait_for_next()) {
+        std::unique_ptr <ral::cache::CacheData> cache_data = this->input_cache()->pullCacheData();
+        while(cache_data != nullptr ){
+            std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
+            inputs.push_back(std::move(cache_data));
+            
+            ral::execution::executor::get_instance()->add_task(
+                    std::move(inputs),
+                    this->output_cache(),
+                    this);
 
-            auto batch = input.next();
-
-            eventTimer.start();
-
-            auto log_input_num_rows = batch ? batch->num_rows() : 0;
-            auto log_input_num_bytes = batch ? batch->sizeInBytes() : 0;
-
-            try {
-                std::unique_ptr<ral::frame::BlazingTable> output;
-                if(this->aggregation_types.size() == 0) {
-                    output = ral::operators::compute_groupby_without_aggregations(
-                            batch->toBlazingTableView(), this->group_column_indices);
-                } else if (this->group_column_indices.size() == 0) {
-                    output = ral::operators::compute_aggregations_without_groupby(
-                            batch->toBlazingTableView(), aggregation_input_expressions, this->aggregation_types, aggregation_column_assigned_aliases);
-                } else {
-                    output = ral::operators::compute_aggregations_with_groupby(
-                        batch->toBlazingTableView(), aggregation_input_expressions, this->aggregation_types, aggregation_column_assigned_aliases, group_column_indices);
-                }
-
-                eventTimer.stop();
-
-                if(output){
-                    auto log_output_num_rows = output->num_rows();
-                    auto log_output_num_bytes = output->sizeInBytes();
-
-                    events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-                                    "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-                                    "query_id"_a=context->getContextToken(),
-                                    "kernel_id"_a=this->get_id(),
-                                    "input_num_rows"_a=log_input_num_rows,
-                                    "input_num_bytes"_a=log_input_num_bytes,
-                                    "output_num_rows"_a=log_output_num_rows,
-                                    "output_num_bytes"_a=log_output_num_bytes,
-                                    "event_type"_a="compute",
-                                    "timestamp_begin"_a=eventTimer.start_time(),
-                                    "timestamp_end"_a=eventTimer.end_time());
-                }
-
-                this->add_to_output_cache(std::move(output));
-                batch_count++;
-            } catch(const std::exception& e) {
-                // TODO add retry here
-                logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
-                            "query_id"_a=context->getContextToken(),
-                            "step"_a=context->getQueryStep(),
-                            "substep"_a=context->getQuerySubstep(),
-                            "info"_a="In ComputeAggregate kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
-                            "duration"_a="");
-                throw;
-            }
+            cache_data = this->input_cache()->pullCacheData();
         }
 
-        logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
-                    "query_id"_a=context->getContextToken(),
-                    "step"_a=context->getQueryStep(),
-                    "substep"_a=context->getQuerySubstep(),
-                    "info"_a="ComputeAggregate Kernel Completed",
-                    "duration"_a=timer.elapsed_time(),
-                    "kernel_id"_a=this->get_id());
+        if(logger != nullptr) {
+            logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+                                    "query_id"_a=context->getContextToken(),
+                                    "step"_a=context->getQueryStep(),
+                                    "substep"_a=context->getQuerySubstep(),
+                                    "info"_a="Compute Aggregate Kernel tasks created",
+                                    "duration"_a=timer.elapsed_time(),
+                                    "kernel_id"_a=this->get_id());
+        }
 
+        std::unique_lock<std::mutex> lock(kernel_mutex);
+        kernel_cv.wait(lock,[this]{
+            return this->tasks.empty();
+        });
+
+        if(logger != nullptr) {
+            logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+                        "query_id"_a=context->getContextToken(),
+                        "step"_a=context->getQueryStep(),
+                        "substep"_a=context->getQuerySubstep(),
+                        "info"_a="ComputeAggregate Kernel Completed",
+                        "duration"_a=timer.elapsed_time(),
+                        "kernel_id"_a=this->get_id());
+        }
         return kstatus::proceed;
     }
 
@@ -130,15 +119,17 @@ public:
 private:
     std::vector<AggregateKind> aggregation_types;
     std::vector<int> group_column_indices;
+    std::vector<std::string> aggregation_input_expressions;
+    std::vector<std::string> aggregation_column_assigned_aliases;
 };
 
 class DistributeAggregateKernel : public distributing_kernel {
 public:
-	DistributeAggregateKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: distributing_kernel{kernel_id, queryString, context, kernel_type::DistributeAggregateKernel} {
-		this->query_graph = query_graph;
-		set_number_of_message_trackers(1); //default
-	}
+    DistributeAggregateKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
+        : distributing_kernel{kernel_id, queryString, context, kernel_type::DistributeAggregateKernel} {
+        this->query_graph = query_graph;
+        set_number_of_message_trackers(1); //default
+    }
 
     virtual kstatus run() {
 
