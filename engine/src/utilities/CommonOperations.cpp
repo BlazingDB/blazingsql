@@ -191,7 +191,7 @@ void normalize_types(std::unique_ptr<ral::frame::BlazingTable> & table,  const s
 		std::vector<cudf::size_type> column_indices) {
 	
 	if (column_indices.size() == 0){
-		RAL_EXPECTS(table->num_columns() == types.size(), "In normalize_types: table->num_columns() != types.size()");
+		RAL_EXPECTS(static_cast<size_t>(table->num_columns()) == types.size(), "In normalize_types: table->num_columns() != types.size()");
 		column_indices.resize(table->num_columns());
 		std::iota(column_indices.begin(), column_indices.end(), 0);
 	} else {
@@ -214,7 +214,7 @@ int64_t get_table_size_bytes(const ral::frame::BlazingTableView & table){
 	} else {
 		int64_t bytes = 0;
 		CudfTableView table_view = table.view();
-		for(size_t i = 0; i < table_view.num_columns(); i++) {
+		for(int i = 0; i < table_view.num_columns(); i++) {
 			if(table_view.column(i).type().id() == cudf::type_id::STRING){
 				cudf::strings_column_view str_col_view{table_view.column(i)};
 				auto offsets_column = str_col_view.offsets();

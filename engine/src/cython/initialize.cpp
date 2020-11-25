@@ -748,17 +748,17 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 						// Receive worker_id size
 						size_t worker_id_buff_size;
 						ret = recv(exchanger.fd(), &worker_id_buff_size, sizeof(size_t), MSG_WAITALL);
-						CheckError(ret != sizeof(size_t), "recv worker_id_buff_size");
+						CheckError(static_cast<size_t>(ret) != sizeof(size_t), "recv worker_id_buff_size");
 
 						// Receive worker_id
 						std::string worker_id(worker_id_buff_size, '\0');
 						ret = recv(exchanger.fd(), &worker_id[0], worker_id.size(), MSG_WAITALL);
-						CheckError(ret != worker_id.size(), "recv worker_id");
+						CheckError(static_cast<size_t>(ret) != worker_id.size(), "recv worker_id");
 
 						// Receive ucp_worker_address size
 						size_t ucp_worker_address_size;
 						ret = recv(exchanger.fd(), &ucp_worker_address_size, sizeof(size_t), MSG_WAITALL);
-						CheckError(ret != sizeof(size_t), "recv ucp_worker_address_size");
+						CheckError(static_cast<size_t>(ret) != sizeof(size_t), "recv ucp_worker_address_size");
 
 						// Receive ucp_worker_address
 						std::uint8_t *data = new std::uint8_t[ucp_worker_address_size];
@@ -767,7 +767,7 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 								ucp_worker_address_size};
 
 						ret = recv(exchanger.fd(), peerUcpWorkerAddress.address, ucp_worker_address_size, MSG_WAITALL);
-						CheckError(ret != ucp_worker_address_size, "recv ucp_worker_address");
+						CheckError(static_cast<size_t>(ret) != ucp_worker_address_size, "recv ucp_worker_address");
 
 						peer_addresses_map.emplace(worker_id, peerUcpWorkerAddress);
 
@@ -787,19 +787,19 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 				// Send worker_id size
 				size_t worker_id_buff_size = worker_id.size();
 				ret = send(exchanger.fd(), &worker_id_buff_size, sizeof(size_t), 0);
-				CheckError(ret != sizeof(size_t), "send worker_id_buff_size");
+				CheckError(static_cast<size_t>(ret) != sizeof(size_t), "send worker_id_buff_size");
 
 				// Send worker_id
 				ret = send(exchanger.fd(), worker_id.data(), worker_id.size(), 0);
-				CheckError(ret != worker_id.size(), "send worker_id");
+				CheckError(static_cast<size_t>(ret) != worker_id.size(), "send worker_id");
 
 				// Send ucp_worker_address size
 				ret = send(exchanger.fd(), &ucpWorkerAddress.length, sizeof(size_t), 0);
-				CheckError(ret != sizeof(size_t), "send ucp_worker_address_size");
+				CheckError(static_cast<size_t>(ret) != sizeof(size_t), "send ucp_worker_address_size");
 
 				// Send ucp_worker_address
 				ret = send(exchanger.fd(), ucpWorkerAddress.address, ucpWorkerAddress.length, 0);
-				CheckError(ret != ucpWorkerAddress.length, "send ucp_worker_address");
+				CheckError(static_cast<size_t>(ret) != ucpWorkerAddress.length, "send ucp_worker_address");
 			}
 
 			th.join();

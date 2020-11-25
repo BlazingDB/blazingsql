@@ -183,7 +183,7 @@ std::vector<std::unique_ptr<ral::cache::CacheData> > CacheMachine::pull_all_cach
 }
 void CacheMachine::put_all_cache_data( std::vector<std::unique_ptr<ral::cache::CacheData> > messages,std::vector<std::string > message_ids){
 	std::vector<std::unique_ptr<message > > wrapped_messages(messages.size());
-	for(int i = 0; i < messages.size();i++){
+	for(size_t i = 0; i < messages.size();i++){
 		wrapped_messages[i] =
 			std::make_unique<message>(std::move(messages[i]), message_ids[i]);
 	}
@@ -273,7 +273,7 @@ bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, c
 		}
 		num_rows_added += table->num_rows();
 		num_bytes_added += table->sizeInBytes();
-		int cacheIndex = 0;
+		size_t cacheIndex = 0;
 		while(cacheIndex < memory_resources.size()) {
 
 			auto memory_to_use = (this->memory_resources[cacheIndex]->get_memory_used() + table->sizeInBytes());
@@ -481,7 +481,7 @@ size_t CacheMachine::downgradeCacheData() {
 
 			std::string message_id = all_messages[i]->get_message_id();
 			bytes_downgraded += table->sizeInBytes();
-			int cacheIndex = 1; // starting at RAM cache
+			size_t cacheIndex = 1; // starting at RAM cache
 			while(cacheIndex < memory_resources.size()) {
 				auto memory_to_use = (this->memory_resources[cacheIndex]->get_memory_used() + table->sizeInBytes());
 				if( memory_to_use < this->memory_resources[cacheIndex]->get_memory_limit()) {
@@ -579,7 +579,7 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 	}	else {
 		std::vector<std::unique_ptr<ral::frame::BlazingTable>> tables_holder;
 		std::vector<ral::frame::BlazingTableView> table_views;
-		for (int i = 0; i < collected_messages.size(); i++){
+		for (size_t i = 0; i < collected_messages.size(); i++){
 			auto data = collected_messages[i]->release_data();
 			tables_holder.push_back(std::move(data->decache()));
 			table_views.push_back(tables_holder[i]->toBlazingTableView());

@@ -109,7 +109,7 @@ public:
 	}
 
    void mark_set_completed(int left_ind, int right_ind){
-		if (completion_matrix.size() <= left_ind){
+		if (completion_matrix.size() <= static_cast<size_t>(left_ind)){
 			size_t old_row_size = completion_matrix.size();
 			completion_matrix.resize(left_ind + 1);
 			if (old_row_size > 0) {
@@ -119,9 +119,9 @@ public:
 				}
 			}
 		}
-		if (completion_matrix[left_ind].size() <= right_ind){ // if we need to resize, lets resize the whole matrix, making sure that the default is false
-			for (std::size_t i = 0; i < completion_matrix.size(); i++){
-				completion_matrix[i].resize(right_ind + 1, false);
+		if (completion_matrix[left_ind].size() <= static_cast<size_t>(right_ind)){ // if we need to resize, lets resize the whole matrix, making sure that the default is false
+			for (auto & i : completion_matrix){
+				i.resize(right_ind + 1, false);
 			}
 		}
 		completion_matrix[left_ind][right_ind] = true;
@@ -130,29 +130,29 @@ public:
     // This function checks to see if there is a set from our current completion_matix (data we have already loaded once)
 	// that we have not completed that uses one of our current indices, otherwise it returns [-1, -1]
 	std::tuple<int, int> check_for_another_set_to_do_with_data_we_already_have(int left_ind, int right_ind){
-		if (completion_matrix.size() > left_ind && completion_matrix[left_ind].size() > right_ind){
+		if (completion_matrix.size() > static_cast<size_t>(left_ind) && completion_matrix[left_ind].size() > static_cast<size_t>(right_ind)){
 			// left check first keeping the left_ind
 			for (std::size_t i = 0; i < completion_matrix[left_ind].size(); i++){
-				if (i != right_ind && !completion_matrix[left_ind][i]){
-					return std::make_tuple(left_ind, (int)i);
+				if (i != static_cast<size_t>(right_ind) && !completion_matrix[left_ind][i]){
+					return std::make_tuple(left_ind, static_cast<int>(i));
 				}
 			}
 			// now lets check keeping the right_ind
 			for (std::size_t i = 0; i < completion_matrix.size(); i++){
-				if (i != left_ind && !completion_matrix[i][right_ind]){
-					return std::make_tuple((int)i, right_ind);
+				if (i != static_cast<size_t>(left_ind) && !completion_matrix[i][right_ind]){
+					return std::make_tuple(static_cast<int>(i), right_ind);
 				}
 			}
 			return std::make_tuple(-1, -1);
-		} else {
-			return std::make_tuple(-1, -1);
 		}
+
+		return std::make_tuple(-1, -1);
 	}
 
     	// This function returns the first not completed set, otherwise it returns [-1, -1]
 	std::tuple<int, int> check_for_set_that_has_not_been_completed(){
-		for (int i = 0; i < completion_matrix.size(); i++){
-			for (int j = 0; j < completion_matrix[i].size(); j++){
+		for (size_t i = 0; i < completion_matrix.size(); i++){
+			for (size_t j = 0; j < completion_matrix[i].size(); j++){
                 if (!completion_matrix[i][j]){
                     return std::make_tuple(i, j);
                 }
@@ -268,7 +268,7 @@ public:
 					// parsing more of the expression here because we need to have the number of columns of the tables
 					std::vector<int> column_indices;
 					parseJoinConditionToColumnIndices(this->condition, column_indices);
-					for(int i = 0; i < column_indices.size();i++){
+					for(size_t i = 0; i < column_indices.size();i++){
 						if(column_indices[i] >= left_batch->num_columns()){
 							this->right_column_indices.push_back(column_indices[i] - left_batch->num_columns());
 						}else{
@@ -615,7 +615,7 @@ public:
 
 		std::vector<std::string> determination_messages_to_wait_for;
 		std::vector<std::string> target_ids;
-		for (auto i = 0; i < nodes_to_send.size(); i++)	{
+		for (size_t i = 0; i < nodes_to_send.size(); i++)	{
 			target_ids.push_back(nodes_to_send[i].id());
 			determination_messages_to_wait_for.push_back(
 				"determine_if_we_are_scattering_a_small_table_" + std::to_string(this->context->getContextToken()) + "_" +	std::to_string(this->get_id()) +	"_" +	nodes_to_send[i].id());
@@ -642,9 +642,9 @@ public:
 		std::vector<int64_t> nodes_num_bytes_left(this->context->getTotalNodes());
 		std::vector<int64_t> nodes_num_bytes_right(this->context->getTotalNodes());
 
-		for (auto i = 0; i < determination_messages_to_wait_for.size(); i++)	{
-			auto message = this->query_graph->get_input_message_cache()->pullCacheData(determination_messages_to_wait_for[i]);
-			auto message_with_metadata = static_cast<ral::cache::GPUCacheDataMetaData*>(message.get());
+		for (auto & i : determination_messages_to_wait_for)	{
+			auto message = this->query_graph->get_input_message_cache()->pullCacheData(i);
+			auto *message_with_metadata = dynamic_cast<ral::cache::GPUCacheDataMetaData*>(message.get());
 			int node_idx = context->getNodeIndex(context->getNode(message_with_metadata->getMetadata().get_values()[ral::cache::SENDER_WORKER_ID_METADATA_LABEL]));
 			nodes_num_bytes_left[node_idx] = std::stoll(message_with_metadata->getMetadata().get_values()[ral::cache::JOIN_LEFT_BYTES_METADATA_LABEL]);
 			nodes_num_bytes_right[node_idx] = std::stoll(message_with_metadata->getMetadata().get_values()[ral::cache::JOIN_RIGHT_BYTES_METADATA_LABEL]);
@@ -712,17 +712,17 @@ public:
 		// with LEFT_JOIN we cant scatter the left side
 		} else if (this->join_type == LEFT_JOIN) {
 			if(estimate_scatter_right < estimate_regular_distribution &&
-						total_bytes_right < max_join_scatter_mem_overhead) {
+						static_cast<unsigned long long>(total_bytes_right) < max_join_scatter_mem_overhead) {
 				scatter_right = true;
 			}
 		} else {
 			if(estimate_scatter_left < estimate_regular_distribution ||
 				estimate_scatter_right < estimate_regular_distribution) {
 				if(estimate_scatter_left < estimate_scatter_right &&
-					total_bytes_left < max_join_scatter_mem_overhead) {
+                        static_cast<unsigned long long>(total_bytes_left) < max_join_scatter_mem_overhead) {
 					scatter_left = true;
 				} else if(estimate_scatter_right < estimate_scatter_left &&
-						total_bytes_right < max_join_scatter_mem_overhead) {
+                        static_cast<unsigned long long>(total_bytes_right) < max_join_scatter_mem_overhead) {
 					scatter_right = true;
 				}
 			}
@@ -741,11 +741,11 @@ public:
 		// parsing more of the expression here because we need to have the number of columns of the tables
 		std::vector<int> column_indices;
 		parseJoinConditionToColumnIndices(condition, column_indices);
-		for(int i = 0; i < column_indices.size();i++){
-			if(column_indices[i] >= left_batch->num_columns()){
-				this->right_column_indices.push_back(column_indices[i] - left_batch->num_columns());
+		for(int column_indice : column_indices){
+			if(column_indice >= left_batch->num_columns()){
+				this->right_column_indices.push_back(column_indice - left_batch->num_columns());
 			}else{
-				this->left_column_indices.push_back(column_indices[i]);
+				this->left_column_indices.push_back(column_indice);
 			}
 		}
 

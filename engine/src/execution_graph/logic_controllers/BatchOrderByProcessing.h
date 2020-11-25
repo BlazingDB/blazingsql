@@ -45,7 +45,7 @@ public:
 				auto batch = input.next();
 				auto partitions = ral::operators::partition_table(partitionPlan->toBlazingTableView(), batch->toBlazingTableView(), this->expression);
 
-				for (auto i = 0; i < partitions.size(); i++) {
+				for (size_t i = 0; i < partitions.size(); i++) {
 					std::string cache_id = "output_" + std::to_string(i);
 					this->add_to_output_cache(
 						std::make_unique<ral::frame::BlazingTable>(std::make_unique<cudf::table>(partitions[i]), batch->names()),
@@ -238,7 +238,7 @@ public:
 				if(try_num_rows_estimation) {
 					std::tie(estimate_samples, num_rows_estimate) = this->query_graph->get_estimated_input_rows_to_cache(this->get_id(), std::to_string(this->get_id()));
 					population_to_sample = static_cast<uint64_t>(num_rows_estimate * order_by_samples_ratio);
-					population_to_sample = (population_to_sample > max_order_by_samples) ? (max_order_by_samples) : population_to_sample;
+					population_to_sample = (population_to_sample > static_cast<uint64_t>(max_order_by_samples)) ? (max_order_by_samples) : population_to_sample;
 					try_num_rows_estimation = false;
 				}
 				population_sampled += batch->num_rows();
@@ -350,7 +350,7 @@ public:
 		int num_partitions_per_node = partitionPlan->num_rows() == 0 ? 1 : (partitionPlan->num_rows() + 1) / this->context->getTotalNodes();
 
 		std::map<int32_t, int> temp_partitions_map;
-		for (size_t i = 0; i < num_partitions_per_node; i++) {
+		for (int i = 0; i < num_partitions_per_node; i++) {
 			temp_partitions_map[i] = 0;
 		}
 		for (auto &&node : nodes) {
@@ -430,7 +430,7 @@ public:
 		CodeTimer timer;
 
 		int batch_count = 0;
-		for (auto idx = 0; idx < this->input_.count(); idx++)
+		for (size_t idx = 0; idx < this->input_.count(); idx++)
 		{
 			try {
 				std::vector<ral::frame::BlazingTableView> tableViews;
@@ -545,7 +545,7 @@ public:
 			
 			std::vector<std::string> limit_messages_to_wait_for;
 			std::vector<std::string> target_ids;
-			for (auto i = 0; i < nodes_to_send.size(); i++)	{
+			for (size_t i = 0; i < nodes_to_send.size(); i++)	{
 				target_ids.push_back(nodes_to_send[i].id());
 				limit_messages_to_wait_for.push_back(
 					std::to_string(this->context->getContextToken()) + "_" +	std::to_string(this->get_id()) +	"_" +	nodes_to_send[i].id());
@@ -563,9 +563,9 @@ public:
 				extra_metadata);
 	
 			int64_t prev_total_rows = 0;
-			for (auto i = 0; i < limit_messages_to_wait_for.size(); i++)	{
+			for (size_t i = 0; i < limit_messages_to_wait_for.size(); i++)	{
 				auto meta_message = this->query_graph->get_input_message_cache()->pullCacheData(limit_messages_to_wait_for[i]);
-				if(i < context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode())){
+				if(static_cast<int>(i) < context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode())){
 					prev_total_rows += std::stoi(static_cast<ral::cache::GPUCacheDataMetaData*>(meta_message.get())->getMetadata().get_values()[ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL]);
 				}
 			}

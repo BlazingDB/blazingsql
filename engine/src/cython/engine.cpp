@@ -35,7 +35,7 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 	std::vector<ral::io::data_loader> input_loaders;
 	std::vector<ral::io::Schema> schemas;
 
-	for(int i = 0; i < tableSchemas.size(); i++) {
+	for(size_t i = 0; i < tableSchemas.size(); i++) {
 		auto tableSchema = tableSchemas[i];
 		auto files = filesAll[i];
 		auto fileType = fileTypes[i];
@@ -43,7 +43,7 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 		auto args_map = ral::io::to_map(tableSchemaCppArgKeys[i], tableSchemaCppArgValues[i]);
 
 		std::vector<cudf::type_id> types;
-		for(int col = 0; col < tableSchemas[i].types.size(); col++) {
+		for(size_t col = 0; col < tableSchemas[i].types.size(); col++) {
 			types.push_back(tableSchemas[i].types[col]);
 		}
 
@@ -70,7 +70,7 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 
 		std::shared_ptr<ral::io::data_provider> provider;
 		std::vector<Uri> uris;
-		for(int fileIndex = 0; fileIndex < filesAll[i].size(); fileIndex++) {
+		for(size_t fileIndex = 0; fileIndex < filesAll[i].size(); fileIndex++) {
 			uris.push_back(Uri{filesAll[i][fileIndex]});
 			schema.add_file(filesAll[i][fileIndex]);
 		}

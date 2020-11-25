@@ -30,7 +30,7 @@ void poll_for_frames(std::shared_ptr<message_receiver> receiver,
 		return;
 	}
 
-	for (int buffer_id = 0; buffer_id < receiver->num_buffers(); buffer_id++) {
+	for (size_t buffer_id = 0; buffer_id < receiver->num_buffers(); buffer_id++) {
     receiver->allocate_buffer(buffer_id);
 
 		message_tag.frame_id = buffer_id + 1;

@@ -109,8 +109,8 @@ using namespace interops;
 
   std::pair<thrust::host_vector<T>, std::vector<cudf::bitmask_type>> data_mask =  cudf::test::to_host<T>(out_col2);
 
-  for (int i = 0; i < data_mask.first.size(); i++){
-    ASSERT_TRUE(data_mask.first[i] >= 0.0d && data_mask.first[i] <= 1.0d);
+  for (size_t i = 0; i < data_mask.first.size(); i++){
+    ASSERT_TRUE(data_mask.first[i] >= 0.0 && data_mask.first[i] <= 1.0);
   }
   //cudf::test::expect_colum_equal(expected_table_view, out_table_view);
 
@@ -174,8 +174,8 @@ using namespace interops;
 
   std::pair<thrust::host_vector<T>, std::vector<cudf::bitmask_type>> data_mask =  cudf::test::to_host<T>(out_col1);
 
-  for (int i = 0; i < data_mask.first.size(); i++){
-    ASSERT_TRUE(data_mask.first[i] >= 0.0d && data_mask.first[i] <= 1.0d);
+  for (size_t i = 0; i < data_mask.first.size(); i++){
+    ASSERT_TRUE(data_mask.first[i] >= 0.0 && data_mask.first[i] <= 1.0);
   }
   ASSERT_TRUE(out_table_view.num_rows() == input_rows);
 }

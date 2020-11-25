@@ -23,7 +23,7 @@ BlazingTable::BlazingTable(	std::unique_ptr<CudfTable> table, const std::vector<
 }
 
 BlazingTable::BlazingTable(const CudfTableView & table, const std::vector<std::string> & columnNames){
-	for (size_t i = 0; i < table.num_columns(); i++){
+	for (int i = 0; i < table.num_columns(); i++){
 		columns.emplace_back(std::make_unique<BlazingColumnView>(table.column(i)));
 	}
 	this->columnNames = columnNames;
@@ -197,7 +197,7 @@ std::unique_ptr<ral::frame::BlazingTable> createEmptyBlazingTable(std::vector<cu
 
 std::vector<std::unique_ptr<BlazingColumn>> cudfTableViewToBlazingColumns(const CudfTableView & table){
 	std::vector<std::unique_ptr<BlazingColumn>> columns_out;
-	for (size_t i = 0; i < table.num_columns(); i++){
+	for (int i = 0; i < table.num_columns(); i++){
 		columns_out.emplace_back(std::make_unique<BlazingColumnView>(table.column(i)));
 	}
 	return columns_out;

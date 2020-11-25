@@ -77,8 +77,8 @@ std::vector<std::string> Schema::get_names() const { return this->names; }
 
 std::vector<std::string> Schema::get_types() const {
 	std::vector<std::string> string_types;
-	for(int i = 0; i < this->types.size(); i++) {
-		string_types.push_back(convert_dtype_to_string(this->types[i]));
+	for(auto type : this->types) {
+		string_types.push_back(convert_dtype_to_string(type));
 	}
 	return string_types;
 }
@@ -119,8 +119,8 @@ void Schema::add_file(std::string file){
 Schema Schema::fileSchema(size_t current_file_index) const {
 	Schema schema;
 	// std::cout<<"in_file size "<<this->in_file.size()<<std::endl;
-	for(int i = 0; i < this->names.size(); i++) {
-		size_t file_index = this->calcite_to_file_indices.size() == 0 ? i : this->calcite_to_file_indices[i];
+	for(size_t i = 0; i < this->names.size(); i++) {
+		size_t file_index = this->calcite_to_file_indices.empty() ? i : this->calcite_to_file_indices[i];
 		if(this->in_file[i]) {
 			schema.add_column(this->names[i], this->types[i], file_index);
 		}
@@ -142,7 +142,7 @@ std::unique_ptr<ral::frame::BlazingTable> Schema::makeEmptyBlazingTable(const st
 		select_names = this->names;
 		select_types = this->types;		
 	} else {
-		for (int i = 0; i < column_indices.size(); i++){
+		for (size_t i = 0; i < column_indices.size(); i++){
 			select_names[i] = this->names[column_indices[i]];
 			select_types[i] = this->types[column_indices[i]];
 		}

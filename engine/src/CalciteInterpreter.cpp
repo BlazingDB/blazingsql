@@ -56,7 +56,7 @@ std::shared_ptr<ral::cache::graph> generate_graph(std::vector<ral::io::data_load
 									"info"_a="\"Query Start\n{}\""_format(tree->to_string()));
 
 		std::string tables_info = "";
-		for (int i = 0; i < table_names.size(); i++){
+		for (size_t i = 0; i < table_names.size(); i++){
 			int num_files = schemas[i].get_files().size();
 			if (num_files > 0){
 				tables_info += "Table " + table_names[i] + ": num files = " + std::to_string(num_files) + "; ";

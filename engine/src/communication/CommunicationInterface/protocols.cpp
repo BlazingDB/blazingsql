@@ -23,7 +23,7 @@ namespace io{
 	void read_from_socket(int socket_fd, void * data, size_t read_size){
 		size_t amount_read = 0;
 		int bytes_read = 0;
-		int count_invalids = 0;
+        size_t count_invalids = 0;
 		while (amount_read < read_size && count_invalids < NUMBER_RETRIES) {
 			bytes_read = read(socket_fd, static_cast<uint8_t*>(data) + amount_read, read_size - amount_read);
 			if (bytes_read != -1) {
@@ -44,7 +44,7 @@ namespace io{
     void write_to_socket(int socket_fd, void * data, size_t write_size){
 		size_t amount_written = 0;
 		int bytes_written = 0;
-		int count_invalids = 0;
+        size_t count_invalids = 0;
 		while (amount_written < write_size && count_invalids < NUMBER_RETRIES) {
 			bytes_written = write(socket_fd, static_cast<uint8_t*>(data) + amount_written, write_size - amount_written);
 

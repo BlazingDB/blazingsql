@@ -82,7 +82,7 @@ public:
   }
   void confirm_transmission(){
     ++_buffer_counter;
-    if (_buffer_counter == _raw_buffers.size()) {
+    if (static_cast<size_t>(_buffer_counter) == _raw_buffers.size()) {
       finish();
     }
   }
@@ -93,7 +93,7 @@ public:
 
 
   bool is_finished(){
-    return (_buffer_counter == _raw_buffers.size());
+    return (static_cast<size_t>(_buffer_counter) == _raw_buffers.size());
   }
 
   void finish(cudaStream_t stream = 0) {

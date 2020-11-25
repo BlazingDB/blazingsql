@@ -120,7 +120,7 @@ std::unique_ptr<ral::frame::BlazingHostTable> serialize_gpu_message_to_host_tabl
 	std::vector<std::unique_ptr<rmm::device_buffer>> temp_scope_holder;
 	std::tie(buffer_sizes, raw_buffers, column_offset, temp_scope_holder) = serialize_gpu_message_to_gpu_containers(table_view);
 	std::vector<std::basic_string<char>> cpu_raw_buffers;
-	for(int index = 0; index < buffer_sizes.size(); ++index) {
+	for(size_t index = 0; index < buffer_sizes.size(); ++index) {
 		std::basic_string<char> buffer;
 		buffer.resize(buffer_sizes[index]);
         // int currentDeviceId = 0; // TODO: CHECK device_id
@@ -184,7 +184,7 @@ auto deserialize_from_gpu_raw_buffers(const std::vector<ColumnTransport> & colum
 std::unique_ptr<ral::frame::BlazingTable> deserialize_from_cpu(const ral::frame::BlazingHostTable* host_table){
 	std::vector<rmm::device_buffer> gpu_raw_buffers;
 	const auto & raw_buffers = host_table->get_raw_buffers();
-	for(int index = 0; index < raw_buffers.size(); ++index) {
+	for(size_t index = 0; index < raw_buffers.size(); ++index) {
 		auto buffer_sz = raw_buffers[index].size();
 		rmm::device_buffer dev_buffer(buffer_sz);
         // int currentDeviceId = 0; // TODO: CHECK device_id

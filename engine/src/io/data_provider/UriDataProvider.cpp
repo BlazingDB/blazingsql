@@ -168,7 +168,7 @@ data_handle uri_data_provider::get_next(bool open_file) {
 			};
 
 			std::vector<Uri> new_uris;
-			for(int i = 0; i < this->directory_uris.size(); i++) {
+			for(size_t i = 0; i < this->directory_uris.size(); i++) {
 				std::string fileName = this->directory_uris[i].getPath().toString();
 
 				bool is_valid=true;

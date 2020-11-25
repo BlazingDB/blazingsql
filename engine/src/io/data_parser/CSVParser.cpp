@@ -114,7 +114,7 @@ void csv_parser::parse_schema(
 	cudf::io::table_with_metadata table_out = cudf::io::read_csv(args);
 	file->Close();
 
-	for(size_t i = 0; i < table_out.tbl->num_columns(); i++) {
+	for(int i = 0; i < table_out.tbl->num_columns(); i++) {
 		cudf::type_id type = table_out.tbl->get_column(i).type().id();
 		size_t file_index = i;
 		bool is_in_file = true;

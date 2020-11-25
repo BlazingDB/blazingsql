@@ -127,7 +127,7 @@ std::vector<int> get_group_columns(std::string query_part) {
 	temp_column_string = temp_column_string.substr(1, temp_column_string.length() - 2);
 	std::vector<std::string> column_numbers_string = StringUtil::split(temp_column_string, ",");
 	std::vector<int> group_column_indices(column_numbers_string.size());
-	for(int i = 0; i < column_numbers_string.size(); i++) {
+	for(size_t i = 0; i < column_numbers_string.size(); i++) {
 		group_column_indices[i] = std::stoull(column_numbers_string[i], 0);
 	}
 	return group_column_indices;
@@ -179,7 +179,7 @@ std::tuple<std::vector<int>, std::vector<std::string>, std::vector<AggregateKind
 	std::vector<std::string> mod_aggregation_column_assigned_aliases(mod_aggregation_types.size());
 	std::vector<int> mod_group_column_indices(group_column_indices.size());
 	std::iota(mod_group_column_indices.begin(), mod_group_column_indices.end(), 0);
-	for (int i = 0; i < mod_aggregation_types.size(); i++){
+	for (size_t i = 0; i < mod_aggregation_types.size(); i++){
 		if (mod_aggregation_types[i] == AggregateKind::COUNT_ALL || mod_aggregation_types[i] == AggregateKind::COUNT_VALID){
 			mod_aggregation_types[i] = AggregateKind::SUM; // if we have a COUNT, we want to SUM the output of the counts from other nodes
 		}
@@ -208,7 +208,7 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_without_groupby(
 
 	std::vector<std::unique_ptr<cudf::scalar>> reductions;
 	std::vector<std::string> agg_output_column_names;
-	for (int i = 0; i < aggregation_types.size(); i++){
+	for (size_t i = 0; i < aggregation_types.size(); i++){
 		if(aggregation_input_expressions[i] == "" && aggregation_types[i] == AggregateKind::COUNT_ALL) { // this is a COUNT(*)
 			std::unique_ptr<cudf::scalar> scalar = cudf::make_numeric_scalar(cudf::data_type(cudf::type_id::INT64));
 			auto numeric_s = static_cast< cudf::scalar_type_t<int64_t>* >(scalar.get());
@@ -256,7 +256,7 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_without_groupby(
 	}
 	// convert scalars into columns
 	std::vector<std::unique_ptr<cudf::column>> output_columns;
-	for (int i = 0; i < reductions.size(); i++){
+	for (size_t i = 0; i < reductions.size(); i++){
 		std::unique_ptr<cudf::column> temp = cudf::make_column_from_scalar(*(reductions[i]), 1);
 		output_columns.emplace_back(std::move(temp));
 	}
@@ -336,12 +336,12 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
 
 	// lets collect all the aggregated results from the results structure and then add them to output_columns
 	std::vector< std::unique_ptr<cudf::column> > agg_cols_out;
-	for (int i = 0; i < result.second.size(); i++){
-		for (int j = 0; j < result.second[i].results.size(); j++){
+	for (size_t i = 0; i < result.second.size(); i++){
+		for (size_t j = 0; j < result.second[i].results.size(); j++){
 			agg_cols_out.emplace_back(std::move(result.second[i].results[j]));
 		}
 	}
-	for (int i = 0; i < agg_out_indices.size(); i++){
+	for (size_t i = 0; i < agg_out_indices.size(); i++){
 		if (aggregation_types[agg_out_indices[i]] == AggregateKind::SUM0 && agg_cols_out[i]->null_count() > 0){
 			std::unique_ptr<cudf::scalar> scalar = get_scalar_from_string("0", agg_cols_out[i]->type()); // this does not need to be from a string, but this is a convenient way to make the scalar i need
 			std::unique_ptr<cudf::column> temp = cudf::replace_nulls(agg_cols_out[i]->view(), *scalar );
@@ -354,11 +354,11 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
 
 	// lets put together the output names
 	std::vector<std::string> output_names;
-	for (int i = 0; i < group_column_indices.size(); i++){
+	for (size_t i = 0; i < group_column_indices.size(); i++){
 		output_names.push_back(table.names()[group_column_indices[i]]);
 	}
 	output_names.resize(agg_out_indices.size() + group_column_indices.size());
-	for (int i = 0; i < agg_out_indices.size(); i++){
+	for (size_t i = 0; i < agg_out_indices.size(); i++){
 		output_names[agg_out_indices[i] + group_column_indices.size()] = agg_output_column_names[i];
 	}
 

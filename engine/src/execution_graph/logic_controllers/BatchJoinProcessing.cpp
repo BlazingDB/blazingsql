@@ -49,7 +49,7 @@ void parseJoinConditionToColumnIndices(const std::string & condition, std::vecto
 	}
 
 	columnIndices.resize(2 * operator_count);
-	for(size_t i = 0; i < operator_count; i++) {
+	for(int i = 0; i < operator_count; i++) {
 		int right_index = get_index(operand.top());
 		operand.pop();
 		int left_index = get_index(operand.top());
@@ -113,7 +113,7 @@ void split_inequality_join_into_join_and_filter(const std::string & join_stateme
 		new_join_statement_expression = condition;  // the join_out is the same as the original input
 		filter_statement_expression = "";					   // no filter out
 	} else if (tree.root().value == "AND") {
-		int num_equalities = 0;
+		size_t num_equalities = 0;
 		for (auto&& c : tree.root().children) {
 			if (c->value == "=") {
 				num_equalities++;

@@ -316,7 +316,7 @@ public:
 
 		// we have a separate flow for CSV because csv handles multiple reads for one file due to max_bytes_chuck_size
 		if (parser->type() == ral::io::DataType::CSV) { 
-			if (file_batch_index > 0 && file_batch_index >= local_all_row_groups.size()) {
+			if (file_batch_index > 0 && static_cast<size_t>(file_batch_index) >= local_all_row_groups.size()) {
 				// a file handle that we can use in case errors occur to tell the user which file had parsing issues
 				assert(provider->has_next());
 				current_data_handle = provider->get_next();
@@ -404,7 +404,7 @@ private:
 	bool is_empty_data_source; /**< Indicates whether the data source is empty. */
 	bool is_gdf_parser; /**< Indicates whether the parser is a gdf one. */
 	int cur_file_index{}; /**< Current file index. */
-	int file_batch_index{};  /**< Current file batch index. */
+	size_t file_batch_index{};  /**< Current file batch index. */
 	ral::io::data_handle current_data_handle{};
 
 	std::mutex mutex_; /**< Mutex for making the loading batch thread-safe. */
@@ -480,7 +480,7 @@ public:
 
 					this->add_to_output_cache(std::move(batch));
 					
-					if (has_limit && current_rows >= limit_) {
+					if (has_limit && static_cast<size_t>(current_rows) >= limit_) {
 						break;
 					}
 				}
@@ -628,7 +628,7 @@ public:
 						}
 
 						// useful when the Algebra Relacional only contains: BindableTableScan and LogicalLimit
-						if (has_limit && current_rows >= limit_) {
+						if (has_limit && static_cast<size_t>(current_rows) >= limit_) {
 							break;
 						}
 

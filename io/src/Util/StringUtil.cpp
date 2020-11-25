@@ -253,7 +253,7 @@ std::vector<std::string> StringUtil::splitNonQuotedKeepDelimiterInVector(std::st
 
 			while(currentDelimiterPosition != std::string::npos) {
 				if(!quoted[currentDelimiterPosition]) {
-					if(currentDelimiterPosition < firstDelimiterPosition) {
+					if(currentDelimiterPosition < static_cast<size_t>(firstDelimiterPosition)) {
 						firstDelimiterPosition = currentDelimiterPosition;
 						delimFound = delimiter;
 					}
@@ -520,7 +520,7 @@ int StringUtil::findFirstNotInQuotes(std::string haystack, std::string needle, s
 
 	while(pos < haystack.size()) {
 		pos = haystack.find(needle, pos);
-		if(pos == -1 || !quoted[pos]) {
+		if(pos == -1ULL || !quoted[pos]) {
 			return pos;
 		}
 		pos += needle.size();

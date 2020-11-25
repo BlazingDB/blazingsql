@@ -37,7 +37,7 @@ std::vector<Node> Context::getAllOtherNodes(
   std::vector<Node> siblings(taskNodes_.size() - 1);
   size_t count = 0;
   for (size_t i = 0; i < taskNodes_.size(); i++) {
-    if (i != selfNodeIndex) {
+    if (i != static_cast<size_t>(selfNodeIndex)) {
       siblings[count] = taskNodes_[i];
       count++;
     }

@@ -125,7 +125,7 @@ void moveAndReplaceFilesThread(long long & fileInd,
 bool FileUtilv2::moveAndReplaceFiles(std::vector<Uri> & srcFiles, std::vector<Uri> & destFiles) {
 	size_t numThreads = BlazingThread::hardware_concurrency();
 	numThreads = numThreads < srcFiles.size() ? numThreads : srcFiles.size();
-	int maxThreads = 8;
+    size_t maxThreads = 8;
 	numThreads = numThreads < maxThreads ? numThreads : maxThreads;
 	std::vector<BlazingThread> filesThread(numThreads);
 
@@ -138,7 +138,7 @@ bool FileUtilv2::moveAndReplaceFiles(std::vector<Uri> & srcFiles, std::vector<Ur
 #ifdef SINGLE_THREADED
 	moveAndReplaceFilesThread(fileInd, completionMutex, srcFiles, destFiles, successCount, errorCount);
 #else
-	for(int j = 0; j < numThreads; ++j) {
+	for(size_t j = 0; j < numThreads; ++j) {
 		filesThread[j] = BlazingThread(&moveAndReplaceFilesThread,
 			std::ref(fileInd),
 			std::ref(completionMutex),
@@ -147,7 +147,7 @@ bool FileUtilv2::moveAndReplaceFiles(std::vector<Uri> & srcFiles, std::vector<Ur
 			std::ref(successCount),
 			std::ref(errorCount));
 	}
-	for(int j = 0; j < numThreads; ++j) {
+	for(size_t j = 0; j < numThreads; ++j) {
 		filesThread[j].join();
 	}
 #endif
@@ -266,7 +266,7 @@ void _removeThread(long long & fileInd,
 bool FileUtilv2::batchRemove(std::vector<Uri> & fileList) {
     size_t numThreads = BlazingThread::hardware_concurrency();
 	numThreads = numThreads < (fileList.size() + 9) / 10 ? numThreads : (fileList.size() + 9) / 10;
-	int maxThreads = 8;
+    size_t maxThreads = 8;
 	numThreads = numThreads < maxThreads ? numThreads : maxThreads;
 	std::vector<BlazingThread> filesThread(numThreads);
 
@@ -279,7 +279,7 @@ bool FileUtilv2::batchRemove(std::vector<Uri> & fileList) {
 #ifdef SINGLE_THREADED
 	_removeThread(fileInd, completionMutex, fileList, successCount, errorCount);
 #else
-	for(int j = 0; j < numThreads; ++j) {
+	for(size_t j = 0; j < numThreads; ++j) {
 		filesThread[j] = BlazingThread(&_removeThread,
 			std::ref(fileInd),
 			std::ref(completionMutex),
@@ -287,7 +287,7 @@ bool FileUtilv2::batchRemove(std::vector<Uri> & fileList) {
 			std::ref(successCount),
 			std::ref(errorCount));
 	}
-	for(int j = 0; j < numThreads; ++j) {
+	for(size_t j = 0; j < numThreads; ++j) {
 		filesThread[j].join();
 	}
 #endif
@@ -423,7 +423,7 @@ bool FileUtilv2::batchMove(std::vector<Uri> & srcFiles, std::vector<Uri> & destF
 
     size_t numThreads = BlazingThread::hardware_concurrency();
 	numThreads = numThreads < (srcFiles.size() + 9) / 10 ? numThreads : (srcFiles.size() + 9) / 10;
-	int maxThreads = 8;
+    size_t maxThreads = 8;
 	numThreads = numThreads < maxThreads ? numThreads : maxThreads;
 	std::vector<BlazingThread> filesThread(numThreads);
 
@@ -436,7 +436,7 @@ bool FileUtilv2::batchMove(std::vector<Uri> & srcFiles, std::vector<Uri> & destF
 #ifdef SINGLE_THREADED
 	_moveThread(fileInd, completionMutex, srcFiles, destFiles, successCount, errorCount);
 #else
-	for(int j = 0; j < numThreads; ++j) {
+	for(size_t j = 0; j < numThreads; ++j) {
 		filesThread[j] = BlazingThread(&_moveThread,
 			std::ref(fileInd),
 			std::ref(completionMutex),
@@ -445,7 +445,7 @@ bool FileUtilv2::batchMove(std::vector<Uri> & srcFiles, std::vector<Uri> & destF
 			std::ref(successCount),
 			std::ref(errorCount));
 	}
-	for(int j = 0; j < numThreads; ++j) {
+	for(size_t j = 0; j < numThreads; ++j) {
 		filesThread[j].join();
 	}
 #endif

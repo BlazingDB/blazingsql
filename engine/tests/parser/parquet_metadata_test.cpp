@@ -57,7 +57,7 @@ void process_minmax_metadata(){
             parquet::Type::type physical = FType;
             parquet::ConvertedType::type logical = parquet::ConvertedType::type::INT_64;
 
-            for (int col_count = 0; col_count < columns_with_metadata; col_count++) {
+            for (size_t col_count = 0; col_count < columns_with_metadata; col_count++) {
                 set_min_max(this_minmax_metadata_table, col_count*2, physical, logical, statistics);
             }
         }

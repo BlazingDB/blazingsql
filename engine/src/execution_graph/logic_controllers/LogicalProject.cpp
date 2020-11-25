@@ -770,7 +770,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
     std::vector<std::string> named_expressions = get_expressions_from_expression_list(combined_expression);
     std::vector<std::string> expressions(named_expressions.size());
     std::vector<std::string> out_column_names(named_expressions.size());
-    for(int i = 0; i < named_expressions.size(); i++) {
+    for(size_t i = 0; i < named_expressions.size(); i++) {
         const std::string & named_expr = named_expressions[i];
 
         std::string name = named_expr.substr(0, named_expr.find("=["));

@@ -56,7 +56,7 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_batch(
 		return std::move(loaded_table);
 	} else {
 		std::vector<int> column_indices_in_file;  // column indices that are from files
-		for (int i = 0; i < column_indices.size(); i++){
+		for (size_t i = 0; i < column_indices.size(); i++){
 			if(schema.get_in_file()[column_indices[i]]) {
 				column_indices_in_file.push_back(column_indices[i]);
 			}
@@ -80,7 +80,7 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_batch(
 		}
 
 		int in_file_column_counter = 0;
-		for(int i = 0; i < column_indices.size(); i++) {
+		for(size_t i = 0; i < column_indices.size(); i++) {
 			int col_ind = column_indices[i];
 			if(!schema.get_in_file()[col_ind]) {
 				std::string name = schema.get_name(col_ind);

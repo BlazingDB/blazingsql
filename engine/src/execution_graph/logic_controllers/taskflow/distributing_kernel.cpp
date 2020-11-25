@@ -28,7 +28,7 @@ void distributing_kernel::send_message(std::unique_ptr<ral::frame::BlazingTable>
         ral::cache::MetadataDictionary extra_metadata) {
 
     std::string worker_ids_metadata;
-    for (auto i = 0; i < target_ids.size(); i++)	{
+    for (size_t i = 0; i < target_ids.size(); i++)	{
         worker_ids_metadata += target_ids[i];
         if (i < target_ids.size() - 1) {
             worker_ids_metadata += ",";
@@ -131,10 +131,10 @@ void distributing_kernel::broadcast(std::unique_ptr<ral::frame::BlazingTable> ta
     int self_node_idx = context->getNodeIndex(node);
     auto nodes_to_send = context->getAllOtherNodes(self_node_idx);
     std::vector<std::string> target_ids;
-    for (auto i = 0; i < nodes_to_send.size(); i++)	{
-        target_ids.push_back(nodes_to_send[i].id());
+    for (auto & i : nodes_to_send)	{
+        target_ids.push_back(i.id());
     }
-    send_message(std::move(table->toBlazingTableView().clone()),
+    send_message(table->toBlazingTableView().clone(),
         true, //specific_cache
         cache_id, //cache_id
         target_ids, //target_ids
@@ -189,7 +189,7 @@ void distributing_kernel::scatterParts(std::vector<ral::distribution::NodeColumn
 
     assert(part_ids.size() == partitions.size());
     
-    for (auto i = 0; i < partitions.size(); i++) {
+    for (size_t i = 0; i < partitions.size(); i++) {
         blazingdb::transport::Node dest_node;
         ral::frame::BlazingTableView table_view;
         std::tie(dest_node, table_view) = partitions[i];
@@ -208,7 +208,7 @@ void distributing_kernel::scatterParts(std::vector<ral::distribution::NodeColumn
         );
     }
 
-    for (auto i = 0; i < partitions.size(); i++) {
+    for (size_t i = 0; i < partitions.size(); i++) {
         auto & partition = partitions[i];
         if(partition.first == node) {
             std::string cache_id = "output_" + std::to_string(part_ids[i]);

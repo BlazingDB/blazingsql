@@ -403,7 +403,7 @@ std::vector<int> get_projections(const std::string & query_part) {
 		get_expressions_from_expression_list(project_string, true);
 
 	std::vector<int> projections;
-	for(int i = 0; i < project_string_split.size(); i++) {
+	for(size_t i = 0; i < project_string_split.size(); i++) {
 		projections.push_back(std::stoi(project_string_split[i]));
 	}
 
@@ -487,7 +487,7 @@ std::string extract_table_name(std::string query_part) {
 	std::string table_name_text = query_part.substr(start, end - start);
 	std::vector<std::string> table_parts = StringUtil::split(table_name_text, ',');
 	std::string table_name = "";
-	for(int i = 0; i < table_parts.size(); i++) {
+	for(size_t i = 0; i < table_parts.size(); i++) {
 		if(table_parts[i][0] == ' ') {
 			table_parts[i] = table_parts[i].substr(1, table_parts[i].size() - 1);
 		}
@@ -507,8 +507,8 @@ std::vector<std::string> get_expressions_from_expression_list(std::string & comb
 
 	std::vector<std::string> expressions;
 
-	int curInd = 0;
-	int curStart = 0;
+    size_t curInd = 0;
+    size_t curStart = 0;
 	bool inQuotes = false;
 	int parenthesisDepth = 0;
 	int sqBraketsDepth = 0;
