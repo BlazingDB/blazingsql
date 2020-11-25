@@ -14,6 +14,7 @@
 - #1130 Infer hive folder partition
 - #1188 Implement upper/lower operators
 - #1193 Implement string REPLACE
+- #1201 Implement string TRIM
 
 
 ## Improvements
