@@ -94,7 +94,8 @@ const std::string connectionPropertyName(ConnectionProperty connectionProperty) 
 	case ConnectionProperty::SESSION_TOKEN: return "s3.session_token"; break;
 	case ConnectionProperty::ENDPOINT_OVERRIDE: return "s3.endpoint_override"; break;
 	case ConnectionProperty::REGION: return "s3.region"; break;
-	}
+    case ConnectionProperty::UNDEFINED: break;
+    }
 
 	return "UNDEFINED";
 }
