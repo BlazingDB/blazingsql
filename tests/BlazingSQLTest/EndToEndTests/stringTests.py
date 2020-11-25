@@ -196,6 +196,46 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
+            queryId = "TEST_10"
+            query = """SELECT
+                REPLACE(c_comment, 'in', '') as empty_replace,
+                REPLACE(c_comment, 'the', '&&') as and_replace,
+                REPLACE(c_comment, 'a', '$e*u') as a_replace
+                FROM customer
+                """
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_11"
+            query = """SELECT
+                REPLACE(SUBSTRING(c_comment, 2, 10), 'e', '&&') as rep_sub,
+                CAST(REPLACE(c_comment, 'a', 'e') LIKE '%the%' AS INT) as rep_like,
+                SUBSTRING(REPLACE(c_comment, 'e', '&#'), 2, 30) as sub_rep
+                FROM customer
+                """
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")
                 break

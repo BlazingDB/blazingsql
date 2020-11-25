@@ -243,6 +243,7 @@ public:
 	 * @param query_graph Shared pointer of the current execution graph.
 	 */
 
+
 	TableScan(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<ral::io::data_provider> provider, std::shared_ptr<ral::io::data_parser> parser, ral::io::Schema & schema, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
 	: kernel(kernel_id, queryString, context, kernel_type::TableScanKernel),schema(schema), provider(provider), parser(parser), num_batches(0)
 	{
