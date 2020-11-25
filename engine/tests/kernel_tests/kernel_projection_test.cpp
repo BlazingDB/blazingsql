@@ -12,6 +12,7 @@
 #include "execution_graph/logic_controllers/taskflow/graph.h"
 #include "execution_graph/logic_controllers/taskflow/port.h"
 #include "execution_graph/logic_controllers/BatchProcessing.h"
+#include "execution_graph/logic_controllers/taskflow/executor.h"
 
 using blazingdb::transport::Node;
 using ral::cache::kstatus;
@@ -44,7 +45,12 @@ using ral::cache::kernel;
  * 
  */
 template <typename T>
-struct ProjectionTest : public BlazingUnitTest {};
+struct ProjectionTest : public BlazingUnitTest {
+	ProjectionTest() {
+		int executor_threads = 10;
+		ral::execution::executor::init_executor(executor_threads);
+	}
+};
 
 
 // Just creates a Context
