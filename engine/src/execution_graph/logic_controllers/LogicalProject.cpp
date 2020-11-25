@@ -2,7 +2,9 @@
 #include <cudf/copying.hpp>
 #include <cudf/strings/combine.hpp>
 #include <cudf/strings/contains.hpp>
+#include <cudf/strings/replace.hpp>
 #include <cudf/strings/substring.hpp>
+#include <cudf/strings/case.hpp>
 #include <cudf/strings/convert/convert_booleans.hpp>
 #include <cudf/strings/convert/convert_datetime.hpp>
 #include <cudf/strings/convert/convert_floats.hpp>
@@ -76,6 +78,7 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
                                                         const std::vector<std::string> & arg_tokens)
 {
     std::unique_ptr<cudf::column> computed_col;
+    std::string encapsulation_character = "'";
 
     switch (op)
     {
@@ -95,9 +98,25 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
             column = computed_column->view();
         }
 
-        std::string regex = like_expression_to_regex_str(arg_tokens[1].substr(1, arg_tokens[1].size() - 2));
+        std::string literal_expression = StringUtil::removeEncapsulation(arg_tokens[1], encapsulation_character);
+        std::string regex = like_expression_to_regex_str(literal_expression);
 
         computed_col = cudf::strings::contains_re(column, regex);
+        break;
+    }
+    case operator_type::BLZ_STR_REPLACE:
+    {
+        // required args: string column, search, replacement
+        assert(arg_tokens.size() == 3);
+        RAL_EXPECTS(!is_literal(arg_tokens[0]), "REPLACE function not supported for string literals");
+
+        cudf::column_view column = table.column(get_index(arg_tokens[0]));
+        RAL_EXPECTS(is_type_string(column.type().id()), "REPLACE argument must be a column of type string");
+
+        std::string target = StringUtil::removeEncapsulation(arg_tokens[1], encapsulation_character);
+        std::string repl = StringUtil::removeEncapsulation(arg_tokens[2], encapsulation_character);
+
+        computed_col = cudf::strings::replace(column, target, repl);
         break;
     }
     case operator_type::BLZ_STR_SUBSTRING:
@@ -202,7 +221,7 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
             if (is_var_column(arg_tokens[0])) {
                 column1 = table.column(get_index(arg_tokens[0]));
             } else if(is_literal(arg_tokens[0])) {
-                std::string literal_str = arg_tokens[0].substr(1, arg_tokens[0].size() - 2);
+                std::string literal_str = StringUtil::removeEncapsulation(arg_tokens[0], encapsulation_character);
                 cudf::string_scalar str_scalar(literal_str);
                 temp_col1 = cudf::make_column_from_scalar(str_scalar, table.num_rows());
                 column1 = temp_col1->view();
@@ -218,7 +237,7 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
             if (is_var_column(arg_tokens[1])) {
                 column2 = table.column(get_index(arg_tokens[1]));
             } else if(is_literal(arg_tokens[1])) {
-                std::string literal_str = arg_tokens[1].substr(1, arg_tokens[1].size() - 2);
+                std::string literal_str = StringUtil::removeEncapsulation(arg_tokens[1], encapsulation_character);
                 cudf::string_scalar str_scalar(literal_str);
                 temp_col2 = cudf::make_column_from_scalar(str_scalar, table.num_rows());
                 column2 = temp_col2->view();
@@ -384,7 +403,7 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         cudf::column_view column = table.column(get_index(arg_tokens[0]));
         RAL_EXPECTS(is_type_string(column.type().id()), "TO_DATE first argument must be a column of type string");
 
-        std::string format_str = arg_tokens[1].substr(1, arg_tokens[1].length() - 2);
+        std::string format_str = StringUtil::removeEncapsulation(arg_tokens[1], encapsulation_character);
         computed_col = cudf::strings::to_timestamps(column, cudf::data_type{cudf::type_id::TIMESTAMP_DAYS}, format_str);
         break;
     }
@@ -396,10 +415,32 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         cudf::column_view column = table.column(get_index(arg_tokens[0]));
         RAL_EXPECTS(is_type_string(column.type().id()), "TO_TIMESTAMP first argument must be a column of type string");
 
-        std::string format_str = arg_tokens[1].substr(1, arg_tokens[1].length() - 2);
+        std::string format_str = StringUtil::removeEncapsulation(arg_tokens[1], encapsulation_character);
         computed_col = cudf::strings::to_timestamps(column, cudf::data_type{cudf::type_id::TIMESTAMP_NANOSECONDS}, format_str);
         break;
     }
+    case operator_type::BLZ_STR_LOWER:
+    {
+        assert(arg_tokens.size() == 1);
+        RAL_EXPECTS(!is_literal(arg_tokens[0]), "LOWER operator not supported for literals");
+        
+        cudf::column_view column = table.column(get_index(arg_tokens[0]));
+        RAL_EXPECTS(is_type_string(column.type().id()), "LOWER argument must be a column of type string");
+        
+        computed_col = cudf::strings::to_lower(column);
+        break;         
+    }
+    case operator_type::BLZ_STR_UPPER:
+    {
+        assert(arg_tokens.size() == 1);
+        RAL_EXPECTS(!is_literal(arg_tokens[0]), "UPPER operator not supported for literals");
+        
+        cudf::column_view column = table.column(get_index(arg_tokens[0]));
+        RAL_EXPECTS(is_type_string(column.type().id()), "UPPER argument must be a column of type string");
+        
+        computed_col = cudf::strings::to_upper(column);
+        break;         
+    }        
     }
 
     return computed_col;

@@ -62,6 +62,12 @@ bool Schema::all_in_file() const {
 	return std::all_of(this->in_file.begin(), this->in_file.end(), [](bool elem) { return elem; });
 }
 
+bool Schema::get_has_header_csv() const { return this->has_header_csv; }
+
+void Schema::set_has_header_csv(bool has_header) {
+	this->has_header_csv = has_header;
+}
+
 void Schema::add_column(std::string name, cudf::type_id type, size_t file_index, bool is_in_file) {
 	this->names.push_back(name);
 	this->types.push_back(type);

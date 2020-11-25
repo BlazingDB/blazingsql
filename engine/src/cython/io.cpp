@@ -74,6 +74,7 @@ TableSchema parseSchema(std::vector<std::string> files,
 	tableSchema.files = schema.get_files();
 	tableSchema.calcite_to_file_indices = schema.get_calcite_to_file_indices();
 	tableSchema.in_file = schema.get_in_file();
+	tableSchema.has_header_csv = schema.get_has_header_csv();
 
 	return tableSchema;
 }
@@ -237,6 +238,11 @@ std::vector<FolderPartitionMetadata> inferFolderPartitionMetadata(std::string fo
 
 	auto fs = BlazingContext::getInstance()->getFileSystemManager();
 	if (!fs->exists(folder_uri)) {
+		return {};
+	}
+
+	auto status = fs->getFileStatus(folder_uri);
+	if (!status.isDirectory()) {
 		return {};
 	}
 
