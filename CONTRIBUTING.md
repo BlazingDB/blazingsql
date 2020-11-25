@@ -25,7 +25,7 @@ Contributions to blazingSQL fall into the following three categories.
 4. When you start working on it, please place the issue on the WIP column in the project board.
 5. All work should be done on your own fork and on a new branch on your fork.
 6. Code! Make sure to update unit tests!
-7. If applicable (i.e.when adding a new SQL function), add new [End-To-End tests](#adding-new-end-to-end-tests).
+7. If applicable (i.e.when adding a new SQL function), add new [End-To-End tests](#adding-end-to-end-tests).
 8. When done, [create your pull request](https://github.com/blazingdb/blazingsql/compare).
 9. Verify that CI passes all [status checks](https://help.github.com/articles/about-status-checks/). Fix if needed.
 10. When all the work is done, please place the issue in the _Needs Review_ column of the project board. Wait for other developers to review your code and update code as needed.
