@@ -425,7 +425,7 @@ bool HadoopFileSystem::Private::move(const Uri & src, const Uri & dst) const {
 	return ret;
 }
 
-bool HadoopFileSystem::Private::truncateFile(const Uri & uri, long long length) const {
+bool HadoopFileSystem::Private::truncateFile(const Uri & uri, unsigned long long length) const {
 	const FileStatus fileStatus = this->getFileStatus(uri);
 
 	if(fileStatus.getFileSize() == length) {

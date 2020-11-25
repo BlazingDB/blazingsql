@@ -34,7 +34,7 @@ bool FileSystemManager::Private::registerFileSystem(const FileSystemEntity & fil
 
 	int foundIndex = -1;
 
-	for(int i = 0; i < this->fileSystems.size(); ++i) {
+	for(size_t i = 0; i < this->fileSystems.size(); ++i) {
 		const bool found = (this->fileSystems[i]->getFileSystemConnection() == fileSystemConnection) &&
 						   this->fileSystems[i]->getRoot() == root;
 

@@ -74,9 +74,8 @@ std::vector<std::unique_ptr<BlazingColumn>> BlazingTable::releaseBlazingColumns(
 unsigned long long BlazingTable::sizeInBytes()
 {
 	unsigned long long total_size = 0UL;
-	for(cudf::size_type i = 0; i < this->columns.size(); ++i) {
-		auto & bz_column = this->columns[i];
-		auto column =  bz_column->view();
+	for(auto & bz_column : this->columns) {
+			auto column =  bz_column->view();
 		if(column.type().id() == cudf::type_id::STRING) {
 			auto num_children = column.num_children();
 			if(num_children == 2) {
@@ -171,7 +170,7 @@ std::unique_ptr<ral::frame::BlazingTable> createEmptyBlazingTable(std::vector<cu
 																  std::vector<std::string> column_names) {
 	std::vector< std::unique_ptr<cudf::column> > empty_columns;
 	empty_columns.resize(column_types.size());
-	for(int i = 0; i < column_types.size(); ++i) {
+	for(size_t i = 0; i < column_types.size(); ++i) {
 		cudf::type_id col_type = column_types[i];
 		cudf::data_type dtype(col_type);
 		std::unique_ptr<cudf::column> empty_column = cudf::make_empty_column(dtype);
@@ -186,7 +185,7 @@ std::unique_ptr<ral::frame::BlazingTable> createEmptyBlazingTable(std::vector<cu
 									   std::vector<std::string> column_names) {
 	std::vector< std::unique_ptr<cudf::column> > empty_columns;
 	empty_columns.resize(column_types.size());
-	for(int i = 0; i < column_types.size(); ++i) {
+	for(size_t i = 0; i < column_types.size(); ++i) {
 		auto dtype = column_types[i];
 		std::unique_ptr<cudf::column> empty_column = cudf::make_empty_column(dtype);
 		empty_columns[i] = std::move(empty_column);

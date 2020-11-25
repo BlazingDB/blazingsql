@@ -1062,7 +1062,7 @@ bool S3FileSystem::Private::move(const Uri & src, const Uri & dst) const {
 
 // TODO: truncate file can't be rolled back easily as it stands
 // an easier way  might be to use move instead of remove
-bool S3FileSystem::Private::truncateFile(const Uri & uri, long long length) const {
+bool S3FileSystem::Private::truncateFile(const Uri & uri, unsigned long long length) const {
 	if(uri.isValid() == false) {
 		throw BlazingInvalidPathException(uri);
 	}
