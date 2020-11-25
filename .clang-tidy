@@ -4,3 +4,4 @@ Checks: >
   -modernize-use-trailing-return-type,
   -llvmlibc-callee-namespace,
   -fuchsia-default-arguments-calls,
+  -cppcoreguidelines-pro-bounds-pointer-arithmetic,
