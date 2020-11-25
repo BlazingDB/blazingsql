@@ -9,7 +9,7 @@
 #include <execution_graph/logic_controllers/taskflow/graph.h>
 #include "../../src/error.hpp"
 
-std::shared_ptr<ral::cache::graph> runGenerateGraph(int32_t masterIndex,
+std::shared_ptr<ral::cache::graph> runGenerateGraph(uint32_t masterIndex,
 	std::vector<std::string> worker_ids,
 	std::vector<std::string> tableNames,
 	std::vector<std::string> tableScans,

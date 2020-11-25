@@ -121,7 +121,7 @@ void fix_column_names_duplicated(std::vector<std::string> & col_names){
 	}
 }
 
-std::shared_ptr<ral::cache::graph> runGenerateGraph(int32_t masterIndex,
+std::shared_ptr<ral::cache::graph> runGenerateGraph(uint32_t masterIndex,
 	std::vector<std::string> worker_ids,
 	std::vector<std::string> tableNames,
 	std::vector<std::string> tableScans,
@@ -149,10 +149,10 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(int32_t masterIndex,
 
 	auto& communicationData = ral::communication::CommunicationData::getInstance();
 
-	std::vector<Node> contextNodes;
-	for(auto worker_id : worker_ids) {
-		contextNodes.push_back(Node( worker_id));
-	}
+    std::vector<Node> contextNodes;
+    for (const auto &worker_id : worker_ids) {
+        contextNodes.emplace_back(worker_id);
+    }
 	Context queryContext{static_cast<uint32_t>(ctxToken), contextNodes, contextNodes[masterIndex], "", config_options};
 	CodeTimer eventTimer(true);
 	sql = "'" + sql + "'";
