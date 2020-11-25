@@ -131,98 +131,94 @@ public:
         set_number_of_message_trackers(1); //default
     }
 
-    virtual kstatus run() {
-
-        CodeTimer timer;
-
-        std::vector<int> group_column_indices;
-        std::vector<std::string> aggregation_input_expressions, aggregation_column_assigned_aliases; // not used in this kernel
-        std::vector<AggregateKind> aggregation_types; // not used in this kernel
-        std::tie(group_column_indices, aggregation_input_expressions, aggregation_types,
-            aggregation_column_assigned_aliases) = ral::operators::parseGroupByExpression(this->expression);
-
-        std::vector<cudf::size_type> columns_to_hash;
-        std::transform(group_column_indices.begin(), group_column_indices.end(), std::back_inserter(columns_to_hash), [](int index) { return (cudf::size_type)index; });
-        std::map<std::string, int> node_count;
+    void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+        std::shared_ptr<ral::cache::CacheMachine> output,
+        cudaStream_t stream) override{
+        auto & input = inputs[0];
 
         // num_partitions = context->getTotalNodes() will do for now, but may want a function to determine this in the future.
         // If we do partition into something other than the number of nodes, then we have to use part_ids and change up more of the logic
         int num_partitions = this->context->getTotalNodes();
-        bool set_empty_part_for_non_master_node = false; // this is only for aggregation without group by
 
-        bool ordered = false; // If we start using sort based aggregations this may need to change
-        BatchSequence input(this->input_cache(), this, ordered);
-        int batch_count = 0;
-
-
-        while (input.wait_for_next()) {
-            auto batch = input.next();
-
-            try {
-                // If its an aggregation without group by we want to send all the results to the master node
-                auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
-                if (group_column_indices.size() == 0) {
-                    if(this->context->isMasterNode(self_node)) {
-                        bool added = this->output_.get_cache()->addToCache(std::move(batch),"",false);
-                        if (added) {
-                            increment_node_count(self_node.id());
-                        }
-                    } else {
-                        if (!set_empty_part_for_non_master_node){ // we want to keep in the non-master nodes something, so that the cache is not empty
-                            std::unique_ptr<ral::frame::BlazingTable> empty =
-                                ral::utilities::create_empty_table(batch->toBlazingTableView());
-                            bool added = this->add_to_output_cache(std::move(empty), "", true);
-                            set_empty_part_for_non_master_node = true;
-                            if (added) {
-                                increment_node_count(self_node.id());
-                            }
-                        }
-
-                        send_message(std::move(batch),
-                            true, //specific_cache
-                            "", //cache_id
-                            {this->context->getMasterNode().id()}); //target_id
-                    }
-                } else {
-                    CudfTableView batch_view = batch->view();
-                    std::vector<CudfTableView> partitioned;
-                    std::unique_ptr<CudfTable> hashed_data; // Keep table alive in this scope
-                    if (batch_view.num_rows() > 0) {
-                        std::vector<cudf::size_type> hased_data_offsets;
-                        std::tie(hashed_data, hased_data_offsets) = cudf::hash_partition(batch->view(), columns_to_hash, num_partitions);
-                        // the offsets returned by hash_partition will always start at 0, which is a value we want to ignore for cudf::split
-                        std::vector<cudf::size_type> split_indexes(hased_data_offsets.begin() + 1, hased_data_offsets.end());
-                        partitioned = cudf::split(hashed_data->view(), split_indexes);
-                    } else {
-                        //  copy empty view
-                        for (auto i = 0; i < num_partitions; i++) {
-                            partitioned.push_back(batch_view);
-                        }
-                    }
-
-                    std::vector<ral::frame::BlazingTableView> partitions;
-                    for(auto partition : partitioned) {
-                        partitions.push_back(ral::frame::BlazingTableView(partition, batch->names()));
-                    }
-
-                    scatter(partitions,
-                        this->output_.get_cache().get(),
-                        "", //message_id_prefix
-                        "" //cache_id
-                    );
+        // If its an aggregation without group by we want to send all the results to the master node
+        auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
+        if (group_column_indices.size() == 0) {
+            if(this->context->isMasterNode(self_node)) {
+                bool added = this->output_.get_cache()->addToCache(std::move(input),"",false);
+                if (added) {
+                    increment_node_count(self_node.id());
                 }
-                batch_count++;
-            } catch(const std::exception& e) {
-                // TODO add retry here
-                this->logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
-                                    "query_id"_a=context->getContextToken(),
-                                    "step"_a=context->getQueryStep(),
-                                    "substep"_a=context->getQuerySubstep(),
-                                    "info"_a="In DistributeAggregate kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
-                                    "duration"_a="");
-                throw;
+            } else {
+                if (!set_empty_part_for_non_master_node){ // we want to keep in the non-master nodes something, so that the cache is not empty
+                    std::unique_ptr<ral::frame::BlazingTable> empty =
+                        ral::utilities::create_empty_table(input->toBlazingTableView());
+                    bool added = this->add_to_output_cache(std::move(empty), "", true);
+                    set_empty_part_for_non_master_node = true;
+                    if (added) {
+                        increment_node_count(self_node.id());
+                    }
+                }
+
+                send_message(std::move(input),
+                    true, //specific_cache
+                    "", //cache_id
+                    {this->context->getMasterNode().id()}); //target_id
             }
+        } else {
+            CudfTableView batch_view = input->view();
+            std::vector<CudfTableView> partitioned;
+            std::unique_ptr<CudfTable> hashed_data; // Keep table alive in this scope
+            if (batch_view.num_rows() > 0) {
+                std::vector<cudf::size_type> hased_data_offsets;
+                std::tie(hashed_data, hased_data_offsets) = cudf::hash_partition(input->view(), columns_to_hash, num_partitions);
+                // the offsets returned by hash_partition will always start at 0, which is a value we want to ignore for cudf::split
+                std::vector<cudf::size_type> split_indexes(hased_data_offsets.begin() + 1, hased_data_offsets.end());
+                partitioned = cudf::split(hashed_data->view(), split_indexes);
+            } else {
+                //  copy empty view
+                for (auto i = 0; i < num_partitions; i++) {
+                    partitioned.push_back(batch_view);
+                }
+            }
+
+            std::vector<ral::frame::BlazingTableView> partitions;
+            for(auto partition : partitioned) {
+                partitions.push_back(ral::frame::BlazingTableView(partition, input->names()));
+            }
+
+            scatter(partitions,
+                output.get(),
+                "", //message_id_prefix
+                "" //cache_id
+            );
         }
+    }
+
+    virtual kstatus run() {
+        CodeTimer timer;
+
+        std::tie(group_column_indices, aggregation_input_expressions, aggregation_types,
+            aggregation_column_assigned_aliases) = ral::operators::parseGroupByExpression(this->expression);
+
+        std::transform(group_column_indices.begin(), group_column_indices.end(), std::back_inserter(columns_to_hash), [](int index) { return (cudf::size_type)index; });
+
+        std::unique_ptr <ral::cache::CacheData> cache_data = this->input_cache()->pullCacheData();
+        while(cache_data != nullptr ){
+            std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
+            inputs.push_back(std::move(cache_data));
+
+            ral::execution::executor::get_instance()->add_task(
+                    std::move(inputs),
+                    this->output_cache(),
+                    this);
+
+            cache_data = this->input_cache()->pullCacheData();
+        }
+
+        std::unique_lock<std::mutex> lock(kernel_mutex);
+        kernel_cv.wait(lock,[this]{
+            return this->tasks.empty();
+        });
 
         send_total_partition_counts(
             "", //message_prefix
@@ -230,7 +226,6 @@ public:
         );
         
         int total_count = get_total_partition_counts();
-
         this->output_cache()->wait_for_count(total_count);
 
         logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
@@ -241,11 +236,15 @@ public:
                     "duration"_a=timer.elapsed_time(),
                     "kernel_id"_a=this->get_id());
 
-		return kstatus::proceed;
-	
-	}
+        return kstatus::proceed;
+    }
 
 private:
+    std::vector<int> group_column_indices;
+    std::vector<std::string> aggregation_input_expressions, aggregation_column_assigned_aliases; // not used in this kernel
+    std::vector<AggregateKind> aggregation_types; // not used in this kernel
+    std::vector<cudf::size_type> columns_to_hash;
+    bool set_empty_part_for_non_master_node = false; // this is only for aggregation without group by
 };
 
 

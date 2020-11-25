@@ -635,17 +635,17 @@ public:
 		CodeTimer timer;
 		CodeTimer eventTimer(false);
 
-		std::unique_ptr <ral::cache::CacheData> cache_data =  this->input_cache()->pullCacheData();
+		std::unique_ptr <ral::cache::CacheData> cache_data = this->input_cache()->pullCacheData();
 		while(cache_data != nullptr ){
 			std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
 			inputs.push_back(std::move(cache_data));
-			
+
 			ral::execution::executor::get_instance()->add_task(
 					std::move(inputs),
 					this->output_cache(),
 					this);
 
-			cache_data =  this->input_cache()->pullCacheData();
+			cache_data = this->input_cache()->pullCacheData();
 		}
 
 		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
