@@ -57,6 +57,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.EnumSet;
 
+import org.apache.calcite.runtime.GeoFunctions;
+
 /**
  * <h1>Generate Relational Algebra</h1>
  * The purpose of this class is to hold the planner, the program, and the
@@ -101,7 +103,7 @@ public class RelationalAlgebraGenerator {
 
 			Properties info = new Properties();
 			info.setProperty("lex", "JAVA");
-			Connection connection = DriverManager.getConnection("jdbc:calcite:", info);
+			Connection connection = DriverManager.getConnection("jdbc:calcite:fun=spatial:", info);
 			CalciteConnection calciteConnection = connection.unwrap(CalciteConnection.class);
 			calciteConnection.setSchema(newSchema.getName());
 
@@ -118,6 +120,7 @@ public class RelationalAlgebraGenerator {
 			List<SqlOperatorTable> sqlOperatorTables = new ArrayList<>();
 			sqlOperatorTables.add(SqlLibraryOperatorTableFactory.INSTANCE.getOperatorTable(
 				EnumSet.of(SqlLibrary.STANDARD, SqlLibrary.ORACLE, SqlLibrary.MYSQL)));
+			sqlOperatorTables.add(CalciteCatalogReader.operatorTable(GeoFunctions.class.getName()));
 			sqlOperatorTables.add(new CalciteCatalogReader(CalciteSchema.from(schema.getSubSchema(newSchema.getName())),
 				defaultSchema,
 				new JavaTypeFactoryImpl(RelDataTypeSystem.DEFAULT),
