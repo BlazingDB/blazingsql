@@ -4,12 +4,14 @@
 
 namespace ral {
 
-    MemoryMonitor::MemoryMonitor(std::shared_ptr<ral::batch::tree_processor> tree, std::map<std::string, std::string> config_options) : tree(tree), finished(false), resource(&blazing_device_memory_resource::getInstance()){
-        
-        
-        period = std::chrono::milliseconds(50); 
+    MemoryMonitor::MemoryMonitor(std::shared_ptr<ral::batch::tree_processor> tree,
+                                 std::map<std::string, std::string> config_options)
+    : finished(false), tree(tree), resource(&blazing_device_memory_resource::getInstance()) {
+
+
+        period = std::chrono::milliseconds(50);
         auto it = config_options.find("MEMORY_MONITOR_PERIOD");
-        if (it != config_options.end()){
+        if (it != config_options.end()) {
             period = std::chrono::milliseconds(std::stoull(config_options["MEMORY_MONITOR_PERIOD"]));
         }
     }

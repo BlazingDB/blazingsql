@@ -35,7 +35,7 @@ static const std::string whatMessage(FileSystemType /*fileSystemType*/,
 }
 
 FileSystemException::FileSystemException(FileSystemType fileSystemType, const std::string & error) noexcept
-	: std::runtime_error(whatMessage(fileSystemType, error)), error(error), fileSystemType(fileSystemType) {}
+	: std::runtime_error(whatMessage(fileSystemType, error)), fileSystemType(fileSystemType), error(error) {}
 
 FileSystemException::FileSystemException(
 	FileSystemType fileSystemType, const std::string & error, const std::string & uri1) noexcept

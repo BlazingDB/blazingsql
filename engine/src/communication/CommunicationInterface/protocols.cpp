@@ -92,7 +92,7 @@ ucp_progress_manager * ucp_progress_manager::get_instance() {
 }
 
 ucp_progress_manager::ucp_progress_manager(ucp_worker_h ucp_worker, size_t request_size) :
- ucp_worker{ucp_worker}, _request_size{request_size} {
+ _request_size{request_size}, ucp_worker{ucp_worker} {
     std::thread t([this]{
         cudaSetDevice(0);
         this->check_progress();
@@ -195,7 +195,7 @@ ucx_buffer_transport::ucx_buffer_transport(size_t request_size,
 	std::vector<size_t> buffer_sizes,
 	std::vector<blazingdb::transport::ColumnTransport> column_transports,
 	uint16_t ral_id)
-	: ral_id{ral_id}, buffer_transport(metadata, buffer_sizes, column_transports,destinations), origin_node(origin_node), _request_size{request_size}{
+	: origin_node(origin_node), ral_id{ral_id}, _request_size{request_size}, buffer_transport(metadata, buffer_sizes, column_transports,destinations){
 	tag = generate_message_tag();
 }
 
@@ -263,8 +263,8 @@ tcp_buffer_transport::tcp_buffer_transport(
 		std::vector<blazingdb::transport::ColumnTransport> column_transports,
         uint16_t ral_id,
         ctpl::thread_pool<BlazingThread> * allocate_copy_buffer_pool)
-        : ral_id{ral_id}, buffer_transport(metadata, buffer_sizes, column_transports,destinations),
-	    allocate_copy_buffer_pool{allocate_copy_buffer_pool} {
+        : ral_id{ral_id}, allocate_copy_buffer_pool{allocate_copy_buffer_pool},
+        buffer_transport(metadata, buffer_sizes, column_transports,destinations) {
 
         //Initialize connection to get
     cudaStreamCreate(&stream);

@@ -152,7 +152,7 @@ RegionResult getRegion(std::string bucketName,std::shared_ptr< Aws::Auth::AWSCre
 }
 
 S3FileSystem::Private::Private(const FileSystemConnection & fileSystemConnection, const Path & root)
-	: s3Client(nullptr), root(root) {
+	: root(root), s3Client(nullptr) {
 	// TODO percy improve & error handling
 //	const bool connected = this->connect(fileSystemConnection);
 	this->connect(fileSystemConnection);

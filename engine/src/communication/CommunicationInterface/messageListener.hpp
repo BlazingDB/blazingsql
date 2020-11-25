@@ -13,7 +13,7 @@ namespace comm {
 
 class message_listener{
 public:
-    message_listener(const std::map<std::string, comm::node>& nodes, int num_threads) : _nodes_info_map{nodes}, pool{num_threads} {}
+    message_listener(const std::map<std::string, comm::node>& nodes, int num_threads) : pool{num_threads}, _nodes_info_map{nodes} {}
     virtual ~message_listener(){
 
     }

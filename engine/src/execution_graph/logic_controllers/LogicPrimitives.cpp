@@ -10,7 +10,7 @@ namespace ral {
 namespace frame{
 
 BlazingTable::BlazingTable(std::vector<std::unique_ptr<BlazingColumn>> columns, const std::vector<std::string> & columnNames)
-	: columns(std::move(columns)), columnNames(columnNames) {}
+	: columnNames(columnNames), columns(std::move(columns)) {}
 
 
 BlazingTable::BlazingTable(	std::unique_ptr<CudfTable> table, const std::vector<std::string> & columnNames){
@@ -108,7 +108,7 @@ BlazingTableView::BlazingTableView(){
 BlazingTableView::BlazingTableView(
 	CudfTableView table,
 	std::vector<std::string> columnNames)
-	: table(table), columnNames(columnNames){
+	: columnNames(std::move(columnNames)), table(std::move(table)){
 
 }
 

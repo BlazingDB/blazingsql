@@ -23,7 +23,7 @@ const long long SIZE_OF_OBJECT_DIRECTORY = 11;
 namespace Logging = Library::Logging;
 
 GoogleCloudStorage::Private::Private(const FileSystemConnection & fileSystemConnection, const Path & root)
-	: gcsClient(nullptr), root(root) {
+	: root(root), gcsClient(nullptr) {
 	// TODO percy improve & error handling
 //	const bool connected = this->connect(fileSystemConnection);
 	this->connect(fileSystemConnection);

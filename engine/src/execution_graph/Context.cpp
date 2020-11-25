@@ -10,11 +10,11 @@ Context::Context(const uint32_t token,
                  const std::string &logicalPlan,
                  const std::map<std::string, std::string>& config_options)
     : token_{token},
+      query_step{0},
+      query_substep{0},
       taskNodes_{taskNodes},
       masterNode_{masterNode},
       logicalPlan_{logicalPlan},
-      query_step{0},
-      query_substep{0},
       kernel_id_{0},
       config_options_{config_options} {}
 

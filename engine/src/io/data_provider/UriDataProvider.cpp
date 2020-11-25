@@ -18,14 +18,14 @@ namespace ral {
 namespace io {
 
 uri_data_provider::uri_data_provider(std::vector<Uri> uris, bool ignore_missing_paths)
-	: data_provider(), file_uris(uris), uri_values({}), opened_files({}),
-	  current_file(0), errors({}), directory_uris({}), directory_current_file(0), ignore_missing_paths(ignore_missing_paths) {}
+	: data_provider(), file_uris(uris), current_file(0), opened_files({}), errors({}),
+	uri_values({}), directory_uris({}), directory_current_file(0), ignore_missing_paths(ignore_missing_paths) {}
 
 uri_data_provider::uri_data_provider(std::vector<Uri> uris,
 	std::vector<std::map<std::string, std::string>> uri_values,
 	bool ignore_missing_paths)
-	: data_provider(), file_uris(uris), uri_values(uri_values), 
-	opened_files({}), current_file(0), errors({}), directory_uris({}),
+	: data_provider(), file_uris(uris), current_file(0),
+	opened_files({}), errors({}), uri_values(uri_values), directory_uris({}),
 	  directory_current_file(0), ignore_missing_paths(ignore_missing_paths) {
 	// thanks to c++11 we no longer have anything interesting to do here :)
 }

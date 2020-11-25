@@ -35,7 +35,7 @@ message_sender::message_sender(std::shared_ptr<ral::cache::CacheMachine> output_
 		ucp_worker_h origin,
 		uint16_t ral_id,
 		comm::blazing_protocol protocol)
-		: ral_id{ral_id}, origin{origin}, output_cache{output_cache}, input_cache{input_cache}, node_address_map{node_address_map}, pool{num_threads}, protocol{protocol}
+		: pool{num_threads}, output_cache{output_cache}, input_cache{input_cache}, node_address_map{node_address_map}, protocol{protocol}, origin{origin}, ral_id{ral_id}
 {
 
 	request_size = 0;
