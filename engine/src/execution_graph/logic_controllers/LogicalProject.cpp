@@ -68,7 +68,7 @@ struct cast_to_str_functor {
     }
 
     template<typename T, std::enable_if_t<cudf::is_compound<T>() or cudf::is_duration<T>()> * = nullptr>
-    std::unique_ptr<cudf::column> operator()(const cudf::column_view & col) {
+    std::unique_ptr<cudf::column> operator()(const cudf::column_view & /*col*/) {
         return nullptr;
     }
 };
@@ -760,7 +760,7 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
 std::unique_ptr<ral::frame::BlazingTable> process_project(
   std::unique_ptr<ral::frame::BlazingTable> blazing_table_in,
   const std::string & query_part,
-  blazingdb::manager::Context * context) {
+  blazingdb::manager::Context * /*context*/) {
 
     std::string combined_expression = query_part.substr(
         query_part.find("(") + 1,

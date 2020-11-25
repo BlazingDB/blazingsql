@@ -326,7 +326,7 @@ public:
     CheckError(dsock_ < 0, "server_connect");
 
 		char str_buffer[INET6_ADDRSTRLEN];
-		char * ip_str = get_ip_str(&address, str_buffer, INET6_ADDRSTRLEN);
+		get_ip_str(&address, str_buffer, INET6_ADDRSTRLEN);
 
 		return true;
 	}
@@ -525,7 +525,7 @@ ucp_ep_h CreateUcpEp(ucp_worker_h ucp_worker,
 */
 std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> >, int> initialize(uint16_t ralId,
 	std::string worker_id,
-	int gpuId,
+	int /*gpuId*/,
 	std::string network_iface_name,
 	int ralCommunicationPort,
 	std::vector<NodeMetaDataUCP> workers_ucp_info,

@@ -64,7 +64,7 @@ void recv_begin_callback_c(std::shared_ptr<ucp_tag_recv_info_t> info, size_t req
 
 	auto message_listener = ucx_message_listener::get_instance();
 
-	auto fwd = message_listener->get_pool().push([&message_listener, info, request_size](int thread_id) {
+	auto fwd = message_listener->get_pool().push([&message_listener, info, request_size](int /*thread_id*/) {
 		
 		std::vector<char> data_buffer;
 		{
@@ -126,7 +126,7 @@ void tcp_message_listener::start_polling() {
 			int connection_fd;
 			// TODO: be able to stop this thread from running when the engine is killed
 			while((connection_fd = accept(socket_fd, (struct sockaddr *) &client_address, &len)) != -1) {
-				pool.push([this, connection_fd](int thread_num) {
+				pool.push([this, connection_fd](int /*thread_num*/) {
 					CodeTimer timer;
 					cudaStream_t stream = 0;
 					//          cudaStreamCreate(&stream);
@@ -135,7 +135,6 @@ void tcp_message_listener::start_polling() {
 
 					std::vector<char> data(message_size);
 					io::read_from_socket(connection_fd, data.data(), message_size);
-					auto meta_read_time = timer.elapsed_time();
 					// status_code success = status_code::OK;
 					// io::write_to_socket(connection_fd, &success, sizeof(success));
 					{

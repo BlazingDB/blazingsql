@@ -98,7 +98,7 @@ GoogleCloudStorageOutputStream::GoogleCloudStorageOutputStreamImpl::GoogleCloudS
 }
 
 arrow::Status GoogleCloudStorageOutputStream::GoogleCloudStorageOutputStreamImpl::write(
-	const void * buffer, int64_t nbytes) {
+	const void * /*buffer*/, int64_t /*nbytes*/) {
 	//    Aws::GoogleCloudStorage::Model::UploadPartRequest uploadPartRequest;
 	//	uploadPartRequest.SetBucket(bucket);
 	//	uploadPartRequest.SetKey(key);

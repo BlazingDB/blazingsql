@@ -154,12 +154,14 @@ RegionResult getRegion(std::string bucketName,std::shared_ptr< Aws::Auth::AWSCre
 S3FileSystem::Private::Private(const FileSystemConnection & fileSystemConnection, const Path & root)
 	: s3Client(nullptr), root(root) {
 	// TODO percy improve & error handling
-	const bool connected = this->connect(fileSystemConnection);
+//	const bool connected = this->connect(fileSystemConnection);
+	this->connect(fileSystemConnection);
 }
 
 S3FileSystem::Private::~Private() {
 	// TODO percy improve & error handling
-	const bool disconnected = this->disconnect();
+//	const bool disconnected = this->disconnect();
+	this->disconnect();
 }
 
 bool S3FileSystem::Private::connect(const FileSystemConnection & fileSystemConnection) {
@@ -173,8 +175,8 @@ bool S3FileSystem::Private::connect(const FileSystemConnection & fileSystemConne
 	const auto & connectionProperties = fileSystemConnection.getConnectionProperties();
 
 	const std::string bucketName = fileSystemConnection.getConnectionProperty(ConnectionProperty::BUCKET_NAME);
-	const EncryptionType encryptionType =
-		encryptionTypeFromName(fileSystemConnection.getConnectionProperty(ConnectionProperty::ENCRYPTION_TYPE));
+//	const EncryptionType encryptionType =
+//		encryptionTypeFromName(fileSystemConnection.getConnectionProperty(ConnectionProperty::ENCRYPTION_TYPE));
 	const std::string kmsKeyAmazonResourceName =
 		fileSystemConnection.getConnectionProperty(ConnectionProperty::KMS_KEY_AMAZON_RESOURCE_NAME);
 	const std::string accessKeyId = fileSystemConnection.getConnectionProperty(ConnectionProperty::ACCESS_KEY_ID);

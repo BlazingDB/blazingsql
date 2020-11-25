@@ -23,7 +23,7 @@ size_t gdf_parser::get_num_partitions(){
 gdf_parser::~gdf_parser() {}
 
 std::unique_ptr<ral::frame::BlazingTable> gdf_parser::parse_batch(
-		std::shared_ptr<arrow::io::RandomAccessFile> file,
+		std::shared_ptr<arrow::io::RandomAccessFile> /*file*/,
 		const Schema & schema,
 		std::vector<int> column_indices,
 		std::vector<cudf::size_type> row_groups){
@@ -55,7 +55,7 @@ std::unique_ptr<ral::frame::BlazingTable> gdf_parser::parse_batch(
 }
 
 void gdf_parser::parse_schema(
-	std::shared_ptr<arrow::io::RandomAccessFile> file, ral::io::Schema & schema) {}
+	std::shared_ptr<arrow::io::RandomAccessFile> /*file*/, ral::io::Schema & /*schema*/) {}
 
 
 }  // namespace io

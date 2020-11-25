@@ -16,12 +16,14 @@
 HadoopFileSystem::Private::Private(const FileSystemConnection & fileSystemConnection, const Path & root)
 	: hdfs(nullptr), connected(false), root(root) {
 	// TODO percy improve & error handling
-	const bool connected = this->connect(fileSystemConnection);
+//	const bool connected = this->connect(fileSystemConnection);
+    this->connect(fileSystemConnection);
 }
 
 HadoopFileSystem::Private::~Private() {
 	// TODO percy improve & error handling
-	const bool disconnected = this->disconnect();
+//	const bool disconnected = this->disconnect();
+	this->disconnect();
 }
 
 bool HadoopFileSystem::Private::connect(const FileSystemConnection & fileSystemConnection) {

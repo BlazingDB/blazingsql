@@ -78,7 +78,7 @@ public:
 							node_address_map = node_address_map,
 							output_cache = output_cache,
 								protocol=this->protocol,
-								this](int thread_id) {
+								this](int /*thread_id*/) {
 
 
 

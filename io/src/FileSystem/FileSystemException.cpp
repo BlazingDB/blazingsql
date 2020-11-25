@@ -9,7 +9,7 @@
 
 const std::string FileSystemException::RUNTIME_ERROR = "file system error";
 
-static const std::string whatMessage(FileSystemType fileSystemType,
+static const std::string whatMessage(FileSystemType /*fileSystemType*/,
 	const std::string & error,
 	const std::string & uri1 = "",
 	const std::string & uri2 = "") {

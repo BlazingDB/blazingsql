@@ -56,7 +56,7 @@ bool verifyConnectionProperties(const std::string & host,
 	int port,
 	const std::string & user,
 	DriverType driverType,
-	const std::string & kerberosTicket) {
+	const std::string & /*kerberosTicket*/) {
 	// TODO percy more checks, use regular expressions here
 
 	if(host.empty()) {
@@ -138,11 +138,11 @@ EncryptionType encryptionTypeFromName(const std::string & encryptionTypeName) {
 bool verifyConnectionProperties(const std::string & bucketName,
 	S3FileSystemConnection::EncryptionType encryptionType,
 	const std::string & kmsKeyAmazonResourceName,
-	const std::string & accessKeyId,
-	const std::string & secretKey,
-	const std::string & sessionToken,
-	const std::string & endpointOverride,
-	const std::string & region) {
+	const std::string & /*accessKeyId*/,
+	const std::string & /*secretKey*/,
+	const std::string & /*sessionToken*/,
+	const std::string & /*endpointOverride*/,
+	const std::string & /*region*/) {
 	// TODO percy more checks, use regular expressions here
 
 	if(bucketName.empty()) {

@@ -344,7 +344,6 @@ public:
 		std::vector<cudf::order> sortOrderTypes;
 		std::vector<int> sortColIndices;
 		std::tie(sortColIndices, sortOrderTypes, std::ignore) =	ral::operators::get_sort_vars(this->expression);
-		auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
 		auto nodes = context->getAllNodes();
 
 		// If we have no partitionPlan, its because we have no data, therefore its one partition per node

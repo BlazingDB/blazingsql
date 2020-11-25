@@ -207,7 +207,7 @@ void _createTableFolderCreationThread(std::vector<Uri> & sequentialDrives,
 	success = true;
 }
 
-bool FileUtilv2::createFoldersForTable(Uri & tableFolder, std::vector<std::string> & column_names) {
+bool FileUtilv2::createFoldersForTable(Uri & /*tableFolder*/, std::vector<std::string> & /*column_names*/) {
 	/*
 		std::vector<Uri> sequentialDrives = BlazingConfig::getInstance()->getSequentialFolders();
 		Uri baseFolder = BlazingConfig::getInstance()->getBaseFolder();

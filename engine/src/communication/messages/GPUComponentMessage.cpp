@@ -123,7 +123,7 @@ std::unique_ptr<ral::frame::BlazingHostTable> serialize_gpu_message_to_host_tabl
 	for(int index = 0; index < buffer_sizes.size(); ++index) {
 		std::basic_string<char> buffer;
 		buffer.resize(buffer_sizes[index]);
-		int currentDeviceId = 0; // TODO: CHECK device_id
+        // int currentDeviceId = 0; // TODO: CHECK device_id
 		// cudaSetDevice(currentDeviceId);
 		cudaMemcpy((void *)buffer.data(), raw_buffers[index], buffer_sizes[index], cudaMemcpyHostToHost);
 		cpu_raw_buffers.emplace_back(buffer);
@@ -160,8 +160,6 @@ auto deserialize_from_gpu_raw_buffers(const std::vector<ColumnTransport> & colum
 			cudf::data_type dtype = cudf::data_type{cudf::type_id(columns_offsets[i].metadata.dtype)};
 			cudf::size_type column_size  =  (cudf::size_type)columns_offsets[i].metadata.size;
 
-			cudf::valid_type * valid_ptr = nullptr;
-			cudf::size_type valid_size = 0;
 			if(columns_offsets[i].valid != -1) {
 				// this is a valid
 				auto valid_offset = columns_offsets[i].valid;
@@ -189,7 +187,7 @@ std::unique_ptr<ral::frame::BlazingTable> deserialize_from_cpu(const ral::frame:
 	for(int index = 0; index < raw_buffers.size(); ++index) {
 		auto buffer_sz = raw_buffers[index].size();
 		rmm::device_buffer dev_buffer(buffer_sz);
-		int currentDeviceId = 0; // TODO: CHECK device_id
+        // int currentDeviceId = 0; // TODO: CHECK device_id
 		// cudaSetDevice(currentDeviceId);
 		cudaMemcpy((void *)dev_buffer.data(),
 			(const void *) raw_buffers[index].data(),

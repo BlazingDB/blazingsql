@@ -308,7 +308,7 @@ std::string StringUtil::join(std::vector<std::string> splitString, std::string c
 	return StringUtil::join(splitString, connector, stringSize);
 }
 
-std::string StringUtil::join(std::vector<std::string> splitString, std::string connector, int stringSize) {
+std::string StringUtil::join(std::vector<std::string> splitString, std::string connector, int /*stringSize*/) {
 	// std::string joined(stringSize);
 	std::stringstream joined;
 	if(splitString.size() > 0) {

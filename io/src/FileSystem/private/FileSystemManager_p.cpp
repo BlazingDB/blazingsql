@@ -61,7 +61,7 @@ bool FileSystemManager::Private::registerFileSystem(const FileSystemEntity & fil
 		this->fileSystemIds[authority] = foundIndex;
 	}
 
-	const int fileSystemId = this->fileSystemIds[authority];
+	this->fileSystemIds[authority];
 
 	this->roots[authority] = root;
 

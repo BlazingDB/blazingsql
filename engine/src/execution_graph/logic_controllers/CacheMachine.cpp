@@ -183,7 +183,6 @@ std::vector<std::unique_ptr<ral::cache::CacheData> > CacheMachine::pull_all_cach
 }
 void CacheMachine::put_all_cache_data( std::vector<std::unique_ptr<ral::cache::CacheData> > messages,std::vector<std::string > message_ids){
 	std::vector<std::unique_ptr<message > > wrapped_messages(messages.size());
-	int i = 0;
 	for(int i = 0; i < messages.size();i++){
 		wrapped_messages[i] =
 			std::make_unique<message>(std::move(messages[i]), message_ids[i]);

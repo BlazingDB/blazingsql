@@ -292,7 +292,6 @@ tcp_buffer_transport::tcp_buffer_transport(
 }
 
 void tcp_buffer_transport::send_begin_transmission(){
-    status_code status;
     std::vector<char> buffer_to_send = detail::serialize_metadata_and_transports_and_buffer_sizes(metadata, column_transports,buffer_sizes);
 	auto size_to_send = buffer_to_send.size();
 
@@ -346,7 +345,7 @@ void tcp_buffer_transport::send_impl(const char * buffer, size_t buffer_size){
             chunk++;
         }
 
-        for (auto socket_fd : socket_fds){
+        for(size_t i = 0; i < socket_fds.size(); ++i){
             increment_frame_transmission();
         }
     }catch(const std::exception & e ){

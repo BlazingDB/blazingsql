@@ -35,7 +35,7 @@ data_loader::~data_loader() {}
 
 
 std::unique_ptr<ral::frame::BlazingTable> data_loader::load_batch(
-	Context * context,
+	Context *  /*context*/,
 	const std::vector<int> & column_indices_in,
 	const Schema & schema,
 	data_handle file_data_handle,

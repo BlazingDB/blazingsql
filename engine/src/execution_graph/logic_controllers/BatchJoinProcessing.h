@@ -471,7 +471,7 @@ public:
 													right_join_types.cbegin(), right_join_types.cend());
 	}
 
-	void partition_table(const std::string & kernel_id,
+	void partition_table(const std::string & /*kernel_id*/,
 				Context* local_context,
 				std::vector<cudf::size_type> column_indices,
 				std::unique_ptr<ral::frame::BlazingTable> batch,
@@ -491,7 +491,6 @@ public:
 		std::unique_ptr<CudfTable> hashed_data;
 		std::vector<cudf::size_type> hased_data_offsets;
 		int batch_count = 0;
-		auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
 		while (!done) {
 			try {
 				if (normalize_types) {
@@ -798,7 +797,6 @@ public:
 		BlazingThread distribute_small_table_thread([this, &small_table_batch, &small_table_sequence, small_output_cache_name, small_table_idx](){
 			bool done = false;
 			int batch_count = 0;
-			auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
 			while (!done) {
 				try {
 					if(small_table_batch != nullptr ) {

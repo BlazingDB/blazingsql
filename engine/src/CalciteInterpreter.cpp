@@ -26,7 +26,7 @@ std::shared_ptr<ral::cache::graph> generate_graph(std::vector<ral::io::data_load
 	std::vector<std::string> table_names,
 	std::vector<std::string> table_scans,
 	std::string logicalPlan,
-	int64_t connection,
+	int64_t  /*connection*/,
 	Context & queryContext) {
 
 	CodeTimer blazing_timer;

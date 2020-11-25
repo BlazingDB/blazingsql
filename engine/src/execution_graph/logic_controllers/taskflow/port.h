@@ -19,7 +19,7 @@ struct port_helper {};
 /** stop recursion **/
 template <class PORT>
 struct port_helper<PORT> {
-	static void register_port(PORT & port) { return; }
+	static void register_port(PORT & /*port*/) { return; }
 };
 
 class port;
