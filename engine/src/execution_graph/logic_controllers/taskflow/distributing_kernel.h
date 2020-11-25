@@ -5,7 +5,7 @@
 #include <vector>
 #include "distribution/primitives.h"
 #include "execution_graph/logic_controllers/CacheMachine.h"
-#include <blazingdb/manager/Context.h>
+#include <execution_graph/Context.h>
 #include "kernel.h"
 
 namespace ral {

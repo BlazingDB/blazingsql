@@ -3,7 +3,7 @@
 #include <mutex>
 #include <stack>
 #include <vector>
-#include "blazingdb/transport/ColumnTransport.h"
+#include "transport/ColumnTransport.h"
 #include <rmm/device_buffer.hpp>
 
 namespace blazingdb {

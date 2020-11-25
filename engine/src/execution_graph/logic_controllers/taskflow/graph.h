@@ -3,7 +3,6 @@
 #include "kernel.h"
 #include "kpair.h"
 #include "execution_graph/logic_controllers/CacheMachine.h"
-#include "utilities/ctpl_stl.h"
 #include "bmr/MemoryMonitor.h"
 
 namespace ral {

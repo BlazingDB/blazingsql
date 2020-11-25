@@ -294,6 +294,7 @@ def get_codTest(test_name):
         "Order by": "ORDERBY",
         "Predicates With Nulls": "PREDWNULLS",
         "Round": "ROUND",
+        "Replace": "REPLACE",
         "Simple Distribution From Local": "SIMPLEDIST",
         "Substring": "SUBSTRING",
         "Tables from Pandas": "TBLPANDAS",
@@ -301,6 +302,7 @@ def get_codTest(test_name):
         "Timestamp": "TIMESTAMP",
         "To_timestamp": "TO_TIMESTAMP",
         "TPCH Queries": "TPCH",
+        "Config Options": "TPCH", # we want the same outputs as the tpch test
         "Unary ops": "UNARYOPS",
         "Unify Tables": "UNIFYTBL",
         "Union": "UNION",
@@ -308,6 +310,7 @@ def get_codTest(test_name):
         "Where clause": "WHERE",
         "Wild Card": "WILDCARD",
         "Simple String": "SSTRING",
+        "String case": "STRINGCASE",
         "Message Validation": "MESSAGEVAL"
     }
 

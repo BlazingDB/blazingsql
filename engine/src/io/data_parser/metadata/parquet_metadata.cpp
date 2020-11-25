@@ -6,7 +6,7 @@
 #define BLAZINGDB_RAL_SRC_IO_DATA_PARSER_METADATA_PARQUET_METADATA_CPP_H_
 
 #include "parquet_metadata.h"
-#include "blazingdb/concurrency/BlazingThread.h"
+#include "ExceptionHandling/BlazingThread.h"
 #include "utilities/CommonOperations.h"
 #include <cudf/column/column_factories.hpp>
 
@@ -368,7 +368,6 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 
 	std::vector<std::vector<std::vector<int64_t>>> minmax_metadata_table_per_file(parquet_readers.size());
 
-	size_t file_index = 0;
 	std::vector<BlazingThread> threads(parquet_readers.size());
 	std::mutex guard;
 	for (size_t file_index = 0; file_index < parquet_readers.size(); file_index++){

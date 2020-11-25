@@ -1,13 +1,15 @@
 #include "messageListener.hpp"
 #include <sys/socket.h>
 
-#include "blazingdb/transport/io/reader_writer.h"
+#include "transport/io/reader_writer.h"
 #include "CodeTimer.h"
+#include <mutex>
 
 namespace comm {
 
-std::map<ucp_tag_t, std::pair<std::vector<char>, std::shared_ptr<ucp_tag_recv_info_t> > > tag_to_begin_buffer_and_info;
 
+std::map<ucp_tag_t, std::pair<std::vector<char>, std::shared_ptr<ucp_tag_recv_info_t> > > tag_to_begin_buffer_and_info;
+std::mutex tag_to_begin_buffer_and_info_mutex;
 
 ctpl::thread_pool<BlazingThread> & message_listener::get_pool(){
 	return pool;
@@ -63,13 +65,19 @@ void recv_begin_callback_c(std::shared_ptr<ucp_tag_recv_info_t> info, size_t req
 	auto message_listener = ucx_message_listener::get_instance();
 
 	auto fwd = message_listener->get_pool().push([&message_listener, info, request_size](int thread_id) {
-		auto iter = tag_to_begin_buffer_and_info.find(info->sender_tag);
-		if (iter == tag_to_begin_buffer_and_info.end()) {
-			return;
+		
+		std::vector<char> data_buffer;
+		{
+			std::lock_guard<std::mutex> guard(tag_to_begin_buffer_and_info_mutex);
+			auto iter = tag_to_begin_buffer_and_info.find(info->sender_tag);
+			if (iter == tag_to_begin_buffer_and_info.end()) {
+				return;
+			}
+			data_buffer = std::move(iter->second.first);
+			tag_to_begin_buffer_and_info.erase(iter);
 		}
-
-		auto receiver = std::make_shared<message_receiver>(message_listener->get_node_map(), iter->second.first);
-		tag_to_begin_buffer_and_info.erase(iter);
+	
+		auto receiver = std::make_shared<message_receiver>(message_listener->get_node_map(), data_buffer);
 
 		message_listener->add_receiver(info->sender_tag, receiver);
 
@@ -229,13 +237,18 @@ void ucx_message_listener::poll_begin_message_tag(bool running_from_unit_test){
 				}while(message_tag == nullptr);
 
 					char * request = new char[_request_size];
-
+					char * temp_buffer;
 					//we have a msg to process
-					tag_to_begin_buffer_and_info[info_tag->sender_tag] = std::make_pair(
-						std::vector<char>(info_tag->length), info_tag);
+					{
+						std::lock_guard<std::mutex> guard(tag_to_begin_buffer_and_info_mutex);
+						tag_to_begin_buffer_and_info[info_tag->sender_tag] = std::make_pair(
+							std::vector<char>(info_tag->length), info_tag);
+						temp_buffer = tag_to_begin_buffer_and_info[info_tag->sender_tag].first.data();
+					}
+					
 
 					auto status = ucp_tag_recv_nbr(ucp_worker,
-						tag_to_begin_buffer_and_info[info_tag->sender_tag].first.data(),
+						temp_buffer,
 						info_tag->length,
 						ucp_dt_make_contig(1),
 						0ull,
