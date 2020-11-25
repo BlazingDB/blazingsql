@@ -126,7 +126,7 @@ auto log_level_str_to_enum(std::string level) {
 // simple_log: true (no timestamp or log level)
 void create_logger(std::string fileName,
 	std::string loggingName,
-	int ralId, std::string flush_level,
+	uint16_t ralId, std::string flush_level,
 	std::string logger_level_wanted,
 	std::size_t max_size_logging,
 	bool simple_log=true) {
@@ -523,7 +523,7 @@ ucp_ep_h CreateUcpEp(ucp_worker_h ucp_worker,
 * and the cache we use for receiving messages
 *
 */
-std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> >, int> initialize(int ralId,
+std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> >, int> initialize(uint16_t ralId,
 	std::string worker_id,
 	int gpuId,
 	std::string network_iface_name,
@@ -863,7 +863,7 @@ void finalize() {
 	exit(0);
 }
 
-error_code_t initialize_C(int ralId,
+error_code_t initialize_C(uint16_t ralId,
 	std::string worker_id,
 	int gpuId,
 	std::string network_iface_name,

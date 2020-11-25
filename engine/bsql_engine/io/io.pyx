@@ -158,7 +158,7 @@ cdef cio.TableScanInfo getTableScanInfoPython(string logicalPlan) nogil:
         temp = cio.getTableScanInfo(logicalPlan)
     return temp
 
-cdef pair[pair[shared_ptr[cio.CacheMachine], shared_ptr[cio.CacheMachine] ], int] initializePython(int ralId, string worker_id, int gpuId, string network_iface_name,  
+cdef pair[pair[shared_ptr[cio.CacheMachine], shared_ptr[cio.CacheMachine] ], int] initializePython(uint16_t ralId, string worker_id, int gpuId, string network_iface_name,
     int ralCommunicationPort, vector[NodeMetaDataUCP] workers_ucp_info, bool singleNode, map[string,string] config_options,
     string allocation_mode, size_t initial_pool_size, size_t maximum_pool_size, bool enable_logging) nogil except +:
     with nogil:
@@ -292,7 +292,7 @@ cdef class PyBlazingCache:
         df._rename_columns(decoded_names)
         return df, metadata_py
 
-cpdef initializeCaller(int ralId, string worker_id, int gpuId, string network_iface_name,  int ralCommunicationPort, vector[NodeMetaDataUCP] workers_ucp_info, 
+cpdef initializeCaller(uint16_t ralId, string worker_id, int gpuId, string network_iface_name,  int ralCommunicationPort, vector[NodeMetaDataUCP] workers_ucp_info,
         bool singleNode, map[string,string] config_options, string allocation_mode, size_t initial_pool_size, size_t maximum_pool_size, bool enable_logging):
     init_output = initializePython( ralId, worker_id, gpuId, network_iface_name,  ralCommunicationPort, workers_ucp_info, singleNode, config_options,
         allocation_mode, initial_pool_size, maximum_pool_size, enable_logging)
