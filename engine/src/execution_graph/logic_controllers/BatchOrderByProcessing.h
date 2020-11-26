@@ -33,39 +33,46 @@ public:
 
 	std::string name() { return "PartitionSingleNode"; }
 
+	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+		std::shared_ptr<ral::cache::CacheMachine> output,
+		cudaStream_t stream) override{
+		auto & input = inputs[0];
+
+		auto partitions = ral::operators::partition_table(partitionPlan->toBlazingTableView(), input->toBlazingTableView(), this->expression);
+
+		for (auto i = 0; i < partitions.size(); i++) {
+			std::string cache_id = "output_" + std::to_string(i);
+			this->add_to_output_cache(
+				std::make_unique<ral::frame::BlazingTable>(std::make_unique<cudf::table>(partitions[i]), input->names()),
+				cache_id
+				);
+		}
+	}
+
 	virtual kstatus run() {
 		CodeTimer timer;
 
 		BatchSequence input_partitionPlan(this->input_.get_cache("input_b"), this);
-		auto partitionPlan = std::move(input_partitionPlan.next());
+		partitionPlan = std::move(input_partitionPlan.next());
 
-		bool ordered = false;
-		BatchSequence input(this->input_.get_cache("input_a"), this, ordered);
-		int batch_count = 0;
-		while (input.wait_for_next()) {
-			try {
-				auto batch = input.next();
-				auto partitions = ral::operators::partition_table(partitionPlan->toBlazingTableView(), batch->toBlazingTableView(), this->expression);
+		while(this->input_.get_cache("input_a")->wait_for_next()){
+			std::unique_ptr <ral::cache::CacheData> cache_data = this->input_.get_cache("input_a")->pullCacheData();
 
-				for (auto i = 0; i < partitions.size(); i++) {
-					std::string cache_id = "output_" + std::to_string(i);
-					this->add_to_output_cache(
-						std::make_unique<ral::frame::BlazingTable>(std::make_unique<cudf::table>(partitions[i]), batch->names()),
-						cache_id
-						);
-				}
-				batch_count++;
-			} catch(const std::exception& e) {
-				// TODO add retry here
-				logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
-											"query_id"_a=context->getContextToken(),
-											"step"_a=context->getQueryStep(),
-											"substep"_a=context->getQuerySubstep(),
-											"info"_a="In PartitionSingleNode kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
-											"duration"_a="");
-				throw;
+			if(cache_data != nullptr){
+				std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
+				inputs.push_back(std::move(cache_data));
+
+				ral::execution::executor::get_instance()->add_task(
+						std::move(inputs),
+						nullptr,
+						this);
 			}
 		}
+
+		std::unique_lock<std::mutex> lock(kernel_mutex);
+		kernel_cv.wait(lock,[this]{
+			return this->tasks.empty();
+		});
 
 		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
 									"query_id"_a=context->getContextToken(),
@@ -79,7 +86,7 @@ public:
 	}
 
 private:
-
+	std::unique_ptr<ral::frame::BlazingTable> partitionPlan;
 };
 
 class SortAndSampleKernel : public distributing_kernel {
