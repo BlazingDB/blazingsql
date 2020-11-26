@@ -636,7 +636,7 @@ public:
 		CodeTimer eventTimer(false);
 
 		std::unique_ptr <ral::cache::CacheData> cache_data = this->input_cache()->pullCacheData();
-		while(cache_data != nullptr ){
+		while(cache_data != nullptr){
 			std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
 			inputs.push_back(std::move(cache_data));
 

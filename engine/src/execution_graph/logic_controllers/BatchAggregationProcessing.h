@@ -250,98 +250,124 @@ private:
 
 class MergeAggregateKernel : public kernel {
 public:
-	MergeAggregateKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: kernel{kernel_id, queryString, context, kernel_type::MergeAggregateKernel} {
+    MergeAggregateKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
+        : kernel{kernel_id, queryString, context, kernel_type::MergeAggregateKernel} {
         this->query_graph = query_graph;
-	}
+    }
 
     std::string name() { return "MergeAggregate"; }
 
-    virtual kstatus run() {
-        CodeTimer timer;
+    void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+        std::shared_ptr<ral::cache::CacheMachine> output,
+        cudaStream_t stream) override{
         CodeTimer eventTimer(false);
 
-        std::vector<std::unique_ptr<ral::frame::BlazingTable>> tablesToConcat;
-		std::vector<ral::frame::BlazingTableView> tableViewsToConcat;
+        std::vector< ral::frame::BlazingTableView > tableViewsToConcat;
+        for (std::size_t i = 0; i < inputs.size(); i++){
+            tableViewsToConcat.emplace_back(inputs[i]->toBlazingTableView());
+        }
+
+        eventTimer.start();
+        if( ral::utilities::checkIfConcatenatingStringsWillOverflow(tableViewsToConcat)) {
+            logger->warn("{query_id}|{step}|{substep}|{info}",
+                            "query_id"_a=(context ? std::to_string(context->getContextToken()) : ""),
+                            "step"_a=(context ? std::to_string(context->getQueryStep()) : ""),
+                            "substep"_a=(context ? std::to_string(context->getQuerySubstep()) : ""),
+                            "info"_a="In MergeAggregateKernel::run Concatenating Strings will overflow strings length");
+        }
+        auto concatenated = ral::utilities::concatTables(tableViewsToConcat);
+
+        auto log_input_num_rows = concatenated ? concatenated->num_rows() : 0;
+        auto log_input_num_bytes = concatenated ? concatenated->sizeInBytes() : 0;
+
+        std::vector<int> group_column_indices;
+        std::vector<std::string> aggregation_input_expressions, aggregation_column_assigned_aliases;
+        std::vector<AggregateKind> aggregation_types;
+        std::tie(group_column_indices, aggregation_input_expressions, aggregation_types,
+            aggregation_column_assigned_aliases) = ral::operators::parseGroupByExpression(this->expression);
+
+        std::vector<int> mod_group_column_indices;
+        std::vector<std::string> mod_aggregation_input_expressions, mod_aggregation_column_assigned_aliases, merging_column_names;
+        std::vector<AggregateKind> mod_aggregation_types;
+        std::tie(mod_group_column_indices, mod_aggregation_input_expressions, mod_aggregation_types,
+            mod_aggregation_column_assigned_aliases) = ral::operators::modGroupByParametersForMerge(
+            group_column_indices, aggregation_types, concatenated->names());
+
+        std::unique_ptr<ral::frame::BlazingTable> columns;
+        if(aggregation_types.size() == 0) {
+            columns = ral::operators::compute_groupby_without_aggregations(
+                    concatenated->toBlazingTableView(), mod_group_column_indices);
+        } else if (group_column_indices.size() == 0) {
+            // aggregations without groupby are only merged on the master node
+            if( context->isMasterNode(ral::communication::CommunicationData::getInstance().getSelfNode()) ) {
+                columns = ral::operators::compute_aggregations_without_groupby(
+                        concatenated->toBlazingTableView(), mod_aggregation_input_expressions, mod_aggregation_types,
+                        mod_aggregation_column_assigned_aliases);
+            } else {
+                // with aggregations without groupby the distribution phase should deposit an empty dataframe with the right schema into the cache, which is then output here
+                columns = std::move(concatenated);
+            }
+        } else {
+            columns = ral::operators::compute_aggregations_with_groupby(
+                    concatenated->toBlazingTableView(), mod_aggregation_input_expressions, mod_aggregation_types,
+                    mod_aggregation_column_assigned_aliases, mod_group_column_indices);
+        }
+        eventTimer.stop();
+
+        auto log_output_num_rows = columns->num_rows();
+        auto log_output_num_bytes = columns->sizeInBytes();
+
+        events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+                        "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                        "query_id"_a=context->getContextToken(),
+                        "kernel_id"_a=this->get_id(),
+                        "input_num_rows"_a=log_input_num_rows,
+                        "input_num_bytes"_a=log_input_num_bytes,
+                        "output_num_rows"_a=log_output_num_rows,
+                        "output_num_bytes"_a=log_output_num_bytes,
+                        "event_type"_a="compute",
+                        "timestamp_begin"_a=eventTimer.start_time(),
+                        "timestamp_end"_a=eventTimer.end_time());
+
+        output->addToCache(std::move(columns));
+    }
+
+    virtual kstatus run() {
+        CodeTimer timer;
 
         // This Kernel needs all of the input before it can do any output. So lets wait until all the input is available
         this->input_cache()->wait_until_finished();
 
-        bool ordered = false; // If we start using sort based aggregations this may need to change
-        BatchSequence input(this->input_cache(), this, ordered);
         int batch_count=0;
         try {
-            while (input.wait_for_next()) {
-                auto batch = input.next();
-                batch_count++;
-                tableViewsToConcat.emplace_back(batch->toBlazingTableView());
-                tablesToConcat.emplace_back(std::move(batch));
-            }
-            eventTimer.start();
+            std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
 
-			if( ral::utilities::checkIfConcatenatingStringsWillOverflow(tableViewsToConcat)) {
-				logger->warn("{query_id}|{step}|{substep}|{info}",
-								"query_id"_a=(context ? std::to_string(context->getContextToken()) : ""),
-								"step"_a=(context ? std::to_string(context->getQueryStep()) : ""),
-								"substep"_a=(context ? std::to_string(context->getQuerySubstep()) : ""),
-								"info"_a="In MergeAggregateKernel::run Concatenating Strings will overflow strings length");
-			}
-            auto concatenated = ral::utilities::concatTables(tableViewsToConcat);
+            while(this->input_cache()->wait_for_next()){
+                std::unique_ptr <ral::cache::CacheData> cache_data = this->input_cache()->pullCacheData();
 
-            auto log_input_num_rows = concatenated ? concatenated->num_rows() : 0;
-            auto log_input_num_bytes = concatenated ? concatenated->sizeInBytes() : 0;
-
-            std::vector<int> group_column_indices;
-            std::vector<std::string> aggregation_input_expressions, aggregation_column_assigned_aliases;
-            std::vector<AggregateKind> aggregation_types;
-            std::tie(group_column_indices, aggregation_input_expressions, aggregation_types,
-                aggregation_column_assigned_aliases) = ral::operators::parseGroupByExpression(this->expression);
-
-            std::vector<int> mod_group_column_indices;
-            std::vector<std::string> mod_aggregation_input_expressions, mod_aggregation_column_assigned_aliases, merging_column_names;
-            std::vector<AggregateKind> mod_aggregation_types;
-            std::tie(mod_group_column_indices, mod_aggregation_input_expressions, mod_aggregation_types,
-                mod_aggregation_column_assigned_aliases) = ral::operators::modGroupByParametersForMerge(
-                group_column_indices, aggregation_types, concatenated->names());
-
-            std::unique_ptr<ral::frame::BlazingTable> output;
-            if(aggregation_types.size() == 0) {
-                output = ral::operators::compute_groupby_without_aggregations(
-                        concatenated->toBlazingTableView(), mod_group_column_indices);
-            } else if (group_column_indices.size() == 0) {
-                // aggregations without groupby are only merged on the master node
-                if( context->isMasterNode(ral::communication::CommunicationData::getInstance().getSelfNode()) ) {
-                    output = ral::operators::compute_aggregations_without_groupby(
-                            concatenated->toBlazingTableView(), mod_aggregation_input_expressions, mod_aggregation_types,
-                            mod_aggregation_column_assigned_aliases);
-                } else {
-                    // with aggregations without groupby the distribution phase should deposit an empty dataframe with the right schema into the cache, which is then output here
-                    output = std::move(concatenated);
+                if(cache_data != nullptr){
+                    inputs.push_back(std::move(cache_data));
+                    batch_count++;
                 }
-            } else {
-                output = ral::operators::compute_aggregations_with_groupby(
-                        concatenated->toBlazingTableView(), mod_aggregation_input_expressions, mod_aggregation_types,
-                        mod_aggregation_column_assigned_aliases, mod_group_column_indices);
             }
-            // ral::utilities::print_blazing_table_view_schema(output->toBlazingTableView(), "MergeAggregateKernel_output");
-            eventTimer.stop();
 
-            auto log_output_num_rows = output->num_rows();
-            auto log_output_num_bytes = output->sizeInBytes();
+            ral::execution::executor::get_instance()->add_task(
+                    std::move(inputs),
+                    this->output_cache(),
+                    this);
 
-            events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-                            "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-                            "query_id"_a=context->getContextToken(),
-                            "kernel_id"_a=this->get_id(),
-                            "input_num_rows"_a=log_input_num_rows,
-                            "input_num_bytes"_a=log_input_num_bytes,
-                            "output_num_rows"_a=log_output_num_rows,
-                            "output_num_bytes"_a=log_output_num_bytes,
-                            "event_type"_a="compute",
-                            "timestamp_begin"_a=eventTimer.start_time(),
-                            "timestamp_end"_a=eventTimer.end_time());
+            logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+                                        "query_id"_a=context->getContextToken(),
+                                        "step"_a=context->getQueryStep(),
+                                        "substep"_a=context->getQuerySubstep(),
+                                        "info"_a="Merge Aggregate Kernel tasks created",
+                                        "duration"_a=timer.elapsed_time(),
+                                        "kernel_id"_a=this->get_id());
 
-            this->add_to_output_cache(std::move(output));
+            std::unique_lock<std::mutex> lock(kernel_mutex);
+            kernel_cv.wait(lock,[this]{
+                return this->tasks.empty();
+            });
         } catch(const std::exception& e) {
             // TODO add retry here
             logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
@@ -352,7 +378,6 @@ public:
                         "duration"_a="");
             throw;
         }
-
 
         logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
                     "query_id"_a=context->getContextToken(),
