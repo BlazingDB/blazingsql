@@ -529,6 +529,40 @@ public:
 		set_number_of_message_trackers(1); //default
 	}
 
+	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+		std::shared_ptr<ral::cache::CacheMachine> output,
+		cudaStream_t stream) override{
+		CodeTimer eventTimer(false);
+		auto & input = inputs[0];
+
+		if (rows_limit<0) {
+			output->addToCache(std::move(input));
+		} else {
+			auto log_input_num_rows = input->num_rows();
+			auto log_input_num_bytes = input->sizeInBytes();
+
+			eventTimer.start();
+			std::tie(input, rows_limit) = ral::operators::limit_table(std::move(input), rows_limit);
+			eventTimer.stop();
+
+			auto log_output_num_rows = input->num_rows();
+			auto log_output_num_bytes = input->sizeInBytes();
+
+			events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+							"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+							"query_id"_a=context->getContextToken(),
+							"kernel_id"_a=this->get_id(),
+							"input_num_rows"_a=log_input_num_rows,
+							"input_num_bytes"_a=log_input_num_bytes,
+							"output_num_rows"_a=log_output_num_rows,
+							"output_num_bytes"_a=log_output_num_bytes,
+							"event_type"_a="compute",
+							"timestamp_begin"_a=eventTimer.start_time(),
+							"timestamp_end"_a=eventTimer.end_time());
+
+			output->addToCache(std::move(input));
+		}
+	}
 
 	virtual kstatus run() {
 		CodeTimer timer;
@@ -545,22 +579,21 @@ public:
 
 		cudf::size_type limitRows;
 		std::tie(std::ignore, std::ignore, limitRows) = ral::operators::get_sort_vars(this->expression);
-		int64_t rows_limit = limitRows;
+		rows_limit = limitRows;
 
 		if(this->context->getTotalNodes() > 1 && rows_limit >= 0) {
 			this->context->incrementQuerySubstep();
 
-			// ral::distribution::distributeNumRows(context, total_batch_rows);
 			auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
 			int self_node_idx = context->getNodeIndex(self_node);
 			auto nodes_to_send = context->getAllOtherNodes(self_node_idx);
 			
 			std::vector<std::string> limit_messages_to_wait_for;
 			std::vector<std::string> target_ids;
-			for (auto i = 0; i < nodes_to_send.size(); i++)	{
+			for (auto i = 0; i < nodes_to_send.size(); i++) {
 				target_ids.push_back(nodes_to_send[i].id());
 				limit_messages_to_wait_for.push_back(
-					std::to_string(this->context->getContextToken()) + "_" +	std::to_string(this->get_id()) +	"_" +	nodes_to_send[i].id());
+					std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + nodes_to_send[i].id());
 			}
 			ral::cache::MetadataDictionary extra_metadata;
 			extra_metadata.add_value(ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL, total_batch_rows);
@@ -584,57 +617,38 @@ public:
 			rows_limit = std::min(std::max(rows_limit - prev_total_rows, int64_t{0}), total_batch_rows);
 		}
 
-		if (rows_limit < 0) {
-			for (auto &&cache_data : cache_vector) {
-				this->add_to_output_cache(std::move(cache_data));
-			}
-		} else {
-			int batch_count = 0;
-			for (auto &&cache_data : cache_vector)
-			{
-				try {
-					auto batch = cache_data->decache();
+		int batch_count = 0;
+		for (auto &&cache_data : cache_vector)
+		{
+			try {
+				std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
+				inputs.push_back(std::move(cache_data));
 
-					auto log_input_num_rows = batch->num_rows();
-					auto log_input_num_bytes = batch->sizeInBytes();
+				ral::execution::executor::get_instance()->add_task(
+						std::move(inputs),
+						this->output_cache(),
+						this);
 
-					eventTimer.start();
-					std::tie(batch, rows_limit) = ral::operators::limit_table(std::move(batch), rows_limit);
-					eventTimer.stop();
-
-					auto log_output_num_rows = batch->num_rows();
-					auto log_output_num_bytes = batch->sizeInBytes();
-
-					events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-									"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-									"query_id"_a=context->getContextToken(),
-									"kernel_id"_a=this->get_id(),
-									"input_num_rows"_a=log_input_num_rows,
-									"input_num_bytes"_a=log_input_num_bytes,
-									"output_num_rows"_a=log_output_num_rows,
-									"output_num_bytes"_a=log_output_num_bytes,
-									"event_type"_a="compute",
-									"timestamp_begin"_a=eventTimer.start_time(),
-									"timestamp_end"_a=eventTimer.end_time());
-
-					this->add_to_output_cache(std::move(batch));
-
-					if (rows_limit == 0){
-						break;
-					}
-					batch_count++;
-				} catch(const std::exception& e) {
-					// TODO add retry here
-					logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
-												"query_id"_a=context->getContextToken(),
-												"step"_a=context->getQueryStep(),
-												"substep"_a=context->getQuerySubstep(),
-												"info"_a="In Limit kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
-												"duration"_a="");
-					throw;
+				if (rows_limit == 0){
+					//break;
 				}
+				batch_count++;
+			} catch(const std::exception& e) {
+				// TODO add retry here
+				logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+											"query_id"_a=context->getContextToken(),
+											"step"_a=context->getQueryStep(),
+											"substep"_a=context->getQuerySubstep(),
+											"info"_a="In Limit kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
+											"duration"_a="");
+				throw;
 			}
 		}
+
+		std::unique_lock<std::mutex> lock(kernel_mutex);
+		kernel_cv.wait(lock,[this]{
+			return this->tasks.empty();
+		});
 
 		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
 									"query_id"_a=context->getContextToken(),
@@ -648,7 +662,7 @@ public:
 	}
 
 private:
-
+	std::atomic<int64_t> rows_limit;
 };
 
 } // namespace batch
