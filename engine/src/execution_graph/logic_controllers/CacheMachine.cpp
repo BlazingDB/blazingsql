@@ -2,10 +2,7 @@
 #include <sys/stat.h>
 #include <random>
 #include <utilities/CommonOperations.h>
-#include <utilities/DebuggingUtils.h>
 #include <cudf/io/orc.hpp>
-#include "communication/CommunicationData.h"
-#include <stdio.h>
 
 using namespace std::chrono_literals;
 namespace ral {
@@ -73,11 +70,11 @@ std::unique_ptr<GPUCacheDataMetaData> cast_cache_data_to_gpu_with_meta(std::uniq
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CacheMachine::CacheMachine(std::shared_ptr<Context> context): ctx(context), cache_id(CacheMachine::cache_count)
+CacheMachine::CacheMachine(std::shared_ptr<Context> context, bool log_timeout): ctx(context), cache_id(CacheMachine::cache_count)
 {
 	CacheMachine::cache_count++;
 
-	waitingCache = std::make_unique<WaitingQueue>();
+	waitingCache = std::make_unique<WaitingQueue>(60000, log_timeout);
 	this->memory_resources.push_back( &blazing_device_memory_resource::getInstance() );
 	this->memory_resources.push_back( &blazing_host_memory_resource::getInstance() );
 	this->memory_resources.push_back( &blazing_disk_memory_resource::getInstance() );

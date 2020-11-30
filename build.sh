@@ -25,7 +25,6 @@ HELP="$0 [-v] [-g] [-n] [-h] [-t]
    update               - update cudf conda packages
    thirdparty           - build the Thirdparty C++ code only
    io                   - build the IO C++ code only
-   comms                - build the communications C++ code only
    libengine            - build the engine C++ code only
    engine               - build the engine Python package
    pyblazing            - build the pyblazing Python package
@@ -42,12 +41,11 @@ HELP="$0 [-v] [-g] [-n] [-h] [-t]
 
 THIRDPARTY_BUILD_DIR=${REPODIR}/thirdparty/aws-cpp/build
 IO_BUILD_DIR=${REPODIR}/io/build
-COMMS_BUILD_DIR=${REPODIR}/comms/build
 LIBENGINE_BUILD_DIR=${REPODIR}/engine/build
 ENGINE_BUILD_DIR=${REPODIR}/engine
 PYBLAZING_BUILD_DIR=${REPODIR}/pyblazing
 ALGEBRA_BUILD_DIR=${REPODIR}/algebra
-BUILD_DIRS="${THIRDPARTY_BUILD_DIR} ${IO_BUILD_DIR} ${COMMS_BUILD_DIR} ${LIBENGINE_BUILD_DIR}"
+BUILD_DIRS="${THIRDPARTY_BUILD_DIR} ${IO_BUILD_DIR} ${LIBENGINE_BUILD_DIR}"
 
 # Set defaults for vars modified by flags to this script
 VERBOSE=""
@@ -186,26 +184,6 @@ if buildAll || hasArg io; then
           -DBUILD_TESTING=${TESTS} \
           -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
           -DCMAKE_BUILD_TYPE=${BUILD_TYPE} $disabled_aws_s3_flag $disabled_google_gs_flag ..
-
-    if [[ ${TESTS} == "ON" ]]; then
-        make -j${PARALLEL_LEVEL} all
-    else
-        make -j${PARALLEL_LEVEL} VERBOSE=${VERBOSE}
-    fi
-
-    if [[ ${INSTALL_TARGET} != "" ]]; then
-        make -j${PARALLEL_LEVEL} install VERBOSE=${VERBOSE}
-    fi
-fi
-
-if buildAll || hasArg comms; then
-
-    mkdir -p ${COMMS_BUILD_DIR}
-    cd ${COMMS_BUILD_DIR}
-    cmake -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} \
-          -DBUILD_TESTING=${TESTS} \
-          -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-          -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ..
 
     if [[ ${TESTS} == "ON" ]]; then
         make -j${PARALLEL_LEVEL} all

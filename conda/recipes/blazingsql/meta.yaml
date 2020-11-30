@@ -20,7 +20,7 @@ source:
 
 requirements:
     build:
-        - cmake
+        - cmake 3.18.4
         - ninja
         - gtest
         - aws-sdk-cpp
@@ -49,6 +49,7 @@ requirements:
         - dask-cuda {{ minor_version }}.*
         - ucx-py {{ minor_version }}.*
         - ucx-proc=*=gpu
+        - {{ pin_compatible('cudatoolkit', max_pin='x.x') }}
 
 test:
     requires:

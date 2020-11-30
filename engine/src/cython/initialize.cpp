@@ -25,7 +25,7 @@
 #include <utility>
 #include <memory>
 
-#include <blazingdb/transport/io/reader_writer.h>
+#include <transport/io/reader_writer.h>
 
 #include <blazingdb/io/Config/BlazingContext.h>
 #include <blazingdb/io/Library/Logging/CoutOutput.h>
@@ -274,7 +274,7 @@ public:
       throw std::runtime_error("bind server");
     }
 
-    ret = listen(lsock_, 0);
+    ret = listen(lsock_, SOMAXCONN);
     if (ret < 0) {
       close(lsock_);
       throw std::runtime_error("listen server");
@@ -720,7 +720,7 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 	auto & communicationData = ral::communication::CommunicationData::getInstance();
 	communicationData.initialize(worker_id, orc_files_path);
 
-	auto output_input_caches = std::make_pair(std::make_shared<CacheMachine>(nullptr),std::make_shared<CacheMachine>(nullptr));
+	auto output_input_caches = std::make_pair(std::make_shared<CacheMachine>(nullptr, false),std::make_shared<CacheMachine>(nullptr, false));
 
 	// start ucp servers
 	if(!singleNode){

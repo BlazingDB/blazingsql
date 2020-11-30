@@ -442,7 +442,7 @@ def parseHiveMetadata(curr_table, uri_values):
 
     dtypes = [cio.cudf_type_int_to_np_types(t) for t in curr_table.column_types]
 
-    columns = [name.decode() for name in curr_table.column_names]
+    columns = curr_table.column_names
     for index in range(n_cols):
         col_name = columns[index]
         names.append("min_" + str(index) + "_" + col_name)
@@ -589,7 +589,7 @@ def mergeMetadata(curr_table, fileMetadata, hiveMetadata):
         return hiveMetadata
 
     result = fileMetadata
-    columns = [c.decode() for c in curr_table.column_names]
+    columns = curr_table.column_names
     n_cols = len(curr_table.column_names)
 
     names = []
@@ -1168,6 +1168,7 @@ def load_config_options_from_env(user_config_options: dict):
         "LOGGING_MAX_SIZE_PER_FILE": 1073741824,  # 1 GB
         "TRANSPORT_BUFFER_BYTE_SIZE": 1048576,  # 10 MB in bytes
         "TRANSPORT_POOL_NUM_BUFFERS": 100,
+        "PROTOCOL": "TCP",
     }
 
     # key: option_name, value: default_value
@@ -1517,7 +1518,7 @@ class BlazingContext(object):
 
             ralPort, ralIp, log_path = initializeBlazing(
                 ralId=0,
-                worker_id="",
+                worker_id="self",
                 networkInterface="lo",
                 singleNode=True,
                 nodes=self.nodes,
@@ -1977,53 +1978,80 @@ class BlazingContext(object):
             kwargs.update(extra_kwargs)
             input = folder_list
             is_hive_input = True
-        elif user_partitions is not None:
-            if user_partitions_schema is None:
-                print(
-                    """ERROR: When using 'partitions' without a Hive cursor,
-                     you also need to set 'partitions_schema' which should be
-                     a list of tuples of the column name and column type of
-                     the form partitions_schema=
-                     [('col_nameA','int32','col_nameB','str')]"""
-                )
-                get_blazing_logger(is_dask=False).error(
-                    """ERROR: When using 'partitions' without a Hive cursor,
-                     you also need to set 'partitions_schema' which should be
-                     a list of tuples of the column name and column type of
-                     the form partitions_schema=
-                     [('col_nameA','int32','col_nameB','str')]"""
-                )
-                return
-
-            hive_schema = {}
+        else:
+            location = None
             if isinstance(input, str):
-                hive_schema["location"] = input
-            elif isinstance(input, list) and len(input) == 1:
-                hive_schema["location"] = input[0]
-            else:
-                print(
-                    """ERROR: When using 'partitions' without a Hive cursor,
-                     the input needs to be a path to the base folder
-                     of the partitioned data"""
-                )
-                get_blazing_logger(is_dask=False).error(
-                    """ERROR: When using 'partitions' without a Hive cursor,
-                     the input needs to be a path to the base folder
-                     of the partitioned data"""
-                )
-                return
-            partitions_users = getPartitionsFromUserPartitions(user_partitions)
-            hive_schema["partitions"] = partitions_users
-            input = getFolderListFromPartitions(
-                hive_schema["partitions"], hive_schema["location"]
-            )
+                location = input
+            elif (
+                isinstance(input, list)
+                and len(input) == 1
+                and isinstance(input[0], str)
+            ):
+                location = input[0]
 
-        if user_partitions_schema is not None:
-            extra_columns = []
-            for part_schema in user_partitions_schema:
-                extra_columns.append(
-                    (part_schema[0], convertTypeNameStrToCudfType(part_schema[1]))
+            if (
+                user_partitions is None
+                and user_partitions_schema is None
+                and location is not None
+            ):
+                folder_metadata = cio.inferFolderPartitionMetadataCaller(location)
+                if len(folder_metadata) > 0:
+                    user_partitions = {}
+                    user_partitions_schema = []
+                    for metadata in folder_metadata:
+                        user_partitions[metadata["name"]] = metadata["values"]
+                        user_partitions_schema.append(
+                            (metadata["name"], metadata["data_type"])
+                        )
+
+            if user_partitions is not None:
+                if user_partitions_schema is None:
+                    print(
+                        """ERROR: When using 'partitions' without a Hive cursor,
+                        you also need to set 'partitions_schema' which should be
+                        a list of tuples of the column name and column type of
+                        the form partitions_schema=
+                        [('col_nameA','int32','col_nameB','str')]"""
+                    )
+                    get_blazing_logger(is_dask=False).error(
+                        """ERROR: When using 'partitions' without a Hive cursor,
+                        you also need to set 'partitions_schema' which should be
+                        a list of tuples of the column name and column type of
+                        the form partitions_schema=
+                        [('col_nameA','int32','col_nameB','str')]"""
+                    )
+                    return
+
+                if location is None:
+                    print(
+                        """ERROR: When using 'partitions' without a Hive cursor,
+                        the input needs to be a path to the base folder
+                        of the partitioned data"""
+                    )
+                    get_blazing_logger(is_dask=False).error(
+                        """ERROR: When using 'partitions' without a Hive cursor,
+                        the input needs to be a path to the base folder
+                        of the partitioned data"""
+                    )
+                    return
+
+                hive_schema = {}
+                hive_schema["location"] = location
+                hive_schema["partitions"] = getPartitionsFromUserPartitions(
+                    user_partitions
                 )
+                input = getFolderListFromPartitions(
+                    hive_schema["partitions"], hive_schema["location"]
+                )
+
+                extra_columns = []
+                for part_schema in user_partitions_schema:
+                    cudf_type = (
+                        convertTypeNameStrToCudfType(part_schema[1])
+                        if isinstance(part_schema[1], str)
+                        else part_schema[1]
+                    )
+                    extra_columns.append((part_schema[0], cudf_type))
 
         if isinstance(input, str):
             input = [
@@ -2069,6 +2097,8 @@ class BlazingContext(object):
                 ignore_missing_paths,
                 local_files,
             )
+
+            parsedSchema["names"] = [i.decode() for i in parsedSchema["names"]]
 
             if is_hive_input or user_partitions is not None:
                 uri_values = get_uri_values(
@@ -2138,7 +2168,7 @@ class BlazingContext(object):
             # it only did so for the first file. For the rest we want to guarantee that they are all returning
             # the same types, so we are setting it in the args
             table.args["names"] = table.column_names
-            table.args["names"] = [i.decode() for i in table.args["names"]]
+            table.args["has_header_csv"] = parsedSchema["has_header_csv"]
 
             dtypes_list = []
             for i in range(0, len(table.column_types)):
@@ -2274,8 +2304,7 @@ class BlazingContext(object):
         """
         all_table_names = self.list_tables()
         if table_name in all_table_names:
-            column_names_bytes = self.tables[table_name].column_names
-            column_names = [x.decode("utf-8") for x in column_names_bytes]
+            column_names = self.tables[table_name].column_names
             column_types_int = self.tables[table_name].column_types
             column_types_np = [
                 cio.cudf_type_int_to_np_types(t) for t in column_types_int
@@ -2387,6 +2416,12 @@ class BlazingContext(object):
             return parsed_schema, {"localhost": parsed_schema["files"]}
 
     def _parseMetadata(self, file_format_hint, currentTableNodes, schema, kwargs):
+
+        # To have compatibility in cython side
+        schema["names"] = [i.encode() for i in schema["names"]]
+        if "names" in kwargs:
+            kwargs["names"] = [i.encode() for i in kwargs["names"]]
+
         if self.dask_client:
             dask_futures = []
             workers = tuple(self.dask_client.scheduler_info()["workers"])

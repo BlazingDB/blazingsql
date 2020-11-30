@@ -1,8 +1,5 @@
 #include "MemoryMonitor.h"
 #include "BlazingMemoryResource.h"
-#include "execution_graph/logic_controllers/CacheMachine.h"
-
-
 #include "execution_graph/logic_controllers/PhysicalPlanGenerator.h"
 
 namespace ral {
@@ -17,7 +14,6 @@ namespace ral {
         }
     }
 
-
     bool MemoryMonitor::need_to_free_memory(){
         return resource->get_memory_used() > resource->get_memory_limit();
     }
@@ -29,7 +25,6 @@ namespace ral {
         condition.notify_all();
         this->monitor_thread.join();                
     }
-
 
     void MemoryMonitor::start(){
         

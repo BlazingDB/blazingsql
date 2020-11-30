@@ -45,6 +45,7 @@ from EndToEndTests import (
     simpleDistributionTest,
     stringTests,
     substringTest,
+    stringCaseTest,
     tablesFromPandasTest,
     # timestampdiffTest,
     timestampTest,
@@ -58,6 +59,7 @@ from EndToEndTests import useLimitTest
 from EndToEndTests import whereClauseTest as whereClauseTest
 from EndToEndTests import wildCardTest
 from EndToEndTests import messageValidationTest
+from EndToEndTests import configOptionsTest
 from EndToEndTests import loggingTest
 from EndToEndTests import dayOfWeekTest
 from pynvml import nvmlInit
@@ -228,6 +230,9 @@ def main():
 
     if runAllTests or ("substringTest" in targetTestGroups):
         substringTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
+    
+    if runAllTests or ("stringCaseTest" in targetTestGroups):
+        stringCaseTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     if runAllTests or ("wildCardTest" in targetTestGroups):
         wildCardTest.main(dask_client, drill, dir_data_file, bc, nRals)
@@ -255,6 +260,10 @@ def main():
         loggingTest.main(dask_client, dir_data_file, bc, nRals)
 
     # timestampdiffTest.main(dask_client, spark, dir_data_file, bc, nRals)
+
+    # This Test must be the last one to test
+    if runAllTests or ("configOptionsTest" in targetTestGroups):
+        configOptionsTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     if Settings.execution_mode != ExecutionMode.GENERATOR:
 

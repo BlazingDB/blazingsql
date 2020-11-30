@@ -3,7 +3,7 @@
 #include <vector>
 #include <map>
 #include <mutex>
-#include "blazingdb/transport/Node.h"
+#include "transport/Node.h"
 
 namespace blazingdb {
 namespace manager {

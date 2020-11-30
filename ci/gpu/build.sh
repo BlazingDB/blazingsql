@@ -61,7 +61,7 @@ echo "BlazingSQL dev basic deps installed"
 
 # NOTE cython must be the same of cudf (for 0.11 and 0.12 cython is >=0.29,<0.30)
 echo "conda install --yes openjdk=8.0 maven cmake gtest gmock rapidjson cppzmq cython=0.29 jpype1 netifaces pyhive"
-conda install --yes openjdk=8.0 maven cmake gtest gmock rapidjson cppzmq cython=0.29 jpype1 netifaces pyhive pytest
+conda install --yes openjdk=8.0 maven cmake=3.18.4 gtest gmock rapidjson cppzmq cython=0.29 jpype1 netifaces pyhive pytest
 echo "BlazingSQL deps installed"
 
 # install cudf
@@ -81,6 +81,7 @@ python --version
 $CC --version
 $CXX --version
 conda list
+conda config --set ssl_verify False
 
 ################################################################################
 # BUILD - Build from Source
