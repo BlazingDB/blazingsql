@@ -52,7 +52,6 @@ public:
 		}
 	}
 
-	virtual std::string name() { return "baseKernel"; };
 	/**
 	 * @brief Sets its parent kernel.
 	 *
@@ -104,7 +103,7 @@ public:
 	 */
 	void set_type_id(kernel_type kernel_type_id_) { kernel_type_id = kernel_type_id_; }
 
-	
+
 	/**
 	 * @brief Returns the input cache.
 	 */
@@ -287,11 +286,11 @@ public:
 
 	void process(std::vector<std::unique_ptr<ral::cache::CacheData > > & inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
-		cudaStream_t stream);
+		cudaStream_t stream, std::string kernel_process_name);
 
 	virtual void do_process(std::vector<std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
-		cudaStream_t stream){
+		cudaStream_t stream,std::string kernel_process_name){
 		}
 
 	void notify_complete(size_t task_id);

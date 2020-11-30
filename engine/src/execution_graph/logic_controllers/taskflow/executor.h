@@ -29,13 +29,13 @@ public:
 
 	/**
 	* Function which runs the kernel process on the inputs and puts results into output.
-	* This function does not modify the inputs and can throw an exception. In the case it throws an exception it 
+	* This function does not modify the inputs and can throw an exception. In the case it throws an exception it
 	* gets placed back in the executor if it was a memory exception.
 	*/
 	void run(cudaStream_t stream, executor * executor);
 	void complete();
 protected:
-	std::vector<std::unique_ptr<ral::cache::CacheData > > inputs;	
+	std::vector<std::unique_ptr<ral::cache::CacheData > > inputs;
 	std::shared_ptr<ral::cache::CacheMachine> output;
 	size_t task_id;
 	ral::cache::kernel * kernel;
@@ -67,13 +67,13 @@ public:
 	void execute();
 	size_t add_task(std::vector<std::unique_ptr<ral::cache::CacheData > > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
-		ral::cache::kernel * kernel);
+		ral::cache::kernel * kernel,std::string kernel_process_name);
 
 	void add_task(std::vector<std::unique_ptr<ral::cache::CacheData > > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
 		ral::cache::kernel * kernel,
 		size_t attempts,
-		size_t task_id);
+		size_t task_id,std::string kernel_process_name);
 
 private:
 	executor(int num_threads);

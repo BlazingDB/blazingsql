@@ -31,11 +31,9 @@ public:
 		this->input_.add_port("input_a", "input_b");
 	}
 
-	std::string name() { return "PartitionSingleNode"; }
-
 	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
-		cudaStream_t stream) override{
+		cudaStream_t stream, std::string kernel_process_name) override{
 		auto & input = inputs[0];
 
 		auto partitions = ral::operators::partition_table(partitionPlan->toBlazingTableView(), input->toBlazingTableView(), this->expression);
@@ -65,7 +63,8 @@ public:
 				ral::execution::executor::get_instance()->add_task(
 						std::move(inputs),
 						nullptr,
-						this);
+						this,
+						"partitionsinglenode");
 			}
 		}
 
@@ -117,8 +116,8 @@ public:
 								"substep"_a=(context ? std::to_string(context->getQuerySubstep()) : ""),
 								"info"_a="In SortAndSampleKernel::compute_partition_plan Concatenating Strings will overflow strings length");
 			}
-			
-			
+
+
 			auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
 			if(context->isMasterNode(self_node)) {
 				context->incrementQuerySubstep();
@@ -145,12 +144,12 @@ public:
 				for (std::size_t i = 0; i < sampledTableViews.size(); i++){
 					samples.push_back(sampledTableViews[i]);
 				}
-				
+
 				total_table_rows.push_back(local_total_num_rows);
 				total_avg_bytes_per_row.push_back(avg_bytes_per_row);
 
 				// let's recompute the `avg_bytes_per_row` using info from all the other nodes
-				size_t total_bytes = 0; 
+				size_t total_bytes = 0;
 				size_t total_rows = 0;
 				for(std::size_t i = 0; i < nodes.size(); ++i) {
 					total_bytes += total_avg_bytes_per_row[i] * total_table_rows[i];
@@ -336,7 +335,7 @@ public:
 
 	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
-		cudaStream_t stream) override{
+		cudaStream_t stream, std::string kernel_process_name) override{
 		auto & input = inputs[0];
 
 		std::vector<ral::distribution::NodeColumnView> partitions = ral::distribution::partitionData(this->context.get(), input->toBlazingTableView(), partitionPlan->toBlazingTableView(), sortColIndices, sortOrderTypes);
@@ -383,7 +382,8 @@ public:
 			ral::execution::executor::get_instance()->add_task(
 					std::move(inputs),
 					nullptr,
-					this);
+					this,
+					"partition");
 
 			cache_data = this->input_.get_cache("input_a")->pullCacheData();
 		}
@@ -436,8 +436,6 @@ public:
 		: kernel{kernel_id, queryString, context, kernel_type::MergeStreamKernel}  {
 		this->query_graph = query_graph;
 	}
-
-	std::string name() { return "MergeStream"; }
 
 	virtual kstatus run() {
 		CodeTimer timer;
@@ -532,7 +530,7 @@ public:
 
 	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
-		cudaStream_t stream) override{
+		cudaStream_t stream, std::string kernel_process_name) override{
 		CodeTimer eventTimer(false);
 		auto & input = inputs[0];
 
@@ -588,7 +586,7 @@ public:
 			auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
 			int self_node_idx = context->getNodeIndex(self_node);
 			auto nodes_to_send = context->getAllOtherNodes(self_node_idx);
-			
+
 			std::vector<std::string> limit_messages_to_wait_for;
 			std::vector<std::string> target_ids;
 			for (auto i = 0; i < nodes_to_send.size(); i++) {
@@ -607,7 +605,7 @@ public:
 				false, //wait_for
 				0, //message_tracker_idx
 				extra_metadata);
-	
+
 			int64_t prev_total_rows = 0;
 			for (auto i = 0; i < limit_messages_to_wait_for.size(); i++)	{
 				auto meta_message = this->query_graph->get_input_message_cache()->pullCacheData(limit_messages_to_wait_for[i]);
@@ -628,7 +626,8 @@ public:
 				ral::execution::executor::get_instance()->add_task(
 						std::move(inputs),
 						this->output_cache(),
-						this);
+						this,
+						"limit");
 
 				if (rows_limit == 0){
 					//break;

@@ -276,11 +276,9 @@ public:
 		this->query_graph = query_graph;
 	}
 
-	std::string name() { return "TableScan"; }
-
 	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
-		cudaStream_t stream) override{
+		cudaStream_t stream, std::string kernel_process_name) override{
 		output->addToCache(std::move(inputs[0]));
 	}
 
@@ -297,7 +295,7 @@ public:
 		std::iota(projections.begin(), projections.end(), 0);
 
 		cudf::size_type current_rows = 0;
-		
+
 		//if its empty we can just add it to the cache without scheduling
 		if (!provider->has_next()) {
 			this->add_to_output_cache(std::move(schema.makeEmptyBlazingTable(projections)));
@@ -312,17 +310,17 @@ public:
 			auto file_schema = schema.fileSchema(file_index);
 			auto row_group_ids = schema.get_rowgroup_ids(file_index);
 			//this is the part where we make the task now
-			std::unique_ptr<ral::cache::CacheData> input = 
+			std::unique_ptr<ral::cache::CacheData> input =
 				std::make_unique<ral::cache::CacheDataIO>(handle,parser,schema,file_schema,row_group_ids,projections);
 			std::vector<std::unique_ptr<ral::cache::CacheData> > inputs;
 			inputs.push_back(std::move(input));
 			auto output_cache = this->output_cache();
-			
+
 			ral::execution::executor::get_instance()->add_task(
 					std::move(inputs),
 					output_cache,
-					this);
-			
+					this,std::string("scan"));
+
 			if (this->has_limit_ && output_cache->get_num_rows_added() >= this->limit_rows_) {
 			//	break;
 			}
@@ -359,7 +357,7 @@ public:
 	 */
 	virtual std::pair<bool, uint64_t> get_estimated_output_num_rows(){
 
-		double rows_so_far = (double)this->output_.total_rows_added();		
+		double rows_so_far = (double)this->output_.total_rows_added();
 		double batches_so_far = (double)this->output_.total_batches_added();
 		if (batches_so_far == 0 || num_batches == 0){
 			return std::make_pair(false, 0);
@@ -371,7 +369,7 @@ public:
 private:
 	std::shared_ptr<ral::io::data_provider> provider;
 	std::shared_ptr<ral::io::data_parser> parser;
-	ral::io::Schema  schema; /**< Table schema associated to the data to be loaded. */ 
+	ral::io::Schema  schema; /**< Table schema associated to the data to be loaded. */
 	size_t file_index = 0;
 	size_t num_batches;
 
@@ -401,11 +399,10 @@ public:
 		this->filtered = is_filtered_bindable_scan(expression);
 	}
 
-	std::string name() { return "BindableTableScan"; }
 
 	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
-		cudaStream_t stream) override{
+		cudaStream_t stream, std::string kernel_process_name) override{
 		auto & input = inputs[0];
 		if(this->filtered) {
 			auto columns = ral::processor::process_filter(input->toBlazingTableView(), expression, this->context.get());
@@ -434,7 +431,7 @@ public:
 		}
 
 		cudf::size_type current_rows = 0;
-		
+
 		//if its empty we can just add it to the cache without scheduling
 		if (!provider->has_next()) {
 			auto empty = schema.makeEmptyBlazingTable(projections);
@@ -451,7 +448,7 @@ public:
 			auto file_schema = schema.fileSchema(file_index);
 			auto row_group_ids = schema.get_rowgroup_ids(file_index);
 			//this is the part where we make the task now
-			std::unique_ptr<ral::cache::CacheData> input = 
+			std::unique_ptr<ral::cache::CacheData> input =
 				std::make_unique<ral::cache::CacheDataIO>(handle,parser,schema,file_schema,row_group_ids,projections);
 			std::vector<std::unique_ptr<ral::cache::CacheData> > inputs;
 			inputs.push_back(std::move(input));
@@ -461,12 +458,13 @@ public:
 			ral::execution::executor::get_instance()->add_task(
 					std::move(inputs),
 					output_cache,
-					this);
+					this,std::string("scan"));
 
 			file_index++;
 			if (this->has_limit_ && output_cache->get_num_rows_added() >= this->limit_rows_) {
 			//	break;
 			}
+
 		}
 
 		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
@@ -499,7 +497,7 @@ public:
 	virtual std::pair<bool, uint64_t> get_estimated_output_num_rows(){
 
 		double rows_so_far = (double)this->output_.total_rows_added();
-		
+
 		double current_batch = (double)file_index;
 		if (current_batch == 0 || num_batches == 0){
 			return std::make_pair(false, 0);
@@ -510,7 +508,7 @@ public:
 private:
 	std::shared_ptr<ral::io::data_provider> provider;
 	std::shared_ptr<ral::io::data_parser> parser;
-	ral::io::Schema  schema; /**< Table schema associated to the data to be loaded. */ 
+	ral::io::Schema  schema; /**< Table schema associated to the data to be loaded. */
 	size_t file_index = 0;
 	double num_batches;
 	bool filtered;
@@ -534,11 +532,9 @@ public:
 		this->query_graph = query_graph;
 	}
 
-	std::string name() { return "Project"; }
-
 	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
-		cudaStream_t stream) override{
+		cudaStream_t stream, std::string kernel_process_name) override{
 		auto & input = inputs[0];
 		auto columns = ral::processor::process_project(std::move(input), expression, this->context.get());
 		output->addToCache(std::move(columns));
@@ -557,11 +553,11 @@ public:
 		while(cache_data != nullptr ){
 			std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
 			inputs.push_back(std::move(cache_data));
-			
+
 			ral::execution::executor::get_instance()->add_task(
 					std::move(inputs),
 					this->output_cache(),
-					this);
+					this,std::string("filter"));
 
 			cache_data = this->input_cache()->pullCacheData();
 		}
@@ -615,11 +611,9 @@ public:
 		this->query_graph = query_graph;
 	}
 
-	std::string name() { return "Filter"; }
-
 	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
-		cudaStream_t stream) override{
+		cudaStream_t stream, std::string kernel_process_name) override {
 		auto & input = inputs[0];
 		auto columns = ral::processor::process_filter(input->toBlazingTableView(), expression, this->context.get());
 		output->addToCache(std::move(columns));
@@ -643,7 +637,7 @@ public:
 			ral::execution::executor::get_instance()->add_task(
 					std::move(inputs),
 					this->output_cache(),
-					this);
+					this,std::string("filter"));
 
 			cache_data = this->input_cache()->pullCacheData();
 		}
@@ -706,8 +700,6 @@ public:
 	Print() : kernel(0,"Print", nullptr, kernel_type::PrintKernel) { ofs = &(std::cout); }
 	Print(std::ostream & stream) : kernel(0,"Print", nullptr, kernel_type::PrintKernel) { ofs = &stream; }
 
-	std::string name() { return "Print"; }
-
 	/**
 	 * Executes the batch processing.
 	 * Loads the data from their input port, and after processing it,
@@ -744,15 +736,13 @@ public:
 	 */
 	OutputKernel(std::size_t kernel_id, std::shared_ptr<Context> context) : kernel(kernel_id,"OutputKernel", context, kernel_type::OutputKernel) { }
 
-	std::string name() { return "Output"; }
-
 	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
-		cudaStream_t stream) override{
+		cudaStream_t stream, std::string kernel_process_name) override{
 			//for now the output kernel is not using do_process
 			//i believe the output should be a cachemachine itself
 			//obviating this concern
-			
+
 		}
 	/**
 	 * Executes the batch processing.
@@ -790,7 +780,6 @@ public:
 		return kstatus::stop;
 	}
 
-	
 	/**
 	 * Returns the vector containing the final processed output.
 	 * @return frame_type A vector of unique_ptr of BlazingTables.

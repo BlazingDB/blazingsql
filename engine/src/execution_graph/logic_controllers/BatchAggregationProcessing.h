@@ -29,11 +29,9 @@ public:
         this->query_graph = query_graph;
     }
 
-    std::string name() { return "ComputeAggregate"; }
-
     void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
         std::shared_ptr<ral::cache::CacheMachine> output,
-        cudaStream_t stream) override{
+        cudaStream_t stream, std::string kernel_process_name) override{
         auto & input = inputs[0];
 
         std::unique_ptr<ral::frame::BlazingTable> columns;
@@ -61,11 +59,12 @@ public:
         while(cache_data != nullptr ){
             std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
             inputs.push_back(std::move(cache_data));
-            
+
             ral::execution::executor::get_instance()->add_task(
                     std::move(inputs),
                     this->output_cache(),
-                    this);
+                    this,
+                    "computeaggregate");
 
             cache_data = this->input_cache()->pullCacheData();
         }
@@ -133,7 +132,7 @@ public:
 
     void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
         std::shared_ptr<ral::cache::CacheMachine> output,
-        cudaStream_t stream) override{
+        cudaStream_t stream, std::string kernel_process_name) override{
         auto & input = inputs[0];
 
         // num_partitions = context->getTotalNodes() will do for now, but may want a function to determine this in the future.
@@ -210,7 +209,8 @@ public:
             ral::execution::executor::get_instance()->add_task(
                     std::move(inputs),
                     this->output_cache(),
-                    this);
+                    this,
+                    "distributeaggregate");
 
             cache_data = this->input_cache()->pullCacheData();
         }
@@ -224,7 +224,7 @@ public:
             "", //message_prefix
             "" //cache_id
         );
-        
+
         int total_count = get_total_partition_counts();
         this->output_cache()->wait_for_count(total_count);
 
@@ -255,11 +255,9 @@ public:
         this->query_graph = query_graph;
     }
 
-    std::string name() { return "MergeAggregate"; }
-
     void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
         std::shared_ptr<ral::cache::CacheMachine> output,
-        cudaStream_t stream) override{
+        cudaStream_t stream, std::string kernel_process_name) override{
         CodeTimer eventTimer(false);
 
         std::vector< ral::frame::BlazingTableView > tableViewsToConcat;
@@ -354,7 +352,8 @@ public:
             ral::execution::executor::get_instance()->add_task(
                     std::move(inputs),
                     this->output_cache(),
-                    this);
+                    this,
+                    "mergeaggregate");
 
             logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
                                         "query_id"_a=context->getContextToken(),

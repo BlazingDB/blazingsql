@@ -28,11 +28,9 @@ public:
         this->input_.add_port("input_a", "input_b");
 	}
 
-    std::string name() { return "Union"; }
-
     void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
         std::shared_ptr<ral::cache::CacheMachine> output,
-        cudaStream_t stream) override {
+        cudaStream_t stream, std::string kernel_process_name) override {
 
         // TODO: bring back the bypass optimization to avoid decaching to GPU memory
 
@@ -41,7 +39,7 @@ public:
         this->add_to_output_cache(std::move(input));
     }
 
-   virtual kstatus run() {
+    virtual kstatus run() {
 		CodeTimer timer;
 
         bool isUnionAll = (get_named_expression(this->expression, "all") == "true");
@@ -62,7 +60,8 @@ public:
             ral::execution::executor::get_instance()->add_task(
                     std::move(inputs),
                     this->output_cache(),
-                    this);
+                    this,
+                    "union");
 
             cache_data_a = cache_machine_a->pullCacheData();
         }
@@ -73,7 +72,8 @@ public:
             ral::execution::executor::get_instance()->add_task(
                     std::move(inputs),
                     this->output_cache(),
-                    this);
+                    this,
+                    "union");
 
             cache_data_b = cache_machine_b->pullCacheData();
         }
