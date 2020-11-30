@@ -1,5 +1,6 @@
 #include <spdlog/spdlog.h>
 #include <cudf/copying.hpp>
+#include <cudf/strings/attributes.hpp>
 #include <cudf/strings/combine.hpp>
 #include <cudf/strings/contains.hpp>
 #include <cudf/strings/replace.hpp>
@@ -10,6 +11,7 @@
 #include <cudf/strings/convert/convert_floats.hpp>
 #include <cudf/strings/convert/convert_integers.hpp>
 #include <cudf/unary.hpp>
+#include <cudf/binaryop.hpp>
 #include "execution_graph/logic_controllers/BlazingColumnOwner.h"
 #include "LogicalProject.h"
 #include "utilities/transform.hpp"
@@ -117,6 +119,57 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         std::string repl = StringUtil::removeEncapsulation(arg_tokens[2], encapsulation_character);
 
         computed_col = cudf::strings::replace(column, target, repl);
+        break;
+    }
+    case operator_type::BLZ_STR_LEFT:
+    {
+        assert(arg_tokens.size() == 2);
+        RAL_EXPECTS(!is_literal(arg_tokens[0]), "LEFT function not supported for string literals");
+
+        cudf::column_view column = table.column(get_index(arg_tokens[0]));
+        RAL_EXPECTS(is_type_string(column.type().id()), "LEFT argument must be a column of type string");
+
+        int32_t start = 0;
+        int32_t length = std::max(std::stoi(arg_tokens[1]), 0);
+        int32_t end = start + length;
+
+        computed_col = cudf::strings::slice_strings(
+            column,
+            cudf::numeric_scalar<int32_t>(start, true),
+            cudf::numeric_scalar<int32_t>(end, true)
+        );
+        break;
+    }
+    case operator_type::BLZ_STR_RIGHT:
+    {
+        assert(arg_tokens.size() == 2);
+        RAL_EXPECTS(!is_literal(arg_tokens[0]), "RIGHT function not supported for string literals");
+
+        cudf::column_view column = table.column(get_index(arg_tokens[0]));
+        RAL_EXPECTS(is_type_string(column.type().id()), "RIGHT argument must be a column of type string");
+
+        int32_t offset = std::max(std::stoi(arg_tokens[1]), 0);
+        std::unique_ptr<cudf::column> char_counts = cudf::strings::count_characters(column);
+
+        auto swapped = cudf::binary_operation(
+            char_counts->view(),
+            cudf::make_column_from_scalar(cudf::numeric_scalar<int32_t>(offset), table.num_rows())->view(),
+            cudf::binary_operator::SUB,
+            cudf::data_type{cudf::type_id::INT32}
+        );
+
+        auto swapped_again = cudf::binary_operation(
+            swapped->view(),
+            cudf::make_column_from_scalar(cudf::numeric_scalar<int32_t>(0), table.num_rows())->view(),
+            cudf::binary_operator::NULL_MAX,
+            cudf::data_type{cudf::type_id::INT32}
+        );
+
+        computed_col = cudf::strings::slice_strings(
+            column,
+            swapped_again->view(),
+            char_counts->view()
+        );
         break;
     }
     case operator_type::BLZ_STR_SUBSTRING:
