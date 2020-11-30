@@ -334,30 +334,38 @@ public:
 		set_number_of_message_trackers(max_num_order_by_partitions_per_node);
 	}
 
-	virtual kstatus run() {
+	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+		std::shared_ptr<ral::cache::CacheMachine> output,
+		cudaStream_t stream) override{
+		auto & input = inputs[0];
 
+		std::vector<ral::distribution::NodeColumnView> partitions = ral::distribution::partitionData(this->context.get(), input->toBlazingTableView(), partitionPlan->toBlazingTableView(), sortColIndices, sortOrderTypes);
+		std::vector<int32_t> part_ids(partitions.size());
+		std::generate(part_ids.begin(), part_ids.end(), [count=0, num_partitions_per_node = num_partitions_per_node] () mutable { return (count++) % (num_partitions_per_node); });
+
+		scatterParts(partitions,
+			"", //message_id_prefix
+			part_ids
+		);
+	}
+
+	virtual kstatus run() {
 		CodeTimer timer;
 
 		BatchSequence input_partitionPlan(this->input_.get_cache("input_b"), this);
-		auto partitionPlan = input_partitionPlan.next();
-
+		partitionPlan = input_partitionPlan.next();
 		assert(partitionPlan != nullptr);
 
 		context->incrementQuerySubstep();
 
 		std::map<std::string, std::map<int32_t, int> > node_count;
 
-		bool ordered = false;
-		BatchSequence input(this->input_.get_cache("input_a"), this, ordered);
-		int batch_count = 0;
-		std::vector<cudf::order> sortOrderTypes;
-		std::vector<int> sortColIndices;
 		std::tie(sortColIndices, sortOrderTypes, std::ignore) =	ral::operators::get_sort_vars(this->expression);
 		auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
 		auto nodes = context->getAllNodes();
 
 		// If we have no partitionPlan, its because we have no data, therefore its one partition per node
-		int num_partitions_per_node = partitionPlan->num_rows() == 0 ? 1 : (partitionPlan->num_rows() + 1) / this->context->getTotalNodes();
+		num_partitions_per_node = partitionPlan->num_rows() == 0 ? 1 : (partitionPlan->num_rows() + 1) / this->context->getTotalNodes();
 
 		std::map<int32_t, int> temp_partitions_map;
 		for (size_t i = 0; i < num_partitions_per_node; i++) {
@@ -367,31 +375,23 @@ public:
 			node_count.emplace(node.id(), temp_partitions_map);
 		}
 
-		while (input.wait_for_next()) {
-			try {
-				auto batch = input.next();
+		std::unique_ptr <ral::cache::CacheData> cache_data = this->input_.get_cache("input_a")->pullCacheData();
+		while(cache_data != nullptr){
+			std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
+			inputs.push_back(std::move(cache_data));
 
-				std::vector<ral::distribution::NodeColumnView> partitions = ral::distribution::partitionData(this->context.get(), batch->toBlazingTableView(), partitionPlan->toBlazingTableView(), sortColIndices, sortOrderTypes);
-				std::vector<int32_t> part_ids(partitions.size());
-				std::generate(part_ids.begin(), part_ids.end(), [count=0, num_partitions_per_node] () mutable { return (count++) % (num_partitions_per_node); });
+			ral::execution::executor::get_instance()->add_task(
+					std::move(inputs),
+					nullptr,
+					this);
 
-				scatterParts(partitions,
-					"", //message_id_prefix
-					part_ids
-				);
-
-				batch_count++;
-			} catch(const std::exception& e) {
-				// TODO add retry here
-				logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
-											"query_id"_a=context->getContextToken(),
-											"step"_a=context->getQueryStep(),
-											"substep"_a=context->getQuerySubstep(),
-											"info"_a="In Partition kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
-											"duration"_a="");
-				throw;
-			}
+			cache_data = this->input_.get_cache("input_a")->pullCacheData();
 		}
+
+		std::unique_lock<std::mutex> lock(kernel_mutex);
+		kernel_cv.wait(lock,[this]{
+			return this->tasks.empty();
+		});
 
 		for (auto i = 0; i < num_partitions_per_node; i++) {
 			std::string cache_id = "output_" + std::to_string(i);
@@ -416,13 +416,14 @@ public:
 									"duration"_a=timer.elapsed_time(),
 									"kernel_id"_a=this->get_id());
 
-
-
 		return kstatus::proceed;
 	}
 
 private:
-
+	std::unique_ptr<ral::frame::BlazingTable> partitionPlan;
+	std::vector<cudf::order> sortOrderTypes;
+	std::vector<int> sortColIndices;
+	int num_partitions_per_node;
 };
 
 /**
