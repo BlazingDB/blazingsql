@@ -86,11 +86,11 @@ bool is_binary_operator(operator_type op) {
 	case operator_type::BLZ_MAGIC_IF_NOT:
 	case operator_type::BLZ_STR_LIKE:
 	case operator_type::BLZ_STR_CONCAT:
+	case operator_type::BLZ_STR_LEFT:
+	case operator_type::BLZ_STR_RIGHT:
 		return true;
 	case operator_type::BLZ_STR_SUBSTRING:
 	case operator_type::BLZ_STR_REPLACE:
-	case operator_type::BLZ_STR_LEFT:
-	case operator_type::BLZ_STR_RIGHT:
 	case operator_type::BLZ_TO_DATE:
 	case operator_type::BLZ_TO_TIMESTAMP:
 	case operator_type::BLZ_STR_TRIM:
