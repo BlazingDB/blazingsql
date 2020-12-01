@@ -161,18 +161,21 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         cudf::column_view column = table.column(get_index(arg_tokens[0]));
         RAL_EXPECTS(is_type_string(column.type().id()), "RIGHT argument must be a column of type string");
 
+        // Need the length of each string and the user provided offset
+        // to calculate the correct starting positions.
+        // Because this can be negative for some strings, set minimum as 0
         int32_t offset = std::max(std::stoi(arg_tokens[1]), 0);
         std::unique_ptr<cudf::column> char_counts = cudf::strings::count_characters(column);
 
-        auto swapped = cudf::binary_operation(
+        auto starting_positions = cudf::binary_operation(
             char_counts->view(),
             cudf::make_column_from_scalar(cudf::numeric_scalar<int32_t>(offset), table.num_rows())->view(),
             cudf::binary_operator::SUB,
             cudf::data_type{cudf::type_id::INT32}
         );
 
-        auto swapped_again = cudf::binary_operation(
-            swapped->view(),
+        auto starting_positions_clamped = cudf::binary_operation(
+            starting_positions->view(),
             cudf::make_column_from_scalar(cudf::numeric_scalar<int32_t>(0), table.num_rows())->view(),
             cudf::binary_operator::NULL_MAX,
             cudf::data_type{cudf::type_id::INT32}
@@ -180,7 +183,7 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
 
         computed_col = cudf::strings::slice_strings(
             column,
-            swapped_again->view(),
+            starting_positions_clamped->view(),
             char_counts->view()
         );
         break;
