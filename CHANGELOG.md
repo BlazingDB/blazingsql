@@ -16,6 +16,7 @@
 - #1193 Implement string REPLACE
 - #1201 Implement string TRIM
 - #1216 Add unit test for DAYOFWEEK
+- #1205 Implement string REVERSE
 
 
 ## Improvements
@@ -53,6 +54,7 @@
 - #1118 Fixed issue with config_options and adding local_files to valid params
 - #1133 Fixed adressing issue in float columns when parsing parquet metadata
 - #1163 added empty line to trigger build
+- #1108 Remove temp files when an error occurs
 - #1165 E2e tests, distributed mode, again tcp
 - #1171 Don't log timeout in output/input caches
 - #1168 Fix SSL errors for conda
@@ -64,6 +66,7 @@
 - #1199 Fix non thread-safe access to map containing tag to message_metadata for ucx
 - #1196 Fix column_names (table) always as list of string
 - #1203 Changed code back so that parquet is not read a single rowgroup at a time 
+- #1207 Calcite uses literal as int32 if not explicit CAST was provided
 - #1212 Fixed issue when building the thirdpart, cmake version set to 3.18.4
 
 

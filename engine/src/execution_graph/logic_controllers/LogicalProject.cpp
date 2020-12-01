@@ -498,7 +498,22 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
 
         computed_col = cudf::strings::strip(column, enumerated_trim_flag, to_strip);
         break;
+    }
+    case operator_type::BLZ_STR_REVERSE:
+    {
+        assert(arg_tokens.size() == 1);
+        RAL_EXPECTS(!is_literal(arg_tokens[0]), "REVERSE operator not supported for literals");
 
+        cudf::column_view column = table.column(get_index(arg_tokens[0]));
+        RAL_EXPECTS(is_type_string(column.type().id()), "REVERSE argument must be a column of type string");
+
+        computed_col = cudf::strings::slice_strings(
+            column,
+            cudf::numeric_scalar<int32_t>(0, false),
+            cudf::numeric_scalar<int32_t>(0, false),
+            cudf::numeric_scalar<int32_t>(-1, true)
+        );
+        break;
     }
     }
 

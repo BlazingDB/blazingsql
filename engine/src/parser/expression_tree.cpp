@@ -227,16 +227,8 @@ cudf::data_type infer_type_from_literal_token(const lexer::token & token) {
       return parsed_double == casted_float ? cudf::data_type{cudf::type_id::FLOAT32} : cudf::data_type{cudf::type_id::FLOAT64};
     } else {
       int64_t parsed_int64 = std::stoll(token_value);
-      return parsed_int64 > std::numeric_limits<int32_t>::max()
-              || parsed_int64 < std::numeric_limits<int32_t>::min()
-                ? cudf::data_type{cudf::type_id::INT64}
-                : parsed_int64 > std::numeric_limits<int16_t>::max()
-                  || parsed_int64 < std::numeric_limits<int16_t>::min()
-                      ? cudf::data_type{cudf::type_id::INT32}
-                      : parsed_int64 > std::numeric_limits<int8_t>::max()
-                        || parsed_int64 < std::numeric_limits<int8_t>::min()
-                          ? cudf::data_type{cudf::type_id::INT16}
-                          : cudf::data_type{cudf::type_id::INT8};
+      // as other SQL engines, defaults to int32
+      return cudf::data_type{cudf::type_id::INT32};
     }
   } else if(token.type == lexer::token_type::Timestamp) {
     const std::string & token_value = token.value;
