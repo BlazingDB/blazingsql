@@ -1389,9 +1389,9 @@ class BlazingContext(object):
 
         self.cache_dir_path = "/tmp"  # default directory to store orc files
         if "BLAZING_CACHE_DIRECTORY".encode() in self.config_options:
-            self.cache_dir_path = (
-                self.config_options["BLAZING_CACHE_DIRECTORY".encode()].decode()
-            )
+            self.cache_dir_path = self.config_options[
+                "BLAZING_CACHE_DIRECTORY".encode()
+            ].decode()
 
         local_logging_dir_path = "blazing_log"
         if "BLAZING_LOCAL_LOGGING_DIRECTORY".encode() in self.config_options:
@@ -1421,7 +1421,9 @@ class BlazingContext(object):
                 self.dask_client, self.cache_dir_path
             )
             #  first lets initialize the root cache_dir_path before initializing the ones for all the individual workers
-            distributed_initialize_server_directory(self.dask_client, self.cache_dir_path)
+            distributed_initialize_server_directory(
+                self.dask_client, self.cache_dir_path
+            )
             initialize_orc_files_folder(self.dask_client, self.cache_dir_path)
 
             if network_interface is None:
