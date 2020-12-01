@@ -759,27 +759,3 @@ TEST_F(InteropsTestString, test_string)
   cudf::test::expect_tables_equal(expected_table_view, out_table_view);
 }
 */
-
-
-//4,5,6,7,1,2,3,4,5,6,7,1,2,3,4,5,6,7,1,2
-//
-//1900-03-01T00:00:00Z Jueves 4
-//1907-03-01T00:00:00Z Viernes 5
-//1914-02-28T00:00:00Z Sabado 6
-//1921-02-27T00:00:00Z Domingo 7
-//1928-02-27T00:00:00Z Lunes
-//1935-02-26T00:00:00Z Martes
-//1942-02-25T00:00:00Z Miercoles
-//1949-02-24T00:00:00Z Jueves
-//1956-02-24T00:00:00Z Viernes
-//1963-02-23T00:00:00Z Sabado
-//1970-02-22T00:00:00Z DOmingo 7
-//1977-02-21T00:00:00Z Lunes
-//1984-02-21T00:00:00Z Martes
-//1991-02-20T00:00:00Z Miercoles
-//1998-02-19T00:00:00Z Jueves
-//2005-02-18T00:00:00Z Viernes
-//2012-02-18T00:00:00Z Sabado
-//2019-02-17T00:00:00Z Domingo 7
-//2026-02-16T00:00:00Z Lunes
-//2033-02-15T00:00:00Z Martes 2
