@@ -35,6 +35,7 @@ public:
         // TODO: bring back the bypass optimization to avoid decaching to GPU memory
 
         auto & input = inputs[0];
+        input->setNames(common_names);
         ral::utilities::normalize_types(input, common_types);
         this->add_to_output_cache(std::move(input));
     }
@@ -50,10 +51,12 @@ public:
         std::unique_ptr<ral::cache::CacheData> cache_data_a = cache_machine_a->pullCacheData();
         std::unique_ptr<ral::cache::CacheData> cache_data_b = cache_machine_b->pullCacheData();
 
+        common_names = cache_data_a->names();
+
         bool strict = false;
         common_types = ral::utilities::get_common_types(cache_data_a->get_schema(), cache_data_b->get_schema(), strict);
 
-        while(cache_data_a != nullptr ){
+        while(cache_data_a != nullptr){
             std::vector<std::unique_ptr<ral::cache::CacheData>> inputs;
             inputs.push_back(std::move(cache_data_a));
 
@@ -65,7 +68,7 @@ public:
 
             cache_data_a = cache_machine_a->pullCacheData();
         }
-        while(cache_data_b != nullptr ){
+        while(cache_data_b != nullptr){
             std::vector<std::unique_ptr<ral::cache::CacheData>> inputs;
             inputs.push_back(std::move(cache_data_b));
 
@@ -107,6 +110,7 @@ public:
 	}
 
 private:
+    std::vector<std::string> common_names;
     std::vector<cudf::data_type> common_types;
 };
 
