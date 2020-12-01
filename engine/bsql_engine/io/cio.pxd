@@ -88,6 +88,7 @@ cdef extern from "../include/io/io.h" nogil:
         vector[unsigned long] calcite_to_file_indices
         vector[bool] in_file
         int data_type
+        bool has_header_csv
         BlazingTableView metadata
         vector[vector[int]] row_groups_ids
         shared_ptr[CTable] arrow_table

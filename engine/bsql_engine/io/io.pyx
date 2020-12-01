@@ -132,7 +132,7 @@ cdef public PyObject * InferFolderPartitionMetadataError_ = <PyObject *>InferFol
 
 cdef cio.TableSchema parseSchemaPython(vector[string] files, string file_format_hint, vector[string] arg_keys, vector[string] arg_values,vector[pair[string,type_id]] extra_columns, bool ignore_missing_paths) nogil except *:
     with nogil:
-        return cio.parseSchema(files,file_format_hint,arg_keys,arg_values,extra_columns, ignore_missing_paths)
+        return cio.parseSchema(files, file_format_hint, arg_keys, arg_values, extra_columns, ignore_missing_paths)
 
 cdef unique_ptr[cio.ResultSet] parseMetadataPython(vector[string] files, pair[int,int] offset, cio.TableSchema schema, string file_format_hint, vector[string] arg_keys, vector[string] arg_values) nogil:
     with nogil:
@@ -369,6 +369,7 @@ cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns, ignore_
         return_object['types'].append(<underlying_type_t_type_id>(type))
     return_object['names'] = tableSchema.names
     return_object['calcite_to_file_indices']= tableSchema.calcite_to_file_indices
+    return_object['has_header_csv']= tableSchema.has_header_csv
 
     return return_object
 
