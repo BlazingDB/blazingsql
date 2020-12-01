@@ -37,6 +37,7 @@
 - #1194 Powerpc building scripts
 - #1186 Removing cuda labels to install due cudatoolkit version
 - #1187 Enable MySQL-specific SQL operators in addition to Standard and Oracle
+- #1206 Improved contribution documentation 
 
 
 ## Bug Fixes
@@ -61,6 +62,7 @@
 - #1199 Fix non thread-safe access to map containing tag to message_metadata for ucx
 - #1196 Fix column_names (table) always as list of string
 - #1203 Changed code back so that parquet is not read a single rowgroup at a time 
+- #1212 Fixed issue when building the thirdpart, cmake version set to 3.18.4
 
 
 # BlazingSQL 0.16.0 (October 22, 2020)
