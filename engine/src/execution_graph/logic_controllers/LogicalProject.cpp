@@ -1,6 +1,5 @@
 #include <spdlog/spdlog.h>
 #include <cudf/copying.hpp>
-#include <cudf/strings/attributes.hpp>
 #include <cudf/strings/combine.hpp>
 #include <cudf/strings/contains.hpp>
 #include <cudf/strings/replace.hpp>
@@ -12,7 +11,6 @@
 #include <cudf/strings/convert/convert_floats.hpp>
 #include <cudf/strings/convert/convert_integers.hpp>
 #include <cudf/unary.hpp>
-#include <cudf/binaryop.hpp>
 #include "execution_graph/logic_controllers/BlazingColumnOwner.h"
 #include "LogicalProject.h"
 #include "utilities/transform.hpp"
