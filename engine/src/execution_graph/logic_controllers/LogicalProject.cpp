@@ -159,7 +159,7 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         RAL_EXPECTS(is_type_string(column.type().id()), "RIGHT argument must be a column of type string");
 
         int32_t offset = std::max(std::stoi(arg_tokens[1]), 0);
-        computed_col = cudf::strings::slice_strings(column, -offset);
+        computed_col = cudf::strings::slice_strings(column, -offset, cudf::numeric_scalar<int32_t>(0, offset < 1));
         break;
     }
     case operator_type::BLZ_STR_SUBSTRING:
