@@ -54,6 +54,7 @@
 - #1118 Fixed issue with config_options and adding local_files to valid params
 - #1133 Fixed adressing issue in float columns when parsing parquet metadata
 - #1163 added empty line to trigger build
+- #1108 Remove temp files when an error occurs
 - #1165 E2e tests, distributed mode, again tcp
 - #1171 Don't log timeout in output/input caches
 - #1168 Fix SSL errors for conda
