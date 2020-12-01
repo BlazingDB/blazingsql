@@ -75,7 +75,8 @@ enum class operator_type {
 	BLZ_STR_LEFT,
 	BLZ_STR_RIGHT,
 	BLZ_TO_DATE,
-	BLZ_TO_TIMESTAMP
+	BLZ_TO_TIMESTAMP,
+	BLZ_STR_TRIM,
 };
 
 
