@@ -46,6 +46,7 @@ enum class operator_type {
 	BLZ_CHAR_LENGTH,
 	BLZ_STR_LOWER,
 	BLZ_STR_UPPER,
+	BLZ_STR_REVERSE,
 
 	// Binary operators
   BLZ_ADD,            ///< operator +
@@ -73,7 +74,8 @@ enum class operator_type {
 	BLZ_STR_CONCAT,
 	BLZ_STR_REPLACE,
 	BLZ_TO_DATE,
-	BLZ_TO_TIMESTAMP
+	BLZ_TO_TIMESTAMP,
+	BLZ_STR_TRIM,
 };
 
 

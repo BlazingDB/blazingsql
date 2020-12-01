@@ -421,8 +421,9 @@ public:
 	* @param table The BlazingTable that is converted into an ORC file and stored
 	* on disk.
 	* @ param orc_files_path The path where the file should be stored.
+	* @ param ctx_id The context token to identify the query that generated the file.
 	*/
-	CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable> table, std::string orc_files_path);
+	CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable> table, std::string orc_files_path, std::string ctx_token);
 
 	/**
 	* Constructor

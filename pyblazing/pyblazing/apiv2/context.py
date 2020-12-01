@@ -12,7 +12,6 @@ from urllib.parse import urlparse
 
 from threading import Lock
 from weakref import ref
-import asyncio
 from pyblazing.apiv2.filesystem import FileSystem
 from pyblazing.apiv2 import DataType
 from pyblazing.apiv2.comms import listen
@@ -773,16 +772,51 @@ def get_current_directory_path():
 
 
 # Delete all generated (older than 1 hour) orc files
-def remove_orc_files_from_disk(data_dir):
-    if os.path.isfile(data_dir):  # only if data_dir exists
+def remove_orc_files_from_disk(data_dir, query_id=None):
+    if os.path.isdir(data_dir):  # only if data_dir exists
         all_files = os.listdir(data_dir)
         current_time = time.time()
         for file in all_files:
             if ".blazing-temp" in file:
                 full_path_file = data_dir + "/" + file
-                creation_time = os.path.getctime(full_path_file)
-                if (current_time - creation_time) // (1 * 60 * 60) >= 1:
-                    os.remove(full_path_file)
+                if query_id is not None:
+                    if f"-{query_id}-" in file or "-none-" in file:
+                        os.remove(full_path_file)
+                else:
+                    creation_time = os.path.getctime(full_path_file)
+                    if (current_time - creation_time) // (1 * 60 * 60) >= 1:
+                        os.remove(full_path_file)
+
+
+def distributed_remove_orc_files_from_disk(client, data_dir, query_id=None):
+    workers = list(client.scheduler_info()["workers"])
+    dask_futures = []
+    for i, worker in enumerate(workers):
+        worker_path = os.path.join(data_dir, f"{i}")
+        dask_futures.append(
+            client.submit(
+                remove_orc_files_from_disk,
+                worker_path,
+                query_id=query_id,
+                workers=[worker],
+            )
+        )
+
+    client.gather(dask_futures)
+
+
+def initialize_orc_files_folder(client, data_dir):
+    workers = list(client.scheduler_info()["workers"])
+    dask_futures = []
+    for i, worker in enumerate(workers):
+        worker_path = os.path.join(data_dir, f"{i}")
+        dask_futures.append(
+            client.submit(
+                initialize_server_directory, worker_path, True, workers=[worker]
+            )
+        )
+
+    client.gather(dask_futures)
 
 
 # Updates the dtype from `object` to `str` to be more friendly
@@ -1353,11 +1387,11 @@ class BlazingContext(object):
                 "BLAZING_LOGGING_DIRECTORY".encode()
             ].decode()
 
-        cache_dir_path = "/tmp"  # default directory to store orc files
+        self.cache_dir_path = "/tmp"  # default directory to store orc files
         if "BLAZING_CACHE_DIRECTORY".encode() in self.config_options:
-            cache_dir_path = (
-                self.config_options["BLAZING_CACHE_DIRECTORY".encode()].decode() + "tmp"
-            )
+            self.cache_dir_path = self.config_options[
+                "BLAZING_CACHE_DIRECTORY".encode()
+            ].decode()
 
         local_logging_dir_path = "blazing_log"
         if "BLAZING_LOCAL_LOGGING_DIRECTORY".encode() in self.config_options:
@@ -1374,9 +1408,6 @@ class BlazingContext(object):
 
         self.dask_client = dask_client
 
-        # remove if exists older orc tmp files
-        remove_orc_files_from_disk(cache_dir_path)
-
         host_memory_quota = 0.75
         if not "BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD".encode() in self.config_options:
             self.config_options["BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD".encode()] = str(
@@ -1385,7 +1416,15 @@ class BlazingContext(object):
 
         if dask_client is not None:
             distributed_initialize_server_directory(self.dask_client, logging_dir_path)
-            distributed_initialize_server_directory(self.dask_client, cache_dir_path)
+
+            distributed_remove_orc_files_from_disk(
+                self.dask_client, self.cache_dir_path
+            )
+            #  first lets initialize the root cache_dir_path before initializing the ones for all the individual workers
+            distributed_initialize_server_directory(
+                self.dask_client, self.cache_dir_path
+            )
+            initialize_orc_files_folder(self.dask_client, self.cache_dir_path)
 
             if network_interface is None:
                 import psutil
@@ -1472,7 +1511,10 @@ class BlazingContext(object):
             logger.propagate = False
         else:
             initialize_server_directory(logging_dir_path, False)
-            initialize_server_directory(cache_dir_path, False)
+
+            # remove if exists older orc tmp files
+            remove_orc_files_from_disk(self.cache_dir_path)
+            initialize_server_directory(self.cache_dir_path, False)
 
             node = {}
             node["worker"] = ""
@@ -2836,6 +2878,7 @@ class BlazingContext(object):
                 )
                 result = cio.runExecuteGraphCaller(graph, ctxToken, is_single_node=True)
             except cio.RunQueryError as e:
+                remove_orc_files_from_disk(self.cache_dir_path, ctxToken)
                 print(">>>>>>>> ", e)
                 result = cudf.DataFrame()
             except Exception as e:
@@ -2911,7 +2954,13 @@ class BlazingContext(object):
             if return_futures:
                 result = dask_futures
             else:
-                meta_results = self.dask_client.gather(dask_futures)
+                try:
+                    meta_results = self.dask_client.gather(dask_futures)
+                except Exception as e:
+                    distributed_remove_orc_files_from_disk(
+                        self.dask_client, self.cache_dir_path, ctxToken
+                    )
+                    raise e
 
                 futures = []
                 for query_partids, meta, worker_id in meta_results:
