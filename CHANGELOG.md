@@ -37,6 +37,7 @@
 - #1194 Powerpc building scripts
 - #1186 Removing cuda labels to install due cudatoolkit version
 - #1187 Enable MySQL-specific SQL operators in addition to Standard and Oracle
+- #1206 Improved contribution documentation 
 
 
 ## Bug Fixes
