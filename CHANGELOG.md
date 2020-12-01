@@ -16,6 +16,7 @@
 - #1193 Implement string REPLACE
 - #1201 Implement string TRIM
 - #1216 Add unit test for DAYOFWEEK
+- #1205 Implement string REVERSE
 
 
 ## Improvements
