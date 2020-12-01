@@ -145,10 +145,13 @@ TYPED_TEST(ProjectionTest, OneBatchFullWithoutDelay) {
 	kstatus process = project_kernel->run();
 	EXPECT_EQ(kstatus::proceed, process);
 
+	outputCacheMachine->finish();
+
 	// Assert output
-	std::unique_ptr<BlazingTable> batch_pulled = outputCacheMachine->pullFromCache();
-	EXPECT_EQ(batch_pulled->num_rows(), 7);
-	ASSERT_EQ(batch_pulled->num_columns(), 1);
+	auto batches_pulled = outputCacheMachine->pull_all_cache_data();
+	EXPECT_EQ(batches_pulled.size(), 1);
+	EXPECT_EQ(batches_pulled[0]->num_rows(), 7);
+	ASSERT_EQ(batches_pulled[0]->num_columns(), 1);
 }
 
 
@@ -186,10 +189,13 @@ TYPED_TEST(ProjectionTest, OneBatchOneRowWithoutDelay) {
 	kstatus process = project_kernel->run();
 	EXPECT_EQ(kstatus::proceed, process);
 
+	outputCacheMachine->finish();
+
 	// Assert output
-	std::unique_ptr<BlazingTable> batch_pulled = outputCacheMachine->pullFromCache();
-	EXPECT_EQ(batch_pulled->num_rows(), 1);
-	ASSERT_EQ(batch_pulled->num_columns(), 1);
+	auto batches_pulled = outputCacheMachine->pull_all_cache_data();
+	EXPECT_EQ(batches_pulled.size(), 1);
+	EXPECT_EQ(batches_pulled[0]->num_rows(), 1);
+	ASSERT_EQ(batches_pulled[0]->num_columns(), 1);
 }
 
 
@@ -222,10 +228,13 @@ TYPED_TEST(ProjectionTest, OneBatchEmptyWithoutDelay) {
 	kstatus process = project_kernel->run();
 	EXPECT_EQ(kstatus::proceed, process);
 
+	outputCacheMachine->finish();
+
 	// Assert output
-	std::unique_ptr<BlazingTable> batch_pulled = outputCacheMachine->pullFromCache();
-	EXPECT_EQ(batch_pulled->num_rows(), 0);
-	ASSERT_EQ(batch_pulled->num_columns(), 2);
+	auto batches_pulled = outputCacheMachine->pull_all_cache_data();
+	EXPECT_EQ(batches_pulled.size(), 1);
+	EXPECT_EQ(batches_pulled[0]->num_rows(), 0);
+	ASSERT_EQ(batches_pulled[0]->num_columns(), 2);
 }
 
 
@@ -272,11 +281,10 @@ TYPED_TEST(ProjectionTest, TwoBatchsFullsWithoutDelay) {
 	kstatus process = project_kernel->run();
 	EXPECT_EQ(kstatus::proceed, process);
 
-	// Assert output
-	std::vector<std::unique_ptr<BlazingTable>> batches_pulled;
-	batches_pulled.push_back(outputCacheMachine->pullFromCache());
-	batches_pulled.push_back(outputCacheMachine->pullFromCache());
+	outputCacheMachine->finish();
 
+	// Assert output
+	auto batches_pulled = outputCacheMachine->pull_all_cache_data();
 	EXPECT_EQ(batches_pulled.size(), 2);
 	EXPECT_EQ(batches_pulled[0]->num_rows() + batches_pulled[1]->num_rows(), 7);
 	ASSERT_EQ(batches_pulled[0]->num_columns(), 2);
@@ -325,10 +333,13 @@ TYPED_TEST(ProjectionTest, TwoBatchsFirstFullSecondEmptyWithoutDelays) {
 	kstatus process = project_kernel->run();
 	EXPECT_EQ(kstatus::proceed, process);
 
+	outputCacheMachine->finish();
+
 	// Assert output
-	std::unique_ptr<BlazingTable> batch_pulled = outputCacheMachine->pullFromCache();
-	EXPECT_EQ(batch_pulled->num_rows(), 4);
-	ASSERT_EQ(batch_pulled->num_columns(), 1);
+	auto batches_pulled = outputCacheMachine->pull_all_cache_data();
+	EXPECT_EQ(batches_pulled.size(), 1);
+	EXPECT_EQ(batches_pulled[0]->num_rows(), 4);
+	ASSERT_EQ(batches_pulled[0]->num_columns(), 1);
 }
 
 
@@ -366,10 +377,13 @@ TYPED_TEST(ProjectionTest, OneBatchFullWithDelay) {
 	kstatus process = project_kernel->run();
 	EXPECT_EQ(kstatus::proceed, process);
 
+	outputCacheMachine->finish();
+
 	// Assert output
-	std::unique_ptr<BlazingTable> batch_pulled = outputCacheMachine->pullFromCache();
-	EXPECT_EQ(batch_pulled->num_rows(), 7);
-	ASSERT_EQ(batch_pulled->num_columns(), 1);
+	auto batches_pulled = outputCacheMachine->pull_all_cache_data();
+	EXPECT_EQ(batches_pulled.size(), 1);
+	EXPECT_EQ(batches_pulled[0]->num_rows(), 7);
+	ASSERT_EQ(batches_pulled[0]->num_columns(), 1);
 }
 
 
@@ -402,10 +416,13 @@ TYPED_TEST(ProjectionTest, OneBatchEmptyWithDelay) {
 	kstatus process = project_kernel->run();
 	EXPECT_EQ(kstatus::proceed, process);
 
+	outputCacheMachine->finish();
+
 	// Assert output
-	std::unique_ptr<BlazingTable> batch_pulled = outputCacheMachine->pullFromCache();
-	EXPECT_EQ(batch_pulled->num_rows(), 0);
-	ASSERT_EQ(batch_pulled->num_columns(), 2);
+	auto batches_pulled = outputCacheMachine->pull_all_cache_data();
+	EXPECT_EQ(batches_pulled.size(), 1);
+	EXPECT_EQ(batches_pulled[0]->num_rows(), 0);
+	ASSERT_EQ(batches_pulled[0]->num_columns(), 2);
 }
 
 
@@ -454,11 +471,10 @@ TYPED_TEST(ProjectionTest, TwoBatchsFullWithDelays) {
 	kstatus process = project_kernel->run();
 	EXPECT_EQ(kstatus::proceed, process);
 
-	// Assert output
-	std::vector<std::unique_ptr<BlazingTable>> batches_pulled;
-	batches_pulled.push_back(outputCacheMachine->pullFromCache());
-	batches_pulled.push_back(outputCacheMachine->pullFromCache());
+	outputCacheMachine->finish();
 
+	// Assert output
+	auto batches_pulled = outputCacheMachine->pull_all_cache_data();
 	EXPECT_EQ(batches_pulled.size(), 2);
 	ASSERT_EQ(batches_pulled[0]->num_columns(), 1);
 	ASSERT_EQ(batches_pulled[1]->num_columns(), 1);
@@ -499,10 +515,13 @@ TYPED_TEST(ProjectionTest, TwoBatchsEmptyWithDelays) {
 	kstatus process = project_kernel->run();
 	EXPECT_EQ(kstatus::proceed, process);
 
+	outputCacheMachine->finish();
+
 	// Assert output
-	std::unique_ptr<BlazingTable> batch_pulled = outputCacheMachine->pullFromCache();
-	EXPECT_EQ(batch_pulled->num_rows(), 0);
-	ASSERT_EQ(batch_pulled->num_columns(), 3);
+	auto batches_pulled = outputCacheMachine->pull_all_cache_data();
+	EXPECT_EQ(batches_pulled.size(), 1);
+	EXPECT_EQ(batches_pulled[0]->num_rows(), 0);
+	ASSERT_EQ(batches_pulled[0]->num_columns(), 3);
 }
 
 
@@ -547,15 +566,11 @@ TYPED_TEST(ProjectionTest, TwoBatchsFirstEmptySecondFullWithDelays) {
 	kstatus process = project_kernel->run();
 	EXPECT_EQ(kstatus::proceed, process);
 
+	outputCacheMachine->finish();
+
 	// Assert output
-	std::vector<std::unique_ptr<BlazingTable>> batches_pulled;
-	batches_pulled.push_back(outputCacheMachine->pullFromCache());
-	batches_pulled.push_back(outputCacheMachine->pullFromCache());
-
-	EXPECT_EQ(batches_pulled.size(), 2);
-	EXPECT_EQ(batches_pulled[0]->num_rows(), 0);
-	EXPECT_EQ(batches_pulled[1]->num_rows(), 4);
-
+	auto batches_pulled = outputCacheMachine->pull_all_cache_data();
+	// This randomly returns 1 or 2 batches depending if the empty table got processed first
+	// EXPECT_EQ(batches_pulled[0]->num_rows() + batches_pulled[1]->num_rows(), 4);
 	ASSERT_EQ(batches_pulled[0]->num_columns(), 1);
-	ASSERT_EQ(batches_pulled[1]->num_columns(), 1);
 }

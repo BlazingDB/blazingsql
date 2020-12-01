@@ -114,6 +114,13 @@ public:
 	}
 
 	/**
+	* Get the number of columns this CacheData will generate with decache.
+	*/
+	size_t num_columns() const {
+		return col_names.size();
+	}
+
+	/**
 	* Get the number of rows this CacheData will generate with decache.
 	*/
 	size_t num_rows() const {
@@ -472,7 +479,7 @@ public:
 	* on disk.
 	* @ param orc_files_path The path where the file should be stored.
 	*/
-	 CacheDataIO(ral::io::data_handle handle, 
+	 CacheDataIO(ral::io::data_handle handle,
 	 	std::shared_ptr<ral::io::data_parser> parser,
 	 	ral::io::Schema schema,
 		ral::io::Schema file_schema,
