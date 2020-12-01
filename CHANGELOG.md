@@ -14,6 +14,7 @@
 - #1130 Infer hive folder partition
 - #1188 Implement upper/lower operators
 - #1193 Implement string REPLACE
+- #1218 Added smiles test set
 
 
 ## Improvements

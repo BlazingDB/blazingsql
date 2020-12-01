@@ -152,9 +152,11 @@ else
             else
                 logger "Preparing $CONDA_PREFIX/blazingsql-testing-files folder for end to end tests..."
                 cd $CONDA_PREFIX
-                git clone --depth 1 https://github.com/BlazingDB/blazingsql-testing-files.git --branch master --single-branch
+                git clone --depth 1 https://github.com/BlazingDB/blazingsql-testing-files.git --branch feature/smiles-tests-small --single-branch
                 cd blazingsql-testing-files
-                tar xf data.tar.gz
+                cd data
+                tar xf tpch.tar.gz
+                tar xf smiles.tar.gz
                 logger "$CONDA_PREFIX/blazingsql-testing-files folder for end to end tests... ready!"
             fi
             export BLAZINGSQL_E2E_DATA_DIRECTORY=$CONDA_PREFIX/blazingsql-testing-files/data/
