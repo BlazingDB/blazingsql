@@ -15,6 +15,8 @@
 - #1188 Implement upper/lower operators
 - #1193 Implement string REPLACE
 - #1218 Added smiles test set
+- #1201 Implement string TRIM
+- #1216 Add unit test for DAYOFWEEK
 
 
 ## Improvements
@@ -38,6 +40,7 @@
 - #1194 Powerpc building scripts
 - #1186 Removing cuda labels to install due cudatoolkit version
 - #1187 Enable MySQL-specific SQL operators in addition to Standard and Oracle
+- #1206 Improved contribution documentation 
 
 
 ## Bug Fixes
