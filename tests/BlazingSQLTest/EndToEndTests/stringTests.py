@@ -236,6 +236,50 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
+            queryId = "TEST_12"
+            query = """SELECT
+                TRIM(c_comment) as both_space_trim,
+                TRIM(LEADING 'Cu' FROM c_name) as leading_char_trim,
+                TRIM(TRAILING 'E' FROM c_mktsegment) as trailing_char_trim,
+                LTRIM(c_comment) as left_trim,
+                RTRIM(c_comment) as right_trim
+                FROM customer
+                """
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_13"
+            query = """SELECT
+                TRIM(TRAILING 'er' FROM SUBSTRING(c_name, 0, 7)) as trim_subs,
+                TRIM(LEADING 'CU' FROM UPPER(c_name)) as trim_upper,
+                LOWER(TRIM('AE' FROM c_mktsegment)) as lower_trim,
+                LTRIM(REPLACE(c_name, 'Customer', '   Test')) as ltrim_replace,
+                CAST(RTRIM(c_comment) LIKE '%the%' AS INT) as rtrim_like
+                FROM customer
+                """
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")
                 break

@@ -5,6 +5,7 @@
 #include <cudf/strings/replace.hpp>
 #include <cudf/strings/substring.hpp>
 #include <cudf/strings/case.hpp>
+#include <cudf/strings/strip.hpp>
 #include <cudf/strings/convert/convert_booleans.hpp>
 #include <cudf/strings/convert/convert_datetime.hpp>
 #include <cudf/strings/convert/convert_floats.hpp>
@@ -41,6 +42,18 @@ std::string like_expression_to_regex_str(const std::string & like_exp) {
 	return (match_start ? "^" : "") + re + (match_end ? "$" : "");
 }
 
+cudf::strings::strip_type map_trim_flag_to_strip_type(const std::string & trim_flag)
+{
+    if (trim_flag == "BOTH")
+        return cudf::strings::strip_type::BOTH;
+    else if (trim_flag == "LEADING")
+        return cudf::strings::strip_type::LEFT;
+    else if (trim_flag == "TRAILING")
+        return cudf::strings::strip_type::RIGHT;
+    else
+        // Should not reach here
+        assert(false);
+}
 struct cast_to_str_functor {
     template<typename T, std::enable_if_t<cudf::is_boolean<T>()> * = nullptr>
     std::unique_ptr<cudf::column> operator()(const cudf::column_view & col) {
@@ -441,6 +454,22 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         computed_col = cudf::strings::to_upper(column);
         break;         
     }
+    case operator_type::BLZ_STR_TRIM:
+    {
+        assert(arg_tokens.size() == 3);
+        RAL_EXPECTS(!is_literal(arg_tokens[2]), "TRIM operator not supported for literals");
+
+        std::string trim_flag = StringUtil::removeEncapsulation(arg_tokens[0], "\"");
+        std::string to_strip = StringUtil::removeEncapsulation(arg_tokens[1], encapsulation_character);
+        cudf::strings::strip_type enumerated_trim_flag = map_trim_flag_to_strip_type(trim_flag);
+
+        cudf::column_view column = table.column(get_index(arg_tokens[2]));
+        RAL_EXPECTS(is_type_string(column.type().id()), "TRIM argument must be a column of type string");
+
+        computed_col = cudf::strings::strip(column, enumerated_trim_flag, to_strip);
+        break;
+
+    }
     case operator_type::BLZ_INVALID_OP:
         break;
     case operator_type::BLZ_RAND:
@@ -531,6 +560,7 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         break;
     case operator_type::BLZ_MAGIC_IF_NOT:
         break;
+    }
     }
 
     return computed_col;
