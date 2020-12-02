@@ -230,11 +230,8 @@ cudf::type_id get_output_type(operator_type op, cudf::type_id input_left_type, c
 	case operator_type::BLZ_STR_LIKE:
 		return cudf::type_id::BOOL8;
 	case operator_type::BLZ_STR_SUBSTRING:
-<<<<<<< HEAD
-        case operator_type::BLZ_STR_REGEXP_REPLACE:
-=======
 	case operator_type::BLZ_STR_REPLACE:
->>>>>>> branch-0.17
+	case operator_type::BLZ_STR_REGEXP_REPLACE:
 	case operator_type::BLZ_STR_CONCAT:
 	case operator_type::BLZ_STR_TRIM:
 		return cudf::type_id::STRING;

@@ -118,7 +118,21 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         computed_col = cudf::strings::contains_re(column, regex);
         break;
     }
-<<<<<<< HEAD
+    case operator_type::BLZ_STR_REPLACE:
+    {
+        // required args: string column, search, replacement
+        assert(arg_tokens.size() == 3);
+        RAL_EXPECTS(!is_literal(arg_tokens[0]), "REPLACE function not supported for string literals");
+
+        cudf::column_view column = table.column(get_index(arg_tokens[0]));
+        RAL_EXPECTS(is_type_string(column.type().id()), "REPLACE argument must be a column of type string");
+
+        std::string target = StringUtil::removeEncapsulation(arg_tokens[1], encapsulation_character);
+        std::string repl = StringUtil::removeEncapsulation(arg_tokens[2], encapsulation_character);
+
+        computed_col = cudf::strings::replace(column, target, repl);
+        break;
+    }
     case operator_type::BLZ_STR_REGEXP_REPLACE:
     {
         // required args: string column, pattern, replacement
@@ -148,20 +162,6 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         } else {
             computed_col = cudf::strings::replace_with_backrefs(column, pattern, repl);
         }
-=======
-    case operator_type::BLZ_STR_REPLACE:
-    {
-        // required args: string column, search, replacement
-        assert(arg_tokens.size() == 3);
-        RAL_EXPECTS(!is_literal(arg_tokens[0]), "REPLACE function not supported for string literals");
-
-        cudf::column_view column = table.column(get_index(arg_tokens[0]));
-        RAL_EXPECTS(is_type_string(column.type().id()), "REPLACE argument must be a column of type string");
-
-        std::string target = StringUtil::removeEncapsulation(arg_tokens[1], encapsulation_character);
-        std::string repl = StringUtil::removeEncapsulation(arg_tokens[2], encapsulation_character);
-
-        computed_col = cudf::strings::replace(column, target, repl);
         break;
     }
     case operator_type::BLZ_STR_LEFT:
@@ -190,7 +190,6 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
 
         int32_t offset = std::max(std::stoi(arg_tokens[1]), 0);
         computed_col = cudf::strings::slice_strings(column, -offset, cudf::numeric_scalar<int32_t>(0, offset < 1));
->>>>>>> branch-0.17
         break;
     }
     case operator_type::BLZ_STR_SUBSTRING:
