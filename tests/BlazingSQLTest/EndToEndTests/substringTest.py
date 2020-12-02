@@ -242,6 +242,89 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 print_result=True,
             )
 
+            queryId = "TEST_12"
+            query = """SELECT
+                LEFT(c_name, 5) as l5_name,
+                LEFT(c_name, 1000) as l1000_name,
+                LEFT(c_name, -5) as lneg5_name,
+                LEFT(SUBSTRING(c_comment, 14, 20), 3) as l3_substring,
+                RIGHT(c_name, 5) as r5_name,
+                RIGHT(c_name, 1000) as r1000_name,
+                RIGHT(c_name, -5) as rneg5_name,
+                RIGHT(SUBSTRING(c_comment, 14, 20), 3) as r3_substring
+                FROM customer
+                """
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_13"
+            query = """SELECT
+                LEFT(c_name, 5) as l5_name,
+                RIGHT(c_name, 8) as r8_name
+                FROM customer
+                WHERE c_custkey < 100
+                """
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_14"
+            query = """SELECT
+                COUNT(SUBSTRING(LEFT(c_comment, 5), 3)) as left_subbed_count
+                FROM customer
+                GROUP BY SUBSTRING(LEFT(c_comment, 5), 3)
+                """
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_15"
+            query = """SELECT
+                COUNT(SUBSTRING(RIGHT(c_comment, 4), 3)) as right_subbed_count
+                FROM customer
+                GROUP BY SUBSTRING(RIGHT(c_comment, 4), 3)
+                """
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")
                 break
