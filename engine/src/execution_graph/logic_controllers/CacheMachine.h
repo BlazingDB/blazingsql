@@ -849,6 +849,19 @@ public:
 	}
 
 	/**
+	 * gets all the message ids
+	 */
+	std::vector<std::string> get_all_message_ids(){
+		std::unique_lock<std::mutex> lock(mutex_);
+		std::vector<std::string> message_ids;
+		message_ids.reserve(message_queue_.size());
+		for(message_ptr & it : message_queue_) {
+			message_ids.push_back(it->get_message_id());
+		}
+		return message_ids;
+	}
+
+	/**
 	* Waits until all messages are ready then returns all of them.
 	* You should never call this function more than once on a WaitingQueue else
 	* race conditions can occur.
@@ -997,18 +1010,15 @@ public:
 	}
 	virtual std::unique_ptr<ral::frame::BlazingTable> pullFromCache();
 
+	virtual std::unique_ptr<ral::frame::BlazingTable> pullUnorderedFromCache();
+
 	std::vector<std::unique_ptr<ral::cache::CacheData> > pull_all_cache_data();
-
-	void put_all_cache_data( std::vector<std::unique_ptr<ral::cache::CacheData> > messages, std::vector<std::string> message_ids);
-
-
 
 	virtual std::unique_ptr<ral::cache::CacheData> pullCacheData(std::string message_id);
 
-	virtual std::unique_ptr<ral::frame::BlazingTable> pullUnorderedFromCache();
-
-
 	virtual std::unique_ptr<ral::cache::CacheData> pullCacheData();
+
+	std::vector<std::string> get_all_message_ids();
 
 	void wait_for_count(int count){
 		return this->waitingCache->wait_for_count(count);

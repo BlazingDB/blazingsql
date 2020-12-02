@@ -52,7 +52,7 @@ std::unique_ptr<ral::frame::BlazingTable> CacheDataLocalFile::decache() {
 	return std::make_unique<ral::frame::BlazingTable>(std::move(result.tbl), this->names());
 }
 
-CacheDataIO::CacheDataIO(ral::io::data_handle handle, 
+CacheDataIO::CacheDataIO(ral::io::data_handle handle,
 	std::shared_ptr<ral::io::data_parser> parser,
 	ral::io::Schema schema,
 	ral::io::Schema file_schema,
@@ -79,7 +79,7 @@ std::unique_ptr<ral::frame::BlazingTable> CacheDataIO::decache(){
 				column_indices_in_file.push_back(projections[i]);
 			}
 		}
-		
+
 		std::vector<std::unique_ptr<cudf::column>> all_columns(projections.size());
 		std::vector<std::unique_ptr<cudf::column>> file_columns;
 		std::vector<std::string> names;
@@ -90,7 +90,7 @@ std::unique_ptr<ral::frame::BlazingTable> CacheDataIO::decache(){
 			std::unique_ptr<CudfTable> current_table = current_blazing_table->releaseCudfTable();
 			num_rows = current_table->num_rows();
 			file_columns = current_table->release();
-		
+
 		} else { // all tables we are "loading" are from hive partitions, so we dont know how many rows we need unless we load something to get the number of rows
 			std::vector<int> temp_column_indices = {0};
 			std::unique_ptr<ral::frame::BlazingTable> loaded_table = parser->parse_batch(handle, file_schema, temp_column_indices, row_group_ids);
@@ -115,7 +115,7 @@ std::unique_ptr<ral::frame::BlazingTable> CacheDataIO::decache(){
 		auto unique_table = std::make_unique<cudf::table>(std::move(all_columns));
 		return std::move(std::make_unique<ral::frame::BlazingTable>(std::move(unique_table), names));
 	}
-} 
+}
 
 
 CacheDataLocalFile::CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable> table, std::string orc_files_path, std::string ctx_token)
@@ -254,14 +254,9 @@ std::vector<std::unique_ptr<ral::cache::CacheData> > CacheMachine::pull_all_cach
 	}
 	return std::move(new_messages);
 }
-void CacheMachine::put_all_cache_data( std::vector<std::unique_ptr<ral::cache::CacheData> > messages,std::vector<std::string > message_ids){
-	std::vector<std::unique_ptr<message > > wrapped_messages(messages.size());
-	int i = 0;
-	for(int i = 0; i < messages.size();i++){
-		wrapped_messages[i] =
-			std::make_unique<message>(std::move(messages[i]), message_ids[i]);
-	}
-	this->waitingCache->put_all(std::move(wrapped_messages));
+
+std::vector<std::string> CacheMachine::get_all_message_ids() {
+	return this->waitingCache->get_all_message_ids();
 }
 
 bool CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, const std::string & message_id, bool always_add){

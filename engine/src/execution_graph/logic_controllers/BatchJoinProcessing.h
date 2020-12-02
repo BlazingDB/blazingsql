@@ -59,15 +59,12 @@ void split_inequality_join_into_join_and_filter(const std::string & join_stateme
 class PartwiseJoin : public kernel {
 public:
 	PartwiseJoin(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: kernel{kernel_id, queryString, context, kernel_type::PartwiseJoinKernel}, left_sequence{nullptr, this}, right_sequence{nullptr, this} {
+		: kernel{kernel_id, queryString, context, kernel_type::PartwiseJoinKernel} {
 		this->query_graph = query_graph;
 		this->input_.add_port("input_a", "input_b");
 
 		this->max_left_ind = -1;
 		this->max_right_ind = -1;
-
-		this->left_sequence.set_source(this->input_.get_cache("input_a"));
-		this->right_sequence.set_source(this->input_.get_cache("input_b"));
 
 		ral::cache::cache_settings cache_machine_config;
 		cache_machine_config.type = ral::cache::CacheType::SIMPLE;
@@ -82,33 +79,31 @@ public:
 	std::unique_ptr<TableSchema> left_schema{nullptr};
  	std::unique_ptr<TableSchema> right_schema{nullptr};
 
-    std::unique_ptr<ral::frame::BlazingTable> load_left_set(){
-
+	std::unique_ptr<ral::cache::CacheData> load_left_set(){
 		this->max_left_ind++;
-		std::unique_ptr<ral::frame::BlazingTable> table = this->left_sequence.next();
-		if (not left_schema && table != nullptr) {
-			left_schema = std::make_unique<TableSchema>(table->get_schema(),  table->names());
-		}
-		if (table == nullptr) {
-			return ral::frame::createEmptyBlazingTable(left_schema->column_types, left_schema->column_names);
-		}
-		return std::move(table);
+		auto cache_data = this->left_input->pullCacheData();
+		// if (not left_schema && cache_data != nullptr) {
+		// 	left_schema = std::make_unique<TableSchema>(cache_data->get_schema(),  cache_data->names());
+		// }
+		// if (cache_data == nullptr) {
+		// 	return ral::frame::createEmptyBlazingTable(left_schema->column_types, left_schema->column_names);
+		// }
+		return cache_data;
 	}
 
-	std::unique_ptr<ral::frame::BlazingTable> load_right_set(){
-
+	std::unique_ptr<ral::cache::CacheData> load_right_set(){
 		this->max_right_ind++;
-		std::unique_ptr<ral::frame::BlazingTable> table = this->right_sequence.next();
-		if (not right_schema && table != nullptr) {
-			right_schema = std::make_unique<TableSchema>(table->get_schema(),  table->names());
-		}
-		if (table == nullptr) {
-			return ral::frame::createEmptyBlazingTable(right_schema->column_types, right_schema->column_names);
-		}
-		return std::move(table);
+		auto cache_data = this->right_input->pullCacheData();
+		// if (not right_schema && cache_data != nullptr) {
+		// 	right_schema = std::make_unique<TableSchema>(cache_data->get_schema(), cache_data->names());
+		// }
+		// if (cache_data == nullptr) {
+		// 	return ral::frame::createEmptyBlazingTable(right_schema->column_types, right_schema->column_names);
+		// }
+		return cache_data;
 	}
 
-   void mark_set_completed(int left_ind, int right_ind){
+	void mark_set_completed(int left_ind, int right_ind){
 		if (completion_matrix.size() <= left_ind){
 			size_t old_row_size = completion_matrix.size();
 			completion_matrix.resize(left_ind + 1);
@@ -127,38 +122,55 @@ public:
 		completion_matrix[left_ind][right_ind] = true;
 	}
 
-    // This function checks to see if there is a set from our current completion_matix (data we have already loaded once)
-	// that we have not completed that uses one of our current indices, otherwise it returns [-1, -1]
-	std::tuple<int, int> check_for_another_set_to_do_with_data_we_already_have(int left_ind, int right_ind){
-		if (completion_matrix.size() > left_ind && completion_matrix[left_ind].size() > right_ind){
-			// left check first keeping the left_ind
-			for (std::size_t i = 0; i < completion_matrix[left_ind].size(); i++){
-				if (i != right_ind && !completion_matrix[left_ind][i]){
-					return std::make_tuple(left_ind, (int)i);
-				}
-			}
-			// now lets check keeping the right_ind
-			for (std::size_t i = 0; i < completion_matrix.size(); i++){
-				if (i != left_ind && !completion_matrix[i][right_ind]){
-					return std::make_tuple((int)i, right_ind);
-				}
-			}
-			return std::make_tuple(-1, -1);
-		} else {
-			return std::make_tuple(-1, -1);
+	std::vector<int> get_indexes_from_message_id(const std::vector<std::string> & message_ids) {
+		std::vector<int> indexes_available;
+		indexes_available.reserve(message_ids.size());
+		for (size_t i = 0; i < message_ids.size(); i++)	{
+			indexes_available.push_back(std::stoi(message_ids[i]));
 		}
+
+		return indexes_available;
 	}
 
-    	// This function returns the first not completed set, otherwise it returns [-1, -1]
+	// This function checks to see if there is a set from our current completion_matix (data we have already loaded once)
+	// that we have not completed that uses one of our current indices, otherwise it returns [-1, -1]
+	std::tuple<int, int> check_for_another_set_to_do_with_data_we_already_have(int left_ind = -1, int right_ind = -1) {
+		assert(left_ind == -1 || right_ind == -1);
+
+		auto left_indices = get_indexes_from_message_id(leftArrayCache->get_all_message_ids());
+		auto right_indices = get_indexes_from_message_id(rightArrayCache->get_all_message_ids());
+
+		if (left_ind >= 0 ) {
+			assert(left_ind >= completion_matrix.size());
+			return {left_ind, (!right_indices.empty() ? right_indices[0] : 0)};
+		}
+
+		if (right_ind >= 0 ) {
+			assert(right_ind >= completion_matrix[0].size());
+			return {(!left_indices.empty() ? left_indices[0] : 0), right_ind};
+		}
+
+		for (auto &&i : left_indices) {
+			for (auto &&j : right_indices) {
+				if (!completion_matrix[i][j]) {
+					return {i, j};
+				}
+			}
+		}
+
+		return {-1, -1};
+	}
+
+	// This function returns the first not completed set, otherwise it returns [-1, -1]
 	std::tuple<int, int> check_for_set_that_has_not_been_completed(){
 		for (int i = 0; i < completion_matrix.size(); i++){
 			for (int j = 0; j < completion_matrix[i].size(); j++){
-                if (!completion_matrix[i][j]){
-                    return std::make_tuple(i, j);
-                }
-            }
+				if (!completion_matrix[i][j]){
+					return {i, j};
+				}
+			}
 		}
-		return std::make_tuple(-1, -1);
+		return {-1, -1};
 	}
 
   // this function makes sure that the columns being joined are of the same type so that we can join them properly
@@ -237,180 +249,173 @@ public:
 		return std::make_unique<ral::frame::BlazingTable>(std::move(result_table), this->result_names);
 	}
 
-    virtual kstatus run() {
+	void do_process(std::vector<std::unique_ptr<ral::frame::BlazingTable>> inputs,
+		std::shared_ptr<ral::cache::CacheMachine> output,
+		cudaStream_t stream, const std::map<std::string, std::string>& args) override {
+		CodeTimer eventTimer;
+
+		auto & left_batch = inputs[0];
+		auto & right_batch = inputs[1];
+
+		if (this->normalize_left){
+			ral::utilities::normalize_types(left_batch, this->join_column_common_types, this->left_column_indices);
+		}
+		if (this->normalize_right){
+			ral::utilities::normalize_types(right_batch, this->join_column_common_types, this->right_column_indices);
+		}
+
+		auto log_input_num_rows = left_batch->num_rows() + right_batch->num_rows();
+		auto log_input_num_bytes = left_batch->sizeInBytes() + right_batch->sizeInBytes();
+
+		std::unique_ptr<ral::frame::BlazingTable> joined = join_set(left_batch->toBlazingTableView(), right_batch->toBlazingTableView());
+
+		auto log_output_num_rows = joined->num_rows();
+		auto log_output_num_bytes = joined->sizeInBytes();
+
+		if (filter_statement != "") {
+			auto filter_table = ral::processor::process_filter(joined->toBlazingTableView(), filter_statement, this->context.get());
+			eventTimer.stop();
+
+			log_output_num_rows = filter_table->num_rows();
+			log_output_num_bytes = filter_table->sizeInBytes();
+
+			this->add_to_output_cache(std::move(filter_table));
+		} else{
+			eventTimer.stop();
+			this->add_to_output_cache(std::move(joined));
+		}
+
+		this->leftArrayCache->put(std::stoi(args.at("left_idx")), std::move(left_batch));
+		this->rightArrayCache->put(std::stoi(args.at("right_idx")), std::move(right_batch));
+
+		events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+					"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+					"query_id"_a=context->getContextToken(),
+					"kernel_id"_a=this->get_id(),
+					"input_num_rows"_a=log_input_num_rows,
+					"input_num_bytes"_a=log_input_num_bytes,
+					"output_num_rows"_a=log_output_num_rows,
+					"output_num_bytes"_a=log_output_num_bytes,
+					"event_type"_a="computed join",
+					"timestamp_begin"_a=eventTimer.start_time(),
+					"timestamp_end"_a=eventTimer.end_time());
+	}
+
+	virtual kstatus run() {
 		CodeTimer timer;
 
-		bool ordered = false;
-        this->left_sequence = BatchSequence(this->input_.get_cache("input_a"), this, ordered);
-		this->right_sequence = BatchSequence(this->input_.get_cache("input_b"), this, ordered);
+		left_input = this->input_.get_cache("input_a");
+		right_input = this->input_.get_cache("input_b");
 
-		std::unique_ptr<ral::frame::BlazingTable> left_batch = nullptr;
-		std::unique_ptr<ral::frame::BlazingTable> right_batch = nullptr;
 		bool done = false;
-		bool produced_output = false;
-		int left_ind = 0;
-		int right_ind = 0;
 
 		while (!done) {
-			try {
+			std::unique_ptr<ral::cache::CacheData> left_cache_data, right_cache_data;
+			int left_ind, right_ind;
+			if (max_left_ind == -1 && max_right_ind == -1){
+				// before we load anything, lets make sure each side has data to process
+				left_input->wait_for_next();
+				right_input->wait_for_next();
 
-				if (left_batch == nullptr && right_batch == nullptr){ // first load
+				left_cache_data = load_left_set();
+				right_cache_data = load_right_set();
 
-					// before we load anything, lets make sure each side has data to process
-					this->left_sequence.wait_for_next();
-					this->right_sequence.wait_for_next();
+				left_ind = this->max_left_ind = 0; // we have loaded just once. This is the highest index for now
+				right_ind = this->max_right_ind = 0; // we have loaded just once. This is the highest index for now
 
-					left_batch = load_left_set();
-					right_batch = load_right_set();
-					this->max_left_ind = 0; // we have loaded just once. This is the highest index for now
-					this->max_right_ind = 0; // we have loaded just once. This is the highest index for now
-
-					// parsing more of the expression here because we need to have the number of columns of the tables
-					std::vector<int> column_indices;
-					parseJoinConditionToColumnIndices(this->condition, column_indices);
-					for(int i = 0; i < column_indices.size();i++){
-						if(column_indices[i] >= left_batch->num_columns()){
-							this->right_column_indices.push_back(column_indices[i] - left_batch->num_columns());
-						}else{
-							this->left_column_indices.push_back(column_indices[i]);
-						}
+				// parsing more of the expression here because we need to have the number of columns of the tables
+				std::vector<int> column_indices;
+				parseJoinConditionToColumnIndices(this->condition, column_indices);
+				for(int i = 0; i < column_indices.size();i++){
+					if(column_indices[i] >= left_cache_data->num_columns()){
+						this->right_column_indices.push_back(column_indices[i] - left_cache_data->num_columns());
+					}else{
+						this->left_column_indices.push_back(column_indices[i]);
 					}
-					std::vector<std::string> left_names = left_batch->names();
-					std::vector<std::string> right_names = right_batch->names();
-					this->result_names.reserve(left_names.size() + right_names.size());
-					this->result_names.insert(this->result_names.end(), left_names.begin(), left_names.end());
-					this->result_names.insert(this->result_names.end(), right_names.begin(), right_names.end());
+				}
 
-					computeNormalizationData(left_batch->get_schema(), right_batch->get_schema());
+				std::vector<std::string> left_names = left_cache_data->names();
+				std::vector<std::string> right_names = right_cache_data->names();
+				this->result_names.reserve(left_names.size() + right_names.size());
+				this->result_names.insert(this->result_names.end(), left_names.begin(), left_names.end());
+				this->result_names.insert(this->result_names.end(), right_names.begin(), right_names.end());
 
-				} else { // Not first load, so we have joined a set pair. Now lets see if there is another set pair we can do, but keeping one of the two sides we already have
+				computeNormalizationData(left_cache_data->get_schema(), right_cache_data->get_schema());
+			} else {
+				// Not first load, so we have joined a set pair. Now lets see if there is another set pair we can do, but keeping one of the two sides we already have
+				std::tie(left_ind, right_ind) = check_for_another_set_to_do_with_data_we_already_have();
+				if (left_ind >= 0 && right_ind >= 0) {
+					left_cache_data = this->leftArrayCache->pullCacheData(std::to_string(left_ind));
+					right_cache_data = this->rightArrayCache->pullCacheData(std::to_string(right_ind));
+				} else {
+					if (this->left_input->wait_for_next()){
+						left_cache_data = load_left_set();
+						left_ind = this->max_left_ind;
+					}
+					if (this->right_input->wait_for_next()){
+						right_cache_data = load_right_set();
+						right_ind = this->max_right_ind;
+					}
 
-					int new_left_ind, new_right_ind;
-					std::tie(new_left_ind, new_right_ind) = check_for_another_set_to_do_with_data_we_already_have(left_ind, right_ind);
-					if (new_left_ind >= 0 || new_right_ind >= 0) {
-						if (new_left_ind != left_ind) { // if we are switching out left
-							this->leftArrayCache->put(left_ind, std::move(left_batch));
-							left_ind = new_left_ind;
-							left_batch = this->leftArrayCache->get_or_wait(left_ind);
-						} else { // if we are switching out right
-							this->rightArrayCache->put(right_ind, std::move(right_batch));
-							right_ind = new_right_ind;
-							right_batch = this->rightArrayCache->get_or_wait(right_ind);
-						}
+					if (left_ind >= 0 && right_ind >= 0) {
+						// We pulled new data from left and right
+					} else if (left_ind >= 0)	{
+						std::tie(std::ignore, right_ind) = check_for_another_set_to_do_with_data_we_already_have(left_ind, -1);
+						right_cache_data = this->rightArrayCache->pullCacheData(std::to_string(right_ind));
+					} else if (right_ind >= 0)	{
+						std::tie(left_ind, std::ignore) = check_for_another_set_to_do_with_data_we_already_have(-1, right_ind);
+						left_cache_data = this->leftArrayCache->pullCacheData(std::to_string(left_ind));
 					} else {
-						// lets try first to just grab the next one that is already available and waiting, but we keep one of the two sides we already have
-						if (this->left_sequence.has_next_now()){
-							this->leftArrayCache->put(left_ind, std::move(left_batch));
-							left_batch = load_left_set();
-							left_ind = this->max_left_ind;
-						} else if (this->right_sequence.has_next_now()){
-							this->rightArrayCache->put(right_ind, std::move(right_batch));
-							right_batch = load_right_set();
-							right_ind = this->max_right_ind;
+						// Both inputs are finished, check any remaining pairs to process
+						std::tie(left_ind, right_ind) = check_for_set_that_has_not_been_completed();
+						if (left_ind >= 0 && right_ind >= 0) {
+							left_cache_data = this->leftArrayCache->pullCacheData(std::to_string(left_ind));
+							right_cache_data = this->rightArrayCache->pullCacheData(std::to_string(right_ind));
 						} else {
-							// lets see if there are any in are matrix that have not been completed
-							std::tie(new_left_ind, new_right_ind) = check_for_set_that_has_not_been_completed();
-							if (new_left_ind >= 0 && new_right_ind >= 0) {
-								this->leftArrayCache->put(left_ind, std::move(left_batch));
-								left_ind = new_left_ind;
-								left_batch = this->leftArrayCache->get_or_wait(left_ind);
-								this->rightArrayCache->put(right_ind, std::move(right_batch));
-								right_ind = new_right_ind;
-								right_batch = this->rightArrayCache->get_or_wait(right_ind);
-							} else {
-								// nothing else for us to do buy wait and see if there are any left to do
-								if (this->left_sequence.wait_for_next()){
-									this->leftArrayCache->put(left_ind, std::move(left_batch));
-									left_batch = load_left_set();
-									left_ind = this->max_left_ind;
-								} else if (this->right_sequence.wait_for_next()){
-									this->rightArrayCache->put(right_ind, std::move(right_batch));
-									right_batch = load_right_set();
-									right_ind = this->max_right_ind;
-								} else {
-									done = true;
-								}
-							}
+							done = true;
 						}
 					}
 				}
-				if (!done) {
-					CodeTimer eventTimer(false);
-					eventTimer.start();
+			}
+			if (!done) {
+				std::vector<std::unique_ptr<ral::cache::CacheData>> inputs;
+				inputs.push_back(std::move(left_cache_data));
+				inputs.push_back(std::move(right_cache_data));
 
-					if (this->normalize_left){
-						ral::utilities::normalize_types(left_batch, this->join_column_common_types, this->left_column_indices);
-					}
-					if (this->normalize_right){
-						ral::utilities::normalize_types(right_batch, this->join_column_common_types, this->right_column_indices);
-					}
+				ral::execution::executor::get_instance()->add_task(
+                    std::move(inputs),
+                    this->output_cache(),
+                    this,
+										{{"left_idx", std::to_string(left_ind)}, {"right_idx", std::to_string(right_ind)}});
 
-					auto log_input_num_rows = left_batch->num_rows() + right_batch->num_rows();
-					auto log_input_num_bytes = left_batch->sizeInBytes() + right_batch->sizeInBytes();
-
-					std::unique_ptr<ral::frame::BlazingTable> joined = join_set(left_batch->toBlazingTableView(), right_batch->toBlazingTableView());
-
-					auto log_output_num_rows = joined->num_rows();
-					auto log_output_num_bytes = joined->sizeInBytes();
-
-					produced_output = true;
-					if (filter_statement != "") {
-						auto filter_table = ral::processor::process_filter(joined->toBlazingTableView(), filter_statement, this->context.get());
-						eventTimer.stop();
-
-						log_output_num_rows = filter_table->num_rows();
-						log_output_num_bytes = filter_table->sizeInBytes();
-
-						this->add_to_output_cache(std::move(filter_table));
-					} else{
-						eventTimer.stop();
-						this->add_to_output_cache(std::move(joined));
-					}
-
-					events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-								"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-								"query_id"_a=context->getContextToken(),
-								"kernel_id"_a=this->get_id(),
-								"input_num_rows"_a=log_input_num_rows,
-								"input_num_bytes"_a=log_input_num_bytes,
-								"output_num_rows"_a=log_output_num_rows,
-								"output_num_bytes"_a=log_output_num_bytes,
-								"event_type"_a="compute",
-								"timestamp_begin"_a=eventTimer.start_time(),
-								"timestamp_end"_a=eventTimer.end_time());
-
-					mark_set_completed(left_ind, right_ind);
-				}
-
-			} catch(const std::exception& e) {
-				// TODO add retry here
-				logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
-											"query_id"_a=context->getContextToken(),
-											"step"_a=context->getQueryStep(),
-											"substep"_a=context->getQuerySubstep(),
-											"info"_a="In PartwiseJoin kernel left_idx[{}] right_ind[{}] for {}. What: {}"_format(left_ind, right_ind, expression, e.what()),
-											"duration"_a="");
-				throw;
+				mark_set_completed(left_ind, right_ind);
 			}
 		}
 
-		if (!produced_output){
-			logger->warn("{query_id}|{step}|{substep}|{info}|{duration}||||",
+		if(logger != nullptr) {
+				logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+																"query_id"_a=context->getContextToken(),
+																"step"_a=context->getQueryStep(),
+																"substep"_a=context->getQuerySubstep(),
+																"info"_a="Compute Aggregate Kernel tasks created",
+																"duration"_a=timer.elapsed_time(),
+																"kernel_id"_a=this->get_id());
+		}
+
+		std::unique_lock<std::mutex> lock(kernel_mutex);
+		kernel_cv.wait(lock,[this]{
+				return this->tasks.empty();
+		});
+
+		if(logger != nullptr) {
+			logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
 										"query_id"_a=context->getContextToken(),
 										"step"_a=context->getQueryStep(),
 										"substep"_a=context->getQuerySubstep(),
-										"info"_a="PartwiseJoin kernel did not produce an output",
-										"duration"_a="");
-			// WSM TODO put an empty output into output cache
+										"info"_a="PartwiseJoin Kernel Completed",
+										"duration"_a=timer.elapsed_time(),
+										"kernel_id"_a=this->get_id());
 		}
-
-		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
-									"query_id"_a=context->getContextToken(),
-									"step"_a=context->getQueryStep(),
-									"substep"_a=context->getQuerySubstep(),
-									"info"_a="PartwiseJoin Kernel Completed",
-									"duration"_a=timer.elapsed_time(),
-									"kernel_id"_a=this->get_id());
 
 		// these are intra kernel caches. We want to make sure they are empty before we finish.
 		this->leftArrayCache->clear();
@@ -424,10 +429,12 @@ public:
 	}
 
 private:
-	BatchSequence left_sequence, right_sequence;
+	std::shared_ptr<ral::cache::CacheMachine> left_input;
+	std::shared_ptr<ral::cache::CacheMachine> right_input;
 
 	int max_left_ind;
 	int max_right_ind;
+
 	std::vector<std::vector<bool>> completion_matrix;
 	std::shared_ptr<ral::cache::CacheMachine> leftArrayCache;
 	std::shared_ptr<ral::cache::CacheMachine> rightArrayCache;
