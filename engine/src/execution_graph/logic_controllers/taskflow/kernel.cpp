@@ -12,7 +12,7 @@ std::pair<bool, uint64_t> kernel::get_estimated_output_num_rows(){
 void kernel::process(std::vector<std::unique_ptr<ral::cache::CacheData > > & inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
 		cudaStream_t stream,
-        std::string kernel_process_name = ""){
+        const std::map<std::string, std::string>& args){
     std::vector< std::unique_ptr<ral::frame::BlazingTable> > input_gpu;
 
     if (this->has_limit_ && output->get_num_rows_added() >= this->limit_rows_) {
@@ -33,7 +33,7 @@ void kernel::process(std::vector<std::unique_ptr<ral::cache::CacheData > > & inp
     }
 
     try{
-       do_process(std::move(input_gpu),output,stream, kernel_process_name);
+       do_process(std::move(input_gpu),output,stream, args);
     }catch(std::exception e){
         //remake inputs here
         int i = 0;

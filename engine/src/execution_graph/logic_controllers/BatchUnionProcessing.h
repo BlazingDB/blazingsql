@@ -30,7 +30,7 @@ public:
 
     void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
         std::shared_ptr<ral::cache::CacheMachine> output,
-        cudaStream_t stream, std::string kernel_process_name) override {
+        cudaStream_t stream, const std::map<std::string, std::string>& args) override {
 
         // TODO: bring back the bypass optimization to avoid decaching to GPU memory
 
@@ -63,8 +63,7 @@ public:
             ral::execution::executor::get_instance()->add_task(
                     std::move(inputs),
                     this->output_cache(),
-                    this,
-                    "union");
+                    this);
 
             cache_data_a = cache_machine_a->pullCacheData();
         }
@@ -75,8 +74,7 @@ public:
             ral::execution::executor::get_instance()->add_task(
                     std::move(inputs),
                     this->output_cache(),
-                    this,
-                    "union");
+                    this);
 
             cache_data_b = cache_machine_b->pullCacheData();
         }

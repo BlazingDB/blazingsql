@@ -5,14 +5,14 @@ namespace execution{
 
 size_t executor::add_task(std::vector<std::unique_ptr<ral::cache::CacheData > > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
-    ral::cache::kernel * kernel,std::string kernel_process_name) {
+    ral::cache::kernel * kernel, const std::map<std::string, std::string>& args) {
 
     auto task_id = task_id_counter.fetch_add(1, std::memory_order_relaxed);
 
     kernel->add_task(task_id);
 
     auto task_added = std::make_unique<task>(
-        std::move(inputs),output,task_id, kernel, attempts_limit,kernel_process_name
+        std::move(inputs),output,task_id, kernel, attempts_limit, args
     );
 
     task_queue.put(std::move(task_added));
@@ -24,10 +24,10 @@ void executor::add_task(std::vector<std::unique_ptr<ral::cache::CacheData > > in
 		std::shared_ptr<ral::cache::CacheMachine> output,
 		ral::cache::kernel * kernel,
 		size_t attempts,
-		size_t task_id,std::string kernel_process_name){
+		size_t task_id, const std::map<std::string, std::string>& args){
 
     auto task_added = std::make_unique<task>(
-        std::move(inputs),output,task_id, kernel, attempts_limit,kernel_process_name, attempts
+        std::move(inputs),output,task_id, kernel, attempts_limit, args, attempts
     );
     task_queue.put(std::move(task_added));
 }
@@ -37,23 +37,23 @@ task::task(
     std::shared_ptr<ral::cache::CacheMachine> output,
     size_t task_id,
     ral::cache::kernel * kernel, size_t attempts_limit,
-    std::string kernel_process_name,
+    const std::map<std::string, std::string>& args,
     size_t attempts) :
     inputs(std::move(inputs)),
     task_id(task_id), output(output),
     kernel(kernel), attempts_limit(attempts_limit),
-    kernel_process_name(kernel_process_name), attempts(attempts) {
+    args(args), attempts(attempts) {
 }
 
 
 void task::run(cudaStream_t stream, executor * executor){
     try{
-        kernel->process(inputs,output,stream,kernel_process_name);
+        kernel->process(inputs,output,stream,args);
         complete();
     }catch(rmm::bad_alloc e){
         this->attempts++;
         if(this->attempts < this->attempts_limit){
-            executor->add_task(std::move(inputs), output, kernel, attempts, task_id, kernel_process_name);
+            executor->add_task(std::move(inputs), output, kernel, attempts, task_id, args);
         }else{
             throw;
         }

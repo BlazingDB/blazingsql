@@ -31,7 +31,7 @@ public:
 
     void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
         std::shared_ptr<ral::cache::CacheMachine> output,
-        cudaStream_t stream, std::string kernel_process_name) override{
+        cudaStream_t stream, const std::map<std::string, std::string>& args) override{
         auto & input = inputs[0];
 
         std::unique_ptr<ral::frame::BlazingTable> columns;
@@ -63,8 +63,7 @@ public:
             ral::execution::executor::get_instance()->add_task(
                     std::move(inputs),
                     this->output_cache(),
-                    this,
-                    "computeaggregate");
+                    this);
 
             cache_data = this->input_cache()->pullCacheData();
         }
@@ -132,7 +131,7 @@ public:
 
     void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
         std::shared_ptr<ral::cache::CacheMachine> output,
-        cudaStream_t stream, std::string kernel_process_name) override{
+        cudaStream_t stream, const std::map<std::string, std::string>& args) override{
         auto & input = inputs[0];
 
         // num_partitions = context->getTotalNodes() will do for now, but may want a function to determine this in the future.
@@ -209,8 +208,7 @@ public:
             ral::execution::executor::get_instance()->add_task(
                     std::move(inputs),
                     this->output_cache(),
-                    this,
-                    "distributeaggregate");
+                    this);
 
             cache_data = this->input_cache()->pullCacheData();
         }
@@ -257,7 +255,7 @@ public:
 
     void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
         std::shared_ptr<ral::cache::CacheMachine> output,
-        cudaStream_t stream, std::string kernel_process_name) override{
+        cudaStream_t stream, const std::map<std::string, std::string>& args) override{
         CodeTimer eventTimer(false);
 
         std::vector< ral::frame::BlazingTableView > tableViewsToConcat;
@@ -352,8 +350,7 @@ public:
             ral::execution::executor::get_instance()->add_task(
                     std::move(inputs),
                     this->output_cache(),
-                    this,
-                    "mergeaggregate");
+                    this);
 
             logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
                                         "query_id"_a=context->getContextToken(),

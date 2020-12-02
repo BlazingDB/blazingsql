@@ -33,7 +33,7 @@ public:
 
 	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
-		cudaStream_t stream, std::string kernel_process_name) override{
+		cudaStream_t stream, const std::map<std::string, std::string>& args) override{
 		auto & input = inputs[0];
 
 		auto partitions = ral::operators::partition_table(partitionPlan->toBlazingTableView(), input->toBlazingTableView(), this->expression);
@@ -63,8 +63,7 @@ public:
 				ral::execution::executor::get_instance()->add_task(
 						std::move(inputs),
 						nullptr,
-						this,
-						"partitionsinglenode");
+						this);
 			}
 		}
 
@@ -335,7 +334,7 @@ public:
 
 	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
-		cudaStream_t stream, std::string kernel_process_name) override{
+		cudaStream_t stream, const std::map<std::string, std::string>& args) override{
 		auto & input = inputs[0];
 
 		std::vector<ral::distribution::NodeColumnView> partitions = ral::distribution::partitionData(this->context.get(), input->toBlazingTableView(), partitionPlan->toBlazingTableView(), sortColIndices, sortOrderTypes);
@@ -382,8 +381,7 @@ public:
 			ral::execution::executor::get_instance()->add_task(
 					std::move(inputs),
 					nullptr,
-					this,
-					"partition");
+					this);
 
 			cache_data = this->input_.get_cache("input_a")->pullCacheData();
 		}
@@ -530,7 +528,7 @@ public:
 
 	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
-		cudaStream_t stream, std::string kernel_process_name) override{
+		cudaStream_t stream, const std::map<std::string, std::string>& args) override{
 		CodeTimer eventTimer(false);
 		auto & input = inputs[0];
 
@@ -626,8 +624,7 @@ public:
 				ral::execution::executor::get_instance()->add_task(
 						std::move(inputs),
 						this->output_cache(),
-						this,
-						"limit");
+						this);
 
 				if (rows_limit == 0){
 					//break;
