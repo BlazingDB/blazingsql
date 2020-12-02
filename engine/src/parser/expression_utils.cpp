@@ -308,11 +308,8 @@ operator_type map_to_operator_type(const std::string & operator_token) {
 		{"MAGIC_IF_NOT", operator_type::BLZ_MAGIC_IF_NOT},
 		{"LIKE", operator_type::BLZ_STR_LIKE},
 		{"SUBSTRING", operator_type::BLZ_STR_SUBSTRING},
-<<<<<<< HEAD
-        {"REGEXP_REPLACE", operator_type::BLZ_STR_REGEXP_REPLACE},
-=======
+		{"REGEXP_REPLACE", operator_type::BLZ_STR_REGEXP_REPLACE},
 		{"REPLACE", operator_type::BLZ_STR_REPLACE},
->>>>>>> branch-0.17
 		{"TO_DATE", operator_type::BLZ_TO_DATE},
 		{"TO_TIMESTAMP", operator_type::BLZ_TO_TIMESTAMP},
 		{"||", operator_type::BLZ_STR_CONCAT},

@@ -136,7 +136,9 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
     case operator_type::BLZ_STR_REGEXP_REPLACE:
     {
         // required args: string column, pattern, replacement
-        assert(arg_tokens.size() == 3 || arg_tokens.size() == 4);
+        // optional args: position, occurrence, match_type
+        assert(arg_tokens.size() >= 3 && arg_tokens.size() <= 6);
+        RAL_EXPECTS(arg_tokens.size() <= 4, "Optional parameters occurrence and match_type are not yet supported.");
         RAL_EXPECTS(!is_literal(arg_tokens[0]), "REGEXP_REPLACE function not supported for string literals");
 
         cudf::column_view column = table.column(get_index(arg_tokens[0]));
