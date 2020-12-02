@@ -92,11 +92,7 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
                                                         const std::vector<std::string> & arg_tokens)
 {
     std::unique_ptr<cudf::column> computed_col;
-<<<<<<< HEAD
-    std::string encapsulation = "'";
-=======
     std::string encapsulation_character = "'";
->>>>>>> branch-0.17
 
     switch (op)
     {
@@ -132,8 +128,8 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         cudf::column_view column = table.column(get_index(arg_tokens[0]));
         RAL_EXPECTS(is_type_string(column.type().id()), "REGEXP_REPLACE argument must be a column of type string");
 
-        std::string pattern = StringUtil::removeEncapsulation(arg_tokens[1], encapsulation);
-        std::string repl = StringUtil::removeEncapsulation(arg_tokens[2], encapsulation);
+        std::string pattern = StringUtil::removeEncapsulation(arg_tokens[1], encapsulation_character);
+        std::string repl = StringUtil::removeEncapsulation(arg_tokens[2], encapsulation_character);
 
         // handle the position argument, if it exists
         if (arg_tokens.size() == 4) {
