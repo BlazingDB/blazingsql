@@ -86,6 +86,8 @@ bool is_binary_operator(operator_type op) {
 	case operator_type::BLZ_MAGIC_IF_NOT:
 	case operator_type::BLZ_STR_LIKE:
 	case operator_type::BLZ_STR_CONCAT:
+	case operator_type::BLZ_STR_LEFT:
+	case operator_type::BLZ_STR_RIGHT:
 		return true;
 	case operator_type::BLZ_STR_SUBSTRING:
 	case operator_type::BLZ_STR_REPLACE:
@@ -134,6 +136,8 @@ cudf::type_id get_output_type(operator_type op, cudf::type_id input_left_type) {
 	case operator_type::BLZ_STR_LOWER:
 	case operator_type::BLZ_STR_UPPER:
 	case operator_type::BLZ_STR_REVERSE:
+	case operator_type::BLZ_STR_LEFT:
+	case operator_type::BLZ_STR_RIGHT:
 	case operator_type::BLZ_CAST_VARCHAR:
 		return cudf::type_id::STRING;
 	case operator_type::BLZ_YEAR:
@@ -308,6 +312,8 @@ operator_type map_to_operator_type(const std::string & operator_token) {
 		{"TO_TIMESTAMP", operator_type::BLZ_TO_TIMESTAMP},
 		{"||", operator_type::BLZ_STR_CONCAT},
 		{"TRIM", operator_type::BLZ_STR_TRIM},
+		{"LEFT", operator_type::BLZ_STR_LEFT},
+		{"RIGHT", operator_type::BLZ_STR_RIGHT},
 	};
 
 	if(OPERATOR_MAP.find(operator_token) == OPERATOR_MAP.end()){

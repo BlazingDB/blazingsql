@@ -28,15 +28,18 @@ tpchTables = [
     "nation",
     "region",
 ]
-extraTables = ["perf", "acq", "names", "bool_orders"]
+# extraTables = ["perf", "acq", "names", "bool_orders"]
+extraTables = ["bool_orders"]
 tableNames = tpchTables + extraTables
 
+smilesTables = ["docked", "dcoids", "smiles", "split"]
 
-def getFiles_to_tmp(tpch_dir, n_files):
+
+def getFiles_to_tmp(tpch_dir, n_files, ext):
     list_files = []
     for name in tableNames:
         list_tmp = get_filenames_table(name, tpch_dir, n_files,
-                                       full_path=False)
+                                ext=ext,full_path=False)
         list_files = np.append(list_files, list_tmp)
     dirpath = tempfile.mkdtemp()
     count = 0
@@ -45,7 +48,7 @@ def getFiles_to_tmp(tpch_dir, n_files):
         dataFileName = dataFileTokens[0]
         os.symlink(
             tpch_dir + item, dirpath + "/" + dataFileName +
-            "_" + str(count) + ".psv"
+            "_" + str(count) + "." + ext
         )
         count = count + 1
 
@@ -62,64 +65,73 @@ def get_spark_schema(table, nullable):
     return schema
 
 
-def init_spark_schema(spark, tpch_dir, **kwargs):
+def init_spark_schema(spark, dir_data_lc, **kwargs):
 
-    for name in tableNames:
+    smiles_test = kwargs.get("smiles_test", False)
+    if smiles_test:
+        dir_data_lc = dir_data_lc + "smiles/"
+        table_names=smilesTables
+    else:
+        dir_data_lc = dir_data_lc + "tpch/"
+        table_names=tpchTables
+
+    for name in table_names:
         spark.sql("DROP TABLE IF EXISTS `%(table)s`" % {"table": name})
 
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    print(dir_path)
-
-    tpch_dir = tpch_dir + "tpch/"
-
-    num_files = kwargs.get("n_files")
-    if num_files is not None:
-        tpch_dir = getFiles_to_tmp(tpch_dir, num_files)
 
     fileSchemaType = kwargs.get("fileSchemaType")
-
     if fileSchemaType is not None:
         ext = get_extension(fileSchemaType)
     else:
         ext = "orc"
+    
+    num_files = kwargs.get("n_files")
+    if num_files is not None:
+        dir_data_lc = getFiles_to_tmp(dir_data_lc, num_files, ext)
 
     nullable = True
 
     bool_test = kwargs.get("bool_test", None)
     if bool_test:
-        bool_orders_df = spark.read.orc(tpch_dir + "/bool_orders_*.psv")
+        bool_orders_df = spark.read.orc(dir_data_lc + "/bool_orders_*.psv")
         bool_orders_df.createOrReplaceTempView("bool_orders")
 
-    for tpch_table in tpchTables:
+    for table_name in table_names:
         if ext == "psv":
-            tpch_table_schema = get_spark_schema(tpch_table, nullable)
-            tpch_table_df = spark.read.load(
-                tpch_dir + "/" + tpch_table + "_*." + str(ext),
+            table_name_schema = get_spark_schema(table_name, nullable)
+            table_name_df = spark.read.load(
+                dir_data_lc + "/" + table_name + "_*." + str(ext),
                 format="csv",
                 sep="|",
-                schema=tpch_table_schema,
+                schema=table_name_schema,
             )
         elif ext == "parquet":
-            tpch_table_df = spark.read.parquet(
-                tpch_dir + "/" + tpch_table + "_*." + str(ext)
+            table_name_df = spark.read.parquet(
+                dir_data_lc + "/" + table_name + "_*." + str(ext)
             )
         else:
-            tpch_table_df = spark.read.orc(
-                tpch_dir + "/" + tpch_table + "_*." + str(ext)
+            table_name_df = spark.read.orc(
+                dir_data_lc + "/" + table_name + "_*." + str(ext)
             )
 
-        tpch_table_df.createOrReplaceTempView(tpch_table)
+        table_name_df.createOrReplaceTempView(table_name)
 
 
-def init_hive_schema(drill, cursor, tpch_dir, **kwargs):
+def init_hive_schema(drill, cursor, dir_data_lc, **kwargs):
     timeout = 300
 
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    print(dir_path)
+    
+    smiles_test = kwargs.get("smiles_test", False)
+    if smiles_test:
+        dir_data_lc = dir_data_lc + "smiles/"
+        table_names=smilesTables
+    else:
+        dir_data_lc = dir_data_lc + "tpch/"
+        table_names=tableNames
 
-    tpch_dir = tpch_dir + "tpch/"
-
-    for name in tableNames:
+    for name in table_names:
         cursor.execute(
             "DROP TABLE IF EXISTS %(table)s PURGE" % {"table": name})
         print("DROP TABLE IF EXISTS %(table)s" % {"table": name})
@@ -128,9 +140,15 @@ def init_hive_schema(drill, cursor, tpch_dir, **kwargs):
     # print(cursor.fetchall())
     # exit()
 
+    fileSchemaType = kwargs.get("fileSchemaType")
+    if fileSchemaType is not None:
+        ext = get_extension(fileSchemaType)
+    else:
+        ext = "orc"
+
     num_files = kwargs.get("n_files")
     if num_files is not None:
-        tpch_dir = getFiles_to_tmp(tpch_dir, num_files)
+        dir_data_lc = getFiles_to_tmp(dir_data_lc, num_files, ext)
 
     bool_test = kwargs.get("bool_test", None)
     if bool_test:
@@ -152,22 +170,16 @@ def init_hive_schema(drill, cursor, tpch_dir, **kwargs):
                 columns[8] as o_comment,
                 CASE WHEN columns[9] = '' OR columns[9] = 'null' THEN null
                 ELSE cast(columns[9] as boolean) END as o_confirmed
-        FROM table(dfs.`%(tpch_dir)s/bool_orders_*.psv`
+        FROM table(dfs.`%(dir_data_lc)s/bool_orders_*.psv`
          (type => 'text', fieldDelimiter => '|'))
         """
-            % {"tpch_dir": tpch_dir},
+            % {"dir_data_lc": dir_data_lc},
             timeout,
         )
 
-    fileSchemaType = kwargs.get("fileSchemaType")
-    if fileSchemaType is not None:
-        ext = get_extension(fileSchemaType)
-    else:
-        ext = "orc"
-
-    for tpch_table in tpchTables:
-        column_names = get_column_names(tpch_table, bool_test)
-        data_types = get_dtypes(tpch_table, bool_test)
+    for table_name in table_names:
+        column_names = get_column_names(table_name, bool_test)
+        data_types = get_dtypes(table_name, bool_test)
 
         names_types = zip(column_names, data_types)
 
@@ -177,28 +189,28 @@ def init_hive_schema(drill, cursor, tpch_dir, **kwargs):
 
         if ext == "orc":
             cursor.execute(
-                """CREATE EXTERNAL TABLE %(tpch_table)s
+                """CREATE EXTERNAL TABLE %(table_name)s
                             ( %(column_list)s ) STORED AS ORC"""
-                % {"tpch_table": tpch_table, "column_list": column_list}
+                % {"table_name": table_name}
             )
 
             cursor.execute(
-                """LOAD DATA INPATH 'hdfs:%(tpch_dir)s/%(tpch_table)s_*.orc'
-                            INTO TABLE %(tpch_table)s"""
-                % {"tpch_dir": tpch_dir, "tpch_table": tpch_table}
+                """LOAD DATA INPATH 'hdfs:%(dir_data_lc)s/%(table_name)s_*.orc'
+                            INTO TABLE %(table_name)s"""
+                % {"dir_data_lc": dir_data_lc, "table_name": table_name}
             )
         elif ext == "parquet":
             cursor.execute(
-                """CREATE EXTERNAL TABLE %(tpch_table)s
+                """CREATE EXTERNAL TABLE %(table_name)s
                             ( %(column_list)s ) STORED AS PARQUET"""
-                % {"tpch_table": tpch_table, "column_list": column_list}
+                % {"table_name": table_name}
             )
 
             cursor.execute(
                 """LOAD DATA INPATH
-                           'hdfs:%(tpch_dir)s/%(tpch_table)s_*.parquet'
-                            INTO TABLE %(tpch_table)s"""
-                % {"tpch_dir": tpch_dir, "tpch_table": tpch_table}
+                           'hdfs:%(dir_data_lc)s/%(table_name)s_*.parquet'
+                            INTO TABLE %(table_name)s"""
+                % {"dir_data_lc": dir_data_lc, "table_name": table_name}
             )
 
             # cursor.execute('DROP TABLE TRANSACTIONS')
@@ -234,28 +246,31 @@ def init_hive_schema(drill, cursor, tpch_dir, **kwargs):
             # break
         elif ext == "psv":
             cursor.execute(
-                """CREATE EXTERNAL TABLE %(tpch_table)s
+                """CREATE EXTERNAL TABLE %(table_name)s
                             ( %(column_list)s ) ROW FORMAT DELIMITED FIELDS
                             TERMINATED BY '|' STORED AS TEXTFILE"""
-                % {"tpch_table": tpch_table, "column_list": column_list}
+                % {"table_name": table_name, "column_list": column_list}
             )
 
             cursor.execute(
-                """LOAD DATA INPATH 'hdfs:%(tpch_dir)s/%(tpch_table)s_*.psv'
-                            INTO TABLE %(tpch_table)s"""
-                % {"tpch_dir": tpch_dir, "tpch_table": tpch_table}
+                """LOAD DATA INPATH 'hdfs:%(dir_data_lc)s/%(table_name)s_*.psv'
+                            INTO TABLE %(table_name)s"""
+                % {"dir_data_lc": dir_data_lc, "table_name": table_name}
             )
 
 
-def init_drill_schema(drill, tpch_dir, **kwargs):
+def init_drill_schema(drill, dir_data_lc, **kwargs):
     timeout = 300
 
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    print(dir_path)
+    smiles_test = kwargs.get("smiles_test", False)
+    if smiles_test:
+        dir_data_lc = dir_data_lc + "smiles/"
+        table_names=smilesTables
+    else:
+        dir_data_lc = dir_data_lc + "tpch/"
+        table_names=tpchTables
 
-    tpch_dir = tpch_dir + "tpch/"
-
-    for name in tableNames:
+    for name in table_names:
         drill.query(
             "DROP TABLE IF EXISTS " + "dfs.tmp.`%(table)s`"
             % {"table": name}, timeout
@@ -263,10 +278,15 @@ def init_drill_schema(drill, tpch_dir, **kwargs):
 
     num_files = kwargs.get("n_files")
     if num_files is not None:
-        tpch_dir = getFiles_to_tmp(tpch_dir, num_files)
+        dir_data_lc = getFiles_to_tmp(dir_data_lc, num_files, 'psv')
 
     bool_test = kwargs.get("bool_test", None)
     if bool_test:
+        drill.query(
+            "DROP TABLE IF EXISTS " + "dfs.tmp.`%(table)s`"
+            % {"table": "bool_orders"}, timeout
+        )
+
         drill.query(
             """
         create table dfs.tmp.`bool_orders/` as
@@ -285,20 +305,20 @@ def init_drill_schema(drill, tpch_dir, **kwargs):
                 columns[8] as o_comment,
                 CASE WHEN columns[9] = '' OR columns[9] = 'null' THEN null
                 ELSE cast(columns[9] as boolean) END as o_confirmed
-        FROM table(dfs.`%(tpch_dir)s/bool_orders_*.psv`
+        FROM table(dfs.`%(dir_data_lc)s/bool_orders_*.psv`
          (type => 'text', fieldDelimiter => '|'))
         """
-            % {"tpch_dir": tpch_dir},
+            % {"dir_data_lc": dir_data_lc},
             timeout,
         )
 
-    for tpch_table in tpchTables:
+    for table_name in table_names:
         drill.query(
-            """ create table dfs.tmp.`%(tpch_table)s` as select * FROM
-                     table(dfs.`%(tpch_dir)s/%(tpch_table)s_*.parquet`
+            """ create table dfs.tmp.`%(table_name)s` as select * FROM
+                     table(dfs.`%(dir_data_lc)s/%(table_name)s_*.parquet`
                      (type => 'parquet'))
                     """
-            % {"tpch_dir": tpch_dir, "tpch_table": tpch_table},
+            % {"dir_data_lc": dir_data_lc, "table_name": table_name},
             timeout,
         )
 
@@ -901,7 +921,7 @@ def get_filenames_for_table(table, dir_data_lc, ext, dir_data_fs):
     return dataFiles
 
 
-def get_filenames_table(table, dir_data_lc, n_files, **kwargs):
+def get_filenames_table(table, dir_data_lc, n_files, ext='psv', **kwargs):
     full_path = kwargs.get("full_path")
     if full_path is None:
         full_path = True
@@ -913,7 +933,7 @@ def get_filenames_table(table, dir_data_lc, n_files, **kwargs):
             dataFileName = dataFileTokens[0]
             dataFileExt = dataFileTokens[1]
             tableName_ = table + "_"
-            if dataFileExt == "psv":
+            if dataFileExt == ext:
                 if table == dataFileName or re.match(tableName_, dataFileName):
                     if c < n_files:
                         if full_path:
@@ -1235,7 +1255,10 @@ def create_tables(bc, dir_data_lc, fileSchemaType, **kwargs):
     tables = kwargs.get("tables", tpchTables)
     bool_orders_index = kwargs.get("bool_orders_index", -1)
 
-    dir_data_lc = dir_data_lc + "tpch/"
+    if tables[0] in smilesTables:
+        dir_data_lc = dir_data_lc + "smiles/"
+    else:
+        dir_data_lc = dir_data_lc + "tpch/"
 
     for i, table in enumerate(tables):
         # using wildcard, note the _ after the table name
