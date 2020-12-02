@@ -60,11 +60,13 @@ from EndToEndTests import whereClauseTest as whereClauseTest
 from EndToEndTests import wildCardTest
 from EndToEndTests import messageValidationTest
 from EndToEndTests import configOptionsTest
+from EndToEndTests import smilesTest
 from EndToEndTests import loggingTest
 from EndToEndTests import dayOfWeekTest
 from pynvml import nvmlInit
 from Runner import runTest
 from Utils import Execution, init_context
+from blazingsql import DataType
 
 
 def main():
@@ -91,13 +93,19 @@ def main():
         createSchema.init_drill_schema(
             drill, Settings.data["TestSettings"]["dataDirectory"], bool_test=True
         )
-
+        createSchema.init_drill_schema(
+            drill, Settings.data["TestSettings"]["dataDirectory"], smiles_test=True, fileSchemaType=DataType.PARQUET
+        )
+        
         # Create Table Spark -------------------------------------------------
         from pyspark.sql import SparkSession
 
         spark = SparkSession.builder.appName("allE2ETest").getOrCreate()
         createSchema.init_spark_schema(
             spark, Settings.data["TestSettings"]["dataDirectory"]
+        )
+        createSchema.init_spark_schema(
+            spark, Settings.data["TestSettings"]["dataDirectory"], smiles_test=True, fileSchemaType=DataType.PARQUET
         )
 
     # Create Context For BlazingSQL
@@ -261,7 +269,10 @@ def main():
 
     # timestampdiffTest.main(dask_client, spark, dir_data_file, bc, nRals)
 
-    # This Test must be the last one to test
+    if runAllTests or ("smilesTest" in targetTestGroups):
+        smilesTest.main(dask_client, spark, dir_data_file, bc, nRals)
+
+    # WARNING!!! This Test must be the last one to test -------------------------------------------------------------------------------------------------------------------------------------------
     if runAllTests or ("configOptionsTest" in targetTestGroups):
         configOptionsTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
