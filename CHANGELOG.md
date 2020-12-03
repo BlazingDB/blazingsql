@@ -14,7 +14,7 @@
 - #1130 Infer hive folder partition
 - #1188 Implement upper/lower operators
 - #1193 Implement string REPLACE
-
+- #1223: Add support for UNION statement
 
 ## Improvements
 - #878 Adding calcite rule for window functions. (Window functions not supported yet)

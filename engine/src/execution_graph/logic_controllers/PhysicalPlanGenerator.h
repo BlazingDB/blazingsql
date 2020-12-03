@@ -291,7 +291,7 @@ struct tree_processor {
 		}
 		// special case when the query contains UNION
 		else if (is_union(expr) && get_named_expression(expr, "all") == "false") {
-            expr = "LogicalUnion(all=[true])";
+			expr = "LogicalUnion(all=[true])";
 
 			std::string merge_aggregate_expr = get_aggregate_from_union_children(LOGICAL_MERGE_AGGREGATE_TEXT, p_tree);
 			std::string compute_aggregate_expr = get_aggregate_from_union_children(LOGICAL_COMPUTE_AGGREGATE_TEXT, p_tree);
