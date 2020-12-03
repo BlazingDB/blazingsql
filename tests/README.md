@@ -13,6 +13,8 @@ conda install --yes -c conda-forge openjdk=8.0 maven pyspark=3.0.0 pytest
 pip install pydrill openpyxl pymysql gitpython pynvml gspread oauth2client
 ```
 
+You will also need [Apache Drill](https://drill.apache.org/download/)
+
 ## Basic usage
 
 ```shell-script
