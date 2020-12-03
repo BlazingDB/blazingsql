@@ -42,8 +42,8 @@ gpuci_logger "Check GPU usage"
 nvidia-smi
 
 gpuci_logger "Activate conda env"
-conda create python=$PYTHON_VER -y -n bsql
-source activate bsql
+. /opt/conda/etc/profile.d/conda.sh
+conda activate rapids
 conda config --set ssl_verify False
 
 gpuci_logger "Installing BlazingSQL dev environment"
@@ -54,7 +54,7 @@ gpuci_logger "Install Dependencies"
 gpuci_conda_retry install --yes -c conda-forge spdlog=1.7.0 google-cloud-cpp=1.16 ninja
 
 # NOTE cython must be the same of cudf (for 0.11 and 0.12 cython is >=0.29,<0.30)
-gpuci_conda_retry install --yes openjdk=8.0 maven cmake=3.18.4 gtest gmock rapidjson cppzmq cython=0.29 jpype1 netifaces pyhive pytest
+gpuci_conda_retry install --yes openjdk=8.0 maven cmake=3.18.4 gtest gmock rapidjson cppzmq cython=0.29 jpype1 netifaces pyhive pytest numpy=1.19
 
 # install cudf
 gpuci_logger "Install RAPIDS dependencies"
