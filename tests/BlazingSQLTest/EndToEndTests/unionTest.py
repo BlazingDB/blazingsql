@@ -301,6 +301,29 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
+            queryId = "TEST_11"
+            query = """(select n_nationkey, n_name from nation
+                        inner join lineitem on n_nationkey = mod(l_suppkey, 1010)
+                        where n_name like 'INDIA'
+                    ) union
+			        ( select n_nationkey, n_name from nation
+                        inner join orders on n_nationkey = mod(o_orderkey, 1010)
+                        where n_name like 'INDIA'
+                    )"""
+            # TODO: local issue with Drill, enable this test
+            #runTest.run_query(
+            #    bc,
+            #    drill,
+            #    query,
+            #    queryId,
+            #    queryType,
+            #    worder,
+            #    "o_orderkey",
+            #    acceptable_difference,
+            #    use_percentage,
+            #    fileSchemaType,
+            #)
+
 
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")

@@ -139,20 +139,20 @@ struct tree_processor {
 	}
 
 	// if n = 5: then result: 0,1,2,3,3,4
-	std::string concat_first_n_numers_with_commas(std::size_t n) {
+	std::string concat_first_n_numers_with_commas(std::size_t num_cols) {
 		std::string result;
 
-		if (n == 0) {
+		if (num_cols == 0) {
 			result = "";
 		}
-		else if (n == 1) {
+		else if (num_cols == 1) {
 			result = "0";
 		}
 		else {
-			for (std::size_t i = 0; i < n - 1; ++i) {
+			for (std::size_t i = 0; i < num_cols - 1; ++i) {
 				result += std::to_string(i) + ",";
 			}
-			result += std::to_string(n - 1);
+			result += std::to_string(num_cols - 1);
 		}
 
 		return result;
@@ -170,28 +170,40 @@ struct tree_processor {
 			}
 		} else if (StringUtil::contains(expr, LOGICAL_PROJECT_TEXT)) {
 			num_cols = std::count(expr.begin(), expr.end(), '=');
+		// if the child of Union is another kind of Kernel, extract info about `num_col`
 		} else {
 			num_cols = 0;
-		} // TODO: if the child of Union is another kind of Kernel, extract info about `num_col`
+		}
 
 		return concat_first_n_numers_with_commas(num_cols);
 	}
 
 	std::string get_aggregate_from_union_children(std::string kernel_text, boost::property_tree::ptree p_tree) {
 
-		std::string agg_start = "(group=[{";
-		std::string agg_end = "}])";
-		std::string first_child_expr;
+		std::string child_expr_project_or_scan;
 
-		for (auto &child : p_tree.get_child("children")) {
-			// will get info from the first child
-			first_child_expr = child.second.get<std::string>("expr", "");
-			break;
+		bool not_found_project_or_scan = true;
+
+		while (not_found_project_or_scan) {
+			for (auto &child : p_tree.get_child("children")) {
+				child_expr_project_or_scan = child.second.get<std::string>("expr", "");
+				// we can determine the num of columns with any of these kernels
+				if (StringUtil::contains(child_expr_project_or_scan, LOGICAL_PROJECT_TEXT) ||
+					StringUtil::contains(child_expr_project_or_scan, BINDABLE_SCAN_TEXT) ||
+					StringUtil::contains(child_expr_project_or_scan, LOGICAL_SCAN_TEXT)) {
+					not_found_project_or_scan = false;
+					break;
+				} else {
+					p_tree = child.second;
+				}
+				// we just want the first children
+				break;
+			}
 		}
 
-		std::string union_children_n_colums = get_num_of_colums_to_union(first_child_expr);
+		std::string union_children_n_colums = get_num_of_colums_to_union(child_expr_project_or_scan);
 
-		return kernel_text + agg_start + union_children_n_colums + agg_end;
+		return kernel_text + "(group=[{" + union_children_n_colums + "}])";
 	}
 	
 	void transform_json_tree(boost::property_tree::ptree &p_tree) {
@@ -266,7 +278,8 @@ struct tree_processor {
 				p_tree.put("expr", merge_aggregate_expr);
 				p_tree.put_child("children", create_array_tree(distribute_aggregate_tree));
 			}
-		} else if (is_join(expr)) {
+		}
+		else if (is_join(expr)) {
 			if (this->context->getTotalNodes() == 1) {
 				// PartwiseJoin
 				auto pairwise_expr = expr;
