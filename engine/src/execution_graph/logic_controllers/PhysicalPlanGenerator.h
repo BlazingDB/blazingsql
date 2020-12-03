@@ -117,6 +117,7 @@ struct tree_processor {
 		}
 		return k;
 	}
+
 	std::size_t expr_tree_from_json(std::size_t kernel_id, boost::property_tree::ptree const& p_tree, node * root_ptr, int level, std::shared_ptr<ral::cache::graph> query_graph) {
 		auto expr = p_tree.get<std::string>("expr", "");
 		root_ptr->expr = expr;
@@ -137,6 +138,62 @@ struct tree_processor {
 		return children;
 	}
 
+	// if n = 5: then result: 0,1,2,3,3,4
+	std::string concat_first_n_numers_with_commas(std::size_t n) {
+		std::string result;
+
+		if (n == 0) {
+			result = "";
+		}
+		else if (n == 1) {
+			result = "0";
+		}
+		else {
+			for (std::size_t i = 0; i < n - 1; ++i) {
+				result += std::to_string(i) + ",";
+			}
+			result += std::to_string(n - 1);
+		}
+
+		return result;
+	}
+
+	std::string get_num_of_colums_to_union(std::string expr) {
+
+		std::size_t num_cols;
+
+		if (StringUtil::contains(expr, BINDABLE_SCAN_TEXT) || StringUtil::contains(expr, LOGICAL_SCAN_TEXT) ) {
+			if (StringUtil::contains(expr, "projects")) {
+				num_cols = get_projections(expr).size();
+			} else {
+				num_cols = this->schemas[0].get_names().size();
+			}
+		} else if (StringUtil::contains(expr, LOGICAL_PROJECT_TEXT)) {
+			num_cols = std::count(expr.begin(), expr.end(), '=');
+		} else {
+			num_cols = 0;
+		} // TODO: if the child of Union is another kind of Kernel, extract info about `num_col`
+
+		return concat_first_n_numers_with_commas(num_cols);
+	}
+
+	std::string get_aggregate_from_union_children(std::string kernel_text, boost::property_tree::ptree p_tree) {
+
+		std::string agg_start = "(group=[{";
+		std::string agg_end = "}])";
+		std::string first_child_expr;
+
+		for (auto &child : p_tree.get_child("children")) {
+			// will get info from the first child
+			first_child_expr = child.second.get<std::string>("expr", "");
+			break;
+		}
+
+		std::string union_children_n_colums = get_num_of_colums_to_union(first_child_expr);
+
+		return kernel_text + agg_start + union_children_n_colums + agg_end;
+	}
+	
 	void transform_json_tree(boost::property_tree::ptree &p_tree) {
 		std::string expr = p_tree.get<std::string>("expr", "");
 		if (is_sort(expr)){
@@ -232,6 +289,51 @@ struct tree_processor {
 				p_tree.put_child("children", create_array_tree(join_partition_tree));
 			}
 		}
+		// special case when the query contains UNION
+		else if (is_union(expr) && get_named_expression(expr, "all") == "false") {
+            expr = "LogicalUnion(all=[true])";
+
+			std::string merge_aggregate_expr = get_aggregate_from_union_children(LOGICAL_MERGE_AGGREGATE_TEXT, p_tree);
+			std::string compute_aggregate_expr = get_aggregate_from_union_children(LOGICAL_COMPUTE_AGGREGATE_TEXT, p_tree);
+			std::string distribute_aggregate_expr = get_aggregate_from_union_children(LOGICAL_DISTRIBUTE_AGGREGATE_TEXT, p_tree);
+
+			if (this->context->getTotalNodes() == 1) {
+
+				boost::property_tree::ptree root_union_tree;
+				root_union_tree.put("expr", expr);
+				root_union_tree.add_child("children", p_tree.get_child("children"));
+
+				boost::property_tree::ptree agg_union_tree;
+				agg_union_tree.put("expr", compute_aggregate_expr);
+				agg_union_tree.add_child("children", create_array_tree(root_union_tree));
+
+				p_tree.clear();
+
+				p_tree.put("expr", merge_aggregate_expr);
+				p_tree.put_child("children", create_array_tree(agg_union_tree));
+
+			} else {
+
+				boost::property_tree::ptree root_union_tree;
+				root_union_tree.put("expr", expr);
+				root_union_tree.add_child("children", p_tree.get_child("children"));
+
+				boost::property_tree::ptree compute_aggregate_tree;
+				compute_aggregate_tree.put("expr", compute_aggregate_expr);
+				compute_aggregate_tree.add_child("children", create_array_tree(root_union_tree));
+
+				boost::property_tree::ptree distribute_aggregate_tree;
+				distribute_aggregate_tree.put("expr", distribute_aggregate_expr);
+				distribute_aggregate_tree.add_child("children", create_array_tree(compute_aggregate_tree));
+
+				p_tree.clear();
+
+				p_tree.put("expr", merge_aggregate_expr);
+				p_tree.put_child("children", create_array_tree(distribute_aggregate_tree));
+			}
+
+		}
+
 		for (auto &child : p_tree.get_child("children")) {
 			transform_json_tree(child.second);
 		}

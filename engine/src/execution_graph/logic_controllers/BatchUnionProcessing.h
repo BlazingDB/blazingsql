@@ -32,7 +32,6 @@ public:
 		CodeTimer timer;
 
         bool isUnionAll = (get_named_expression(this->expression, "all") == "true");
-        RAL_EXPECTS(isUnionAll, "In UnionKernel: UNION is not supported, use UNION ALL");
 
         BatchSequenceBypass input_a(this->input_.get_cache("input_a"), this);
         BatchSequenceBypass input_b(this->input_.get_cache("input_b"), this);

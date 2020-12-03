@@ -39,6 +39,8 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
 
             print("==============================")
 
+            # ------------------ UNION ALL ---------------------
+
             queryId = "TEST_01"
             query = """(select o_orderkey, o_custkey from orders
                         where o_orderkey < 100
@@ -156,7 +158,6 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 use_percentage,
                 fileSchemaType,
                 query_spark=query_spark,
-                print_result=True,
             )
 
             queryId = "TEST_05"
@@ -228,6 +229,78 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 use_percentage,
                 fileSchemaType,
             )
+
+            # ------------------ UNION ---------------------
+
+            queryId = "TEST_08"
+            query = """(select o_orderkey, o_custkey from orders
+                        where o_orderkey < 100
+                    )
+                    union
+                    (
+                        select o_orderkey, o_custkey from orders
+                        where o_orderkey < 200 and o_orderkey >= 10
+                    )"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "o_orderkey",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_09"
+            query = """(select o_orderkey, o_custkey from orders
+                        where o_orderkey < 60
+                    )
+                    union
+                    (
+                        select o_orderkey, o_custkey from orders
+                        where o_orderkey < 200 and o_orderkey >= 10
+                    )
+                    order by 2"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "o_orderkey",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_10"
+            query = """(select o_orderkey, o_orderstatus, o_orderstatus
+                        from orders where o_orderkey < 100
+                    )
+                    union
+                    (
+                        select o_orderkey + 100.1 as o_orderkey,
+                        SUBSTRING(o_orderstatus, 2, 4), 'hello work'
+                        from orders where o_orderkey < 300
+                        and o_orderkey >= 5
+                    )"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "o_orderkey",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
 
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")
