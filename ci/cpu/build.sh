@@ -5,11 +5,6 @@
 ###########################################
 set -e
 
-# Logger function for build status output
-function logger() {
-  echo -e "\n>>>> $@\n"
-}
-
 export PARALLEL_LEVEL=4
 
 # Set home to the job's workspace
