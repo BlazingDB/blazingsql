@@ -1,8 +1,7 @@
 import asyncio
 
-import numpy as np
-
 import cudf
+import numpy as np
 import pytest
 import ucp
 from cudf.tests import utils as cudf_test
