@@ -1,15 +1,20 @@
 from setuptools import find_packages, setup
 
+
 def get_version():
     import subprocess
-    git_out = subprocess.Popen(["git", "describe", "--abbrev=0", "--tags"],
+
+    git_out = subprocess.Popen(
+        ["git", "describe", "--abbrev=0", "--tags"],
         stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE)
-    stdout,stderr = git_out.communicate()
+        stderr=subprocess.PIPE,
+    )
+    stdout, stderr = git_out.communicate()
     version = "0+unknown"
-    if len(stderr.decode())==0:
+    if len(stderr.decode()) == 0:
         version = stdout.split()[0].decode()
     return version
+
 
 install_requires = ["pyhive", "cudf", "dask-cudf", "dask", "distributed"]
 
