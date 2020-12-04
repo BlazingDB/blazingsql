@@ -32,8 +32,6 @@ public:
         std::shared_ptr<ral::cache::CacheMachine> output,
         cudaStream_t stream, std::string kernel_process_name) override {
 
-        // TODO: bring back the bypass optimization to avoid decaching to GPU memory
-
         auto & input = inputs[0];
         input->setNames(common_names);
         ral::utilities::normalize_types(input, common_types);
@@ -59,7 +57,9 @@ public:
         BlazingThread left_thread([this, &cache_machine_a, &cache_data_a](){
             while(cache_data_a != nullptr){
                 std::vector<cudf::data_type> data_types = cache_data_a->get_schema();
-                if (!std::equal(common_types.cbegin(), common_types.cend(), data_types.cbegin(), data_types.cend())){
+                std::vector<std::string> names = cache_data_a->names();
+                if (!std::equal(common_types.cbegin(), common_types.cend(), data_types.cbegin(), data_types.cend())
+                    || !std::equal(common_names.cbegin(), common_names.cend(), names.cbegin(), names.cend())){
                     std::vector<std::unique_ptr<ral::cache::CacheData>> inputs;
                     inputs.push_back(std::move(cache_data_a));
 
@@ -77,7 +77,9 @@ public:
         BlazingThread right_thread([this, &cache_machine_b, &cache_data_b](){
             while(cache_data_b != nullptr){
                 std::vector<cudf::data_type> data_types = cache_data_b->get_schema();
-                if (!std::equal(common_types.cbegin(), common_types.cend(), data_types.cbegin(), data_types.cend())){
+                std::vector<std::string> names = cache_data_b->names();
+                if (!std::equal(common_types.cbegin(), common_types.cend(), data_types.cbegin(), data_types.cend())
+                    || !std::equal(common_names.cbegin(), common_names.cend(), names.cbegin(), names.cend())){
                     std::vector<std::unique_ptr<ral::cache::CacheData>> inputs;
                     inputs.push_back(std::move(cache_data_b));
 
