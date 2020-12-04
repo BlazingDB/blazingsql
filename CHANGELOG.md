@@ -45,6 +45,7 @@
 - #1187 Enable MySQL-specific SQL operators in addition to Standard and Oracle
 - #1206 Improved contribution documentation 
 - #1224 Added cudaSetDevice to thread initialization so that the cuda context is available to UCX
+- #1231 Adding docker support for gpuCI scripts
 
 
 ## Bug Fixes
