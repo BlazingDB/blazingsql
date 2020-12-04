@@ -67,12 +67,11 @@ public:
                             std::move(inputs),
                             this->output_cache(),
                             this,
-                            "union");
-
-                    cache_data_a = cache_machine_a->pullCacheData();
+                            "union");                    
                 } else {
                     this->add_to_output_cache(std::move(cache_data_a));
                 }
+                cache_data_a = cache_machine_a->pullCacheData();                    
             }
         });
         BlazingThread right_thread([this, &cache_machine_b, &cache_data_b](){
@@ -86,12 +85,11 @@ public:
                             std::move(inputs),
                             this->output_cache(),
                             this,
-                            "union");
-
-                    cache_data_b = cache_machine_b->pullCacheData();
+                            "union");                    
                 } else {
                     this->add_to_output_cache(std::move(cache_data_b));
                 }
+                cache_data_b = cache_machine_b->pullCacheData();
             }
         });
         
