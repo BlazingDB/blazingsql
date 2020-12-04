@@ -13,6 +13,7 @@
 #include "execution_graph/logic_controllers/LogicalProject.h"
 #include <regex>
 
+#include <cudf/aggregation.hpp>
 #include <cudf/sorting.hpp>
 #include <cudf/replace.hpp>
 #include <cudf/stream_compaction.hpp>
@@ -97,24 +98,24 @@ AggregateKind get_aggregation_operation(std::string expression_in) {
 		"In get_aggregation_operation function: aggregation type not supported, " + operator_string);
 }
 
-cudf::aggregation::Kind convertAggregationCudf(AggregateKind input){
+std::unique_ptr<cudf::aggregation> makeCudfAggregation(AggregateKind input){
 	if(input == AggregateKind::SUM){
-		return cudf::aggregation::Kind::SUM;
+		return cudf::make_sum_aggregation();
 	}else if(input == AggregateKind::MEAN){
-		return cudf::aggregation::Kind::MEAN;
+		return cudf::make_mean_aggregation();
 	}else if(input == AggregateKind::MIN){
-		return cudf::aggregation::Kind::MIN;
+		return cudf::make_min_aggregation();
 	}else if(input == AggregateKind::MAX){
-		return cudf::aggregation::Kind::MAX;
+		return cudf::make_max_aggregation();
 	}else if(input == AggregateKind::COUNT_VALID){
-		return cudf::aggregation::Kind::COUNT_VALID;
+		return cudf::make_count_aggregation(cudf::null_policy::EXCLUDE);
 	}else if(input == AggregateKind::COUNT_ALL){
-		return cudf::aggregation::Kind::COUNT_ALL;
+		return cudf::make_count_aggregation(cudf::null_policy::INCLUDE);
 	}else if(input == AggregateKind::SUM0){
-		return cudf::aggregation::Kind::SUM;
+		return cudf::make_sum_aggregation();
 	}
 	throw std::runtime_error(
-		"In convertAggregationCudf function: AggregateKind type not supported");
+		"In makeCudfAggregation function: AggregateKind type not supported");
 }
 
 std::vector<int> get_group_columns(std::string query_part) {
@@ -230,8 +231,7 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_without_groupby(
 				numeric_s->set_value((int64_t)(aggregation_input.size() - aggregation_input.null_count()));
 				reductions.emplace_back(std::move(scalar));
 			} else {
-				std::unique_ptr<cudf::aggregation> agg =
-					std::make_unique<cudf::aggregation>(convertAggregationCudf(aggregation_types[i]));
+				std::unique_ptr<cudf::aggregation> agg = makeCudfAggregation(aggregation_types[i]);
 				cudf::type_id output_type = get_aggregation_output_type(aggregation_input.type().id(), aggregation_types[i], false);
 				std::unique_ptr<cudf::scalar> reduction_out = cudf::reduce(aggregation_input, agg, cudf::data_type(output_type));
 				if (aggregation_types[i] == AggregateKind::SUM0 && !reduction_out->is_valid()){ // if this aggregation was a SUM0, and it was not valid, we want it to be a valid 0 instead
@@ -304,7 +304,7 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
 					}
 					got_aggregation_input = true;
 				}
-				agg_ops_for_request.push_back(std::make_unique<cudf::aggregation>(convertAggregationCudf(aggregation_types[i])));
+				agg_ops_for_request.push_back(makeCudfAggregation(aggregation_types[i]));
 				agg_out_indices.push_back(i);  // this is to know what is the desired order of aggregations output
 
 				// if the aggregation was given an alias lets use it, otherwise we'll name it based on the aggregation and input
@@ -341,6 +341,7 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
 			agg_cols_out.emplace_back(std::move(result.second[i].results[j]));
 		}
 	}
+
 	for (int i = 0; i < agg_out_indices.size(); i++){
 		if (aggregation_types[agg_out_indices[i]] == AggregateKind::SUM0 && agg_cols_out[i]->null_count() > 0){
 			std::unique_ptr<cudf::scalar> scalar = get_scalar_from_string("0", agg_cols_out[i]->type()); // this does not need to be from a string, but this is a convenient way to make the scalar i need
@@ -361,7 +362,6 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
 	for (int i = 0; i < agg_out_indices.size(); i++){
 		output_names[agg_out_indices[i] + group_column_indices.size()] = agg_output_column_names[i];
 	}
-
 	return std::make_unique<BlazingTable>(std::move(output_table), output_names);
 }
 

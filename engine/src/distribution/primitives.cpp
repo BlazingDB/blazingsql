@@ -41,7 +41,7 @@ std::unique_ptr<BlazingTable> generatePartitionPlans(
 	// TODO this is just a default setting. Will want to be able to properly set null_order
 	std::unique_ptr<cudf::column> sort_indices = cudf::sorted_order( concatSamples->view(), sortOrderTypes, null_orders);
 
-	std::unique_ptr<CudfTable> sortedSamples = cudf::detail::gather( concatSamples->view(), sort_indices->view(), cudf::detail::out_of_bounds_policy::FAIL, cudf::detail::negative_index_policy::NOT_ALLOWED  );
+	std::unique_ptr<CudfTable> sortedSamples = cudf::detail::gather( concatSamples->view(), sort_indices->view(), cudf::out_of_bounds_policy::DONT_CHECK, cudf::detail::negative_index_policy::NOT_ALLOWED );
 
 	// lets get names from a non-empty table
 	std::vector<std::string> names;
@@ -155,7 +155,7 @@ std::unique_ptr<BlazingTable> getPivotPointsTable(cudf::size_type number_partiti
 
 	auto gather_map = ral::utilities::vector_to_column(sequence, cudf::data_type(cudf::type_id::INT32));
 
-	std::unique_ptr<CudfTable> pivots = cudf::detail::gather( sortedSamples.view(), gather_map->view(), cudf::detail::out_of_bounds_policy::FAIL, cudf::detail::negative_index_policy::NOT_ALLOWED );
+	std::unique_ptr<CudfTable> pivots = cudf::detail::gather( sortedSamples.view(), gather_map->view(), cudf::out_of_bounds_policy::DONT_CHECK, cudf::detail::negative_index_policy::NOT_ALLOWED );
 
 	return std::make_unique<BlazingTable>(std::move(pivots), sortedSamples.names());
 }
