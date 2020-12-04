@@ -56,30 +56,47 @@ public:
         bool strict = false;
         common_types = ral::utilities::get_common_types(cache_data_a->get_schema(), cache_data_b->get_schema(), strict);
 
-        while(cache_data_a != nullptr){
-            std::vector<std::unique_ptr<ral::cache::CacheData>> inputs;
-            inputs.push_back(std::move(cache_data_a));
+        BlazingThread left_thread([this, &cache_machine_a, &cache_data_a](){
+            while(cache_data_a != nullptr){
+                std::vector<cudf::data_type> data_types = cache_data_a->get_schema();
+                if (!std::equal(common_types.cbegin(), common_types.cend(), data_types.cbegin(), data_types.cend())){
+                    std::vector<std::unique_ptr<ral::cache::CacheData>> inputs;
+                    inputs.push_back(std::move(cache_data_a));
 
-            ral::execution::executor::get_instance()->add_task(
-                    std::move(inputs),
-                    this->output_cache(),
-                    this,
-                    "union");
+                    ral::execution::executor::get_instance()->add_task(
+                            std::move(inputs),
+                            this->output_cache(),
+                            this,
+                            "union");
 
-            cache_data_a = cache_machine_a->pullCacheData();
-        }
-        while(cache_data_b != nullptr){
-            std::vector<std::unique_ptr<ral::cache::CacheData>> inputs;
-            inputs.push_back(std::move(cache_data_b));
+                    cache_data_a = cache_machine_a->pullCacheData();
+                } else {
+                    this->add_to_output_cache(std::move(cache_data_a));
+                }
+            }
+        });
+        BlazingThread right_thread([this, &cache_machine_b, &cache_data_b](){
+            while(cache_data_b != nullptr){
+                std::vector<cudf::data_type> data_types = cache_data_b->get_schema();
+                if (!std::equal(common_types.cbegin(), common_types.cend(), data_types.cbegin(), data_types.cend())){
+                    std::vector<std::unique_ptr<ral::cache::CacheData>> inputs;
+                    inputs.push_back(std::move(cache_data_b));
 
-            ral::execution::executor::get_instance()->add_task(
-                    std::move(inputs),
-                    this->output_cache(),
-                    this,
-                    "union");
+                    ral::execution::executor::get_instance()->add_task(
+                            std::move(inputs),
+                            this->output_cache(),
+                            this,
+                            "union");
 
-            cache_data_b = cache_machine_b->pullCacheData();
-        }
+                    cache_data_b = cache_machine_b->pullCacheData();
+                } else {
+                    this->add_to_output_cache(std::move(cache_data_b));
+                }
+            }
+        });
+        
+        left_thread.join();
+        right_thread.join();
 
         if(logger != nullptr) {
             logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",

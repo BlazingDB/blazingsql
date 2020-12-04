@@ -1162,6 +1162,7 @@ def load_config_options_from_env(user_config_options: dict):
         "BLAZING_LOCAL_LOGGING_DIRECTORY": "blazing_log",
         "MEMORY_MONITOR_PERIOD": 50,
         "MAX_KERNEL_RUN_THREADS": 16,
+        "EXECUTOR_THREADS": 10,
         "MAX_SEND_MESSAGE_THREADS": 20,
         "LOGGING_LEVEL": "trace",
         "LOGGING_FLUSH_LEVEL": "warn",
@@ -1319,6 +1320,9 @@ class BlazingContext(object):
             MAX_KERNEL_RUN_THREADS : The number of threads available to run
                     kernels simultaneously.
                     default: 16
+            EXECUTOR_THREADS : The number of threads available to run executor
+                    tasks simultaneously.
+                    default: 10
             MAX_SEND_MESSAGE_THREADS : The number of threads available to send
                     outgoing messages.
                     default: 20
