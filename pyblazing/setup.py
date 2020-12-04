@@ -1,8 +1,10 @@
 from setuptools import find_packages, setup
 
 def get_version():
-    import os
-    version = os.system("git describe --abbrev=0 --tags")
+    import subprocess
+    git_out = subprocess.Popen(["git", "describe", "--abbrev=0", "--tags"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    stdout,stderr = git_out.communicate()
+    version = stdout.split()[0]
     print("## VERSION ## %s", version)
     return version
 
