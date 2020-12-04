@@ -13,6 +13,7 @@ def get_version():
     version = "0+unknown"
     if len(stderr.decode()) == 0:
         version = stdout.split()[0].decode()
+        version = version.replace("v", "")
     return version
 
 
