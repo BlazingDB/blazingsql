@@ -1,10 +1,16 @@
 from setuptools import find_packages, setup
 
+def get_version():
+    import os
+    version = os.system("git describe --abbrev=0 --tags")
+    print("## VERSION ## %s", version)
+    return version
+
 install_requires = ["pyhive", "cudf", "dask-cudf", "dask", "distributed"]
 
 setup(
     name="blazingsql",
-    version="0.6",
+    version=get_version(),
     description="BlazingSQL engine",
     url="https://github.com/BlazingDB/pyBlazing/",
     author="BlazingSQL",
