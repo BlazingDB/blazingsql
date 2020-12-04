@@ -199,6 +199,8 @@ struct tree_processor {
 				// we just want the first children
 				break;
 			}
+
+			if (p_tree.get<std::string>("expr", "") == "") not_found_project_or_scan = false;
 		}
 
 		std::string union_children_n_colums = get_num_of_colums_to_union(child_expr_project_or_scan);
