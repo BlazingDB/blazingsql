@@ -152,14 +152,15 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
             int32_t start = arg_tokens.size() == 4 ? std::stoi(arg_tokens[3]) : 0;
             int32_t prefix = 0;
 
-            std::unique_ptr<cudf::column> prefix_col = cudf::strings::slice_strings(column, prefix, start);
-            cudf::column_view post_replace_view = cudf::strings::replace_with_backrefs(
+            auto prefix_col = cudf::strings::slice_strings(column, prefix, start);
+            auto post_replace_col = cudf::strings::replace_with_backrefs(
                 cudf::column_view(cudf::strings::slice_strings(column, start)->view()),
                 pattern,
-                repl)->view();
+                repl
+            );
 
             computed_col = cudf::strings::concatenate(
-                cudf::table_view{{prefix_col->view(), post_replace_view}}
+                cudf::table_view{{prefix_col->view(), post_replace_col->view()}}
             );
         } else {
             computed_col = cudf::strings::replace_with_backrefs(column, pattern, repl);
