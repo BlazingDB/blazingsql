@@ -20,7 +20,7 @@ source:
 
 requirements:
     build:
-        - cmake
+        - cmake 3.18.4
         - ninja
         - gtest
         - aws-sdk-cpp

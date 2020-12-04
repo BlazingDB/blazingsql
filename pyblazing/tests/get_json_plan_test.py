@@ -1,4 +1,5 @@
 import pytest
+
 from pyblazing.apiv2.algebra import get_json_plan
 
 

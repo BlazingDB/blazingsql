@@ -4,10 +4,9 @@ namespace comm {
 
 message_sender * message_sender::instance = nullptr;
 
-
 message_sender * message_sender::get_instance() {
 	if(instance == NULL) {
-        throw std::exception();
+		throw std::exception();
 	}
 	return instance;
 }
@@ -60,7 +59,7 @@ void message_sender::run_polling() {
 		polling_started = true;
 
 		auto thread = std::thread([this]{
-		// cudaSetDevice(0);
+		cudaSetDevice(0);
 
 		while(true) {
 			std::vector<std::unique_ptr<ral::cache::CacheData> > cache_datas = output_cache->pull_all_cache_data();
