@@ -14,7 +14,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
     start_mem = gpuMemory.capture_gpu_memory_usage()
 
     def executionTest():
-        tables = ["orders"]
+        tables = ["orders", "nation", "lineitem"]
         data_types = [
             DataType.DASK_CUDF,
             DataType.CUDF,
@@ -302,27 +302,26 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             )
 
             queryId = "TEST_11"
-            query = """(select n_nationkey, n_name from nation
-                        inner join lineitem on n_nationkey = mod(l_suppkey, 1010)
-                        where n_name like 'INDIA'
+            query = """(select nat1.n_nationkey, nat1.n_name from nation as nat1
+                        inner join lineitem on nat1.n_nationkey = mod(l_suppkey, 1010)
+                        where nat1.n_name like 'INDIA'
                     ) union
-			        ( select n_nationkey, n_name from nation
-                        inner join orders on n_nationkey = mod(o_orderkey, 1010)
-                        where n_name like 'INDIA'
+			        ( select nat2.n_nationkey, nat2.n_name from nation as nat2
+                        inner join orders on nat2.n_nationkey = mod(o_orderkey, 1010)
+                        where nat2.n_name like 'INDIA'
                     )"""
-            # TODO: local issue with Drill, enable this test
-            #runTest.run_query(
-            #    bc,
-            #    drill,
-            #    query,
-            #    queryId,
-            #    queryType,
-            #    worder,
-            #    "o_orderkey",
-            #    acceptable_difference,
-            #    use_percentage,
-            #    fileSchemaType,
-            #)
+            runTest.run_query(
+               bc,
+               spark,
+               query,
+               queryId,
+               queryType,
+               worder,
+               "",
+               acceptable_difference,
+               use_percentage,
+               fileSchemaType,
+            )
 
 
             if Settings.execution_mode == ExecutionMode.GENERATOR:
