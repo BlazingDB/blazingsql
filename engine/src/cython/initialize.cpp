@@ -708,14 +708,21 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 	logger->debug("|||{info}|||||","info"_a=alloc_info);
 
 
+	std::string orc_files_path;
+	iter = config_options.find("BLAZING_CACHE_DIRECTORY");
+	if (iter != config_options.end()) {
+		orc_files_path = config_options["BLAZING_CACHE_DIRECTORY"];
+	}
+	if (!singleNode) {
+		orc_files_path += "/" + ralId;
+	}
+
 	auto & communicationData = ral::communication::CommunicationData::getInstance();
+	communicationData.initialize(worker_id, orc_files_path);
 
 	auto output_input_caches = std::make_pair(std::make_shared<CacheMachine>(nullptr, false,CACHE_LEVEL_CPU ),std::make_shared<CacheMachine>(nullptr, false));
 
 	// start ucp servers
-
-	communicationData.initialize(worker_id);
-
 	if(!singleNode){
 		std::map<std::string, comm::node> nodes_info_map;
 

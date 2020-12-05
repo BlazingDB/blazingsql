@@ -49,11 +49,11 @@ std::unique_ptr<ral::frame::BlazingTable> CacheDataLocalFile::decache() {
 	return std::make_unique<ral::frame::BlazingTable>(std::move(result.tbl), this->names());
 }
 
-CacheDataLocalFile::CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable> table, std::string orc_files_path)
+CacheDataLocalFile::CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable> table, std::string orc_files_path, std::string ctx_token)
 	: CacheData(CacheDataType::LOCAL_FILE, table->names(), table->get_schema(), table->num_rows())
 {
 	this->size_in_bytes = table->sizeInBytes();
-	this->filePath_ = orc_files_path + "/.blazing-temp-" + randomString(64) + ".orc";
+	this->filePath_ = orc_files_path + "/.blazing-temp-" + ctx_token + "-" + randomString(64) + ".orc";
 
 	cudf::io::table_metadata metadata;
 	for(auto name : table->names()) {
@@ -346,13 +346,8 @@ bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, c
 
 						// BlazingMutableThread t([table = std::move(table), this, cacheIndex, message_id]() mutable {
 						// want to get only cache directory where orc files should be saved
-						std::map<std::string, std::string> config_options = ctx->getConfigOptions();
-						auto it = config_options.find("BLAZING_CACHE_DIRECTORY");
-						std::string orc_files_path;
-						if (it != config_options.end()) {
-							orc_files_path = config_options["BLAZING_CACHE_DIRECTORY"];
-						}
-						auto cache_data = std::make_unique<CacheDataLocalFile>(std::move(table), orc_files_path);
+						std::string orc_files_path = ral::communication::CommunicationData::getInstance().get_cache_directory();
+						auto cache_data = std::make_unique<CacheDataLocalFile>(std::move(table), orc_files_path, (ctx ? std::to_string(ctx->getContextToken()) : "none"));
 						auto item =	std::make_unique<message>(std::move(cache_data), message_id);
 						this->waitingCache->put(std::move(item));
 						// NOTE: Wait don't kill the main process until the last thread is finished!
@@ -529,13 +524,8 @@ size_t CacheMachine::downgradeCacheData() {
 						}
 
 						// want to get only cache directory where orc files should be saved
-						std::map<std::string, std::string> config_options = ctx->getConfigOptions();
-						auto it = config_options.find("BLAZING_CACHE_DIRECTORY");
-						std::string orc_files_path;
-						if (it != config_options.end()) {
-							orc_files_path = config_options["BLAZING_CACHE_DIRECTORY"];
-						}
-						auto cache_data = std::make_unique<CacheDataLocalFile>(std::move(table), orc_files_path);
+						std::string orc_files_path = ral::communication::CommunicationData::getInstance().get_cache_directory();
+						auto cache_data = std::make_unique<CacheDataLocalFile>(std::move(table), orc_files_path, (ctx ? std::to_string(ctx->getContextToken()) : "none"));
 						auto new_message = std::make_unique<message>(std::move(cache_data), message_id);
 						all_messages[i] = std::move(new_message);
 					}

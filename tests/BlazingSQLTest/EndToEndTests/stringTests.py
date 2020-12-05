@@ -280,6 +280,45 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
+            queryId = "TEST_14"
+            query = """SELECT
+                REVERSE(c_comment) as reversed_c,
+                SUBSTRING(REVERSE(c_comment), 2, 10) as sub_reversed_c,
+                CAST(SUBSTRING(REVERSE(c_comment), 2, 10) LIKE '%or%' AS INT) as cast_sub_reversed_c
+                FROM customer
+                """
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_15"
+            query = """SELECT
+                COUNT(SUBSTRING(REVERSE(c_comment), 2, 10)) as reverse_subbed_count
+                FROM customer
+                GROUP BY SUBSTRING(REVERSE(c_comment), 2, 10)
+                """
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")
                 break
