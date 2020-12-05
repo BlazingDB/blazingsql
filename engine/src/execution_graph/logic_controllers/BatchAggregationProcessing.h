@@ -38,11 +38,20 @@ public:
             aggregation_column_assigned_aliases) = ral::operators::parseGroupByExpression(this->expression);
 
         bool ordered = false; // If we start using sort based aggregations this may need to change
+        bool is_union = true;
         BatchSequence input(this->input_cache(), this, ordered);
         int batch_count = 0;
         while (input.wait_for_next()) {
 
             auto batch = input.next();
+
+            // in case UNION statement exists, we want to know the num of cols
+            if (is_union && StringUtil::contains(this->expression, "group=[{*}]")) {
+                StringUtil::findAndReplaceAll(this->expression, "*", StringUtil::makeCommaDelimitedSequence(batch->num_columns()));
+                std::tie(this->group_column_indices, aggregation_input_expressions, this->aggregation_types,
+                    aggregation_column_assigned_aliases) = ral::operators::parseGroupByExpression(this->expression);
+                is_union = false;  // to avoid this condition multiple times
+            }
 
             eventTimer.start();
 
@@ -150,7 +159,6 @@ public:
 
         std::vector<cudf::size_type> columns_to_hash;
         std::transform(group_column_indices.begin(), group_column_indices.end(), std::back_inserter(columns_to_hash), [](int index) { return (cudf::size_type)index; });
-        std::map<std::string, int> node_count;
 
         // num_partitions = context->getTotalNodes() will do for now, but may want a function to determine this in the future.
         // If we do partition into something other than the number of nodes, then we have to use part_ids and change up more of the logic
@@ -158,12 +166,21 @@ public:
         bool set_empty_part_for_non_master_node = false; // this is only for aggregation without group by
 
         bool ordered = false; // If we start using sort based aggregations this may need to change
+        bool is_union = true;
         BatchSequence input(this->input_cache(), this, ordered);
         int batch_count = 0;
 
-
         while (input.wait_for_next()) {
             auto batch = input.next();
+
+            // in case UNION statement exists, we want to know the num of cols
+            if (is_union && StringUtil::contains(this->expression, "group=[{*}]")) {
+                StringUtil::findAndReplaceAll(this->expression, "*", StringUtil::makeCommaDelimitedSequence(batch->num_columns()));
+                std::tie(group_column_indices, aggregation_input_expressions, aggregation_types,
+                    aggregation_column_assigned_aliases) = ral::operators::parseGroupByExpression(this->expression);
+                std::transform(group_column_indices.begin(), group_column_indices.end(), std::back_inserter(columns_to_hash), [](int index) { return (cudf::size_type)index; });
+                is_union = false;  // to avoid this condition multiple times
+            }
 
             try {
                 // If its an aggregation without group by we want to send all the results to the master node
@@ -255,7 +272,6 @@ public:
 private:
 };
 
-
 class MergeAggregateKernel : public kernel {
 public:
 	MergeAggregateKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
@@ -296,6 +312,9 @@ public:
 
             auto log_input_num_rows = concatenated ? concatenated->num_rows() : 0;
             auto log_input_num_bytes = concatenated ? concatenated->sizeInBytes() : 0;
+
+            // in case UNION statement exists
+            StringUtil::findAndReplaceAll(this->expression, "*", StringUtil::makeCommaDelimitedSequence(concatenated->num_columns()));
 
             std::vector<int> group_column_indices;
             std::vector<std::string> aggregation_input_expressions, aggregation_column_assigned_aliases;

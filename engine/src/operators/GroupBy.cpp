@@ -137,15 +137,27 @@ std::vector<int> get_group_columns(std::string query_part) {
 std::tuple<std::vector<int>, std::vector<std::string>, std::vector<AggregateKind>,std::vector<std::string>>
 	parseGroupByExpression(const std::string & queryString){
 
-	auto rangeStart = queryString.find("(");
-	auto rangeEnd = queryString.rfind(")") - rangeStart;
-	std::string combined_expression = queryString.substr(rangeStart + 1, rangeEnd - 1);
-
-	std::vector<int> group_column_indices = get_group_columns(combined_expression);
+	std::vector<AggregateKind> aggregation_types;
+	std::vector<std::string> aggregation_input_expressions;
+	std::vector<int> group_column_indices;
 
 	// Get aggregations
 	std::vector<std::string> aggregation_expressions;
 	std::vector<std::string> aggregation_column_assigned_aliases;
+
+	auto rangeStart = queryString.find("(");
+	auto rangeEnd = queryString.rfind(")") - rangeStart;
+	std::string combined_expression = queryString.substr(rangeStart + 1, rangeEnd - 1);
+
+	// for UNION case
+	if (combined_expression == "group=[{*}]") {
+		// will return not useful info
+		return std::make_tuple(std::move(group_column_indices), std::move(aggregation_input_expressions),
+		std::move(aggregation_types), std::move(aggregation_column_assigned_aliases));
+	} else {
+		group_column_indices = get_group_columns(combined_expression);
+	}
+
 	std::vector<std::string> expressions = get_expressions_from_expression_list(combined_expression);
 	for(std::string expr : expressions) {
 		std::string expression = std::regex_replace(expr, std::regex("^ +| +$|( ) +"), "$1");
@@ -160,8 +172,7 @@ std::tuple<std::vector<int>, std::vector<std::string>, std::vector<AggregateKind
 				aggregation_column_assigned_aliases.push_back(expression.substr(0, expression.find("=[")));
 		}
 	}
-	std::vector<AggregateKind> aggregation_types;
-	std::vector<std::string> aggregation_input_expressions;
+
 	for(std::string expression : aggregation_expressions) {
 		aggregation_types.push_back(get_aggregation_operation(expression));
 		aggregation_input_expressions.push_back(get_string_between_outer_parentheses(expression));

@@ -14,7 +14,6 @@
 
 using namespace fmt::literals;
 
-
 namespace ral {
 namespace batch {
 
@@ -138,76 +137,6 @@ struct tree_processor {
 		return children;
 	}
 
-	// if n = 5: then result: 0,1,2,3,3,4
-	std::string concat_first_n_numers_with_commas(std::size_t num_cols) {
-		std::string result;
-
-		if (num_cols == 0) {
-			result = "";
-		}
-		else if (num_cols == 1) {
-			result = "0";
-		}
-		else {
-			for (std::size_t i = 0; i < num_cols - 1; ++i) {
-				result += std::to_string(i) + ",";
-			}
-			result += std::to_string(num_cols - 1);
-		}
-
-		return result;
-	}
-
-	std::string get_num_of_colums_to_union(std::string expr) {
-
-		std::size_t num_cols;
-
-		if (StringUtil::contains(expr, BINDABLE_SCAN_TEXT) || StringUtil::contains(expr, LOGICAL_SCAN_TEXT) ) {
-			if (StringUtil::contains(expr, "projects")) {
-				num_cols = get_projections(expr).size();
-			} else {
-				num_cols = this->schemas[0].get_names().size();
-			}
-		} else if (StringUtil::contains(expr, LOGICAL_PROJECT_TEXT)) {
-			num_cols = std::count(expr.begin(), expr.end(), '=');
-		// if the child of Union is another kind of Kernel, extract info about `num_col`
-		} else {
-			num_cols = 0;
-		}
-
-		return concat_first_n_numers_with_commas(num_cols);
-	}
-
-	std::string get_aggregate_from_union_children(std::string kernel_text, boost::property_tree::ptree p_tree) {
-
-		std::string child_expr_project_or_scan;
-
-		bool not_found_project_or_scan = true;
-
-		while (not_found_project_or_scan) {
-			for (auto &child : p_tree.get_child("children")) {
-				child_expr_project_or_scan = child.second.get<std::string>("expr", "");
-				// we can determine the num of columns with any of these kernels
-				if (StringUtil::contains(child_expr_project_or_scan, LOGICAL_PROJECT_TEXT) ||
-					StringUtil::contains(child_expr_project_or_scan, BINDABLE_SCAN_TEXT) ||
-					StringUtil::contains(child_expr_project_or_scan, LOGICAL_SCAN_TEXT)) {
-					not_found_project_or_scan = false;
-					break;
-				} else {
-					p_tree = child.second;
-				}
-				// we just want the first children
-				break;
-			}
-
-			if (p_tree.get<std::string>("expr", "") == "") not_found_project_or_scan = false;
-		}
-
-		std::string union_children_n_colums = get_num_of_colums_to_union(child_expr_project_or_scan);
-
-		return kernel_text + "(group=[{" + union_children_n_colums + "}])";
-	}
-	
 	void transform_json_tree(boost::property_tree::ptree &p_tree) {
 		std::string expr = p_tree.get<std::string>("expr", "");
 		if (is_sort(expr)){
@@ -308,9 +237,10 @@ struct tree_processor {
 		else if (is_union(expr) && get_named_expression(expr, "all") == "false") {
 			expr = "LogicalUnion(all=[true])";
 
-			std::string merge_aggregate_expr = get_aggregate_from_union_children(LOGICAL_MERGE_AGGREGATE_TEXT, p_tree);
-			std::string compute_aggregate_expr = get_aggregate_from_union_children(LOGICAL_COMPUTE_AGGREGATE_TEXT, p_tree);
-			std::string distribute_aggregate_expr = get_aggregate_from_union_children(LOGICAL_DISTRIBUTE_AGGREGATE_TEXT, p_tree);
+			// when UNION, we want to do a group by on all columns without aggregations.
+			std::string merge_aggregate_expr = LOGICAL_MERGE_AGGREGATE_TEXT + "(group=[{*}])";
+			std::string compute_aggregate_expr = LOGICAL_COMPUTE_AGGREGATE_TEXT + "(group=[{*}])";
+			std::string distribute_aggregate_expr = LOGICAL_DISTRIBUTE_AGGREGATE_TEXT + "(group=[{*}])";
 
 			if (this->context->getTotalNodes() == 1) {
 
