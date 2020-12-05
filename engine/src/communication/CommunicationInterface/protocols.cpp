@@ -41,7 +41,7 @@ namespace io{
 		}
     }
 
-    void write_to_socket(int socket_fd, void * data, size_t write_size){
+    void write_to_socket(int socket_fd, const void * data, size_t write_size){
 		size_t amount_written = 0;
 		int bytes_written = 0;
 		int count_invalids = 0;
@@ -310,45 +310,12 @@ void tcp_buffer_transport::send_begin_transmission(){
 }
 
 void tcp_buffer_transport::send_impl(const char * buffer, size_t buffer_size){
-    //this is where it gets fuzzy...
-
-    //allocate pinned + copy from gpu
-    //transmit
-    size_t pinned_buffer_size = blazingdb::transport::io::getPinnedBufferProvider().sizeBuffers();
-    size_t num_chunks = (buffer_size +(pinned_buffer_size - 1))/ pinned_buffer_size;
-    std::vector<blazingdb::transport::io::PinnedBuffer *> buffers(num_chunks);
-
-    for( size_t chunk = 0; chunk < num_chunks; chunk++ ){
-
-        size_t chunk_size = pinned_buffer_size;
-        if(( chunk + 1) == num_chunks){ // if its the last chunk, we chunk_size is different
-            chunk_size = buffer_size - (chunk * pinned_buffer_size);
-        }
-        auto buffer_chunk_start = buffer + (chunk * pinned_buffer_size);
-
-
-        auto pinned_buffer = blazingdb::transport::io::getPinnedBufferProvider().getBuffer();
-        pinned_buffer->use_size = chunk_size;
-        cudaMemcpyAsync(pinned_buffer->data,buffer_chunk_start,chunk_size,cudaMemcpyDeviceToHost,stream);
-        buffers[chunk] = pinned_buffer;
-    }
-    size_t chunk = 0;
     try{
-        cudaStreamSynchronize(stream);
-        while(chunk < num_chunks){
-
-            auto pinned_buffer = buffers[chunk];
-            for (auto socket_fd : socket_fds){
-               // io::write_to_socket(socket_fd, &pinned_buffer->use_size,sizeof(pinned_buffer->use_size));
-                io::write_to_socket(socket_fd, pinned_buffer->data,pinned_buffer->use_size);
-            }
-            blazingdb::transport::io::getPinnedBufferProvider().freeBuffer(pinned_buffer);
-            chunk++;
-        }
-
         for (auto socket_fd : socket_fds){
+            io::write_to_socket(socket_fd, buffer,buffer_size);
             increment_frame_transmission();
         }
+        
     }catch(const std::exception & e ){
         throw;
     }

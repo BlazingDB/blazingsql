@@ -71,7 +71,7 @@ public:
     if (index >= _raw_buffers.size()) {
       throw std::runtime_error("Invalid access to raw buffer");
     }
-    _raw_buffers[index].resize(_buffer_sizes[index],stream);
+    _raw_buffers[index].resize(_buffer_sizes[index]);//,stream);
 
   }
 
@@ -88,7 +88,10 @@ public:
   }
 
   void * get_buffer(uint16_t index){
-    return _raw_buffers[index].data();
+    //this is ugly. We are currently doing this because
+    //the UCX apis expect a void * instead of a const void * for
+    //buffers it will fill but that it wont allocate
+    return &_raw_buffers[index][0];
   }
 
 
@@ -97,13 +100,12 @@ public:
   }
 
   void finish(cudaStream_t stream = 0) {
-    std::unique_ptr<ral::frame::BlazingTable> table = deserialize_from_gpu_raw_buffers(_column_transports, _raw_buffers,stream);
-    if ( _metadata.get_values()[ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL] == "true"){
-      _output_cache->addToCache(std::move(table),  _metadata.get_values()[ral::cache::MESSAGE_ID], true);      
-    } else {
+    std::unique_ptr<ral::cache::CacheData> table = 
+      std::make_unique<ral::cache::CPUCacheData>(_column_transports,std::move(_raw_buffers),_metadata);
+  
       _output_cache->addCacheData(
-              std::make_unique<ral::cache::GPUCacheDataMetaData>(std::move(table), _metadata), _metadata.get_values()[ral::cache::MESSAGE_ID], true);
-    }
+              std::move(table), _metadata.get_values()[ral::cache::MESSAGE_ID], true);
+    
   }
 private:
 
@@ -112,7 +114,7 @@ private:
   std::shared_ptr<ral::cache::CacheMachine> _output_cache;
   ral::cache::MetadataDictionary _metadata;
   std::vector<size_t> _buffer_sizes;
-  std::vector<rmm::device_buffer> _raw_buffers;
+  std::vector<std::basic_string<char>> _raw_buffers;
   std::map<std::string, comm::node> _nodes_info_map;
   int _buffer_counter = 0;
 };

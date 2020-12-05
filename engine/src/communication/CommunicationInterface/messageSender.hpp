@@ -82,19 +82,19 @@ public:
 
 
 
-						auto * gpu_cache_data = static_cast<ral::cache::GPUCacheDataMetaData *>(cache_data.get());
-						auto data_and_metadata = gpu_cache_data->decacheWithMetaData();
-						auto & metadata = data_and_metadata.second;
-						auto & table = data_and_metadata.first;
+						auto * cpu_cache_data = static_cast<ral::cache::CPUCacheData *>(cache_data.get());
+						auto table = cpu_cache_data->releaseHostTable();
+						auto metadata = cpu_cache_data->getMetadata();
 
 						std::vector<std::size_t> buffer_sizes;
 						std::vector<const char *> raw_buffers;
-						std::vector<blazingdb::transport::ColumnTransport> column_transports;
-						std::vector<std::unique_ptr<rmm::device_buffer>> temp_scope_holder;
-
-						std::tie(buffer_sizes, raw_buffers, column_transports, temp_scope_holder) =
-							serialize_gpu_message_to_gpu_containers(table->toBlazingTableView());
-
+						for(auto buffer : table->get_raw_buffers()){
+							raw_buffers.push_back(buffer.data());
+							buffer_sizes.push_back(buffer.size());
+						}
+						
+						std::vector<blazingdb::transport::ColumnTransport> column_transports = table->get_columns_offsets();
+						
 						try {
 							// tcp / ucp
 							auto metadata_map = metadata.get_values();

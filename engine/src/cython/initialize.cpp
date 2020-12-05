@@ -710,7 +710,7 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 
 	auto & communicationData = ral::communication::CommunicationData::getInstance();
 
-	auto output_input_caches = std::make_pair(std::make_shared<CacheMachine>(nullptr, false),std::make_shared<CacheMachine>(nullptr, false));
+	auto output_input_caches = std::make_pair(std::make_shared<CacheMachine>(nullptr, false,CACHE_LEVEL_CPU ),std::make_shared<CacheMachine>(nullptr, false));
 
 	// start ucp servers
 

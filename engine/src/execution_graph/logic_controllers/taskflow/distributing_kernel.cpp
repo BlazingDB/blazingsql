@@ -63,9 +63,9 @@ void distributing_kernel::send_message(std::unique_ptr<ral::frame::BlazingTable>
 
     bool added;
     if(table==nullptr) {
-        added = output_cache->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(ral::utilities::create_empty_table({}, {}), metadata), "", always_add);
+        table = ral::utilities::create_empty_table({}, {});
     } else {
-        added = output_cache->addCacheData(std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(std::move(table), metadata)), "", always_add);
+        added = output_cache->addToCache(std::move(table),"",always_add,metadata,true);
     }
 
     if(wait_for) {

@@ -12,7 +12,7 @@
 
 namespace io{
     void read_from_socket(int socket_fd, void * data, size_t read_size);
-    void write_to_socket(int socket_fd, void * data, size_t read_size);
+    void write_to_socket(int socket_fd, const void * data, size_t read_size);
 }
 
 
