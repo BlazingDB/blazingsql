@@ -16,7 +16,7 @@
 - #1193 Implement string REPLACE
 - #1201 Implement string TRIM
 - #1216 Add unit test for DAYOFWEEK
-
+- #1235 Reducing Memory pressure by moving shuffle data to cpu before transmission
 
 ## Improvements
 - #878 Adding calcite rule for window functions. (Window functions not supported yet)
