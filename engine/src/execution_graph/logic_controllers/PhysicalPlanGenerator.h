@@ -63,7 +63,7 @@ struct tree_processor {
 
 		} else if ( is_logical_scan(expr) ) {
 			size_t table_index = get_table_index(table_scans, expr);
-			k = std::make_shared<TableScan>(kernel_id, expr, this->input_loaders[table_index], this->schemas[table_index], kernel_context, query_graph);
+			k = std::make_shared<TableScan>(kernel_id, expr, this->input_loaders[table_index].get_provider()->clone(),this->input_loaders[table_index].get_parser(), this->schemas[table_index], kernel_context, query_graph);
 			// lets erase the input_loaders and corresponding table_name and table_scan so that if we have a repeated table_scan, we dont reuse it
 			input_loaders.erase(input_loaders.begin() + table_index);
 			table_names.erase(table_names.begin() + table_index);
@@ -72,7 +72,7 @@ struct tree_processor {
 
 		} else if (is_bindable_scan(expr)) {
 			size_t table_index = get_table_index(table_scans, expr);
-			k = std::make_shared<BindableTableScan>(kernel_id, expr, this->input_loaders[table_index], this->schemas[table_index], kernel_context, query_graph);
+			k = std::make_shared<BindableTableScan>(kernel_id, expr, this->input_loaders[table_index].get_provider()->clone(),this->input_loaders[table_index].get_parser(), this->schemas[table_index], kernel_context, query_graph);
 			// lets erase the input_loaders and corresponding table_name and table_scan so that if we have a repeated table_scan, we dont reuse it
 			input_loaders.erase(input_loaders.begin() + table_index);
 			table_names.erase(table_names.begin() + table_index);

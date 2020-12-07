@@ -31,39 +31,47 @@ public:
 		this->input_.add_port("input_a", "input_b");
 	}
 
+	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+		std::shared_ptr<ral::cache::CacheMachine> output,
+		cudaStream_t stream, std::string kernel_process_name) override{
+		auto & input = inputs[0];
+
+		auto partitions = ral::operators::partition_table(partitionPlan->toBlazingTableView(), input->toBlazingTableView(), this->expression);
+
+		for (auto i = 0; i < partitions.size(); i++) {
+			std::string cache_id = "output_" + std::to_string(i);
+			this->add_to_output_cache(
+				std::make_unique<ral::frame::BlazingTable>(std::make_unique<cudf::table>(partitions[i]), input->names()),
+				cache_id
+				);
+		}
+	}
+
 	virtual kstatus run() {
 		CodeTimer timer;
 
 		BatchSequence input_partitionPlan(this->input_.get_cache("input_b"), this);
-		auto partitionPlan = std::move(input_partitionPlan.next());
+		partitionPlan = std::move(input_partitionPlan.next());
 
-		bool ordered = false;
-		BatchSequence input(this->input_.get_cache("input_a"), this, ordered);
-		int batch_count = 0;
-		while (input.wait_for_next()) {
-			try {
-				auto batch = input.next();
-				auto partitions = ral::operators::partition_table(partitionPlan->toBlazingTableView(), batch->toBlazingTableView(), this->expression);
+		while(this->input_.get_cache("input_a")->wait_for_next()){
+			std::unique_ptr <ral::cache::CacheData> cache_data = this->input_.get_cache("input_a")->pullCacheData();
 
-				for (auto i = 0; i < partitions.size(); i++) {
-					std::string cache_id = "output_" + std::to_string(i);
-					this->add_to_output_cache(
-						std::make_unique<ral::frame::BlazingTable>(std::make_unique<cudf::table>(partitions[i]), batch->names()),
-						cache_id
-						);
-				}
-				batch_count++;
-			} catch(const std::exception& e) {
-				// TODO add retry here
-				logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
-											"query_id"_a=context->getContextToken(),
-											"step"_a=context->getQueryStep(),
-											"substep"_a=context->getQuerySubstep(),
-											"info"_a="In PartitionSingleNode kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
-											"duration"_a="");
-				throw;
+			if(cache_data != nullptr){
+				std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
+				inputs.push_back(std::move(cache_data));
+
+				ral::execution::executor::get_instance()->add_task(
+						std::move(inputs),
+						nullptr,
+						this,
+						"partitionsinglenode");
 			}
 		}
+
+		std::unique_lock<std::mutex> lock(kernel_mutex);
+		kernel_cv.wait(lock,[this]{
+			return this->tasks.empty();
+		});
 
 		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
 									"query_id"_a=context->getContextToken(),
@@ -77,7 +85,7 @@ public:
 	}
 
 private:
-
+	std::unique_ptr<ral::frame::BlazingTable> partitionPlan;
 };
 
 class SortAndSampleKernel : public distributing_kernel {
@@ -108,8 +116,8 @@ public:
 								"substep"_a=(context ? std::to_string(context->getQuerySubstep()) : ""),
 								"info"_a="In SortAndSampleKernel::compute_partition_plan Concatenating Strings will overflow strings length");
 			}
-			
-			
+
+
 			auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
 			if(context->isMasterNode(self_node)) {
 				context->incrementQuerySubstep();
@@ -136,12 +144,12 @@ public:
 				for (std::size_t i = 0; i < sampledTableViews.size(); i++){
 					samples.push_back(sampledTableViews[i]);
 				}
-				
+
 				total_table_rows.push_back(local_total_num_rows);
 				total_avg_bytes_per_row.push_back(avg_bytes_per_row);
 
 				// let's recompute the `avg_bytes_per_row` using info from all the other nodes
-				size_t total_bytes = 0; 
+				size_t total_bytes = 0;
 				size_t total_rows = 0;
 				for(std::size_t i = 0; i < nodes.size(); ++i) {
 					total_bytes += total_avg_bytes_per_row[i] * total_table_rows[i];
@@ -325,30 +333,38 @@ public:
 		set_number_of_message_trackers(max_num_order_by_partitions_per_node);
 	}
 
-	virtual kstatus run() {
+	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+		std::shared_ptr<ral::cache::CacheMachine> output,
+		cudaStream_t stream, std::string kernel_process_name) override{
+		auto & input = inputs[0];
 
+		std::vector<ral::distribution::NodeColumnView> partitions = ral::distribution::partitionData(this->context.get(), input->toBlazingTableView(), partitionPlan->toBlazingTableView(), sortColIndices, sortOrderTypes);
+		std::vector<int32_t> part_ids(partitions.size());
+		std::generate(part_ids.begin(), part_ids.end(), [count=0, num_partitions_per_node = num_partitions_per_node] () mutable { return (count++) % (num_partitions_per_node); });
+
+		scatterParts(partitions,
+			"", //message_id_prefix
+			part_ids
+		);
+	}
+
+	virtual kstatus run() {
 		CodeTimer timer;
 
 		BatchSequence input_partitionPlan(this->input_.get_cache("input_b"), this);
-		auto partitionPlan = input_partitionPlan.next();
-
+		partitionPlan = input_partitionPlan.next();
 		assert(partitionPlan != nullptr);
 
 		context->incrementQuerySubstep();
 
 		std::map<std::string, std::map<int32_t, int> > node_count;
 
-		bool ordered = false;
-		BatchSequence input(this->input_.get_cache("input_a"), this, ordered);
-		int batch_count = 0;
-		std::vector<cudf::order> sortOrderTypes;
-		std::vector<int> sortColIndices;
 		std::tie(sortColIndices, sortOrderTypes, std::ignore) =	ral::operators::get_sort_vars(this->expression);
 		auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
 		auto nodes = context->getAllNodes();
 
 		// If we have no partitionPlan, its because we have no data, therefore its one partition per node
-		int num_partitions_per_node = partitionPlan->num_rows() == 0 ? 1 : (partitionPlan->num_rows() + 1) / this->context->getTotalNodes();
+		num_partitions_per_node = partitionPlan->num_rows() == 0 ? 1 : (partitionPlan->num_rows() + 1) / this->context->getTotalNodes();
 
 		std::map<int32_t, int> temp_partitions_map;
 		for (size_t i = 0; i < num_partitions_per_node; i++) {
@@ -358,31 +374,24 @@ public:
 			node_count.emplace(node.id(), temp_partitions_map);
 		}
 
-		while (input.wait_for_next()) {
-			try {
-				auto batch = input.next();
+		std::unique_ptr <ral::cache::CacheData> cache_data = this->input_.get_cache("input_a")->pullCacheData();
+		while(cache_data != nullptr){
+			std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
+			inputs.push_back(std::move(cache_data));
 
-				std::vector<ral::distribution::NodeColumnView> partitions = ral::distribution::partitionData(this->context.get(), batch->toBlazingTableView(), partitionPlan->toBlazingTableView(), sortColIndices, sortOrderTypes);
-				std::vector<int32_t> part_ids(partitions.size());
-				std::generate(part_ids.begin(), part_ids.end(), [count=0, num_partitions_per_node] () mutable { return (count++) % (num_partitions_per_node); });
+			ral::execution::executor::get_instance()->add_task(
+					std::move(inputs),
+					nullptr,
+					this,
+					"partition");
 
-				scatterParts(partitions,
-					"", //message_id_prefix
-					part_ids
-				);
-
-				batch_count++;
-			} catch(const std::exception& e) {
-				// TODO add retry here
-				logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
-											"query_id"_a=context->getContextToken(),
-											"step"_a=context->getQueryStep(),
-											"substep"_a=context->getQuerySubstep(),
-											"info"_a="In Partition kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
-											"duration"_a="");
-				throw;
-			}
+			cache_data = this->input_.get_cache("input_a")->pullCacheData();
 		}
+
+		std::unique_lock<std::mutex> lock(kernel_mutex);
+		kernel_cv.wait(lock,[this]{
+			return this->tasks.empty();
+		});
 
 		for (auto i = 0; i < num_partitions_per_node; i++) {
 			std::string cache_id = "output_" + std::to_string(i);
@@ -407,13 +416,14 @@ public:
 									"duration"_a=timer.elapsed_time(),
 									"kernel_id"_a=this->get_id());
 
-
-
 		return kstatus::proceed;
 	}
 
 private:
-
+	std::unique_ptr<ral::frame::BlazingTable> partitionPlan;
+	std::vector<cudf::order> sortOrderTypes;
+	std::vector<int> sortColIndices;
+	int num_partitions_per_node;
 };
 
 /**
@@ -518,6 +528,40 @@ public:
 		set_number_of_message_trackers(1); //default
 	}
 
+	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+		std::shared_ptr<ral::cache::CacheMachine> output,
+		cudaStream_t stream, std::string kernel_process_name) override{
+		CodeTimer eventTimer(false);
+		auto & input = inputs[0];
+
+		if (rows_limit<0) {
+			output->addToCache(std::move(input));
+		} else {
+			auto log_input_num_rows = input->num_rows();
+			auto log_input_num_bytes = input->sizeInBytes();
+
+			eventTimer.start();
+			std::tie(input, rows_limit) = ral::operators::limit_table(std::move(input), rows_limit);
+			eventTimer.stop();
+
+			auto log_output_num_rows = input->num_rows();
+			auto log_output_num_bytes = input->sizeInBytes();
+
+			events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+							"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+							"query_id"_a=context->getContextToken(),
+							"kernel_id"_a=this->get_id(),
+							"input_num_rows"_a=log_input_num_rows,
+							"input_num_bytes"_a=log_input_num_bytes,
+							"output_num_rows"_a=log_output_num_rows,
+							"output_num_bytes"_a=log_output_num_bytes,
+							"event_type"_a="compute",
+							"timestamp_begin"_a=eventTimer.start_time(),
+							"timestamp_end"_a=eventTimer.end_time());
+
+			output->addToCache(std::move(input));
+		}
+	}
 
 	virtual kstatus run() {
 		CodeTimer timer;
@@ -534,22 +578,21 @@ public:
 
 		cudf::size_type limitRows;
 		std::tie(std::ignore, std::ignore, limitRows) = ral::operators::get_sort_vars(this->expression);
-		int64_t rows_limit = limitRows;
+		rows_limit = limitRows;
 
 		if(this->context->getTotalNodes() > 1 && rows_limit >= 0) {
 			this->context->incrementQuerySubstep();
 
-			// ral::distribution::distributeNumRows(context, total_batch_rows);
 			auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
 			int self_node_idx = context->getNodeIndex(self_node);
 			auto nodes_to_send = context->getAllOtherNodes(self_node_idx);
-			
+
 			std::vector<std::string> limit_messages_to_wait_for;
 			std::vector<std::string> target_ids;
-			for (auto i = 0; i < nodes_to_send.size(); i++)	{
+			for (auto i = 0; i < nodes_to_send.size(); i++) {
 				target_ids.push_back(nodes_to_send[i].id());
 				limit_messages_to_wait_for.push_back(
-					std::to_string(this->context->getContextToken()) + "_" +	std::to_string(this->get_id()) +	"_" +	nodes_to_send[i].id());
+					std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + nodes_to_send[i].id());
 			}
 			ral::cache::MetadataDictionary extra_metadata;
 			extra_metadata.add_value(ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL, total_batch_rows);
@@ -562,7 +605,7 @@ public:
 				false, //wait_for
 				0, //message_tracker_idx
 				extra_metadata);
-	
+
 			int64_t prev_total_rows = 0;
 			for (auto i = 0; i < limit_messages_to_wait_for.size(); i++)	{
 				auto meta_message = this->query_graph->get_input_message_cache()->pullCacheData(limit_messages_to_wait_for[i]);
@@ -573,57 +616,39 @@ public:
 			rows_limit = std::min(std::max(rows_limit - prev_total_rows, int64_t{0}), total_batch_rows);
 		}
 
-		if (rows_limit < 0) {
-			for (auto &&cache_data : cache_vector) {
-				this->add_to_output_cache(std::move(cache_data));
-			}
-		} else {
-			int batch_count = 0;
-			for (auto &&cache_data : cache_vector)
-			{
-				try {
-					auto batch = cache_data->decache();
+		int batch_count = 0;
+		for (auto &&cache_data : cache_vector)
+		{
+			try {
+				std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
+				inputs.push_back(std::move(cache_data));
 
-					auto log_input_num_rows = batch->num_rows();
-					auto log_input_num_bytes = batch->sizeInBytes();
+				ral::execution::executor::get_instance()->add_task(
+						std::move(inputs),
+						this->output_cache(),
+						this,
+						"limit");
 
-					eventTimer.start();
-					std::tie(batch, rows_limit) = ral::operators::limit_table(std::move(batch), rows_limit);
-					eventTimer.stop();
-
-					auto log_output_num_rows = batch->num_rows();
-					auto log_output_num_bytes = batch->sizeInBytes();
-
-					events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-									"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-									"query_id"_a=context->getContextToken(),
-									"kernel_id"_a=this->get_id(),
-									"input_num_rows"_a=log_input_num_rows,
-									"input_num_bytes"_a=log_input_num_bytes,
-									"output_num_rows"_a=log_output_num_rows,
-									"output_num_bytes"_a=log_output_num_bytes,
-									"event_type"_a="compute",
-									"timestamp_begin"_a=eventTimer.start_time(),
-									"timestamp_end"_a=eventTimer.end_time());
-
-					this->add_to_output_cache(std::move(batch));
-
-					if (rows_limit == 0){
-						break;
-					}
-					batch_count++;
-				} catch(const std::exception& e) {
-					// TODO add retry here
-					logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
-												"query_id"_a=context->getContextToken(),
-												"step"_a=context->getQueryStep(),
-												"substep"_a=context->getQuerySubstep(),
-												"info"_a="In Limit kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
-												"duration"_a="");
-					throw;
+				if (rows_limit == 0){
+					//break;
 				}
+				batch_count++;
+			} catch(const std::exception& e) {
+				// TODO add retry here
+				logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+											"query_id"_a=context->getContextToken(),
+											"step"_a=context->getQueryStep(),
+											"substep"_a=context->getQuerySubstep(),
+											"info"_a="In Limit kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
+											"duration"_a="");
+				throw;
 			}
 		}
+
+		std::unique_lock<std::mutex> lock(kernel_mutex);
+		kernel_cv.wait(lock,[this]{
+			return this->tasks.empty();
+		});
 
 		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
 									"query_id"_a=context->getContextToken(),
@@ -637,7 +662,7 @@ public:
 	}
 
 private:
-
+	std::atomic<int64_t> rows_limit;
 };
 
 } // namespace batch

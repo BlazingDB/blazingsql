@@ -61,6 +61,7 @@ public:
 	 */
 	void close_file_handles();
 
+	size_t get_num_handles();
 
 private:
 	/**

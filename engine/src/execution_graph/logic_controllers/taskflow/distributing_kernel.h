@@ -152,6 +152,7 @@ class distributing_kernel : public kernel {
         const blazingdb::transport::Node& node; /**< Stores the reference of the current node. */
         std::vector<std::map<std::string, std::atomic<size_t>>> node_count; /**< Vector of maps that stores the message count associated to a node. Each vector corresponds to a message tracker. It's thread-safe. */
         std::vector<std::vector<std::string>> messages_to_wait_for; /**< Vector of vectors of the messages registered to wait for. Each vector corresponds to a message tracker. It's thread-safe. */
+        std::mutex messages_to_wait_for_mutex;
 };
 
 }  // namespace cache

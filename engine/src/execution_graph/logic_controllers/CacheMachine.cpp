@@ -3,6 +3,9 @@
 #include <random>
 #include <utilities/CommonOperations.h>
 #include <cudf/io/orc.hpp>
+#include "CalciteExpressionParsing.h"
+#include "communication/CommunicationData.h"
+#include <stdio.h>
 
 using namespace std::chrono_literals;
 namespace ral {
@@ -49,6 +52,72 @@ std::unique_ptr<ral::frame::BlazingTable> CacheDataLocalFile::decache() {
 	return std::make_unique<ral::frame::BlazingTable>(std::move(result.tbl), this->names());
 }
 
+CacheDataIO::CacheDataIO(ral::io::data_handle handle, 
+	std::shared_ptr<ral::io::data_parser> parser,
+	ral::io::Schema schema,
+	ral::io::Schema file_schema,
+	std::vector<int> row_group_ids,
+	std::vector<int> projections)
+	: handle(handle), parser(parser), schema(schema),
+	file_schema(file_schema), row_group_ids(row_group_ids),
+	projections(projections), CacheData(CacheDataType::IO_FILE, schema.get_names(), schema.get_data_types(), 1)
+	{
+
+	}
+
+size_t CacheDataIO::sizeInBytes() const{
+	return 0;
+}
+std::unique_ptr<ral::frame::BlazingTable> CacheDataIO::decache(){
+	if (schema.all_in_file()){
+		std::unique_ptr<ral::frame::BlazingTable> loaded_table = parser->parse_batch(handle, file_schema, projections, row_group_ids);
+		return std::move(loaded_table);
+	} else {
+		std::vector<int> column_indices_in_file;  // column indices that are from files
+		for (int i = 0; i < projections.size(); i++){
+			if(schema.get_in_file()[projections[i]]) {
+				column_indices_in_file.push_back(projections[i]);
+			}
+		}
+		
+		std::vector<std::unique_ptr<cudf::column>> all_columns(projections.size());
+		std::vector<std::unique_ptr<cudf::column>> file_columns;
+		std::vector<std::string> names;
+		cudf::size_type num_rows;
+		if (column_indices_in_file.size() > 0){
+			std::unique_ptr<ral::frame::BlazingTable> current_blazing_table = parser->parse_batch(handle, file_schema, column_indices_in_file, row_group_ids);
+			names = current_blazing_table->names();
+			std::unique_ptr<CudfTable> current_table = current_blazing_table->releaseCudfTable();
+			num_rows = current_table->num_rows();
+			file_columns = current_table->release();
+		
+		} else { // all tables we are "loading" are from hive partitions, so we dont know how many rows we need unless we load something to get the number of rows
+			std::vector<int> temp_column_indices = {0};
+			std::unique_ptr<ral::frame::BlazingTable> loaded_table = parser->parse_batch(handle, file_schema, temp_column_indices, row_group_ids);
+			num_rows = loaded_table->num_rows();
+		}
+
+		int in_file_column_counter = 0;
+		for(int i = 0; i < projections.size(); i++) {
+			int col_ind = projections[i];
+			if(!schema.get_in_file()[col_ind]) {
+				std::string name = schema.get_name(col_ind);
+				names.push_back(name);
+				cudf::type_id type = schema.get_dtype(col_ind);
+				std::string literal_str = handle.column_values[name];
+				std::unique_ptr<cudf::scalar> scalar = get_scalar_from_string(literal_str, cudf::data_type{type},false);
+				all_columns[i] = cudf::make_column_from_scalar(*scalar, num_rows);
+			} else {
+				all_columns[i] = std::move(file_columns[in_file_column_counter]);
+				in_file_column_counter++;
+			}
+		}
+		auto unique_table = std::make_unique<cudf::table>(std::move(all_columns));
+		return std::move(std::make_unique<ral::frame::BlazingTable>(std::move(unique_table), names));
+	}
+} 
+
+
 CacheDataLocalFile::CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable> table, std::string orc_files_path, std::string ctx_token)
 	: CacheData(CacheDataType::LOCAL_FILE, table->names(), table->get_schema(), table->num_rows())
 {
@@ -74,7 +143,7 @@ CacheMachine::CacheMachine(std::shared_ptr<Context> context, bool log_timeout): 
 {
 	CacheMachine::cache_count++;
 
-	waitingCache = std::make_unique<WaitingQueue>(60000, log_timeout);
+	waitingCache = std::make_unique<WaitingQueue <std::unique_ptr <message> > >(60000, log_timeout);
 	this->memory_resources.push_back( &blazing_device_memory_resource::getInstance() );
 	this->memory_resources.push_back( &blazing_host_memory_resource::getInstance() );
 	this->memory_resources.push_back( &blazing_disk_memory_resource::getInstance() );
@@ -130,6 +199,10 @@ uint64_t CacheMachine::get_num_bytes_added(){
 
 uint64_t CacheMachine::get_num_rows_added(){
 	return num_rows_added.load();
+}
+
+uint64_t CacheMachine::get_num_batches_added(){
+	return this->waitingCache->processed_parts();
 }
 
 bool CacheMachine::addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> host_table, const std::string & message_id) {
