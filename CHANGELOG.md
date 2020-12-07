@@ -1,3 +1,16 @@
+# BlazingSQL 0.18.0 (Date TBS)
+
+
+## New Features
+- #1232 Update PartwiseJoin and JoinPartition kernel using the task executor internally
+
+
+## Improvements
+
+
+## Bug Fixes
+
+
 # BlazingSQL 0.17.0 (Date TBS)
 
 
@@ -19,7 +32,7 @@
 - #1201 Implement string TRIM
 - #1216 Add unit test for DAYOFWEEK
 - #1205 Implement string REVERSE
-- #1220 Implement string LEFT and RIGHT 
+- #1220 Implement string LEFT and RIGHT
 
 
 ## Improvements
@@ -43,7 +56,7 @@
 - #1194 Powerpc building scripts
 - #1186 Removing cuda labels to install due cudatoolkit version
 - #1187 Enable MySQL-specific SQL operators in addition to Standard and Oracle
-- #1206 Improved contribution documentation 
+- #1206 Improved contribution documentation
 - #1224 Added cudaSetDevice to thread initialization so that the cuda context is available to UCX
 
 
@@ -69,10 +82,10 @@
 - #1179 Fix ignore headers when multiple CSV files was provided
 - #1199 Fix non thread-safe access to map containing tag to message_metadata for ucx
 - #1196 Fix column_names (table) always as list of string
-- #1203 Changed code back so that parquet is not read a single rowgroup at a time 
+- #1203 Changed code back so that parquet is not read a single rowgroup at a time
 - #1207 Calcite uses literal as int32 if not explicit CAST was provided
 - #1212 Fixed issue when building the thirdpart, cmake version set to 3.18.4
-- #1225 Fixed issue due to change in gather API 
+- #1225 Fixed issue due to change in gather API
 
 
 # BlazingSQL 0.16.0 (October 22, 2020)
