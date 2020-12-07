@@ -1,5 +1,16 @@
-# BlazingSQL 0.17.0 (Date TBS)
+# BlazingSQL 0.18.0 (Date TBS)
 
+## New Features
+- #6902 Implement string REGEXP_REPLACE
+
+
+## Improvements
+
+
+## Bug Fixes
+
+
+# BlazingSQL 0.17.0 (Date TBS)
 
 ## New Features
 - #1105 Implement to_date/to_timestamp functions
