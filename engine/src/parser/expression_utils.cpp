@@ -1,3 +1,4 @@
+#include <map>
 #include <regex>
 #include <cassert>
 #include <blazingdb/io/Util/StringUtil.h>
