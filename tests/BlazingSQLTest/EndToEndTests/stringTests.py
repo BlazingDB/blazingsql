@@ -319,6 +319,27 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
+            queryId = "TEST_16"
+            query = """SELECT
+                REGEXP_REPLACE(c_comment, 'a', 'the') as rep_a,
+                REGEXP_REPLACE(c_comment, 'e|a|i|o|u', 'Z') as vowel_z,
+                CHAR_LENGTH(REGEXP_REPLACE(c_comment, '[a-z]+', 'L')) char_len_rep,
+                REGEXP_REPLACE(c_comment, '[a-z]+(.+)', 'Z') as capture_rep
+                FROM customer
+                """
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")
                 break
