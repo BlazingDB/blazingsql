@@ -159,6 +159,8 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatCacheData::decache() {
 	for (auto && cache_data : _cache_datas){
 		tables_holder.push_back(cache_data->decache());
 		table_views.push_back(tables_holder.back()->toBlazingTableView());
+
+		RAL_EXPECTS(!ral::utilities::checkIfConcatenatingStringsWillOverflow(table_views), "Concatenating tables will overflow");
 	}
 
 	return ral::utilities::concatTables(table_views);
