@@ -108,6 +108,7 @@ void executor::execute(){
             active_tasks_counter++;        
             cur_task->run(this->streams[thread_id],this);
             active_tasks_counter--;
+            memory_safety_cv.notify_all();
         });
     }
 }
