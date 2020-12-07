@@ -34,6 +34,8 @@ public:
 	*/
 	void run(cudaStream_t stream, executor * executor);
 	void complete();
+	std::size_t task_memory_needed();
+
 protected:
 	std::vector<std::unique_ptr<ral::cache::CacheData > > inputs;
 	std::shared_ptr<ral::cache::CacheMachine> output;
@@ -67,7 +69,7 @@ public:
 	void execute();
 	size_t add_task(std::vector<std::unique_ptr<ral::cache::CacheData > > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
-		ral::cache::kernel * kernel,std::string kernel_process_name);
+		ral::cache::kernel * kernel,std::string kernel_process_name = "");
 
 	void add_task(std::vector<std::unique_ptr<ral::cache::CacheData > > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
@@ -84,6 +86,11 @@ private:
 	static executor * _instance;
 	std::atomic<int> task_id_counter;
 	size_t attempts_limit = 10;
+	
+	BlazingMemoryResource* resource;
+	std::atomic<int> active_tasks_counter;
+	std::mutex memory_safety_mutex;
+	std::condition_variable memory_safety_cv;
 };
 
 

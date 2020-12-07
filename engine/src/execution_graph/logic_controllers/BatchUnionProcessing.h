@@ -28,6 +28,8 @@ public:
         this->input_.add_port("input_a", "input_b");
 	}
 
+    std::string kernel_name() { return "Union";}
+
     void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
         std::shared_ptr<ral::cache::CacheMachine> output,
         cudaStream_t stream, std::string kernel_process_name) override {
@@ -66,8 +68,7 @@ public:
                     ral::execution::executor::get_instance()->add_task(
                             std::move(inputs),
                             this->output_cache(),
-                            this,
-                            "union");                    
+                            this);                    
                 } else {
                     this->add_to_output_cache(std::move(cache_data_a));
                 }
@@ -86,8 +87,7 @@ public:
                     ral::execution::executor::get_instance()->add_task(
                             std::move(inputs),
                             this->output_cache(),
-                            this,
-                            "union");                    
+                            this);                    
                 } else {
                     this->add_to_output_cache(std::move(cache_data_b));
                 }

@@ -33,7 +33,13 @@ void kernel::process(std::vector<std::unique_ptr<ral::cache::CacheData > > & inp
     }
 
     try{
+       std::size_t bytes = 0;
+       for (auto & input : input_gpu) {
+           bytes += input->sizeInBytes();
+       }
        do_process(std::move(input_gpu),output,stream, kernel_process_name);
+       total_input_bytes += bytes; // increment this AFTER its been processed successfully
+       
     }catch(std::exception e){
         //remake inputs here
         int i = 0;
@@ -58,6 +64,33 @@ void kernel::notify_complete(size_t task_id){
     std::lock_guard<std::mutex> lock(kernel_mutex);
     this->tasks.erase(task_id);
     kernel_cv.notify_one();
+}
+
+// This is only the default estimate of the bytes to be output by a kernel based on the input.
+// Each kernel should implement its own version of this, if its possible to obtain a better estimate
+std::size_t kernel::estimate_output_bytes(const std::vector<std::unique_ptr<ral::cache::CacheData > > & inputs){
+    
+    std::size_t input_bytes = 0;
+    for (auto & input : inputs) {
+        input_bytes += input->sizeInBytes();
+    }
+
+    // if we have already processed, then we can estimate based on previous inputs and outputs
+    if (total_input_bytes.load() > 0){
+        return (std::size_t)((double)input_bytes * ((double)this->output_.total_bytes_added()/(double)total_input_bytes.load()));
+    } else { // if we have not already any batches, then lets estimate that the output is the same as the input
+        return input_bytes;
+    }
+}
+
+// This is only the default estimate of the bytes needed by the kernel to perform the operation based on the input.
+// Each kernel should implement its own version of this, if its possible to obtain a better estimate
+std::size_t kernel::estimate_operating_bytes(const std::vector<std::unique_ptr<ral::cache::CacheData > > & inputs){
+    std::size_t bytes_esimate = 0;
+    for (auto & input : inputs) {
+        bytes_esimate += input->sizeInBytes();
+    }
+    return bytes_esimate;
 }
 
 }  // end namespace cache

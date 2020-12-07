@@ -79,6 +79,8 @@ public:
 		std::tie(this->expression, this->condition, this->filter_statement, this->join_type) = parseExpressionToGetTypeAndCondition(this->expression);
 	}
 
+	std::string kernel_name() { return "PartwiseJoin";}
+
 	std::unique_ptr<TableSchema> left_schema{nullptr};
  	std::unique_ptr<TableSchema> right_schema{nullptr};
 
@@ -455,6 +457,8 @@ public:
 
 		std::tie(this->expression, this->condition, this->filter_statement, this->join_type) = parseExpressionToGetTypeAndCondition(this->expression);
 	}
+
+	std::string kernel_name() { return "JoinPartition";}
 
 	// this function makes sure that the columns being joined are of the same type so that we can join them properly
 	void computeNormalizationData(const	std::vector<cudf::data_type> & left_types, const	std::vector<cudf::data_type> & right_types){
