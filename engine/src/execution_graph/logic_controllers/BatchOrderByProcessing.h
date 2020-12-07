@@ -31,6 +31,8 @@ public:
 		this->input_.add_port("input_a", "input_b");
 	}
 
+	std::string kernel_name() { return "PartitionSingleNode";}
+
 	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
 		cudaStream_t stream, std::string kernel_process_name) override{
@@ -46,8 +48,6 @@ public:
 				);
 		}
 	}
-
-	std::string kernel_name() { return "PartitionSingleNode";}
 
 	virtual kstatus run() {
 		CodeTimer timer;

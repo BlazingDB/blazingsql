@@ -297,7 +297,7 @@ public:
 	std::size_t estimate_output_bytes(const std::vector<std::unique_ptr<ral::cache::CacheData > > & inputs);
 	std::size_t estimate_operating_bytes(const std::vector<std::unique_ptr<ral::cache::CacheData > > & inputs);
 
-	virtual std::string kernel_name();
+	std::string kernel_name() { return "base_kernel"; }
 
 	void notify_complete(size_t task_id);
 	void add_task(size_t task_id);
