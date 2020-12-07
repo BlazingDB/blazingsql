@@ -66,8 +66,7 @@ public:
                     ral::execution::executor::get_instance()->add_task(
                             std::move(inputs),
                             this->output_cache(),
-                            this,
-                            "union");
+                            this);
                 } else {
                     this->add_to_output_cache(std::move(cache_data_a));
                 }
@@ -86,8 +85,7 @@ public:
                     ral::execution::executor::get_instance()->add_task(
                             std::move(inputs),
                             this->output_cache(),
-                            this,
-                            "union");
+                            this);
                 } else {
                     this->add_to_output_cache(std::move(cache_data_b));
                 }
