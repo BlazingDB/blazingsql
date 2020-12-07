@@ -1,3 +1,17 @@
+# BlazingSQL 0.18.0 (Date TBS)
+
+
+## New Features
+
+
+## Improvements
+- #1166 Moving code from header files to implementation files
+
+
+## Bug Fixes
+
+
+
 # BlazingSQL 0.17.0 (Date TBS)
 
 
@@ -44,7 +58,7 @@
 - #1187 Enable MySQL-specific SQL operators in addition to Standard and Oracle
 - #1206 Improved contribution documentation 
 - #1224 Added cudaSetDevice to thread initialization so that the cuda context is available to UCX
-- #1166 Moving code from header files to implementation files
+- #1229 Change hardcoded version from setup.py
 
 
 ## Bug Fixes
