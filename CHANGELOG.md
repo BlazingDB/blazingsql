@@ -1,3 +1,16 @@
+# BlazingSQL 0.18 (December 7, 2020)
+
+
+## New Features
+- #1238 Implements MergeStramKernel executor model
+
+## Improvements
+
+
+## Bug Fixes
+
+
+
 # BlazingSQL 0.17.0 (Date TBS)
 
 
