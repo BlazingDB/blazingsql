@@ -1,5 +1,17 @@
-# BlazingSQL 0.17.0 (Date TBS)
+# BlazingSQL 0.18.0 (Date TBS)
 
+## New Features
+- #1139 Adding centralized task executor for kernels
+- #1237 Added task memory management
+
+## Improvements
+
+
+## Bug Fixes
+
+
+
+# BlazingSQL 0.17.0 (Date TBS)
 
 ## New Features
 - #1105 Implement to_date/to_timestamp functions
@@ -12,7 +24,6 @@
 - #1110 Adding local logging directory to BlazingContext
 - #1148 Add e2e test for DAYOFWEEK
 - #1130 Infer hive folder partition
-- #1139 Adding centralized task executor for kernels
 - #1188 Implement upper/lower operators
 - #1193 Implement string REPLACE
 - #1218 Added smiles test set
