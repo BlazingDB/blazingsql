@@ -42,8 +42,9 @@
 #include "ExceptionHandling/BlazingThread.h"
 
 #include "taskflow/graph.h"
+#include "taskflow/executor.h"
 #include "communication/CommunicationData.h"
-
+#include "execution_graph/logic_controllers/taskflow/kernel.h"
 #include "CodeTimer.h"
 
 namespace ral {
@@ -227,189 +228,6 @@ private:
 };
 
 
-
-/**
- * @brief Gets data from a data source, such as a set of files or from a DataFrame.
- * These data sequencers are used by the TableScan's.
- */
-class DataSourceSequence {
-public:
-	/**
-	 * Constructor for the DataSourceSequence
-	 * @param loader Data loader responsible for executing the batching load.
-	 * @param schema Table schema associated to the data to be loaded.
-	 * @param context Shared context associated to the running query.
-	 */
-	DataSourceSequence(ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context)
-		: context(context), loader(loader), schema(schema), batch_index{0}, cur_file_index{0}, n_batches{0}
-	{
-		// n_partitions{n_partitions}: TODO Update n_batches using data_loader
-		this->provider = loader.get_provider();
-		this->parser = loader.get_parser();
-
-		n_files = schema.get_files().size();
-		for (size_t index = 0; index < n_files; index++) {
-			all_row_groups.push_back(schema.get_rowgroup_ids(index));
-		}
-
-		is_empty_data_source = (n_files == 0 && parser->get_num_partitions() == 0);
-		is_gdf_parser = parser->get_num_partitions() > 0;
-		if(is_gdf_parser){
-			n_batches = std::max(parser->get_num_partitions(), (size_t)1);
-		} else if (parser->type() == ral::io::DataType::CSV)	{
-			auto csv_parser = static_cast<ral::io::csv_parser*>(parser.get());
-
-			n_batches = 0;
-			size_t max_bytes_chuck_size = csv_parser->max_bytes_chuck_size();
-			if (max_bytes_chuck_size > 0) {
-				int file_idx = 0;
-				while (provider->has_next()) {
-					auto data_handle = provider->get_next();
-					int64_t file_size = data_handle.fileHandle->GetSize().ValueOrDie();
-					size_t num_chunks = (file_size + max_bytes_chuck_size - 1) / max_bytes_chuck_size;
-					std::vector<int> file_row_groups(num_chunks);
-					std::iota(file_row_groups.begin(), file_row_groups.end(), 0);
-					all_row_groups[file_idx] = std::move(file_row_groups);
-					n_batches += num_chunks;
-					file_idx++;
-				}
-				provider->reset();
-			} else {
-				n_batches = n_files;
-			}
-			if (!is_empty_data_source && has_next()) {	
-				current_data_handle = provider->get_next();	
-			}
-
-		}	else {
-			n_batches = n_files;
-		}
-	}
-
-	/**
-	 * Get the next batch as a unique pointer to a BlazingTable.
-	 * If there are no more batches we get a nullptr.
-	 * @return Unique pointer to a BlazingTable containing the next batch read.
-	 */
-	RecordBatch next() {
-		std::unique_lock<std::mutex> lock(mutex_);
-
-		if (!has_next()) {
-			return nullptr;
-		}
-
-		if (is_empty_data_source) {
-			batch_index++;
-			return schema.makeEmptyBlazingTable(projections);
-		}
-
-		if(is_gdf_parser){
-			auto ret = loader.load_batch(context.get(), projections, schema, ral::io::data_handle(), 0, {static_cast<cudf::size_type>(batch_index)} );
-			batch_index++;
-
-			return std::move(ret);
-		}
-
-		auto local_cur_data_handle = current_data_handle;
-		auto local_cur_file_index = cur_file_index;
-		auto local_all_row_groups = all_row_groups[cur_file_index];
-
-		// we have a separate flow for CSV because csv handles multiple reads for one file due to max_bytes_chuck_size
-		if (parser->type() == ral::io::DataType::CSV) { 
-			if (file_batch_index > 0 && file_batch_index >= local_all_row_groups.size()) {
-				// a file handle that we can use in case errors occur to tell the user which file had parsing issues
-				assert(provider->has_next());
-				current_data_handle = provider->get_next();
-
-				file_batch_index = 0;
-				cur_file_index++;
-
-				local_cur_data_handle = current_data_handle;
-				local_cur_file_index = cur_file_index;
-				local_all_row_groups = all_row_groups[cur_file_index];
-			}
-
-			if (!local_all_row_groups.empty()) {
-				local_all_row_groups = { local_all_row_groups[file_batch_index] };
-			}
-
-			file_batch_index++;
-			batch_index++;
-		} else {
-			local_cur_data_handle = this->provider->get_next();
-
-			batch_index++;
-			cur_file_index++;
-		}
-
-		lock.unlock();
-
-		try {
-			return loader.load_batch(context.get(), projections, schema, local_cur_data_handle, local_cur_file_index, local_all_row_groups);
-		}	catch(const std::exception& e) {
-			auto logger = spdlog::get("batch_logger");
-			logger->error("{query_id}|||{info}|||||",
-										"query_id"_a=context->getContextToken(),
-										"info"_a="In DataSourceSequence while reading file {}. What: {}"_format(local_cur_data_handle.uri.toString(), e.what()));
-			throw;
-		}
-	}
-
-	/**
-	 * Indicates if there are more batches to process.
-	 * @return true There is at least one batch to be processed.
-	 * @return false The data source is empty or all batches have already been processed.
-	 */
-	bool has_next() {
-		return (is_empty_data_source && batch_index < 1) || (batch_index.load() < n_batches);
-	}
-
-	/**
-	 * Updates the set of columns to be projected at the time of reading the data source.
-	 * @param projections The set of column ids to be selected.
-	 */
-	void set_projections(std::vector<int> projections) {
-		this->projections = projections;
-	}
-
-	/**
-	 * Get the batch index.
-	 * @note This function can be called from a parallel thread, so we want it to be thread safe.
-	 * @return The current batch index.
-	 */
-	size_t get_batch_index() {
-		return batch_index.load();
-	}
-
-	/**
-	 * Get the number of batches identified on the data source.
-	 * @return The number of batches.
-	 */
-	size_t get_num_batches() {
-		return n_batches;
-	}
-
-private:
-	std::shared_ptr<ral::io::data_provider> provider; /**< Data provider associated to the data loader. */
-	std::shared_ptr<ral::io::data_parser> parser; /**< Data parser associated to the data loader. */
-
-	std::shared_ptr<Context> context; /**< Pointer to the shared query context. */
-	std::vector<int> projections; /**< List of columns that will be selected if they were previously settled. */
-	ral::io::data_loader loader; /**< Data loader responsible for executing the batching load. */
-	ral::io::Schema  schema; /**< Table schema associated to the data to be loaded. */
-	std::vector<std::vector<int>> all_row_groups;
-	std::atomic<size_t> batch_index; /**< Current global batch index. */
-	size_t n_batches; /**< Number of batches. */
-	size_t n_files; /**< Number of files. */
-	bool is_empty_data_source; /**< Indicates whether the data source is empty. */
-	bool is_gdf_parser; /**< Indicates whether the parser is a gdf one. */
-	int cur_file_index{}; /**< Current file index. */
-	int file_batch_index{};  /**< Current file batch index. */
-	ral::io::data_handle current_data_handle{};
-
-	std::mutex mutex_; /**< Mutex for making the loading batch thread-safe. */
-};
-
 /**
  * @brief This kernel loads the data from the specified data source.
  */
@@ -424,13 +242,46 @@ public:
 	 * @param context Shared context associated to the running query.
 	 * @param query_graph Shared pointer of the current execution graph.
 	 */
-	TableScan(std::size_t kernel_id, const std::string & queryString, ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-	: kernel(kernel_id, queryString, context, kernel_type::TableScanKernel), input(loader, schema, context)
+
+
+	TableScan(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<ral::io::data_provider> provider, std::shared_ptr<ral::io::data_parser> parser, ral::io::Schema & schema, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
+	: kernel(kernel_id, queryString, context, kernel_type::TableScanKernel),schema(schema), provider(provider), parser(parser), num_batches(0)
 	{
+		if(parser->type() == ral::io::DataType::CUDF || parser->type() == ral::io::DataType::DASK_CUDF){
+			num_batches = std::max(provider->get_num_handles(), (size_t)1);
+		} else if (parser->type() == ral::io::DataType::CSV)	{
+			auto csv_parser = static_cast<ral::io::csv_parser*>(parser.get());
+			num_batches = 0;
+			size_t max_bytes_chunk_size = csv_parser->max_bytes_chunk_size();
+			if (max_bytes_chunk_size > 0) {
+				int file_idx = 0;
+				while (provider->has_next()) {
+					auto data_handle = provider->get_next();
+					int64_t file_size = data_handle.file_handle->GetSize().ValueOrDie();
+					size_t num_chunks = (file_size + max_bytes_chunk_size - 1) / max_bytes_chunk_size;
+					std::vector<int> file_row_groups(num_chunks);
+					std::iota(file_row_groups.begin(), file_row_groups.end(), 0);
+					schema.get_rowgroups()[file_idx] = std::move(file_row_groups);
+					num_batches += num_chunks;
+					file_idx++;
+				}
+				provider->reset();
+			} else {
+				num_batches = provider->get_num_handles();
+			}
+		}	else {
+			num_batches = provider->get_num_handles();
+		}
+
 		this->query_graph = query_graph;
 	}
 
-	
+	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+		std::shared_ptr<ral::cache::CacheMachine> output,
+		cudaStream_t stream, std::string kernel_process_name) override{
+		output->addToCache(std::move(inputs[0]));
+	}
+
 	/**
 	 * Executes the batch processing.
 	 * Loads the data from their input port, and after processing it,
@@ -440,55 +291,54 @@ public:
 	virtual kstatus run() {
 		CodeTimer timer;
 
-		int table_scan_kernel_num_threads = 4;
-		std::map<std::string, std::string> config_options = context->getConfigOptions();
-		auto it = config_options.find("TABLE_SCAN_KERNEL_NUM_THREADS");
-		if (it != config_options.end()){
-			table_scan_kernel_num_threads = std::stoi(config_options["TABLE_SCAN_KERNEL_NUM_THREADS"]);
-		}
-		bool has_limit = this->has_limit_;
-		size_t limit_ = this->limit_rows_;
-
-		// want to read only one file at a time to avoid OOM when `select * from table limit N`
-		if (has_limit) {
-			table_scan_kernel_num_threads = 1;
-		}
+		std::vector<int> projections(schema.get_num_columns());
+		std::iota(projections.begin(), projections.end(), 0);
 
 		cudf::size_type current_rows = 0;
-		std::vector<BlazingThread> threads;
-		for (int i = 0; i < table_scan_kernel_num_threads; i++) {
-			threads.push_back(BlazingThread([this, &has_limit, &limit_, &current_rows]() {
-				CodeTimer eventTimer(false);
 
-				std::unique_ptr<ral::frame::BlazingTable> batch;
-				while(batch = input.next()) {
-					eventTimer.start();
-					eventTimer.stop();
-					current_rows += batch->num_rows();
+		//if its empty we can just add it to the cache without scheduling
+		if (!provider->has_next()) {
+			this->add_to_output_cache(std::move(schema.makeEmptyBlazingTable(projections)));
+			return kstatus::proceed;
+		}
 
-					events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-									"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+		while(provider->has_next()){
+			//retrieve the file handle but do not open the file
+			//this will allow us to prevent from having too many open file handles by being
+			//able to limit the number of file tasks
+			auto handle = provider->get_next(true);
+			auto file_schema = schema.fileSchema(file_index);
+			auto row_group_ids = schema.get_rowgroup_ids(file_index);
+			//this is the part where we make the task now
+			std::unique_ptr<ral::cache::CacheData> input =
+				std::make_unique<ral::cache::CacheDataIO>(handle,parser,schema,file_schema,row_group_ids,projections);
+			std::vector<std::unique_ptr<ral::cache::CacheData> > inputs;
+			inputs.push_back(std::move(input));
+			auto output_cache = this->output_cache();
+
+			ral::execution::executor::get_instance()->add_task(
+					std::move(inputs),
+					output_cache,
+					this,std::string("scan"));
+
+			if (this->has_limit_ && output_cache->get_num_rows_added() >= this->limit_rows_) {
+			//	break;
+			}
+			file_index++;
+		}
+
+		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
 									"query_id"_a=context->getContextToken(),
-									"kernel_id"_a=this->get_id(),
-									"input_num_rows"_a=batch->num_rows(),
-									"input_num_bytes"_a=batch->sizeInBytes(),
-									"output_num_rows"_a=batch->num_rows(),
-									"output_num_bytes"_a=batch->sizeInBytes(),
-									"event_type"_a="compute",
-									"timestamp_begin"_a=eventTimer.start_time(),
-									"timestamp_end"_a=eventTimer.end_time());
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="TableScan Kernel tasks created",
+									"duration"_a=timer.elapsed_time(),
+									"kernel_id"_a=this->get_id());
 
-					this->add_to_output_cache(std::move(batch));
-					
-					if (has_limit && current_rows >= limit_) {
-						break;
-					}
-				}
-			}));
-		}
-		for (auto &&t : threads) {
-			t.join();
-		}
+		std::unique_lock<std::mutex> lock(kernel_mutex);
+		kernel_cv.wait(lock,[this]{
+			return this->tasks.empty();
+		});
 
 		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
 									"query_id"_a=context->getContextToken(),
@@ -506,18 +356,24 @@ public:
 	 * @return A pair representing that there is no data to be processed, or the estimated number of output rows.
 	 */
 	virtual std::pair<bool, uint64_t> get_estimated_output_num_rows(){
+
 		double rows_so_far = (double)this->output_.total_rows_added();
-		double num_batches = (double)this->input.get_num_batches();
-		double current_batch = (double)this->input.get_batch_index();
-		if (current_batch == 0 || num_batches == 0){
+		double batches_so_far = (double)this->output_.total_batches_added();
+		if (batches_so_far == 0 || num_batches == 0){
 			return std::make_pair(false, 0);
 		} else {
-			return std::make_pair(true, (uint64_t)(rows_so_far/(current_batch/num_batches)));
+			return std::make_pair(true, (uint64_t)(rows_so_far/(batches_so_far/((double)num_batches))));
 		}
 	}
 
 private:
-	DataSourceSequence input; /**< Input data source sequence. */
+	std::shared_ptr<ral::io::data_provider> provider;
+	std::shared_ptr<ral::io::data_parser> parser;
+	ral::io::Schema  schema; /**< Table schema associated to the data to be loaded. */
+	size_t file_index = 0;
+	size_t num_batches;
+
+
 };
 
 /**
@@ -536,14 +392,29 @@ public:
 	 * @param context Shared context associated to the running query.
 	 * @param query_graph Shared pointer of the current execution graph.
 	 */
-	BindableTableScan(std::size_t kernel_id, const std::string & queryString, ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context,
-		std::shared_ptr<ral::cache::graph> query_graph)
-	: kernel(kernel_id, queryString, context, kernel_type::BindableTableScanKernel), input(loader, schema, context)
+	BindableTableScan(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<ral::io::data_provider> provider, std::shared_ptr<ral::io::data_parser> parser, ral::io::Schema & schema, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
+	: kernel(kernel_id, queryString, context, kernel_type::TableScanKernel),schema(schema), provider(provider), parser(parser)
 	{
 		this->query_graph = query_graph;
+		this->filtered = is_filtered_bindable_scan(expression);
 	}
 
-	
+
+	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+		std::shared_ptr<ral::cache::CacheMachine> output,
+		cudaStream_t stream, std::string kernel_process_name) override{
+		auto & input = inputs[0];
+		if(this->filtered) {
+			auto columns = ral::processor::process_filter(input->toBlazingTableView(), expression, this->context.get());
+			columns->setNames(fix_column_aliases(columns->names(), expression));
+
+			output->addToCache(std::move(columns));
+		}else{
+			input->setNames(fix_column_aliases(input->names(), expression));
+			output->addToCache(std::move(input));
+		}
+	}
+
 	/**
 	 * Executes the batch processing.
 	 * Loads the data from their input port, and after processing it,
@@ -553,101 +424,61 @@ public:
 	virtual kstatus run() {
 		CodeTimer timer;
 
-		input.set_projections(get_projections(expression));
-
-		int table_scan_kernel_num_threads = 4;
-		std::map<std::string, std::string> config_options = context->getConfigOptions();
-		auto it = config_options.find("TABLE_SCAN_KERNEL_NUM_THREADS");
-		if (it != config_options.end()){
-			table_scan_kernel_num_threads = std::stoi(config_options["TABLE_SCAN_KERNEL_NUM_THREADS"]);
+		std::vector<int> projections = get_projections(expression);
+		if(projections.size() == 0){
+			projections.resize(schema.get_num_columns());
+			std::iota(projections.begin(), projections.end(), 0);
 		}
 
-		bool has_limit = this->has_limit_;
-		size_t limit_ = this->limit_rows_;
 		cudf::size_type current_rows = 0;
-		std::vector<BlazingThread> threads;
-		for (int i = 0; i < table_scan_kernel_num_threads; i++) {
-			threads.push_back(BlazingThread([expression = this->expression, &limit_, &has_limit, &current_rows, this]() {
 
-				CodeTimer eventTimer(false);
-
-				std::unique_ptr<ral::frame::BlazingTable> batch;
-
-				while(batch = input.next()) {
-					try {
-						eventTimer.start();
-						auto log_input_num_rows = batch->num_rows();
-						auto log_input_num_bytes = batch->sizeInBytes();
-
-						if(is_filtered_bindable_scan(expression)) {
-							auto columns = ral::processor::process_filter(batch->toBlazingTableView(), expression, this->context.get());
-							current_rows += columns->num_rows();
-							columns->setNames(fix_column_aliases(columns->names(), expression));
-							eventTimer.stop();
-
-							if( columns ) {
-								auto log_output_num_rows = columns->num_rows();
-								auto log_output_num_bytes = columns->sizeInBytes();
-
-								events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-												"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-												"query_id"_a=context->getContextToken(),
-												"kernel_id"_a=this->get_id(),
-												"input_num_rows"_a=log_input_num_rows,
-												"input_num_bytes"_a=log_input_num_bytes,
-												"output_num_rows"_a=log_output_num_rows,
-												"output_num_bytes"_a=log_output_num_bytes,
-												"event_type"_a="compute",
-												"timestamp_begin"_a=eventTimer.start_time(),
-												"timestamp_end"_a=eventTimer.end_time());
-							}
-
-							this->add_to_output_cache(std::move(columns));
-						}
-						else{
-							current_rows += batch->num_rows();
-							batch->setNames(fix_column_aliases(batch->names(), expression));
-
-							auto log_output_num_rows = batch->num_rows();
-							auto log_output_num_bytes = batch->sizeInBytes();
-							eventTimer.stop();
-
-							events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-											"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-											"query_id"_a=context->getContextToken(),
-											"kernel_id"_a=this->get_id(),
-											"input_num_rows"_a=log_input_num_rows,
-											"input_num_bytes"_a=log_input_num_bytes,
-											"output_num_rows"_a=log_output_num_rows,
-											"output_num_bytes"_a=log_output_num_bytes,
-											"event_type"_a="compute",
-											"timestamp_begin"_a=eventTimer.start_time(),
-											"timestamp_end"_a=eventTimer.end_time());
-
-							this->add_to_output_cache(std::move(batch));
-						}
-
-						// useful when the Algebra Relacional only contains: BindableTableScan and LogicalLimit
-						if (has_limit && current_rows >= limit_) {
-							break;
-						}
-
-					} catch(const std::exception& e) {
-						// TODO add retry here
-						logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
-														"query_id"_a=context->getContextToken(),
-														"step"_a=context->getQueryStep(),
-														"substep"_a=context->getQuerySubstep(),
-														"info"_a="In BindableTableScan kernel batch for {}. What: {}"_format(expression, e.what()),
-														"duration"_a="");
-						throw;
-					}
-				}
-			}));
+		//if its empty we can just add it to the cache without scheduling
+		if (!provider->has_next()) {
+			auto empty = schema.makeEmptyBlazingTable(projections);
+			empty->setNames(fix_column_aliases(empty->names(), expression));
+			this->add_to_output_cache(std::move(empty));
+			return kstatus::proceed;
 		}
-		for (auto &&t : threads) {
-			t.join();
+
+		while(provider->has_next()){
+			//retrieve the file handle but do not open the file
+			//this will allow us to prevent from having too many open file handles by being
+			//able to limit the number of file tasks
+			auto handle = provider->get_next(true);
+			auto file_schema = schema.fileSchema(file_index);
+			auto row_group_ids = schema.get_rowgroup_ids(file_index);
+			//this is the part where we make the task now
+			std::unique_ptr<ral::cache::CacheData> input =
+				std::make_unique<ral::cache::CacheDataIO>(handle,parser,schema,file_schema,row_group_ids,projections);
+			std::vector<std::unique_ptr<ral::cache::CacheData> > inputs;
+			inputs.push_back(std::move(input));
+
+			auto output_cache = this->output_cache();
+
+			ral::execution::executor::get_instance()->add_task(
+					std::move(inputs),
+					output_cache,
+					this,std::string("scan"));
+
+			file_index++;
+			if (this->has_limit_ && output_cache->get_num_rows_added() >= this->limit_rows_) {
+			//	break;
+			}
+
 		}
+
+		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="BindableTableScan Kernel tasks created",
+									"duration"_a=timer.elapsed_time(),
+									"kernel_id"_a=this->get_id());
+
+		std::unique_lock<std::mutex> lock(kernel_mutex);
+		kernel_cv.wait(lock,[this]{
+			return this->tasks.empty();
+		});
 
 		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
 									"query_id"_a=context->getContextToken(),
@@ -656,7 +487,6 @@ public:
 									"info"_a="BindableTableScan Kernel Completed",
 									"duration"_a=timer.elapsed_time(),
 									"kernel_id"_a=this->get_id());
-
 		return kstatus::proceed;
 	}
 
@@ -665,18 +495,23 @@ public:
 	 * @return A pair representing that there is no data to be processed, or the estimated number of output rows.
 	 */
 	virtual std::pair<bool, uint64_t> get_estimated_output_num_rows(){
+
 		double rows_so_far = (double)this->output_.total_rows_added();
-		double num_batches = (double)this->input.get_num_batches();
-		double current_batch = (double)this->input.get_batch_index();
+
+		double current_batch = (double)file_index;
 		if (current_batch == 0 || num_batches == 0){
 			return std::make_pair(false, 0);
 		} else {
 			return std::make_pair(true, (uint64_t)(rows_so_far/(current_batch/num_batches)));
 		}
 	}
-
 private:
-	DataSourceSequence input; /**< Input data source sequence. */
+	std::shared_ptr<ral::io::data_provider> provider;
+	std::shared_ptr<ral::io::data_parser> parser;
+	ral::io::Schema  schema; /**< Table schema associated to the data to be loaded. */
+	size_t file_index = 0;
+	double num_batches;
+	bool filtered;
 };
 
 /**
@@ -697,7 +532,14 @@ public:
 		this->query_graph = query_graph;
 	}
 
-	
+	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+		std::shared_ptr<ral::cache::CacheMachine> output,
+		cudaStream_t stream, std::string kernel_process_name) override{
+		auto & input = inputs[0];
+		auto columns = ral::processor::process_project(std::move(input), expression, this->context.get());
+		output->addToCache(std::move(columns));
+	}
+
 	/**
 	 * Executes the batch processing.
 	 * Loads the data from their input port, and after processing it,
@@ -706,54 +548,34 @@ public:
 	 */
 	virtual kstatus run() {
 		CodeTimer timer;
-		CodeTimer eventTimer(false);
 
-		BatchSequence input(this->input_cache(), this);
-		int batch_count = 0;
-		while (input.wait_for_next()) {
-			try {
-				auto batch = input.next();
+		std::unique_ptr <ral::cache::CacheData> cache_data = this->input_cache()->pullCacheData();
+		while(cache_data != nullptr ){
+			std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
+			inputs.push_back(std::move(cache_data));
 
-				auto log_input_num_rows = batch ? batch->num_rows() : 0;
-				auto log_input_num_bytes = batch ? batch->sizeInBytes() : 0;
+			ral::execution::executor::get_instance()->add_task(
+					std::move(inputs),
+					this->output_cache(),
+					this,std::string("filter"));
 
-				eventTimer.start();
-				auto columns = ral::processor::process_project(std::move(batch), expression, context.get());
-				eventTimer.stop();
-
-				if(columns){
-					auto log_output_num_rows = columns->num_rows();
-					auto log_output_num_bytes = columns->sizeInBytes();
-					if(events_logger != nullptr) {
-						events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-									"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-									"query_id"_a=context->getContextToken(),
-									"kernel_id"_a=this->get_id(),
-									"input_num_rows"_a=log_input_num_rows,
-									"input_num_bytes"_a=log_input_num_bytes,
-									"output_num_rows"_a=log_output_num_rows,
-									"output_num_bytes"_a=log_output_num_bytes,
-									"event_type"_a="compute",
-									"timestamp_begin"_a=eventTimer.start_time(),
-									"timestamp_end"_a=eventTimer.end_time());
-					}
-				}
-
-				this->add_to_output_cache(std::move(columns));
-				batch_count++;
-			} catch(const std::exception& e) {
-				// TODO add retry here
-				if(logger != nullptr) {
-					logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
-											"query_id"_a=context->getContextToken(),
-											"step"_a=context->getQueryStep(),
-											"substep"_a=context->getQuerySubstep(),
-											"info"_a="In Projection kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
-											"duration"_a="");
-				}
-				throw;
-			}
+			cache_data = this->input_cache()->pullCacheData();
 		}
+
+		if(logger != nullptr) {
+			logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="Projection Kernel tasks created",
+									"duration"_a=timer.elapsed_time(),
+									"kernel_id"_a=this->get_id());
+		}
+
+		std::unique_lock<std::mutex> lock(kernel_mutex);
+		kernel_cv.wait(lock,[this]{
+			return this->tasks.empty();
+		});
 
 		if(logger != nullptr) {
 			logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
@@ -789,7 +611,14 @@ public:
 		this->query_graph = query_graph;
 	}
 
-	
+	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+		std::shared_ptr<ral::cache::CacheMachine> output,
+		cudaStream_t stream, std::string kernel_process_name) override {
+		auto & input = inputs[0];
+		auto columns = ral::processor::process_filter(input->toBlazingTableView(), expression, this->context.get());
+		output->addToCache(std::move(columns));
+	}
+
 	/**
 	 * Executes the batch processing.
 	 * Loads the data from their input port, and after processing it,
@@ -800,47 +629,31 @@ public:
 		CodeTimer timer;
 		CodeTimer eventTimer(false);
 
-		BatchSequence input(this->input_cache(), this);
-		int batch_count = 0;
-		while (input.wait_for_next()) {
-			try {
-				auto batch = input.next();
+		std::unique_ptr <ral::cache::CacheData> cache_data = this->input_cache()->pullCacheData();
+		while(cache_data != nullptr){
+			std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
+			inputs.push_back(std::move(cache_data));
 
-				auto log_input_num_rows = batch->num_rows();
-				auto log_input_num_bytes = batch->sizeInBytes();
+			ral::execution::executor::get_instance()->add_task(
+					std::move(inputs),
+					this->output_cache(),
+					this,std::string("filter"));
 
-				eventTimer.start();
-				auto columns = ral::processor::process_filter(batch->toBlazingTableView(), expression, context.get());
-				eventTimer.stop();
-
-				auto log_output_num_rows = columns->num_rows();
-				auto log_output_num_bytes = columns->sizeInBytes();
-
-				events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-								"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-								"query_id"_a=context->getContextToken(),
-								"kernel_id"_a=this->get_id(),
-								"input_num_rows"_a=log_input_num_rows,
-								"input_num_bytes"_a=log_input_num_bytes,
-								"output_num_rows"_a=log_output_num_rows,
-								"output_num_bytes"_a=log_output_num_bytes,
-								"event_type"_a="compute",
-								"timestamp_begin"_a=eventTimer.start_time(),
-								"timestamp_end"_a=eventTimer.end_time());
-
-				this->add_to_output_cache(std::move(columns));
-				batch_count++;
-			} catch(const std::exception& e) {
-				// TODO add retry here
-				logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
-											"query_id"_a=context->getContextToken(),
-											"step"_a=context->getQueryStep(),
-											"substep"_a=context->getQuerySubstep(),
-											"info"_a="In Filter kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
-											"duration"_a="");
-				throw;
-			}
+			cache_data = this->input_cache()->pullCacheData();
 		}
+
+		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+									"query_id"_a=context->getContextToken(),
+									"step"_a=context->getQueryStep(),
+									"substep"_a=context->getQuerySubstep(),
+									"info"_a="Filter Kernel tasks created",
+									"duration"_a=timer.elapsed_time(),
+									"kernel_id"_a=this->get_id());
+
+		std::unique_lock<std::mutex> lock(kernel_mutex);
+		kernel_cv.wait(lock,[this]{
+			return this->tasks.empty();
+		});
 
 		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
 									"query_id"_a=context->getContextToken(),
@@ -870,7 +683,7 @@ public:
 		} else {
 			return std::make_pair(false, 0);
 		}
-    }
+	}
 
 private:
 
@@ -923,6 +736,14 @@ public:
 	 */
 	OutputKernel(std::size_t kernel_id, std::shared_ptr<Context> context) : kernel(kernel_id,"OutputKernel", context, kernel_type::OutputKernel) { }
 
+	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+		std::shared_ptr<ral::cache::CacheMachine> output,
+		cudaStream_t stream, std::string kernel_process_name) override{
+			//for now the output kernel is not using do_process
+			//i believe the output should be a cachemachine itself
+			//obviating this concern
+
+		}
 	/**
 	 * Executes the batch processing.
 	 * Loads the data from their input port, and after processing it,
@@ -959,7 +780,6 @@ public:
 		return kstatus::stop;
 	}
 
-	
 	/**
 	 * Returns the vector containing the final processed output.
 	 * @return frame_type A vector of unique_ptr of BlazingTables.
