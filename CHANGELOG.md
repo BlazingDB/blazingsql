@@ -1,7 +1,7 @@
 # BlazingSQL 0.18.0 (Date TBS)
 
 ## New Features
-- #6902 Implement string REGEXP_REPLACE
+- #1200 Implement string REGEXP_REPLACE
 
 
 ## Improvements
