@@ -13,6 +13,7 @@ typedef cudf::table CudfTable;
 typedef cudf::table_view CudfTableView;
 
 namespace ral {
+
 namespace frame {
 
 class BlazingTable;

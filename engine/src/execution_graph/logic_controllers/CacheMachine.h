@@ -17,6 +17,10 @@
 #include <execution_graph/Context.h>
 #include <bmr/BlazingMemoryResource.h>
 #include "communication/CommunicationData.h"
+#include <exception>
+#include "io/data_provider/DataProvider.h"
+#include "io/data_parser/DataParser.h"
+
 #include "communication/messages/GPUComponentMessage.h"
 
 using namespace std::chrono_literals;
@@ -34,7 +38,7 @@ using namespace fmt::literals;
 * CPU, or a file. We can also have GPU messages that contain metadata
 * which are used for sending CacheData from node to node
 */
-enum class CacheDataType { GPU, CPU, LOCAL_FILE, GPU_METADATA };
+enum class CacheDataType { GPU, CPU, LOCAL_FILE, GPU_METADATA, IO_FILE };
 
 const std::string KERNEL_ID_METADATA_LABEL = "kernel_id"; /**< A message metadata field that indicates which kernel owns this message. */
 const std::string QUERY_ID_METADATA_LABEL = "query_id"; /**< A message metadata field that indicates which query owns this message. */
@@ -107,6 +111,13 @@ public:
 	*/
 	std::vector<cudf::data_type> get_schema() const {
 		return schema;
+	}
+
+	/**
+	* Get the number of columns this CacheData will generate with decache.
+	*/
+	size_t num_columns() const {
+		return col_names.size();
 	}
 
 	/**
@@ -261,6 +272,9 @@ public:
 		return this->data->toBlazingTableView();
 	}
 
+	void set_data(std::unique_ptr<ral::frame::BlazingTable> table ){
+		this->data = std::move(table);
+	}
 protected:
 	std::unique_ptr<ral::frame::BlazingTable> data; /**< Stores the data to be returned in decache */
 };
@@ -451,6 +465,62 @@ private:
 	size_t size_in_bytes; /**< The size of the file being stored. */
 };
 
+
+/**
+* A CacheData that stores is data in an ORC file.
+* This allows us to cache onto filesystems to allow larger queries to run on
+* limited resources. This is the least performant cache in most instances.
+*/
+class CacheDataIO : public CacheData {
+public:
+
+	/**
+	* Constructor
+	* @param table The BlazingTable that is converted into an ORC file and stored
+	* on disk.
+	* @ param orc_files_path The path where the file should be stored.
+	*/
+	 CacheDataIO(ral::io::data_handle handle,
+	 	std::shared_ptr<ral::io::data_parser> parser,
+	 	ral::io::Schema schema,
+		ral::io::Schema file_schema,
+		std::vector<int> row_group_ids,
+		std::vector<int> projections
+		 );
+
+	/**
+	* Constructor
+	* @param table The BlazingTable that is converted into an ORC file and stored
+	* on disk.
+	* @ param orc_files_path The path where the file should be stored.
+	*/
+	std::unique_ptr<ral::frame::BlazingTable> decache() override;
+
+	/**
+ 	* Get the amount of GPU memory that the decached BlazingTable WOULD consume.
+ 	* Having this function allows us to have one api for seeing how much GPU
+	* memory is necessary to decache the file from disk.
+ 	* @return The number of bytes needed for the BlazingTable decache would
+	* generate.
+ 	*/
+	size_t sizeInBytes() const override;
+
+
+	/**
+	* Destructor
+	*/
+	virtual ~CacheDataIO() {}
+
+
+private:
+	ral::io::data_handle handle;
+	std::shared_ptr<ral::io::data_parser> parser;
+	ral::io::Schema schema;
+	ral::io::Schema file_schema;
+	std::vector<int> row_group_ids;
+	std::vector<int> projections;
+};
+
 using frame_type = std::unique_ptr<ral::frame::BlazingTable>;
 
 
@@ -487,9 +557,9 @@ protected:
 * many compute resources.This is accomplished through the use of a
 * condition_variable and mutex locks.
 */
+template <typename message_ptr>
 class WaitingQueue {
 public:
-	using message_ptr = std::unique_ptr<message>;
 
 	/**
 	* Constructor
@@ -525,6 +595,7 @@ public:
 	* @return number of partitions that have been inserted into this WaitingQueue.
 	*/
 	int processed_parts(){
+		std::unique_lock<std::mutex> lock(mutex_);
 		return processed;
 	}
 
@@ -905,6 +976,8 @@ public:
 
 	uint64_t get_num_rows_added();
 
+	uint64_t get_num_batches_added();
+
 	void wait_until_finished();
 
 	std::int32_t get_id() const;
@@ -917,6 +990,10 @@ public:
 
 	bool has_next_now() {
 		return this->waitingCache->has_next_now();
+	}
+
+	std::size_t get_num_batches(){
+		return cache_count;
 	}
 	virtual std::unique_ptr<ral::frame::BlazingTable> pullFromCache();
 
@@ -945,7 +1022,7 @@ protected:
 	static std::size_t cache_count;
 
 	/// This property represents a waiting queue object which stores all CacheData Objects
-	std::unique_ptr<WaitingQueue> waitingCache;
+	std::unique_ptr<WaitingQueue< std::unique_ptr<message> > > waitingCache;
 
 	/// References to the properties of the multi-tier cache system
 	std::vector<BlazingMemoryResource*> memory_resources;
@@ -967,7 +1044,7 @@ protected:
 class HostCacheMachine {
 public:
 	HostCacheMachine(std::shared_ptr<Context> context, const std::size_t id) : ctx(context), cache_id(id) {
-		waitingCache = std::make_unique<WaitingQueue>();
+		waitingCache = std::make_unique<WaitingQueue <std::unique_ptr< message> > >();
 		logger = spdlog::get("batch_logger");
 		something_added = false;
 
@@ -1042,7 +1119,7 @@ public:
 	}
 
 protected:
-	std::unique_ptr<WaitingQueue> waitingCache;
+	std::unique_ptr<WaitingQueue <std::unique_ptr<message> > > waitingCache;
 	std::shared_ptr<Context> ctx;
 	std::shared_ptr<spdlog::logger> logger;
 	bool something_added;
@@ -1086,4 +1163,6 @@ public:
 
 
 }  // namespace cache
+
+
 } // namespace ral

@@ -10,6 +10,8 @@
 
 #include "../Schema.h"
 #include "../DataType.h"
+#include "../data_provider/DataProvider.h"
+
 #include "execution_graph/logic_controllers/LogicPrimitives.h"
 #include "arrow/io/interfaces.h"
 #include <memory>
@@ -22,7 +24,7 @@ class data_parser {
 public:
 
 	virtual std::unique_ptr<ral::frame::BlazingTable> parse_batch(
-		std::shared_ptr<arrow::io::RandomAccessFile> file,
+		ral::io::data_handle handle,
 		const Schema & schema,
 		std::vector<int> column_indices,
 		std::vector<cudf::size_type> row_groups) {

@@ -139,12 +139,3 @@ private:
 
 } // namespace batch
 } // namespace ral
-
-/*
-single node
-- PartwiseJoin (two inputs, one output)
-
-multi node
-- JoinPartitionKernel (two inputs, two outputs)
-- PartwiseJoin (two inputs, one output)
-*/

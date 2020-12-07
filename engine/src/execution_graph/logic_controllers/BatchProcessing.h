@@ -5,7 +5,7 @@
 #include "taskflow/graph.h"
 #include "io/Schema.h"
 #include "io/DataLoader.h"
-
+#include "execution_graph/logic_controllers/taskflow/kernel.h"
 #include <execution_graph/logic_controllers/LogicPrimitives.h>
 
 namespace ral {
@@ -111,74 +111,6 @@ private:
 
 
 /**
- * @brief Gets data from a data source, such as a set of files or from a DataFrame.
- * These data sequencers are used by the TableScan's.
- */
-class DataSourceSequence {
-public:
-	/**
-	 * Constructor for the DataSourceSequence
-	 * @param loader Data loader responsible for executing the batching load.
-	 * @param schema Table schema associated to the data to be loaded.
-	 * @param context Shared context associated to the running query.
-	 */
-	DataSourceSequence(ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context);
-
-	/**
-	 * Get the next batch as a unique pointer to a BlazingTable.
-	 * If there are no more batches we get a nullptr.
-	 * @return Unique pointer to a BlazingTable containing the next batch read.
-	 */
-	RecordBatch next();
-
-	/**
-	 * Indicates if there are more batches to process.
-	 * @return true There is at least one batch to be processed.
-	 * @return false The data source is empty or all batches have already been processed.
-	 */
-	bool has_next();
-
-	/**
-	 * Updates the set of columns to be projected at the time of reading the data source.
-	 * @param projections The set of column ids to be selected.
-	 */
-	void set_projections(std::vector<int> projections);
-
-	/**
-	 * Get the batch index.
-	 * @note This function can be called from a parallel thread, so we want it to be thread safe.
-	 * @return The current batch index.
-	 */
-	size_t get_batch_index();
-
-	/**
-	 * Get the number of batches identified on the data source.
-	 * @return The number of batches.
-	 */
-	size_t get_num_batches();
-
-private:
-	std::shared_ptr<ral::io::data_provider> provider; /**< Data provider associated to the data loader. */
-	std::shared_ptr<ral::io::data_parser> parser; /**< Data parser associated to the data loader. */
-
-	std::shared_ptr<Context> context; /**< Pointer to the shared query context. */
-	std::vector<int> projections; /**< List of columns that will be selected if they were previously settled. */
-	ral::io::data_loader loader; /**< Data loader responsible for executing the batching load. */
-	ral::io::Schema  schema; /**< Table schema associated to the data to be loaded. */
-	std::vector<std::vector<int>> all_row_groups;
-	std::atomic<size_t> batch_index; /**< Current global batch index. */
-	size_t n_batches; /**< Number of batches. */
-	size_t n_files; /**< Number of files. */
-	bool is_empty_data_source; /**< Indicates whether the data source is empty. */
-	bool is_gdf_parser; /**< Indicates whether the parser is a gdf one. */
-	int cur_file_index{}; /**< Current file index. */
-	int file_batch_index{};  /**< Current file batch index. */
-	ral::io::data_handle current_data_handle{};
-
-	std::mutex mutex_; /**< Mutex for making the loading batch thread-safe. */
-};
-
-/**
  * @brief This kernel loads the data from the specified data source.
  */
 class TableScan : public kernel {
@@ -192,9 +124,15 @@ public:
 	 * @param context Shared context associated to the running query.
 	 * @param query_graph Shared pointer of the current execution graph.
 	 */
-	TableScan(std::size_t kernel_id, const std::string & queryString, ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph);
+	TableScan(std::size_t kernel_id, const std::string & queryString,
+		std::shared_ptr<ral::io::data_provider> provider,
+		std::shared_ptr<ral::io::data_parser> parser, ral::io::Schema & schema,
+		std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph);
 
-	
+	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+		std::shared_ptr<ral::cache::CacheMachine> output,
+		cudaStream_t stream, std::string kernel_process_name) override;
+
 	/**
 	 * Executes the batch processing.
 	 * Loads the data from their input port, and after processing it,
@@ -210,7 +148,11 @@ public:
 	virtual std::pair<bool, uint64_t> get_estimated_output_num_rows();
 
 private:
-	DataSourceSequence input; /**< Input data source sequence. */
+	std::shared_ptr<ral::io::data_provider> provider;
+	std::shared_ptr<ral::io::data_parser> parser;
+	ral::io::Schema  schema; /**< Table schema associated to the data to be loaded. */
+	size_t file_index = 0;
+	size_t num_batches;
 };
 
 /**
@@ -229,8 +171,13 @@ public:
 	 * @param context Shared context associated to the running query.
 	 * @param query_graph Shared pointer of the current execution graph.
 	 */
-	BindableTableScan(std::size_t kernel_id, const std::string & queryString, ral::io::data_loader &loader, ral::io::Schema & schema, std::shared_ptr<Context> context,
-		std::shared_ptr<ral::cache::graph> query_graph);
+	BindableTableScan(std::size_t kernel_id, const std::string & queryString,
+		std::shared_ptr<ral::io::data_provider> provider, std::shared_ptr<ral::io::data_parser> parser,
+		ral::io::Schema & schema, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph);
+
+	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+		std::shared_ptr<ral::cache::CacheMachine> output,
+		cudaStream_t stream, std::string kernel_process_name) override;
 
 	/**
 	 * Executes the batch processing.
@@ -247,7 +194,12 @@ public:
 	virtual std::pair<bool, uint64_t> get_estimated_output_num_rows();
 
 private:
-	DataSourceSequence input; /**< Input data source sequence. */
+	std::shared_ptr<ral::io::data_provider> provider;
+	std::shared_ptr<ral::io::data_parser> parser;
+	ral::io::Schema  schema; /**< Table schema associated to the data to be loaded. */
+	size_t file_index = 0;
+	double num_batches;
+	bool filtered;
 };
 
 /**
@@ -263,6 +215,10 @@ public:
 	 * @param query_graph Shared pointer of the current execution graph.
 	 */
 	Projection(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph);
+
+	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+		std::shared_ptr<ral::cache::CacheMachine> output,
+		cudaStream_t stream, std::string kernel_process_name);
 
 	/**
 	 * Executes the batch processing.
@@ -286,6 +242,10 @@ public:
 	 * @param query_graph Shared pointer of the current execution graph.
 	 */
 	Filter(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph);
+
+	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+		std::shared_ptr<ral::cache::CacheMachine> output,
+		cudaStream_t stream, std::string kernel_process_name) override;
 
 	/**
 	 * Executes the batch processing.
@@ -341,6 +301,13 @@ public:
 	 */
 	OutputKernel(std::size_t kernel_id, std::shared_ptr<Context> context) : kernel(kernel_id,"OutputKernel", context, kernel_type::OutputKernel) { }
 
+	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+		std::shared_ptr<ral::cache::CacheMachine> output,
+		cudaStream_t stream, std::string kernel_process_name) override {
+			//for now the output kernel is not using do_process
+			//i believe the output should be a cachemachine itself
+			//obviating this concern
+		}
 	/**
 	 * Executes the batch processing.
 	 * Loads the data from their input port, and after processing it,

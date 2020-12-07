@@ -99,7 +99,6 @@ public:
 
 	/**
 	 * @brief Adds a CacheData into the output cache.
-	 *
 	 * @param cache_data The cache_data that will be added to the output cache.
 	 * @param cache_id The cache identifier.
 	 */
@@ -164,10 +163,25 @@ public:
 	 * is that its the same as the input (i.e. project, sort, ...).
 	 */
 	virtual std::pair<bool, uint64_t> get_estimated_output_num_rows();
-	
 
+	void process(std::vector<std::unique_ptr<ral::cache::CacheData > > & inputs,
+		std::shared_ptr<ral::cache::CacheMachine> output,
+		cudaStream_t stream, std::string kernel_process_name);
+
+	virtual void do_process(std::vector<std::unique_ptr<ral::frame::BlazingTable> > inputs,
+		std::shared_ptr<ral::cache::CacheMachine> output,
+		cudaStream_t stream,std::string kernel_process_name){
+		}
+
+	void notify_complete(size_t task_id);
+	void add_task(size_t task_id);
+	bool finished_tasks(){
+		return tasks.empty();
+	}
 protected:
-
+	std::set<size_t> tasks;
+	std::mutex kernel_mutex;
+	std::condition_variable kernel_cv;
 
 public:
 	std::string expression; /**< Stores the logical expression being processed. */

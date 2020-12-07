@@ -46,6 +46,15 @@ Schema::~Schema() {
 
 std::vector<std::string> Schema::get_names() const { return this->names; }
 
+std::vector<cudf::data_type> Schema::get_data_types() const {
+
+	std::vector<cudf::data_type> data_types;
+	for(auto type_id : this->types){
+		data_types.push_back(cudf::data_type(type_id));
+	}
+	return data_types;
+}
+
 std::vector<std::string> Schema::get_files() const { return this->files; }
 
 std::vector<cudf::type_id> Schema::get_dtypes() const { return this->types; }
@@ -119,6 +128,10 @@ std::vector<int> Schema::get_rowgroup_ids(size_t file_index) const {
 	} else {
 		return std::vector<int>{};
 	}
+}
+
+std::vector<std::vector<int>> Schema::get_rowgroups(){
+	return this->row_groups_ids;
 }
 
 } /* namespace io */
