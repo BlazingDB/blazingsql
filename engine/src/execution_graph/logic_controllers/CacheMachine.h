@@ -38,7 +38,7 @@ using namespace fmt::literals;
 * CPU, or a file. We can also have GPU messages that contain metadata
 * which are used for sending CacheData from node to node
 */
-enum class CacheDataType { GPU, CPU, LOCAL_FILE, GPU_METADATA, IO_FILE };
+enum class CacheDataType { GPU, CPU, LOCAL_FILE, GPU_METADATA, IO_FILE, CONCATENATING };
 
 const std::string KERNEL_ID_METADATA_LABEL = "kernel_id"; /**< A message metadata field that indicates which kernel owns this message. */
 const std::string QUERY_ID_METADATA_LABEL = "query_id"; /**< A message metadata field that indicates which query owns this message. */
@@ -521,7 +521,35 @@ private:
 	std::vector<int> projections;
 };
 
-using frame_type = std::unique_ptr<ral::frame::BlazingTable>;
+class ConcatCacheData : public CacheData {
+public:
+	/**
+	* Constructor
+	* @param table The cache_datas that will be concatenated when decached.
+	* @param col_names The names of the columns in the dataframe.
+	* @param schema The types of the columns in the dataframe.
+	*/
+	ConcatCacheData(std::vector<std::unique_ptr<CacheData>> cache_datas, const std::vector<std::string>& col_names, const std::vector<cudf::data_type>& schema);
+
+	/**
+	* Decaches all caches datas and concatenates them into one BlazingTable
+	* @return The BlazingTable that results from concatenating all cache datas.
+	*/
+	std::unique_ptr<ral::frame::BlazingTable> decache() override;
+
+	/**
+	* Get the amount of GPU memory consumed by this CacheData
+	* Having this function allows us to have one api for seeing the consumption
+	* of all the CacheData objects that are currently in Caches.
+	* @return The number of bytes the BlazingTable consumes.
+	*/
+	size_t sizeInBytes() const override;
+
+	virtual ~ConcatCacheData() {}
+
+protected:
+	std::vector<std::unique_ptr<CacheData>> _cache_datas;
+};
 
 
 /**
@@ -1158,6 +1186,8 @@ public:
 	std::unique_ptr<ral::frame::BlazingTable> pullUnorderedFromCache() override {
 		return pullFromCache();
 	}
+
+	std::unique_ptr<ral::cache::CacheData> pullCacheData() override;
 
 	size_t downgradeCacheData() override { // dont want to be able to downgrage concatenating caches
 		return 0;

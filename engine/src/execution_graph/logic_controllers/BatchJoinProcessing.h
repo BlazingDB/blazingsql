@@ -82,24 +82,16 @@ public:
 	std::unique_ptr<ral::cache::CacheData> load_left_set(){
 		this->max_left_ind++;
 		auto cache_data = this->left_input->pullCacheData();
-		// if (not left_schema && cache_data != nullptr) {
-		// 	left_schema = std::make_unique<TableSchema>(cache_data->get_schema(),  cache_data->names());
-		// }
-		// if (cache_data == nullptr) {
-		// 	return ral::frame::createEmptyBlazingTable(left_schema->column_types, left_schema->column_names);
-		// }
+		assert(cache_data != nullptr);
+
 		return cache_data;
 	}
 
 	std::unique_ptr<ral::cache::CacheData> load_right_set(){
 		this->max_right_ind++;
 		auto cache_data = this->right_input->pullCacheData();
-		// if (not right_schema && cache_data != nullptr) {
-		// 	right_schema = std::make_unique<TableSchema>(cache_data->get_schema(), cache_data->names());
-		// }
-		// if (cache_data == nullptr) {
-		// 	return ral::frame::createEmptyBlazingTable(right_schema->column_types, right_schema->column_names);
-		// }
+		assert(cache_data != nullptr);
+
 		return cache_data;
 	}
 

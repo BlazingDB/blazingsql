@@ -134,6 +134,44 @@ CacheDataLocalFile::CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable>
 
 	cudf::io::write_orc(out_opts);
 }
+
+ConcatCacheData::ConcatCacheData(std::vector<std::unique_ptr<CacheData>> cache_datas, const std::vector<std::string>& col_names, const std::vector<cudf::data_type>& schema)
+	: CacheData(CacheDataType::CONCATENATING, col_names, schema, 0), _cache_datas{std::move(cache_datas)} {
+	n_rows = 0;
+	for (auto && cache_data : _cache_datas) {
+		auto cache_schema = cache_data->get_schema();
+		RAL_EXPECTS(std::equal(schema.begin(), schema.end(), cache_schema.begin()), "Cache data has a different schema");
+		n_rows += cache_data->num_rows();
+	}
+}
+
+std::unique_ptr<ral::frame::BlazingTable> ConcatCacheData::decache() {
+	if(_cache_datas.empty()) {
+		return ral::utilities::create_empty_table(col_names, schema);
+	}
+
+	if (_cache_datas.size() == 1)	{
+		return _cache_datas[0]->decache();
+	}
+
+	std::vector<std::unique_ptr<ral::frame::BlazingTable>> tables_holder;
+	std::vector<ral::frame::BlazingTableView> table_views;
+	for (auto && cache_data : _cache_datas){
+		tables_holder.push_back(cache_data->decache());
+		table_views.push_back(tables_holder.back()->toBlazingTableView());
+	}
+
+	return ral::utilities::concatTables(table_views);
+}
+
+size_t ConcatCacheData::sizeInBytes() const {
+	size_t total_size = 0;
+	for (auto && cache_data : _cache_datas) {
+		total_size += cache_data->sizeInBytes();
+	}
+	return total_size;
+};
+
 std::unique_ptr<GPUCacheDataMetaData> cast_cache_data_to_gpu_with_meta(std::unique_ptr<CacheData> base_pointer){
 	return std::unique_ptr<GPUCacheDataMetaData>(static_cast<GPUCacheDataMetaData *>(base_pointer.release()));
 }
@@ -683,6 +721,60 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
 								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
 								"info"_a="Pull from ConcatenatingCacheMachine",
+								"duration"_a="",
+								"kernel_id"_a=message_id,
+								"rows"_a=num_rows);
+	}
+
+	return std::move(output);
+}
+
+std::unique_ptr<ral::cache::CacheData> ConcatenatingCacheMachine::pullCacheData() {
+	if (concat_all){
+		waitingCache->wait_until_finished();
+	} else {
+		waitingCache->wait_until_num_bytes(this->concat_cache_num_bytes);
+	}
+
+	size_t total_bytes = 0;
+	std::vector<std::unique_ptr<message>> collected_messages;
+	std::unique_ptr<message> message_data;
+	std::string message_id = "";
+
+	do {
+		message_data = waitingCache->pop_or_wait();
+		if (message_data == nullptr){
+			break;
+		}
+		auto& cache_data = message_data->get_data();
+		total_bytes += cache_data.sizeInBytes();
+		message_id = message_data->get_message_id();
+		collected_messages.push_back(std::move(message_data));
+	} while (concat_all || (total_bytes + waitingCache->get_next_size_in_bytes() <= this->concat_cache_num_bytes));
+
+	std::unique_ptr<ral::cache::CacheData> output;
+	size_t num_rows = 0;
+	if(collected_messages.empty()){
+		output = nullptr;
+	} else if (collected_messages.size() == 1) {
+		output = collected_messages[0]->release_data();
+		num_rows = output->num_rows();
+	}	else {
+		std::vector<std::unique_ptr<ral::cache::CacheData>> cache_datas;
+		for (int i = 0; i < collected_messages.size(); i++){
+			cache_datas.push_back(collected_messages[i]->release_data());
+		}
+
+		output = std::make_unique<ConcatCacheData>(std::move(cache_datas), cache_datas[0]->names(), cache_datas[0]->get_schema());
+		num_rows = output->num_rows();
+	}
+
+	if(logger != nullptr) {
+		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+								"info"_a="Pull cache data from ConcatenatingCacheMachine",
 								"duration"_a="",
 								"kernel_id"_a=message_id,
 								"rows"_a=num_rows);
