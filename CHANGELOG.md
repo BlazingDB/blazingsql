@@ -20,6 +20,7 @@
 - #1216 Add unit test for DAYOFWEEK
 - #1205 Implement string REVERSE
 - #1220 Implement string LEFT and RIGHT 
+- #1210 Add support for Calcite Spatial
 
 
 ## Improvements
