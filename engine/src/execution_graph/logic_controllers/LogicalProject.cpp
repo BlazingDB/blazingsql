@@ -149,7 +149,8 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
 
         // handle the position argument, if it exists
         if (arg_tokens.size() == 4) {
-            int32_t start = arg_tokens.size() == 4 ? std::stoi(arg_tokens[3]) : 0;
+            int32_t start = std::stoi(arg_tokens[3]) - 1;
+            RAL_EXPECTS(start >= 0, "Position must be greater than zero.");
             int32_t prefix = 0;
 
             auto prefix_col = cudf::strings::slice_strings(column, prefix, start);

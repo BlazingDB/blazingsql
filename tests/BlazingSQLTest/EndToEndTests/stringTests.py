@@ -340,6 +340,38 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
+            queryId = "TEST_17"
+            query_bsql = """SELECT
+                REGEXP_REPLACE(c_comment, '[a-zA-Z]{2}([a-z]{2})([a-z]{2})', '\\2--\\1') as backref,
+                REGEXP_REPLACE(c_comment, '[a-zA-Z]{2}([a-z]{1})([a-z]{1})', '\\2--\\1', 4) as backref_pos,
+                REGEXP_REPLACE(c_comment, 'e|a|i|o|u', 'Z', 4) as vowel_pos,
+                REGEXP_REPLACE(c_comment, '[a-z]+(.+)', 'Z', 10) as capture_pos
+                FROM customer
+                """
+            query_spark = """SELECT
+                REGEXP_REPLACE(c_comment, '[a-zA-Z]{2}([a-z]{2})([a-z]{2})', '$2--$1') as backref,
+                CONCAT(
+                    SUBSTRING(c_comment, 0, 3),
+                    REGEXP_REPLACE(SUBSTRING(c_comment, 4), '[a-zA-Z]{2}([a-z]{1})([a-z]{1})', '$2--$1')
+                ) as backref_pos,
+                CONCAT(SUBSTRING(c_comment, 0, 3), REGEXP_REPLACE(SUBSTRING(c_comment, 4), 'e|a|i|o|u', 'Z')) as vowel_pos,
+                CONCAT(SUBSTRING(c_comment, 0, 9), REGEXP_REPLACE(SUBSTRING(c_comment, 10), '[a-z]+(.+)', 'Z')) as capture_pos
+                FROM customer
+                """
+            runTest.run_query(
+                bc,
+                spark,
+                query_bsql,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+                query_spark=query_spark,
+            )
+
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")
                 break
