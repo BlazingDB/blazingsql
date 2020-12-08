@@ -135,6 +135,12 @@ public:
 		return cache_type;
 	}
 
+	/**
+	 * Utility function which can take a CacheData and if its a standard GPU cache data, it will downgrade it to CPU or Disk
+	 * @return If the input CacheData is not of a type that can be downgraded, it will just return the original input, otherwise it will return the downgraded CacheData.
+	 */
+	static std::unique_ptr<CacheData> downgradeCacheData(std::unique_ptr<CacheData> cacheData, std::string id, std::shared_ptr<Context> ctx);
+
 protected:
 	CacheDataType cache_type; /**< The CacheDataType that is used to store the dataframe representation. */
 	std::vector<std::string> col_names; /**< A vector storing the names of the columns in the dataframe representation. */
@@ -673,6 +679,43 @@ public:
 		this->message_queue_.pop_front();
 		return std::move(data);
 	}
+
+		/**
+	* Get a message_ptr if it exists in the WaitingQueue else wait.
+	* This function allows kernels to pull from the cache before a cache has
+	* CacheData in it. If finish is called on the WaitingQueue and no messages
+	* are left this returns nullptr.
+	* @return A message_ptr that was pushed into the WaitingQueue nullptr if
+	* the WaitingQueue is empty and finished.
+	*/
+	message_ptr pop_back_or_wait() {
+
+		CodeTimer blazing_timer;
+		std::unique_lock<std::mutex> lock(mutex_);
+		/*while(!condition_variable_.wait_for(lock, timeout*1ms, [&, this] {
+				bool done_waiting = this->finished.load(std::memory_order_seq_cst) or !this->empty();
+				if (!done_waiting && blazing_timer.elapsed_time() > 59000){
+					auto logger = spdlog::get("batch_logger");
+					if(logger != nullptr) {
+						logger->warn("|||{info}|{duration}||||",
+											"info"_a="WaitingQueue pop_or_wait timed out",
+											"duration"_a=blazing_timer.elapsed_time());
+					}
+				}
+				return done_waiting;
+			})){}*/
+
+		condition_variable_.wait(lock,[&, this] {
+				return this->finished.load(std::memory_order_seq_cst) or !this->empty();
+		});
+		if(this->message_queue_.size() == 0) {
+			return nullptr;
+		}
+		auto data = std::move(this->message_queue_.back());
+		this->message_queue_.pop_back();
+		return std::move(data);
+	}
+
 	/**
 	* Wait for the next message to be ready.
 	* @return Waits for the next CacheData to be available. Returns true when this
