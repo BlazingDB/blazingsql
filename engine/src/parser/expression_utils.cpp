@@ -589,7 +589,7 @@ std::string replace_calcite_regex(const std::string & expression) {
 	ret = std::regex_replace(ret, decimal_re, "DOUBLE");
 
 	static const std::regex char_re{
-		R""(CHAR\(\d+\))"", std::regex_constants::icase};
+		R""(:CHAR\(\d+\))"", std::regex_constants::icase};
 	ret = std::regex_replace(ret, char_re, "VARCHAR");
 
 
