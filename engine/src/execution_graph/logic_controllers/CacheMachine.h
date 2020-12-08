@@ -686,7 +686,7 @@ public:
 	*/
 	message_ptr pop_back() {
 
-		std::unique_lock<std::mutex> lock(mutex_);
+		std::lock_guard<std::mutex> lock(mutex_);
 		if(this->message_queue_.size() == 0) {
 			return nullptr;
 		}

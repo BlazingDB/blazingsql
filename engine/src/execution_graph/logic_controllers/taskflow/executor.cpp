@@ -41,7 +41,7 @@ void executor::add_task(std::unique_ptr<task> task) {
 }
 
 std::unique_ptr<task> executor::remove_task_from_back(){
-    return task_queue.pop_back();    
+    return std::move(task_queue.pop_back());
 }
 
 task::task(
@@ -121,7 +121,7 @@ void executor::execute(){
             
             // Here we want to wait until we make sure we have enough memory to operate, or if there are no tasks currently running, then we want to go ahead and run
             std::unique_lock<std::mutex> lock(memory_safety_mutex);
-            memory_safety_cv.wait(lock, [this, memory_needed] { return active_tasks_counter.load() == 0 || memory_needed < resource->get_memory_limit() - resource->get_memory_used(); });        
+            memory_safety_cv.wait(lock, [this, memory_needed] { return active_tasks_counter.load() == 0 || (memory_needed < resource->get_memory_limit() - resource->get_memory_used()); });        
 
             active_tasks_counter++;        
             cur_task->run(this->streams[thread_id],this);
