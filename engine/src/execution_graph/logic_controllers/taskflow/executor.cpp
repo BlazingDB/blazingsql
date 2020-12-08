@@ -36,6 +36,14 @@ void executor::add_task(std::vector<std::unique_ptr<ral::cache::CacheData > > in
     task_queue.put(std::move(task_added));
 }
 
+void executor::add_task(std::unique_ptr<task> task) {
+    task_queue.put(std::move(task));
+}
+
+std::unique_ptr<task> executor::remove_task_from_back(){
+    return task_queue.pop_back();    
+}
+
 task::task(
     std::vector<std::unique_ptr<ral::cache::CacheData > > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
@@ -82,6 +90,16 @@ void task::run(cudaStream_t stream, executor * executor){
 void task::complete(){
     kernel->notify_complete(task_id);
 }
+
+std::vector<std::unique_ptr<ral::cache::CacheData > > task::release_inputs(){
+    return std::move(this->inputs);
+}
+
+void task::set_inputs(std::vector<std::unique_ptr<ral::cache::CacheData > > inputs){
+    this->inputs = std::move(inputs);
+}
+
+
 
 executor * executor::_instance;
 

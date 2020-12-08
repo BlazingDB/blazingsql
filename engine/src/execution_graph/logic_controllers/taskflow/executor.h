@@ -36,6 +36,16 @@ public:
 	void complete();
 	std::size_t task_memory_needed();
 
+	/**
+	 * This function releases the inputs of a task so that they can be manipulated. They then need to be set again with set_inputs
+	 */
+	std::vector<std::unique_ptr<ral::cache::CacheData > > release_inputs();
+
+	/**
+	 * This function set the inputs of a task. It is meant to be used in conjunction with release_inputs
+	 */
+	void set_inputs(std::vector<std::unique_ptr<ral::cache::CacheData > > inputs);
+
 protected:
 	std::vector<std::unique_ptr<ral::cache::CacheData > > inputs;
 	std::shared_ptr<ral::cache::CacheMachine> output;
@@ -76,6 +86,10 @@ public:
 		ral::cache::kernel * kernel,
 		size_t attempts,
 		size_t task_id,std::string kernel_process_name);
+
+	void add_task(std::unique_ptr<task> task);
+
+	std::unique_ptr<task> remove_task_from_back();
 
 private:
 	executor(int num_threads);

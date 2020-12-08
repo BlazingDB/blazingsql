@@ -680,34 +680,13 @@ public:
 		return std::move(data);
 	}
 
-		/**
-	* Get a message_ptr if it exists in the WaitingQueue else wait.
-	* This function allows kernels to pull from the cache before a cache has
-	* CacheData in it. If finish is called on the WaitingQueue and no messages
-	* are left this returns nullptr.
-	* @return A message_ptr that was pushed into the WaitingQueue nullptr if
-	* the WaitingQueue is empty and finished.
+	/**
+	* Get a message_ptr from the back of the queue if it exists in the WaitingQueue else return nullptr.
+	* @return message_ptr from the back of the queue if it exists in the WaitingQueue else return nullptr.
 	*/
-	message_ptr pop_back_or_wait() {
+	message_ptr pop_back() {
 
-		CodeTimer blazing_timer;
 		std::unique_lock<std::mutex> lock(mutex_);
-		/*while(!condition_variable_.wait_for(lock, timeout*1ms, [&, this] {
-				bool done_waiting = this->finished.load(std::memory_order_seq_cst) or !this->empty();
-				if (!done_waiting && blazing_timer.elapsed_time() > 59000){
-					auto logger = spdlog::get("batch_logger");
-					if(logger != nullptr) {
-						logger->warn("|||{info}|{duration}||||",
-											"info"_a="WaitingQueue pop_or_wait timed out",
-											"duration"_a=blazing_timer.elapsed_time());
-					}
-				}
-				return done_waiting;
-			})){}*/
-
-		condition_variable_.wait(lock,[&, this] {
-				return this->finished.load(std::memory_order_seq_cst) or !this->empty();
-		});
 		if(this->message_queue_.size() == 0) {
 			return nullptr;
 		}
