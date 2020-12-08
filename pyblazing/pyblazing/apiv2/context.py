@@ -2881,7 +2881,7 @@ class BlazingContext(object):
                     query,
                 )
                 result = cio.runExecuteGraphCaller(graph, ctxToken, is_single_node=True)
-            except cio.RunQueryError as e:
+            except cio.RunExecuteGraphError as e:
                 remove_orc_files_from_disk(self.cache_dir_path, ctxToken)
                 print(">>>>>>>> ", e)
                 result = cudf.DataFrame()
