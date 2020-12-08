@@ -5,7 +5,7 @@
 
 
 ## Improvements
-- #1166 Moving code from header files to implementation files
+- #1236 Moving code from header files to implementation files
 
 
 ## Bug Fixes

@@ -255,6 +255,7 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingH
               ${CMAKE_SOURCE_DIR}/src/bmr/MemoryMonitor.cpp
               ${CMAKE_SOURCE_DIR}/src/bmr/BlazingMemoryResource.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/graph.cpp
+              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BatchAggregationProcessing.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BatchJoinProcessing.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BatchOrderByProcessing.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BatchUnionProcessing.cpp
