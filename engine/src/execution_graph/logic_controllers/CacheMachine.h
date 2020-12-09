@@ -552,8 +552,8 @@ public:
 	std::unique_ptr<CacheData> release_data() { return std::move(data); }
 
 protected:
-	const std::string message_id;
 	std::unique_ptr<CacheData> data;
+	const std::string message_id;
 };
 
 /**

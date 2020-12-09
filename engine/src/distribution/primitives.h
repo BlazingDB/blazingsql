@@ -34,11 +34,6 @@ namespace distribution {
 											const std::vector<int> & searchColIndices,
 											std::vector<cudf::order> sortOrderTypes);
 
-	
-
-
-	
-	
 	std::unique_ptr<BlazingTable> getPivotPointsTable(cudf::size_type number_pivots, const BlazingTableView & sortedSamples);
 
 	

@@ -3,6 +3,7 @@
 #include "kernel.h"
 #include "execution_graph/logic_controllers/CacheMachine.h"
 #include "ExceptionHandling/BlazingThread.h"
+#include "utilities/ctpl_stl.h"
 
 namespace ral {
 namespace execution{
