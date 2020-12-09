@@ -3,6 +3,7 @@
 ## New Features
 - #1139 Adding centralized task executor for kernels
 - #1237 Added task memory management
+- #1244 Added memory monitor ability to downgrade task data
 
 ## Improvements
 
