@@ -47,6 +47,7 @@
 - #1224 Added cudaSetDevice to thread initialization so that the cuda context is available to UCX
 - #1229 Change hardcoded version from setup.py
 - #1231 Adding docker support for gpuCI scripts
+- #1248 Jenkins and Docker scripts were improved for building
 
 
 ## Bug Fixes
