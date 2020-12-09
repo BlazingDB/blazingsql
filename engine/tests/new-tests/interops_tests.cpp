@@ -307,11 +307,11 @@ TYPED_TEST(InteropsTestTimestamp, test_day_of_week) {
     using ToDuration = typename T::duration;
 
     auto start_ms = cudf::timestamp_ms::duration(-2203891200000);  // Sat, 1 Mar 1900 00:00:00 GMT
-    auto start = simt::std::chrono::time_point_cast < ToDuration > (cudf::timestamp_ms(start_ms))
+    auto start = cuda::std::chrono::time_point_cast < ToDuration > (cudf::timestamp_ms(start_ms))
             .time_since_epoch()
             .count();
     auto stop_ms = cudf::timestamp_ms::duration(2214086400000);   // Mon, 29 Feb 2040 00:00:00 GMT
-    auto stop = simt::std::chrono::time_point_cast < ToDuration > (cudf::timestamp_ms(stop_ms))
+    auto stop = cuda::std::chrono::time_point_cast < ToDuration > (cudf::timestamp_ms(stop_ms))
             .time_since_epoch()
             .count();
     auto range = static_cast<Rep>(stop - start);
@@ -380,11 +380,11 @@ TYPED_TEST(InteropsTestTimestamp, test_day_of_week_evaluate_expression) {
     using ToDuration = typename T::duration;
 
     auto start_ms = cudf::timestamp_ms::duration(-2203891200000);  // Sat, 1 Mar 1900 00:00:00 GMT
-    auto start = simt::std::chrono::time_point_cast < ToDuration > (cudf::timestamp_ms(start_ms))
+    auto start = cuda::std::chrono::time_point_cast < ToDuration > (cudf::timestamp_ms(start_ms))
             .time_since_epoch()
             .count();
     auto stop_ms = cudf::timestamp_ms::duration(2214086400000);   // Mon, 29 Feb 2040 00:00:00 GMT
-    auto stop = simt::std::chrono::time_point_cast < ToDuration > (cudf::timestamp_ms(stop_ms))
+    auto stop = cuda::std::chrono::time_point_cast < ToDuration > (cudf::timestamp_ms(stop_ms))
             .time_since_epoch()
             .count();
     auto range = static_cast<Rep>(stop - start);
@@ -426,11 +426,11 @@ TYPED_TEST(InteropsTestTimestamp, test_day_of_week_project) {
     using ToDuration = typename T::duration;
 
     auto start_ms = cudf::timestamp_ms::duration(-2203891200000);  // Sat, 1 Mar 1900 00:00:00 GMT
-    auto start = simt::std::chrono::time_point_cast < ToDuration > (cudf::timestamp_ms(start_ms))
+    auto start = cuda::std::chrono::time_point_cast < ToDuration > (cudf::timestamp_ms(start_ms))
             .time_since_epoch()
             .count();
     auto stop_ms = cudf::timestamp_ms::duration(2214086400000);   // Mon, 29 Feb 2040 00:00:00 GMT
-    auto stop = simt::std::chrono::time_point_cast < ToDuration > (cudf::timestamp_ms(stop_ms))
+    auto stop = cuda::std::chrono::time_point_cast < ToDuration > (cudf::timestamp_ms(stop_ms))
             .time_since_epoch()
             .count();
     auto range = static_cast<Rep>(stop - start);
@@ -472,11 +472,11 @@ TYPED_TEST(InteropsTestTimestamp, test_timestamp_types) {
     using ToDuration = typename T::duration;
 
     auto start_ms = cudf::timestamp_ms::duration(-2500000000000);  // Sat, 11 Oct 1890 19:33:20 GMT
-    auto start = simt::std::chrono::time_point_cast < ToDuration > (cudf::timestamp_ms(start_ms))
+    auto start = cuda::std::chrono::time_point_cast < ToDuration > (cudf::timestamp_ms(start_ms))
             .time_since_epoch()
             .count();
     auto stop_ms = cudf::timestamp_ms::duration(2500000000000);   // Mon, 22 Mar 2049 04:26:40 GMT
-    auto stop = simt::std::chrono::time_point_cast < ToDuration > (cudf::timestamp_ms(stop_ms))
+    auto stop = cuda::std::chrono::time_point_cast < ToDuration > (cudf::timestamp_ms(stop_ms))
             .time_since_epoch()
             .count();
     auto range = static_cast<Rep>(stop - start);
@@ -645,11 +645,11 @@ TYPED_TEST(InteropsTestTimestamp, test_timestamp_comparison)
   using ToDuration = typename T::duration;
 
   auto start_ms = cudf::timestamp_ms::duration(-2500000000000);  // Sat, 11 Oct 1890 19:33:20 GMT
-  auto start = simt::std::chrono::time_point_cast<ToDuration>(cudf::timestamp_ms(start_ms))
+  auto start = cuda::std::chrono::time_point_cast<ToDuration>(cudf::timestamp_ms(start_ms))
                 .time_since_epoch()
                 .count();
   auto stop_ms = cudf::timestamp_ms::duration(2500000000000);   // Mon, 22 Mar 2049 04:26:40 GMT
-  auto stop = simt::std::chrono::time_point_cast<ToDuration>(cudf::timestamp_ms(stop_ms))
+  auto stop = cuda::std::chrono::time_point_cast<ToDuration>(cudf::timestamp_ms(stop_ms))
                 .time_since_epoch()
                 .count();
   auto range = static_cast<Rep>(stop - start);
