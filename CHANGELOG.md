@@ -53,11 +53,14 @@
 - #1158 Deprecated bc.partition
 - #1154 Recompute the avg_bytes_per_row value
 - #1155 Removing comms subproject and cleaning some related code
+- #1170 Improve gpuCI scripts
 - #1194 Powerpc building scripts
 - #1186 Removing cuda labels to install due cudatoolkit version
 - #1187 Enable MySQL-specific SQL operators in addition to Standard and Oracle
 - #1206 Improved contribution documentation
 - #1224 Added cudaSetDevice to thread initialization so that the cuda context is available to UCX
+- #1229 Change hardcoded version from setup.py
+- #1231 Adding docker support for gpuCI scripts
 
 
 ## Bug Fixes
