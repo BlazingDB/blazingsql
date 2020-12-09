@@ -235,8 +235,8 @@ if [ "$BLAZING_GPUCI_JOB" = "" ] || [ "$BLAZING_GPUCI_JOB" = "cpu-build" ]; then
         -u $USER \
         -e CUDA_VER=${CUDA_VERSION} -e PYTHON_VER=$PYTHON_VERSION \
         -e CONDA_USERNAME=$CONDA_USERNAME -e MY_UPLOAD_KEY=$MY_UPLOAD_KEY \
+        -e BUILD_MODE=branch \
         -e UPLOAD_BLAZING=$UPLOAD_BLAZING -e CUSTOM_LABEL=$CUSTOM_LABEL \
-        -e BUILD_MODE=branch -e UPLOAD_BLAZING=1 \
         -e WORKSPACE=$WORKSPACE \
         -v /etc/passwd:/etc/passwd \
         -v ${WORKSPACE}:${WORKSPACE} -w ${WORKSPACE} \
