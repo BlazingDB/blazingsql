@@ -9,7 +9,7 @@ class BlazingColumnOwner : public BlazingColumn {
 	public:
 		BlazingColumnOwner() =default;
 		BlazingColumnOwner(const BlazingColumn&) =delete;
-  		BlazingColumnOwner& operator=(const BlazingColumnOwner&) =delete;
+		BlazingColumnOwner& operator=(const BlazingColumnOwner&) =delete;
 		BlazingColumnOwner(std::unique_ptr<CudfColumn> column);
 		~BlazingColumnOwner() = default;
 		CudfColumnView view() const {

@@ -18,7 +18,7 @@ ARGS=$*
 # script, and that this script resides in the repo dir!
 REPODIR=$(cd $(dirname $0); pwd)
 
-VALIDARGS="clean update thirdparty io comms libengine engine pyblazing algebra disable-aws-s3 disable-google-gs -t -v -g -n -h"
+VALIDARGS="clean update thirdparty io libengine engine pyblazing algebra disable-aws-s3 disable-google-gs -t -v -g -n -h"
 HELP="$0 [-v] [-g] [-n] [-h] [-t]
    clean                - remove all existing build artifacts and configuration (start
                           over) Use 'clean thirdparty' to delete thirdparty folder

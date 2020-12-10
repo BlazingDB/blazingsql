@@ -95,12 +95,11 @@ protected:
 	std::vector<size_t> buffer_sizes;
 	size_t buffer_sent = 0;
 
-    std::atomic<size_t> transmitted_begin_frames; /**<  The number of begin_transmission messages sent */
-    std::atomic<size_t> transmitted_frames; /**< The number of frames transmitted */
-    std::mutex mutex;
-    std::condition_variable completion_condition_variable;
-    std::vector<node> destinations;
-
+	std::atomic<size_t> transmitted_begin_frames; /**<  The number of begin_transmission messages sent */
+	std::atomic<size_t> transmitted_frames; /**< The number of frames transmitted */
+	std::mutex mutex;
+	std::condition_variable completion_condition_variable;
+	std::vector<node> destinations;
 };
 
 
