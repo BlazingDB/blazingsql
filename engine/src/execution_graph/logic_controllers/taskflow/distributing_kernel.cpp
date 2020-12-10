@@ -1,6 +1,6 @@
 #include "distributing_kernel.h"
 #include "utilities/CommonOperations.h"
-
+#include <src/utilities/DebuggingUtils.h>
 namespace ral {
 namespace cache {
 
@@ -64,9 +64,10 @@ void distributing_kernel::send_message(std::unique_ptr<ral::frame::BlazingTable>
     bool added;
     if(table==nullptr) {
         table = ral::utilities::create_empty_table({}, {});
-    } else {
-        added = output_cache->addToCache(std::move(table),"",always_add,metadata,true);
-    }
+    } 
+    
+    added = output_cache->addToCache(std::move(table),"",always_add,metadata,true);
+    
 
     if(wait_for) {
         for (auto target_id : target_ids) {
@@ -134,6 +135,8 @@ void distributing_kernel::broadcast(std::unique_ptr<ral::frame::BlazingTable> ta
     for (auto i = 0; i < nodes_to_send.size(); i++)	{
         target_ids.push_back(nodes_to_send[i].id());
     }
+
+
     send_message(std::move(table->toBlazingTableView().clone()),
         true, //specific_cache
         cache_id, //cache_id

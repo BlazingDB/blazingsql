@@ -142,54 +142,19 @@ void tcp_message_listener::start_polling() {
 						auto receiver = std::make_shared<message_receiver>(_nodes_info_map, data);
 
 						//   auto receiver_time = timer.elapsed_time() - meta_read_time;
-						size_t pinned_buffer_size = blazingdb::transport::io::getPinnedBufferProvider().sizeBuffers();
+				
 						size_t buffer_position = 0;
-						size_t total_size = 0;
+				
 						//   size_t total_allocate_time = 0 ;
 						//   size_t total_read_time = 0 ;
 						//   size_t total_sync_time = 0;
 						while(buffer_position < receiver->num_buffers()) {
-							size_t buffer_size = receiver->buffer_size(buffer_position);
-							total_size += buffer_size;
-							size_t num_chunks = (buffer_size + (pinned_buffer_size - 1)) / pinned_buffer_size;
-							std::vector<blazingdb::transport::io::PinnedBuffer *> pinned_buffers(num_chunks);
-							// CodeTimer timer_2;
 							receiver->allocate_buffer(buffer_position, stream);
 							void * buffer = receiver->get_buffer(buffer_position);
-							// auto prev_timer_2 = timer_2.elapsed_time();
-							// total_allocate_time += timer_2.elapsed_time();
-							// timer_2.reset();
-							for(size_t chunk = 0; chunk < num_chunks; chunk++) {
-								size_t chunk_size = pinned_buffer_size;
-								if((chunk + 1) == num_chunks) {	 // if its the last chunk, we chunk_size is different
-									chunk_size = buffer_size - (chunk * pinned_buffer_size);
-								}
-								auto pinned_buffer = blazingdb::transport::io::getPinnedBufferProvider().getBuffer();
-								pinned_buffer->use_size = chunk_size;
+							size_t buffer_size = receiver->buffer_size(buffer_position);
+							io::read_from_socket(connection_fd, buffer, buffer_size);
 
-								io::read_from_socket(connection_fd, pinned_buffer->data, chunk_size);
 
-								auto buffer_chunk_start = buffer + (chunk * pinned_buffer_size);
-								cudaMemcpyAsync(buffer_chunk_start,
-									pinned_buffer->data,
-									chunk_size,
-									cudaMemcpyHostToDevice,
-									stream);
-								pinned_buffers[chunk] = pinned_buffer;
-							}
-
-							// total_read_time += timer_2.elapsed_time();
-							// timer_2.reset();
-
-							// TODO: Do we want to do this synchronize and free after all the receiver->num_buffers() or
-							// for each one?
-							cudaStreamSynchronize(stream);
-
-							// total_sync_time += timer_2.elapsed_time();
-
-							for(size_t chunk = 0; chunk < num_chunks; chunk++) {
-								blazingdb::transport::io::getPinnedBufferProvider().freeBuffer(pinned_buffers[chunk]);
-							}
 							buffer_position++;
 						}
 						close(connection_fd);

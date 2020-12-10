@@ -4,6 +4,7 @@
 #include <utilities/CommonOperations.h>
 #include <cudf/io/orc.hpp>
 
+#include <src/utilities/DebuggingUtils.h>
 using namespace std::chrono_literals;
 namespace ral {
 namespace cache {

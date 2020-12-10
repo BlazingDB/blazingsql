@@ -102,7 +102,7 @@ public:
   void finish(cudaStream_t stream = 0) {
     std::unique_ptr<ral::cache::CacheData> table = 
       std::make_unique<ral::cache::CPUCacheData>(_column_transports,std::move(_raw_buffers),_metadata);
-  
+ //     std::cout<<"calling finish "<<table->num_rows()<<std::endl;
       _output_cache->addCacheData(
               std::move(table), _metadata.get_values()[ral::cache::MESSAGE_ID], true);
     

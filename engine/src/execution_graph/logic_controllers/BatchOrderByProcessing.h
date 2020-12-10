@@ -115,7 +115,7 @@ public:
 				context->incrementQuerySubstep();
 				auto nodes = context->getAllNodes();
 
-				std::vector<std::unique_ptr<ral::cache::CacheData> >table_scope_holder;
+				std::vector<std::unique_ptr<ral::frame::BlazingTable> >table_scope_holder;
 				std::vector<size_t> total_table_rows;
 				std::vector<size_t> total_avg_bytes_per_row;
 				std::vector<ral::frame::BlazingTableView> samples;
@@ -123,13 +123,16 @@ public:
 				for(std::size_t i = 0; i < nodes.size(); ++i) {
 					if(!(nodes[i] == self_node)) {
 						std::string message_id = std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + nodes[i].id();
-
-						table_scope_holder.push_back(this->query_graph->get_input_message_cache()->pullCacheData(message_id));
-						ral::cache::GPUCacheDataMetaData * cache_ptr = static_cast<ral::cache::GPUCacheDataMetaData *> (table_scope_holder[table_scope_holder.size() - 1].get());
-
+						auto cache_data = this->query_graph->get_input_message_cache()->pullCacheData(message_id);
+						
+						
+						ral::cache::CPUCacheData * cache_ptr = static_cast<ral::cache::CPUCacheData *> (cache_data.get());
 						total_table_rows.push_back(std::stoll(cache_ptr->getMetadata().get_values()[ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL]));
 						total_avg_bytes_per_row.push_back(std::stoll(cache_ptr->getMetadata().get_values()[ral::cache::AVG_BYTES_PER_ROW_METADATA_LABEL]));
-						samples.push_back(cache_ptr->getTableView());
+						auto table = cache_data->decache();
+						samples.push_back(table->toBlazingTableView());
+						table_scope_holder.push_back(std::move(table));
+
 					}
 				}
 

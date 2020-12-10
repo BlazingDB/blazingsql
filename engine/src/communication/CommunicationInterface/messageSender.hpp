@@ -81,14 +81,14 @@ public:
 								this](int thread_id) {
 
 
-
+						//std::cout<<"sending message"<<cache_data->num_rows()<<std::endl;
 						auto * cpu_cache_data = static_cast<ral::cache::CPUCacheData *>(cache_data.get());
 						auto table = cpu_cache_data->releaseHostTable();
 						auto metadata = cpu_cache_data->getMetadata();
 
 						std::vector<std::size_t> buffer_sizes;
 						std::vector<const char *> raw_buffers;
-						for(auto buffer : table->get_raw_buffers()){
+						for(auto & buffer : table->get_raw_buffers()){
 							raw_buffers.push_back(buffer.data());
 							buffer_sizes.push_back(buffer.size());
 						}

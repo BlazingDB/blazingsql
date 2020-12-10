@@ -157,7 +157,7 @@ def main():
     if runAllTests or ("crossJoinsTest" in targetTestGroups):
         crossJoinsTest.main(dask_client, spark, dir_data_file, bc, nRals)
 
-    if runAllTests or ("" in targetTestGroups):
+    if runAllTests or ("leftOuterJoinsTest" in targetTestGroups):
         leftOuterJoinsTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     if runAllTests or ("nonEquiJoinsTest" in targetTestGroups):
