@@ -11,7 +11,7 @@ class BlazingColumnView : public BlazingColumn {
 	public:
 		BlazingColumnView() =default;
 		BlazingColumnView(const BlazingColumn&) =delete;
-  		BlazingColumnView& operator=(const BlazingColumnView&) =delete;
+		BlazingColumnView& operator=(const BlazingColumnView&) =delete;
 		BlazingColumnView(const CudfColumnView & column) : column(column) {};
 		~BlazingColumnView() = default;
 		CudfColumnView view() const {

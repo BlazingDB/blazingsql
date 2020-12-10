@@ -27,10 +27,12 @@ csv_parser::csv_parser(std::map<std::string, std::string> args_map_) : args_map{
 csv_parser::~csv_parser() {}
 
 std::unique_ptr<ral::frame::BlazingTable> csv_parser::parse_batch(
-	std::shared_ptr<arrow::io::RandomAccessFile> file,
+	ral::io::data_handle handle,
 	const Schema & schema,
 	std::vector<int> column_indices,
 	std::vector<cudf::size_type> row_groups) {
+
+	std::shared_ptr<arrow::io::RandomAccessFile> file = handle.file_handle;
 
 	if(file == nullptr) {
 		return schema.makeEmptyBlazingTable(column_indices);
@@ -123,7 +125,7 @@ void csv_parser::parse_schema(
 	}
 }
 
-size_t csv_parser::max_bytes_chuck_size() const {
+size_t csv_parser::max_bytes_chunk_size() const {
 	auto iter = args_map.find("max_bytes_chunk_read");
 	if(iter == args_map.end()) {
 		return 0;

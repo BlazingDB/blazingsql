@@ -3,6 +3,9 @@
 #include <random>
 #include <utilities/CommonOperations.h>
 #include <cudf/io/orc.hpp>
+#include "CalciteExpressionParsing.h"
+#include "communication/CommunicationData.h"
+#include <stdio.h>
 
 using namespace std::chrono_literals;
 namespace ral {
@@ -24,6 +27,49 @@ std::string randomString(std::size_t length) {
 	}
 
 	return random_string;
+}
+
+std::unique_ptr<CacheData> CacheData::downgradeCacheData(std::unique_ptr<CacheData> cacheData, std::string id, std::shared_ptr<Context> ctx) {
+	
+	// if its not a GPU cacheData, then we can't downgrade it, so we can just return it
+	if (cacheData->get_type() != ral::cache::CacheDataType::GPU){
+		return cacheData;
+	} else {
+		std::unique_ptr<ral::frame::BlazingTable> table = cacheData->decache();
+		
+		auto logger = spdlog::get("batch_logger");
+
+		// lets first try to put it into CPU
+		if (blazing_host_memory_resource::getInstance().get_memory_used() + table->sizeInBytes() <
+				blazing_host_memory_resource::getInstance().get_memory_limit()){
+			
+			if(logger != nullptr) {
+				logger->trace("{query_id}|{step}|{substep}|{info}||kernel_id|{kernel_id}|rows|{rows}",
+					"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+					"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+					"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+					"info"_a="Downgraded CacheData to CPU cache",
+					"kernel_id"_a=id,
+					"rows"_a=table->num_rows());
+			}
+			return std::make_unique<CPUCacheData>(std::move(table));
+		
+		} else {
+			if(logger != nullptr) {
+				logger->trace("{query_id}|{step}|{substep}|{info}||kernel_id|{kernel_id}|rows|{rows}",
+					"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+					"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+					"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+					"info"_a="Downgraded CacheData to Disk cache",
+					"kernel_id"_a=id,
+					"rows"_a=table->num_rows());
+			}
+
+			// want to get only cache directory where orc files should be saved
+			std::string orc_files_path = ral::communication::CommunicationData::getInstance().get_cache_directory();
+			return std::make_unique<CacheDataLocalFile>(std::move(table), orc_files_path, (ctx ? std::to_string(ctx->getContextToken()) : "none"));
+		}
+	}	
 }
 
 size_t CacheDataLocalFile::fileSizeInBytes() const {
@@ -49,11 +95,77 @@ std::unique_ptr<ral::frame::BlazingTable> CacheDataLocalFile::decache() {
 	return std::make_unique<ral::frame::BlazingTable>(std::move(result.tbl), this->names());
 }
 
-CacheDataLocalFile::CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable> table, std::string orc_files_path)
+CacheDataIO::CacheDataIO(ral::io::data_handle handle, 
+	std::shared_ptr<ral::io::data_parser> parser,
+	ral::io::Schema schema,
+	ral::io::Schema file_schema,
+	std::vector<int> row_group_ids,
+	std::vector<int> projections)
+	: handle(handle), parser(parser), schema(schema),
+	file_schema(file_schema), row_group_ids(row_group_ids),
+	projections(projections), CacheData(CacheDataType::IO_FILE, schema.get_names(), schema.get_data_types(), 1)
+	{
+
+	}
+
+size_t CacheDataIO::sizeInBytes() const{
+	return 0;
+}
+std::unique_ptr<ral::frame::BlazingTable> CacheDataIO::decache(){
+	if (schema.all_in_file()){
+		std::unique_ptr<ral::frame::BlazingTable> loaded_table = parser->parse_batch(handle, file_schema, projections, row_group_ids);
+		return std::move(loaded_table);
+	} else {
+		std::vector<int> column_indices_in_file;  // column indices that are from files
+		for (int i = 0; i < projections.size(); i++){
+			if(schema.get_in_file()[projections[i]]) {
+				column_indices_in_file.push_back(projections[i]);
+			}
+		}
+		
+		std::vector<std::unique_ptr<cudf::column>> all_columns(projections.size());
+		std::vector<std::unique_ptr<cudf::column>> file_columns;
+		std::vector<std::string> names;
+		cudf::size_type num_rows;
+		if (column_indices_in_file.size() > 0){
+			std::unique_ptr<ral::frame::BlazingTable> current_blazing_table = parser->parse_batch(handle, file_schema, column_indices_in_file, row_group_ids);
+			names = current_blazing_table->names();
+			std::unique_ptr<CudfTable> current_table = current_blazing_table->releaseCudfTable();
+			num_rows = current_table->num_rows();
+			file_columns = current_table->release();
+		
+		} else { // all tables we are "loading" are from hive partitions, so we dont know how many rows we need unless we load something to get the number of rows
+			std::vector<int> temp_column_indices = {0};
+			std::unique_ptr<ral::frame::BlazingTable> loaded_table = parser->parse_batch(handle, file_schema, temp_column_indices, row_group_ids);
+			num_rows = loaded_table->num_rows();
+		}
+
+		int in_file_column_counter = 0;
+		for(int i = 0; i < projections.size(); i++) {
+			int col_ind = projections[i];
+			if(!schema.get_in_file()[col_ind]) {
+				std::string name = schema.get_name(col_ind);
+				names.push_back(name);
+				cudf::type_id type = schema.get_dtype(col_ind);
+				std::string literal_str = handle.column_values[name];
+				std::unique_ptr<cudf::scalar> scalar = get_scalar_from_string(literal_str, cudf::data_type{type},false);
+				all_columns[i] = cudf::make_column_from_scalar(*scalar, num_rows);
+			} else {
+				all_columns[i] = std::move(file_columns[in_file_column_counter]);
+				in_file_column_counter++;
+			}
+		}
+		auto unique_table = std::make_unique<cudf::table>(std::move(all_columns));
+		return std::move(std::make_unique<ral::frame::BlazingTable>(std::move(unique_table), names));
+	}
+} 
+
+
+CacheDataLocalFile::CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable> table, std::string orc_files_path, std::string ctx_token)
 	: CacheData(CacheDataType::LOCAL_FILE, table->names(), table->get_schema(), table->num_rows())
 {
 	this->size_in_bytes = table->sizeInBytes();
-	this->filePath_ = orc_files_path + "/.blazing-temp-" + randomString(64) + ".orc";
+	this->filePath_ = orc_files_path + "/.blazing-temp-" + ctx_token + "-" + randomString(64) + ".orc";
 
 	cudf::io::table_metadata metadata;
 	for(auto name : table->names()) {
@@ -74,7 +186,7 @@ CacheMachine::CacheMachine(std::shared_ptr<Context> context, bool log_timeout): 
 {
 	CacheMachine::cache_count++;
 
-	waitingCache = std::make_unique<WaitingQueue>(60000, log_timeout);
+	waitingCache = std::make_unique<WaitingQueue <std::unique_ptr <message> > >(60000, log_timeout);
 	this->memory_resources.push_back( &blazing_device_memory_resource::getInstance() );
 	this->memory_resources.push_back( &blazing_host_memory_resource::getInstance() );
 	this->memory_resources.push_back( &blazing_disk_memory_resource::getInstance() );
@@ -130,6 +242,10 @@ uint64_t CacheMachine::get_num_bytes_added(){
 
 uint64_t CacheMachine::get_num_rows_added(){
 	return num_rows_added.load();
+}
+
+uint64_t CacheMachine::get_num_batches_added(){
+	return this->waitingCache->processed_parts();
 }
 
 bool CacheMachine::addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> host_table, const std::string & message_id) {
@@ -328,13 +444,8 @@ bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, c
 
 						// BlazingMutableThread t([table = std::move(table), this, cacheIndex, message_id]() mutable {
 						// want to get only cache directory where orc files should be saved
-						std::map<std::string, std::string> config_options = ctx->getConfigOptions();
-						auto it = config_options.find("BLAZING_CACHE_DIRECTORY");
-						std::string orc_files_path;
-						if (it != config_options.end()) {
-							orc_files_path = config_options["BLAZING_CACHE_DIRECTORY"];
-						}
-						auto cache_data = std::make_unique<CacheDataLocalFile>(std::move(table), orc_files_path);
+						std::string orc_files_path = ral::communication::CommunicationData::getInstance().get_cache_directory();
+						auto cache_data = std::make_unique<CacheDataLocalFile>(std::move(table), orc_files_path, (ctx ? std::to_string(ctx->getContextToken()) : "none"));
 						auto item =	std::make_unique<message>(std::move(cache_data), message_id);
 						this->waitingCache->put(std::move(item));
 						// NOTE: Wait don't kill the main process until the last thread is finished!
@@ -477,55 +588,13 @@ size_t CacheMachine::downgradeCacheData() {
 	for(int i = all_messages.size() - 1; i >= 0; i--) {
 		if (all_messages[i]->get_data().get_type() == CacheDataType::GPU){
 
-			std::unique_ptr<ral::frame::BlazingTable> table = all_messages[i]->get_data().decache();
-
 			std::string message_id = all_messages[i]->get_message_id();
-			bytes_downgraded += table->sizeInBytes();
-			size_t cacheIndex = 1; // starting at RAM cache
-			while(cacheIndex < memory_resources.size()) {
-				auto memory_to_use = (this->memory_resources[cacheIndex]->get_memory_used() + table->sizeInBytes());
-				if( memory_to_use < this->memory_resources[cacheIndex]->get_memory_limit()) {
-					if(cacheIndex == 1) {
-						if(logger != nullptr) {
-							logger->trace("{query_id}|{step}|{substep}|{info}||kernel_id|{kernel_id}|rows|{rows}",
-								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
-								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
-								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-								"info"_a="Downgraded CacheData to CPU cache",
-								"kernel_id"_a=message_id,
-								"rows"_a=table->num_rows());
-						}
+			auto current_cache_data = all_messages[i]->release_data();
+			bytes_downgraded += current_cache_data->sizeInBytes();
+			auto new_cache_data = CacheData::downgradeCacheData(std::move(current_cache_data), message_id, ctx);
 
-						auto cache_data = std::make_unique<CPUCacheData>(std::move(table));
-						auto new_message =	std::make_unique<message>(std::move(cache_data), message_id);
-						all_messages[i] = std::move(new_message);
-					} else if(cacheIndex == 2) {
-						if(logger != nullptr) {
-							logger->trace("{query_id}|{step}|{substep}|{info}||kernel_id|{kernel_id}|rows|{rows}",
-								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
-								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
-								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-								"info"_a="Downgraded CacheData to Disk cache",
-								"kernel_id"_a=message_id,
-								"rows"_a=table->num_rows());
-						}
-
-						// want to get only cache directory where orc files should be saved
-						std::map<std::string, std::string> config_options = ctx->getConfigOptions();
-						auto it = config_options.find("BLAZING_CACHE_DIRECTORY");
-						std::string orc_files_path;
-						if (it != config_options.end()) {
-							orc_files_path = config_options["BLAZING_CACHE_DIRECTORY"];
-						}
-						auto cache_data = std::make_unique<CacheDataLocalFile>(std::move(table), orc_files_path);
-						auto new_message = std::make_unique<message>(std::move(cache_data), message_id);
-						all_messages[i] = std::move(new_message);
-					}
-					break;
-				}
-				cacheIndex++;
-			}
-			break;
+			auto new_message =	std::make_unique<message>(std::move(new_cache_data), message_id);
+			all_messages[i] = std::move(new_message);
 		}
 	}
 

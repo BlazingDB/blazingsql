@@ -1,5 +1,22 @@
-# BlazingSQL 0.17.0 (Date TBS)
+# BlazingSQL 0.18.0 (Date TBS)
 
+
+## New Features
+- #1139 Adding centralized task executor for kernels
+- #1237 Added task memory management
+- #1244 Added memory monitor ability to downgrade task data
+
+## Improvements
+- #1236 Moving code from header files to implementation files
+- #1153 Enable warnings and fixes
+
+
+## Bug Fixes
+- #1249 Fix compilation with cuda 11
+
+
+
+# BlazingSQL 0.17.0 (Date TBS)
 
 ## New Features
 - #1105 Implement to_date/to_timestamp functions
@@ -14,7 +31,11 @@
 - #1130 Infer hive folder partition
 - #1188 Implement upper/lower operators
 - #1193 Implement string REPLACE
+- #1218 Added smiles test set
 - #1201 Implement string TRIM
+- #1216 Add unit test for DAYOFWEEK
+- #1205 Implement string REVERSE
+- #1220 Implement string LEFT and RIGHT
 
 
 ## Improvements
@@ -35,11 +56,14 @@
 - #1158 Deprecated bc.partition
 - #1154 Recompute the avg_bytes_per_row value
 - #1155 Removing comms subproject and cleaning some related code
+- #1170 Improve gpuCI scripts
 - #1194 Powerpc building scripts
 - #1186 Removing cuda labels to install due cudatoolkit version
 - #1187 Enable MySQL-specific SQL operators in addition to Standard and Oracle
-- #1206 Improved contribution documentation 
-- #1153 Enable warnings and fixes
+- #1206 Improved contribution documentation
+- #1224 Added cudaSetDevice to thread initialization so that the cuda context is available to UCX
+- #1229 Change hardcoded version from setup.py
+- #1231 Adding docker support for gpuCI scripts
 
 
 ## Bug Fixes
@@ -53,6 +77,7 @@
 - #1118 Fixed issue with config_options and adding local_files to valid params
 - #1133 Fixed adressing issue in float columns when parsing parquet metadata
 - #1163 added empty line to trigger build
+- #1108 Remove temp files when an error occurs
 - #1165 E2e tests, distributed mode, again tcp
 - #1171 Don't log timeout in output/input caches
 - #1168 Fix SSL errors for conda
@@ -63,8 +88,10 @@
 - #1179 Fix ignore headers when multiple CSV files was provided
 - #1199 Fix non thread-safe access to map containing tag to message_metadata for ucx
 - #1196 Fix column_names (table) always as list of string
-- #1203 Changed code back so that parquet is not read a single rowgroup at a time 
+- #1203 Changed code back so that parquet is not read a single rowgroup at a time
+- #1207 Calcite uses literal as int32 if not explicit CAST was provided
 - #1212 Fixed issue when building the thirdpart, cmake version set to 3.18.4
+- #1225 Fixed issue due to change in gather API
 
 
 # BlazingSQL 0.16.0 (October 22, 2020)

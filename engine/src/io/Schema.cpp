@@ -10,41 +10,12 @@
 namespace ral {
 namespace io {
 
-
-std::string convert_dtype_to_string(const cudf::type_id & dtype) {
-	if(dtype == cudf::type_id::STRING)
-		return "str";
-	// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
-	if(dtype == cudf::type_id::TIMESTAMP_SECONDS)
-		return "date64";
-	if(dtype == cudf::type_id::TIMESTAMP_SECONDS)
-		return "date32";
-	// TODO percy cudf0.12 by default timestamp for bz is MS but we need to use proper time resolution
-	if(dtype == cudf::type_id::TIMESTAMP_MILLISECONDS)
-		return "timestamp";
-	if(dtype == cudf::type_id::FLOAT32)
-		return "float32";
-	if(dtype == cudf::type_id::FLOAT64)
-		return "float64";
-	if(dtype == cudf::type_id::INT16)
-		return "short";
-	if(dtype == cudf::type_id::INT32)
-		return "int32";
-	if(dtype == cudf::type_id::INT64)
-		return "int64";
-	if(dtype == cudf::type_id::BOOL8)
-		return "bool";
-
-	return "str";
-}
-
 Schema::Schema(std::vector<std::string> names,
 	std::vector<size_t> calcite_to_file_indices,
 	std::vector<cudf::type_id> types,
 	std::vector<std::vector<int>> row_groups_ids)
-	: names(names), calcite_to_file_indices(calcite_to_file_indices), types(types), 
+	: names(names), calcite_to_file_indices(calcite_to_file_indices), types(types),
 	  row_groups_ids{row_groups_ids} {
-	// TODO Auto-generated constructor stub
 
 	in_file.resize(names.size(), true);
 }
@@ -55,7 +26,7 @@ Schema::Schema(std::vector<std::string> names,
 	std::vector<bool> in_file,
 	std::vector<std::vector<int>> row_groups_ids)
 	: names(names), calcite_to_file_indices(calcite_to_file_indices), types(types),
-	  in_file(in_file), row_groups_ids{row_groups_ids}  {
+	  in_file(in_file), row_groups_ids{row_groups_ids} {
 	if(in_file.size() != names.size()) {
 		this->in_file.resize(names.size(), true);
 	}
@@ -75,21 +46,21 @@ Schema::~Schema() {
 
 std::vector<std::string> Schema::get_names() const { return this->names; }
 
-std::vector<std::string> Schema::get_types() const {
-	std::vector<std::string> string_types;
-	for(auto type : this->types) {
-		string_types.push_back(convert_dtype_to_string(type));
+std::vector<cudf::data_type> Schema::get_data_types() const {
+	std::vector<cudf::data_type> data_types;
+	for(auto type_id : this->types){
+		data_types.push_back(cudf::data_type(type_id));
 	}
-	return string_types;
+	return data_types;
 }
 
 std::vector<std::string> Schema::get_files() const { return this->files; }
 
 std::vector<cudf::type_id> Schema::get_dtypes() const { return this->types; }
+
 cudf::type_id Schema::get_dtype(size_t schema_index) const { return this->types[schema_index]; }
 
 std::string Schema::get_name(size_t schema_index) const { return this->names[schema_index]; }
-
 
 size_t Schema::get_num_columns() const { return this->names.size(); }
 
@@ -118,7 +89,6 @@ void Schema::add_file(std::string file){
 
 Schema Schema::fileSchema(size_t current_file_index) const {
 	Schema schema;
-	// std::cout<<"in_file size "<<this->in_file.size()<<std::endl;
 	for(size_t i = 0; i < this->names.size(); i++) {
 		size_t file_index = this->calcite_to_file_indices.empty() ? i : this->calcite_to_file_indices[i];
 		if(this->in_file[i]) {
@@ -140,7 +110,7 @@ std::unique_ptr<ral::frame::BlazingTable> Schema::makeEmptyBlazingTable(const st
 	std::vector<cudf::type_id> select_types(column_indices.size());
 	if (column_indices.empty()) {
 		select_names = this->names;
-		select_types = this->types;		
+		select_types = this->types;
 	} else {
 		for (size_t i = 0; i < column_indices.size(); i++){
 			select_names[i] = this->names[column_indices[i]];
@@ -149,6 +119,18 @@ std::unique_ptr<ral::frame::BlazingTable> Schema::makeEmptyBlazingTable(const st
 	}
 
 	return ral::frame::createEmptyBlazingTable(select_types, select_names);
+}
+
+std::vector<int> Schema::get_rowgroup_ids(size_t file_index) const {
+	if (this->row_groups_ids.size() > file_index) {
+		return this->row_groups_ids.at(file_index);
+	} else {
+		return std::vector<int>{};
+	}
+}
+
+std::vector<std::vector<int>> Schema::get_rowgroups(){
+	return this->row_groups_ids;
 }
 
 } /* namespace io */

@@ -29,17 +29,28 @@
 #include <vector>
 
 #include <blazingdb/io/FileSystem/Uri.h>
+#include "execution_graph/logic_controllers/LogicPrimitives.h"
 
 namespace ral {
 namespace io {
 
 struct data_handle {
-	std::shared_ptr<arrow::io::RandomAccessFile> fileHandle;
+	std::shared_ptr<arrow::io::RandomAccessFile> file_handle;
 	std::map<std::string, std::string> column_values;  // allows us to add hive values
 	Uri uri;										  // in case the data was loaded from a file
+	frame::BlazingTableView table_view;
+	data_handle(){}
+	data_handle(
+		std::shared_ptr<arrow::io::RandomAccessFile> file_handle,
+		std::map<std::string, std::string> column_values,
+		Uri uri,										 
+		frame::BlazingTableView table_view) 
+	: file_handle(file_handle), column_values(column_values), uri(uri), table_view(table_view) {
+
+	}
 
 	bool is_valid(){
-		return fileHandle != nullptr || !uri.isEmpty() ;
+		return file_handle != nullptr || !uri.isEmpty() ;
 	}
 };
 
@@ -77,7 +88,12 @@ public:
 	 */
 	virtual void close_file_handles() = 0;
 
-private:
+	/**
+	 * Get the number of data_handles that will be provided. 
+	 */ 
+	virtual size_t get_num_handles() = 0;
+
+
 };
 
 } /* namespace io */

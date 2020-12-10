@@ -132,6 +132,34 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         computed_col = cudf::strings::replace(column, target, repl);
         break;
     }
+    case operator_type::BLZ_STR_LEFT:
+    {
+        assert(arg_tokens.size() == 2);
+        RAL_EXPECTS(!is_literal(arg_tokens[0]), "LEFT function not supported for string literals");
+
+        cudf::column_view column = table.column(get_index(arg_tokens[0]));
+        RAL_EXPECTS(is_type_string(column.type().id()), "LEFT argument must be a column of type string");
+
+        int32_t end = std::max(std::stoi(arg_tokens[1]), 0);
+        computed_col = cudf::strings::slice_strings(
+            column,
+            cudf::numeric_scalar<int32_t>(0, true),
+            cudf::numeric_scalar<int32_t>(end, true)
+        );
+        break;
+    }
+    case operator_type::BLZ_STR_RIGHT:
+    {
+        assert(arg_tokens.size() == 2);
+        RAL_EXPECTS(!is_literal(arg_tokens[0]), "RIGHT function not supported for string literals");
+
+        cudf::column_view column = table.column(get_index(arg_tokens[0]));
+        RAL_EXPECTS(is_type_string(column.type().id()), "RIGHT argument must be a column of type string");
+
+        int32_t offset = std::max(std::stoi(arg_tokens[1]), 0);
+        computed_col = cudf::strings::slice_strings(column, -offset, cudf::numeric_scalar<int32_t>(0, offset < 1));
+        break;
+    }
     case operator_type::BLZ_STR_SUBSTRING:
     {
         assert(arg_tokens.size() == 2 || arg_tokens.size() == 3);
@@ -468,7 +496,22 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
 
         computed_col = cudf::strings::strip(column, enumerated_trim_flag, to_strip);
         break;
+    }
+    case operator_type::BLZ_STR_REVERSE:
+    {
+        assert(arg_tokens.size() == 1);
+        RAL_EXPECTS(!is_literal(arg_tokens[0]), "REVERSE operator not supported for literals");
 
+        cudf::column_view column = table.column(get_index(arg_tokens[0]));
+        RAL_EXPECTS(is_type_string(column.type().id()), "REVERSE argument must be a column of type string");
+
+        computed_col = cudf::strings::slice_strings(
+            column,
+            cudf::numeric_scalar<int32_t>(0, false),
+            cudf::numeric_scalar<int32_t>(0, false),
+            cudf::numeric_scalar<int32_t>(-1, true)
+        );
+        break;
     }
     case operator_type::BLZ_INVALID_OP:
         break;

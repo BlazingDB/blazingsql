@@ -121,7 +121,7 @@ TYPED_TEST(ProjectTestNumeric, test_numeric_types4)
         query_part,
         context);
 
-    cudf::test::fixed_width_column_wrapper<int8_t> expect_col1{{1, 1, 1, 1, 1, 1, 1}};
+    cudf::test::fixed_width_column_wrapper<int32_t> expect_col1{{1, 1, 1, 1, 1, 1, 1}};
     CudfTableView expect_cudf_table_view {{expect_col1}};
 
     cudf::test::expect_tables_equal(expect_cudf_table_view, table_out->view());
@@ -198,7 +198,6 @@ TYPED_TEST(ProjectTestNumeric, test_numeric_types6)
         cudf::test::expect_tables_equal(expect_cudf_table_view, table_out->view());
     }
 }
-
 
 TYPED_TEST(ProjectTestNumeric, test_numeric_types7)
 {

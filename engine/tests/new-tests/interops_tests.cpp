@@ -13,255 +13,551 @@
 #include "cudf_test/type_lists.hpp"
 #include "cudf_test/type_list_utilities.hpp"
 #include "Interpreter/interpreter_cpp.h"
+#include "execution_graph/logic_controllers/LogicalProject.h"
 #include "tests/utilities/BlazingUnitTest.h"
 #include <thrust/host_vector.h>
-template <typename T>
+
+template<typename T>
 struct InteropsTestNumeric : public BlazingUnitTest {
-  void SetUp() {
-	  
-  }
-  void TearDown() {
-    
-  }
+    void SetUp() {
+
+    }
+
+    void TearDown() {
+
+    }
 };
 
 
 using namespace ral::parser;
-struct OperatorTest : public ::testing::Test {
-	OperatorTest() {}
 
-	~OperatorTest() {}
+struct OperatorTest : public ::testing::Test {
+    OperatorTest() {}
+
+    ~OperatorTest() {}
 };
 
 
 TEST_F(OperatorTest, rand_num_1) {
 
-  //hastily assembled assuming nthis goes away when we get the new cudf interpreter
-using namespace interops;
+    //hastily assembled assuming nthis goes away when we get the new cudf interpreter
+    using namespace interops;
 
-  using T = double;
-  cudf::size_type inputRows = 10;
+    using T = double;
+    cudf::size_type inputRows = 10;
 
-  auto sequence1 = cudf::test::make_counting_transform_iterator(0, [](auto row) {
-      return static_cast<T>(row * 2);
+    auto sequence1 = cudf::test::make_counting_transform_iterator(0, [](auto row) {
+        return static_cast<T>(row * 2);
     });
-  cudf::test::fixed_width_column_wrapper<T> col1(sequence1, sequence1 + inputRows);
+    cudf::test::fixed_width_column_wrapper<T> col1(sequence1, sequence1 + inputRows);
 
-  auto sequence2 = cudf::test::make_counting_transform_iterator(0, [](auto row) {
-      return static_cast<T>(row * 10);
+    auto sequence2 = cudf::test::make_counting_transform_iterator(0, [](auto row) {
+        return static_cast<T>(row * 10);
     });
-  cudf::test::fixed_width_column_wrapper<T> col2(sequence2, sequence2 + inputRows);
+    cudf::test::fixed_width_column_wrapper<T> col2(sequence2, sequence2 + inputRows);
 
-  auto sequence3 = cudf::test::make_counting_transform_iterator(0, [](auto row) {
-      return static_cast<T>(row * 20);
+    auto sequence3 = cudf::test::make_counting_transform_iterator(0, [](auto row) {
+        return static_cast<T>(row * 20);
     });
-  cudf::test::fixed_width_column_wrapper<T> col3(sequence3, sequence3 + inputRows);
-  
-  cudf::table_view in_table_view ({col1, col2, col3});
+    cudf::test::fixed_width_column_wrapper<T> col3(sequence3, sequence3 + inputRows);
 
-  // 0> + * + $0 $1 $2 $1   | + $1 2
-  // 1> + * (+ $0 $1) $2 $1 | + $1 2
-  // 2> + (* $5 $2) $1      | + $1 2
-  // 3> (+ $5 $1)           | (+ $1 2)
-  // 4> $3                  | $4
+    cudf::table_view in_table_view({col1, col2, col3});
 
-  std::vector<column_index_type> left_inputs =  {0, 5, 5,      NULLARY_INDEX};
-  std::vector<column_index_type> right_inputs = {1, 2, 1,      NULLARY_INDEX};
-  std::vector<column_index_type> outputs =      {5, 5, 3,      4};
+    // 0> + * + $0 $1 $2 $1   | + $1 2
+    // 1> + * (+ $0 $1) $2 $1 | + $1 2
+    // 2> + (* $5 $2) $1      | + $1 2
+    // 3> (+ $5 $1)           | (+ $1 2)
+    // 4> $3                  | $4
 
-  std::vector<column_index_type> final_output_positions = {3, 4};
+    std::vector<column_index_type> left_inputs = {0, 5, 5, NULLARY_INDEX};
+    std::vector<column_index_type> right_inputs = {1, 2, 1, NULLARY_INDEX};
+    std::vector<column_index_type> outputs = {5, 5, 3, 4};
 
-  std::vector<operator_type> operators = {operator_type::BLZ_ADD, operator_type::BLZ_MUL, operator_type::BLZ_ADD, operator_type::BLZ_RAND};
+    std::vector<column_index_type> final_output_positions = {3, 4};
 
-  auto dtype = cudf::data_type{cudf::type_to_id<T>()};
-  std::unique_ptr<cudf::scalar> arr_s1[] = {cudf::make_numeric_scalar(dtype), cudf::make_numeric_scalar(dtype), cudf::make_numeric_scalar(dtype), cudf::make_numeric_scalar(dtype)};
-  std::vector<std::unique_ptr<cudf::scalar>> left_scalars(std::make_move_iterator(std::begin(arr_s1)), std::make_move_iterator(std::end(arr_s1)));
-  std::unique_ptr<cudf::scalar> arr_s2[] = {cudf::make_numeric_scalar(dtype), cudf::make_numeric_scalar(dtype), cudf::make_numeric_scalar(dtype), cudf::make_numeric_scalar(dtype)};
-  std::vector<std::unique_ptr<cudf::scalar>> right_scalars(std::make_move_iterator(std::begin(arr_s2)), std::make_move_iterator(std::end(arr_s2)));
-  static_cast<cudf::scalar_type_t<T>*>(right_scalars[3].get())->set_value((T)2);
-  
-  // using OUT_T = typename output_type<T>::type;
-  auto sequenceOut = cudf::test::make_counting_transform_iterator(0, [](auto /*row*/) {
-      return T{};
+    std::vector<operator_type> operators = {operator_type::BLZ_ADD, operator_type::BLZ_MUL, operator_type::BLZ_ADD,
+                                            operator_type::BLZ_RAND};
+
+    auto dtype = cudf::data_type{cudf::type_to_id<T>()};
+    std::unique_ptr<cudf::scalar> arr_s1[] = {cudf::make_numeric_scalar(dtype), cudf::make_numeric_scalar(dtype),
+                                              cudf::make_numeric_scalar(dtype), cudf::make_numeric_scalar(dtype)};
+    std::vector<std::unique_ptr<cudf::scalar>> left_scalars(std::make_move_iterator(std::begin(arr_s1)),
+                                                            std::make_move_iterator(std::end(arr_s1)));
+    std::unique_ptr<cudf::scalar> arr_s2[] = {cudf::make_numeric_scalar(dtype), cudf::make_numeric_scalar(dtype),
+                                              cudf::make_numeric_scalar(dtype), cudf::make_numeric_scalar(dtype)};
+    std::vector<std::unique_ptr<cudf::scalar>> right_scalars(std::make_move_iterator(std::begin(arr_s2)),
+                                                             std::make_move_iterator(std::end(arr_s2)));
+    static_cast<cudf::scalar_type_t<T> *>(right_scalars[3].get())->set_value((T) 2);
+
+    // using OUT_T = typename output_type<T>::type;
+    auto sequenceOut = cudf::test::make_counting_transform_iterator(0, [](auto /*row*/) {
+        return T{};
     });
-  cudf::test::fixed_width_column_wrapper<T> out_col1(sequenceOut, sequenceOut + inputRows);
-  cudf::test::fixed_width_column_wrapper<T> out_col2(sequenceOut, sequenceOut + inputRows);
-  cudf::mutable_table_view out_table_view ({out_col1, out_col2});
+    cudf::test::fixed_width_column_wrapper<T> out_col1(sequenceOut, sequenceOut + inputRows);
+    cudf::test::fixed_width_column_wrapper<T> out_col2(sequenceOut, sequenceOut + inputRows);
+    cudf::mutable_table_view out_table_view({out_col1, out_col2});
 
-  perform_interpreter_operation(out_table_view,
-                              in_table_view,
-                              left_inputs,
-                              right_inputs,
-                              outputs,
-                              final_output_positions,
-                              operators,
-                              left_scalars,
-                              right_scalars);
+    perform_interpreter_operation(out_table_view,
+                                  in_table_view,
+                                  left_inputs,
+                                  right_inputs,
+                                  outputs,
+                                  final_output_positions,
+                                  operators,
+                                  left_scalars,
+                                  right_scalars);
 
-   //for (auto &&c : out_table_view) {
-   //    cudf::test::print(c);
-   //    std::cout << std::endl;
-   //}
-  
-  cudf::test::fixed_width_column_wrapper<T> expected_col1({(T)0, (T)250, (T)980, (T)2190, (T)3880, (T)6050, (T)8700, (T)11830, (T)15440, (T)19530});
-  cudf::test::fixed_width_column_wrapper<T> expected_col2({(T)2, (T)12, (T)22, (T)32, (T)42, (T)52, (T)62, (T)72, (T)82, (T)92});
-  cudf::table_view expected_table_view ({expected_col1, expected_col2});
+    //for (auto &&c : out_table_view) {
+    //    cudf::test::print(c);
+    //    std::cout << std::endl;
+    //}
 
-  std::pair<thrust::host_vector<T>, std::vector<cudf::bitmask_type>> data_mask =  cudf::test::to_host<T>(out_col2);
+    cudf::test::fixed_width_column_wrapper<T> expected_col1(
+            {(T) 0, (T) 250, (T) 980, (T) 2190, (T) 3880, (T) 6050, (T) 8700, (T) 11830, (T) 15440, (T) 19530});
+    cudf::test::fixed_width_column_wrapper<T> expected_col2(
+            {(T) 2, (T) 12, (T) 22, (T) 32, (T) 42, (T) 52, (T) 62, (T) 72, (T) 82, (T) 92});
+    cudf::table_view expected_table_view({expected_col1, expected_col2});
 
-  for (size_t i = 0; i < data_mask.first.size(); i++){
-    ASSERT_TRUE(data_mask.first[i] >= 0.0 && data_mask.first[i] <= 1.0);
-  }
-  //cudf::test::expect_colum_equal(expected_table_view, out_table_view);
+    std::pair<thrust::host_vector<T>, std::vector<cudf::bitmask_type>> data_mask = cudf::test::to_host<T>(out_col2);
+
+    for (int i = 0; i < data_mask.first.size(); i++) {
+        ASSERT_TRUE(data_mask.first[i] >= 0.0d && data_mask.first[i] <= 1.0d);
+    }
+    //cudf::test::expect_colum_equal(expected_table_view, out_table_view);
 
 }
 
 TEST_F(OperatorTest, rand_num_2) {
 
-  //hastily assembled assuming nthis goes away when we get the new cudf interpreter
-using namespace interops;
+    //hastily assembled assuming nthis goes away when we get the new cudf interpreter
+    using namespace interops;
 
-  using T = double;
-  
-  cudf::table_view in_table_view;
+    using T = double;
 
-  // 0> + * + $0 $1 $2 $1   | + $1 2
-  // 1> + * (+ $0 $1) $2 $1 | + $1 2
-  // 2> + (* $5 $2) $1      | + $1 2
-  // 3> (+ $5 $1)           | (+ $1 2)
-  // 4> $3                  | $4
+    cudf::table_view in_table_view;
 
-  std::vector<column_index_type> left_inputs =  { NULLARY_INDEX};
-  std::vector<column_index_type> right_inputs = {NULLARY_INDEX};
-  std::vector<column_index_type> outputs =      { 0 };
+    // 0> + * + $0 $1 $2 $1   | + $1 2
+    // 1> + * (+ $0 $1) $2 $1 | + $1 2
+    // 2> + (* $5 $2) $1      | + $1 2
+    // 3> (+ $5 $1)           | (+ $1 2)
+    // 4> $3                  | $4
 
-  std::vector<column_index_type> final_output_positions = {0};
+    std::vector<column_index_type> left_inputs = {NULLARY_INDEX};
+    std::vector<column_index_type> right_inputs = {NULLARY_INDEX};
+    std::vector<column_index_type> outputs = {0};
 
-  std::vector<operator_type> operators = { operator_type::BLZ_RAND};
+    std::vector<column_index_type> final_output_positions = {0};
 
-  auto dtype = cudf::data_type{cudf::type_to_id<T>()};
-  std::unique_ptr<cudf::scalar> arr_s1[] = {cudf::make_numeric_scalar(dtype)};
-  std::vector<std::unique_ptr<cudf::scalar>> left_scalars(std::make_move_iterator(std::begin(arr_s1)), std::make_move_iterator(std::end(arr_s1)));
-  std::unique_ptr<cudf::scalar> arr_s2[] = {cudf::make_numeric_scalar(dtype)};
-  std::vector<std::unique_ptr<cudf::scalar>> right_scalars(std::make_move_iterator(std::begin(arr_s2)), std::make_move_iterator(std::end(arr_s2)));
+    std::vector<operator_type> operators = {operator_type::BLZ_RAND};
 
-  cudf::size_type input_rows = 100;
-  
-  // using OUT_T = typename output_type<T>::type;
-  auto sequenceOut = cudf::test::make_counting_transform_iterator(0, [](auto /*row*/) {
-      return T{};
+    auto dtype = cudf::data_type{cudf::type_to_id<T>()};
+    std::unique_ptr<cudf::scalar> arr_s1[] = {cudf::make_numeric_scalar(dtype)};
+    std::vector<std::unique_ptr<cudf::scalar>> left_scalars(std::make_move_iterator(std::begin(arr_s1)),
+                                                            std::make_move_iterator(std::end(arr_s1)));
+    std::unique_ptr<cudf::scalar> arr_s2[] = {cudf::make_numeric_scalar(dtype)};
+    std::vector<std::unique_ptr<cudf::scalar>> right_scalars(std::make_move_iterator(std::begin(arr_s2)),
+                                                             std::make_move_iterator(std::end(arr_s2)));
+
+    cudf::size_type input_rows = 100;
+
+    // using OUT_T = typename output_type<T>::type;
+    auto sequenceOut = cudf::test::make_counting_transform_iterator(0, [](auto /*row*/) {
+        return T{};
     });
-  cudf::test::fixed_width_column_wrapper<T> out_col1(sequenceOut, sequenceOut + input_rows);
- 
-  cudf::mutable_table_view out_table_view ({out_col1});
+    cudf::test::fixed_width_column_wrapper<T> out_col1(sequenceOut, sequenceOut + input_rows);
 
-  perform_interpreter_operation(out_table_view,
-                              in_table_view,
-                              left_inputs,
-                              right_inputs,
-                              outputs,
-                              final_output_positions,
-                              operators,
-                              left_scalars,
-                              right_scalars,
-                              input_rows);
+    cudf::mutable_table_view out_table_view ({out_col1});
 
-   //for (auto &&c : out_table_view) {
-   //    cudf::test::print(c);
-   //    std::cout << std::endl;
-   //}
-  
+    perform_interpreter_operation(out_table_view,
+                                  in_table_view,
+                                  left_inputs,
+                                  right_inputs,
+                                  outputs,
+                                  final_output_positions,
+                                  operators,
+                                  left_scalars,
+                                  right_scalars,
+                                  input_rows);
 
-  std::pair<thrust::host_vector<T>, std::vector<cudf::bitmask_type>> data_mask =  cudf::test::to_host<T>(out_col1);
+    std::pair<thrust::host_vector<T>, std::vector<cudf::bitmask_type>> data_mask = cudf::test::to_host<T>(out_col1);
 
-  for (size_t i = 0; i < data_mask.first.size(); i++){
-    ASSERT_TRUE(data_mask.first[i] >= 0.0 && data_mask.first[i] <= 1.0);
-  }
-  ASSERT_TRUE(out_table_view.num_rows() == input_rows);
+    for (size_t i = 0; i < data_mask.first.size(); i++) {
+        ASSERT_TRUE(data_mask.first[i] >= 0.0d && data_mask.first[i] <= 1.0d);
+    }
+    ASSERT_TRUE(out_table_view.num_rows() == input_rows);
 }
 
 using SignedIntegralTypesNotBool =
-  cudf::test::Types<int8_t, int16_t, int32_t, int64_t>;
+cudf::test::Types<int8_t, int16_t, int32_t, int64_t>;
 using SignedIntegralTypes = cudf::test::Concat<SignedIntegralTypesNotBool, cudf::test::Types<bool>>;
 using SignedNumericTypes = cudf::test::Concat<SignedIntegralTypes, cudf::test::FloatingPointTypes>;
 
-TYPED_TEST_CASE(InteropsTestNumeric, SignedNumericTypes);
+TYPED_TEST_CASE
+(InteropsTestNumeric, SignedNumericTypes);
 // TYPED_TEST_CASE(InteropsTestNumeric, cudf::test::NumericTypes); // need to have unsigned support to use cudf::test::NumericTypes
 
-TYPED_TEST(InteropsTestNumeric, test_numeric_types)
-{
-  using namespace interops;
+TYPED_TEST(InteropsTestNumeric, test_numeric_types) {
+    using namespace interops;
 
-  using T = TypeParam;
-  cudf::size_type inputRows = 10;
+    using T = TypeParam;
+    cudf::size_type inputRows = 10;
 
-  auto sequence1 = cudf::test::make_counting_transform_iterator(0, [](auto row) {
-      return static_cast<T>(row * 2);
+    auto sequence1 = cudf::test::make_counting_transform_iterator(0, [](auto row) {
+        return static_cast<T>(row * 2);
     });
-  cudf::test::fixed_width_column_wrapper<T> col1(sequence1, sequence1 + inputRows);
+    cudf::test::fixed_width_column_wrapper<T> col1(sequence1, sequence1 + inputRows);
 
-  auto sequence2 = cudf::test::make_counting_transform_iterator(0, [](auto row) {
-      return static_cast<T>(row * 10);
+    auto sequence2 = cudf::test::make_counting_transform_iterator(0, [](auto row) {
+        return static_cast<T>(row * 10);
     });
-  cudf::test::fixed_width_column_wrapper<T> col2(sequence2, sequence2 + inputRows);
+    cudf::test::fixed_width_column_wrapper<T> col2(sequence2, sequence2 + inputRows);
 
-  auto sequence3 = cudf::test::make_counting_transform_iterator(0, [](auto row) {
-      return static_cast<T>(row * 20);
+    auto sequence3 = cudf::test::make_counting_transform_iterator(0, [](auto row) {
+        return static_cast<T>(row * 20);
     });
-  cudf::test::fixed_width_column_wrapper<T> col3(sequence3, sequence3 + inputRows);
-  
-  cudf::table_view in_table_view ({col1, col2, col3});
+    cudf::test::fixed_width_column_wrapper<T> col3(sequence3, sequence3 + inputRows);
 
-  // 0> + * + $0 $1 $2 $1   | + $1 2
-  // 1> + * (+ $0 $1) $2 $1 | + $1 2
-  // 2> + (* $5 $2) $1      | + $1 2
-  // 3> (+ $5 $1)           | (+ $1 2)
-  // 4> $3                  | $4
+    cudf::table_view in_table_view({col1, col2, col3});
 
-  std::vector<column_index_type> left_inputs =  {0, 5, 5,      1};
-  std::vector<column_index_type> right_inputs = {1, 2, 1,      SCALAR_INDEX};
-  std::vector<column_index_type> outputs =      {5, 5, 3,      4};
+    // 0> + * + $0 $1 $2 $1   | + $1 2
+    // 1> + * (+ $0 $1) $2 $1 | + $1 2
+    // 2> + (* $5 $2) $1      | + $1 2
+    // 3> (+ $5 $1)           | (+ $1 2)
+    // 4> $3                  | $4
 
-  std::vector<column_index_type> final_output_positions = {3, 4};
+    std::vector<column_index_type> left_inputs = {0, 5, 5, 1};
+    std::vector<column_index_type> right_inputs = {1, 2, 1, SCALAR_INDEX};
+    std::vector<column_index_type> outputs = {5, 5, 3, 4};
 
-  std::vector<operator_type> operators = {operator_type::BLZ_ADD, operator_type::BLZ_MUL, operator_type::BLZ_ADD, operator_type::BLZ_ADD};
+    std::vector<column_index_type> final_output_positions = {3, 4};
 
-  auto dtype = cudf::data_type{cudf::type_to_id<T>()};
-  std::unique_ptr<cudf::scalar> arr_s1[] = {cudf::make_numeric_scalar(dtype), cudf::make_numeric_scalar(dtype), cudf::make_numeric_scalar(dtype), cudf::make_numeric_scalar(dtype)};
-  std::vector<std::unique_ptr<cudf::scalar>> left_scalars(std::make_move_iterator(std::begin(arr_s1)), std::make_move_iterator(std::end(arr_s1)));
-  std::unique_ptr<cudf::scalar> arr_s2[] = {cudf::make_numeric_scalar(dtype), cudf::make_numeric_scalar(dtype), cudf::make_numeric_scalar(dtype), cudf::make_numeric_scalar(dtype)};
-  std::vector<std::unique_ptr<cudf::scalar>> right_scalars(std::make_move_iterator(std::begin(arr_s2)), std::make_move_iterator(std::end(arr_s2)));
-  static_cast<cudf::scalar_type_t<T>*>(right_scalars[3].get())->set_value((T)2);
-  
-  // using OUT_T = typename output_type<T>::type;
-  auto sequenceOut = cudf::test::make_counting_transform_iterator(0, [](auto /*row*/) {
-      return T{};
+    std::vector<operator_type> operators = {operator_type::BLZ_ADD, operator_type::BLZ_MUL, operator_type::BLZ_ADD,
+                                            operator_type::BLZ_ADD};
+
+    auto dtype = cudf::data_type{cudf::type_to_id<T>()};
+    std::unique_ptr<cudf::scalar> arr_s1[] = {cudf::make_numeric_scalar(dtype), cudf::make_numeric_scalar(dtype),
+                                              cudf::make_numeric_scalar(dtype), cudf::make_numeric_scalar(dtype)};
+    std::vector<std::unique_ptr<cudf::scalar>> left_scalars(std::make_move_iterator(std::begin(arr_s1)),
+                                                            std::make_move_iterator(std::end(arr_s1)));
+    std::unique_ptr<cudf::scalar> arr_s2[] = {cudf::make_numeric_scalar(dtype), cudf::make_numeric_scalar(dtype),
+                                              cudf::make_numeric_scalar(dtype), cudf::make_numeric_scalar(dtype)};
+    std::vector<std::unique_ptr<cudf::scalar>> right_scalars(std::make_move_iterator(std::begin(arr_s2)),
+                                                             std::make_move_iterator(std::end(arr_s2)));
+    static_cast<cudf::scalar_type_t<T> *>(right_scalars[3].get())->set_value((T) 2);
+
+    // using OUT_T = typename output_type<T>::type;
+    auto sequenceOut = cudf::test::make_counting_transform_iterator(0, [](auto row) {
+        return T{};
     });
-  cudf::test::fixed_width_column_wrapper<T> out_col1(sequenceOut, sequenceOut + inputRows);
-  cudf::test::fixed_width_column_wrapper<T> out_col2(sequenceOut, sequenceOut + inputRows);
-  cudf::mutable_table_view out_table_view ({out_col1, out_col2});
+    cudf::test::fixed_width_column_wrapper<T> out_col1(sequenceOut, sequenceOut + inputRows);
+    cudf::test::fixed_width_column_wrapper<T> out_col2(sequenceOut, sequenceOut + inputRows);
+    cudf::mutable_table_view out_table_view({out_col1, out_col2});
 
-  perform_interpreter_operation(out_table_view,
-                              in_table_view,
-                              left_inputs,
-                              right_inputs,
-                              outputs,
-                              final_output_positions,
-                              operators,
-                              left_scalars,
-                              right_scalars);
+    perform_interpreter_operation(out_table_view,
+                                  in_table_view,
+                                  left_inputs,
+                                  right_inputs,
+                                  outputs,
+                                  final_output_positions,
+                                  operators,
+                                  left_scalars,
+                                  right_scalars);
 
-  // for (auto &&c : out_table_view) {
-  //     cudf::test::print(c);
-  //     std::cout << std::endl;
-  // }
-  
-  cudf::test::fixed_width_column_wrapper<T> expected_col1({(T)0, (T)250, (T)980, (T)2190, (T)3880, (T)6050, (T)8700, (T)11830, (T)15440, (T)19530});
-  cudf::test::fixed_width_column_wrapper<T> expected_col2({(T)2, (T)12, (T)22, (T)32, (T)42, (T)52, (T)62, (T)72, (T)82, (T)92});
-  cudf::table_view expected_table_view ({expected_col1, expected_col2});
+    // for (auto &&c : out_table_view) {
+    //     cudf::test::print(c);
+    //     std::cout << std::endl;
+    // }
 
-  cudf::test::expect_tables_equal(expected_table_view, out_table_view);
+    cudf::test::fixed_width_column_wrapper<T> expected_col1(
+            {(T) 0, (T) 250, (T) 980, (T) 2190, (T) 3880, (T) 6050, (T) 8700, (T) 11830, (T) 15440, (T) 19530});
+    cudf::test::fixed_width_column_wrapper<T> expected_col2(
+            {(T) 2, (T) 12, (T) 22, (T) 32, (T) 42, (T) 52, (T) 62, (T) 72, (T) 82, (T) 92});
+    cudf::table_view expected_table_view({expected_col1, expected_col2});
+
+    cudf::test::expect_tables_equal(expected_table_view, out_table_view);
 }
+
+template<typename T>
+struct InteropsTestTimestamp : public BlazingUnitTest {
+    void SetUp() {
+
+    }
+
+    void TearDown() {
+
+    }
+};
+
+TYPED_TEST_CASE
+(InteropsTestTimestamp, cudf::test::TimestampTypes);
+
+TYPED_TEST(InteropsTestTimestamp, test_day_of_week) {
+    using namespace interops;
+
+    using T = TypeParam;
+    cudf::size_type inputRows = 20;
+
+    using Rep = typename T::rep;
+    using ToDuration = typename T::duration;
+
+    auto start_ms = cudf::timestamp_ms::duration(-2203891200000);  // Sat, 1 Mar 1900 00:00:00 GMT
+    auto start = cuda::std::chrono::time_point_cast < ToDuration > (cudf::timestamp_ms(start_ms))
+            .time_since_epoch()
+            .count();
+    auto stop_ms = cudf::timestamp_ms::duration(2214086400000);   // Mon, 29 Feb 2040 00:00:00 GMT
+    auto stop = cuda::std::chrono::time_point_cast < ToDuration > (cudf::timestamp_ms(stop_ms))
+            .time_since_epoch()
+            .count();
+    auto range = static_cast<Rep>(stop - start);
+    auto timestamp_iter = cudf::test::make_counting_transform_iterator(
+            0, [=](auto i) { return start + (range / inputRows) * i; });
+    cudf::test::fixed_width_column_wrapper<T> col1(timestamp_iter, timestamp_iter + inputRows);
+
+    cudf::table_view in_table_view({col1});
+
+    std::vector<column_index_type> left_inputs = {0};
+    std::vector<column_index_type> right_inputs = {UNARY_INDEX};
+    std::vector<column_index_type> outputs = {1};
+
+    std::vector<column_index_type> final_output_positions = {1};
+
+    std::vector<operator_type> operators = {operator_type::BLZ_DAYOFWEEK};
+
+    auto dtype = cudf::data_type{cudf::type_to_id<T>()};
+    std::unique_ptr<cudf::scalar> arr_s1[] = {cudf::make_timestamp_scalar(dtype)};
+    std::vector<std::unique_ptr<cudf::scalar>> left_scalars(std::make_move_iterator(std::begin(arr_s1)),
+                                                            std::make_move_iterator(std::end(arr_s1)));
+    std::unique_ptr<cudf::scalar> arr_s2[] = {cudf::make_timestamp_scalar(dtype)};
+    std::vector<std::unique_ptr<cudf::scalar>> right_scalars(std::make_move_iterator(std::begin(arr_s2)),
+                                                             std::make_move_iterator(std::end(arr_s2)));
+
+    auto sequenceOut = cudf::test::make_counting_transform_iterator(0, [](auto row) {
+        return 0;
+    });
+    cudf::test::fixed_width_column_wrapper<int32_t> out_col1(sequenceOut, sequenceOut + inputRows);
+    cudf::mutable_table_view out_table_view({out_col1});
+
+    perform_interpreter_operation(out_table_view,
+                                  in_table_view,
+                                  left_inputs,
+                                  right_inputs,
+                                  outputs,
+                                  final_output_positions,
+                                  operators,
+                                  left_scalars,
+                                  right_scalars);
+
+    auto sad = cudf::type_to_id<T>();
+
+    if (cudf::type_to_id<T>() == cudf::type_id::TIMESTAMP_DAYS) {
+        cudf::test::fixed_width_column_wrapper<int32_t> expected_col1(
+                {4, 5, 6, 7, 1, 2, 3, 4, 5, 6, 7, 1, 2, 3, 4, 5, 6, 7, 1, 2});
+        cudf::table_view expected_table_view({expected_col1});
+
+        cudf::test::expect_tables_equal(expected_table_view, out_table_view);
+    } else {
+        cudf::test::fixed_width_column_wrapper<int32_t> expected_col1(
+                {4, 5, 7, 2, 3, 5, 7, 1, 3, 5, 7, 1, 3, 5, 6, 1, 3, 4, 6, 1});
+        cudf::table_view expected_table_view({expected_col1});
+
+        cudf::test::expect_tables_equal(expected_table_view, out_table_view);
+    }
+}
+
+TYPED_TEST(InteropsTestTimestamp, test_day_of_week_evaluate_expression) {
+    using namespace interops;
+
+    using T = TypeParam;
+    cudf::size_type inputRows = 20;
+
+    using Rep = typename T::rep;
+    using ToDuration = typename T::duration;
+
+    auto start_ms = cudf::timestamp_ms::duration(-2203891200000);  // Sat, 1 Mar 1900 00:00:00 GMT
+    auto start = cuda::std::chrono::time_point_cast < ToDuration > (cudf::timestamp_ms(start_ms))
+            .time_since_epoch()
+            .count();
+    auto stop_ms = cudf::timestamp_ms::duration(2214086400000);   // Mon, 29 Feb 2040 00:00:00 GMT
+    auto stop = cuda::std::chrono::time_point_cast < ToDuration > (cudf::timestamp_ms(stop_ms))
+            .time_since_epoch()
+            .count();
+    auto range = static_cast<Rep>(stop - start);
+    auto timestamp_iter = cudf::test::make_counting_transform_iterator(
+            0, [=](auto i) { return start + (range / inputRows) * i; });
+    cudf::test::fixed_width_column_wrapper<T> col1(timestamp_iter, timestamp_iter + inputRows);
+
+    cudf::table_view in_table_view({col1});
+
+    const std::vector<std::string> &expressions{"BL_DOW($0)"};
+
+    std::vector<std::string> out_column_names{"EXPR$0"};
+
+    std::unique_ptr<ral::frame::BlazingTable> out_table_view = std::make_unique<ral::frame::BlazingTable>(
+            ral::processor::evaluate_expressions(in_table_view, expressions), out_column_names);
+
+    if (cudf::type_to_id<T>() == cudf::type_id::TIMESTAMP_DAYS) {
+        cudf::test::fixed_width_column_wrapper<int16_t> expected_col1(
+                {4, 5, 6, 7, 1, 2, 3, 4, 5, 6, 7, 1, 2, 3, 4, 5, 6, 7, 1, 2});
+        cudf::table_view expected_table_view({expected_col1});
+
+        cudf::test::expect_tables_equivalent(expected_table_view, out_table_view->view());
+    } else {
+        cudf::test::fixed_width_column_wrapper<int16_t> expected_col1(
+                {4, 5, 7, 2, 3, 5, 7, 1, 3, 5, 7, 1, 3, 5, 6, 1, 3, 4, 6, 1});
+        cudf::table_view expected_table_view({expected_col1});
+
+        cudf::test::expect_tables_equivalent(expected_table_view, out_table_view->view());
+    }
+}
+
+TYPED_TEST(InteropsTestTimestamp, test_day_of_week_project) {
+    using namespace interops;
+
+    using T = TypeParam;
+    cudf::size_type inputRows = 20;
+
+    using Rep = typename T::rep;
+    using ToDuration = typename T::duration;
+
+    auto start_ms = cudf::timestamp_ms::duration(-2203891200000);  // Sat, 1 Mar 1900 00:00:00 GMT
+    auto start = cuda::std::chrono::time_point_cast < ToDuration > (cudf::timestamp_ms(start_ms))
+            .time_since_epoch()
+            .count();
+    auto stop_ms = cudf::timestamp_ms::duration(2214086400000);   // Mon, 29 Feb 2040 00:00:00 GMT
+    auto stop = cuda::std::chrono::time_point_cast < ToDuration > (cudf::timestamp_ms(stop_ms))
+            .time_since_epoch()
+            .count();
+    auto range = static_cast<Rep>(stop - start);
+    auto timestamp_iter = cudf::test::make_counting_transform_iterator(
+            0, [=](auto i) { return start + (range / inputRows) * i; });
+    cudf::test::fixed_width_column_wrapper<T> col1(timestamp_iter, timestamp_iter + inputRows);
+
+    cudf::table_view in_table_view({col1});
+    std::vector<std::string> out_column_names{"EXPR$0"};
+    std::string query_part = "LogicalProject(EXPR$0=[EXTRACT(FLAG(DOW), $0)])";
+
+    std::unique_ptr<ral::frame::BlazingTable> blazing_table = std::make_unique<ral::frame::BlazingTable>(in_table_view,
+                                                                                                         out_column_names);
+    std::unique_ptr<ral::frame::BlazingTable> out_table_view = ral::processor::process_project(std::move(blazing_table),
+                                                                                               query_part, nullptr);
+
+    if (cudf::type_to_id<T>() == cudf::type_id::TIMESTAMP_DAYS) {
+        cudf::test::fixed_width_column_wrapper<int16_t> expected_col1(
+                {4, 5, 6, 7, 1, 2, 3, 4, 5, 6, 7, 1, 2, 3, 4, 5, 6, 7, 1, 2});
+        cudf::table_view expected_table_view({expected_col1});
+
+        cudf::test::expect_tables_equivalent(expected_table_view, out_table_view->view());
+    } else {
+        cudf::test::fixed_width_column_wrapper<int16_t> expected_col1(
+                {4, 5, 7, 2, 3, 5, 7, 1, 3, 5, 7, 1, 3, 5, 6, 1, 3, 4, 6, 1});
+        cudf::table_view expected_table_view({expected_col1});
+
+        cudf::test::expect_tables_equivalent(expected_table_view, out_table_view->view());
+    }
+}
+
+TYPED_TEST(InteropsTestTimestamp, test_timestamp_types) {
+    using namespace interops;
+
+    using T = TypeParam;
+    cudf::size_type inputRows = 10;
+
+    using Rep = typename T::rep;
+    using ToDuration = typename T::duration;
+
+    auto start_ms = cudf::timestamp_ms::duration(-2500000000000);  // Sat, 11 Oct 1890 19:33:20 GMT
+    auto start = cuda::std::chrono::time_point_cast < ToDuration > (cudf::timestamp_ms(start_ms))
+            .time_since_epoch()
+            .count();
+    auto stop_ms = cudf::timestamp_ms::duration(2500000000000);   // Mon, 22 Mar 2049 04:26:40 GMT
+    auto stop = cuda::std::chrono::time_point_cast < ToDuration > (cudf::timestamp_ms(stop_ms))
+            .time_since_epoch()
+            .count();
+    auto range = static_cast<Rep>(stop - start);
+    auto timestamp_iter = cudf::test::make_counting_transform_iterator(
+            0, [=](auto i) { return start + (range / inputRows) * i; });
+    cudf::test::fixed_width_column_wrapper<T> col1(timestamp_iter, timestamp_iter + inputRows);
+
+    cudf::table_view in_table_view({col1});
+
+    std::vector<column_index_type> left_inputs = {0, 0, 0, 0, 0, 0, 0};
+    std::vector<column_index_type> right_inputs = {UNARY_INDEX, UNARY_INDEX, UNARY_INDEX, UNARY_INDEX, UNARY_INDEX,
+                                                   UNARY_INDEX, UNARY_INDEX};
+    std::vector<column_index_type> outputs = {1, 2, 3, 4, 5, 6, 7};
+
+    std::vector<column_index_type> final_output_positions = {1, 2, 3, 4, 5, 6, 7};
+
+    std::vector<operator_type> operators = {operator_type::BLZ_YEAR, operator_type::BLZ_MONTH, operator_type::BLZ_DAY,
+                                            operator_type::BLZ_HOUR, operator_type::BLZ_MINUTE,
+                                            operator_type::BLZ_SECOND, operator_type::BLZ_DAYOFWEEK};
+
+    auto dtype = cudf::data_type{cudf::type_to_id<T>()};
+    std::unique_ptr<cudf::scalar> arr_s1[] = {cudf::make_timestamp_scalar(dtype), cudf::make_timestamp_scalar(dtype),
+                                              cudf::make_timestamp_scalar(dtype), cudf::make_timestamp_scalar(dtype),
+                                              cudf::make_timestamp_scalar(dtype), cudf::make_timestamp_scalar(dtype),
+                                              cudf::make_timestamp_scalar(dtype)};
+    std::vector<std::unique_ptr<cudf::scalar>> left_scalars(std::make_move_iterator(std::begin(arr_s1)),
+                                                            std::make_move_iterator(std::end(arr_s1)));
+    std::unique_ptr<cudf::scalar> arr_s2[] = {cudf::make_timestamp_scalar(dtype), cudf::make_timestamp_scalar(dtype),
+                                              cudf::make_timestamp_scalar(dtype), cudf::make_timestamp_scalar(dtype),
+                                              cudf::make_timestamp_scalar(dtype), cudf::make_timestamp_scalar(dtype),
+                                              cudf::make_timestamp_scalar(dtype)};
+    std::vector<std::unique_ptr<cudf::scalar>> right_scalars(std::make_move_iterator(std::begin(arr_s2)),
+                                                             std::make_move_iterator(std::end(arr_s2)));
+
+    auto sequenceOut = cudf::test::make_counting_transform_iterator(0, [](auto row) {
+        return 0;
+    });
+    cudf::test::fixed_width_column_wrapper<int32_t> out_col1(sequenceOut, sequenceOut + inputRows);
+    cudf::test::fixed_width_column_wrapper<int32_t> out_col2(sequenceOut, sequenceOut + inputRows);
+    cudf::test::fixed_width_column_wrapper<int32_t> out_col3(sequenceOut, sequenceOut + inputRows);
+    cudf::test::fixed_width_column_wrapper<int32_t> out_col4(sequenceOut, sequenceOut + inputRows);
+    cudf::test::fixed_width_column_wrapper<int32_t> out_col5(sequenceOut, sequenceOut + inputRows);
+    cudf::test::fixed_width_column_wrapper<int32_t> out_col6(sequenceOut, sequenceOut + inputRows);
+    cudf::test::fixed_width_column_wrapper<int32_t> out_col7(sequenceOut, sequenceOut + inputRows);
+    cudf::mutable_table_view out_table_view({out_col1, out_col2, out_col3, out_col4, out_col5, out_col6, out_col7});
+
+    perform_interpreter_operation(out_table_view,
+                                  in_table_view,
+                                  left_inputs,
+                                  right_inputs,
+                                  outputs,
+                                  final_output_positions,
+                                  operators,
+                                  left_scalars,
+                                  right_scalars);
+
+    if (cudf::type_to_id<T>() == cudf::type_id::TIMESTAMP_DAYS) {
+        cudf::test::fixed_width_column_wrapper<int32_t> expected_col1(
+                {1890, 1906, 1922, 1938, 1954, 1970, 1985, 2001, 2017, 2033});
+        cudf::test::fixed_width_column_wrapper<int32_t> expected_col2({10, 8, 6, 4, 2, 1, 11, 9, 7, 5});
+        cudf::test::fixed_width_column_wrapper<int32_t> expected_col3({12, 17, 21, 25, 27, 1, 5, 9, 14, 18});
+        cudf::test::fixed_width_column_wrapper<int32_t> expected_col4({0, 0, 0, 0, 0, 0, 0, 0, 0, 0});
+        cudf::test::fixed_width_column_wrapper<int32_t> expected_col5({0, 0, 0, 0, 0, 0, 0, 0, 0, 0});
+        cudf::test::fixed_width_column_wrapper<int32_t> expected_col6({0, 0, 0, 0, 0, 0, 0, 0, 0, 0});
+        cudf::test::fixed_width_column_wrapper<int32_t> expected_col7({7, 5, 3, 1, 6, 4, 2, 7, 5, 3});
+        cudf::table_view expected_table_view(
+                {expected_col1, expected_col2, expected_col3, expected_col4, expected_col5, expected_col6,
+                 expected_col7});
+
+        cudf::test::expect_tables_equal(expected_table_view, out_table_view);
+    } else {
+        cudf::test::fixed_width_column_wrapper<int32_t> expected_col1(
+                {1890, 1906, 1922, 1938, 1954, 1970, 1985, 2001, 2017, 2033});
+        cudf::test::fixed_width_column_wrapper<int32_t> expected_col2({10, 8, 6, 4, 2, 1, 11, 9, 7, 5});
+        cudf::test::fixed_width_column_wrapper<int32_t> expected_col3({11, 16, 20, 24, 26, 1, 5, 9, 14, 18});
+        cudf::test::fixed_width_column_wrapper<int32_t> expected_col4({19, 20, 21, 22, 23, 0, 0, 1, 2, 3});
+        cudf::test::fixed_width_column_wrapper<int32_t> expected_col5({33, 26, 20, 13, 6, 0, 53, 46, 40, 33});
+        cudf::test::fixed_width_column_wrapper<int32_t> expected_col6({20, 40, 0, 20, 40, 0, 20, 40, 0, 20});
+        cudf::test::fixed_width_column_wrapper<int32_t> expected_col7({6, 4, 2, 7, 5, 4, 2, 7, 5, 3});
+        cudf::table_view expected_table_view(
+                {expected_col1, expected_col2, expected_col3, expected_col4, expected_col5, expected_col6,
+                 expected_col7});
+
+        cudf::test::expect_tables_equal(expected_table_view, out_table_view);
+    }
+}
+
 /*
 template <typename T>
 struct InteropsTestNumericDivZero : public BlazingUnitTest {
@@ -332,101 +628,6 @@ TYPED_TEST(InteropsTestNumericDivZero, test_numeric_types_divzero)
   cudf::test::expect_tables_equal(expected_table_view, out_table_view);
 }
 
-template <typename T>
-struct InteropsTestTimestamp : public BlazingUnitTest {
-  void SetUp() {
-	  
-  }
-  void TearDown() {
-    
-  }
-};
-
-TYPED_TEST_CASE(InteropsTestTimestamp, cudf::test::TimestampTypes);
-
-TYPED_TEST(InteropsTestTimestamp, test_timestamp_types)
-{
-  using namespace interops;
-
-  using T = TypeParam;
-  cudf::size_type inputRows = 10;
-
-  using Rep = typename T::rep;
-  using ToDuration = typename T::duration;
-
-  auto start_ms = cudf::timestamp_ms::duration(-2500000000000);  // Sat, 11 Oct 1890 19:33:20 GMT
-  auto start = simt::std::chrono::time_point_cast<ToDuration>(cudf::timestamp_ms(start_ms))
-                .time_since_epoch()
-                .count();
-  auto stop_ms = cudf::timestamp_ms::duration(2500000000000);   // Mon, 22 Mar 2049 04:26:40 GMT
-  auto stop = simt::std::chrono::time_point_cast<ToDuration>(cudf::timestamp_ms(stop_ms))
-                .time_since_epoch()
-                .count();
-  auto range = static_cast<Rep>(stop - start);
-  auto timestamp_iter = cudf::test::make_counting_transform_iterator(
-    0, [=](auto i) { return start + (range / inputRows) * i; });
-  cudf::test::fixed_width_column_wrapper<T> col1(timestamp_iter, timestamp_iter + inputRows);
-  
-  cudf::table_view in_table_view ({col1});
-
-  std::vector<column_index_type> left_inputs =  {0          , 0          , 0          , 0          , 0          , 0};
-  std::vector<column_index_type> right_inputs = {UNARY_INDEX, UNARY_INDEX, UNARY_INDEX, UNARY_INDEX, UNARY_INDEX, UNARY_INDEX};
-  std::vector<column_index_type> outputs =      {1          , 2          , 3          , 4          , 5          , 6};
-
-  std::vector<column_index_type> final_output_positions = {1, 2, 3, 4, 5, 6};
-
-	std::vector<operator_type> operators = {operator_type::BLZ_YEAR, operator_type::BLZ_MONTH, operator_type::BLZ_DAY, operator_type::BLZ_HOUR, operator_type::BLZ_MINUTE, operator_type::BLZ_SECOND};
-
-	auto dtype = cudf::data_type{cudf::type_to_id<T>()};
-  std::unique_ptr<cudf::scalar> arr_s1[] = {cudf::make_timestamp_scalar(dtype), cudf::make_timestamp_scalar(dtype), cudf::make_timestamp_scalar(dtype), cudf::make_timestamp_scalar(dtype), cudf::make_timestamp_scalar(dtype), cudf::make_timestamp_scalar(dtype)};
-  std::vector<std::unique_ptr<cudf::scalar>> left_scalars(std::make_move_iterator(std::begin(arr_s1)), std::make_move_iterator(std::end(arr_s1)));
-  std::unique_ptr<cudf::scalar> arr_s2[] = {cudf::make_timestamp_scalar(dtype), cudf::make_timestamp_scalar(dtype), cudf::make_timestamp_scalar(dtype), cudf::make_timestamp_scalar(dtype), cudf::make_timestamp_scalar(dtype), cudf::make_timestamp_scalar(dtype)};
-  std::vector<std::unique_ptr<cudf::scalar>> right_scalars(std::make_move_iterator(std::begin(arr_s2)), std::make_move_iterator(std::end(arr_s2)));
-  
-  auto sequenceOut = cudf::test::make_counting_transform_iterator(0, [](auto row) {
-      return 0;
-    });
-  cudf::test::fixed_width_column_wrapper<int32_t> out_col1(sequenceOut, sequenceOut + inputRows);
-  cudf::test::fixed_width_column_wrapper<int32_t> out_col2(sequenceOut, sequenceOut + inputRows);
-  cudf::test::fixed_width_column_wrapper<int32_t> out_col3(sequenceOut, sequenceOut + inputRows);
-  cudf::test::fixed_width_column_wrapper<int32_t> out_col4(sequenceOut, sequenceOut + inputRows);
-  cudf::test::fixed_width_column_wrapper<int32_t> out_col5(sequenceOut, sequenceOut + inputRows);
-  cudf::test::fixed_width_column_wrapper<int32_t> out_col6(sequenceOut, sequenceOut + inputRows);
-  cudf::mutable_table_view out_table_view ({out_col1, out_col2, out_col3, out_col4, out_col5, out_col6});
-
-  perform_interpreter_operation(out_table_view,
-                              in_table_view,
-                              left_inputs,
-                              right_inputs,
-                              outputs,
-                              final_output_positions,
-                              operators,
-                              left_scalars,
-                              right_scalars);
-   
-  if (cudf::type_to_id<T>() == cudf::TIMESTAMP_DAYS){
-    cudf::test::fixed_width_column_wrapper<int32_t> expected_col1({1890,1906,1922,1938,1954,1970,1985,2001,2017,2033});
-    cudf::test::fixed_width_column_wrapper<int32_t> expected_col2({10,8,6,4,2,1,11,9,7,5});
-    cudf::test::fixed_width_column_wrapper<int32_t> expected_col3({12,17,21,25,27,1,5,9,14,18});
-    cudf::test::fixed_width_column_wrapper<int32_t> expected_col4({0,0,0,0,0,0,0,0,0,0});
-    cudf::test::fixed_width_column_wrapper<int32_t> expected_col5({0,0,0,0,0,0,0,0,0,0});
-    cudf::test::fixed_width_column_wrapper<int32_t> expected_col6({0,0,0,0,0,0,0,0,0,0});
-    cudf::table_view expected_table_view ({expected_col1, expected_col2, expected_col3, expected_col4, expected_col5, expected_col6});
-
-    cudf::test::expect_tables_equal(expected_table_view, out_table_view);
-  } else {
-    cudf::test::fixed_width_column_wrapper<int32_t> expected_col1({1890,1906,1922,1938,1954,1970,1985,2001,2017,2033});
-    cudf::test::fixed_width_column_wrapper<int32_t> expected_col2({10,8,6,4,2,1,11,9,7,5});
-    cudf::test::fixed_width_column_wrapper<int32_t> expected_col3({11,16,20,24,26,1,5,9,14,18});
-    cudf::test::fixed_width_column_wrapper<int32_t> expected_col4({19,20,21,22,23,0,0,1,2,3});
-    cudf::test::fixed_width_column_wrapper<int32_t> expected_col5({33,26,20,13,6,0,53,46,40,33});
-    cudf::test::fixed_width_column_wrapper<int32_t> expected_col6({20,40,0,20,40,0,20,40,0,20});
-    cudf::table_view expected_table_view ({expected_col1, expected_col2, expected_col3, expected_col4, expected_col5, expected_col6});
-
-    cudf::test::expect_tables_equal(expected_table_view, out_table_view);
-  }
-}
-
 TYPED_TEST(InteropsTestTimestamp, test_timestamp_comparison)
 {
   using namespace interops;
@@ -438,11 +639,11 @@ TYPED_TEST(InteropsTestTimestamp, test_timestamp_comparison)
   using ToDuration = typename T::duration;
 
   auto start_ms = cudf::timestamp_ms::duration(-2500000000000);  // Sat, 11 Oct 1890 19:33:20 GMT
-  auto start = simt::std::chrono::time_point_cast<ToDuration>(cudf::timestamp_ms(start_ms))
+  auto start = cuda::std::chrono::time_point_cast<ToDuration>(cudf::timestamp_ms(start_ms))
                 .time_since_epoch()
                 .count();
   auto stop_ms = cudf::timestamp_ms::duration(2500000000000);   // Mon, 22 Mar 2049 04:26:40 GMT
-  auto stop = simt::std::chrono::time_point_cast<ToDuration>(cudf::timestamp_ms(stop_ms))
+  auto stop = cuda::std::chrono::time_point_cast<ToDuration>(cudf::timestamp_ms(stop_ms))
                 .time_since_epoch()
                 .count();
   auto range = static_cast<Rep>(stop - start);

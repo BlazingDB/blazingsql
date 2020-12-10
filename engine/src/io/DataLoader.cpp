@@ -19,9 +19,6 @@ namespace ral {
 // TODO: namespace frame should be remove from here
 namespace io {
 
-namespace {
-using blazingdb::manager::Context;
-}  // namespace
 
 data_loader::data_loader(std::shared_ptr<data_parser> _parser, std::shared_ptr<data_provider> _data_provider)
 	: provider(_data_provider), parser(_parser) {}
@@ -35,14 +32,13 @@ data_loader::~data_loader() {}
 
 
 std::unique_ptr<ral::frame::BlazingTable> data_loader::load_batch(
-	Context *  /*context*/,
 	const std::vector<int> & column_indices_in,
 	const Schema & schema,
 	data_handle file_data_handle,
 	size_t file_index,
 	std::vector<cudf::size_type> row_group_ids) {
 
-	std::vector<int> column_indices = column_indices_in;
+/*	std::vector<int> column_indices = column_indices_in;
 	if (column_indices.size() == 0) {  // including all columns by default
 		column_indices.resize(schema.get_num_columns());
 		std::iota(column_indices.begin(), column_indices.end(), 0);
@@ -97,6 +93,7 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::load_batch(
 		auto unique_table = std::make_unique<cudf::table>(std::move(all_columns));
 		return std::move(std::make_unique<ral::frame::BlazingTable>(std::move(unique_table), names));
 	}
+	*/
 }
 
 
@@ -104,8 +101,8 @@ void data_loader::get_schema(Schema & schema, std::vector<std::pair<std::string,
 	bool got_schema = false;
 	while (!got_schema && this->provider->has_next()){
 		data_handle handle = this->provider->get_next();
-		if (handle.fileHandle != nullptr){
-			this->parser->parse_schema(handle.fileHandle, schema);
+		if (handle.file_handle != nullptr){
+			this->parser->parse_schema(handle.file_handle, schema);
 			if (schema.get_num_columns() > 0){
 				got_schema = true;
 				schema.add_file(handle.uri.toString(true));
@@ -141,7 +138,7 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::get_metadata(int offset) 
 		std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files;
 		std::vector<data_handle> handles = this->provider->get_some(NUM_FILES_AT_A_TIME);
 		for(auto handle : handles) {
-			files.push_back(handle.fileHandle);
+			files.push_back(handle.file_handle);
 		}
 		metadata_batches.emplace_back(this->parser->get_metadata(files,  offset));
 		metadata_batche_views.emplace_back(metadata_batches.back()->toBlazingTableView());

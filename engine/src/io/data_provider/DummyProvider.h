@@ -36,7 +36,7 @@ public:
 
 	data_handle get_next(bool /*open_file*/ = true) {
 		data_handle handle;
-		handle.fileHandle = nullptr;
+		handle.file_handle = nullptr;
 		return handle;
 	}
 
@@ -54,6 +54,9 @@ public:
 		// does nothing
 	}
 	
+	size_t get_num_handles(){
+		return 1;
+	}
 
 private:
 };

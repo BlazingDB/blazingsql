@@ -34,6 +34,10 @@ std::shared_ptr<data_provider> uri_data_provider::clone() {
 	return std::make_shared<uri_data_provider>(this->file_uris, this->uri_values);
 }
 
+size_t uri_data_provider::get_num_handles(){
+	return file_uris.size();
+}
+
 uri_data_provider::~uri_data_provider() {
 	// TODO: when a shared_ptr to a randomaccessfile goes out of scope does it close files automatically?
 	// in case it doesnt we can close that here
@@ -95,7 +99,7 @@ data_handle uri_data_provider::get_next(bool open_file) {
 			this->current_file++;
 		}
 
-		handle.fileHandle = file;
+		handle.file_handle = file;
 		return handle;
 	} else if (this->current_file < this->file_uris.size()) {
 		FileStatus fileStatus;
@@ -213,7 +217,7 @@ data_handle uri_data_provider::get_next(bool open_file) {
             
 			data_handle handle;
 			handle.uri = current_uri;
-			handle.fileHandle = file;
+			handle.file_handle = file;
 			if(this->uri_values.size() != 0) {
 				if(this->uri_values.size() > this->current_file) {
 					handle.column_values = this->uri_values[this->current_file];

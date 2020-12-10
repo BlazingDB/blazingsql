@@ -216,26 +216,13 @@ message(STATUS "C++ compiler definitions: ${CXX_COMPILE_DEFINITIONS}")
 include_directories(
     ${PROJECT_BINARY_DIR}
     ${PROJECT_SOURCE_DIR} ${CMAKE_BINARY_DIR}
-    ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
+    ${BSQL_BLD_PREFIX}/include/libcudf/libcudacxx/
+    ${BSQL_BLD_PREFIX}/include
+    ${BSQL_BLD_PREFIX}/include/blazingdb/io
     ${PROJECT_SOURCE_DIR}/src
     ${PROJECT_SOURCE_DIR}/include
     ${PROJECT_SOURCE_DIR}/thirdparty/jitify
-    ${BSQL_BLD_PREFIX}/include
-    ${BSQL_BLD_PREFIX}/include/cudf
-    ${BSQL_BLD_PREFIX}/include/libcudf/libcudacxx/
-    ${BSQL_BLD_PREFIX}/include/blazingdb/io
-    ${PREFIX}/include
-    ${PREFIX}/include/cudf
-    ${PREFIX}/include/libcudf/libcudacxx/
-    ${PREFIX}/include/blazingdb/io
-    ${CMAKE_INSTALL_PREFIX}/include
-    ${CMAKE_INSTALL_PREFIX}/include/cudf
-    ${CMAKE_INSTALL_PREFIX}/include/libcudf/libcudacxx/
-    ${CMAKE_INSTALL_PREFIX}/include/blazingdb/io
-    $ENV{INSTALL_PREFIX}/include
-    $ENV{INSTALL_PREFIX}/include/cudf
-    $ENV{INSTALL_PREFIX}/include/libcudf/libcudacxx/
-    $ENV{INSTALL_PREFIX}/include/blazingdb/io
+    ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
     ${PYTHON_INCLUDE_DIRS}
     "${ARROW_INCLUDE_DIR}"
     )
@@ -249,16 +236,23 @@ set(SRC_FILES ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/Blazin
               ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingColumnOwner.cpp
               ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/port.cpp
               ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/kernel.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/executor.cpp
               ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/distributing_kernel.cpp
               ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/kernel_type.cpp
               ${PROJECT_SOURCE_DIR}/src/execution_graph/Context.cpp
               ${PROJECT_SOURCE_DIR}/src/bmr/MemoryMonitor.cpp
+              ${PROJECT_SOURCE_DIR}/src/bmr/BlazingMemoryResource.cpp
               ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/graph.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/BatchAggregationProcessing.cpp
               ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/BatchJoinProcessing.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/BatchOrderByProcessing.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/BatchUnionProcessing.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/BatchProcessing.cpp
               ${PROJECT_SOURCE_DIR}/src/config/GPUManager.cu
               ${PROJECT_SOURCE_DIR}/src/operators/OrderBy.cpp
               ${PROJECT_SOURCE_DIR}/src/operators/GroupBy.cpp
               ${PROJECT_SOURCE_DIR}/src/io/data_provider/UriDataProvider.cpp
+              ${PROJECT_SOURCE_DIR}/src/io/data_provider/GDFDataProvider.cpp
               ${PROJECT_SOURCE_DIR}/src/io/Schema.cpp
               ${PROJECT_SOURCE_DIR}/src/io/data_parser/ParquetParser.cpp
               ${PROJECT_SOURCE_DIR}/src/io/data_parser/CSVParser.cpp
@@ -328,19 +322,21 @@ target_link_libraries(blazingsql-engine
 
     # TODO: Make this cleaner. Here we just used to link cudf, but cudf got split into a whole bunch of libraries in this PR https://github.com/rapidsai/cudf/pull/6134
     # cudf
-    libcudf_base.so
+    libcudf_ast.so    
+    libcudf_interop.so 
+    libcudf_partitioning.so  
     libcudf_rolling.so
-    libcudf_replace.so
-    libcudf_transpose.so
-    libcudf_reductions.so
-    libcudf_ast.so
-    libcudf_join.so
-    libcudf_reshape.so
-    libcudf_merge.so
-    libcudf_hash.so
+    libcudf_base.so
     libcudf_io.so
-    libcudf_interop.so
-    libcudf_partitioning.so
+    libcudf_reductions.so
+    libcudf.so
+    libcudf_comms.so
+    libcudf_join.so
+    libcudf_replace.so
+    libcudf_hash.so
+    libcudf_merge.so
+    libcudf_reshape.so
+    libcudf_transpose.so 
     
     zmq
     cudart
