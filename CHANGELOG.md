@@ -14,8 +14,12 @@
 - #1130 Infer hive folder partition
 - #1188 Implement upper/lower operators
 - #1193 Implement string REPLACE
+- #1218 Added smiles test set
 - #1201 Implement string TRIM
 - #1216 Add unit test for DAYOFWEEK
+- #1235 Reducing Memory pressure by moving shuffle data to cpu before transmission
+- #1205 Implement string REVERSE
+- #1220 Implement string LEFT and RIGHT 
 
 
 ## Improvements
@@ -40,6 +44,7 @@
 - #1186 Removing cuda labels to install due cudatoolkit version
 - #1187 Enable MySQL-specific SQL operators in addition to Standard and Oracle
 - #1206 Improved contribution documentation 
+- #1224 Added cudaSetDevice to thread initialization so that the cuda context is available to UCX
 
 
 ## Bug Fixes
@@ -53,6 +58,7 @@
 - #1118 Fixed issue with config_options and adding local_files to valid params
 - #1133 Fixed adressing issue in float columns when parsing parquet metadata
 - #1163 added empty line to trigger build
+- #1108 Remove temp files when an error occurs
 - #1165 E2e tests, distributed mode, again tcp
 - #1171 Don't log timeout in output/input caches
 - #1168 Fix SSL errors for conda
@@ -64,7 +70,9 @@
 - #1199 Fix non thread-safe access to map containing tag to message_metadata for ucx
 - #1196 Fix column_names (table) always as list of string
 - #1203 Changed code back so that parquet is not read a single rowgroup at a time 
+- #1207 Calcite uses literal as int32 if not explicit CAST was provided
 - #1212 Fixed issue when building the thirdpart, cmake version set to 3.18.4
+- #1225 Fixed issue due to change in gather API 
 
 
 # BlazingSQL 0.16.0 (October 22, 2020)
