@@ -32,8 +32,6 @@
 #include <blazingdb/io/Library/Logging/Logger.h>
 #include "blazingdb/io/Library/Logging/ServiceLogging.h"
 
-#include "config/GPUManager.cuh"
-
 #include "communication/CommunicationData.h"
 
 #include <bmr/initializer.h>
@@ -47,6 +45,7 @@
 #include "communication/CommunicationInterface/messageSender.hpp"
 #include "communication/CommunicationInterface/messageListener.hpp"
 #include "execution_graph/logic_controllers/taskflow/kernel.h"
+#include "execution_graph/logic_controllers/taskflow/executor.h"
 
 #include "error.hpp"
 
@@ -715,14 +714,21 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 	logger->debug("|||{info}|||||","info"_a=alloc_info);
 
 
+	std::string orc_files_path;
+	iter = config_options.find("BLAZING_CACHE_DIRECTORY");
+	if (iter != config_options.end()) {
+		orc_files_path = config_options["BLAZING_CACHE_DIRECTORY"];
+	}
+	if (!singleNode) {
+		orc_files_path += "/" + ralId;
+	}
+
 	auto & communicationData = ral::communication::CommunicationData::getInstance();
+	communicationData.initialize(worker_id, orc_files_path);
 
 	auto output_input_caches = std::make_pair(std::make_shared<CacheMachine>(nullptr, false),std::make_shared<CacheMachine>(nullptr, false));
 
 	// start ucp servers
-
-	communicationData.initialize(worker_id);
-
 	if(!singleNode){
 		std::map<std::string, comm::node> nodes_info_map;
 
@@ -735,7 +741,6 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 		ucp_context_h ucp_context = nullptr;
 		ucp_worker_h self_worker = nullptr;
 		if(protocol == comm::blazing_protocol::ucx){
-			std::cout<<"def wrong"<<std::endl;
 			ucp_context = reinterpret_cast<ucp_context_h>(workers_ucp_info[0].context_handle);
 
 			self_worker = CreatetUcpWorker(ucp_context);

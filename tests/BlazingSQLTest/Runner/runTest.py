@@ -294,7 +294,9 @@ def get_codTest(test_name):
         "Order by": "ORDERBY",
         "Predicates With Nulls": "PREDWNULLS",
         "Round": "ROUND",
+        "Replace": "REPLACE",
         "Simple Distribution From Local": "SIMPLEDIST",
+        "Smiles Test": "SMILES",
         "Substring": "SUBSTRING",
         "Tables from Pandas": "TBLPANDAS",
         "Timestampdiff": "TIMESTAMPD",
@@ -1283,6 +1285,10 @@ tableNames = [
     "customer_demographics",
     "customer_address",
     "customer",
+    "split",
+    "docked",
+    "smiles",
+    "dcoids",
 ]
 
 
@@ -1403,10 +1409,8 @@ def run_query(
     engine_time = 0
     total_time = 0
 
-    nested_query = kwargs.get("nested_query")
-    if nested_query is None:
-        nested_query = False
-
+    nested_query = kwargs.get("nested_query", False)
+    
     error_message = ""
 
     if not nested_query:
@@ -1460,9 +1464,7 @@ def run_query(
             result_gdf = bc.sql(query_blz, algebra=algebra)
 
     else:  # for nested queries as column basis test
-        result_gdf = kwargs.get("blz_result")
-        if result_gdf is None:
-            result_gdf = []
+        result_gdf = kwargs.get("blz_result", [])
 
     str_code_test = str(get_codTest(queryType)).upper()
     filename = str_code_test + "-" + str(queryId) + ".parquet"

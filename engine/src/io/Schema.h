@@ -8,24 +8,13 @@
 #ifndef BLAZING_RAL_SCHEMA_H_
 #define BLAZING_RAL_SCHEMA_H_
 
-
-//#include <cudf/cudf.h>
 #include <string>
 #include <vector>
 
-
-#include "cudf/column/column_view.hpp"
+#include "cudf/types.hpp"
 #include "execution_graph/logic_controllers/LogicPrimitives.h"
 namespace ral {
-
 namespace io {
-
-/**
- * I did not want to write this and its very dangerous
- * but the cudf::io::csv::reader_options (what a name) currently requires a char * input
- *I have no idea why
- */
-std::string convert_dtype_to_string(const cudf::type_id & dtype);
 
 class Schema {
 public:
@@ -52,7 +41,6 @@ public:
 	virtual ~Schema();
 
 	std::vector<std::string> get_names() const;
-	std::vector<std::string> get_types() const;
 	std::vector<std::string> get_files() const;
 	std::vector<bool> get_in_file() const;
 	bool all_in_file() const;
@@ -65,18 +53,11 @@ public:
 
 	size_t get_num_columns() const;
 
-	std::vector<std::vector<int> > get_rowgroups(){
-		return this->row_groups_ids;
-	}
+	std::vector<int> get_rowgroup_ids(size_t file_index) const;
+	std::vector<std::vector<int>> get_rowgroups();
 
-	std::vector<int> get_rowgroup_ids(size_t file_index) const {
-		if (this->row_groups_ids.size() > file_index){
-			return this->row_groups_ids.at(file_index);
-		} else {
-			
-			return std::vector<int>{};
-		}
-	}
+	bool get_has_header_csv() const;
+	void set_has_header_csv(bool has_header);
 
 	void add_file(std::string file);
 
@@ -99,8 +80,8 @@ private:
 	std::vector<cudf::type_id> types;
 	std::vector<bool> in_file;
 	std::vector<std::string> files;
-
 	std::vector<std::vector<int>> row_groups_ids;
+	bool has_header_csv = false;
 };
 
 } /* namespace io */

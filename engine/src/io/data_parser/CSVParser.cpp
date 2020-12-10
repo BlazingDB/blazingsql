@@ -45,6 +45,14 @@ std::unique_ptr<ral::frame::BlazingTable> csv_parser::parse_batch(
 		cudf::io::csv_reader_options args = getCsvReaderOptions(args_map, arrow_source);
 		args.set_use_cols_indexes(column_indices);
 
+		if (args.get_header() > 0) {
+			args.set_header(args.get_header());
+		}
+		else if (args_map["has_header_csv"] == "True") {
+			args.set_header(0);
+		} 
+		else args.set_header(-1);
+
 		// Overrride `byte_range_offset` and `byte_range_size`
 		auto iter = args_map.find("max_bytes_chunk_read");
 		if(iter != args_map.end() && !row_groups.empty()) {
@@ -93,6 +101,11 @@ void csv_parser::parse_schema(
 	auto arrow_source = cudf::io::arrow_io_source{file};
 	cudf::io::csv_reader_options args = getCsvReaderOptions(args_map, arrow_source);
 
+	// if names were not passed when create_table
+	if (args.get_header() == 0) {
+		schema.set_has_header_csv(true);
+	}
+
 	int64_t num_bytes = file->GetSize().ValueOrDie();
 
 	// lets only read up to 48192 bytes. We are assuming that a full row will always be less than that
@@ -112,7 +125,7 @@ void csv_parser::parse_schema(
 	}
 }
 
-size_t csv_parser::max_bytes_chuck_size() const {
+size_t csv_parser::max_bytes_chunk_size() const {
 	auto iter = args_map.find("max_bytes_chunk_read");
 	if(iter == args_map.end()) {
 		return 0;

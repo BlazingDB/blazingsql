@@ -38,7 +38,7 @@ using namespace fmt::literals;
 * CPU, or a file. We can also have GPU messages that contain metadata
 * which are used for sending CacheData from node to node
 */
-enum class CacheDataType { GPU, CPU, LOCAL_FILE, GPU_METADATA, IO_FILE };
+enum class CacheDataType { GPU, CPU, LOCAL_FILE, GPU_METADATA, IO_FILE, CONCATENATING };
 
 const std::string KERNEL_ID_METADATA_LABEL = "kernel_id"; /**< A message metadata field that indicates which kernel owns this message. */
 const std::string QUERY_ID_METADATA_LABEL = "query_id"; /**< A message metadata field that indicates which query owns this message. */
@@ -114,6 +114,13 @@ public:
 	}
 
 	/**
+	* Get the number of columns this CacheData will generate with decache.
+	*/
+	size_t num_columns() const {
+		return col_names.size();
+	}
+
+	/**
 	* Get the number of rows this CacheData will generate with decache.
 	*/
 	size_t num_rows() const {
@@ -127,6 +134,12 @@ public:
 	CacheDataType get_type() const {
 		return cache_type;
 	}
+
+	/**
+	 * Utility function which can take a CacheData and if its a standard GPU cache data, it will downgrade it to CPU or Disk
+	 * @return If the input CacheData is not of a type that can be downgraded, it will just return the original input, otherwise it will return the downgraded CacheData.
+	 */
+	static std::unique_ptr<CacheData> downgradeCacheData(std::unique_ptr<CacheData> cacheData, std::string id, std::shared_ptr<Context> ctx);
 
 protected:
 	CacheDataType cache_type; /**< The CacheDataType that is used to store the dataframe representation. */
@@ -414,8 +427,9 @@ public:
 	* @param table The BlazingTable that is converted into an ORC file and stored
 	* on disk.
 	* @ param orc_files_path The path where the file should be stored.
+	* @ param ctx_id The context token to identify the query that generated the file.
 	*/
-	CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable> table, std::string orc_files_path);
+	CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable> table, std::string orc_files_path, std::string ctx_token);
 
 	/**
 	* Constructor
@@ -472,7 +486,7 @@ public:
 	* on disk.
 	* @ param orc_files_path The path where the file should be stored.
 	*/
-	 CacheDataIO(ral::io::data_handle handle, 
+	 CacheDataIO(ral::io::data_handle handle,
 	 	std::shared_ptr<ral::io::data_parser> parser,
 	 	ral::io::Schema schema,
 		ral::io::Schema file_schema,
@@ -513,7 +527,35 @@ private:
 	std::vector<int> projections;
 };
 
-using frame_type = std::unique_ptr<ral::frame::BlazingTable>;
+class ConcatCacheData : public CacheData {
+public:
+	/**
+	* Constructor
+	* @param table The cache_datas that will be concatenated when decached.
+	* @param col_names The names of the columns in the dataframe.
+	* @param schema The types of the columns in the dataframe.
+	*/
+	ConcatCacheData(std::vector<std::unique_ptr<CacheData>> cache_datas, const std::vector<std::string>& col_names, const std::vector<cudf::data_type>& schema);
+
+	/**
+	* Decaches all caches datas and concatenates them into one BlazingTable
+	* @return The BlazingTable that results from concatenating all cache datas.
+	*/
+	std::unique_ptr<ral::frame::BlazingTable> decache() override;
+
+	/**
+	* Get the amount of GPU memory consumed by this CacheData
+	* Having this function allows us to have one api for seeing the consumption
+	* of all the CacheData objects that are currently in Caches.
+	* @return The number of bytes the BlazingTable consumes.
+	*/
+	size_t sizeInBytes() const override;
+
+	virtual ~ConcatCacheData() {}
+
+protected:
+	std::vector<std::unique_ptr<CacheData>> _cache_datas;
+};
 
 
 /**
@@ -538,8 +580,8 @@ public:
 	std::unique_ptr<CacheData> release_data() { return std::move(data); }
 
 protected:
-	const std::string message_id;
 	std::unique_ptr<CacheData> data;
+	const std::string message_id;
 };
 
 /**
@@ -587,6 +629,7 @@ public:
 	* @return number of partitions that have been inserted into this WaitingQueue.
 	*/
 	int processed_parts(){
+		std::unique_lock<std::mutex> lock(mutex_);
 		return processed;
 	}
 
@@ -664,6 +707,22 @@ public:
 		this->message_queue_.pop_front();
 		return std::move(data);
 	}
+
+	/**
+	* Get a message_ptr from the back of the queue if it exists in the WaitingQueue else return nullptr.
+	* @return message_ptr from the back of the queue if it exists in the WaitingQueue else return nullptr.
+	*/
+	message_ptr pop_back() {
+
+		std::lock_guard<std::mutex> lock(mutex_);
+		if(this->message_queue_.size() == 0) {
+			return nullptr;
+		}
+		auto data = std::move(this->message_queue_.back());
+		this->message_queue_.pop_back();
+		return std::move(data);
+	}
+
 	/**
 	* Wait for the next message to be ready.
 	* @return Waits for the next CacheData to be available. Returns true when this
@@ -840,6 +899,19 @@ public:
 	}
 
 	/**
+	 * gets all the message ids
+	 */
+	std::vector<std::string> get_all_message_ids(){
+		std::unique_lock<std::mutex> lock(mutex_);
+		std::vector<std::string> message_ids;
+		message_ids.reserve(message_queue_.size());
+		for(message_ptr & it : message_queue_) {
+			message_ids.push_back(it->get_message_id());
+		}
+		return message_ids;
+	}
+
+	/**
 	* Waits until all messages are ready then returns all of them.
 	* You should never call this function more than once on a WaitingQueue else
 	* race conditions can occur.
@@ -967,6 +1039,8 @@ public:
 
 	uint64_t get_num_rows_added();
 
+	uint64_t get_num_batches_added();
+
 	void wait_until_finished();
 
 	std::int32_t get_id() const;
@@ -986,18 +1060,15 @@ public:
 	}
 	virtual std::unique_ptr<ral::frame::BlazingTable> pullFromCache();
 
+	virtual std::unique_ptr<ral::frame::BlazingTable> pullUnorderedFromCache();
+
 	std::vector<std::unique_ptr<ral::cache::CacheData> > pull_all_cache_data();
-
-	void put_all_cache_data( std::vector<std::unique_ptr<ral::cache::CacheData> > messages, std::vector<std::string> message_ids);
-
-
 
 	virtual std::unique_ptr<ral::cache::CacheData> pullCacheData(std::string message_id);
 
-	virtual std::unique_ptr<ral::frame::BlazingTable> pullUnorderedFromCache();
-
-
 	virtual std::unique_ptr<ral::cache::CacheData> pullCacheData();
+
+	std::vector<std::string> get_all_message_ids();
 
 	void wait_for_count(int count){
 		return this->waitingCache->wait_for_count(count);
@@ -1137,6 +1208,8 @@ public:
 	std::unique_ptr<ral::frame::BlazingTable> pullUnorderedFromCache() override {
 		return pullFromCache();
 	}
+
+	std::unique_ptr<ral::cache::CacheData> pullCacheData() override;
 
 	size_t downgradeCacheData() override { // dont want to be able to downgrage concatenating caches
 		return 0;

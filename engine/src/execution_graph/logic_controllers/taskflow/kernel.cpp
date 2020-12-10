@@ -1,7 +1,134 @@
 #include "kernel.h"
+#include "CodeTimer.h"
+#include "communication/CommunicationData.h"
 
 namespace ral {
 namespace cache {
+
+kernel::kernel(std::size_t kernel_id, std::string expr, std::shared_ptr<Context> context, kernel_type kernel_type_id) : expression{expr}, kernel_id(kernel_id), context{context}, kernel_type_id{kernel_type_id}, total_input_bytes{0} {
+    parent_id_ = -1;
+    has_limit_ = false;
+    limit_rows_ = -1;
+
+    logger = spdlog::get("batch_logger");
+    events_logger = spdlog::get("events_logger");
+    cache_events_logger = spdlog::get("cache_events_logger");
+
+    std::shared_ptr<spdlog::logger> kernels_logger;
+    kernels_logger = spdlog::get("kernels_logger");
+
+    if(kernels_logger != nullptr) {
+        kernels_logger->info("{ral_id}|{query_id}|{kernel_id}|{is_kernel}|{kernel_type}",
+                            "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                            "query_id"_a=(this->context ? std::to_string(this->context->getContextToken()) : "null"),
+                            "kernel_id"_a=this->get_id(),
+                            "is_kernel"_a=1, //true
+                            "kernel_type"_a=get_kernel_type_name(this->get_type_id()));
+    }
+}
+
+std::shared_ptr<ral::cache::CacheMachine> kernel::output_cache(std::string cache_id) {
+    cache_id = cache_id.empty() ? std::to_string(this->get_id()) : cache_id;
+    return this->output_.get_cache(cache_id);
+}
+
+std::shared_ptr<ral::cache::CacheMachine> kernel::input_cache() {
+    auto kernel_id = std::to_string(this->get_id());
+    return this->input_.get_cache(kernel_id);
+}
+
+bool kernel::add_to_output_cache(std::unique_ptr<ral::frame::BlazingTable> table, std::string cache_id,bool always_add) {
+    CodeTimer cacheEventTimer(false);
+
+    auto num_rows = table->num_rows();
+    auto num_bytes = table->sizeInBytes();
+
+    cacheEventTimer.start();
+
+    std::string message_id = get_message_id();
+    message_id = !cache_id.empty() ? cache_id + "_" + message_id : message_id;
+    cache_id = cache_id.empty() ? std::to_string(this->get_id()) : cache_id;
+    bool added = this->output_.get_cache(cache_id)->addToCache(std::move(table), message_id,always_add);
+
+    cacheEventTimer.stop();
+
+    if(cache_events_logger != nullptr) {
+        cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+                    "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                    "query_id"_a=context->getContextToken(),
+                    "source"_a=this->get_id(),
+                    "sink"_a=this->output_.get_cache(cache_id)->get_id(),
+                    "num_rows"_a=num_rows,
+                    "num_bytes"_a=num_bytes,
+                    "event_type"_a="addCache",
+                    "timestamp_begin"_a=cacheEventTimer.start_time(),
+                    "timestamp_end"_a=cacheEventTimer.end_time());
+    }
+
+    return added;
+}
+
+bool kernel::add_to_output_cache(std::unique_ptr<ral::cache::CacheData> cache_data, std::string cache_id, bool always_add) {
+    CodeTimer cacheEventTimer(false);
+
+    auto num_rows = cache_data->num_rows();
+    auto num_bytes = cache_data->sizeInBytes();
+
+    cacheEventTimer.start();
+
+    std::string message_id = get_message_id();
+    message_id = !cache_id.empty() ? cache_id + "_" + message_id : message_id;
+    cache_id = cache_id.empty() ? std::to_string(this->get_id()) : cache_id;
+    bool added = this->output_.get_cache(cache_id)->addCacheData(std::move(cache_data), message_id, always_add);
+
+    cacheEventTimer.stop();
+
+    if(cache_events_logger != nullptr) {
+        cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+                    "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                    "query_id"_a=context->getContextToken(),
+                    "source"_a=this->get_id(),
+                    "sink"_a=this->output_.get_cache(cache_id)->get_id(),
+                    "num_rows"_a=num_rows,
+                    "num_bytes"_a=num_bytes,
+                    "event_type"_a="addCache",
+                    "timestamp_begin"_a=cacheEventTimer.start_time(),
+                    "timestamp_end"_a=cacheEventTimer.end_time());
+    }
+
+    return added;
+}
+
+bool kernel::add_to_output_cache(std::unique_ptr<ral::frame::BlazingHostTable> host_table, std::string cache_id) {
+    CodeTimer cacheEventTimer(false);
+
+    auto num_rows = host_table->num_rows();
+    auto num_bytes = host_table->sizeInBytes();
+
+    cacheEventTimer.start();
+
+    std::string message_id = get_message_id();
+    message_id = !cache_id.empty() ? cache_id + "_" + message_id : message_id;
+    cache_id = cache_id.empty() ? std::to_string(this->get_id()) : cache_id;
+    bool added = this->output_.get_cache(cache_id)->addHostFrameToCache(std::move(host_table), message_id);
+
+    cacheEventTimer.stop();
+
+    if(cache_events_logger != nullptr) {
+        cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+                    "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                    "query_id"_a=context->getContextToken(),
+                    "source"_a=this->get_id(),
+                    "sink"_a=this->output_.get_cache(cache_id)->get_id(),
+                    "num_rows"_a=num_rows,
+                    "num_bytes"_a=num_bytes,
+                    "event_type"_a="addCache",
+                    "timestamp_begin"_a=cacheEventTimer.start_time(),
+                    "timestamp_end"_a=cacheEventTimer.end_time());
+    }
+
+    return added;
+}
 
 // this function gets the estimated num_rows for the output
 // the default is that its the same as the input (i.e. project, sort, ...)
@@ -12,10 +139,9 @@ std::pair<bool, uint64_t> kernel::get_estimated_output_num_rows(){
 void kernel::process(std::vector<std::unique_ptr<ral::cache::CacheData > > & inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
 		cudaStream_t stream,
-        std::string kernel_process_name = ""){
+        const std::map<std::string, std::string>& args){
     std::vector< std::unique_ptr<ral::frame::BlazingTable> > input_gpu;
 
-    
     if (this->has_limit_ && output->get_num_rows_added() >= this->limit_rows_) {
   //      return;
     }
@@ -31,25 +157,29 @@ void kernel::process(std::vector<std::unique_ptr<ral::cache::CacheData > > & inp
         }catch(std::exception e){
             throw e;
         }
-        
-
     }
 
     try{
-       do_process(std::move(input_gpu),output,stream, kernel_process_name);
+       std::size_t bytes = 0;
+       for (auto & input : input_gpu) {
+           bytes += input->sizeInBytes();
+       }
+       do_process(std::move(input_gpu),output,stream, args);
+       total_input_bytes += bytes; // increment this AFTER its been processed successfully
+
     }catch(std::exception e){
         //remake inputs here
         int i = 0;
         for(auto & input : inputs){
             if (input->get_type() == ral::cache::CacheDataType::GPU || input->get_type() == ral::cache::CacheDataType::GPU_METADATA){
                 //this was a gpu cachedata so now its not valid
-                static_cast<ral::cache::GPUCacheData *>(input.get())->set_data(std::move(input_gpu[i]));                 
+                static_cast<ral::cache::GPUCacheData *>(input.get())->set_data(std::move(input_gpu[i]));
             }
             i++;
         }
         throw;
     }
- 
+
 }
 
 void kernel::add_task(size_t task_id){
@@ -63,95 +193,32 @@ void kernel::notify_complete(size_t task_id){
     kernel_cv.notify_one();
 }
 
+// This is only the default estimate of the bytes to be output by a kernel based on the input.
+// Each kernel should implement its own version of this, if its possible to obtain a better estimate
+std::size_t kernel::estimate_output_bytes(const std::vector<std::unique_ptr<ral::cache::CacheData > > & inputs){
+
+    std::size_t input_bytes = 0;
+    for (auto & input : inputs) {
+        input_bytes += input->sizeInBytes();
+    }
+
+    // if we have already processed, then we can estimate based on previous inputs and outputs
+    if (total_input_bytes.load() > 0){
+        return (std::size_t)((double)input_bytes * ((double)this->output_.total_bytes_added()/(double)total_input_bytes.load()));
+    } else { // if we have not already any batches, then lets estimate that the output is the same as the input
+        return input_bytes;
+    }
+}
+
+// This is only the default estimate of the bytes needed by the kernel to perform the operation based on the input.
+// Each kernel should implement its own version of this, if its possible to obtain a better estimate
+std::size_t kernel::estimate_operating_bytes(const std::vector<std::unique_ptr<ral::cache::CacheData > > & inputs){
+    std::size_t bytes_esimate = 0;
+    for (auto & input : inputs) {
+        bytes_esimate += input->sizeInBytes();
+    }
+    return bytes_esimate;
+}
+
 }  // end namespace cache
-
-namespace execution{
-
-
-size_t executor::add_task(std::vector<std::unique_ptr<ral::cache::CacheData > > inputs,
-    std::shared_ptr<ral::cache::CacheMachine> output,
-    ral::cache::kernel * kernel,std::string kernel_process_name) {
-
-    auto task_id = task_id_counter.fetch_add(1, std::memory_order_relaxed);
-
-    auto task_added = std::make_unique<task>(
-        std::move(inputs),output,task_id, kernel, attempts_limit,kernel_process_name
-    );
-
-    task_queue.put(std::move(task_added));
-    return task_id;
-
-}
-
-
-void executor::add_task(std::vector<std::unique_ptr<ral::cache::CacheData > > inputs,
-		std::shared_ptr<ral::cache::CacheMachine> output,
-		ral::cache::kernel * kernel,
-		size_t attempts,
-		size_t task_id,std::string kernel_process_name){
-
-    auto task_added = std::make_unique<task>(
-        std::move(inputs),output,task_id, kernel, attempts_limit,kernel_process_name, attempts
-    );
-    task_queue.put(std::move(task_added));
-}
-
-task::task(
-    std::vector<std::unique_ptr<ral::cache::CacheData > > inputs,
-    std::shared_ptr<ral::cache::CacheMachine> output,
-    size_t task_id,
-    ral::cache::kernel * kernel, size_t attempts_limit,
-    std::string kernel_process_name,
-    size_t attempts) : 
-    inputs(std::move(inputs)),
-    task_id(task_id), output(output),
-    kernel(kernel), attempts_limit(attempts_limit),
-    kernel_process_name(kernel_process_name), attempts(attempts) {
-
-}
-
-
-void task::run(cudaStream_t stream, executor * executor){
-    try{
-        kernel->process(inputs,output,stream,kernel_process_name);
-        complete();
-    }catch(rmm::bad_alloc e){
-        this->attempts++;
-        if(this->attempts < this->attempts_limit){
-            executor->add_task(std::move(inputs), output, kernel, attempts, task_id, kernel_process_name);
-        }else{
-            throw;
-        }
-    }catch(std::exception e){
-        throw;
-    }
-}
-
-void task::complete(){
-    kernel->notify_complete(task_id);
-}
-
-executor * executor::_instance;
-
-executor::executor(int num_threads) :
- pool(num_threads), task_id_counter(0) {
-     for( int i = 0; i < num_threads; i++){
-         cudaStream_t stream;
-         cudaStreamCreate(&stream);
-         streams.push_back(stream);
-     }
-}
-void executor::execute(){
-
-    while(shutdown == 0){
-        //consider using get_all and calling in a loop.
-        auto cur_task = this->task_queue.pop_or_wait();
-        pool.push([cur_task{std::move(cur_task)},this](int thread_id){
-            cur_task->run(this->streams[thread_id],this);
-        });
-    }
-}
-
-} // namespace executor
-
 }  // end namespace ral

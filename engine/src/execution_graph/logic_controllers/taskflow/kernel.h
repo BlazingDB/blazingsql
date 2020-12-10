@@ -3,11 +3,6 @@
 #include "kernel_type.h"
 #include "port.h"
 #include "graph.h"
-#include "communication/CommunicationData.h"
-#include "CodeTimer.h"
-#include "utilities/ctpl_stl.h"
-#include "ExceptionHandling/BlazingThread.h"
-#include <atomic>
 
 namespace ral {
 namespace cache {
@@ -29,28 +24,7 @@ public:
 	 * @param context Shared context associated to the running query.
 	 * @param kernel_type_id Identifier representing the kernel type.
 	 */
-	kernel(std::size_t kernel_id, std::string expr, std::shared_ptr<Context> context, kernel_type kernel_type_id) : expression{expr}, kernel_id(kernel_id), context{context}, kernel_type_id{kernel_type_id} {
-
-		parent_id_ = -1;
-		has_limit_ = false;
-		limit_rows_ = -1;
-
-		logger = spdlog::get("batch_logger");
-		events_logger = spdlog::get("events_logger");
-		cache_events_logger = spdlog::get("cache_events_logger");
-
-		std::shared_ptr<spdlog::logger> kernels_logger;
-		kernels_logger = spdlog::get("kernels_logger");
-
-		if(kernels_logger != nullptr) {
-			kernels_logger->info("{ral_id}|{query_id}|{kernel_id}|{is_kernel}|{kernel_type}",
-								"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-								"query_id"_a=(this->context ? std::to_string(this->context->getContextToken()) : "null"),
-								"kernel_id"_a=this->get_id(),
-								"is_kernel"_a=1, //true
-								"kernel_type"_a=get_kernel_type_name(this->get_type_id()));
-		}
-	}
+	kernel(std::size_t kernel_id, std::string expr, std::shared_ptr<Context> context, kernel_type kernel_type_id);
 
 	/**
 	 * @brief Sets its parent kernel.
@@ -103,24 +77,17 @@ public:
 	 */
 	void set_type_id(kernel_type kernel_type_id_) { kernel_type_id = kernel_type_id_; }
 
-	
 	/**
 	 * @brief Returns the input cache.
 	 */
-	std::shared_ptr<ral::cache::CacheMachine> input_cache() {
-		auto kernel_id = std::to_string(this->get_id());
-		return this->input_.get_cache(kernel_id);
-	}
+	std::shared_ptr<ral::cache::CacheMachine> input_cache();
 
 	/**
 	 * @brief Returns the output cache associated to an identifier.
 	 *
 	 * @return cache_id The identifier of the output cache.
 	 */
-	std::shared_ptr<ral::cache::CacheMachine> output_cache(std::string cache_id = "") {
-		cache_id = cache_id.empty() ? std::to_string(this->get_id()) : cache_id;
-		return this->output_.get_cache(cache_id);
-	}
+	std::shared_ptr<ral::cache::CacheMachine> output_cache(std::string cache_id = "");
 
 	/**
 	 * @brief Adds a BlazingTable into the output cache.
@@ -128,109 +95,22 @@ public:
 	 * @param table The table that will be added to the output cache.
 	 * @param cache_id The cache identifier.
 	 */
-	bool add_to_output_cache(std::unique_ptr<ral::frame::BlazingTable> table, std::string cache_id = "",bool always_add = false) {
-		CodeTimer cacheEventTimer(false);
+	bool add_to_output_cache(std::unique_ptr<ral::frame::BlazingTable> table, std::string cache_id = "",bool always_add = false);
 
-		auto num_rows = table->num_rows();
-		auto num_bytes = table->sizeInBytes();
-
-		cacheEventTimer.start();
-
-		std::string message_id = get_message_id();
-		message_id = !cache_id.empty() ? cache_id + "_" + message_id : message_id;
-		cache_id = cache_id.empty() ? std::to_string(this->get_id()) : cache_id;
-		bool added = this->output_.get_cache(cache_id)->addToCache(std::move(table), message_id,always_add);
-
-		cacheEventTimer.stop();
-
-		if(cache_events_logger != nullptr) {
-			cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-						"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-						"query_id"_a=context->getContextToken(),
-						"source"_a=this->get_id(),
-						"sink"_a=this->output_.get_cache(cache_id)->get_id(),
-						"num_rows"_a=num_rows,
-						"num_bytes"_a=num_bytes,
-						"event_type"_a="addCache",
-						"timestamp_begin"_a=cacheEventTimer.start_time(),
-						"timestamp_end"_a=cacheEventTimer.end_time());
-		}
-
-		return added;
-	}
-
-	/**.fetch_add(1, std::memory_order_relaxed);
-	 *
+	/**
+	 * @brief Adds a CacheData into the output cache.
 	 * @param cache_data The cache_data that will be added to the output cache.
 	 * @param cache_id The cache identifier.
 	 */
-	bool add_to_output_cache(std::unique_ptr<ral::cache::CacheData> cache_data, std::string cache_id = "", bool always_add = false) {
-		CodeTimer cacheEventTimer(false);
-
-		auto num_rows = cache_data->num_rows();
-		auto num_bytes = cache_data->sizeInBytes();
-
-		cacheEventTimer.start();
-
-		std::string message_id = get_message_id();
-		message_id = !cache_id.empty() ? cache_id + "_" + message_id : message_id;
-		cache_id = cache_id.empty() ? std::to_string(this->get_id()) : cache_id;
-		bool added = this->output_.get_cache(cache_id)->addCacheData(std::move(cache_data), message_id, always_add);
-
-		cacheEventTimer.stop();
-
-		if(cache_events_logger != nullptr) {
-			cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-						"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-						"query_id"_a=context->getContextToken(),
-						"source"_a=this->get_id(),
-						"sink"_a=this->output_.get_cache(cache_id)->get_id(),
-						"num_rows"_a=num_rows,
-						"num_bytes"_a=num_bytes,
-						"event_type"_a="addCache",
-						"timestamp_begin"_a=cacheEventTimer.start_time(),
-						"timestamp_end"_a=cacheEventTimer.end_time());
-		}
-
-		return added;
-	}
+	bool add_to_output_cache(std::unique_ptr<ral::cache::CacheData> cache_data, std::string cache_id = "", bool always_add = false);
 
 	/**
 	 * @brief Adds a BlazingHostTable into the output cache.
 	 *
 	 * @param host_table The host table that will be added to the output cache.
-	 * @param cache_id The cache identifier..fetch_add(1, std::memory_order_relaxed);
+	 * @param cache_id The cache identifier.
 	 */
-	bool add_to_output_cache(std::unique_ptr<ral::frame::BlazingHostTable> host_table, std::string cache_id = "") {
-		CodeTimer cacheEventTimer(false);
-
-		auto num_rows = host_table->num_rows();
-		auto num_bytes = host_table->sizeInBytes();
-
-		cacheEventTimer.start();
-
-		std::string message_id = get_message_id();
-		message_id = !cache_id.empty() ? cache_id + "_" + message_id : message_id;
-		cache_id = cache_id.empty() ? std::to_string(this->get_id()) : cache_id;
-		bool added = this->output_.get_cache(cache_id)->addHostFrameToCache(std::move(host_table), message_id);
-
-		cacheEventTimer.stop();
-
-		if(cache_events_logger != nullptr) {
-			cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-						"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-						"query_id"_a=context->getContextToken(),
-						"source"_a=this->get_id(),
-						"sink"_a=this->output_.get_cache(cache_id)->get_id(),
-						"num_rows"_a=num_rows,
-						"num_bytes"_a=num_bytes,
-						"event_type"_a="addCache",
-						"timestamp_begin"_a=cacheEventTimer.start_time(),
-						"timestamp_end"_a=cacheEventTimer.end_time());
-		}
-
-		return added;
-	}
+	bool add_to_output_cache(std::unique_ptr<ral::frame::BlazingHostTable> host_table, std::string cache_id = "");
 
 	/**
 	 * @brief Returns the current context.
@@ -283,17 +163,21 @@ public:
 	 * is that its the same as the input (i.e. project, sort, ...).
 	 */
 	virtual std::pair<bool, uint64_t> get_estimated_output_num_rows();
-	
 
 	void process(std::vector<std::unique_ptr<ral::cache::CacheData > > & inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
-		cudaStream_t stream, std::string kernel_process_name);
+		cudaStream_t stream, const std::map<std::string, std::string>& args);
 
 	virtual void do_process(std::vector<std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
-		cudaStream_t stream,std::string kernel_process_name){
-			
+		cudaStream_t stream, const std::map<std::string, std::string>& args){
 		}
+
+	std::size_t estimate_output_bytes(const std::vector<std::unique_ptr<ral::cache::CacheData > > & inputs);
+	std::size_t estimate_operating_bytes(const std::vector<std::unique_ptr<ral::cache::CacheData > > & inputs);
+
+	std::string kernel_name() { return "base_kernel"; }
+
 	void notify_complete(size_t task_id);
 	void add_task(size_t task_id);
 	bool finished_tasks(){
@@ -303,7 +187,8 @@ protected:
 	std::set<size_t> tasks;
 	std::mutex kernel_mutex;
 	std::condition_variable kernel_cv;
-
+	std::atomic<std::size_t> total_input_bytes;
+	
 public:
 	std::string expression; /**< Stores the logical expression being processed. */
 	port input_{this}; /**< Represents the input cache machines and their names. */
@@ -325,108 +210,4 @@ public:
 
 
 }  // namespace cache
-
-
-namespace execution{
-
-class prioirity {
-public:
-
-private:
-	size_t priority_num_query; //can be used to prioritize one query over another
-	size_t priority_num_kernel; //can be 
-	
-};
-
-class executor;
-
-
-
-class task {
-public:
-
-
-	task(
-    std::vector<std::unique_ptr<ral::cache::CacheData > > inputs,
-    std::shared_ptr<ral::cache::CacheMachine> output,
-    size_t task_id,
-    ral::cache::kernel * kernel, size_t attempts_limit,
-    std::string kernel_process_name, size_t attempts = 0);
-
-	/**
-	* Function which runs the kernel process on the inputs and puts results into output.
-	* This function does not modify the inputs and can throw an exception. In the case it throws an exception it 
-	* gets placed back in the executor if it was a memory exception.
-	*/
-	void run(cudaStream_t stream, executor * executor);
-	void complete();
-protected:
-	std::vector<std::unique_ptr<ral::cache::CacheData > > inputs;	
-	std::shared_ptr<ral::cache::CacheMachine> output;
-	size_t task_id;
-	ral::cache::kernel * kernel;
-	size_t attempts = 0;
-	size_t attempts_limit;
-	std::string kernel_process_name = "";
-};
-
-
-
-class executor{
-public:
-	static executor * get_instance(){
-		if(_instance == nullptr){
-			throw std::runtime_error("Executor not initialized.");
-		}
-		return _instance;
-	}
-
-	static void init_executor(int num_threads){
-		if(!_instance){
-			_instance = new executor(num_threads);
-			auto thread = std::thread([_instance]{
-				_instance->execute();
-			});
-			thread.detach();
-		}
-
-	}
-
-	void execute();
-	size_t add_task(std::vector<std::unique_ptr<ral::cache::CacheData > > inputs,
-		std::shared_ptr<ral::cache::CacheMachine> output,
-		ral::cache::kernel * kernel,std::string kernel_process_name);
-
-	void add_task(std::vector<std::unique_ptr<ral::cache::CacheData > > inputs,
-		std::shared_ptr<ral::cache::CacheMachine> output,
-		ral::cache::kernel * kernel,
-		size_t attempts,
-		size_t task_id,std::string kernel_process_name);
-
-/*	
-	void add_task(ral::batch::DataSourceSequence * inputs,
-				std::shared_ptr<ral::cache::CacheMachine> output,
-		ral::cache::kernel * kernel,std::string kernel_process_name); 
-	
-	void add_task(ral::batch::DataSourceSe@rodquence * inputs,
-		std::shared_ptr<ral::cache::CacheMachine> output,
-		ral::cache::kernel * kernel,
-		size_t attempts,
-		size_t task_id,std::string kernel_process_name);
-*/
-
-private:
-	executor(int num_threads);
-	ctpl::thread_pool<BlazingThread> pool;
-	std::vector<cudaStream_t> streams; //one stream per thread
-	ral::cache::WaitingQueue< std::unique_ptr<task> > task_queue;
-	int shutdown = 0;
-	static executor * _instance;
-	std::atomic<int> task_id_counter;
-	size_t attempts_limit = 10;
-};
-
-
-} // namespace execution
-
 }  // namespace ral
