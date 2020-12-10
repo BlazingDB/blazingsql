@@ -22,7 +22,7 @@ copyright = '2020, BlazingDB, Inc.'
 author = 'BlazingDB, Inc.'
 
 # The full version, including alpha/beta/rc tags
-release = 'v0.16'
+release = 'v0.17'
 
 
 # -- General configuration ---------------------------------------------------
@@ -83,5 +83,5 @@ html_theme = 'alabaster'
 html_static_path = ['_static']
 
 
-extlinks = {'blazing_repo': ('https://github.com/BlazingDB/blazingsql/blob/branch-0.16/%s',
+extlinks = {'blazing_repo': ('https://github.com/BlazingDB/blazingsql/blob/branch-0.17/%s',
                       'View on github')}
