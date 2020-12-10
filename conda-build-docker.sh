@@ -187,7 +187,7 @@ if [ "$BLAZING_GPUCI_JOB" = "" ] || [ "$BLAZING_GPUCI_JOB" = "gpu-build" ]; then
     gpu_container="blazingsql-gpuci-gpu-build-"$RANDOM
 
     logger "Running the docker container for the GPU BUILD job ..."
-    GPU_DOCKER="docker run --name $gpu_container --rm -dti \
+    GPU_DOCKER="docker run --name $gpu_container --rm \
         --runtime=nvidia \
         -u $USER \
         -e CUDA_VER=${CUDA_VERSION} -e PYTHON_VER=$PYTHON_VERSION \
@@ -195,23 +195,9 @@ if [ "$BLAZING_GPUCI_JOB" = "" ] || [ "$BLAZING_GPUCI_JOB" = "gpu-build" ]; then
         -v /etc/passwd:/etc/passwd \
         -v ${WORKSPACE}:${WORKSPACE} -w ${WORKSPACE} \
         $gpu_build_img \
-        bash"
+        $gpu_build_cmd"
     echo "GPU_DOCKER: "$GPU_DOCKER
     eval $GPU_DOCKER
-
-    logger "Running the GPU BUILD job ..."
-    echo "docker exec -ti $gpu_container $gpu_build_cmd"
-    docker exec -ti $gpu_container $gpu_build_cmd
-
-    if [ $? != 0 ]; then
-        logger "Debugging the GPU BUILD job ... "
-        echo "docker exec -ti $gpu_container bash"
-        docker exec -ti $gpu_container bash
-        #docker stop $gpu_container
-        #docker ps -a
-    else
-        docker rm $gpu_container
-    fi
 fi
 
 if [ "$BLAZING_GPUCI_JOB" = "" ] || [ "$BLAZING_GPUCI_JOB" = "cpu-build" ]; then
@@ -244,22 +230,5 @@ if [ "$BLAZING_GPUCI_JOB" = "" ] || [ "$BLAZING_GPUCI_JOB" = "cpu-build" ]; then
         $cpu_build_cmd"
     echo "CPU_DOCKER: "$CPU_DOCKER
     eval $CPU_DOCKER
-
-    #logger "Running the CPU BUILD job ..."
-    #echo "docker exec -ti $cpu_container $cpu_build_cmd"
-    #docker exec -ti $cpu_container $cpu_build_cmd
-
-    #if [ $? != 0 ]; then
-    #    logger "Debugging the CPU BUILD job ... "
-    #    echo "docker exec -ti $cpu_container bash"
-    #    docker exec -ti $cpu_container bash
-        #docker stop $cpu_container
-        #docker ps -a
-    #else
-    #    docker rm $cpu_container
-    #fi
 fi
-
-logger "You can run docker exec on the containers, if not needed then just kill them!"
-docker ps -a
 
