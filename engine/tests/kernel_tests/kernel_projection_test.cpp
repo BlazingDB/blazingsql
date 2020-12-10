@@ -8,6 +8,7 @@
 #include "cudf_test/column_wrapper.hpp"
 #include "cudf_test/type_lists.hpp"	 // cudf::test::NumericTypes
 
+#include "execution_graph/Context.h"
 #include "execution_graph/logic_controllers/taskflow/kernel.h"
 #include "execution_graph/logic_controllers/taskflow/graph.h"
 #include "execution_graph/logic_controllers/taskflow/port.h"
@@ -19,6 +20,7 @@ using ral::cache::kstatus;
 using ral::cache::CacheMachine;
 using ral::frame::BlazingTable;
 using ral::cache::kernel;
+using Context = blazingdb::manager::Context;
 
 /**
  * Unit Tests for Projection Kernel
