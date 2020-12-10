@@ -1,6 +1,13 @@
-#include "BatchJoinProcessing.h"
 #include <string>
+#include "BatchJoinProcessing.h"
+#include "ExceptionHandling/BlazingThread.h"
 #include "parser/expression_tree.hpp"
+#include "CodeTimer.h"
+#include <cudf/partitioning.hpp>
+#include <cudf/join.hpp>
+#include <cudf/stream_compaction.hpp>
+#include <src/execution_graph/logic_controllers/LogicalFilter.h>
+#include "execution_graph/logic_controllers/taskflow/executor.h"
 
 namespace ral {
 namespace batch {
@@ -186,6 +193,8 @@ void split_inequality_join_into_join_and_filter(const std::string & join_stateme
 		filter_statement = "";
 	}
 }
+
+// BEGIN PartwiseJoin
 
 PartwiseJoin::PartwiseJoin(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
 	: kernel{kernel_id, queryString, context, kernel_type::PartwiseJoinKernel} {
@@ -546,6 +555,10 @@ std::string PartwiseJoin::get_join_type() {
 	return join_type;
 }
 
+// END PartwiseJoin
+
+// BEGIN JoinPartitionKernel
+
 JoinPartitionKernel::JoinPartitionKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
 	: distributing_kernel{kernel_id, queryString, context, kernel_type::JoinPartitionKernel} {
 	this->query_graph = query_graph;
@@ -648,7 +661,6 @@ std::pair<bool, bool> JoinPartitionKernel::determine_if_we_are_scattering_a_smal
 			false, //wait_for
 			0, //message_tracker_idx
 			extra_metadata);
-
 
 	logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
 								"query_id"_a=context->getContextToken(),
@@ -1041,6 +1053,8 @@ kstatus JoinPartitionKernel::run() {
 std::string JoinPartitionKernel::get_join_type() {
 	return join_type;
 }
+
+// END JoinPartitionKernel
 
 } // namespace batch
 } // namespace ral

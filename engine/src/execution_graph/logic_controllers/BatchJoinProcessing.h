@@ -1,32 +1,17 @@
 #pragma once
 
 #include <tuple>
-
 #include "BatchProcessing.h"
-#include "ExceptionHandling/BlazingThread.h"
 #include "taskflow/distributing_kernel.h"
-/*#include "BlazingColumn.h"
-#include "LogicPrimitives.h"
-#include "CacheMachine.h"
-#include "io/Schema.h"
-#include "utilities/CommonOperations.h"
-#include "communication/CommunicationData.h"
-#include "execution_graph/logic_controllers/LogicalFilter.h"
-#include "distribution/primitives.h"
-#include "taskflow/distributing_kernel.h"
-#include "error.hpp"
-#include "blazingdb/concurrency/BlazingThread.h"*/
-#include "CodeTimer.h"
-#include <cudf/stream_compaction.hpp>
-#include <cudf/partitioning.hpp>
-#include <cudf/join.hpp>
 
 namespace ral {
 namespace batch {
+
 using ral::cache::distributing_kernel;
 using ral::cache::kstatus;
 using ral::cache::kernel;
 using ral::cache::kernel_type;
+using Context = blazingdb::manager::Context;
 using namespace fmt::literals;
 
 const std::string INNER_JOIN = "inner";
@@ -52,6 +37,8 @@ void split_inequality_join_into_join_and_filter(const std::string & join_stateme
 class PartwiseJoin : public kernel {
 public:
 	PartwiseJoin(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph);
+
+	std::string kernel_name() { return "PartwiseJoin";}
 
 	std::unique_ptr<ral::frame::BlazingTable> join_set(
 		const ral::frame::BlazingTableView & table_left,
@@ -80,7 +67,7 @@ private:
 	// This function returns the first not completed set, otherwise it returns [-1, -1]
 	std::tuple<int, int> check_for_set_that_has_not_been_completed();
 
-  // this function makes sure that the columns being joined are of the same type so that we can join them properly
+  // This function makes sure that the columns being joined are of the same type so that we can join them properly
 	void computeNormalizationData(const	std::vector<cudf::data_type> & left_types, const std::vector<cudf::data_type> & right_types);
 
 private:
@@ -117,6 +104,8 @@ public:
 
 	std::string get_join_type();
 
+	std::string kernel_name() { return "JoinPartition";}
+
 private:
 	// this function makes sure that the columns being joined are of the same type so that we can join them properly
 	void computeNormalizationData(const	std::vector<cudf::data_type> & left_types, const	std::vector<cudf::data_type> & right_types);
@@ -149,13 +138,3 @@ private:
 
 } // namespace batch
 } // namespace ral
-
-
-/*
-single node
-- PartwiseJoin (two inputs, one output)
-
-multi node
-- JoinPartitionKernel (two inputs, two outputs)
-- PartwiseJoin (two inputs, one output)
-*/

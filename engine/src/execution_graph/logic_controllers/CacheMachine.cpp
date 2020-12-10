@@ -29,6 +29,49 @@ std::string randomString(std::size_t length) {
 	return random_string;
 }
 
+std::unique_ptr<CacheData> CacheData::downgradeCacheData(std::unique_ptr<CacheData> cacheData, std::string id, std::shared_ptr<Context> ctx) {
+	
+	// if its not a GPU cacheData, then we can't downgrade it, so we can just return it
+	if (cacheData->get_type() != ral::cache::CacheDataType::GPU){
+		return cacheData;
+	} else {
+		std::unique_ptr<ral::frame::BlazingTable> table = cacheData->decache();
+		
+		auto logger = spdlog::get("batch_logger");
+
+		// lets first try to put it into CPU
+		if (blazing_host_memory_resource::getInstance().get_memory_used() + table->sizeInBytes() <
+				blazing_host_memory_resource::getInstance().get_memory_limit()){
+			
+			if(logger != nullptr) {
+				logger->trace("{query_id}|{step}|{substep}|{info}||kernel_id|{kernel_id}|rows|{rows}",
+					"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+					"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+					"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+					"info"_a="Downgraded CacheData to CPU cache",
+					"kernel_id"_a=id,
+					"rows"_a=table->num_rows());
+			}
+			return std::make_unique<CPUCacheData>(std::move(table));
+		
+		} else {
+			if(logger != nullptr) {
+				logger->trace("{query_id}|{step}|{substep}|{info}||kernel_id|{kernel_id}|rows|{rows}",
+					"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+					"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+					"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+					"info"_a="Downgraded CacheData to Disk cache",
+					"kernel_id"_a=id,
+					"rows"_a=table->num_rows());
+			}
+
+			// want to get only cache directory where orc files should be saved
+			std::string orc_files_path = ral::communication::CommunicationData::getInstance().get_cache_directory();
+			return std::make_unique<CacheDataLocalFile>(std::move(table), orc_files_path, (ctx ? std::to_string(ctx->getContextToken()) : "none"));
+		}
+	}	
+}
+
 size_t CacheDataLocalFile::fileSizeInBytes() const {
 	struct stat st;
 
@@ -581,50 +624,13 @@ size_t CacheMachine::downgradeCacheData() {
 	for(int i = all_messages.size() - 1; i >= 0; i--) {
 		if (all_messages[i]->get_data().get_type() == CacheDataType::GPU){
 
-			std::unique_ptr<ral::frame::BlazingTable> table = all_messages[i]->get_data().decache();
-
 			std::string message_id = all_messages[i]->get_message_id();
-			bytes_downgraded += table->sizeInBytes();
-			int cacheIndex = 1; // starting at RAM cache
-			while(cacheIndex < memory_resources.size()) {
-				auto memory_to_use = (this->memory_resources[cacheIndex]->get_memory_used() + table->sizeInBytes());
-				if( memory_to_use < this->memory_resources[cacheIndex]->get_memory_limit()) {
-					if(cacheIndex == 1) {
-						if(logger != nullptr) {
-							logger->trace("{query_id}|{step}|{substep}|{info}||kernel_id|{kernel_id}|rows|{rows}",
-								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
-								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
-								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-								"info"_a="Downgraded CacheData to CPU cache",
-								"kernel_id"_a=message_id,
-								"rows"_a=table->num_rows());
-						}
+			auto current_cache_data = all_messages[i]->release_data();
+			bytes_downgraded += current_cache_data->sizeInBytes();
+			auto new_cache_data = CacheData::downgradeCacheData(std::move(current_cache_data), message_id, ctx);
 
-						auto cache_data = std::make_unique<CPUCacheData>(std::move(table));
-						auto new_message =	std::make_unique<message>(std::move(cache_data), message_id);
-						all_messages[i] = std::move(new_message);
-					} else if(cacheIndex == 2) {
-						if(logger != nullptr) {
-							logger->trace("{query_id}|{step}|{substep}|{info}||kernel_id|{kernel_id}|rows|{rows}",
-								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
-								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
-								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-								"info"_a="Downgraded CacheData to Disk cache",
-								"kernel_id"_a=message_id,
-								"rows"_a=table->num_rows());
-						}
-
-						// want to get only cache directory where orc files should be saved
-						std::string orc_files_path = ral::communication::CommunicationData::getInstance().get_cache_directory();
-						auto cache_data = std::make_unique<CacheDataLocalFile>(std::move(table), orc_files_path, (ctx ? std::to_string(ctx->getContextToken()) : "none"));
-						auto new_message = std::make_unique<message>(std::move(cache_data), message_id);
-						all_messages[i] = std::move(new_message);
-					}
-					break;
-				}
-				cacheIndex++;
-			}
-			break;
+			auto new_message =	std::make_unique<message>(std::move(new_cache_data), message_id);
+			all_messages[i] = std::move(new_message);
 		}
 	}
 

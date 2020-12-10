@@ -149,7 +149,7 @@ TYPED_TEST(ApplyFilter, withAndWithOutNull)
 
 
 using namespace cudf::datetime;
-using namespace simt::std::chrono;
+using namespace cuda::std::chrono;
   
 template <typename T>
 struct ApplyFilterDates : public BlazingUnitTest {};
@@ -165,20 +165,20 @@ TYPED_TEST(ApplyFilterDates, interatorWithNull)
     using T = TypeParam;
     using Rep = typename T::rep;
     using Period = typename T::period;
-    using ToDuration = simt::std::chrono::duration<Rep, Period>;
+    using ToDuration = cuda::std::chrono::duration<Rep, Period>;
     using time_point_ms =
-    simt::std::chrono::time_point<simt::std::chrono::system_clock,
-                                  simt::std::chrono::milliseconds>;
+    cuda::std::chrono::time_point<cuda::std::chrono::system_clock,
+                                  cuda::std::chrono::milliseconds>;
 
     // Here we are going to create our timestamp column for this test by using an iterator
     // The iterator is a transform iterator that will take a start timestamp and end timestamp
     // and generate timestamps that are equally spaced between the start and stop
     auto start_ms = milliseconds(-2500000000000);  // Sat, 11 Oct 1890 19:33:20 GMT
-    auto start = simt::std::chrono::time_point_cast<ToDuration>(time_point_ms(start_ms))
+    auto start = cuda::std::chrono::time_point_cast<ToDuration>(time_point_ms(start_ms))
                  .time_since_epoch()
                  .count();
     auto stop_ms = milliseconds(2500000000000);   // Mon, 22 Mar 2049 04:26:40 GMT
-    auto stop = simt::std::chrono::time_point_cast<ToDuration>(time_point_ms(stop_ms))
+    auto stop = cuda::std::chrono::time_point_cast<ToDuration>(time_point_ms(stop_ms))
                  .time_since_epoch()
                  .count();
     int32_t size = 10;
@@ -211,7 +211,7 @@ TYPED_TEST(ApplyFilterDates, interatorWithNull)
     // Then we will create an iterator that takes in that vector and converts it into the acutal timestamp datatypes
     std::vector<int64_t> expect_timestamp_ms{-2500000000000,-2000000000000, -1500000000000, -500000000000, 1000000000000};
     auto expect_timestamp_iter = cudf::test::make_counting_transform_iterator(0, [expect_timestamp_ms](auto i){ 
-                return simt::std::chrono::time_point_cast<ToDuration>(time_point_ms(milliseconds(expect_timestamp_ms[i])))
+                return cuda::std::chrono::time_point_cast<ToDuration>(time_point_ms(milliseconds(expect_timestamp_ms[i])))
                  .time_since_epoch()
                  .count();});
     // Since we cant create a column wrapper using an iterator and a set of literal values, i will also create an iterator for the valids, 

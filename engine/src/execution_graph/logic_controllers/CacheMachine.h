@@ -135,6 +135,12 @@ public:
 		return cache_type;
 	}
 
+	/**
+	 * Utility function which can take a CacheData and if its a standard GPU cache data, it will downgrade it to CPU or Disk
+	 * @return If the input CacheData is not of a type that can be downgraded, it will just return the original input, otherwise it will return the downgraded CacheData.
+	 */
+	static std::unique_ptr<CacheData> downgradeCacheData(std::unique_ptr<CacheData> cacheData, std::string id, std::shared_ptr<Context> ctx);
+
 protected:
 	CacheDataType cache_type; /**< The CacheDataType that is used to store the dataframe representation. */
 	std::vector<std::string> col_names; /**< A vector storing the names of the columns in the dataframe representation. */
@@ -574,8 +580,8 @@ public:
 	std::unique_ptr<CacheData> release_data() { return std::move(data); }
 
 protected:
-	const std::string message_id;
 	std::unique_ptr<CacheData> data;
+	const std::string message_id;
 };
 
 /**
@@ -701,6 +707,22 @@ public:
 		this->message_queue_.pop_front();
 		return std::move(data);
 	}
+
+	/**
+	* Get a message_ptr from the back of the queue if it exists in the WaitingQueue else return nullptr.
+	* @return message_ptr from the back of the queue if it exists in the WaitingQueue else return nullptr.
+	*/
+	message_ptr pop_back() {
+
+		std::lock_guard<std::mutex> lock(mutex_);
+		if(this->message_queue_.size() == 0) {
+			return nullptr;
+		}
+		auto data = std::move(this->message_queue_.back());
+		this->message_queue_.pop_back();
+		return std::move(data);
+	}
+
 	/**
 	* Wait for the next message to be ready.
 	* @return Waits for the next CacheData to be available. Returns true when this

@@ -31,8 +31,6 @@ class BlazingColumn {
 		virtual std::unique_ptr<CudfColumn> release() = 0;
 		virtual blazing_column_type type() = 0;
 		virtual ~BlazingColumn() = default;
-		
-	
 };
 
 }  // namespace frame

@@ -14,7 +14,7 @@
 #include <cudf/utilities/type_dispatcher.hpp>
 #include <limits>
 #include <numeric>
-#include <simt/chrono>
+#include <cuda/std/chrono>
 #include <type_traits>
 
 #include <curand_kernel.h>
@@ -67,7 +67,7 @@ struct extract_component_operator {
 	static_assert(cudf::is_timestamp<Timestamp>(), "");
 
 	CUDA_DEVICE_CALLABLE int16_t operator()(Timestamp const ts) const {
-		using namespace simt::std::chrono;
+		using namespace cuda::std::chrono;
 
 		auto days_since_epoch = floor<days>(ts);
 
@@ -746,16 +746,16 @@ private:
 							computed = cudf::timestamp_D{static_cast<cudf::timestamp_D::duration>(val)};
 							break;
 						case cudf::type_id::TIMESTAMP_SECONDS:
-							computed = simt::std::chrono::time_point_cast<simt::std::chrono::days>(cudf::timestamp_s{static_cast<cudf::timestamp_s::duration>(val)});
+							computed = cuda::std::chrono::time_point_cast<cuda::std::chrono::days>(cudf::timestamp_s{static_cast<cudf::timestamp_s::duration>(val)});
 							break;
 						case cudf::type_id::TIMESTAMP_MILLISECONDS:
-							computed = simt::std::chrono::time_point_cast<simt::std::chrono::days>(cudf::timestamp_ms{static_cast<cudf::timestamp_ms::duration>(val)});
+							computed = cuda::std::chrono::time_point_cast<cuda::std::chrono::days>(cudf::timestamp_ms{static_cast<cudf::timestamp_ms::duration>(val)});
 							break;
 						case cudf::type_id::TIMESTAMP_MICROSECONDS:
-							computed = simt::std::chrono::time_point_cast<simt::std::chrono::days>(cudf::timestamp_us{static_cast<cudf::timestamp_us::duration>(val)});
+							computed = cuda::std::chrono::time_point_cast<cuda::std::chrono::days>(cudf::timestamp_us{static_cast<cudf::timestamp_us::duration>(val)});
 							break;
 						case cudf::type_id::TIMESTAMP_NANOSECONDS:
-							computed = simt::std::chrono::time_point_cast<simt::std::chrono::days>(cudf::timestamp_ns{static_cast<cudf::timestamp_ns::duration>(val)});
+							computed = cuda::std::chrono::time_point_cast<cuda::std::chrono::days>(cudf::timestamp_ns{static_cast<cudf::timestamp_ns::duration>(val)});
 							break;
 						default:
 							// should not reach here, invalid conversion
@@ -779,16 +779,16 @@ private:
 							computed = cudf::timestamp_ns{static_cast<cudf::timestamp_ns::duration>(val)};
 							break;
 						case cudf::type_id::TIMESTAMP_DAYS:
-							computed = simt::std::chrono::time_point_cast<simt::std::chrono::nanoseconds>(cudf::timestamp_D{static_cast<cudf::timestamp_D::duration>(val)});
+							computed = cuda::std::chrono::time_point_cast<cuda::std::chrono::nanoseconds>(cudf::timestamp_D{static_cast<cudf::timestamp_D::duration>(val)});
 							break;
 						case cudf::type_id::TIMESTAMP_SECONDS:
-							computed = simt::std::chrono::time_point_cast<simt::std::chrono::nanoseconds>(cudf::timestamp_s{static_cast<cudf::timestamp_s::duration>(val)});
+							computed = cuda::std::chrono::time_point_cast<cuda::std::chrono::nanoseconds>(cudf::timestamp_s{static_cast<cudf::timestamp_s::duration>(val)});
 							break;
 						case cudf::type_id::TIMESTAMP_MILLISECONDS:
-							computed = simt::std::chrono::time_point_cast<simt::std::chrono::nanoseconds>(cudf::timestamp_ms{static_cast<cudf::timestamp_ms::duration>(val)});
+							computed = cuda::std::chrono::time_point_cast<cuda::std::chrono::nanoseconds>(cudf::timestamp_ms{static_cast<cudf::timestamp_ms::duration>(val)});
 							break;
 						case cudf::type_id::TIMESTAMP_MICROSECONDS:
-							computed = simt::std::chrono::time_point_cast<simt::std::chrono::nanoseconds>(cudf::timestamp_us{static_cast<cudf::timestamp_us::duration>(val)});
+							computed = cuda::std::chrono::time_point_cast<cuda::std::chrono::nanoseconds>(cudf::timestamp_us{static_cast<cudf::timestamp_us::duration>(val)});
 							break;
 						default:
 							// should not reach here, invalid conversion
