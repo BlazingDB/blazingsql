@@ -1,7 +1,6 @@
 #pragma once
 
 #include "io/DataLoader.h"
-#include <iostream>
 #include <string>
 #include <vector>
 #include <execution_graph/Context.h>

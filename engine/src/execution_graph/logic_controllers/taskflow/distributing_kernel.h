@@ -30,6 +30,8 @@ class distributing_kernel : public kernel {
         std::shared_ptr<Context> context,
         kernel_type kernel_type_id);
 
+    std::string kernel_name() { return "distributing_kernel";}
+
     /**
      * @brief Resizes the vector of the message trackers.
      * Keeping more than one message tracker is useful for

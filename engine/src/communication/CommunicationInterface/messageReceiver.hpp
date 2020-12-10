@@ -60,51 +60,16 @@ public:
   *                     two kernels or it is intended for the general input cache using a mesage_id
   */
   message_receiver(const std::map<std::string, comm::node>& nodes, const std::vector<char> & buffer);
-  virtual ~message_receiver(){
+  virtual ~message_receiver(){}
 
-  }
-  size_t buffer_size(u_int16_t index){
-    return _buffer_sizes[index];
-  }
-
-  void allocate_buffer(uint16_t index, cudaStream_t stream = 0){
-    if (index >= _raw_buffers.size()) {
-      throw std::runtime_error("Invalid access to raw buffer");
-    }
-    _raw_buffers[index].resize(_buffer_sizes[index],stream);
-
-  }
-
+  size_t buffer_size(u_int16_t index);
+  void allocate_buffer(uint16_t index, cudaStream_t stream = 0);
   node get_sender_node();
-
-  size_t num_buffers(){
-    return _buffer_sizes.size();
-  }
-  void confirm_transmission(){
-    ++_buffer_counter;
-    if (_buffer_counter == _raw_buffers.size()) {
-      finish();
-    }
-  }
-
-  void * get_buffer(uint16_t index){
-    return _raw_buffers[index].data();
-  }
-
-
-  bool is_finished(){
-    return (_buffer_counter == _raw_buffers.size());
-  }
-
-  void finish(cudaStream_t stream = 0) {
-    std::unique_ptr<ral::frame::BlazingTable> table = deserialize_from_gpu_raw_buffers(_column_transports, _raw_buffers,stream);
-    if ( _metadata.get_values()[ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL] == "true"){
-      _output_cache->addToCache(std::move(table),  _metadata.get_values()[ral::cache::MESSAGE_ID], true);      
-    } else {
-      _output_cache->addCacheData(
-              std::make_unique<ral::cache::GPUCacheDataMetaData>(std::move(table), _metadata), _metadata.get_values()[ral::cache::MESSAGE_ID], true);
-    }
-  }
+  size_t num_buffers();
+  void confirm_transmission();
+  void * get_buffer(uint16_t index);
+  bool is_finished();
+  void finish(cudaStream_t stream = 0);
 private:
 
 

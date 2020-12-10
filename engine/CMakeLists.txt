@@ -253,8 +253,13 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingH
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/kernel_type.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/Context.cpp
               ${CMAKE_SOURCE_DIR}/src/bmr/MemoryMonitor.cpp
+              ${CMAKE_SOURCE_DIR}/src/bmr/BlazingMemoryResource.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/graph.cpp
+              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BatchAggregationProcessing.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BatchJoinProcessing.cpp
+              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BatchOrderByProcessing.cpp
+              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BatchUnionProcessing.cpp
+              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BatchProcessing.cpp
               ${CMAKE_SOURCE_DIR}/src/config/GPUManager.cu
               ${CMAKE_SOURCE_DIR}/src/operators/OrderBy.cpp
               ${CMAKE_SOURCE_DIR}/src/operators/GroupBy.cpp
@@ -329,19 +334,21 @@ target_link_libraries(blazingsql-engine
 
     # TODO: Make this cleaner. Here we just used to link cudf, but cudf got split into a whole bunch of libraries in this PR https://github.com/rapidsai/cudf/pull/6134
     # cudf
-    libcudf_base.so
+    libcudf_ast.so    
+    libcudf_interop.so 
+    libcudf_partitioning.so  
     libcudf_rolling.so
-    libcudf_replace.so
-    libcudf_transpose.so
-    libcudf_reductions.so
-    libcudf_ast.so
-    libcudf_join.so
-    libcudf_reshape.so
-    libcudf_merge.so
-    libcudf_hash.so
+    libcudf_base.so
     libcudf_io.so
-    libcudf_interop.so
-    libcudf_partitioning.so
+    libcudf_reductions.so
+    libcudf.so
+    libcudf_comms.so
+    libcudf_join.so
+    libcudf_replace.so
+    libcudf_hash.so
+    libcudf_merge.so
+    libcudf_reshape.so
+    libcudf_transpose.so 
     
     zmq
     cudart
