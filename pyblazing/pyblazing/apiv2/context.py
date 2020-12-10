@@ -92,8 +92,8 @@ if not os.path.isfile(jvm_path):
             + "/default/libjvm.so"
         )
 
-# jpype.startJVM("-ea", convertStrings=False, jvmpath=jvm_path)
-jpype.startJVM()
+jpype.startJVM("-ea", convertStrings=False, jvmpath=jvm_path)
+# jpype.startJVM()
 
 ArrayClass = jpype.JClass("java.util.ArrayList")
 ColumnTypeClass = jpype.JClass(
