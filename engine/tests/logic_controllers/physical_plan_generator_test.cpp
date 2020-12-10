@@ -1,8 +1,10 @@
 #include "tests/utilities/BlazingUnitTest.h"
 #include "execution_graph/logic_controllers/PhysicalPlanGenerator.h"
 #include <transport/Node.h>
+#include "execution_graph/Context.h"
 
 using blazingdb::transport::Node;
+using Context = blazingdb::manager::Context;
 
 struct PhysicalPlanGeneratorTest : public BlazingUnitTest {};
 
