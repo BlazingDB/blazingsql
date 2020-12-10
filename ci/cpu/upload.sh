@@ -32,7 +32,7 @@ export BLAZINGSQL_FILE=`conda build conda/recipes/blazingsql/ --python=$PYTHON -
 ################################################################################
 # UPLOAD - Conda packages
 ################################################################################
-
+echo "### UPLOAD_BLAZING: $UPLOAD_BLAZING"
 if [ "$UPLOAD_BLAZING" == "1" ]; then
     LABEL_OPTION="--label main"
     if [ ! -z "$CUSTOM_LABEL" ]; then
@@ -48,7 +48,9 @@ if [ "$UPLOAD_BLAZING" == "1" ]; then
         RAPIDS_CONDA_KEY=${RAPIDS_NIGHTLY_UPLOAD_KEY}
     fi
 
+    echo "before test file"
     test -e ${BLAZINGSQL_FILE}
+    echo "after test file"
 
     echo "Upload BlazingSQL to ${CONDA_USERNAME} channel: ${BLAZINGSQL_FILE}"
     anaconda -t ${MY_UPLOAD_KEY} upload -u ${CONDA_USERNAME} ${LABEL_OPTION} --force ${BLAZINGSQL_FILE}

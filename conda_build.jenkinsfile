@@ -9,7 +9,7 @@ pipeline {
 
   parameters {
     string(name: 'RAPIDS_BUILD_VERSION', defaultValue: '0.17', description: 'Version of Rapids, example: 0.18')
-    choice(name: 'CUDA_VERSION', choices: '10.1\10.2\n11.0', description: 'Cuda version')
+    choice(name: 'CUDA_VERSION', choices: '10.1\n10.2\n11.0', description: 'Cuda version')
     choice(name: 'PYTHON_VERSION', choices: '3.7\n3.8', description: 'Python version')
     string(name: 'CONDA_USERNAME', defaultValue: 'blazingsql-nightly', description: 'The Anaconda account, example: blazingsql, blazingsql-nightly, etc')
     string(name: 'CONDA_TOKEN', defaultValue: 'conda-token-nightly', description: 'Anaconda account token')

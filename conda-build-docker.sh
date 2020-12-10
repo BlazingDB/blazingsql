@@ -231,7 +231,7 @@ if [ "$BLAZING_GPUCI_JOB" = "" ] || [ "$BLAZING_GPUCI_JOB" = "cpu-build" ]; then
     cpu_container="blazingsql-gpuci-cpu-build-"$RANDOM
 
     logger "Running the docker container for the CPU BUILD job ..."
-    CPU_DOCKER="docker run --name $cpu_container --rm -dti \
+    CPU_DOCKER="docker run --name $cpu_container --rm \
         -u $USER \
         -e CUDA_VER=${CUDA_VERSION} -e PYTHON_VER=$PYTHON_VERSION \
         -e CONDA_USERNAME=$CONDA_USERNAME -e MY_UPLOAD_KEY=$MY_UPLOAD_KEY \
@@ -241,23 +241,23 @@ if [ "$BLAZING_GPUCI_JOB" = "" ] || [ "$BLAZING_GPUCI_JOB" = "cpu-build" ]; then
         -v /etc/passwd:/etc/passwd \
         -v ${WORKSPACE}:${WORKSPACE} -w ${WORKSPACE} \
         $cpu_build_img \
-        bash"
+        $cpu_build_cmd"
     echo "CPU_DOCKER: "$CPU_DOCKER
     eval $CPU_DOCKER
 
-    logger "Running the CPU BUILD job ..."
-    echo "docker exec -ti $cpu_container $cpu_build_cmd"
-    docker exec -ti $cpu_container $cpu_build_cmd
+    #logger "Running the CPU BUILD job ..."
+    #echo "docker exec -ti $cpu_container $cpu_build_cmd"
+    #docker exec -ti $cpu_container $cpu_build_cmd
 
-    if [ $? != 0 ]; then
-        logger "Debugging the CPU BUILD job ... "
-        echo "docker exec -ti $cpu_container bash"
-        docker exec -ti $cpu_container bash
+    #if [ $? != 0 ]; then
+    #    logger "Debugging the CPU BUILD job ... "
+    #    echo "docker exec -ti $cpu_container bash"
+    #    docker exec -ti $cpu_container bash
         #docker stop $cpu_container
         #docker ps -a
-    else
-        docker rm $cpu_container
-    fi
+    #else
+    #    docker rm $cpu_container
+    #fi
 fi
 
 logger "You can run docker exec on the containers, if not needed then just kill them!"
