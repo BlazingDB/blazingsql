@@ -1,4 +1,4 @@
-# BlazingSQL 0.17.0 (Date TBS)
+# BlazingSQL 0.17.0 (December 10, 2020)
 
 
 ## New Features
@@ -19,6 +19,7 @@
 - #1216 Add unit test for DAYOFWEEK
 - #1205 Implement string REVERSE
 - #1220 Implement string LEFT and RIGHT 
+- #1250 updated README.md and CHANGELOG and others preparing for 0.17 release
 
 
 ## Improvements

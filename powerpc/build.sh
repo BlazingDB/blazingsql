@@ -462,7 +462,7 @@ if [ ! -d cudf ]; then
     git clone https://github.com/rapidsai/cudf.git --branch "branch-$cudf_version" --single-branch
     cd cudf
     # need to pin to a specific commit to keep this build script stable
-    git checkout 88821fb7fd4b81a98b8efa2f2ab8c7871d02bdef
+    git checkout v0.17.0
 
     #git submodule update --init --remote --recursive
     #export CUDA_HOME=/usr/local/cuda/
