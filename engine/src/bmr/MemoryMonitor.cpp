@@ -58,6 +58,7 @@ namespace ral {
                             ral::execution::executor::get_instance()->add_task(std::move(tasks[i]));
                         }
                     }
+                    ral::execution::executor::get_instance()->notify_memory_safety_cv();			
                 }
             }
         });
