@@ -11,6 +11,7 @@
 
 
 ## Bug Fixes
+- #1241 Fixed cython exception handling
 
 
 
