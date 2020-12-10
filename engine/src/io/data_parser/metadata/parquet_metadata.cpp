@@ -6,7 +6,7 @@
 #define BLAZINGDB_RAL_SRC_IO_DATA_PARSER_METADATA_PARQUET_METADATA_CPP_H_
 
 #include "parquet_metadata.h"
-#include "blazingdb/concurrency/BlazingThread.h"
+#include "ExceptionHandling/BlazingThread.h"
 #include "utilities/CommonOperations.h"
 #include <cudf/column/column_factories.hpp>
 
@@ -230,8 +230,11 @@ std::basic_string<char> get_typed_vector_content(cudf::type_id dtype, std::vecto
 		break;
 	}
 	case cudf::type_id::FLOAT32: {
-		float* casted_metadata = reinterpret_cast<float*>(&(vector[0]));
-		output = std::basic_string<char>((char *)casted_metadata, vector.size() * sizeof(float));
+		std::vector<float> typed_v(vector.size());
+		for(size_t I=0;I<vector.size();I++){
+			typed_v[I] = *(reinterpret_cast<float*>(&(vector[I])));
+		}
+		output = std::basic_string<char>((char *)typed_v.data(), typed_v.size() * sizeof(float));
 		break;
 	}
 	case cudf::type_id::FLOAT64: {
@@ -365,7 +368,6 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 
 	std::vector<std::vector<std::vector<int64_t>>> minmax_metadata_table_per_file(parquet_readers.size());
 
-	size_t file_index = 0;
 	std::vector<BlazingThread> threads(parquet_readers.size());
 	std::mutex guard;
 	for (size_t file_index = 0; file_index < parquet_readers.size(); file_index++){

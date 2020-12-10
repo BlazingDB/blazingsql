@@ -45,9 +45,11 @@ from EndToEndTests import (
     simpleDistributionTest,
     stringTests,
     substringTest,
+    stringCaseTest,
     tablesFromPandasTest,
     # timestampdiffTest,
     timestampTest,
+    toTimestampTest,
     tpchQueriesTest,
 )
 from EndToEndTests import unaryOpsTest as unaryOpsTest
@@ -57,9 +59,14 @@ from EndToEndTests import useLimitTest
 from EndToEndTests import whereClauseTest as whereClauseTest
 from EndToEndTests import wildCardTest
 from EndToEndTests import messageValidationTest
+from EndToEndTests import configOptionsTest
+from EndToEndTests import smilesTest
+from EndToEndTests import loggingTest
+from EndToEndTests import dayOfWeekTest
 from pynvml import nvmlInit
 from Runner import runTest
 from Utils import Execution, init_context
+from blazingsql import DataType
 
 
 def main():
@@ -86,13 +93,19 @@ def main():
         createSchema.init_drill_schema(
             drill, Settings.data["TestSettings"]["dataDirectory"], bool_test=True
         )
-
+        createSchema.init_drill_schema(
+            drill, Settings.data["TestSettings"]["dataDirectory"], smiles_test=True, fileSchemaType=DataType.PARQUET
+        )
+        
         # Create Table Spark -------------------------------------------------
         from pyspark.sql import SparkSession
 
         spark = SparkSession.builder.appName("allE2ETest").getOrCreate()
         createSchema.init_spark_schema(
             spark, Settings.data["TestSettings"]["dataDirectory"]
+        )
+        createSchema.init_spark_schema(
+            spark, Settings.data["TestSettings"]["dataDirectory"], smiles_test=True, fileSchemaType=DataType.PARQUET
         )
 
     # Create Context For BlazingSQL
@@ -130,6 +143,12 @@ def main():
 
     if runAllTests or ("timestampTest" in targetTestGroups):
         timestampTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
+
+    if runAllTests or ("toTimestampTest" in targetTestGroups):
+        toTimestampTest.main(dask_client, spark, dir_data_file, bc, nRals)
+
+    if runAllTests or ("dayOfWeekTest" in targetTestGroups):
+        dayOfWeekTest.main(dask_client, spark, dir_data_file, bc, nRals)
 
     if runAllTests or ("fullOuterJoinsTest" in targetTestGroups):
         fullOuterJoinsTest.main(dask_client, drill, dir_data_file, bc, nRals)
@@ -219,6 +238,9 @@ def main():
 
     if runAllTests or ("substringTest" in targetTestGroups):
         substringTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
+    
+    if runAllTests or ("stringCaseTest" in targetTestGroups):
+        stringCaseTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     if runAllTests or ("wildCardTest" in targetTestGroups):
         wildCardTest.main(dask_client, drill, dir_data_file, bc, nRals)
@@ -233,7 +255,7 @@ def main():
         fileSystemLocalTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     if runAllTests or ("messageValidationTest" in targetTestGroups):
-        messageValidationTest.main(dask_client, drill, dir_data_file, bc, nRals) 
+        messageValidationTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     if Settings.execution_mode != ExecutionMode.GPUCI:
         if runAllTests or ("fileSystemS3Test" in targetTestGroups):
@@ -242,7 +264,17 @@ def main():
         if runAllTests or ("fileSystemGSTest" in targetTestGroups):
             fileSystemGSTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
+    if runAllTests or ("loggingTest" in targetTestGroups):
+        loggingTest.main(dask_client, dir_data_file, bc, nRals)
+
     # timestampdiffTest.main(dask_client, spark, dir_data_file, bc, nRals)
+
+    if runAllTests or ("smilesTest" in targetTestGroups):
+        smilesTest.main(dask_client, spark, dir_data_file, bc, nRals)
+
+    # WARNING!!! This Test must be the last one to test -------------------------------------------------------------------------------------------------------------------------------------------
+    if runAllTests or ("configOptionsTest" in targetTestGroups):
+        configOptionsTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     if Settings.execution_mode != ExecutionMode.GENERATOR:
 

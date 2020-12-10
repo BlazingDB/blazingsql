@@ -1,11 +1,9 @@
 
 
 #include "LogicPrimitives.h"
-
-
-#include <random>
-
 #include "cudf/column/column_factories.hpp"
+#include "execution_graph/logic_controllers/BlazingColumnView.h"
+#include "execution_graph/logic_controllers/BlazingColumnOwner.h"
 
 namespace ral {
 
@@ -132,6 +130,36 @@ std::vector<cudf::data_type> BlazingTableView::get_schema() const {
 	auto view = this->view();
 	std::transform(view.begin(), view.end(), data_types.begin(), [](auto & col){ return col.type(); });
 	return data_types;
+}
+
+unsigned long long BlazingTableView::sizeInBytes()
+{
+	unsigned long long total_size = 0UL;
+	for(cudf::size_type i = 0; i < this->num_columns(); ++i) {
+		auto column = this->table.column(i);
+		if(column.type().id() == cudf::type_id::STRING) {
+			auto num_children = column.num_children();
+			if(num_children == 2) {
+				auto offsets_column = column.child(0);
+				auto chars_column = column.child(1);
+
+				total_size += chars_column.size();
+				cudf::data_type offset_dtype(cudf::type_id::INT32);
+				total_size += offsets_column.size() * cudf::size_of(offset_dtype);
+				if(column.has_nulls()) {
+					total_size += cudf::bitmask_allocation_size_bytes(column.size());
+				}
+			} else {
+				// std::cerr << "string column with no children\n";
+			}
+		} else {
+			total_size += column.size() * cudf::size_of(column.type());
+			if(column.has_nulls()) {
+				total_size += cudf::bitmask_allocation_size_bytes(column.size());
+			}
+		}
+	}
+	return total_size;
 }
 
 std::unique_ptr<BlazingTable> BlazingTableView::clone() const {

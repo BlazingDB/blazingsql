@@ -10,9 +10,13 @@
 #include "distribution/primitives.h"
 #include "operators/OrderBy.h"
 #include "CodeTimer.h"
+#include "taskflow/distributing_kernel.h"
+#include <blazingdb/io/Util/StringUtil.h>
+#include <bmr/BlazingMemoryResource.h>
 
 namespace ral {
 namespace batch {
+using ral::cache::distributing_kernel;
 using ral::cache::kstatus;
 using ral::cache::kernel;
 using ral::cache::kernel_type;
@@ -25,10 +29,6 @@ public:
 		: kernel{kernel_id, queryString, context, kernel_type::PartitionSingleNodeKernel} {
 		this->query_graph = query_graph;
 		this->input_.add_port("input_a", "input_b");
-	}
-
-	bool can_you_throttle_my_input() {
-		return true;
 	}
 
 	virtual kstatus run() {
@@ -44,11 +44,6 @@ public:
 			try {
 				auto batch = input.next();
 				auto partitions = ral::operators::partition_table(partitionPlan->toBlazingTableView(), batch->toBlazingTableView(), this->expression);
-
-				// std::cout<<">>>>>>>>>>>>>>> PARTITIONS START"<< std::endl;
-				// for(auto& partition : partitions)
-				// 	ral::utilities::print_blazing_table_view(ral::frame::BlazingTableView(partition, batch->names()));
-				// std::cout<<">>>>>>>>>>>>>>> PARTITIONS START"<< std::endl;
 
 				for (auto i = 0; i < partitions.size(); i++) {
 					std::string cache_id = "output_" + std::to_string(i);
@@ -85,16 +80,22 @@ private:
 
 };
 
-class SortAndSampleKernel : public kernel {
+class SortAndSampleKernel : public distributing_kernel {
+
+std::size_t SAMPLES_MESSAGE_TRACKER_IDX = 0;
+std::size_t PARTITION_PLAN_MESSAGE_TRACKER_IDX = 1;
+
 public:
 	SortAndSampleKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: kernel{kernel_id,queryString, context, kernel_type::SortAndSampleKernel}
+		: distributing_kernel{kernel_id,queryString, context, kernel_type::SortAndSampleKernel}
 	{
 		this->query_graph = query_graph;
+		set_number_of_message_trackers(2); //default
 		this->output_.add_port("output_a", "output_b");
 	}
 
 	void compute_partition_plan(std::vector<ral::frame::BlazingTableView> sampledTableViews, std::size_t avg_bytes_per_row, std::size_t local_total_num_rows) {
+
 		if (this->context->getAllNodes().size() == 1){ // single node mode
 			auto partitionPlan = ral::operators::generate_partition_plan(sampledTableViews,
 				local_total_num_rows, avg_bytes_per_row, this->expression, this->context.get());
@@ -107,15 +108,82 @@ public:
 								"substep"_a=(context ? std::to_string(context->getQuerySubstep()) : ""),
 								"info"_a="In SortAndSampleKernel::compute_partition_plan Concatenating Strings will overflow strings length");
 			}
-			auto concatSamples = ral::utilities::concatTables(sampledTableViews);
-			auto partitionPlan = ral::operators::generate_distributed_partition_plan(concatSamples->toBlazingTableView(),
-				local_total_num_rows, avg_bytes_per_row, this->expression, this->context.get());
-			this->add_to_output_cache(std::move(partitionPlan), "output_b");
-		}
-	}
+			
+			
+			auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
+			if(context->isMasterNode(self_node)) {
+				context->incrementQuerySubstep();
+				auto nodes = context->getAllNodes();
 
-	bool can_you_throttle_my_input() {
-		return true;
+				std::vector<std::unique_ptr<ral::cache::CacheData> >table_scope_holder;
+				std::vector<size_t> total_table_rows;
+				std::vector<size_t> total_avg_bytes_per_row;
+				std::vector<ral::frame::BlazingTableView> samples;
+
+				for(std::size_t i = 0; i < nodes.size(); ++i) {
+					if(!(nodes[i] == self_node)) {
+						std::string message_id = std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + nodes[i].id();
+
+						table_scope_holder.push_back(this->query_graph->get_input_message_cache()->pullCacheData(message_id));
+						ral::cache::GPUCacheDataMetaData * cache_ptr = static_cast<ral::cache::GPUCacheDataMetaData *> (table_scope_holder[table_scope_holder.size() - 1].get());
+
+						total_table_rows.push_back(std::stoll(cache_ptr->getMetadata().get_values()[ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL]));
+						total_avg_bytes_per_row.push_back(std::stoll(cache_ptr->getMetadata().get_values()[ral::cache::AVG_BYTES_PER_ROW_METADATA_LABEL]));
+						samples.push_back(cache_ptr->getTableView());
+					}
+				}
+
+				for (std::size_t i = 0; i < sampledTableViews.size(); i++){
+					samples.push_back(sampledTableViews[i]);
+				}
+				
+				total_table_rows.push_back(local_total_num_rows);
+				total_avg_bytes_per_row.push_back(avg_bytes_per_row);
+
+				// let's recompute the `avg_bytes_per_row` using info from all the other nodes
+				size_t total_bytes = 0; 
+				size_t total_rows = 0;
+				for(std::size_t i = 0; i < nodes.size(); ++i) {
+					total_bytes += total_avg_bytes_per_row[i] * total_table_rows[i];
+					total_rows += total_table_rows[i];
+				}
+				// just in case there is no data
+				size_t final_avg_bytes_per_row = total_rows <= 0 ? 1 : total_bytes / total_rows;
+
+				std::size_t totalNumRows = std::accumulate(total_table_rows.begin(), total_table_rows.end(), std::size_t(0));
+				std::unique_ptr<ral::frame::BlazingTable> partitionPlan = ral::operators::generate_partition_plan(samples, totalNumRows, final_avg_bytes_per_row, this->expression, this->context.get());
+
+				broadcast(std::move(partitionPlan),
+					this->output_.get_cache("output_b").get(),
+					"", // message_id_prefix
+					"output_b", // cache_id
+					PARTITION_PLAN_MESSAGE_TRACKER_IDX, //message_tracker_idx (message tracker for the partitionPlan)
+					true); // always_add
+
+			} else {
+				context->incrementQuerySubstep();
+
+				auto concatSamples = ral::utilities::concatTables(sampledTableViews);
+				concatSamples->ensureOwnership();
+
+				ral::cache::MetadataDictionary extra_metadata;
+				extra_metadata.add_value(ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL, local_total_num_rows);
+				extra_metadata.add_value(ral::cache::AVG_BYTES_PER_ROW_METADATA_LABEL, avg_bytes_per_row);
+				send_message(std::move(concatSamples),
+					false, //specific_cache
+					"", //cache_id
+					{this->context->getMasterNode().id()}, //target_id
+					"", //message_id_prefix
+					true, //always_add
+					false, //wait_for
+					SAMPLES_MESSAGE_TRACKER_IDX, //message_tracker_idx (message tracker for samples)
+					extra_metadata);
+
+				context->incrementQuerySubstep();
+			}
+
+			this->output_cache("output_b")->wait_for_count(1); // waiting for the partition_plan to arrive before continuing
+		}
 	}
 
 	virtual kstatus run() {
@@ -129,6 +197,7 @@ public:
 		uint64_t population_to_sample = 0;
 		uint64_t population_sampled = 0;
 		BlazingThread partition_plan_thread;
+
 		float order_by_samples_ratio = 0.1;
 		std::map<std::string, std::string> config_options = context->getConfigOptions();
 		auto it = config_options.find("ORDER_BY_SAMPLES_RATIO");
@@ -150,7 +219,6 @@ public:
 		int batch_count = 0;
 		while (input.wait_for_next()) {
 			try {
-				this->output_cache("output_a")->wait_if_cache_is_saturated();
 				auto batch = input.next();
 
 				eventTimer.start();
@@ -174,7 +242,8 @@ public:
 					try_num_rows_estimation = false;
 				}
 				population_sampled += batch->num_rows();
-				if (estimate_samples && population_sampled > population_to_sample)	{
+				if (estimate_samples && population_to_sample > 0 && population_sampled > population_to_sample)	{
+
 					size_t avg_bytes_per_row = localTotalNumRows == 0 ? 1 : localTotalBytes/localTotalNumRows;
 					partition_plan_thread = BlazingThread(&SortAndSampleKernel::compute_partition_plan, this, sampledTableViews, avg_bytes_per_row, num_rows_estimate);
 					estimate_samples = false;
@@ -201,8 +270,10 @@ public:
 									"timestamp_end"_a=eventTimer.end_time());
 				}
 
-				this->add_to_output_cache(std::move(sortedTable), "output_a");
-				batch_count++;
+				if(this->add_to_output_cache(std::move(sortedTable), "output_a")){
+					batch_count++;
+				}
+
 			} catch(const std::exception& e) {
 				// TODO add retry here
 				// Note that we have to handle the collected samples in a special way. We need to compare to the current batch_count and perhaps evict one set of samples
@@ -238,66 +309,95 @@ private:
 
 };
 
-class PartitionKernel : public kernel {
+class PartitionKernel : public distributing_kernel {
 public:
 	PartitionKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: kernel{kernel_id, queryString, context, kernel_type::PartitionKernel} {
+		: distributing_kernel{kernel_id, queryString, context, kernel_type::PartitionKernel} {
 		this->query_graph = query_graph;
 		this->input_.add_port("input_a", "input_b");
-	}
 
-	bool can_you_throttle_my_input() {
-		return true;
+		std::map<std::string, std::string> config_options = context->getConfigOptions();
+		int max_num_order_by_partitions_per_node = 8;
+		auto it = config_options.find("MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE");
+		if (it != config_options.end()){
+			max_num_order_by_partitions_per_node = std::stoi(config_options["MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE"]);
+		}
+		set_number_of_message_trackers(max_num_order_by_partitions_per_node);
 	}
 
 	virtual kstatus run() {
-		using ColumnDataPartitionMessage = ral::communication::messages::ColumnDataPartitionMessage;
 
 		CodeTimer timer;
 
 		BatchSequence input_partitionPlan(this->input_.get_cache("input_b"), this);
-		auto partitionPlan = std::move(input_partitionPlan.next());
+		auto partitionPlan = input_partitionPlan.next();
+
+		assert(partitionPlan != nullptr);
 
 		context->incrementQuerySubstep();
 
-		BlazingThread generator([input_cache = this->input_.get_cache("input_a"), &partitionPlan, this](){
-			bool ordered = false;
-			BatchSequence input(input_cache, this, ordered);
-			int batch_count = 0;
-			while (input.wait_for_next()) {
-				try {
-					auto batch = input.next();
-					auto self_partitions = ral::operators::distribute_table_partitions(partitionPlan->toBlazingTableView(), batch->toBlazingTableView(), this->expression, this->context.get());
+		std::map<std::string, std::map<int32_t, int> > node_count;
 
-					for (auto && self_part : self_partitions) {
-						std::string cache_id = "output_" + std::to_string(self_part.first);
-						this->add_to_output_cache(std::move(self_part.second), cache_id);
-					}
-					batch_count++;
-				} catch(const std::exception& e) {
-					// TODO add retry here
-					logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
-												"query_id"_a=context->getContextToken(),
-												"step"_a=context->getQueryStep(),
-												"substep"_a=context->getQuerySubstep(),
-												"info"_a="In Partition kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
-												"duration"_a="");
-					throw;
-				}
-			}
-			ral::distribution::notifyLastTablePartitions(this->context.get(), ColumnDataPartitionMessage::MessageID());
-		});
+		bool ordered = false;
+		BatchSequence input(this->input_.get_cache("input_a"), this, ordered);
+		int batch_count = 0;
+		std::vector<cudf::order> sortOrderTypes;
+		std::vector<int> sortColIndices;
+		std::tie(sortColIndices, sortOrderTypes, std::ignore) =	ral::operators::get_sort_vars(this->expression);
+		auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
+		auto nodes = context->getAllNodes();
 
-		BlazingThread consumer([this](){
-			ExternalBatchColumnDataSequence<ColumnDataPartitionMessage> external_input(context, this->get_message_id(), this);
-			std::unique_ptr<ral::frame::BlazingHostTable> host_table;
-			while (host_table = external_input.next()) {
-				std::string cache_id = "output_" + std::to_string(host_table->get_part_id());
-				this->add_to_output_cache(std::move(host_table), cache_id);
+		// If we have no partitionPlan, its because we have no data, therefore its one partition per node
+		int num_partitions_per_node = partitionPlan->num_rows() == 0 ? 1 : (partitionPlan->num_rows() + 1) / this->context->getTotalNodes();
+
+		std::map<int32_t, int> temp_partitions_map;
+		for (size_t i = 0; i < num_partitions_per_node; i++) {
+			temp_partitions_map[i] = 0;
+		}
+		for (auto &&node : nodes) {
+			node_count.emplace(node.id(), temp_partitions_map);
+		}
+
+		while (input.wait_for_next()) {
+			try {
+				auto batch = input.next();
+
+				std::vector<ral::distribution::NodeColumnView> partitions = ral::distribution::partitionData(this->context.get(), batch->toBlazingTableView(), partitionPlan->toBlazingTableView(), sortColIndices, sortOrderTypes);
+				std::vector<int32_t> part_ids(partitions.size());
+				std::generate(part_ids.begin(), part_ids.end(), [count=0, num_partitions_per_node] () mutable { return (count++) % (num_partitions_per_node); });
+
+				scatterParts(partitions,
+					"", //message_id_prefix
+					part_ids
+				);
+
+				batch_count++;
+			} catch(const std::exception& e) {
+				// TODO add retry here
+				logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+											"query_id"_a=context->getContextToken(),
+											"step"_a=context->getQueryStep(),
+											"substep"_a=context->getQuerySubstep(),
+											"info"_a="In Partition kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
+											"duration"_a="");
+				throw;
 			}
-		});
-		generator.join();
-		consumer.join();
+		}
+
+		for (auto i = 0; i < num_partitions_per_node; i++) {
+			std::string cache_id = "output_" + std::to_string(i);
+			send_total_partition_counts(
+				"", //message_prefix
+				cache_id, //cache_id
+				i //message_tracker_idx
+			);
+		}
+
+		for (auto i = 0; i < num_partitions_per_node; i++) {
+			int total_count = get_total_partition_counts(i);
+			std::string cache_id = "output_" + std::to_string(i);
+			this->output_cache(cache_id)->wait_for_count(total_count);
+		}
 
 		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
 									"query_id"_a=context->getContextToken(),
@@ -306,6 +406,8 @@ public:
 									"info"_a="Partition Kernel Completed",
 									"duration"_a=timer.elapsed_time(),
 									"kernel_id"_a=this->get_id());
+
+
 
 		return kstatus::proceed;
 	}
@@ -323,10 +425,6 @@ public:
 	MergeStreamKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
 		: kernel{kernel_id, queryString, context, kernel_type::MergeStreamKernel}  {
 		this->query_graph = query_graph;
-	}
-
-	bool can_you_throttle_my_input() {
-		return false;
 	}
 
 	virtual kstatus run() {
@@ -375,16 +473,7 @@ public:
 				} else if(tableViews.size() == 1) {
 					this->add_to_output_cache(std::move(tables.front()));
 				} else {
-					// std::cout<<">>>>>>>>>>>>>>> MERGE PARTITIONS START"<< std::endl;
-					// for (auto view : tableViews)
-					// 	ral::utilities::print_blazing_table_view(view);
-
-					// std::cout<<">>>>>>>>>>>>>>> MERGE PARTITIONS END"<< std::endl;
-
 					auto output = ral::operators::merge(tableViews, this->expression);
-
-	//					ral::utilities::print_blazing_table_view(output->toBlazingTableView());
-
 					this->add_to_output_cache(std::move(output));
 				}
 				batch_count++;
@@ -394,7 +483,7 @@ public:
 												"query_id"_a=context->getContextToken(),
 												"step"_a=context->getQueryStep(),
 												"substep"_a=context->getQuerySubstep(),
-												"info"_a="In MergeStream kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
+												"info"_a="In MergeStream kernel batch {} for {}. What: {} . max_memory_used: {}"_format(batch_count, expression, e.what(), blazing_device_memory_resource::getInstance().get_full_memory_summary()),
 												"duration"_a="");
 				throw;
 			}
@@ -415,19 +504,20 @@ private:
 
 };
 
+
 /**
  * @brief This kernel only returns a specified number of rows given by their corresponding logical limit expression.
  */
-class LimitKernel : public kernel {
+
+class LimitKernel : public distributing_kernel {
+
 public:
 	LimitKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: kernel{kernel_id,queryString, context, kernel_type::LimitKernel}  {
+		: distributing_kernel{kernel_id,queryString, context, kernel_type::LimitKernel}  {
 		this->query_graph = query_graph;
+		set_number_of_message_trackers(1); //default
 	}
 
-	bool can_you_throttle_my_input() {
-		return false;
-	}
 
 	virtual kstatus run() {
 		CodeTimer timer;
@@ -442,7 +532,46 @@ public:
 			cache_vector.push_back(std::move(batch));
 		}
 
-		int64_t rows_limit = ral::operators::get_local_limit(total_batch_rows, this->expression, this->context.get());
+		cudf::size_type limitRows;
+		std::tie(std::ignore, std::ignore, limitRows) = ral::operators::get_sort_vars(this->expression);
+		int64_t rows_limit = limitRows;
+
+		if(this->context->getTotalNodes() > 1 && rows_limit >= 0) {
+			this->context->incrementQuerySubstep();
+
+			// ral::distribution::distributeNumRows(context, total_batch_rows);
+			auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
+			int self_node_idx = context->getNodeIndex(self_node);
+			auto nodes_to_send = context->getAllOtherNodes(self_node_idx);
+			
+			std::vector<std::string> limit_messages_to_wait_for;
+			std::vector<std::string> target_ids;
+			for (auto i = 0; i < nodes_to_send.size(); i++)	{
+				target_ids.push_back(nodes_to_send[i].id());
+				limit_messages_to_wait_for.push_back(
+					std::to_string(this->context->getContextToken()) + "_" +	std::to_string(this->get_id()) +	"_" +	nodes_to_send[i].id());
+			}
+			ral::cache::MetadataDictionary extra_metadata;
+			extra_metadata.add_value(ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL, total_batch_rows);
+			send_message(nullptr, //empty table
+				false, //specific_cache
+				"", //cache_id
+				target_ids, //target_ids
+				"", //message_id_prefix
+				true, //always_add
+				false, //wait_for
+				0, //message_tracker_idx
+				extra_metadata);
+	
+			int64_t prev_total_rows = 0;
+			for (auto i = 0; i < limit_messages_to_wait_for.size(); i++)	{
+				auto meta_message = this->query_graph->get_input_message_cache()->pullCacheData(limit_messages_to_wait_for[i]);
+				if(i < context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode())){
+					prev_total_rows += std::stoi(static_cast<ral::cache::GPUCacheDataMetaData*>(meta_message.get())->getMetadata().get_values()[ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL]);
+				}
+			}
+			rows_limit = std::min(std::max(rows_limit - prev_total_rows, int64_t{0}), total_batch_rows);
+		}
 
 		if (rows_limit < 0) {
 			for (auto &&cache_data : cache_vector) {

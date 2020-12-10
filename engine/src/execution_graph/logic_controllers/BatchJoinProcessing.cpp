@@ -1,11 +1,9 @@
 #include "BatchJoinProcessing.h"
 #include <string>
 #include "parser/expression_tree.hpp"
-#include "error.hpp"
 
 namespace ral {
 namespace batch {
-
 
 std::tuple<std::string, std::string, std::string, std::string> parseExpressionToGetTypeAndCondition(const std::string & expression) {
 	std::string modified_expression, condition, filter_statement, join_type, new_join_statement;

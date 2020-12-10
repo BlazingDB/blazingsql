@@ -28,11 +28,7 @@ public:
         this->input_.add_port("input_a", "input_b");
 	}
 
-    bool can_you_throttle_my_input() {
-		return true;
-	}
-
-	virtual kstatus run() {
+   virtual kstatus run() {
 		CodeTimer timer;
 
         bool isUnionAll = (get_named_expression(this->expression, "all") == "true");

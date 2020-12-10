@@ -6,6 +6,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <set>
 #include <arrow/table.h>
 #include <memory>
 #include <execution_graph/logic_controllers/LogicPrimitives.h>
@@ -34,6 +35,7 @@ struct TableSchema {
 	std::vector<size_t> calcite_to_file_indices;
 	std::vector<bool> in_file;
 	int data_type;
+	bool has_header_csv = false;
 
 	ral::frame::BlazingTableView metadata;
 	std::vector<std::vector<int>> row_groups_ids;
@@ -74,6 +76,11 @@ struct GCS {
 #define gdfFileType 4
 #define daskFileType 5
 
+struct FolderPartitionMetadata {
+	std::string name;
+	std::set<std::string> values;
+	cudf::type_id data_type;
+};
 
 TableSchema parseSchema(std::vector<std::string> files,
 	std::string file_format_hint,
@@ -93,6 +100,8 @@ std::pair<bool, std::string> registerFileSystemHDFS(HDFS hdfs, std::string root,
 std::pair<bool, std::string> registerFileSystemGCS(GCS gcs, std::string root, std::string authority);
 std::pair<bool, std::string> registerFileSystemS3(S3 s3, std::string root, std::string authority);
 std::pair<bool, std::string> registerFileSystemLocal(std::string root, std::string authority);
+
+std::vector<FolderPartitionMetadata> inferFolderPartitionMetadata(std::string folder_path);
 
 extern "C" {
 

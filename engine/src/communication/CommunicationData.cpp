@@ -3,32 +3,21 @@
 namespace ral {
 namespace communication {
 
-CommunicationData::CommunicationData() : orchestratorPort{0} {}
+CommunicationData::CommunicationData() {}
 
 CommunicationData & CommunicationData::getInstance() {
 	static CommunicationData communicationData;
 	return communicationData;
 }
 
-void CommunicationData::initialize(int unixSocketId,
-	const std::string & orchIp,
-	int16_t orchCommunicationPort,
-	const std::string & selfRalIp,
-	int16_t selfRalCommunicationPort,
-	int16_t selfRalProtocolPort) {
-	orchestratorIp = orchIp;
-	orchestratorPort = orchCommunicationPort;
-
-	auto address = blazingdb::transport::Address::TCP(selfRalIp, selfRalCommunicationPort, selfRalProtocolPort);
-
-	selfNode = blazingdb::transport::Node(address);
+void CommunicationData::initialize(const std::string & worker_id, const std::string& cache_directory) {
+	_selfNode = blazingdb::transport::Node( worker_id);
+	_cache_directory = cache_directory;
 }
 
-const blazingdb::transport::Node & CommunicationData::getSelfNode() { return selfNode; }
+const blazingdb::transport::Node & CommunicationData::getSelfNode() { return _selfNode; }
 
-std::string CommunicationData::getOrchestratorIp() { return orchestratorIp; }
-
-int16_t CommunicationData::getOrchestratorPort() { return orchestratorPort; }
+std::string CommunicationData::get_cache_directory() { return _cache_directory; }
 
 }  // namespace communication
 }  // namespace ral

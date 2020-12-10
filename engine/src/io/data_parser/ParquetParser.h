@@ -33,6 +33,7 @@ public:
 
 	std::unique_ptr<ral::frame::BlazingTable> get_metadata(std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, int offset);
 
+	DataType type() const override { return DataType::PARQUET; }
 };
 
 } /* namespace io */

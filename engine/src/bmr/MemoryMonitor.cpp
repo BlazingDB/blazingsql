@@ -1,8 +1,30 @@
 #include "MemoryMonitor.h"
-#include "execution_graph/logic_controllers/CacheMachine.h"
-
+#include "BlazingMemoryResource.h"
+#include "execution_graph/logic_controllers/PhysicalPlanGenerator.h"
 
 namespace ral {
+
+    MemoryMonitor::MemoryMonitor(std::shared_ptr<ral::batch::tree_processor> tree, std::map<std::string, std::string> config_options) : tree(tree), finished(false), resource(&blazing_device_memory_resource::getInstance()){
+        
+        
+        period = std::chrono::milliseconds(50); 
+        auto it = config_options.find("MEMORY_MONITOR_PERIOD");
+        if (it != config_options.end()){
+            period = std::chrono::milliseconds(std::stoull(config_options["MEMORY_MONITOR_PERIOD"]));
+        }
+    }
+
+    bool MemoryMonitor::need_to_free_memory(){
+        return resource->get_memory_used() > resource->get_memory_limit();
+    }
+
+    void MemoryMonitor::finalize(){
+        std::unique_lock<std::mutex> lock(finished_lock);
+        finished = true;
+        lock.unlock();
+        condition.notify_all();
+        this->monitor_thread.join();                
+    }
 
     void MemoryMonitor::start(){
         

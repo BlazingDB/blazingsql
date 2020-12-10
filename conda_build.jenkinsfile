@@ -8,14 +8,12 @@ pipeline {
   }
 
   parameters {
-    string(name: 'BRANCH_BUILD', defaultValue: 'develop', description: 'Branch from build')
-    choice(name: 'CUDA_VERSION', choices: '10.0\n9.2', description: 'Cuda version')
-    choice(name: 'PYTHON_VERSION', choices: '3.7\n3.6', description: 'Python version')
-    string(name: 'RAPIDS_BUILD_VERSION', defaultValue: '0.11', description: 'Version of Rapids dependencies, example: 0.10')
-    string(name: 'CONDA_BUILD', defaultValue: 'blazingsql-nightly,rapidsai-nightly', description: 'Channels from build, example: blazingsql-nightly,rapidsai-nightly')
-    string(name: 'CONDA_UPLOAD', defaultValue: 'blazingsql-nightly', description: 'The Anaconda repository could be: blazingsql, blazingsql-nightly, mario21ic, etc')
+    string(name: 'RAPIDS_BUILD_VERSION', defaultValue: '0.17', description: 'Version of Rapids, example: 0.18')
+    choice(name: 'CUDA_VERSION', choices: '10.1\n10.2\n11.0', description: 'Cuda version')
+    choice(name: 'PYTHON_VERSION', choices: '3.7\n3.8', description: 'Python version')
+    string(name: 'CONDA_USERNAME', defaultValue: 'blazingsql-nightly', description: 'The Anaconda account, example: blazingsql, blazingsql-nightly, etc')
     string(name: 'CONDA_TOKEN', defaultValue: 'conda-token-nightly', description: 'Anaconda account token')
-    string(name: 'SLACK_CHANNEL', defaultValue: 'jenkins-blazingsql', description: 'Slack channel to post notifications')
+    booleanParam(name: 'TEST', defaultValue: false, description: 'Run GPU tests')
   }
   
   environment {
@@ -30,38 +28,26 @@ pipeline {
       }
     }
 
-    stage("Compile & Publish") {
+    stage("Test") {
+      when {
+        expression {
+          return params.TEST ==~ /(?i)(Y|YES|T|TRUE|ON|RUN)/
+        }
+      }
+      steps {
+        sh "BLAZING_GPUCI_JOB=gpu-build ./conda-build-docker.sh ${params.RAPIDS_BUILD_VERSION} ${params.CUDA_VERSION} ${params.PYTHON_VERSION}"
+      }
+    }
+
+    stage("Build && Upload") {
       steps {
         withCredentials([string(credentialsId: "${params.CONDA_TOKEN}", variable: 'TOKEN')]) {
-          sh "./conda-build-docker.sh ${params.CUDA_VERSION} ${params.PYTHON_VERSION} ${params.RAPIDS_BUILD_VERSION} ${params.CONDA_BUILD} ${params.CONDA_UPLOAD} $TOKEN"
+          sh "BLAZING_GPUCI_JOB=cpu-build ./conda-build-docker.sh ${params.RAPIDS_BUILD_VERSION} ${params.CUDA_VERSION} ${params.PYTHON_VERSION} $TOKEN ${params.CONDA_USERNAME}"
         }
       }
     }
 
   }
 
-  // Method to post jenkinsfile
-  post {
-    always {
-      echo "Job has finished"
-    }
-    success {
-      slackSendMessage("Success", "good")
-    }
-    failure {
-      slackSendMessage("Failure", "danger")
-    }
-    unstable {
-      slackSendMessage("Warning", "warning")
-    }
-  }
-
 }
 
-// Method to send notifications for slack
-def slackSendMessage(String status="Started", String color){
-  slackSend channel: "${params.SLACK_CHANNEL}",
-            color: color,
-            failOnError: true,
-            message: "${status}" + "${env.SLACK_MESSAGE}"
-}

@@ -196,6 +196,129 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
+            queryId = "TEST_10"
+            query = """SELECT
+                REPLACE(c_comment, 'in', '') as empty_replace,
+                REPLACE(c_comment, 'the', '&&') as and_replace,
+                REPLACE(c_comment, 'a', '$e*u') as a_replace
+                FROM customer
+                """
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_11"
+            query = """SELECT
+                REPLACE(SUBSTRING(c_comment, 2, 10), 'e', '&&') as rep_sub,
+                CAST(REPLACE(c_comment, 'a', 'e') LIKE '%the%' AS INT) as rep_like,
+                SUBSTRING(REPLACE(c_comment, 'e', '&#'), 2, 30) as sub_rep
+                FROM customer
+                """
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_12"
+            query = """SELECT
+                TRIM(c_comment) as both_space_trim,
+                TRIM(LEADING 'Cu' FROM c_name) as leading_char_trim,
+                TRIM(TRAILING 'E' FROM c_mktsegment) as trailing_char_trim,
+                LTRIM(c_comment) as left_trim,
+                RTRIM(c_comment) as right_trim
+                FROM customer
+                """
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_13"
+            query = """SELECT
+                TRIM(TRAILING 'er' FROM SUBSTRING(c_name, 0, 7)) as trim_subs,
+                TRIM(LEADING 'CU' FROM UPPER(c_name)) as trim_upper,
+                LOWER(TRIM('AE' FROM c_mktsegment)) as lower_trim,
+                LTRIM(REPLACE(c_name, 'Customer', '   Test')) as ltrim_replace,
+                CAST(RTRIM(c_comment) LIKE '%the%' AS INT) as rtrim_like
+                FROM customer
+                """
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_14"
+            query = """SELECT
+                REVERSE(c_comment) as reversed_c,
+                SUBSTRING(REVERSE(c_comment), 2, 10) as sub_reversed_c,
+                CAST(SUBSTRING(REVERSE(c_comment), 2, 10) LIKE '%or%' AS INT) as cast_sub_reversed_c
+                FROM customer
+                """
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_15"
+            query = """SELECT
+                COUNT(SUBSTRING(REVERSE(c_comment), 2, 10)) as reverse_subbed_count
+                FROM customer
+                GROUP BY SUBSTRING(REVERSE(c_comment), 2, 10)
+                """
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")
                 break

@@ -40,7 +40,6 @@ public:
 		return handle;
 	}
 
-	std::vector<std::string> get_errors() { return {}; }
 
 	/**
 	 * Tries to get up to num_files data_handles. We use this instead of a get_all() because if there are too many files, 

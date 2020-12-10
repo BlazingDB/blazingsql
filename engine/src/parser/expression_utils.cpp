@@ -14,7 +14,7 @@ switch (op)
 		return true;
 	default:
 		return false;
-	}	
+	}
 }
 
 bool is_unary_operator(operator_type op) {
@@ -36,6 +36,7 @@ bool is_unary_operator(operator_type op) {
 	case operator_type::BLZ_YEAR:
 	case operator_type::BLZ_MONTH:
 	case operator_type::BLZ_DAY:
+	case operator_type::BLZ_DAYOFWEEK:
 	case operator_type::BLZ_HOUR:
 	case operator_type::BLZ_MINUTE:
 	case operator_type::BLZ_SECOND:
@@ -51,6 +52,9 @@ bool is_unary_operator(operator_type op) {
 	case operator_type::BLZ_CAST_TIMESTAMP:
 	case operator_type::BLZ_CAST_VARCHAR:
 	case operator_type::BLZ_CHAR_LENGTH:
+	case operator_type::BLZ_STR_LOWER:
+	case operator_type::BLZ_STR_UPPER:
+	case operator_type::BLZ_STR_REVERSE:
 		return true;
 	default:
 		return false;
@@ -82,8 +86,14 @@ bool is_binary_operator(operator_type op) {
 	case operator_type::BLZ_MAGIC_IF_NOT:
 	case operator_type::BLZ_STR_LIKE:
 	case operator_type::BLZ_STR_CONCAT:
+	case operator_type::BLZ_STR_LEFT:
+	case operator_type::BLZ_STR_RIGHT:
 		return true;
 	case operator_type::BLZ_STR_SUBSTRING:
+	case operator_type::BLZ_STR_REPLACE:
+	case operator_type::BLZ_TO_DATE:
+	case operator_type::BLZ_TO_TIMESTAMP:
+	case operator_type::BLZ_STR_TRIM:
 		assert(false);
 		// Ternary operator. Should not reach here
 		// Should be evaluated in place (inside function_evaluator_transformer) and removed from the tree
@@ -123,11 +133,17 @@ cudf::type_id get_output_type(operator_type op, cudf::type_id input_left_type) {
 		return cudf::type_id::TIMESTAMP_DAYS;
 	case operator_type::BLZ_CAST_TIMESTAMP:
 		return cudf::type_id::TIMESTAMP_NANOSECONDS;
+	case operator_type::BLZ_STR_LOWER:
+	case operator_type::BLZ_STR_UPPER:
+	case operator_type::BLZ_STR_REVERSE:
+	case operator_type::BLZ_STR_LEFT:
+	case operator_type::BLZ_STR_RIGHT:
 	case operator_type::BLZ_CAST_VARCHAR:
 		return cudf::type_id::STRING;
 	case operator_type::BLZ_YEAR:
 	case operator_type::BLZ_MONTH:
 	case operator_type::BLZ_DAY:
+	case operator_type::BLZ_DAYOFWEEK:
 	case operator_type::BLZ_HOUR:
 	case operator_type::BLZ_MINUTE:
 	case operator_type::BLZ_SECOND:
@@ -214,8 +230,14 @@ cudf::type_id get_output_type(operator_type op, cudf::type_id input_left_type, c
 	case operator_type::BLZ_STR_LIKE:
 		return cudf::type_id::BOOL8;
 	case operator_type::BLZ_STR_SUBSTRING:
+	case operator_type::BLZ_STR_REPLACE:
 	case operator_type::BLZ_STR_CONCAT:
+	case operator_type::BLZ_STR_TRIM:
 		return cudf::type_id::STRING;
+	case operator_type::BLZ_TO_DATE:
+		return cudf::type_id::TIMESTAMP_DAYS;
+	case operator_type::BLZ_TO_TIMESTAMP:
+		return cudf::type_id::TIMESTAMP_NANOSECONDS;
 	default:
 		assert(false);
 		return cudf::type_id::EMPTY;
@@ -244,6 +266,7 @@ operator_type map_to_operator_type(const std::string & operator_token) {
 		{"BL_YEAR", operator_type::BLZ_YEAR},
 		{"BL_MONTH", operator_type::BLZ_MONTH},
 		{"BL_DAY", operator_type::BLZ_DAY},
+		{"BL_DOW", operator_type::BLZ_DAYOFWEEK},
 		{"BL_HOUR", operator_type::BLZ_HOUR},
 		{"BL_MINUTE", operator_type::BLZ_MINUTE},
 		{"BL_SECOND", operator_type::BLZ_SECOND},
@@ -260,6 +283,9 @@ operator_type map_to_operator_type(const std::string & operator_token) {
 		{"CAST_VARCHAR", operator_type::BLZ_CAST_VARCHAR},
 		{"CAST_CHAR", operator_type::BLZ_CAST_VARCHAR},
 		{"CHAR_LENGTH", operator_type::BLZ_CHAR_LENGTH},
+		{"LOWER", operator_type::BLZ_STR_LOWER},
+		{"UPPER", operator_type::BLZ_STR_UPPER},
+		{"REVERSE", operator_type::BLZ_STR_REVERSE},
 
 		// Binary operators
 		{"=", operator_type::BLZ_EQUAL},
@@ -281,7 +307,13 @@ operator_type map_to_operator_type(const std::string & operator_token) {
 		{"MAGIC_IF_NOT", operator_type::BLZ_MAGIC_IF_NOT},
 		{"LIKE", operator_type::BLZ_STR_LIKE},
 		{"SUBSTRING", operator_type::BLZ_STR_SUBSTRING},
-		{"||", operator_type::BLZ_STR_CONCAT}
+		{"REPLACE", operator_type::BLZ_STR_REPLACE},
+		{"TO_DATE", operator_type::BLZ_TO_DATE},
+		{"TO_TIMESTAMP", operator_type::BLZ_TO_TIMESTAMP},
+		{"||", operator_type::BLZ_STR_CONCAT},
+		{"TRIM", operator_type::BLZ_STR_TRIM},
+		{"LEFT", operator_type::BLZ_STR_LEFT},
+		{"RIGHT", operator_type::BLZ_STR_RIGHT},
 	};
 
 	if(OPERATOR_MAP.find(operator_token) == OPERATOR_MAP.end()){
@@ -451,13 +483,13 @@ bool is_merge_aggregate(std::string query_part) { return (query_part.find(LOGICA
 
 // Returns the index from table_scan if exists
 size_t get_table_index(std::vector<std::string> table_scans, std::string table_scan) {
-	
+
 	for (size_t i = 0; i < table_scans.size(); i++){
 		if (StringUtil::contains(table_scans[i], table_scan)){
 			return i;
 		}
 	}
-	throw std::invalid_argument("ERROR: get_table_index table_scan was not found ==>" + table_scan);	
+	throw std::invalid_argument("ERROR: get_table_index table_scan was not found ==>" + table_scan);
 }
 
 // Input: [[hr, emps]] or [[emps]] Output: hr.emps or emps
@@ -559,7 +591,7 @@ std::string replace_calcite_regex(const std::string & expression) {
 	static const std::regex char_re{
 		R""(CHAR\(\d+\))"", std::regex_constants::icase};
 	ret = std::regex_replace(ret, char_re, "VARCHAR");
-	
+
 
 	StringUtil::findAndReplaceAll(ret, "IS NOT NULL", "IS_NOT_NULL");
 	StringUtil::findAndReplaceAll(ret, "IS NULL", "IS_NULL");
@@ -568,9 +600,14 @@ std::string replace_calcite_regex(const std::string & expression) {
 	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(YEAR), ", "BL_YEAR(");
 	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(MONTH), ", "BL_MONTH(");
 	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(DAY), ", "BL_DAY(");
+	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(DOW), ", "BL_DOW(");
 	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(HOUR), ", "BL_HOUR(");
 	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(MINUTE), ", "BL_MINUTE(");
 	StringUtil::findAndReplaceAll(ret, "EXTRACT(FLAG(SECOND), ", "BL_SECOND(");
+	// Flag options for TRIM
+	StringUtil::findAndReplaceAll(ret, "TRIM(FLAG(BOTH),", "TRIM(\"BOTH\",");
+	StringUtil::findAndReplaceAll(ret, "TRIM(FLAG(LEADING),", "TRIM(\"LEADING\",");
+	StringUtil::findAndReplaceAll(ret, "TRIM(FLAG(TRAILING),", "TRIM(\"TRAILING\",");
 
 	StringUtil::findAndReplaceAll(ret, "/INT(", "/(");
 	return ret;

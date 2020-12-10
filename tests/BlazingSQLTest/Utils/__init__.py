@@ -90,7 +90,7 @@ class LocalBlazingSQLCluster(LocalCUDACluster):
         return {worker_count: spec}
 
 
-def try_to_get_dask_client(n_workers, n_gpus):
+def try_to_get_dask_client(n_workers, n_gpus, iface):
     daskConnection = Settings.data["TestSettings"].get("daskConnection")
     if (daskConnection is not None) or (type(daskConnection) is not str):
         if n_gpus < 1:
@@ -98,9 +98,20 @@ def try_to_get_dask_client(n_workers, n_gpus):
         try:
             if daskConnection == "local":
                 cluster = LocalBlazingSQLCluster(n_gpus, n_workers=n_workers)
+                # cluster = LocalBlazingSQLCluster(n_gpus,  n_workers=n_workers,
+                #   interface=iface,
+                #    protocol="ucx",
+                #    enable_tcp_over_ucx=True,
+                #    enable_infiniband=False,
+                #    enable_nvlink=False,
+                #    # asynchronous=True,
+                #)
                 return Client(cluster)
             else:
-                return Client(daskConnection)
+                if daskConnection.endswith('.json'): #assuming a scheduler file
+                    return Client(scheduler_file=daskConnection)
+                else:
+                    return Client(daskConnection)
         except Exception as e:
             # TODO: exceptions from cluster creation or dask connection
             raise EnvironmentError(
@@ -112,30 +123,32 @@ def try_to_get_dask_client(n_workers, n_gpus):
     raise ValueError("ERROR: Bad dask connection '%s'" % daskConnection)
 
 
-def init_context():
+def init_context(config_options={}):
     bc = None
     dask_client = None
     nRals = int(Settings.data["RunSettings"]["nRals"])
     nGpus = int(Settings.data["RunSettings"]["nGPUs"])
     if nRals == 1:
-        bc = BlazingContext()
+        bc = BlazingContext(config_options=config_options)
     else:
         os.chdir(Settings.data["TestSettings"]["logDirectory"])
-        dask_client = try_to_get_dask_client(nRals, nGpus)
+        iface = Settings.data["RunSettings"]["networkInterface"]
+        dask_client = try_to_get_dask_client(nRals, nGpus, iface)
         if dask_client is not None:
             dask_conn = Settings.data["TestSettings"]["daskConnection"]
-            iface = Settings.data["RunSettings"]["networkInterface"]
-            print("Using dask: " + dask_conn)
-            if "local" != dask_conn:
-                dask_client.restart()
+            
+            # print("Using dask: " + dask_conn)
+            # if "local" != dask_conn:
+
             bc = BlazingContext(
                 dask_client=dask_client,
                 network_interface=iface,
-                pool=False,
-                initial_pool_size=None,
-                allocator="managed",
+                # pool=True,
+                # initial_pool_size=300000000,
+                allocator="default",
+                config_options=config_options,
             )
         else:
             # Fallback: could not found a valid dask server
-            bc = BlazingContext()
+            bc = BlazingContext(config_options=config_options)
     return (bc, dask_client)

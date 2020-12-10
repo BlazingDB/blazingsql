@@ -1,10 +1,14 @@
 #include "graph.h"
 #include "operators/OrderBy.h"
+#include "utilities/ctpl_stl.h"
 
 namespace ral {
 namespace cache {
 
-	kpair graph::operator+=(kpair p) {
+	int32_t graph::get_context_token() { return context_token;	}
+	void graph::set_context_token(int32_t token) { context_token = token; }
+
+	void graph::addPair(kpair p) {
 		std::string source_port_name = std::to_string(p.src->get_id());
 		std::string target_port_name = std::to_string(p.dst->get_id());
 
@@ -15,15 +19,22 @@ namespace cache {
 			target_port_name = p.dst_port_name;
 		}
 		this->add_edge(p.src, p.dst, source_port_name, target_port_name, p.cache_machine_config);
-
-		return p;
+	}
+	void graph::clear_kernels(){
+		container_.clear();
+		edges_.clear();
+		reverse_edges_.clear();
+		mem_monitor = nullptr;
 	}
 
+	void graph::set_memory_monitor(std::shared_ptr<ral::MemoryMonitor> mem_monitor){
+		this->mem_monitor = mem_monitor;
+	}
 	void graph::check_and_complete_work_flow() {
 		for(auto node : container_) {
-			kernel * kernel_node = node.second;
+			std::shared_ptr<kernel> kernel_node = node.second;
 			if(kernel_node) {
-				if(get_neighbours(kernel_node).size() == 0) {
+				if(get_neighbours(kernel_node.get()).size() == 0) {
 					Edge fake_edge = {.source = (int32_t) kernel_node->get_id(),
 						.target = -1,
 						.source_port_name = std::to_string(kernel_node->get_id()),
@@ -35,6 +46,7 @@ namespace cache {
 	}
 
 	void graph::execute(const std::size_t max_kernel_run_threads) {
+		mem_monitor->start();
 		check_and_complete_work_flow();
 
 		ctpl::thread_pool<BlazingThread> pool(max_kernel_run_threads);
@@ -48,8 +60,8 @@ namespace cache {
 			auto source_id = Q.front();
 			auto source = get_node(source_id);
 			auto source_edges = get_reverse_neighbours(source);
-			bool node_has_all_dependencies = source_edges.size() == 0 ? true : 
-				std::all_of(source_edges.begin(), source_edges.end(), [visited](Edge edge) { 
+			bool node_has_all_dependencies = source_edges.size() == 0 ? true :
+				std::all_of(source_edges.begin(), source_edges.end(), [visited](Edge edge) {
 					auto edge_id = std::make_pair(edge.source, edge.target);
 					return visited.find(edge_id) != visited.end();});
 			Q.pop_front();
@@ -63,14 +75,19 @@ namespace cache {
 							visited.insert(edge_id);
 							Q.push_back(target_id);
 							futures.push_back(pool.push([this, source, source_id, edge] (int thread_id) {
-								auto state = source->run();
-								if(state == kstatus::proceed) {
+								try	{
+									auto state = source->run();
 									source->output_.finish();
-								} else if (edge.target != -1) { // not a dummy node
-									std::cout<<"ERROR kernel "<<source_id<<" did not finished successfully"<<std::endl;
+									if (state != kstatus::proceed && edge.target != -1 /* not a dummy node */) {
+										auto logger = spdlog::get("batch_logger");
+										std::string log_detail = "ERROR kernel " + std::to_string(source_id) + " did not finished successfully";
+										logger->error("|||{info}|||||","info"_a=log_detail);
+									}
+								}	catch(...) {
+									source->output_.finish();
+									throw;
 								}
 							}));
-							
 						} else {
 							// TODO: and circular graph is defined here. Report and error
 						}
@@ -82,14 +99,10 @@ namespace cache {
 		}
 		// Lets iterate through the futures to check for exceptions
 		for(int i = 0; i < futures.size(); i++){
-			try {
-				futures[i].get();
-			} catch (const std::exception& e) {
-				throw;		
-			}
+			futures[i].get();
 		}
-		// lets wait untill all tasks are done
-		pool.stop(true);
+
+		mem_monitor->finalize();
 	}
 
 	void graph::show() {
@@ -167,7 +180,7 @@ namespace cache {
 			target_kernel = get_node((*(source_edges.begin())).source);
 			// get_estimated_output would just call get_estimated_input_rows_to_kernel for simple in/out kernels
 			// or do something more complicated for other kernels
-			return target_kernel->get_estimated_output_num_rows();			
+			return target_kernel->get_estimated_output_num_rows();
 		} else {
 			return std::make_pair(false, 0);
 		}
@@ -186,28 +199,33 @@ namespace cache {
 				target_kernel = get_node(edge.source);
 				// get_estimated_output would just call get_estimated_input_rows_to_kernel for simple in/out kernels
 				// or do something more complicated for other kernels
-				return target_kernel->get_estimated_output_num_rows();				
+				return target_kernel->get_estimated_output_num_rows();
 			}
 		}
-		std::cout<<"ERROR: In get_estimated_input_rows_to_cache could not find edge for kernel "<<id<<" cache "<<port_name<<std::endl;
+		auto logger = spdlog::get("batch_logger");
+		std::string log_detail = "ERROR: In get_estimated_input_rows_to_cache could not find edge for kernel " + std::to_string(id) + " cache " + port_name;
+		logger->error("|||{info}|||||","info"_a=log_detail);
 		return std::make_pair(false, 0);
 	}
 
-	kernel & graph::get_last_kernel() { return *kernels_.at(kernels_.size() - 1); }
-	
+	std::shared_ptr<kernel> graph::get_last_kernel() {
+		int32_t kernel_id = kernels_.at(kernels_.size() - 1)->get_id();
+		return container_[kernel_id];
+	}
+
 	size_t graph::num_nodes() const { return kernels_.size(); }
-	
-	size_t graph::add_node(kernel * k) {
+
+	size_t graph::add_node(std::shared_ptr<kernel> k) {
 		if(k != nullptr) {
 			container_[k->get_id()] = k;
-			kernels_.push_back(k);
+			kernels_.push_back(k.get());
 			return k->get_id();
 		}
 		return head_id_;
 	}
 
-	void graph::add_edge(kernel * source,
-		kernel * target,
+	void graph::add_edge(std::shared_ptr<kernel> source,
+		std::shared_ptr<kernel> target,
 		std::string source_port,
 		std::string target_port,
 		const cache_settings & config) {
@@ -267,20 +285,33 @@ namespace cache {
 		}
 	}
 
-	kernel * graph::get_node(size_t id) { return container_[id]; }
+	kernel * graph::get_node(size_t id) { return container_[id].get(); }
+
+	std::shared_ptr<ral::cache::CacheMachine>  graph::get_kernel_output_cache(size_t kernel_id, std::string cache_id){
+		return container_[kernel_id].get()->output_cache(cache_id);
+	}
+
+	void graph::set_input_and_output_caches(std::shared_ptr<ral::cache::CacheMachine> input_cache, std::shared_ptr<ral::cache::CacheMachine> output_cache) {
+		this->input_cache_ = input_cache;
+		this->output_cache_ = output_cache;
+	}
+
+	std::shared_ptr<ral::cache::CacheMachine> graph::get_input_message_cache() { return input_cache_; }
+
+	std::shared_ptr<ral::cache::CacheMachine> graph::get_output_message_cache() {return output_cache_; }
 
 	std::set<graph::Edge> graph::get_neighbours(kernel * from) { return edges_[from->get_id()]; }
 	std::set<graph::Edge> graph::get_neighbours(int32_t id) { return edges_[id]; }
-	std::set<graph::Edge> graph::get_reverse_neighbours(kernel * from) { 
+	std::set<graph::Edge> graph::get_reverse_neighbours(kernel * from) {
 		if (from) {
 			return get_reverse_neighbours(from->get_id());
 		} else {
 			return std::set<graph::Edge>();
 		}
 	}
-	std::set<graph::Edge> graph::get_reverse_neighbours(int32_t id) { 
+	std::set<graph::Edge> graph::get_reverse_neighbours(int32_t id) {
 		if (reverse_edges_.find(id) != reverse_edges_.end()){
-			return reverse_edges_[id]; 
+			return reverse_edges_[id];
 		} else {
 			return std::set<graph::Edge>();
 		}
@@ -291,11 +322,11 @@ namespace cache {
 		auto first_iterator = container_.begin();
 		first_iterator++;
 		int32_t min_index_valid = first_iterator->first;
-		size_t total_kernels = container_.size(); 
+		size_t total_kernels = container_.size();
 
 		if (total_kernels == 4) { // LimitKernel, TableScanKernel (or BindableTableScan), OutputKernel and null
 			if ( get_node(min_index_valid)->get_type_id() == kernel_type::LimitKernel &&
-				(get_node(min_index_valid + 1)->get_type_id() == kernel_type::TableScanKernel || 
+				(get_node(min_index_valid + 1)->get_type_id() == kernel_type::TableScanKernel ||
 				 get_node(min_index_valid + 1)->get_type_id() == kernel_type::BindableTableScanKernel) &&
 				 get_node(min_index_valid + 2)->expression == "OutputKernel"
 				)
@@ -308,6 +339,6 @@ namespace cache {
 			}
 		}
 	}
-	
+
 }  // namespace cache
 }  // namespace ral

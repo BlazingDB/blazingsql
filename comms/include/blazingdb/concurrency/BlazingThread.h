@@ -61,17 +61,17 @@ protected:
 
 namespace detail {
 //call function f and  move their arguments inside a tuple t because it is mutable
-template <class F, class Tuple, std::size_t... I>
-constexpr decltype(auto) apply_impl( F&& f, Tuple&& t, std::index_sequence<I...> )
+template <class F, class T, class Tuple, std::size_t... I>
+constexpr decltype(auto) apply_impl( F&& f, T* obj, Tuple&& t, std::index_sequence<I...> )
 {
-  return f(std::get<I>(std::move<Tuple>(t))...);
+  return (obj->*f)(std::get<I>(std::move<Tuple>(t))...);
 }
 
 // call apply_impl to use function f and its arguments inside a tuple t 
-template <class F, class Tuple>
-constexpr decltype(auto) apply(F&& f, Tuple&& t)
+template <class F, class T, class Tuple>
+constexpr decltype(auto) apply(F&& f, T* obj, Tuple&& t)
 {
-    return detail::apply_impl(std::forward<F>(f), std::forward<Tuple>(t),
+    return detail::apply_impl(std::forward<F>(f), obj, std::forward<Tuple>(t),
         std::make_index_sequence<std::tuple_size<std::decay_t<Tuple>>::value>());
 }
 
@@ -79,8 +79,8 @@ constexpr decltype(auto) apply(F&& f, Tuple&& t)
 
 class BlazingMutableThread : public BlazingThread {
 public:
-	template<class Func, class ...Args>
-	explicit BlazingMutableThread(Func && func, Args &&... args)  
+	template<class Func, class T, class ...Args>
+	explicit BlazingMutableThread(Func && func, T* obj, Args &&... args)
 		: BlazingThread{}
 	{
 		auto holder = std::make_shared<BlazingExceptionHolder>();
@@ -88,11 +88,12 @@ public:
 		// create a tuple based on variadic args.
 		auto tpl = std::make_tuple(std::forward<Args>(args)...);
 		this->thread = std::thread([holder, 
-									func = std::forward<Func>(func), 
+									func = std::forward<Func>(func),
+									obj,
 									tpl = move(tpl)]
 									() mutable {
 			try {
-				detail::apply(func, tpl);
+				detail::apply(func, obj, tpl);
 			} catch(...) {
 				holder->setException(std::current_exception());
 			}

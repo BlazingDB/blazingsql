@@ -1,3 +1,84 @@
+# BlazingSQL 0.17.0 (December 10, 2020)
+
+
+## New Features
+- #1105 Implement to_date/to_timestamp functions
+- #1077 Allow to create tables from compressed files
+- #1126 Add DAYOFWEEK function
+- #981 Added powerPC building script and instructions
+- #912 Added UCX support to how the engine runs
+- #1125 Implement new TCP and UCX comms layer, exposed graph to python
+- #1122 Add ConfigOptionsTest, a test with different config_options values
+- #1110 Adding local logging directory to BlazingContext
+- #1148 Add e2e test for DAYOFWEEK
+- #1130 Infer hive folder partition
+- #1188 Implement upper/lower operators
+- #1193 Implement string REPLACE
+- #1218 Added smiles test set
+- #1201 Implement string TRIM
+- #1216 Add unit test for DAYOFWEEK
+- #1205 Implement string REVERSE
+- #1220 Implement string LEFT and RIGHT 
+- #1250 updated README.md and CHANGELOG and others preparing for 0.17 release
+
+
+## Improvements
+- #878 Adding calcite rule for window functions. (Window functions not supported yet)
+- #1081 Add validation for the kwargs when bc API is called
+- #1082 Validate s3 bucket
+- #1093 Logs configurable to have max size and be rotated
+- #1091 Improves the error message problem when validating any GCP bucket
+- #1102 Add option to read csv files in chunks
+- #1090 Add tests for Uri Data provider for local uri
+- #1119 Add tests for transform json tree and get json plan
+- #1117 Add error logging in DataSourceSequence
+- #1111 output compile json for cppcheck
+- #1132 Refactoring new comms
+- #1078 Bump junit from 4.12 to 4.13.1 in /algebra
+- #1144 update with changes from main
+- #1156 Added scheduler file support for e2e testing framework
+- #1158 Deprecated bc.partition
+- #1154 Recompute the avg_bytes_per_row value
+- #1155 Removing comms subproject and cleaning some related code
+- #1170 Improve gpuCI scripts
+- #1194 Powerpc building scripts
+- #1186 Removing cuda labels to install due cudatoolkit version
+- #1187 Enable MySQL-specific SQL operators in addition to Standard and Oracle
+- #1206 Improved contribution documentation 
+- #1224 Added cudaSetDevice to thread initialization so that the cuda context is available to UCX
+- #1229 Change hardcoded version from setup.py
+- #1231 Adding docker support for gpuCI scripts
+- #1248 Jenkins and Docker scripts were improved for building
+
+
+## Bug Fixes
+- #1064 Fixed issue when loading parquet files with local_files=True
+- #1086 Showing an appropriate error to indicate that we don't support opening directories with wildcards
+- #1088 Fixed issue caused by cudf changing from one .so file to multiple
+- #1094 Fixed logging directory setup
+- #1100 Showing an appropriate error for invalid or unsupported expressions on the logical plan
+- #1115 Fixed changes to RMM api using cuda_stream_view instead of cudaStream_t now
+- #1120 Fix missing valid kwargs in create_table
+- #1118 Fixed issue with config_options and adding local_files to valid params
+- #1133 Fixed adressing issue in float columns when parsing parquet metadata
+- #1163 added empty line to trigger build
+- #1108 Remove temp files when an error occurs
+- #1165 E2e tests, distributed mode, again tcp
+- #1171 Don't log timeout in output/input caches
+- #1168 Fix SSL errors for conda
+- #1164 MergeAggr when single node has multiple batches
+- #1191 Fix graph thread pool hang when exception is thrown
+- #1181 Remove unnecesary prints (cluster and logging info)
+- #1185 Create table in distributed mode crash with a InferFolderPartitionMetadata Error
+- #1179 Fix ignore headers when multiple CSV files was provided
+- #1199 Fix non thread-safe access to map containing tag to message_metadata for ucx
+- #1196 Fix column_names (table) always as list of string
+- #1203 Changed code back so that parquet is not read a single rowgroup at a time 
+- #1207 Calcite uses literal as int32 if not explicit CAST was provided
+- #1212 Fixed issue when building the thirdpart, cmake version set to 3.18.4
+- #1225 Fixed issue due to change in gather API 
+
+
 # BlazingSQL 0.16.0 (October 22, 2020)
 
 ## Improvements
@@ -9,6 +90,7 @@
 - #1055 Removing cudf source code dependency as some cudf utilities headers were exposed
 - #1065 Remove thrift from build prodcess as its no longer used
 - #1067 Upload conda packages to both rapidsai and blazingsql conda channels
+
 
 ## Bug Fixes
 - #918 Activate validation for GPU_CI tests results.
@@ -32,11 +114,11 @@
 - #1007 Fix arrow and spdlog compilation issues
 - #1068 Just adds a docs important links and avoid the message about filesystem authority not found
 - #1073 Fixed parseSchemaPython can throw exceptions
-- #1074: Remove lock inside grow() method from PinnedBufferProvider
+- #1074 Remove lock inside grow() method from PinnedBufferProvider
 - #1071 Fix crash when loading an empty folder
-- #1085 Fixed intra-query memory leak in joins. Fixed by clearing array caches after PartwiseJoin is done 
+- #1085 Fixed intra-query memory leak in joins. Fixed by clearing array caches after PartwiseJoin is done
 - #1096 Backport from branch-0.17 with these PRs: #1094, #1086, #1093 and #1091
-- #1099 Fixed issue with config_options 
+- #1099 Fixed issue with config_options
 
 
 # BlazingSQL 0.15.0 (August 31, 2020)
@@ -167,4 +249,4 @@
 - #785 Add script for Manual Testing Artifacts.
 - #931 Add script for error messages validation.
 - #932 Import pydrill and pyspark only when its generator or full mode.
-
+- #1031 adding notebooks into BlazingSQL Tests

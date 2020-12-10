@@ -11,13 +11,6 @@ queryType = "Column Basis"
 # TODO percy make possible to run this test when nRals > 1
 
 
-def get_results(nRals, token):
-    if int(nRals) == 1:  # Single Node
-        return token
-    else:  # Simple Distribution
-        return token
-
-
 def main(dask_client, drill, dir_data_file, bc, nRals):
     # TODO percy should be possible to make this test distributed
     if int(nRals) != 1:
@@ -56,20 +49,15 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             queryId = "TEST_01"
 
             query = "select c_custkey, c_nationkey, c_acctbal from customer"
-            query_blz = runTest.get_blazingsql_query("main", query)
-
-            token = bc.sql(query_blz)
-
-            temp_gdf = get_results(nRals, token)
+            temp_gdf = bc.sql(query)
 
             temp_gdf["c_custkey"] = temp_gdf["c_custkey"] + 3
 
             bc.create_table("temp", temp_gdf)
 
             sql = "select * from main.temp"
-            token = bc.sql(sql)
-            result_gdf = get_results(nRals, token)
-
+            result_gdf = bc.sql(sql)
+            
             query = """select c_custkey + 3, c_nationkey, c_acctbal
                     from customer"""
 
@@ -93,19 +81,16 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             queryId = "TEST_02"
 
             query = "select c_custkey, c_nationkey, c_acctbal from customer"
-            query_blz = runTest.get_blazingsql_query("main", query)
-
-            token = bc.sql(query_blz)
-            temp_gdf = get_results(nRals, token)
-
+            
+            temp_gdf = bc.sql(query)
+            
             temp_gdf.drop(columns=["c_custkey"], inplace=True)
 
             bc.create_table("temp2", temp_gdf)
 
             sql = "select * from main.temp2"
-            token = bc.sql(sql)
-            result_gdf = get_results(nRals, token)
-
+            result_gdf = bc.sql(sql)
+            
             query = "select c_nationkey, c_acctbal from customer"
 
             runTest.run_query(
@@ -129,20 +114,16 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
 
             query = """select c_custkey, c_nationkey, c_acctbal
                 from customer where c_acctbal > 1000"""
-            query_blz = runTest.get_blazingsql_query("main", query)
-
-            token = bc.sql(query_blz)
-            temp_gdf = get_results(nRals, token)
-
+            temp_gdf = bc.sql(query)
+            
             temp_gdf["c_acctbal"] = temp_gdf["c_acctbal"] + 3
             temp_gdf.drop(columns=["c_custkey"], inplace=True)
 
             bc.create_table("temp3", temp_gdf)
 
             sql = "select * from main.temp3"
-            token = bc.sql(sql)
-            result_gdf = get_results(nRals, token)
-
+            result_gdf = bc.sql(sql)
+            
             query = (
                 """select c_nationkey, c_acctbal + 3
                     from customer where c_acctbal > 1000"""
@@ -169,11 +150,8 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
 
             query = """select c_custkey, c_nationkey, c_acctbal
                     from customer where c_acctbal > 1000"""
-            query_blz = runTest.get_blazingsql_query("main", query)
-
-            token = bc.sql(query_blz)
-            temp_gdf = get_results(nRals, token)
-
+            temp_gdf = bc.sql(query)
+            
             temp_gdf["c_acctbal_new"] = temp_gdf["c_acctbal"] + 3
 
             temp_gdf.drop(columns=["c_acctbal"], inplace=True)
@@ -182,17 +160,15 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             bc.create_table("temp0", temp_gdf)
             sql = "select * from main.temp0"
 
-            token = bc.sql(sql)
-            temp2_gdf = get_results(nRals, token)
-
+            temp2_gdf = bc.sql(sql)
+            
             temp2_gdf.drop(columns=["c_nationkey"], inplace=True)
 
             bc.create_table("temp4", temp2_gdf)
             sql = "select * from main.temp4"
 
-            token = bc.sql(sql)
-            result_gdf = get_results(nRals, token)
-
+            result_gdf = bc.sql(sql)
+            
             query = """select c_acctbal + 3 as c_acctbal_new
                     from customer where c_acctbal > 1000"""
 
@@ -216,18 +192,14 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             queryId = "TEST_05"
 
             query = "select c_acctbal from customer where c_acctbal > 1000"
-            query_blz = runTest.get_blazingsql_query("main", query)
-
-            token = bc.sql(query_blz)
-            temp_gdf = get_results(nRals, token)
+            temp_gdf = bc.sql(query)
             temp_gdf["c_acctbal_new"] = temp_gdf["c_acctbal"] + 3
 
             bc.create_table("temp5", temp_gdf)
             sql = "select * from main.temp5"
 
-            token = bc.sql(sql)
-            result_gdf = get_results(nRals, token)
-
+            result_gdf = bc.sql(sql)
+            
             query = """select c_acctbal, c_acctbal + 3 as c_acctbal_new
                     from customer where c_acctbal > 1000"""
 
@@ -249,21 +221,19 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
 
             queryId = "TEST_06"
 
-            token = bc.sql(
+            result_gdf = bc.sql(
                 """select n_nationkey, n_regionkey from nation
                  where n_nationkey < 0"""
             )
-            result_gdf = get_results(nRals, token)
-
+           
             bc.create_table("results", result_gdf)
 
-            token1 = bc.sql(
+            result_gdf1 = bc.sql(
                 """select n.n_nationkey, r.n_regionkey
                  from main.nation as n left join main.results as r
                  on n.n_nationkey = r.n_nationkey"""
             )
-            result_gdf1 = get_results(nRals, token1)
-
+            
             query = """select n.n_nationkey, r.n_regionkey from nation as n
             left join (select n_nationkey, n_regionkey from nation
             where n_nationkey < 0) as r on n.n_nationkey = r.n_nationkey"""
@@ -286,17 +256,15 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             queryId = "TEST_07"
 
             # Calling a cudf function that returns the same column
-            token = bc.sql("select n_nationkey, n_regionkey from main.nation")
-            result_gdf = get_results(nRals, token)
-
+            result_gdf = bc.sql("select n_nationkey, n_regionkey from main.nation")
+            
             result_gdf["n_nationkey"] = result_gdf[
                                             "n_nationkey"].astype("int32")
 
             bc.create_table("results_tmp", result_gdf)
 
-            token1 = bc.sql("select * from main.results_tmp")
-            result_gdf1 = get_results(nRals, token1)
-
+            result_gdf1 = bc.sql("select * from main.results_tmp")
+            
             query = "select n_nationkey, n_regionkey from nation"
 
             runTest.run_query(

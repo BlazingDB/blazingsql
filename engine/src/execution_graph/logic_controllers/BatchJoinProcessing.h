@@ -3,7 +3,9 @@
 #include <tuple>
 
 #include "BatchProcessing.h"
-#include "BlazingColumn.h"
+#include "ExceptionHandling/BlazingThread.h"
+#include "taskflow/distributing_kernel.h"
+/*#include "BlazingColumn.h"
 #include "LogicPrimitives.h"
 #include "CacheMachine.h"
 #include "io/Schema.h"
@@ -11,8 +13,9 @@
 #include "communication/CommunicationData.h"
 #include "execution_graph/logic_controllers/LogicalFilter.h"
 #include "distribution/primitives.h"
+#include "taskflow/distributing_kernel.h"
 #include "error.hpp"
-#include "blazingdb/concurrency/BlazingThread.h"
+#include "blazingdb/concurrency/BlazingThread.h"*/
 #include "CodeTimer.h"
 #include <cudf/stream_compaction.hpp>
 #include <cudf/partitioning.hpp>
@@ -20,6 +23,7 @@
 
 namespace ral {
 namespace batch {
+using ral::cache::distributing_kernel;
 using ral::cache::kstatus;
 using ral::cache::kernel;
 using ral::cache::kernel_type;
@@ -31,6 +35,8 @@ const std::string RIGHT_JOIN = "right";
 const std::string OUTER_JOIN = "full";
 const std::string CROSS_JOIN = "cross";
 
+const int LEFT_TABLE_IDX = 0;
+const int RIGHT_TABLE_IDX = 1;
 struct TableSchema {
 	std::vector<cudf::data_type> column_types;
 	std::vector<std::string> column_names;
@@ -70,11 +76,7 @@ public:
 		this->leftArrayCache = 	ral::cache::create_cache_machine(cache_machine_config);
 		this->rightArrayCache = ral::cache::create_cache_machine(cache_machine_config);
 
-		std::tie(this->expression, this->condition, this->filter_statement, this->join_type) = parseExpressionToGetTypeAndCondition(this->expression);		
-	}
-
-	bool can_you_throttle_my_input() {
-		return false;  // join has its own sort of limiter, so its not good to try to apply another limiter
+		std::tie(this->expression, this->condition, this->filter_statement, this->join_type) = parseExpressionToGetTypeAndCondition(this->expression);
 	}
 
 	std::unique_ptr<TableSchema> left_schema{nullptr};
@@ -94,6 +96,7 @@ public:
 	}
 
 	std::unique_ptr<ral::frame::BlazingTable> load_right_set(){
+
 		this->max_right_ind++;
 		std::unique_ptr<ral::frame::BlazingTable> table = this->right_sequence.next();
 		if (not right_schema && table != nullptr) {
@@ -142,7 +145,6 @@ public:
 			}
 			return std::make_tuple(-1, -1);
 		} else {
-			std::cout<<"ERROR out of range in check_for_another_set_to_do_with_data_we_already_have"<<std::endl;
 			return std::make_tuple(-1, -1);
 		}
 	}
@@ -198,14 +200,14 @@ public:
 				if(has_nulls_right){
 					table_right_dropna = cudf::drop_nulls(table_right.view(), right_column_indices);
 				}
-				
+
 				result_table = cudf::inner_join(
 					has_nulls_left ? table_left_dropna->view() : table_left.view(),
 					has_nulls_right ? table_right_dropna->view() : table_right.view(),
 					this->left_column_indices,
 					this->right_column_indices,
 					columns_in_common);
-				
+
 			} else if(this->join_type == LEFT_JOIN) {
 				//Removing nulls on right key columns before joining
 				std::unique_ptr<CudfTable> table_right_dropna;
@@ -231,14 +233,14 @@ public:
 				RAL_FAIL("Unsupported join operator");
 			}
 		}
-		
+
 		return std::make_unique<ral::frame::BlazingTable>(std::move(result_table), this->result_names);
 	}
 
     virtual kstatus run() {
 		CodeTimer timer;
 
-		bool ordered = false; 
+		bool ordered = false;
         this->left_sequence = BatchSequence(this->input_.get_cache("input_a"), this, ordered);
 		this->right_sequence = BatchSequence(this->input_.get_cache("input_b"), this, ordered);
 
@@ -253,11 +255,11 @@ public:
 			try {
 
 				if (left_batch == nullptr && right_batch == nullptr){ // first load
-					
+
 					// before we load anything, lets make sure each side has data to process
 					this->left_sequence.wait_for_next();
 					this->right_sequence.wait_for_next();
-					
+
 					left_batch = load_left_set();
 					right_batch = load_right_set();
 					this->max_left_ind = 0; // we have loaded just once. This is the highest index for now
@@ -361,8 +363,6 @@ public:
 
 						this->add_to_output_cache(std::move(filter_table));
 					} else{
-						// printf("joined table\n");
-						// ral::utilities::print_blazing_table_view(joined->toBlazingTableView());
 						eventTimer.stop();
 						this->add_to_output_cache(std::move(joined));
 					}
@@ -431,7 +431,7 @@ private:
 	std::vector<std::vector<bool>> completion_matrix;
 	std::shared_ptr<ral::cache::CacheMachine> leftArrayCache;
 	std::shared_ptr<ral::cache::CacheMachine> rightArrayCache;
-	
+
 	// parsed expression related parameters
 	std::string join_type;
 	std::string condition;
@@ -443,19 +443,17 @@ private:
 };
 
 
-class JoinPartitionKernel : public kernel {
+class JoinPartitionKernel : public distributing_kernel {
 public:
 	JoinPartitionKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-		: kernel{kernel_id, queryString, context, kernel_type::JoinPartitionKernel} {
+		: distributing_kernel{kernel_id, queryString, context, kernel_type::JoinPartitionKernel} {
 		this->query_graph = query_graph;
+		set_number_of_message_trackers(2); //default for left and right partitions
+
 		this->input_.add_port("input_a", "input_b");
 		this->output_.add_port("output_a", "output_b");
 
 		std::tie(this->expression, this->condition, this->filter_statement, this->join_type) = parseExpressionToGetTypeAndCondition(this->expression);
-	}
-
-	bool can_you_throttle_my_input() {
-		return true;
 	}
 
 	// this function makes sure that the columns being joined are of the same type so that we can join them properly
@@ -473,17 +471,18 @@ public:
 													right_join_types.cbegin(), right_join_types.cend());
 	}
 
-	static void partition_table(std::shared_ptr<Context> local_context,
+	void partition_table(const std::string & kernel_id,
+				Context* local_context,
 				std::vector<cudf::size_type> column_indices,
 				std::unique_ptr<ral::frame::BlazingTable> batch,
 				BatchSequence & sequence,
 				bool normalize_types,
 				const std::vector<cudf::data_type> & join_column_common_types,
-				std::shared_ptr<ral::cache::CacheMachine> & output,
-				const std::string & message_id,
-				std::shared_ptr<spdlog::logger> logger)
+				ral::cache::CacheMachine* output,
+				const std::string & cache_id,
+				spdlog::logger* logger,
+				int table_idx)
 	{
-		using ColumnDataPartitionMessage = ral::communication::messages::ColumnDataPartitionMessage;
 
 		bool done = false;
 		// num_partitions = context->getTotalNodes() will do for now, but may want a function to determine this in the future.
@@ -492,6 +491,7 @@ public:
 		std::unique_ptr<CudfTable> hashed_data;
 		std::vector<cudf::size_type> hased_data_offsets;
 		int batch_count = 0;
+		auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
 		while (!done) {
 			try {
 				if (normalize_types) {
@@ -518,23 +518,18 @@ public:
 						partitioned.push_back(batch_view);
 					}
 				}
-				std::vector<ral::distribution::NodeColumnView > partitions_to_send;
-				for(int nodeIndex = 0; nodeIndex < local_context->getTotalNodes(); nodeIndex++ ){
-					ral::frame::BlazingTableView partition_table_view = ral::frame::BlazingTableView(partitioned[nodeIndex], batch->names());
-					if (local_context->getNode(nodeIndex) == ral::communication::CommunicationData::getInstance().getSelfNode()){
-						// hash_partition followed by split does not create a partition that we can own, so we need to clone it.
-						// if we dont clone it, hashed_data will go out of scope before we get to use the partition
-						// also we need a BlazingTable to put into the cache, we cant cache views.
-						std::unique_ptr<ral::frame::BlazingTable> partition_table_clone = partition_table_view.clone();
 
-						// TODO: create message id and send to add add_to_output_cache
-						output->addToCache(std::move(partition_table_clone), message_id);
-					} else {
-						partitions_to_send.emplace_back(
-							std::make_pair(local_context->getNode(nodeIndex), partition_table_view));
-					}
+				std::vector<ral::frame::BlazingTableView> partitions;
+				for(auto partition : partitioned) {
+					partitions.push_back(ral::frame::BlazingTableView(partition, batch->names()));
 				}
-				ral::distribution::distributeTablePartitions(local_context.get(), partitions_to_send);
+
+				scatter(partitions,
+					output,
+					"", //message_id_prefix
+					cache_id, //cache_id
+					table_idx  //message_tracker_idx
+				);
 
 				if (sequence.wait_for_next()){
 					batch = sequence.next();
@@ -555,8 +550,8 @@ public:
 				throw;
 			}
 		}
-		//printf("... notifyLastTablePartitions\n");
-		ral::distribution::notifyLastTablePartitions(local_context.get(), ColumnDataPartitionMessage::MessageID());
+
+		send_total_partition_counts("", cache_id, table_idx);
 	}
 
 	std::pair<bool, bool> determine_if_we_are_scattering_a_small_table(const ral::frame::BlazingTableView & left_batch_view,
@@ -609,13 +604,34 @@ public:
 			right_bytes_estimate = right_batch_rows == 0 ? 0 : (int64_t)(right_batch_bytes*(((double)right_num_rows_estimate.second)/right_batch_rows));
 		}
 
-		int self_node_idx = context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode());
-
 		context->incrementQuerySubstep();
-		ral::distribution::distributeLeftRightTableSizeBytes(context.get(), left_bytes_estimate, right_bytes_estimate);
-		std::vector<int64_t> nodes_num_bytes_left;
-		std::vector<int64_t> nodes_num_bytes_right;
 
+		auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
+		int self_node_idx = context->getNodeIndex(self_node);
+		auto nodes_to_send = context->getAllOtherNodes(self_node_idx);
+		
+		ral::cache::MetadataDictionary extra_metadata;
+		extra_metadata.add_value(ral::cache::JOIN_LEFT_BYTES_METADATA_LABEL, std::to_string(left_bytes_estimate));
+		extra_metadata.add_value(ral::cache::JOIN_RIGHT_BYTES_METADATA_LABEL, std::to_string(right_bytes_estimate));
+
+		std::vector<std::string> determination_messages_to_wait_for;
+		std::vector<std::string> target_ids;
+		for (auto i = 0; i < nodes_to_send.size(); i++)	{
+			target_ids.push_back(nodes_to_send[i].id());
+			determination_messages_to_wait_for.push_back(
+				"determine_if_we_are_scattering_a_small_table_" + std::to_string(this->context->getContextToken()) + "_" +	std::to_string(this->get_id()) +	"_" +	nodes_to_send[i].id());
+		}
+		send_message(nullptr,
+				false, //specific_cache
+				"", //cache_id
+				target_ids, //target_ids
+				"determine_if_we_are_scattering_a_small_table_", //message_id_prefix
+				true, //always_add
+				false, //wait_for
+				0, //message_tracker_idx
+				extra_metadata);
+
+		
 		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
 									"query_id"_a=context->getContextToken(),
 									"step"_a=context->getQueryStep(),
@@ -624,10 +640,18 @@ public:
 									"duration"_a="",
 									"kernel_id"_a=this->get_id());
 
-		ral::distribution::collectLeftRightTableSizeBytes(context.get(), nodes_num_bytes_left, nodes_num_bytes_right);
+		std::vector<int64_t> nodes_num_bytes_left(this->context->getTotalNodes());
+		std::vector<int64_t> nodes_num_bytes_right(this->context->getTotalNodes());
+
+		for (auto i = 0; i < determination_messages_to_wait_for.size(); i++)	{
+			auto message = this->query_graph->get_input_message_cache()->pullCacheData(determination_messages_to_wait_for[i]);
+			auto message_with_metadata = static_cast<ral::cache::GPUCacheDataMetaData*>(message.get());
+			int node_idx = context->getNodeIndex(context->getNode(message_with_metadata->getMetadata().get_values()[ral::cache::SENDER_WORKER_ID_METADATA_LABEL]));
+			nodes_num_bytes_left[node_idx] = std::stoll(message_with_metadata->getMetadata().get_values()[ral::cache::JOIN_LEFT_BYTES_METADATA_LABEL]);
+			nodes_num_bytes_right[node_idx] = std::stoll(message_with_metadata->getMetadata().get_values()[ral::cache::JOIN_RIGHT_BYTES_METADATA_LABEL]);
+		}
 		nodes_num_bytes_left[self_node_idx] = left_bytes_estimate;
 		nodes_num_bytes_right[self_node_idx] = right_bytes_estimate;
-
 		std::string collectLeftRightTableSizeBytesInfo = "nodes_num_bytes_left: ";
 		for (auto num_bytes : nodes_num_bytes_left){
 			collectLeftRightTableSizeBytesInfo += std::to_string(num_bytes) + ", ";
@@ -636,7 +660,6 @@ public:
 		for (auto num_bytes : nodes_num_bytes_right){
 			collectLeftRightTableSizeBytesInfo += std::to_string(num_bytes) + ", ";
 		}
-
 		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
 									"query_id"_a=context->getContextToken(),
 									"step"_a=context->getQueryStep(),
@@ -713,7 +736,6 @@ public:
 		std::unique_ptr<ral::frame::BlazingTable> right_batch,
 		BatchSequence left_sequence,
 		BatchSequence right_sequence){
-		using ColumnDataPartitionMessage = ral::communication::messages::ColumnDataPartitionMessage;
 
 		this->context->incrementQuerySubstep();
 
@@ -730,44 +752,31 @@ public:
 
 		computeNormalizationData(left_batch->get_schema(), right_batch->get_schema());
 
-		BlazingMutableThread distribute_left_thread(&JoinPartitionKernel::partition_table, this->context,
+		auto self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
+
+		BlazingMutableThread distribute_left_thread(&JoinPartitionKernel::partition_table, this, std::to_string(this->get_id()), this->context.get(),
 			this->left_column_indices, std::move(left_batch), std::ref(left_sequence), this->normalize_left, this->join_column_common_types,
-			std::ref(this->output_.get_cache("output_a")), "output_a_" + this->get_message_id(),
-			this->logger);
+			this->output_.get_cache("output_a").get(),
+			"output_a",
+			this->logger.get(),
+			LEFT_TABLE_IDX);
 
-		BlazingThread left_consumer([context = this->context, this](){
-			ExternalBatchColumnDataSequence<ColumnDataPartitionMessage> external_input_left(this->context, this->get_message_id(), this);
-			std::unique_ptr<ral::frame::BlazingHostTable> host_table;
-
-			while (host_table = external_input_left.next()) {
-				this->add_to_output_cache(std::move(host_table), "output_a");
-			}
-		});
-
-		// clone context, increment step counter to make it so that the next partition_table will have different message id
-		auto cloned_context = context->clone();
-		cloned_context->incrementQuerySubstep();
-
-		BlazingMutableThread distribute_right_thread(&JoinPartitionKernel::partition_table, cloned_context,
+		BlazingMutableThread distribute_right_thread(&JoinPartitionKernel::partition_table, this, std::to_string(this->get_id()), this->context.get(),
 			this->right_column_indices, std::move(right_batch), std::ref(right_sequence), this->normalize_right, this->join_column_common_types,
-			std::ref(this->output_.get_cache("output_b")), "output_b_" + this->get_message_id(),
-			this->logger);
-
-		// create thread with ExternalBatchColumnDataSequence for the right table being distriubted
-		BlazingThread right_consumer([cloned_context, this](){
-			ExternalBatchColumnDataSequence<ColumnDataPartitionMessage> external_input_right(cloned_context, this->get_message_id(), this);
-			std::unique_ptr<ral::frame::BlazingHostTable> host_table;
-
-			while (host_table = external_input_right.next()) {
-				this->add_to_output_cache(std::move(host_table), "output_b");
-			}
-		});
-
+			this->output_.get_cache("output_b").get(),
+			"output_b",
+			this->logger.get(),
+			RIGHT_TABLE_IDX);
 
 		distribute_left_thread.join();
-		left_consumer.join();
 		distribute_right_thread.join();
-		right_consumer.join();
+
+		int total_count_left = get_total_partition_counts(LEFT_TABLE_IDX); //left
+		this->output_.get_cache("output_a")->wait_for_count(total_count_left);
+
+		int total_count_right = get_total_partition_counts(RIGHT_TABLE_IDX); //right
+		this->output_.get_cache("output_b")->wait_for_count(total_count_right);
+
 	}
 
 	void small_table_scatter_distribution(std::unique_ptr<ral::frame::BlazingTable> small_table_batch,
@@ -775,7 +784,6 @@ public:
 		BatchSequence small_table_sequence,
 		BatchSequenceBypass big_table_sequence,
 		const std::pair<bool, bool> & scatter_left_right){
-		using ColumnDataMessage = ral::communication::messages::ColumnDataMessage;
 
 		this->context->incrementQuerySubstep();
 
@@ -783,17 +791,25 @@ public:
 		assert((scatter_left_right.first || scatter_left_right.second) && not (scatter_left_right.first && scatter_left_right.second));
 
 		std::string small_output_cache_name = scatter_left_right.first ? "output_a" : "output_b";
+		int small_table_idx = scatter_left_right.first ? LEFT_TABLE_IDX : RIGHT_TABLE_IDX;
 		std::string big_output_cache_name = scatter_left_right.first ? "output_b" : "output_a";
-
-		BlazingThread distribute_small_table_thread([this, &small_table_batch, &small_table_sequence, small_output_cache_name](){
+		int big_table_idx = scatter_left_right.first ? RIGHT_TABLE_IDX : LEFT_TABLE_IDX;
+		
+		BlazingThread distribute_small_table_thread([this, &small_table_batch, &small_table_sequence, small_output_cache_name, small_table_idx](){
 			bool done = false;
 			int batch_count = 0;
+			auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
 			while (!done) {
 				try {
-					if(small_table_batch != nullptr && small_table_batch->num_rows() > 0) {
-						ral::distribution::scatterData(this->context.get(), small_table_batch->toBlazingTableView());
+					if(small_table_batch != nullptr ) {
+						broadcast(std::move(small_table_batch),
+							this->output_.get_cache(small_output_cache_name).get(),
+							"", //message_id_prefix
+							small_output_cache_name, //cache_id
+							small_table_idx //message_tracker_idx
+						);
 					}
-					this->add_to_output_cache(std::move(small_table_batch), small_output_cache_name);
+
 					if (small_table_sequence.wait_for_next()){
 						small_table_batch = small_table_sequence.next();
 						batch_count++;
@@ -812,29 +828,34 @@ public:
 					throw;
 				}
 			}
-			ral::distribution::notifyLastTablePartitions(this->context.get(), ColumnDataMessage::MessageID());
+
+			send_total_partition_counts(
+				"", //message_prefix
+				small_output_cache_name, //cache_id
+				small_table_idx //message_tracker_idx
+			);
 		});
 
-		BlazingThread collect_small_table_thread([this, small_output_cache_name](){
-			ExternalBatchColumnDataSequence<ColumnDataMessage> external_input_left(this->context, this->get_message_id(), this);
-
-			while (external_input_left.wait_for_next()) {
-				std::unique_ptr<ral::frame::BlazingHostTable> host_table = external_input_left.next();
-				this->add_to_output_cache(std::move(host_table), small_output_cache_name);
-			}
-		});
-
-		this->add_to_output_cache(std::move(big_table_batch), big_output_cache_name);
-
-		BlazingThread big_table_passthrough_thread([this, &big_table_sequence, big_output_cache_name](){
+		auto self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
+		bool added = this->add_to_output_cache(std::move(big_table_batch), big_output_cache_name);
+		if (added) {
+			increment_node_count(self_node.id(), big_table_idx);
+		}
+		BlazingThread big_table_passthrough_thread([this, &big_table_sequence, big_output_cache_name, big_table_idx, self_node](){
 			while (big_table_sequence.wait_for_next()) {
 				auto batch = big_table_sequence.next();
-				this->add_to_output_cache(std::move(batch), big_output_cache_name);
+				bool added = this->add_to_output_cache(std::move(batch), big_output_cache_name);
+				if (added) {
+					increment_node_count(self_node.id(), big_table_idx);
+				}
 			}
 		});
 
 		distribute_small_table_thread.join();
-		collect_small_table_thread.join();
+
+		int total_count = get_total_partition_counts(small_table_idx);
+		this->output_cache(small_output_cache_name)->wait_for_count(total_count);
+
 		big_table_passthrough_thread.join();
 	}
 
@@ -857,15 +878,7 @@ public:
 			}
 		}
 		if (left_batch == nullptr || left_batch->num_columns() == 0){
-			std::string err = "In JoinPartitionKernel left side is empty and cannot determine join column indices";
-			logger->error("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
-										"query_id"_a=context->getContextToken(),
-										"step"_a=context->getQueryStep(),
-										"substep"_a=context->getQuerySubstep(),
-										"info"_a=err,
-										"duration"_a="",
-										"kernel_id"_a=this->get_id());
-			throw err;
+			RAL_FAIL("In JoinPartitionKernel left side is empty and cannot determine join column indices");
 		}
 
 		std::pair<bool, bool> scatter_left_right;
@@ -937,8 +950,6 @@ private:
 	std::vector<cudf::data_type> join_column_common_types;
 	bool normalize_left, normalize_right;
 };
-
-
 
 } // namespace batch
 } // namespace ral

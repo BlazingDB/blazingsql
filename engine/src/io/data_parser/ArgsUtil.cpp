@@ -28,7 +28,7 @@ DataType inferDataType(std::string file_format_hint) {
 	return DataType::UNDEFINED;
 }
 
-DataType inferFileType(std::vector<std::string> files, DataType data_type_hint) {
+DataType inferFileType(std::vector<std::string> files, DataType data_type_hint, bool ignore_missing_paths) {
 	if(data_type_hint == DataType::PARQUET || data_type_hint == DataType::CSV || data_type_hint == DataType::JSON ||
 		data_type_hint == DataType::ORC) {
 		return data_type_hint;
@@ -37,7 +37,7 @@ DataType inferFileType(std::vector<std::string> files, DataType data_type_hint) 
 	std::vector<Uri> uris;
 	std::transform(
 		files.begin(), files.end(), std::back_inserter(uris), [](std::string uri) -> Uri { return Uri(uri); });
-	ral::io::uri_data_provider udp(uris);
+	ral::io::uri_data_provider udp(uris, ignore_missing_paths);
 	bool open_file = false;
 	const ral::io::data_handle dh = udp.get_next(open_file);
 	std::string ext = dh.uri.getPath().getFileExtension();
@@ -77,7 +77,7 @@ std::vector<int> to_vector_int(std::string value) {
 }
 
 cudf::io::json_reader_options getJsonReaderOptions(const std::map<std::string, std::string> & args, cudf::io::arrow_io_source & arrow_source) {
-	
+
 	cudf::io::json_reader_options reader_opts = cudf::io::json_reader_options::builder(cudf::io::source_info{&arrow_source});
 	reader_opts.enable_lines(true);
 	if(map_contains("dtype", args)) {
@@ -99,13 +99,13 @@ cudf::io::json_reader_options getJsonReaderOptions(const std::map<std::string, s
 }
 
 cudf::io::orc_reader_options getOrcReaderOptions(const std::map<std::string, std::string> & args, cudf::io::arrow_io_source & arrow_source) {
-	
+
 	cudf::io::orc_reader_options reader_opts = cudf::io::orc_reader_options::builder(cudf::io::source_info{&arrow_source});
 	if(map_contains("stripes", args)) {
 		reader_opts.set_stripes(to_vector_int(args.at("stripes")));
 	}
-	if(map_contains("skip_rows", args)) {
-		reader_opts.set_skip_rows(to_int(args.at("skip_rows")));
+	if(map_contains("skiprows", args)) {
+		reader_opts.set_skip_rows(to_int(args.at("skiprows")));
 	}
 	if(map_contains("num_rows", args)) {
 		reader_opts.set_num_rows(to_int(args.at("num_rows")));
@@ -151,13 +151,14 @@ cudf::io::csv_reader_options getCsvReaderOptions(const std::map<std::string, std
 	if(map_contains("skipfooter", args)) {
 		reader_opts.set_skipfooter((cudf::size_type) to_int(args.at("skipfooter")));
 	}
-	if(map_contains("header", args) && args.at("header") != "None" ) { // this is how it was in branch-0.14 at some point, but it makes testing fail
-		reader_opts.set_header((cudf::size_type) to_int(args.at("header")));
-	} else if((map_contains("header", args) && args.at("header") == "None") || (!map_contains("header", args) && map_contains("names", args))) {
-		reader_opts.set_header(-1);
-	}
 	if(map_contains("names", args)) {
 		reader_opts.set_names(to_vector_string(args.at("names")));
+		reader_opts.set_header(-1);
+	} else {
+		reader_opts.set_header(0);
+	}
+	if(map_contains("header", args)) {
+		reader_opts.set_header((cudf::size_type) to_int(args.at("header")));
 	}
 	if(map_contains("dtype", args)) {
 		reader_opts.set_dtypes(to_vector_string(args.at("dtype")));

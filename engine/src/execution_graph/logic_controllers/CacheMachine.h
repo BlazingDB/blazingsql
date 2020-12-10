@@ -1,37 +1,23 @@
 #pragma once
 
 #include <atomic>
-#include <future>
+#include <deque>
 #include <memory>
 #include <condition_variable>
 #include <mutex>
-#include <queue>
 #include <string>
-#include <typeindex>
 #include <vector>
-#include <limits>
 #include <map>
 
 #include <spdlog/spdlog.h>
-#include <spdlog/async.h>
-#include <spdlog/sinks/basic_file_sink.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
-
-#include "cudf/column/column_view.hpp"
-#include "cudf/table/table.hpp"
-#include "cudf/table/table_view.hpp"
-
+#include "cudf/types.hpp"
 #include "error.hpp"
 #include "CodeTimer.h"
-#include <blazingdb/manager/Context.h>
-#include <communication/messages/GPUComponentMessage.h>
-#include "execution_graph/logic_controllers/BlazingColumn.h"
-#include "execution_graph/logic_controllers/BlazingColumnOwner.h"
-#include "execution_graph/logic_controllers/BlazingColumnView.h"
+#include <execution_graph/logic_controllers/LogicPrimitives.h>
+#include <execution_graph/Context.h>
 #include <bmr/BlazingMemoryResource.h>
 #include "communication/CommunicationData.h"
-
-
+#include "communication/messages/GPUComponentMessage.h"
 
 using namespace std::chrono_literals;
 
@@ -60,6 +46,7 @@ const std::string WORKER_IDS_METADATA_LABEL = "worker_ids"; /**< A message metad
 const std::string TOTAL_TABLE_ROWS_METADATA_LABEL = "total_table_rows"; /**< A message metadata field that indicates how many rows are in this message. */
 const std::string JOIN_LEFT_BYTES_METADATA_LABEL = "join_left_bytes_metadata_label"; /**< A message metadata field that indicates how many bytes were found in a left table for join scheduling.  */
 const std::string JOIN_RIGHT_BYTES_METADATA_LABEL = "join_right_bytes_metadata_label"; /**< A message metadata field that indicates how many bytes were found in a right table for join scheduling.  */
+const std::string AVG_BYTES_PER_ROW_METADATA_LABEL = "avg_bytes_per_row"; /** < A message metadata field that indicates the average of bytes per row. */
 const std::string MESSAGE_ID = "message_id"; /**< A message metadata field that indicates the id of a message. Not all messages have an id. Any message that has add_to_specific_cache == false MUST have a message id. */
 const std::string PARTITION_COUNT = "partition_count"; /**< A message metadata field that indicates the number of partitions a kernel processed.  */
 
@@ -195,7 +182,8 @@ public:
 	* Gets the map storing the metadata.
 	* @return the map storing all of the metadata.
 	*/
-	std::map<std::string,std::string> get_values(){
+
+	std::map<std::string,std::string> get_values() const {
 		return this->values;
 	}
 
@@ -205,7 +193,16 @@ public:
 	*/
 	void set_values(std::map<std::string,std::string> new_values){
 		this->values= new_values;
-		print();
+	}
+
+	/**
+	* Checks if metadata has a specific key
+	* @param key The key to check if is in the metadata
+	* @return true if the key is in the metadata, otherwise return false
+	*/
+	bool has_value(std::string key){
+		auto it = this->values.find(key);
+		return it != this->values.end();
 	}
 private:
 	std::map<std::string,std::string> values; /**< Stores the mapping of metdata label to metadata value */
@@ -410,8 +407,9 @@ public:
 	* @param table The BlazingTable that is converted into an ORC file and stored
 	* on disk.
 	* @ param orc_files_path The path where the file should be stored.
+	* @ param ctx_id The context token to identify the query that generated the file.
 	*/
-	CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable> table, std::string orc_files_path);
+	CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable> table, std::string orc_files_path, std::string ctx_token);
 
 	/**
 	* Constructor
@@ -496,7 +494,7 @@ public:
 	/**
 	* Constructor
 	*/
-	WaitingQueue(int timeout = 60000) : finished{false}, timeout(timeout) {}
+	WaitingQueue(int timeout = 60000, bool log_timeout = true) : finished{false}, timeout(timeout), log_timeout(log_timeout) {}
 
 	/**
 	* Destructor
@@ -562,7 +560,7 @@ public:
 
 		std::unique_lock<std::mutex> lock(mutex_);
 		condition_variable_.wait(lock, [&, this] () {
-			if (count > this->processed){
+			if (count < this->processed){
 				throw std::runtime_error("WaitingQueue::wait_for_count encountered " + std::to_string(this->processed) + " when expecting " + std::to_string(count));
 			}
 			return count == this->processed;
@@ -581,7 +579,7 @@ public:
 
 		CodeTimer blazing_timer;
 		std::unique_lock<std::mutex> lock(mutex_);
-		while(!condition_variable_.wait_for(lock, timeout*1ms, [&, this] {
+		/*while(!condition_variable_.wait_for(lock, timeout*1ms, [&, this] {
 				bool done_waiting = this->finished.load(std::memory_order_seq_cst) or !this->empty();
 				if (!done_waiting && blazing_timer.elapsed_time() > 59000){
 					auto logger = spdlog::get("batch_logger");
@@ -592,8 +590,11 @@ public:
 					}
 				}
 				return done_waiting;
-			})){}
+			})){}*/
 
+		condition_variable_.wait(lock,[&, this] {
+				return this->finished.load(std::memory_order_seq_cst) or !this->empty();
+		});
 		if(this->message_queue_.size() == 0) {
 			return nullptr;
 		}
@@ -611,7 +612,7 @@ public:
 		std::unique_lock<std::mutex> lock(mutex_);
 		while(!condition_variable_.wait_for(lock, timeout*1ms, [&, this] {
 				bool done_waiting = this->finished.load(std::memory_order_seq_cst) or !this->empty();
-				if (!done_waiting && blazing_timer.elapsed_time() > 59000){
+				if (!done_waiting && blazing_timer.elapsed_time() > 59000 && this->log_timeout){
 					auto logger = spdlog::get("batch_logger");
 					if(logger != nullptr) {
 						logger->warn("|||{info}|{duration}||||",
@@ -647,7 +648,7 @@ public:
 		std::unique_lock<std::mutex> lock(mutex_);
 		while(!condition_variable_.wait_for(lock, timeout*1ms, [&blazing_timer, this] {
 				bool done_waiting = this->finished.load(std::memory_order_seq_cst);
-				if (!done_waiting && blazing_timer.elapsed_time() > 59000){
+				if (!done_waiting && blazing_timer.elapsed_time() > 59000 && this->log_timeout){
 					auto logger = spdlog::get("batch_logger");
 					if(logger != nullptr) {
 					   logger->warn("|||{info}|{duration}||||",
@@ -679,7 +680,7 @@ public:
 					}
 					done_waiting = total_bytes > num_bytes;
 				}
-				if (!done_waiting && blazing_timer.elapsed_time() > 59000){
+				if (!done_waiting && blazing_timer.elapsed_time() > 59000 && this->log_timeout){
 					auto logger = spdlog::get("batch_logger");
 					if(logger != nullptr) {
 						logger->warn("|||{info}|{duration}||||",
@@ -701,7 +702,7 @@ public:
 	size_t get_next_size_in_bytes(){
 		std::unique_lock<std::mutex> lock(mutex_);
 		if (message_queue_.size() > 0){
-			message_queue_[0]->get_data().sizeInBytes();
+			return message_queue_[0]->get_data().sizeInBytes();
 		} else {
 			return 0;
 		}
@@ -727,7 +728,7 @@ public:
 								return e->get_message_id() == message_id;
 							});
 				bool done_waiting = this->finished.load(std::memory_order_seq_cst) or result;
-				if (!done_waiting && blazing_timer.elapsed_time() > 59000){
+				if (!done_waiting && blazing_timer.elapsed_time() > 59000 && this->log_timeout){
 					auto logger = spdlog::get("batch_logger");
 					if(logger != nullptr) {
 						logger->warn("|||{info}|{duration}|message_id|{message_id}||",
@@ -737,7 +738,9 @@ public:
 					}
 				}
 				return done_waiting;
-			})){}
+			})){
+
+			}
 		if(this->message_queue_.size() == 0) {
 			return nullptr;
 		}
@@ -786,7 +789,7 @@ public:
 		std::unique_lock<std::mutex> lock(mutex_);
 		while(!condition_variable_.wait_for(lock, timeout*1ms,  [&blazing_timer, this] {
 				bool done_waiting = this->finished.load(std::memory_order_seq_cst);
-				if (!done_waiting && blazing_timer.elapsed_time() > 59000){
+				if (!done_waiting && blazing_timer.elapsed_time() > 59000 && this->log_timeout){
 					auto logger = spdlog::get("batch_logger");
 					if(logger != nullptr) {
 						logger->warn("|||{info}|{duration}||||",
@@ -832,6 +835,11 @@ public:
 	}
 
 
+	void put_all(std::vector<message_ptr> messages){
+		std::unique_lock<std::mutex> lock(mutex_);
+		put_all_unsafe(std::move(messages));
+		condition_variable_.notify_all();
+	}
 private:
 	/**
 	* Checks if the WaitingQueue is empty.
@@ -857,6 +865,7 @@ private:
 	int processed = 0; /**< Count of messages added to the WaitingQueue. */
 
 	int timeout; /**< timeout period in ms used by the wait_for to log that the condition_variable has been waiting for a long time. */
+	bool log_timeout; /**< Whether or not to log when a timeout accurred. */
 };
 
 
@@ -872,9 +881,7 @@ std::unique_ptr<GPUCacheDataMetaData> cast_cache_data_to_gpu_with_meta(std::uniq
 */
 class CacheMachine {
 public:
-	CacheMachine(std::shared_ptr<Context> context);
-
-	CacheMachine(std::shared_ptr<Context> context, std::size_t flow_control_bytes_threshold);
+	CacheMachine(std::shared_ptr<Context> context, bool log_timeout = true);
 
 	~CacheMachine();
 
@@ -884,11 +891,11 @@ public:
 
 	virtual void clear();
 
-	virtual void addToCache(std::unique_ptr<ral::frame::BlazingTable> table, const std::string & message_id = "", bool always_add = false);
+	virtual bool addToCache(std::unique_ptr<ral::frame::BlazingTable> table, const std::string & message_id = "", bool always_add = false);
 
-	virtual void addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, const std::string & message_id = "", bool always_add = false);
+	virtual bool addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, const std::string & message_id = "", bool always_add = false);
 
-	virtual void addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> table, const std::string & message_id = "");
+	virtual bool addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> table, const std::string & message_id = "");
 
 	virtual void finish();
 
@@ -913,6 +920,11 @@ public:
 	}
 	virtual std::unique_ptr<ral::frame::BlazingTable> pullFromCache();
 
+	std::vector<std::unique_ptr<ral::cache::CacheData> > pull_all_cache_data();
+
+	void put_all_cache_data( std::vector<std::unique_ptr<ral::cache::CacheData> > messages, std::vector<std::string> message_ids);
+
+
 
 	virtual std::unique_ptr<ral::cache::CacheData> pullCacheData(std::string message_id);
 
@@ -920,10 +932,6 @@ public:
 
 
 	virtual std::unique_ptr<ral::cache::CacheData> pullCacheData();
-
-	bool thresholds_are_met(std::size_t bytes_count);
-
-	virtual void wait_if_cache_is_saturated();
 
 	void wait_for_count(int count){
 		return this->waitingCache->wait_for_count(count);
@@ -949,12 +957,6 @@ protected:
 	std::shared_ptr<spdlog::logger> logger;
 	std::shared_ptr<spdlog::logger> cache_events_logger;
 	const std::size_t cache_id;
-
-	std::size_t flow_control_bytes_threshold;
-	std::size_t flow_control_bytes_count;
-	std::mutex flow_control_mutex;
-	std::condition_variable flow_control_condition_variable;
-
 };
 
 /**
@@ -1059,7 +1061,7 @@ class ConcatenatingCacheMachine : public CacheMachine {
 public:
 	ConcatenatingCacheMachine(std::shared_ptr<Context> context);
 
-	ConcatenatingCacheMachine(std::shared_ptr<Context> context, std::size_t flow_control_bytes_threshold, 
+	ConcatenatingCacheMachine(std::shared_ptr<Context> context,
 			std::size_t concat_cache_num_bytes, bool concat_all);
 
 	~ConcatenatingCacheMachine() = default;

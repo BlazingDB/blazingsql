@@ -13,13 +13,14 @@ from libcpp.vector cimport vector
 from libcpp.pair cimport pair
 from libcpp.string cimport string
 from libcpp.map cimport map
-from libcpp.memory cimport unique_ptr
+from libcpp.memory cimport unique_ptr, shared_ptr, make_shared, make_unique
+from cython.operator cimport dereference as deref, postincrement
 from libc.stdint cimport uintptr_t
 from libc.stdlib cimport malloc, free
 from libc.string cimport strcpy, strlen
 from pyarrow.lib cimport *
 
-import enum
+from enum import IntEnum
 
 import numpy as np
 import pandas as pd
@@ -31,6 +32,7 @@ from cudf._lib cimport *
 from cudf._lib.types import np_to_cudf_types, cudf_to_np_types
 from cudf._lib.cpp.types cimport type_id
 from cudf._lib.types cimport underlying_type_t_type_id
+from cudf._lib.cpp.io.types cimport compression_type
 
 from bsql_engine.io cimport cio
 from bsql_engine.io.cio cimport *
@@ -39,7 +41,33 @@ from cython.operator cimport dereference, postincrement
 
 from cudf._lib.table cimport Table as CudfXxTable
 
+from libcpp.utility cimport pair
 import logging
+
+ctypedef int32_t underlying_type_t_compression
+
+class Compression(IntEnum):
+    INFER = (
+        <underlying_type_t_compression> compression_type.AUTO
+    )
+    SNAPPY = (
+        <underlying_type_t_compression> compression_type.SNAPPY
+    )
+    GZIP = (
+        <underlying_type_t_compression> compression_type.GZIP
+    )
+    BZ2 = (
+        <underlying_type_t_compression> compression_type.BZIP2
+    )
+    BROTLI = (
+        <underlying_type_t_compression> compression_type.BROTLI
+    )
+    ZIP = (
+        <underlying_type_t_compression> compression_type.ZIP
+    )
+    XZ = (
+        <underlying_type_t_compression> compression_type.XZ
+    )
 
 # TODO: module for errors and move pyerrors to cpyerrors
 class BlazingError(Exception):
@@ -62,9 +90,17 @@ class GetProductDetailsError(BlazingError):
     """GetProductDetails Error."""
 cdef public PyObject * GetProductDetailsError_ = <PyObject *>GetProductDetailsError
 
-class RunQueryError(BlazingError):
-    """RunQuery Error."""
-cdef public PyObject *RunQueryError_ = <PyObject *>RunQueryError
+class PerformPartitionError(BlazingError):
+    """PerformPartitionError Error."""
+cdef public PyObject * PerformPartitionError_ = <PyObject *>PerformPartitionError
+
+class RunGenerateGraphError(BlazingError):
+    """RunGenerateGraph Error."""
+cdef public PyObject * RunGenerateGraphError_ = <PyObject *>RunGenerateGraphError
+
+class RunExecuteGraphError(BlazingError):
+    """RunExecuteGraph Error."""
+cdef public PyObject * RunExecuteGraphError_ = <PyObject *>RunExecuteGraphError
 
 class RunSkipDataError(BlazingError):
     """RunSkipData Error."""
@@ -90,23 +126,30 @@ class RegisterFileSystemLocalError(BlazingError):
     """RegisterFileSystemLocal Error."""
 cdef public PyObject * RegisterFileSystemLocalError_ = <PyObject *>RegisterFileSystemLocalError
 
+class InferFolderPartitionMetadataError(BlazingError):
+    """InferFolderPartitionMetadata Error."""
+cdef public PyObject * InferFolderPartitionMetadataError_ = <PyObject *>InferFolderPartitionMetadataError
+
 cdef cio.TableSchema parseSchemaPython(vector[string] files, string file_format_hint, vector[string] arg_keys, vector[string] arg_values,vector[pair[string,type_id]] extra_columns, bool ignore_missing_paths) nogil except *:
     with nogil:
-        return cio.parseSchema(files,file_format_hint,arg_keys,arg_values,extra_columns, ignore_missing_paths)
+        return cio.parseSchema(files, file_format_hint, arg_keys, arg_values, extra_columns, ignore_missing_paths)
 
 cdef unique_ptr[cio.ResultSet] parseMetadataPython(vector[string] files, pair[int,int] offset, cio.TableSchema schema, string file_format_hint, vector[string] arg_keys, vector[string] arg_values) nogil:
     with nogil:
         return blaz_move( cio.parseMetadata(files, offset, schema, file_format_hint,arg_keys,arg_values) )
 
-cdef unique_ptr[cio.PartitionedResultSet] runQueryPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, vector[string] tableNames, vector[string] tableScans, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken,vector[vector[map[string,string]]] uri_values_cpp, map[string,string] config_options) nogil except *:
-    with nogil:
-        return blaz_move(cio.runQuery( masterIndex, tcpMetadata, tableNames, tableScans, tableSchemas, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query, accessToken, uri_values_cpp, config_options))
+cdef shared_ptr[cio.graph] runGenerateGraphPython(int masterIndex,vector[string] worker_ids, vector[string] tableNames, vector[string] tableScans, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken,vector[vector[map[string,string]]] uri_values_cpp, map[string,string] config_options, string sql) except +:
+    return cio.runGenerateGraph(masterIndex, worker_ids, tableNames, tableScans, tableSchemas, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query, accessToken, uri_values_cpp, config_options,sql)
 
-cdef unique_ptr[cio.ResultSet] performPartitionPython(int masterIndex, vector[NodeMetaDataTCP] tcpMetadata, int ctxToken, BlazingTableView blazingTableView, vector[string] column_names) nogil except *:
+cdef unique_ptr[cio.PartitionedResultSet] runExecuteGraphPython(shared_ptr[cio.graph] graph, int ctx_token) except +:
     with nogil:
-        return blaz_move(cio.performPartition(masterIndex, tcpMetadata, ctxToken, blazingTableView, column_names))
+      return blaz_move(cio.runExecuteGraph(graph,ctx_token))
 
-cdef unique_ptr[cio.ResultSet] runSkipDataPython(BlazingTableView metadata, vector[string] all_column_names, string query) nogil except *:
+#cdef unique_ptr[cio.ResultSet] performPartitionPython(int masterIndex, int ctxToken, BlazingTableView blazingTableView, vector[string] column_names) nogil except +:
+#    with nogil:
+#        return blaz_move(cio.performPartition(masterIndex,  ctxToken, blazingTableView, column_names))
+
+cdef unique_ptr[cio.ResultSet] runSkipDataPython(BlazingTableView metadata, vector[string] all_column_names, string query) nogil except +:
     with nogil:
         return blaz_move(cio.runSkipData( metadata, all_column_names, query))
 
@@ -115,12 +158,14 @@ cdef cio.TableScanInfo getTableScanInfoPython(string logicalPlan) nogil:
         temp = cio.getTableScanInfo(logicalPlan)
     return temp
 
-cdef void initializePython(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options, 
-                            string allocation_mode, size_t initial_pool_size, size_t maximum_pool_size, bool enable_logging) nogil except *:
+cdef pair[pair[shared_ptr[cio.CacheMachine], shared_ptr[cio.CacheMachine] ], int] initializePython(int ralId, string worker_id, int gpuId, string network_iface_name,  
+    int ralCommunicationPort, vector[NodeMetaDataUCP] workers_ucp_info, bool singleNode, map[string,string] config_options,
+    string allocation_mode, size_t initial_pool_size, size_t maximum_pool_size, bool enable_logging) nogil except +:
     with nogil:
-        cio.initialize(ralId, gpuId, network_iface_name, ralHost, ralCommunicationPort, singleNode, config_options, allocation_mode, initial_pool_size, maximum_pool_size, enable_logging)
+        return cio.initialize( ralId, worker_id, gpuId, network_iface_name, ralCommunicationPort, workers_ucp_info, singleNode, config_options, allocation_mode, initial_pool_size, maximum_pool_size, enable_logging)
 
-cdef void finalizePython() nogil except *:
+
+cdef void finalizePython() nogil except +:
     with nogil:
         cio.finalize()
 
@@ -132,6 +177,10 @@ cdef map[string, string] getProductDetailsPython() nogil except *:
     with nogil:
         return cio.getProductDetails()
 
+cdef vector[cio.FolderPartitionMetadata] inferFolderPartitionMetadataPython(string folder_path) nogil except *:
+    with nogil:
+        return cio.inferFolderPartitionMetadata(folder_path)
+
 cpdef pair[bool, string] registerFileSystemCaller(fs, root, authority):
     cdef HDFS hdfs
     cdef S3 s3
@@ -141,7 +190,7 @@ cpdef pair[bool, string] registerFileSystemCaller(fs, root, authority):
         hdfs.port = fs['port']
         hdfs.user = str.encode(fs['user'])
         driver = fs['driver']
-        if 'libhdfs' == driver:
+        if 'libhdfs' == driver: # Increment the iterator to the net element
             hdfs.DriverType = 1
         elif 'libhdfs3' == driver:
             hdfs.DriverType = 2
@@ -168,9 +217,93 @@ cpdef pair[bool, string] registerFileSystemCaller(fs, root, authority):
     if fs['type'] == 'local':
         return cio.registerFileSystemLocal( str.encode( root), str.encode(authority))
 
-cpdef initializeCaller(int ralId, int gpuId, string network_iface_name, string ralHost, int ralCommunicationPort, bool singleNode, map[string,string] config_options, 
-        string allocation_mode, size_t initial_pool_size, size_t maximum_pool_size, bool enable_logging):
-    initializePython(ralId, gpuId, network_iface_name, ralHost, ralCommunicationPort, singleNode, config_options, allocation_mode, initial_pool_size, maximum_pool_size, enable_logging)
+
+cdef class PyBlazingCache:
+    cdef shared_ptr[cio.CacheMachine] c_cache
+
+    def add_to_cache_with_meta(self,cudf_data,metadata):
+        cdef cio.MetadataDictionary c_metadata
+        cdef map[string,string] metadata_map
+        cdef string c_key
+        for key in metadata.keys():
+          if key != "worker_ids":
+            c_key = key.encode()
+            metadata_map[c_key] = metadata[key].encode()
+
+        c_metadata.set_values(metadata_map)
+        cdef vector[string] column_names
+        for column_name in cudf_data:
+           column_names.push_back(str.encode(column_name))
+        cdef vector[column_view] column_views
+        cdef Column cython_col
+        for cython_col in cudf_data._data.values():
+           column_views.push_back(cython_col.view())
+        cdef unique_ptr[BlazingTable] blazing_table = make_unique[BlazingTable](table_view(column_views), column_names)
+        deref(blazing_table).ensureOwnership()
+        cdef unique_ptr[cio.GPUCacheDataMetaData] ptr = make_unique[cio.GPUCacheDataMetaData](move(blazing_table),c_metadata)
+        cdef string msg_id = metadata["message_id"].encode()
+        with nogil:
+            deref(self.c_cache).addCacheData(blaz_move2(ptr),msg_id,1)
+
+
+    def has_next_now(self,):
+        return deref(self.c_cache).has_next_now()
+
+    def add_to_cache(self,cudf_data):
+        cdef vector[string] column_names
+        for column_name in cudf_data:
+            column_names.push_back(str.encode(column_name))
+
+        cdef vector[column_view] column_views
+        cdef Column cython_col
+        for cython_col in cudf_data._data.values():
+            column_views.push_back(cython_col.view())
+        cdef unique_ptr[BlazingTable] blazing_table = make_unique[BlazingTable](table_view(column_views), column_names)
+        deref(blazing_table).ensureOwnership()
+        cdef string message_id
+        with nogil:
+            deref(self.c_cache).addToCache(blaz_move(blazing_table),message_id,1)
+
+    def pull_from_cache(self):
+        cdef unique_ptr[CacheData] cache_data_generic
+        with nogil:
+            cache_data_generic = blaz_move(deref(self.c_cache).pullCacheData())
+        cdef unique_ptr[GPUCacheDataMetaData] cache_data = cast_cache_data_to_gpu_with_meta(blaz_move(cache_data_generic))
+        cdef pair[unique_ptr[BlazingTable], MetadataDictionary ] table_and_meta = deref(cache_data).decacheWithMetaData()
+        table = blaz_move(table_and_meta.first)
+
+        metadata = table_and_meta.second
+
+        metadata_temp = metadata.get_values()
+        metadata_py = {}
+        for key_val in metadata_temp:
+            key = key_val.first.decode('utf-8')
+            val = key_val.second.decode('utf-8')
+            if(key == "worker_ids"):
+                metadata_py[key] = val.split(",")
+            else:
+                metadata_py[key] = val
+
+
+        decoded_names = []
+        for i in range(deref(table).names().size()):
+            decoded_names.append(deref(table).names()[i].decode('utf-8'))
+        df = cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(deref(table).releaseCudfTable()), decoded_names)._data)
+        df._rename_columns(decoded_names)
+        return df, metadata_py
+
+cpdef initializeCaller(int ralId, string worker_id, int gpuId, string network_iface_name,  int ralCommunicationPort, vector[NodeMetaDataUCP] workers_ucp_info, 
+        bool singleNode, map[string,string] config_options, string allocation_mode, size_t initial_pool_size, size_t maximum_pool_size, bool enable_logging):
+    init_output = initializePython( ralId, worker_id, gpuId, network_iface_name,  ralCommunicationPort, workers_ucp_info, singleNode, config_options,
+        allocation_mode, initial_pool_size, maximum_pool_size, enable_logging)
+    caches = init_output.first
+    port = init_output.second
+    transport_out = PyBlazingCache()
+    transport_out.c_cache = caches.first
+    transport_in = PyBlazingCache()
+    transport_in.c_cache = caches.second
+    return (transport_out,transport_in, port)
+
 
 cpdef finalizeCaller():
     finalizePython()
@@ -198,11 +331,19 @@ cpdef getProductDetailsCaller():
 
 cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns, ignore_missing_paths):
     cdef vector[string] files
-    for file in fileList:
-      files.push_back(str.encode(file))
-
     cdef vector[string] arg_keys
     cdef vector[string] arg_values
+    cdef underlying_type_t_compression c_compression
+
+    if 'compression' in args:
+        if args['compression'] is None:
+            c_compression = <underlying_type_t_compression> compression_type.NONE
+        else:
+            c_compression = <underlying_type_t_compression> Compression[args['compression'].upper()]
+        args.update(compression=c_compression)
+
+    for file in fileList:
+      files.push_back(str.encode(file))
 
     for key, value in args.items():
       arg_keys.push_back(str.encode(key))
@@ -228,6 +369,7 @@ cpdef parseSchemaCaller(fileList, file_format_hint, args, extra_columns, ignore_
         return_object['types'].append(<underlying_type_t_type_id>(type))
     return_object['names'] = tableSchema.names
     return_object['calcite_to_file_indices']= tableSchema.calcite_to_file_indices
+    return_object['has_header_csv']= tableSchema.has_header_csv
 
     return return_object
 
@@ -257,53 +399,48 @@ cpdef parseMetadataCaller(fileList, offset, schema, file_format_hint, args):
 
     names = dereference(resultSet).names
     decoded_names = []
-    for i in range(names.size()):
+    for i in range(names.size()): # Increment the iterator to the net element
         decoded_names.append(names[i].decode('utf-8'))
 
     df = cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTable), decoded_names)._data)
     df._rename_columns(decoded_names)
     return df
 
-cpdef performPartitionCaller(int masterIndex, tcpMetadata, int ctxToken, input, by):
-    cdef vector[NodeMetaDataTCP] tcpMetadataCpp
-    cdef NodeMetaDataTCP currentMetadataCpp
-    cdef vector[string] column_names
+cpdef inferFolderPartitionMetadataCaller(folder_path):
+    folderMetadataArr = inferFolderPartitionMetadataPython(folder_path.encode())
 
-    cdef vector[string] names
-    names.resize(0)
-    column_names.resize(0)
+    return_array = []
+    for metadata in folderMetadataArr:
+        decoded_values = []
+        for value in metadata.values:
+            decoded_values.append(value.decode('utf-8'))
 
-    cdef vector[column_view] column_views
-    cdef Column cython_col
+        return_array.append({
+            'name': metadata.name.decode('utf-8'),
+            'values': decoded_values,
+            'data_type': <underlying_type_t_type_id>(metadata.data_type)
+        })
 
-    for column_name in by:
-      column_names.push_back(str.encode(column_name))
+    return return_array
 
-    for column_name in input.columns.to_list():
-      names.push_back(str.encode(column_name))
 
-    for currentMetadata in tcpMetadata:
-        currentMetadataCpp.ip = currentMetadata['ip'].encode()
-        currentMetadataCpp.communication_port = currentMetadata['communication_port']
-        tcpMetadataCpp.push_back(currentMetadataCpp)
+cdef class PyBlazingGraph:
+    cdef shared_ptr[cio.graph] ptr
 
-    for cython_col in input._data.values():
-        column_views.push_back(cython_col.view())
+    def get_kernel_output_cache(self,kernel_id, cache_id):
+        cache = PyBlazingCache()
+        cache.c_cache = deref(self.ptr).get_kernel_output_cache(int(kernel_id),str.encode(cache_id))
+        return cache
 
-    resultSet = blaz_move(performPartitionPython(masterIndex, tcpMetadataCpp, ctxToken, BlazingTableView(table_view(column_views), names), column_names))
-    names = dereference(resultSet).names
-    decoded_names = []
-    for i in range(names.size()):
-        decoded_names.append(names[i].decode('utf-8'))
+    cpdef set_input_and_output_caches(self, PyBlazingCache input_cache, PyBlazingCache output_cache):
+        deref(self.ptr).set_input_and_output_caches(input_cache.c_cache, output_cache.c_cache)
 
-    df = cudf.DataFrame(CudfXxTable.from_unique_ptr(blaz_move(dereference(resultSet).cudfTable), decoded_names)._data)
-
-    return df
-
-cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  table_scans, vector[int] fileTypes, int ctxToken, queryPy, unsigned long accessToken, map[string,string] config_options, bool is_single_node):
+cpdef runGenerateGraphCaller(int masterIndex, worker_ids, tables,  table_scans, vector[int] fileTypes, int ctxToken, queryPy, unsigned long accessToken, map[string,string] config_options, sql):
+    cdef string sql_c
+    sql_c = sql.encode()
     cdef string query
     query = str.encode(queryPy)
-    cdef vector[NodeMetaDataTCP] tcpMetadataCpp
+
     cdef vector[TableSchema] tableSchemaCpp
     cdef vector[vector[string]] tableSchemaCppArgKeys
     cdef vector[vector[string]] tableSchemaCppArgValues
@@ -314,7 +451,7 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  table_scans, vecto
     cdef vector[type_id] types
     cdef vector[string] names
     cdef TableSchema currentTableSchemaCpp
-    cdef NodeMetaDataTCP currentMetadataCpp
+
     cdef vector[vector[string]] filesAll
     cdef vector[string] currentFilesAll
     cdef vector[BlazingTableView] blazingTableViews
@@ -325,6 +462,8 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  table_scans, vecto
 
     cdef vector[column_view] column_views
     cdef Column cython_col
+
+    cdef PyBlazingGraph pyGraph = PyBlazingGraph()
 
     for tableIndex in range(len(tables)):
       uri_values_cpp.clear()
@@ -398,13 +537,18 @@ cpdef runQueryCaller(int masterIndex,  tcpMetadata,  tables,  table_scans, vecto
 
       tableSchemaCpp.push_back(currentTableSchemaCpp)
 
-    for currentMetadata in tcpMetadata:
-        currentMetadataCpp.ip = currentMetadata['ip'].encode()
-        currentMetadataCpp.communication_port = currentMetadata['communication_port']
-        tcpMetadataCpp.push_back(currentMetadataCpp)
+    cdef vector[string] worker_ids_c
+    for worker_id in worker_ids:
+        worker_ids_c.push_back(worker_id.encode())
 
-    resultSet = blaz_move(runQueryPython(masterIndex, tcpMetadataCpp, tableNames, tableScans, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query,accessToken,uri_values_cpp_all, config_options))
+    pyGraph.ptr = runGenerateGraphPython(masterIndex, worker_ids_c, tableNames, tableScans, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query,accessToken,uri_values_cpp_all, config_options,sql_c)
+    return pyGraph
 
+cpdef runExecuteGraphCaller(PyBlazingGraph graph, int ctx_token, bool is_single_node):
+
+    cdef shared_ptr[cio.graph] ptr = graph.ptr
+    graph = None
+    resultSet = blaz_move(runExecuteGraphPython(blaz_move(ptr),ctx_token))
     names = dereference(resultSet).names
     decoded_names = []
     for i in range(names.size()):

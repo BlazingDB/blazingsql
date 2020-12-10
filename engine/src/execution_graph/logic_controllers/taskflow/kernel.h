@@ -66,7 +66,7 @@ public:
 	/**
 	 * Destructor
 	 */
-	virtual ~kernel() = default;
+	virtual ~kernel() {}
 
 	/**
 	 * @brief Executes the batch processing.
@@ -75,6 +75,7 @@ public:
 	 * @return kstatus 'stop' to halt processing, or 'proceed' to continue processing.
 	 */
 	virtual kstatus run() = 0;
+
 
 	kernel_pair operator[](const std::string & portname) { return std::make_pair(this, portname); }
 
@@ -99,14 +100,7 @@ public:
 	 */
 	void set_type_id(kernel_type kernel_type_id_) { kernel_type_id = kernel_type_id_; }
 
-	/**
-	 * @brief Indicates whether the cache load can be throttling according to an external parameter.
-	 *
-	 * @return true If the pace of cache loading may be throttled.
-	 * @return false If cache should be loaded according to the default pace.
-	 */
-	virtual bool can_you_throttle_my_input() = 0;
-
+	
 	/**
 	 * @brief Returns the input cache.
 	 */
@@ -131,7 +125,7 @@ public:
 	 * @param table The table that will be added to the output cache.
 	 * @param cache_id The cache identifier.
 	 */
-	void add_to_output_cache(std::unique_ptr<ral::frame::BlazingTable> table, std::string cache_id = "") {
+	bool add_to_output_cache(std::unique_ptr<ral::frame::BlazingTable> table, std::string cache_id = "",bool always_add = false) {
 		CodeTimer cacheEventTimer(false);
 
 		auto num_rows = table->num_rows();
@@ -142,7 +136,7 @@ public:
 		std::string message_id = get_message_id();
 		message_id = !cache_id.empty() ? cache_id + "_" + message_id : message_id;
 		cache_id = cache_id.empty() ? std::to_string(this->get_id()) : cache_id;
-		this->output_.get_cache(cache_id)->addToCache(std::move(table), message_id);
+		bool added = this->output_.get_cache(cache_id)->addToCache(std::move(table), message_id,always_add);
 
 		cacheEventTimer.stop();
 
@@ -158,6 +152,8 @@ public:
 						"timestamp_begin"_a=cacheEventTimer.start_time(),
 						"timestamp_end"_a=cacheEventTimer.end_time());
 		}
+
+		return added;
 	}
 
 	/**
@@ -166,7 +162,7 @@ public:
 	 * @param cache_data The cache_data that will be added to the output cache.
 	 * @param cache_id The cache identifier.
 	 */
-	void add_to_output_cache(std::unique_ptr<ral::cache::CacheData> cache_data, std::string cache_id = "") {
+	bool add_to_output_cache(std::unique_ptr<ral::cache::CacheData> cache_data, std::string cache_id = "", bool always_add = false) {
 		CodeTimer cacheEventTimer(false);
 
 		auto num_rows = cache_data->num_rows();
@@ -177,7 +173,7 @@ public:
 		std::string message_id = get_message_id();
 		message_id = !cache_id.empty() ? cache_id + "_" + message_id : message_id;
 		cache_id = cache_id.empty() ? std::to_string(this->get_id()) : cache_id;
-		this->output_.get_cache(cache_id)->addCacheData(std::move(cache_data), message_id);
+		bool added = this->output_.get_cache(cache_id)->addCacheData(std::move(cache_data), message_id, always_add);
 
 		cacheEventTimer.stop();
 
@@ -193,6 +189,8 @@ public:
 						"timestamp_begin"_a=cacheEventTimer.start_time(),
 						"timestamp_end"_a=cacheEventTimer.end_time());
 		}
+
+		return added;
 	}
 
 	/**
@@ -201,7 +199,7 @@ public:
 	 * @param host_table The host table that will be added to the output cache.
 	 * @param cache_id The cache identifier.
 	 */
-	void add_to_output_cache(std::unique_ptr<ral::frame::BlazingHostTable> host_table, std::string cache_id = "") {
+	bool add_to_output_cache(std::unique_ptr<ral::frame::BlazingHostTable> host_table, std::string cache_id = "") {
 		CodeTimer cacheEventTimer(false);
 
 		auto num_rows = host_table->num_rows();
@@ -212,7 +210,7 @@ public:
 		std::string message_id = get_message_id();
 		message_id = !cache_id.empty() ? cache_id + "_" + message_id : message_id;
 		cache_id = cache_id.empty() ? std::to_string(this->get_id()) : cache_id;
-		this->output_.get_cache(cache_id)->addHostFrameToCache(std::move(host_table), message_id);
+		bool added = this->output_.get_cache(cache_id)->addHostFrameToCache(std::move(host_table), message_id);
 
 		cacheEventTimer.stop();
 
@@ -228,6 +226,8 @@ public:
 						"timestamp_begin"_a=cacheEventTimer.start_time(),
 						"timestamp_end"_a=cacheEventTimer.end_time());
 		}
+
+		return added;
 	}
 
 	/**
@@ -281,18 +281,7 @@ public:
 	 * is that its the same as the input (i.e. project, sort, ...).
 	 */
 	virtual std::pair<bool, uint64_t> get_estimated_output_num_rows();
-
-	/**
-	 * @brief Waits if the output cache is saturated.
-	 *
-	 * @param cache_id The cache identifier.
-	 */
-	void wait_if_output_is_saturated(std::string cache_id = ""){
-		std::string message_id = get_message_id();
-		message_id = !cache_id.empty() ? cache_id + "_" + message_id : message_id;
-		cache_id = cache_id.empty() ? std::to_string(this->get_id()) : cache_id;
-		this->output_.get_cache(cache_id)->wait_if_cache_is_saturated();
-	}
+	
 
 protected:
 

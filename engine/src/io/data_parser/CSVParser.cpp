@@ -43,8 +43,23 @@ std::unique_ptr<ral::frame::BlazingTable> csv_parser::parse_batch(
 		cudf::io::csv_reader_options args = getCsvReaderOptions(args_map, arrow_source);
 		args.set_use_cols_indexes(column_indices);
 
+		if (args.get_header() > 0) {
+			args.set_header(args.get_header());
+		}
+		else if (args_map["has_header_csv"] == "True") {
+			args.set_header(0);
+		} 
+		else args.set_header(-1);
+
+		// Overrride `byte_range_offset` and `byte_range_size`
+		auto iter = args_map.find("max_bytes_chunk_read");
+		if(iter != args_map.end() && !row_groups.empty()) {
+			auto chunk_size = std::stoll(iter->second);
+			args.set_byte_range_offset(chunk_size * row_groups[0]);
+			args.set_byte_range_size(chunk_size);
+		}
+
 		cudf::io::table_with_metadata csv_table = cudf::io::read_csv(args);
-		file->Close();
 
 		if(csv_table.tbl->num_columns() <= 0)
 			Library::Logging::Logger().logWarn("csv_parser::parse no columns were read");
@@ -84,6 +99,11 @@ void csv_parser::parse_schema(
 	auto arrow_source = cudf::io::arrow_io_source{file};
 	cudf::io::csv_reader_options args = getCsvReaderOptions(args_map, arrow_source);
 
+	// if names were not passed when create_table
+	if (args.get_header() == 0) {
+		schema.set_has_header_csv(true);
+	}
+
 	int64_t num_bytes = file->GetSize().ValueOrDie();
 
 	// lets only read up to 48192 bytes. We are assuming that a full row will always be less than that
@@ -101,6 +121,15 @@ void csv_parser::parse_schema(
 		std::string name = table_out.metadata.column_names.at(i);
 		schema.add_column(name, type, file_index, is_in_file);
 	}
+}
+
+size_t csv_parser::max_bytes_chuck_size() const {
+	auto iter = args_map.find("max_bytes_chunk_read");
+	if(iter == args_map.end()) {
+		return 0;
+	}
+
+	return std::stoll(iter->second);
 }
 
 } /* namespace io */

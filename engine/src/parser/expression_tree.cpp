@@ -214,7 +214,7 @@ std::unique_ptr<node> expr_parser::literal() {
   return nullptr;
 }
 
-cudf::data_type expr_parser::infer_type_from_literal_token(const lexer::token & token) {
+cudf::data_type infer_type_from_literal_token(const lexer::token & token) {
   if(token.type == lexer::token_type::Null) {
     return cudf::data_type{cudf::type_id::EMPTY};
   } else if(token.type == lexer::token_type::Boolean) {
@@ -227,20 +227,12 @@ cudf::data_type expr_parser::infer_type_from_literal_token(const lexer::token & 
       return parsed_double == casted_float ? cudf::data_type{cudf::type_id::FLOAT32} : cudf::data_type{cudf::type_id::FLOAT64};
     } else {
       int64_t parsed_int64 = std::stoll(token_value);
-      return parsed_int64 > std::numeric_limits<int32_t>::max()
-              || parsed_int64 < std::numeric_limits<int32_t>::min()
-                ? cudf::data_type{cudf::type_id::INT64}
-                : parsed_int64 > std::numeric_limits<int16_t>::max()
-                  || parsed_int64 < std::numeric_limits<int16_t>::min()
-                      ? cudf::data_type{cudf::type_id::INT32}
-                      : parsed_int64 > std::numeric_limits<int8_t>::max()
-                        || parsed_int64 < std::numeric_limits<int8_t>::min()
-                          ? cudf::data_type{cudf::type_id::INT16}
-                          : cudf::data_type{cudf::type_id::INT8};
+      // as other SQL engines, defaults to int32
+      return cudf::data_type{cudf::type_id::INT32};
     }
   } else if(token.type == lexer::token_type::Timestamp) {
     const std::string & token_value = token.value;
-    return token_value.find_first_of(" ") != std::string::npos
+    return token_value.find_first_of(" T") != std::string::npos
             ? cudf::data_type{cudf::type_id::TIMESTAMP_NANOSECONDS}
             : cudf::data_type{cudf::type_id::TIMESTAMP_DAYS};
   } else { // token.type == lexer::token_type::String
@@ -248,7 +240,7 @@ cudf::data_type expr_parser::infer_type_from_literal_token(const lexer::token & 
   }
 }
 
-cudf::data_type expr_parser::type_from_type_token(const lexer::token & token) {
+cudf::data_type type_from_type_token(const lexer::token & token) {
   const std::string & token_value = token.value;
   if (token_value == "NULL" || token_value == "BOOLEAN") {
     // Default Null type to boolean

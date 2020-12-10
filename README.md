@@ -1,6 +1,6 @@
 > A lightweight, GPU accelerated, SQL engine built on the [RAPIDS.ai](https://rapids.ai) ecosystem.
 
-<a href='https://app.blazingsql.com/jupyter/user-redirect/lab/workspaces/auto-b/tree/Welcome_to_BlazingSQL_Notebooks/welcome.ipynb'><img src="https://github.com/BlazingDB/blazingsql/blob/roaramburu-readme-update/img/bsql_rapids.PNG"/></a>
+<a href='https://app.blazingsql.com/jupyter/user-redirect/lab/workspaces/auto-b/tree/Welcome_to_BlazingSQL_Notebooks/welcome.ipynb'>Get Started on app.blazingsql.com</a>
 
 [Getting Started](#getting-started) | [Documentation](https://docs.blazingdb.com) | [Examples](#examples) | [Contributing](#contributing) | [License](LICENSE) | [Blog](https://blog.blazingdb.com) | [Try Now](https://app.blazingsql.com/jupyter/user-redirect/lab/workspaces/auto-b/tree/Welcome_to_BlazingSQL_Notebooks/welcome.ipynb)
 
@@ -90,22 +90,22 @@ BlazingSQL can be installed with conda ([miniconda](https://conda.io/miniconda.h
 
 ## Stable Version
 ```bash
-conda install -c blazingsql/label/cuda$CUDA_VERSION -c rapidsai -c nvidia -c conda-forge -c defaults blazingsql python=$PYTHON_VERSION
+conda install -c blazingsql/label/cuda$CUDA_VERSION -c rapidsai -c nvidia -c conda-forge -c defaults blazingsql python=$PYTHON_VERSION cudatoolkit=$CUDA_VERSION
 ```
 Where $CUDA_VERSION is 10.1, 10.2 or 11.0  and $PYTHON_VERSION is 3.7 or 3.8
 *For example for CUDA 10.1 and Python 3.7:*
 ```bash
-conda install -c blazingsql/label/cuda10.1 -c rapidsai -c nvidia -c conda-forge -c defaults blazingsql python=3.7
+conda install -c blazingsql -c rapidsai -c nvidia -c conda-forge -c defaults blazingsql python=3.7 cudatoolkit=10.1
 ``` 
 
 ## Nightly Version
 ```bash
-conda install -c blazingsql-nightly/label/cuda$CUDA_VERSION -c rapidsai-nightly -c nvidia -c conda-forge -c defaults blazingsql python=$PYTHON_VERSION
+conda install -c blazingsql-nightly -c rapidsai-nightly -c nvidia -c conda-forge -c defaults blazingsql python=$PYTHON_VERSION  cudatoolkit=$CUDA_VERSION
 ```
 Where $CUDA_VERSION is 10.1, 10.2 or 11.0 and $PYTHON_VERSION is 3.7 or 3.8
 *For example for CUDA 10.1 and Python 3.7:*
 ```bash
-conda install -c blazingsql-nightly/label/cuda10.1 -c rapidsai-nightly -c nvidia -c conda-forge -c defaults blazingsql python=3.7
+conda install -c blazingsql-nightly -c rapidsai-nightly -c nvidia -c conda-forge -c defaults blazingsql python=3.7  cudatoolkit=10.1
 ```
 
 # Build/Install from Source (Conda Environment)
@@ -117,16 +117,18 @@ This is the recommended way of building all of the BlazingSQL components and dep
 ```bash
 conda create -n bsql python=$PYTHON_VERSION
 conda activate bsql
-conda install --yes -c conda-forge openjdk=8.0 maven cmake gtest gmock rapidjson cppzmq cython=0.29 jpype1 netifaces pyhive
-conda install --yes -c rapidsai -c nvidia -c conda-forge -c defaults cudf=0.15 dask-cudf=0.15 dask-cuda=0.15 cudatoolkit=$CUDA_VERSION
+conda install --yes -c conda-forge spdlog=1.7.0 google-cloud-cpp=1.16 ninja
+conda install --yes -c rapidsai -c nvidia -c conda-forge -c defaults dask-cuda=0.17 dask-cudf=0.17 cudf=0.17 ucx-py=0.17 ucx-proc=*=gpu python=3.7 cudatoolkit=$CUDA_VERSION
+conda install --yes -c conda-forge cmake=3.18 gtest gmock cppzmq cython=0.29 openjdk=8.0 maven jpype1 netifaces pyhive
 ```
 Where $CUDA_VERSION is is 10.1, 10.2 or 11.0 and $PYTHON_VERSION is 3.7 or 3.8
 *For example for CUDA 10.1 and Python 3.7:*
 ```bash
 conda create -n bsql python=3.7
 conda activate bsql
-conda install --yes -c conda-forge openjdk=8.0 maven cmake gtest gmock rapidjson cppzmq cython=0.29 jpype1 netifaces pyhive
-conda install --yes -c rapidsai -c nvidia -c conda-forge -c defaults cudf=0.15 dask-cudf=0.15 dask-cuda=0.15 cudatoolkit=10.1
+conda install --yes -c conda-forge spdlog=1.7.0 google-cloud-cpp=1.16 ninja
+conda install --yes -c rapidsai -c nvidia -c conda-forge -c defaults dask-cuda=0.17 dask-cudf=0.17 cudf=0.17 ucx-py=0.17 ucx-proc=*=gpu python=3.7 cudatoolkit=10.1
+conda install --yes -c conda-forge cmake=3.18 gtest gmock cppzmq cython=0.29 openjdk=8.0 maven jpype1 netifaces pyhive
 ```
 
 ### Build
@@ -150,10 +152,9 @@ $CONDA_PREFIX now has a folder for the blazingsql repository.
 ```bash
 conda create -n bsql python=$PYTHON_VERSION
 conda activate bsql
-
 conda install --yes -c conda-forge spdlog=1.7.0 google-cloud-cpp=1.16 ninja
-conda install --yes -c rapidsai-nightly -c nvidia -c conda-forge -c defaults dask-cuda=0.16 dask-cudf=0.16 cudf=0.16 python=3.7 cudatoolkit=$CUDA_VERSION
-conda install --yes -c conda-forge cmake gtest gmock cppzmq cython=0.29 openjdk=8.0 maven jpype1 netifaces pyhive
+conda install --yes -c rapidsai-nightly -c nvidia -c conda-forge -c defaults dask-cuda=0.18 dask-cudf=0.18 cudf=0.18 ucx-py=0.18 ucx-proc=*=gpu python=3.7 cudatoolkit=$CUDA_VERSION
+conda install --yes -c conda-forge cmake=3.18 gtest gmock cppzmq cython=0.29 openjdk=8.0 maven jpype1 netifaces pyhive
 ```
 Where $CUDA_VERSION is is 10.1, 10.2 or 11.0 and $PYTHON_VERSION is 3.7 or 3.8
 *For example for CUDA 10.1 and Python 3.7:*
@@ -161,8 +162,8 @@ Where $CUDA_VERSION is is 10.1, 10.2 or 11.0 and $PYTHON_VERSION is 3.7 or 3.8
 conda create -n bsql python=3.7
 conda activate bsql
 conda install --yes -c conda-forge spdlog=1.7.0 google-cloud-cpp=1.16 ninja
-conda install --yes -c rapidsai-nightly -c nvidia -c conda-forge -c defaults dask-cuda=0.16 dask-cudf=0.16 cudf=0.16 python=3.7 cudatoolkit=10.1
-conda install --yes -c conda-forge cmake gtest gmock cppzmq cython=0.29 openjdk=8.0 maven jpype1 netifaces pyhive
+conda install --yes -c rapidsai-nightly -c nvidia -c conda-forge -c defaults dask-cuda=0.18 dask-cudf=0.18 cudf=0.18 ucx-py=0.18 ucx-proc=*=gpu python=3.7 cudatoolkit=10.1
+conda install --yes -c conda-forge cmake=3.18 gtest gmock cppzmq cython=0.29 openjdk=8.0 maven jpype1 netifaces pyhive
 ```
 
 ### Build
@@ -176,6 +177,8 @@ export CUDACXX=/usr/local/cuda/bin/nvcc
 ./build.sh
 ```
 NOTE: You can do `./build.sh -h` to see more build options.
+
+NOTE: You can perform static analysis with cppcheck with the command `cppcheck  --project=compile_commands.json` in any of the cpp project build directories.
 
 $CONDA_PREFIX now has a folder for the blazingsql repository.
 
