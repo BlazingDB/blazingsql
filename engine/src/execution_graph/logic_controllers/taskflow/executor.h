@@ -93,6 +93,10 @@ public:
 
 	std::unique_ptr<task> remove_task_from_back();
 
+	void notify_memory_safety_cv(){
+		memory_safety_cv.notify_all();
+	}
+
 private:
 	executor(int num_threads);
 	ctpl::thread_pool<BlazingThread> pool;
