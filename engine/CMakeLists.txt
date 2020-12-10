@@ -215,26 +215,13 @@ message(STATUS "C++ compiler definitions: ${CXX_COMPILE_DEFINITIONS}")
 include_directories(
     ${PROJECT_BINARY_DIR}
     ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR}
-    ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
+    ${BSQL_BLD_PREFIX}/include/libcudf/libcudacxx/
+    ${BSQL_BLD_PREFIX}/include
+    ${BSQL_BLD_PREFIX}/include/blazingdb/io
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/thirdparty/jitify
-    ${BSQL_BLD_PREFIX}/include
-    ${BSQL_BLD_PREFIX}/include/cudf
-    ${BSQL_BLD_PREFIX}/include/libcudf/libcudacxx/
-    ${BSQL_BLD_PREFIX}/include/blazingdb/io
-    ${PREFIX}/include
-    ${PREFIX}/include/cudf
-    ${PREFIX}/include/libcudf/libcudacxx/
-    ${PREFIX}/include/blazingdb/io
-    ${CMAKE_INSTALL_PREFIX}/include
-    ${CMAKE_INSTALL_PREFIX}/include/cudf
-    ${CMAKE_INSTALL_PREFIX}/include/libcudf/libcudacxx/
-    ${CMAKE_INSTALL_PREFIX}/include/blazingdb/io
-    $ENV{INSTALL_PREFIX}/include
-    $ENV{INSTALL_PREFIX}/include/cudf
-    $ENV{INSTALL_PREFIX}/include/libcudf/libcudacxx/
-    $ENV{INSTALL_PREFIX}/include/blazingdb/io
+    ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
     ${PYTHON_INCLUDE_DIRS}
     "${ARROW_INCLUDE_DIR}"
     )
@@ -342,7 +329,7 @@ target_link_libraries(blazingsql-engine
     libcudf_io.so
     libcudf_interop.so
     libcudf_partitioning.so
-    
+
     zmq
     cudart
 

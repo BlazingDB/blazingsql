@@ -58,7 +58,7 @@ TESTS="ON"
 #  FIXME: if INSTALL_PREFIX is not set, check PREFIX, then check
 #         CONDA_PREFIX, but there is no fallback from there!
 INSTALL_PREFIX=${INSTALL_PREFIX:=${PREFIX:=${CONDA_PREFIX}}}
-PARALLEL_LEVEL=${PARALLEL_LEVEL:=""}
+PARALLEL_LEVEL=${PARALLEL_LEVEL:="4"}
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$INSTALL_PREFIX/lib:$INSTALL_PREFIX/lib64
 export CXXFLAGS="-L$INSTALL_PREFIX/lib"
 export CFLAGS=$CXXFLAGS
@@ -223,16 +223,16 @@ if buildAll || hasArg libengine; then
 
     echo "Building libengine: make step"
     if [[ ${TESTS} == "ON" ]]; then
-        echo "make -j4 all"
-        make -j4 all
+        echo "make -j${PARALLEL_LEVEL} all"
+        make -j${PARALLEL_LEVEL} all
     else
-        echo "make -j4 blazingsql-engine VERBOSE=${VERBOSE}"
-        make -j4 blazingsql-engine VERBOSE=${VERBOSE}
+        echo "make -j${PARALLEL_LEVEL} blazingsql-engine VERBOSE=${VERBOSE}"
+        make -j${PARALLEL_LEVEL} blazingsql-engine VERBOSE=${VERBOSE}
     fi
 
     if [[ ${INSTALL_TARGET} != "" ]]; then
-        echo "make -j4 install VERBOSE=${VERBOSE}"
-        make -j4 install VERBOSE=${VERBOSE}
+        echo "make -j${PARALLEL_LEVEL} install VERBOSE=${VERBOSE}"
+        make -j${PARALLEL_LEVEL} install VERBOSE=${VERBOSE}
         cp libblazingsql-engine.so ${INSTALL_PREFIX}/lib/libblazingsql-engine.so
     fi
 fi
