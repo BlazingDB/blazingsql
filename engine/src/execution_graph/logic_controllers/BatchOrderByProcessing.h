@@ -22,9 +22,9 @@ public:
 
 	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
-		cudaStream_t stream, std::string kernel_process_name) override;
+		cudaStream_t stream, const std::map<std::string, std::string>& args) override;
 
-	virtual kstatus run();
+	kstatus run() override;
 
 private:
 	std::unique_ptr<ral::frame::BlazingTable> partitionPlan;
@@ -41,8 +41,8 @@ public:
 	std::string kernel_name() { return "SortAndSample";}
 
 	void compute_partition_plan(std::vector<ral::frame::BlazingTableView> sampledTableViews, std::size_t avg_bytes_per_row, std::size_t local_total_num_rows);
-	
-	virtual kstatus run();
+
+	kstatus run() override;
 
 private:
 
@@ -56,9 +56,9 @@ public:
 
 	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
-		cudaStream_t stream, std::string kernel_process_name) override;
+		cudaStream_t stream, const std::map<std::string, std::string>& args) override;
 
-	virtual kstatus run();
+	kstatus run() override;
 
 private:
 	std::unique_ptr<ral::frame::BlazingTable> partitionPlan;
@@ -76,8 +76,8 @@ public:
 	MergeStreamKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph);
 
 	std::string kernel_name() { return "MergeStream";}
-	
-	virtual kstatus run();
+
+	kstatus run() override;
 };
 
 
@@ -93,9 +93,9 @@ public:
 
 	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
-		cudaStream_t stream, std::string kernel_process_name) override;
+		cudaStream_t stream, const std::map<std::string, std::string>& args) override;
 
-	virtual kstatus run();
+	kstatus run() override;
 
 private:
 	std::atomic<int64_t> rows_limit;
