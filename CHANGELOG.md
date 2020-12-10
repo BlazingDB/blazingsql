@@ -11,6 +11,7 @@
 
 
 ## Bug Fixes
+- #1243 Fixed wrong CHAR regex replacing
 
 
 
