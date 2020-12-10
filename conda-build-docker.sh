@@ -21,10 +21,10 @@
 # ================================================================
 # NOTE Examples:
 # Run GPUCI jobs (first the gpu-build and then the cpu-build):
-# ./conda-build-docker.sh cudf_version cuda_version python_version conda_token custom_label conda_username
+# ./conda-build-docker.sh cudf_version cuda_version python_version conda_token conda_username custom_label
 #
 # Run only the CPU BUILD job (use this one if you want to debug issues with conda build on gpuci)
-# BLAZING_GPUCI_JOB=cpu-build ./conda-build-docker.sh cudf_version cuda_version python_version conda_token custom_label conda_username
+# BLAZING_GPUCI_JOB=cpu-build ./conda-build-docker.sh cudf_version cuda_version python_version conda_token conda_username custom_label
 #
 # Run only the GPU BUILD job (use this one if you want to debug issues with tests on gpuci/gpu build)
 # BLAZING_GPUCI_JOB=gpu-build ./conda-build-docker.sh cudf_version cuda_version python_version
@@ -40,8 +40,8 @@
 # cuda_version=10.2
 # python_version=3.7
 # conda_token=""
-# custom_label=""
 # conda_username="blazingsql-nightly"
+# custom_label=""
 # ================================================================
 # NOTE Remarks:
 # - In case a job fails then you will go automatically into the docker for debugging
@@ -132,7 +132,7 @@ if [ ! -z $1 ]; then
 fi
 echo "CUDF_VERSION: $CUDF_VERSION"
 
-CUDA_VERSION="10.1"
+CUDA_VERSION="10.2"
 if [ ! -z $2 ]; then
     CUDA_VERSION=$2
 fi
@@ -144,6 +144,10 @@ if [ ! -z $3 ]; then
 fi
 echo "PYTHON_VERSION: $PYTHON_VERSION"
 
+#USER=$(id -u):$(id -g)
+USER="0:0"
+echo "USER: $USER"
+
 if [ "$BLAZING_GPUCI_JOB" = "" ] || [ "$BLAZING_GPUCI_JOB" = "cpu-build" ]; then
     MY_UPLOAD_KEY=""
     UPLOAD_BLAZING="0"
@@ -151,20 +155,20 @@ if [ "$BLAZING_GPUCI_JOB" = "" ] || [ "$BLAZING_GPUCI_JOB" = "cpu-build" ]; then
         MY_UPLOAD_KEY=$4
         UPLOAD_BLAZING=1
     fi
-    echo "MY_UPLOAD_KEY: $MY_UPLOAD_KEY"
+    echo "MY_UPLOAD_KEY: ${MY_UPLOAD_KEY:(-4)}"
     echo "UPLOAD_BLAZING: $UPLOAD_BLAZING"
 
-    CUSTOM_LABEL=""
-    if [ ! -z $5 ]; then
-        CUSTOM_LABEL=$5
-    fi
-    echo "CUSTOM_LABEL: $CUSTOM_LABEL"
-
     CONDA_USERNAME="blazingsql-nightly"
-    if [ ! -z $6 ]; then
-        CONDA_USERNAME=$6
+    if [ ! -z $5 ]; then
+        CONDA_USERNAME=$5
     fi
     echo "CONDA_USERNAME: $CONDA_USERNAME"
+
+    CUSTOM_LABEL=""
+    if [ ! -z $6 ]; then
+        CUSTOM_LABEL=$6
+    fi
+    echo "CUSTOM_LABEL: $CUSTOM_LABEL"
 fi
 
 if [ "$BLAZING_GPUCI_JOB" = "" ] || [ "$BLAZING_GPUCI_JOB" = "gpu-build" ]; then
@@ -180,40 +184,20 @@ if [ "$BLAZING_GPUCI_JOB" = "" ] || [ "$BLAZING_GPUCI_JOB" = "gpu-build" ]; then
     echo "docker pull $gpu_build_img"
     docker pull $gpu_build_img
 
-    gpu_container="blazingsql-gpuci-gpu-build-container"
+    gpu_container="blazingsql-gpuci-gpu-build-"$RANDOM
 
     logger "Running the docker container for the GPU BUILD job ..."
-    echo "docker run --name $gpu_container --rm -dti \
+    GPU_DOCKER="docker run --name $gpu_container --rm \
         --runtime=nvidia \
-        -u $(id -u):$(id -g) \
+        -u $USER \
         -e CUDA_VER=${CUDA_VERSION} -e PYTHON_VER=$PYTHON_VERSION \
         -e WORKSPACE=$WORKSPACE \
         -v /etc/passwd:/etc/passwd \
         -v ${WORKSPACE}:${WORKSPACE} -w ${WORKSPACE} \
         $gpu_build_img \
-        bash"
-    docker run --name $gpu_container --rm -dti \
-        --runtime=nvidia \
-        -u $(id -u):$(id -g) \
-        -e CUDA_VER=${CUDA_VERSION} -e PYTHON_VER=$PYTHON_VERSION \
-        -e WORKSPACE=$WORKSPACE \
-        -v /etc/passwd:/etc/passwd \
-        -v ${WORKSPACE}:${WORKSPACE} -w ${WORKSPACE} \
-        $gpu_build_img \
-        bash
-
-    logger "Running the GPU BUILD job ..."
-    echo "docker exec -ti $gpu_container $gpu_build_cmd"
-    docker exec -ti $gpu_container $gpu_build_cmd
-
-    if [ $? != 0 ]; then
-        logger "Debugging the GPU BUILD job ... "
-        echo "docker exec -ti $gpu_container bash"
-        docker exec -ti $gpu_container bash
-        #docker stop $gpu_container
-        #docker rm $gpu_container
-        #docker ps -a
-    fi
+        $gpu_build_cmd"
+    echo "GPU_DOCKER: "$GPU_DOCKER
+    eval $GPU_DOCKER
 fi
 
 if [ "$BLAZING_GPUCI_JOB" = "" ] || [ "$BLAZING_GPUCI_JOB" = "cpu-build" ]; then
@@ -222,6 +206,7 @@ if [ "$BLAZING_GPUCI_JOB" = "" ] || [ "$BLAZING_GPUCI_JOB" = "cpu-build" ]; then
     ./build.sh clean
     ./build.sh clean thirdparty
 
+    #cpu_build_cmd="bash"
     cpu_build_cmd="./ci/cpu/build.sh"
     cpu_build_img=gpuci/rapidsai-driver:$CUDF_VERSION-cuda${CUDA_VERSION}-devel-$BLAZING_GPUCI_OS-py$PYTHON_VERSION
 
@@ -229,46 +214,21 @@ if [ "$BLAZING_GPUCI_JOB" = "" ] || [ "$BLAZING_GPUCI_JOB" = "cpu-build" ]; then
     echo "docker pull $cpu_build_img"
     docker pull $cpu_build_img
 
-    cpu_container="blazingsql-gpuci-cpu-build-container"
+    cpu_container="blazingsql-gpuci-cpu-build-"$RANDOM
 
     logger "Running the docker container for the CPU BUILD job ..."
-    echo "docker run --name $cpu_container --rm -dti \
-        -u $(id -u):$(id -g) \
+    CPU_DOCKER="docker run --name $cpu_container --rm \
+        -u $USER \
         -e CUDA_VER=${CUDA_VERSION} -e PYTHON_VER=$PYTHON_VERSION \
         -e CONDA_USERNAME=$CONDA_USERNAME -e MY_UPLOAD_KEY=$MY_UPLOAD_KEY \
+        -e BUILD_MODE=branch \
         -e UPLOAD_BLAZING=$UPLOAD_BLAZING -e CUSTOM_LABEL=$CUSTOM_LABEL \
-        -e GIT_BRANCH="main" -e SOURCE_BRANCH="main" \
         -e WORKSPACE=$WORKSPACE \
         -v /etc/passwd:/etc/passwd \
         -v ${WORKSPACE}:${WORKSPACE} -w ${WORKSPACE} \
         $cpu_build_img \
-        bash"
-    docker run --name $cpu_container --rm -dti \
-        -u $(id -u):$(id -g) \
-        -e CUDA_VER=${CUDA_VERSION} -e PYTHON_VER=$PYTHON_VERSION \
-        -e CONDA_USERNAME=$CONDA_USERNAME -e MY_UPLOAD_KEY=$MY_UPLOAD_KEY \
-        -e UPLOAD_BLAZING=$UPLOAD_BLAZING -e CUSTOM_LABEL=$CUSTOM_LABEL \
-        -e GIT_BRANCH="main" -e SOURCE_BRANCH="main" \
-        -e WORKSPACE=$WORKSPACE \
-        -v /etc/passwd:/etc/passwd \
-        -v ${WORKSPACE}:${WORKSPACE} -w ${WORKSPACE} \
-        $cpu_build_img \
-        bash
-
-    logger "Running the CPU BUILD job ..."
-    echo "docker exec -ti $cpu_container $cpu_build_cmd"
-    docker exec -ti $cpu_container $cpu_build_cmd
-
-    if [ $? != 0 ]; then
-        logger "Debugging the CPU BUILD job ... "
-        echo "docker exec -ti $cpu_container bash"
-        docker exec -ti $cpu_container bash
-        #docker stop $cpu_container
-        #docker rm $cpu_container
-        #docker ps -a
-    fi
+        $cpu_build_cmd"
+    echo "CPU_DOCKER: "$CPU_DOCKER
+    eval $CPU_DOCKER
 fi
-
-logger "You can run docker exec on the containers, if not needed then just kill them!"
-docker ps -a
 

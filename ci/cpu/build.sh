@@ -32,6 +32,7 @@ fi
 gpuci_logger "Get env"
 env
 echo "  - blazingsql-nightly" >> /conda/.condarc
+echo "  - blazingsql" >> /conda/.condarc
 
 gpuci_logger "Activate conda env"
 . /opt/conda/etc/profile.d/conda.sh
