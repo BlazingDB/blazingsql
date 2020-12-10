@@ -16,7 +16,7 @@ PartitionSingleNodeKernel::PartitionSingleNodeKernel(std::size_t kernel_id, cons
 
 void PartitionSingleNodeKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
-    cudaStream_t stream, std::string kernel_process_name) {
+    cudaStream_t stream, const std::map<std::string, std::string>& args) {
     auto & input = inputs[0];
 
     auto partitions = ral::operators::partition_table(partitionPlan->toBlazingTableView(), input->toBlazingTableView(), this->expression);
@@ -318,7 +318,7 @@ PartitionKernel::PartitionKernel(std::size_t kernel_id, const std::string & quer
 
 void PartitionKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
-    cudaStream_t stream, std::string kernel_process_name) {
+    cudaStream_t stream, const std::map<std::string, std::string>& args) {
     auto & input = inputs[0];
 
     std::vector<ral::distribution::NodeColumnView> partitions = ral::distribution::partitionData(this->context.get(), input->toBlazingTableView(), partitionPlan->toBlazingTableView(), sortColIndices, sortOrderTypes);
@@ -504,7 +504,7 @@ LimitKernel::LimitKernel(std::size_t kernel_id, const std::string & queryString,
 
 void LimitKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
-    cudaStream_t stream, std::string kernel_process_name) {
+    cudaStream_t stream, const std::map<std::string, std::string>& args) {
     CodeTimer eventTimer(false);
     auto & input = inputs[0];
 

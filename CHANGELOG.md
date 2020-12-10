@@ -5,6 +5,8 @@
 - #1139 Adding centralized task executor for kernels
 - #1237 Added task memory management
 - #1244 Added memory monitor ability to downgrade task data
+- #1232 Update PartwiseJoin and JoinPartition kernel using the task executor internally
+
 
 ## Improvements
 - #1236 Moving code from header files to implementation files

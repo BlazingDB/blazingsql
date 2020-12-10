@@ -98,7 +98,7 @@ std::unique_ptr<BlazingTable> concatTables(const std::vector<BlazingTableView> &
 	for(size_t i = 0; i < table_views_to_concat.size(); i++) {
 		if (table_views_to_concat[i].num_rows() == 0){
 			++empty_count;
-		}		
+		}
 	}
 
  	// All tables are empty so we just need to return the 1st one
@@ -187,9 +187,9 @@ cudf::data_type get_common_type(cudf::data_type type1, cudf::data_type type2, bo
 	}
 }
 
-void normalize_types(std::unique_ptr<ral::frame::BlazingTable> & table,  const std::vector<cudf::data_type> & types, 
+void normalize_types(std::unique_ptr<ral::frame::BlazingTable> & table,  const std::vector<cudf::data_type> & types,
 		std::vector<cudf::size_type> column_indices) {
-	
+
 	if (column_indices.size() == 0){
 		RAL_EXPECTS(static_cast<size_t>(table->num_columns()) == types.size(), "In normalize_types: table->num_columns() != types.size()");
 		column_indices.resize(table->num_columns());
@@ -201,32 +201,10 @@ void normalize_types(std::unique_ptr<ral::frame::BlazingTable> & table,  const s
 	for (size_t i = 0; i < column_indices.size(); i++){
 		if (!(columns[column_indices[i]]->view().type() == types[i])){
 			std::unique_ptr<CudfColumn> casted = cudf::cast(columns[column_indices[i]]->view(), types[i]);
-			columns[column_indices[i]] = std::make_unique<ral::frame::BlazingColumnOwner>(std::move(casted));			
+			columns[column_indices[i]] = std::make_unique<ral::frame::BlazingColumnOwner>(std::move(casted));
 		}
 	}
-	table = std::make_unique<ral::frame::BlazingTable>(std::move(columns), table->names());	
-}
-
-
-int64_t get_table_size_bytes(const ral::frame::BlazingTableView & table){
-	if (table.num_rows() == 0){
-		return 0;
-	} else {
-		int64_t bytes = 0;
-		CudfTableView table_view = table.view();
-		for(int i = 0; i < table_view.num_columns(); i++) {
-			if(table_view.column(i).type().id() == cudf::type_id::STRING){
-				cudf::strings_column_view str_col_view{table_view.column(i)};
-				auto offsets_column = str_col_view.offsets();
-				auto chars_column = str_col_view.chars();
-				bytes += (int64_t)(chars_column.size());
-				bytes += (int64_t)(offsets_column.size()) * (int64_t)(sizeof(int32_t));
-			} else {
-				bytes += (int64_t)(cudf::size_of(table_view.column(i).type()) * (int64_t)(table_view.num_rows()));
-			}
-		}
-		return bytes;
-	}
+	table = std::make_unique<ral::frame::BlazingTable>(std::move(columns), table->names());
 }
 
 }  // namespace utilities
