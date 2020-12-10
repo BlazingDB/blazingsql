@@ -36,6 +36,14 @@ void executor::add_task(std::vector<std::unique_ptr<ral::cache::CacheData > > in
     task_queue.put(std::move(task_added));
 }
 
+void executor::add_task(std::unique_ptr<task> task) {
+    task_queue.put(std::move(task));
+}
+
+std::unique_ptr<task> executor::remove_task_from_back(){
+    return std::move(task_queue.pop_back());
+}
+
 task::task(
     std::vector<std::unique_ptr<ral::cache::CacheData > > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
@@ -83,6 +91,16 @@ void task::complete(){
     kernel->notify_complete(task_id);
 }
 
+std::vector<std::unique_ptr<ral::cache::CacheData > > task::release_inputs(){
+    return std::move(this->inputs);
+}
+
+void task::set_inputs(std::vector<std::unique_ptr<ral::cache::CacheData > > inputs){
+    this->inputs = std::move(inputs);
+}
+
+
+
 executor * executor::_instance;
 
 executor::executor(int num_threads) :
@@ -103,7 +121,7 @@ void executor::execute(){
             
             // Here we want to wait until we make sure we have enough memory to operate, or if there are no tasks currently running, then we want to go ahead and run
             std::unique_lock<std::mutex> lock(memory_safety_mutex);
-            memory_safety_cv.wait(lock, [this, memory_needed] { return active_tasks_counter.load() == 0 || memory_needed < resource->get_memory_limit() - resource->get_memory_used(); });        
+            memory_safety_cv.wait(lock, [this, memory_needed] { return active_tasks_counter.load() == 0 || (memory_needed < resource->get_memory_limit() - resource->get_memory_used()); });        
 
             active_tasks_counter++;        
             cur_task->run(this->streams[thread_id],this);
