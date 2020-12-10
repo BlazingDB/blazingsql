@@ -1,4 +1,4 @@
-# BlazingSQL 0.17.0 (Date TBS)
+# BlazingSQL 0.17.0 (December 10, 2020)
 
 
 ## New Features

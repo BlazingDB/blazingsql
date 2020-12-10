@@ -30,14 +30,14 @@
 # BLAZING_GPUCI_JOB=gpu-build ./conda-build-docker.sh cudf_version cuda_version python_version
 #
 # Run only the CPU BUILD job and upload the blazingsql package to your conda channel with the label main
-# BLAZING_GPUCI_JOB=cpu-build ./conda-build-docker.sh 0.16 10.0 3.7 conda_token main conda_username
+# BLAZING_GPUCI_JOB=cpu-build ./conda-build-docker.sh 0.17 10.0 3.7 conda_token main conda_username
 #
 # Run GPUCI jobs with defaults:
 # ./conda-build-docker.sh
 # ================================================================
 # NOTE Defaults:
-# cudf_version=0.16
-# cuda_version=10.0
+# cudf_version=0.17
+# cuda_version=10.2
 # python_version=3.7
 # conda_token=""
 # custom_label=""
@@ -82,14 +82,14 @@ HELP="# ================================================================
 # BLAZING_GPUCI_JOB=gpu-build ./conda-build-docker.sh cudf_version cuda_version python_version
 #
 # Run only the CPU BUILD job and upload the blazingsql package to your conda channel with the label main
-# BLAZING_GPUCI_JOB=cpu-build ./conda-build-docker.sh 0.16 10.0 3.7 conda_token main conda_username
+# BLAZING_GPUCI_JOB=cpu-build ./conda-build-docker.sh 0.17 10.0 3.7 conda_token main conda_username
 #
 # Run GPUCI jobs with defaults:
 # ./conda-build-docker.sh
 # ================================================================
 # NOTE Defaults:
-# cudf_version=0.16
-# cuda_version=10.0
+# cudf_version=0.17
+# cuda_version=10.1
 # python_version=3.7
 # conda_token=""
 # custom_label=""
@@ -126,13 +126,13 @@ if [ -z $BLAZING_GPUCI_OS ]; then
     echo "BLAZING_GPUCI_OS: $BLAZING_GPUCI_OS"
 fi
 
-CUDF_VERSION="0.16"
+CUDF_VERSION="0.17"
 if [ ! -z $1 ]; then
     CUDF_VERSION=$1
 fi
 echo "CUDF_VERSION: $CUDF_VERSION"
 
-CUDA_VERSION="10.0"
+CUDA_VERSION="10.1"
 if [ ! -z $2 ]; then
     CUDA_VERSION=$2
 fi
