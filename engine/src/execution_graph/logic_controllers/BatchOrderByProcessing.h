@@ -31,6 +31,8 @@ public:
 		this->input_.add_port("input_a", "input_b");
 	}
 
+	std::string kernel_name() { return "PartitionSingleNode";}
+
 	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
 		cudaStream_t stream, std::string kernel_process_name) override{
@@ -63,10 +65,19 @@ public:
 				ral::execution::executor::get_instance()->add_task(
 						std::move(inputs),
 						nullptr,
-						this,
-						"partitionsinglenode");
+						this);
 			}
 		}
+
+		if(logger != nullptr) {
+            logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+                                    "query_id"_a=context->getContextToken(),
+                                    "step"_a=context->getQueryStep(),
+                                    "substep"_a=context->getQuerySubstep(),
+                                    "info"_a="PartitionSingleNode Kernel tasks created",
+                                    "duration"_a=timer.elapsed_time(),
+                                    "kernel_id"_a=this->get_id());
+        }
 
 		std::unique_lock<std::mutex> lock(kernel_mutex);
 		kernel_cv.wait(lock,[this]{
@@ -101,6 +112,8 @@ public:
 		set_number_of_message_trackers(2); //default
 		this->output_.add_port("output_a", "output_b");
 	}
+
+	std::string kernel_name() { return "SortAndSample";}
 
 	void compute_partition_plan(std::vector<ral::frame::BlazingTableView> sampledTableViews, std::size_t avg_bytes_per_row, std::size_t local_total_num_rows) {
 
@@ -333,6 +346,8 @@ public:
 		set_number_of_message_trackers(max_num_order_by_partitions_per_node);
 	}
 
+	std::string kernel_name() { return "Partition";}
+
 	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
 		cudaStream_t stream, std::string kernel_process_name) override{
@@ -382,11 +397,20 @@ public:
 			ral::execution::executor::get_instance()->add_task(
 					std::move(inputs),
 					nullptr,
-					this,
-					"partition");
+					this);
 
 			cache_data = this->input_.get_cache("input_a")->pullCacheData();
 		}
+
+		if(logger != nullptr) {
+            logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+                                    "query_id"_a=context->getContextToken(),
+                                    "step"_a=context->getQueryStep(),
+                                    "substep"_a=context->getQuerySubstep(),
+                                    "info"_a="Partition Kernel tasks created",
+                                    "duration"_a=timer.elapsed_time(),
+                                    "kernel_id"_a=this->get_id());
+        }
 
 		std::unique_lock<std::mutex> lock(kernel_mutex);
 		kernel_cv.wait(lock,[this]{
@@ -436,6 +460,8 @@ public:
 		: kernel{kernel_id, queryString, context, kernel_type::MergeStreamKernel}  {
 		this->query_graph = query_graph;
 	}
+
+	std::string kernel_name() { return "MergeStream";}
 
 	virtual kstatus run() {
 		CodeTimer timer;
@@ -527,6 +553,8 @@ public:
 		this->query_graph = query_graph;
 		set_number_of_message_trackers(1); //default
 	}
+
+	std::string kernel_name() { return "Limit";}
 
 	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
@@ -626,8 +654,7 @@ public:
 				ral::execution::executor::get_instance()->add_task(
 						std::move(inputs),
 						this->output_cache(),
-						this,
-						"limit");
+						this);
 
 				if (rows_limit == 0){
 					//break;
@@ -644,6 +671,16 @@ public:
 				throw;
 			}
 		}
+
+		if(logger != nullptr) {
+            logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+                                    "query_id"_a=context->getContextToken(),
+                                    "step"_a=context->getQueryStep(),
+                                    "substep"_a=context->getQuerySubstep(),
+                                    "info"_a="Limit Kernel tasks created",
+                                    "duration"_a=timer.elapsed_time(),
+                                    "kernel_id"_a=this->get_id());
+        }
 
 		std::unique_lock<std::mutex> lock(kernel_mutex);
 		kernel_cv.wait(lock,[this]{

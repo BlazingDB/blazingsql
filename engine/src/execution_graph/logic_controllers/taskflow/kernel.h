@@ -29,7 +29,8 @@ public:
 	 * @param context Shared context associated to the running query.
 	 * @param kernel_type_id Identifier representing the kernel type.
 	 */
-	kernel(std::size_t kernel_id, std::string expr, std::shared_ptr<Context> context, kernel_type kernel_type_id) : expression{expr}, kernel_id(kernel_id), context{context}, kernel_type_id{kernel_type_id} {
+	kernel(std::size_t kernel_id, std::string expr, std::shared_ptr<Context> context, kernel_type kernel_type_id) : 
+		expression{expr}, kernel_id(kernel_id), context{context}, kernel_type_id{kernel_type_id}, total_input_bytes{0} {
 
 		parent_id_ = -1;
 		has_limit_ = false;
@@ -293,6 +294,11 @@ public:
 		cudaStream_t stream,std::string kernel_process_name){
 		}
 
+	std::size_t estimate_output_bytes(const std::vector<std::unique_ptr<ral::cache::CacheData > > & inputs);
+	std::size_t estimate_operating_bytes(const std::vector<std::unique_ptr<ral::cache::CacheData > > & inputs);
+
+	std::string kernel_name() { return "base_kernel"; }
+
 	void notify_complete(size_t task_id);
 	void add_task(size_t task_id);
 	bool finished_tasks(){
@@ -302,7 +308,8 @@ protected:
 	std::set<size_t> tasks;
 	std::mutex kernel_mutex;
 	std::condition_variable kernel_cv;
-
+	std::atomic<std::size_t> total_input_bytes;
+	
 public:
 	std::string expression; /**< Stores the logical expression being processed. */
 	port input_{this}; /**< Represents the input cache machines and their names. */

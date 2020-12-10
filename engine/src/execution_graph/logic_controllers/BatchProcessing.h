@@ -276,6 +276,8 @@ public:
 		this->query_graph = query_graph;
 	}
 
+	std::string kernel_name() { return "TableScan";}
+
 	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
 		cudaStream_t stream, std::string kernel_process_name) override{
@@ -319,7 +321,7 @@ public:
 			ral::execution::executor::get_instance()->add_task(
 					std::move(inputs),
 					output_cache,
-					this,std::string("scan"));
+					this);
 
 			if (this->has_limit_ && output_cache->get_num_rows_added() >= this->limit_rows_) {
 			//	break;
@@ -399,6 +401,8 @@ public:
 		this->filtered = is_filtered_bindable_scan(expression);
 	}
 
+	std::string kernel_name() { return "BindableTableScan";}
+
 
 	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
@@ -458,7 +462,7 @@ public:
 			ral::execution::executor::get_instance()->add_task(
 					std::move(inputs),
 					output_cache,
-					this,std::string("scan"));
+					this);
 
 			file_index++;
 			if (this->has_limit_ && output_cache->get_num_rows_added() >= this->limit_rows_) {
@@ -532,6 +536,8 @@ public:
 		this->query_graph = query_graph;
 	}
 
+	std::string kernel_name() { return "Projection";}
+
 	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
 		cudaStream_t stream, std::string kernel_process_name) override{
@@ -557,7 +563,7 @@ public:
 			ral::execution::executor::get_instance()->add_task(
 					std::move(inputs),
 					this->output_cache(),
-					this,std::string("filter"));
+					this);
 
 			cache_data = this->input_cache()->pullCacheData();
 		}
@@ -611,6 +617,8 @@ public:
 		this->query_graph = query_graph;
 	}
 
+	std::string kernel_name() { return "Filter";}
+
 	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
 		cudaStream_t stream, std::string kernel_process_name) override {
@@ -637,7 +645,7 @@ public:
 			ral::execution::executor::get_instance()->add_task(
 					std::move(inputs),
 					this->output_cache(),
-					this,std::string("filter"));
+					this);
 
 			cache_data = this->input_cache()->pullCacheData();
 		}
@@ -700,6 +708,8 @@ public:
 	Print() : kernel(0,"Print", nullptr, kernel_type::PrintKernel) { ofs = &(std::cout); }
 	Print(std::ostream & stream) : kernel(0,"Print", nullptr, kernel_type::PrintKernel) { ofs = &stream; }
 
+	std::string kernel_name() { return "Print";}
+
 	/**
 	 * Executes the batch processing.
 	 * Loads the data from their input port, and after processing it,
@@ -735,6 +745,8 @@ public:
 	 * @param context Shared context associated to the running query.
 	 */
 	OutputKernel(std::size_t kernel_id, std::shared_ptr<Context> context) : kernel(kernel_id,"OutputKernel", context, kernel_type::OutputKernel) { }
+
+	std::string kernel_name() { return "Output";}
 
 	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,

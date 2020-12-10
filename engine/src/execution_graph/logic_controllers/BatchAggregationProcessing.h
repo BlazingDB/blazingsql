@@ -29,6 +29,8 @@ public:
         this->query_graph = query_graph;
     }
 
+    std::string kernel_name() { return "ComputeAggregate";}
+
     void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
         std::shared_ptr<ral::cache::CacheMachine> output,
         cudaStream_t stream, std::string kernel_process_name) override{
@@ -63,8 +65,7 @@ public:
             ral::execution::executor::get_instance()->add_task(
                     std::move(inputs),
                     this->output_cache(),
-                    this,
-                    "computeaggregate");
+                    this);
 
             cache_data = this->input_cache()->pullCacheData();
         }
@@ -129,6 +130,8 @@ public:
         this->query_graph = query_graph;
         set_number_of_message_trackers(1); //default
     }
+
+    std::string kernel_name() { return "DistributeAggregate";}
 
     void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
         std::shared_ptr<ral::cache::CacheMachine> output,
@@ -209,10 +212,19 @@ public:
             ral::execution::executor::get_instance()->add_task(
                     std::move(inputs),
                     this->output_cache(),
-                    this,
-                    "distributeaggregate");
+                    this);
 
             cache_data = this->input_cache()->pullCacheData();
+        }
+
+        if(logger != nullptr) {
+            logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+                                    "query_id"_a=context->getContextToken(),
+                                    "step"_a=context->getQueryStep(),
+                                    "substep"_a=context->getQuerySubstep(),
+                                    "info"_a="DistributeAggregate Kernel tasks created",
+                                    "duration"_a=timer.elapsed_time(),
+                                    "kernel_id"_a=this->get_id());
         }
 
         std::unique_lock<std::mutex> lock(kernel_mutex);
@@ -254,6 +266,8 @@ public:
         : kernel{kernel_id, queryString, context, kernel_type::MergeAggregateKernel} {
         this->query_graph = query_graph;
     }
+
+    std::string kernel_name() { return "MergeAggregate";}
 
     void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
         std::shared_ptr<ral::cache::CacheMachine> output,
@@ -352,8 +366,7 @@ public:
             ral::execution::executor::get_instance()->add_task(
                     std::move(inputs),
                     this->output_cache(),
-                    this,
-                    "mergeaggregate");
+                    this);
 
             logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
                                         "query_id"_a=context->getContextToken(),
