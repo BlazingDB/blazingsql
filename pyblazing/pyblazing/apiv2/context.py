@@ -1896,7 +1896,7 @@ class BlazingContext(object):
                     cio.resetMaxMemoryUsedCaller, workers=[worker], pure=False
                 )
                 dask_futures.append(free_memory)
-            aslist = self.dask_client.gather(dask_futures)
+            self.dask_client.gather(dask_futures)
         else:
             cio.resetMaxMemoryUsedCaller()
 
