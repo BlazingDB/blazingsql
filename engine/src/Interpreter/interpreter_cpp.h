@@ -23,9 +23,17 @@ enum column_index : column_index_type {
 	SCALAR_INDEX = -2,
 	SCALAR_NULL_INDEX = -3,
 	NULLARY_INDEX = -4
-
 };
 
+/**
+ * @brief Encodes an expression tree consisting of simple operations in a GPU
+ * friendly format that we can later evaluate in a single GPU kernel call
+ *
+ * The interpreter can only evaluate simple operations like arithmetic
+ * operations, cast, etc on primitives types. Any complex operation inside
+ * the expression tree must be removed (or evaluated and replaced by its result)
+ * in a preprocess step
+ */
 void add_expression_to_interpreter_plan(const ral::parser::parse_tree & expr_tree,
 	const std::map<column_index_type, column_index_type> & expr_idx_to_col_idx_map,
 	cudf::size_type start_processing_position,
@@ -37,6 +45,10 @@ void add_expression_to_interpreter_plan(const ral::parser::parse_tree & expr_tre
 	std::vector<std::unique_ptr<cudf::scalar>> & left_scalars,
 	std::vector<std::unique_ptr<cudf::scalar>> & right_scalars);
 
+/**
+ * @brief Evaluates multiple operations encoded in a GPU friendly format in a
+ * single GPU kernel call
+ */
 void perform_interpreter_operation(cudf::mutable_table_view & out_table,
 	const cudf::table_view & table,
 	const std::vector<column_index_type> & left_inputs,
