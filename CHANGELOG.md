@@ -6,7 +6,7 @@
 - #1237 Added task memory management
 - #1244 Added memory monitor ability to downgrade task data
 - #1232 Update PartwiseJoin and JoinPartition kernel using the task executor internally
-
+- #1238 Implements MergeStramKernel executor model
 
 ## Improvements
 - #1236 Moving code from header files to implementation files
@@ -37,7 +37,8 @@
 - #1201 Implement string TRIM
 - #1216 Add unit test for DAYOFWEEK
 - #1205 Implement string REVERSE
-- #1220 Implement string LEFT and RIGHT
+- #1220 Implement string LEFT and RIGHT 
+- #1223 Add support for UNION statement
 
 
 ## Improvements

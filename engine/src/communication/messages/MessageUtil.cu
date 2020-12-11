@@ -1,5 +1,5 @@
 #include <cudf/copying.hpp>
-
+#include <rmm/exec_policy.hpp>
 #include "MessageUtil.cuh"
 
 namespace ral {
@@ -27,7 +27,7 @@ namespace messages {
 
 		cudf::copy_range_in_place(offsets_column, mutable_col, offset, offset + column.size() + 1, 0);
 
-		thrust::transform(rmm::exec_policy(0)->on(0),
+		thrust::transform(rmm::exec_policy(0),
 											mutable_col.begin<int32_t>(),
 											mutable_col.end<int32_t>(),
 											mutable_col.begin<int32_t>(),

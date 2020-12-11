@@ -26,7 +26,7 @@ namespace ral {
 namespace operators {
 
 	std::tuple<std::vector<int>, std::vector<std::string>, std::vector<AggregateKind>, std::vector<std::string>> 
-		parseGroupByExpression(const std::string & queryString);
+		parseGroupByExpression(const std::string & queryString, std::size_t num_cols);
 
 	std::tuple<std::vector<int>, std::vector<std::string>, std::vector<AggregateKind>, std::vector<std::string>> 
 		modGroupByParametersForMerge(const std::vector<int> & group_column_indices, 
