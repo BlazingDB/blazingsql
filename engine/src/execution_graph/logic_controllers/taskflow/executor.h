@@ -3,6 +3,7 @@
 #include "kernel.h"
 #include "execution_graph/logic_controllers/CacheMachine.h"
 #include "ExceptionHandling/BlazingThread.h"
+#include "utilities/ctpl_stl.h"
 
 namespace ral {
 namespace execution{
@@ -25,7 +26,7 @@ public:
 	std::shared_ptr<ral::cache::CacheMachine> output,
 	size_t task_id,
 	ral::cache::kernel * kernel, size_t attempts_limit,
-	std::string kernel_process_name, size_t attempts = 0);
+	const std::map<std::string, std::string>& args, size_t attempts = 0);
 
 	/**
 	* Function which runs the kernel process on the inputs and puts results into output.
@@ -34,6 +35,18 @@ public:
 	*/
 	void run(cudaStream_t stream, executor * executor);
 	void complete();
+	std::size_t task_memory_needed();
+
+	/**
+	 * This function releases the inputs of a task so that they can be manipulated. They then need to be set again with set_inputs
+	 */
+	std::vector<std::unique_ptr<ral::cache::CacheData > > release_inputs();
+
+	/**
+	 * This function set the inputs of a task. It is meant to be used in conjunction with release_inputs
+	 */
+	void set_inputs(std::vector<std::unique_ptr<ral::cache::CacheData > > inputs);
+
 protected:
 	std::vector<std::unique_ptr<ral::cache::CacheData > > inputs;
 	std::shared_ptr<ral::cache::CacheMachine> output;
@@ -41,7 +54,7 @@ protected:
 	ral::cache::kernel * kernel;
 	size_t attempts = 0;
 	size_t attempts_limit;
-	std::string kernel_process_name = "";
+	std::map<std::string, std::string> args;
 };
 
 
@@ -57,6 +70,8 @@ public:
 	static void init_executor(int num_threads){
 		if(!_instance){
 			_instance = new executor(num_threads);
+			_instance->task_id_counter = 0;
+			_instance->active_tasks_counter = 0;
 			auto thread = std::thread([_instance]{
 				_instance->execute();
 			});
@@ -67,13 +82,21 @@ public:
 	void execute();
 	size_t add_task(std::vector<std::unique_ptr<ral::cache::CacheData > > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
-		ral::cache::kernel * kernel,std::string kernel_process_name);
+		ral::cache::kernel * kernel, const std::map<std::string, std::string>& args = {});
 
 	void add_task(std::vector<std::unique_ptr<ral::cache::CacheData > > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
 		ral::cache::kernel * kernel,
 		size_t attempts,
-		size_t task_id,std::string kernel_process_name);
+		size_t task_id, const std::map<std::string, std::string>& args = {});
+
+	void add_task(std::unique_ptr<task> task);
+
+	std::unique_ptr<task> remove_task_from_back();
+
+	void notify_memory_safety_cv(){
+		memory_safety_cv.notify_all();
+	}
 
 private:
 	executor(int num_threads);
@@ -84,6 +107,11 @@ private:
 	static executor * _instance;
 	std::atomic<int> task_id_counter;
 	size_t attempts_limit = 10;
+
+	BlazingMemoryResource* resource;
+	std::atomic<int> active_tasks_counter;
+	std::mutex memory_safety_mutex;
+	std::condition_variable memory_safety_cv;
 };
 
 
