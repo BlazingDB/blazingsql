@@ -120,8 +120,6 @@ BatchSequenceBypass
 This data sequencer can pull data from a CacheMachine, but without decacheing the data. Serving as a bypass to take data from one input to an output without decacheing.
 ExternalBatchColumnDataSequence
 This data sequences connects a HostCacheMachine to a server receiving certain types of messages, so that basically the data sequences is effectively iterating through batches received from another node via out communication layer.
-DataSourceSequence
-This data sequences does not pull data from a CacheMachine, but it instead gets data from a data source, such as a set of files or from a DataFrame. These are the data sequences used by TableScans.
 
 
 

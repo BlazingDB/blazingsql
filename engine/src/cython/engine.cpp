@@ -7,7 +7,7 @@
 #include "../io/data_parser/OrcParser.h"
 #include "../io/data_parser/ArrowParser.h"
 #include "../io/data_parser/ParquetParser.h"
-#include "../io/data_provider/DummyProvider.h"
+#include "../io/data_provider/GDFDataProvider.h"
 #include "../io/data_provider/UriDataProvider.h"
 #include "../skip_data/SkipDataProcessor.h"
 #include "../execution_graph/logic_controllers/LogicalFilter.h"
@@ -57,7 +57,7 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 		if(fileType == ral::io::DataType::PARQUET) {
 			parser = std::make_shared<ral::io::parquet_parser>();
 		} else if(fileType == gdfFileType || fileType == daskFileType) {
-			parser = std::make_shared<ral::io::gdf_parser>(tableSchema.blazingTableViews);
+			parser = std::make_shared<ral::io::gdf_parser>();
 		} else if(fileType == ral::io::DataType::ORC) {
 			parser = std::make_shared<ral::io::orc_parser>(args_map);
 		} else if(fileType == ral::io::DataType::JSON) {
@@ -77,7 +77,7 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 
 		if(fileType == ral::io::DataType::CUDF || fileType == ral::io::DataType::DASK_CUDF) {
 			// is gdf
-			provider = std::make_shared<ral::io::dummy_data_provider>();
+			provider = std::make_shared<ral::io::gdf_data_provider>(tableSchema.blazingTableViews, uri_values[i]);
 		} else {
 			// is file (this includes the case where fileType is UNDEFINED too)
 			provider = std::make_shared<ral::io::uri_data_provider>(uris, uri_values[i]);
