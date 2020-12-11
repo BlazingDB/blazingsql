@@ -1824,6 +1824,38 @@ class BlazingContext(object):
             free_memory_dictionary[0] = cio.getFreeMemoryCaller()
             return free_memory_dictionary
 
+    def reset_max_used_memory(self) -> None:
+        """
+        This function resets the max memory usage counter to 0
+
+        Example
+        --------
+        # single-GPU
+        >>> from blazingsql import BlazingContext
+        >>> bc = BlazingContext()
+        >>> bc.reset_max_used_memory()
+
+        # multi-GPU (4 GPUs):
+        >>> from blazingsql import BlazingContext
+        >>> from dask_cuda import LocalCUDACluster
+        >>> from dask.distributed import Client
+        >>> cluster = LocalCUDACluster()
+        >>> client = Client(cluster)
+        >>> bc = BlazingContext(dask_client=client, network_interface='lo')
+        >>> bc.reset_max_used_memory()
+        """
+        if self.dask_client:
+            dask_futures = []
+            workers = tuple(self.dask_client.scheduler_info()["workers"])
+            for worker_id, worker in enumerate(workers):
+                free_memory = self.dask_client.submit(
+                    cio.resetMaxUsedMemoryCaller, workers=[worker], pure=False
+                )
+                dask_futures.append(free_memory)
+            aslist = self.dask_client.gather(dask_futures)
+        else:
+            cio.resetMaxUsedMemoryCaller()
+
     def create_table(self, table_name, input, **kwargs):
         """
         Create a BlazingSQL table.

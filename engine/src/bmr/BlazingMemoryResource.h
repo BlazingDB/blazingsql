@@ -60,6 +60,7 @@ public:
     bool supports_streams() const noexcept override;
     bool supports_get_mem_info() const noexcept override;
     std::string get_full_memory_summary();
+    void reset_max_used_memory(size_t to = 0) noexcept;
 
 private:
     void* do_allocate(size_t bytes, rmm::cuda_stream_view stream) override;
@@ -113,6 +114,8 @@ public:
     std::string get_type();
 
     std::string get_full_memory_summary();
+    
+    void reset_max_used_memory(size_t to = 0);
 
   /** -----------------------------------------------------------------------*
    * @brief Initialize RMM options

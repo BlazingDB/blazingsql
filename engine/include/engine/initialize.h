@@ -24,6 +24,8 @@ std::pair<std::pair<std::shared_ptr<ral::cache::CacheMachine>,std::shared_ptr<ra
 void finalize();
 
 size_t getFreeMemory();
+void resetMaxUsedMemory(int to = 0);
+
 extern "C" {
 
 error_code_t initialize_C(int ralId,
