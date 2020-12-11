@@ -116,6 +116,7 @@ struct tree_processor {
 		}
 		return k;
 	}
+
 	std::size_t expr_tree_from_json(std::size_t kernel_id, boost::property_tree::ptree const& p_tree, node * root_ptr, int level, std::shared_ptr<ral::cache::graph> query_graph) {
 		auto expr = p_tree.get<std::string>("expr", "");
 		root_ptr->expr = expr;
@@ -208,7 +209,8 @@ struct tree_processor {
 				p_tree.put("expr", merge_aggregate_expr);
 				p_tree.put_child("children", create_array_tree(distribute_aggregate_tree));
 			}
-		} else if (is_join(expr)) {
+		}
+		else if (is_join(expr)) {
 			if (this->context->getTotalNodes() == 1) {
 				// PartwiseJoin
 				auto pairwise_expr = expr;
@@ -231,6 +233,52 @@ struct tree_processor {
 				p_tree.put_child("children", create_array_tree(join_partition_tree));
 			}
 		}
+		// special case when the query contains UNION
+		else if (is_union(expr) && get_named_expression(expr, "all") == "false") {
+			expr = "LogicalUnion(all=[true])";
+
+			// when UNION, we want to do a group by on all columns without aggregations.
+			std::string merge_aggregate_expr = LOGICAL_MERGE_AGGREGATE_TEXT + "(group=[{*}])";
+			std::string compute_aggregate_expr = LOGICAL_COMPUTE_AGGREGATE_TEXT + "(group=[{*}])";
+			std::string distribute_aggregate_expr = LOGICAL_DISTRIBUTE_AGGREGATE_TEXT + "(group=[{*}])";
+
+			if (this->context->getTotalNodes() == 1) {
+
+				boost::property_tree::ptree root_union_tree;
+				root_union_tree.put("expr", expr);
+				root_union_tree.add_child("children", p_tree.get_child("children"));
+
+				boost::property_tree::ptree agg_union_tree;
+				agg_union_tree.put("expr", compute_aggregate_expr);
+				agg_union_tree.add_child("children", create_array_tree(root_union_tree));
+
+				p_tree.clear();
+
+				p_tree.put("expr", merge_aggregate_expr);
+				p_tree.put_child("children", create_array_tree(agg_union_tree));
+
+			} else {
+
+				boost::property_tree::ptree root_union_tree;
+				root_union_tree.put("expr", expr);
+				root_union_tree.add_child("children", p_tree.get_child("children"));
+
+				boost::property_tree::ptree compute_aggregate_tree;
+				compute_aggregate_tree.put("expr", compute_aggregate_expr);
+				compute_aggregate_tree.add_child("children", create_array_tree(root_union_tree));
+
+				boost::property_tree::ptree distribute_aggregate_tree;
+				distribute_aggregate_tree.put("expr", distribute_aggregate_expr);
+				distribute_aggregate_tree.add_child("children", create_array_tree(compute_aggregate_tree));
+
+				p_tree.clear();
+
+				p_tree.put("expr", merge_aggregate_expr);
+				p_tree.put_child("children", create_array_tree(distribute_aggregate_tree));
+			}
+
+		}
+
 		for (auto &child : p_tree.get_child("children")) {
 			transform_json_tree(child.second);
 		}

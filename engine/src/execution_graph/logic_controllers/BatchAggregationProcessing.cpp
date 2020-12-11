@@ -42,10 +42,12 @@ ral::execution::task_result ComputeAggregateKernel::do_process(std::vector< std:
 kstatus ComputeAggregateKernel::run() {
     CodeTimer timer;
 
-    std::tie(this->group_column_indices, aggregation_input_expressions, this->aggregation_types,
-        aggregation_column_assigned_aliases) = ral::operators::parseGroupByExpression(this->expression);
-
     std::unique_ptr <ral::cache::CacheData> cache_data = this->input_cache()->pullCacheData();
+
+    // in case UNION exists, we want to know the num of columns
+    std::tie(this->group_column_indices, aggregation_input_expressions, this->aggregation_types,
+        aggregation_column_assigned_aliases) = ral::operators::parseGroupByExpression(this->expression, cache_data->num_columns());
+
     while(cache_data != nullptr ){
         std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
         inputs.push_back(std::move(cache_data));
@@ -196,12 +198,14 @@ ral::execution::task_result DistributeAggregateKernel::do_process(std::vector< s
 kstatus DistributeAggregateKernel::run() {
     CodeTimer timer;
 
+    std::unique_ptr <ral::cache::CacheData> cache_data = this->input_cache()->pullCacheData();
+
+    // in case UNION exists, we want to know the num of columns
     std::tie(group_column_indices, aggregation_input_expressions, aggregation_types,
-        aggregation_column_assigned_aliases) = ral::operators::parseGroupByExpression(this->expression);
+        aggregation_column_assigned_aliases) = ral::operators::parseGroupByExpression(this->expression, cache_data->num_columns());
 
     std::transform(group_column_indices.begin(), group_column_indices.end(), std::back_inserter(columns_to_hash), [](int index) { return (cudf::size_type)index; });
 
-    std::unique_ptr <ral::cache::CacheData> cache_data = this->input_cache()->pullCacheData();
     while(cache_data != nullptr ){
         std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
         inputs.push_back(std::move(cache_data));
@@ -285,7 +289,7 @@ ral::execution::task_result MergeAggregateKernel::do_process(std::vector< std::u
         std::vector<std::string> aggregation_input_expressions, aggregation_column_assigned_aliases;
         std::vector<AggregateKind> aggregation_types;
         std::tie(group_column_indices, aggregation_input_expressions, aggregation_types,
-            aggregation_column_assigned_aliases) = ral::operators::parseGroupByExpression(this->expression);
+            aggregation_column_assigned_aliases) = ral::operators::parseGroupByExpression(this->expression,concatenated->num_columns());
 
         std::vector<int> mod_group_column_indices;
         std::vector<std::string> mod_aggregation_input_expressions, mod_aggregation_column_assigned_aliases, merging_column_names;

@@ -54,7 +54,6 @@ private:
     bool set_empty_part_for_non_master_node = false; // this is only for aggregation without group by
 };
 
-
 class MergeAggregateKernel : public kernel {
 public:
     MergeAggregateKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph);
