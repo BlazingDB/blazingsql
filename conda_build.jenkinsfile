@@ -8,6 +8,7 @@ pipeline {
   }
 
   parameters {
+    choice(name: 'TYPE', choices: 'nightly\nstable', description: 'Nightly or Stable')
     string(name: 'RAPIDS_BUILD_VERSION', defaultValue: '0.17', description: 'Version of Rapids, example: 0.18')
     choice(name: 'CUDA_VERSION', choices: '10.1\n10.2\n11.0', description: 'Cuda version')
     choice(name: 'PYTHON_VERSION', choices: '3.7\n3.8', description: 'Python version')
@@ -42,7 +43,7 @@ pipeline {
     stage("Build && Upload") {
       steps {
         withCredentials([string(credentialsId: "${params.CONDA_TOKEN}", variable: 'TOKEN')]) {
-          sh "BLAZING_GPUCI_JOB=cpu-build ./conda-build-docker.sh ${params.RAPIDS_BUILD_VERSION} ${params.CUDA_VERSION} ${params.PYTHON_VERSION} $TOKEN ${params.CONDA_USERNAME}"
+          sh "BLAZING_GPUCI_JOB=cpu-build ./conda-build-docker.sh ${params.RAPIDS_BUILD_VERSION} ${params.CUDA_VERSION} ${params.PYTHON_VERSION} $TOKEN ${params.CONDA_USERNAME} ${params.TYPE}"
         }
       }
     }

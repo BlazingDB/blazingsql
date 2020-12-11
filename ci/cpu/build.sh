@@ -31,8 +31,12 @@ fi
 
 gpuci_logger "Get env"
 env
-echo "  - blazingsql-nightly" >> /conda/.condarc
-echo "  - blazingsql" >> /conda/.condarc
+if [ ! -z "$TYPE" ] && [ "$TYPE" == "stable" ]; then
+  sed -i "/- rapidsai-nightly/g" /conda/.condarc
+else
+  echo "  - blazingsql-nightly" >> /conda/.condarc
+  echo "  - blazingsql" >> /conda/.condarc
+fi
 
 gpuci_logger "Activate conda env"
 . /opt/conda/etc/profile.d/conda.sh

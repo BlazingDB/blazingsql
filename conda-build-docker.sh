@@ -164,9 +164,15 @@ if [ "$BLAZING_GPUCI_JOB" = "" ] || [ "$BLAZING_GPUCI_JOB" = "cpu-build" ]; then
     fi
     echo "CONDA_USERNAME: $CONDA_USERNAME"
 
-    CUSTOM_LABEL=""
+    TYPE="nightly"
     if [ ! -z $6 ]; then
-        CUSTOM_LABEL=$6
+        TYPE=$6
+    fi
+    echo "TYPE: $TYPE"
+
+    CUSTOM_LABEL=""
+    if [ ! -z $7 ]; then
+        CUSTOM_LABEL=$7
     fi
     echo "CUSTOM_LABEL: $CUSTOM_LABEL"
 fi
@@ -221,7 +227,7 @@ if [ "$BLAZING_GPUCI_JOB" = "" ] || [ "$BLAZING_GPUCI_JOB" = "cpu-build" ]; then
         -u $USER \
         -e CUDA_VER=${CUDA_VERSION} -e PYTHON_VER=$PYTHON_VERSION \
         -e CONDA_USERNAME=$CONDA_USERNAME -e MY_UPLOAD_KEY=$MY_UPLOAD_KEY \
-        -e BUILD_MODE=branch \
+        -e BUILD_MODE=branch -e TYPE=$TYPE \
         -e UPLOAD_BLAZING=$UPLOAD_BLAZING -e CUSTOM_LABEL=$CUSTOM_LABEL \
         -e WORKSPACE=$WORKSPACE \
         -v /etc/passwd:/etc/passwd \
