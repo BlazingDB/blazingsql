@@ -332,7 +332,7 @@ std::pair<std::unique_ptr<ResultSet>, error_code_t> runSkipData_C(
 		return std::make_pair(std::move(result), E_EXCEPTION);
 	}
 }
-/*
+
 std::pair<std::unique_ptr<ResultSet>, error_code_t> performPartition_C(
 	int32_t masterIndex,
 

@@ -56,7 +56,7 @@ namespace ral {
                     // we have now decached the inputs from either enough tasks to get below the memory limit or there are no more tasks to work with
                     // Now lets add the tasks back to the queue in the same order they were in
                     if (tasks.size() > 0){
-                        for (std::size_t i = tasks.size() - 1; i >= 0; i--){
+                        for (int i = tasks.size() - 1; i >= 0; i--){
                             ral::execution::executor::get_instance()->add_task(std::move(tasks[i]));
                         }
                     }

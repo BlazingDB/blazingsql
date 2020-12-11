@@ -120,7 +120,7 @@ TEST_F(OperatorTest, rand_num_1) {
 
     std::pair<thrust::host_vector<T>, std::vector<cudf::bitmask_type>> data_mask = cudf::test::to_host<T>(out_col2);
 
-    for (int i = 0; i < data_mask.first.size(); i++) {
+    for (std::size_t i = 0; i < data_mask.first.size(); i++) {
         ASSERT_TRUE(data_mask.first[i] >= 0.0d && data_mask.first[i] <= 1.0d);
     }
     //cudf::test::expect_colum_equal(expected_table_view, out_table_view);
@@ -346,8 +346,6 @@ TYPED_TEST(InteropsTestTimestamp, test_day_of_week) {
                                   operators,
                                   left_scalars,
                                   right_scalars);
-
-    auto sad = cudf::type_to_id<T>();
 
     if (cudf::type_to_id<T>() == cudf::type_id::TIMESTAMP_DAYS) {
         cudf::test::fixed_width_column_wrapper<int32_t> expected_col1(

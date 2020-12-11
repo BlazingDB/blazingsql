@@ -24,10 +24,10 @@ class data_parser {
 public:
 
 	virtual std::unique_ptr<ral::frame::BlazingTable> parse_batch(
-		ral::io::data_handle handle,
-		const Schema & schema,
-		std::vector<int> column_indices,
-		std::vector<cudf::size_type> row_groups) {
+		ral::io::data_handle /*handle*/,
+		const Schema & /*schema*/,
+		std::vector<int> /*column_indices*/,
+		std::vector<cudf::size_type> /*row_groups*/) {
 		return nullptr; // TODO cordova ask ALexander why is not a pure virtual function as before
 	}
 

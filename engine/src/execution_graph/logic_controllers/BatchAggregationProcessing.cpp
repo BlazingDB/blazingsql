@@ -15,7 +15,7 @@ ComputeAggregateKernel::ComputeAggregateKernel(std::size_t kernel_id, const std:
 
 void ComputeAggregateKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
-    cudaStream_t stream, const std::map<std::string, std::string>& args) {
+    cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) {
     auto & input = inputs[0];
 
     std::unique_ptr<ral::frame::BlazingTable> columns;
@@ -110,7 +110,7 @@ DistributeAggregateKernel::DistributeAggregateKernel(std::size_t kernel_id, cons
 
 void DistributeAggregateKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
-    cudaStream_t stream, const std::map<std::string, std::string>& args) {
+    cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) {
     auto & input = inputs[0];
 
     // num_partitions = context->getTotalNodes() will do for now, but may want a function to determine this in the future.
@@ -237,7 +237,7 @@ MergeAggregateKernel::MergeAggregateKernel(std::size_t kernel_id, const std::str
 
 void MergeAggregateKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
-    cudaStream_t stream, const std::map<std::string, std::string>& args) {
+    cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) {
     CodeTimer eventTimer(false);
 
     std::vector< ral::frame::BlazingTableView > tableViewsToConcat;

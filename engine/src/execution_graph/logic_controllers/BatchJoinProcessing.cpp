@@ -377,8 +377,8 @@ std::unique_ptr<ral::frame::BlazingTable> PartwiseJoin::join_set(
 }
 
 void PartwiseJoin::do_process(std::vector<std::unique_ptr<ral::frame::BlazingTable>> inputs,
-	std::shared_ptr<ral::cache::CacheMachine> output,
-	cudaStream_t stream, const std::map<std::string, std::string>& args) {
+	std::shared_ptr<ral::cache::CacheMachine> /*output*/,
+	cudaStream_t /*stream*/, const std::map<std::string, std::string>& args) {
 	CodeTimer eventTimer;
 
 	auto & left_batch = inputs[0];
@@ -453,8 +453,8 @@ kstatus PartwiseJoin::run() {
 			// parsing more of the expression here because we need to have the number of columns of the tables
 			std::vector<int> column_indices;
 			parseJoinConditionToColumnIndices(this->condition, column_indices);
-			for(int i = 0; i < column_indices.size();i++){
-				if(column_indices[i] >= left_cache_data->num_columns()){
+			for(std::size_t i = 0; i < column_indices.size();i++){
+				if(column_indices[i] >= static_cast<int>(left_cache_data->num_columns())){
 					this->right_column_indices.push_back(column_indices[i] - left_cache_data->num_columns());
 				}else{
 					this->left_column_indices.push_back(column_indices[i]);
@@ -772,8 +772,8 @@ void JoinPartitionKernel::perform_standard_hash_partitioning(
 	// parsing more of the expression here because we need to have the number of columns of the tables
 	std::vector<int> column_indices;
 	parseJoinConditionToColumnIndices(condition, column_indices);
-	for(int i = 0; i < column_indices.size();i++){
-		if(column_indices[i] >= left_cache_data->num_columns()){
+	for(std::size_t i = 0; i < column_indices.size();i++){
+		if(column_indices[i] >= static_cast<int>(left_cache_data->num_columns())){
 			this->right_column_indices.push_back(column_indices[i] - left_cache_data->num_columns());
 		}else{
 			this->left_column_indices.push_back(column_indices[i]);
@@ -843,7 +843,7 @@ void JoinPartitionKernel::small_table_scatter_distribution(std::unique_ptr<ral::
 	std::string small_output_cache_name = scatter_left_right.first ? "output_a" : "output_b";
 	int small_table_idx = scatter_left_right.first ? LEFT_TABLE_IDX : RIGHT_TABLE_IDX;
 	std::string big_output_cache_name = scatter_left_right.first ? "output_b" : "output_a";
-	int big_table_idx = scatter_left_right.first ? RIGHT_TABLE_IDX : LEFT_TABLE_IDX;
+	//int big_table_idx = scatter_left_right.first ? RIGHT_TABLE_IDX : LEFT_TABLE_IDX;
 
 	BlazingThread left_thread([this, &small_input, &small_cache_data](){
 		while(small_cache_data != nullptr ) {
@@ -894,8 +894,8 @@ void JoinPartitionKernel::small_table_scatter_distribution(std::unique_ptr<ral::
 }
 
 void JoinPartitionKernel::do_process(std::vector<std::unique_ptr<ral::frame::BlazingTable>> inputs,
-	std::shared_ptr<ral::cache::CacheMachine> output,
-	cudaStream_t stream, const std::map<std::string, std::string>& args) {
+	std::shared_ptr<ral::cache::CacheMachine> /*output*/,
+	cudaStream_t /*stream*/, const std::map<std::string, std::string>& args) {
 
 	auto& operation_type = args.at("operation_type");
 

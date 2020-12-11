@@ -23,8 +23,6 @@ struct ParquetMetadataTest : public ::testing::Test {
 */
 template<typename T, parquet::Type::type FType>
 void process_minmax_metadata(){
-    using DType = parquet::PhysicalType<FType>;
-
     cudf::test::fixed_width_column_wrapper<T> col1{{std::numeric_limits<T>::min(), std::numeric_limits<T>::min()}};
     cudf::test::fixed_width_column_wrapper<T> col2{{std::numeric_limits<T>::max(), std::numeric_limits<T>::max()}};
 

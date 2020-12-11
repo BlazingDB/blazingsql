@@ -566,7 +566,7 @@ protected:
 class message { //TODO: the cache_data object can store its id. This is not needed.
 public:
 	message(std::unique_ptr<CacheData> content, std::string message_id = "")
-		: message_id(message_id), data(std::move(content))
+		: data(std::move(content)), message_id(message_id)
 	{
 		assert(data != nullptr);
 	}

@@ -32,11 +32,11 @@ data_loader::~data_loader() {}
 
 
 std::unique_ptr<ral::frame::BlazingTable> data_loader::load_batch(
-	const std::vector<int> & column_indices_in,
-	const Schema & schema,
-	data_handle file_data_handle,
-	size_t file_index,
-	std::vector<cudf::size_type> row_group_ids) {
+	const std::vector<int> & /*column_indices_in*/,
+	const Schema & /*schema*/,
+	data_handle /*file_data_handle*/,
+	size_t /*file_index*/,
+	std::vector<cudf::size_type> /*row_group_ids*/) {
 
 /*	std::vector<int> column_indices = column_indices_in;
 	if (column_indices.size() == 0) {  // including all columns by default

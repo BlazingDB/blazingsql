@@ -15,8 +15,8 @@ PartitionSingleNodeKernel::PartitionSingleNodeKernel(std::size_t kernel_id, cons
 }
 
 void PartitionSingleNodeKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
-    std::shared_ptr<ral::cache::CacheMachine> output,
-    cudaStream_t stream, const std::map<std::string, std::string>& args) {
+    std::shared_ptr<ral::cache::CacheMachine> /*output*/,
+    cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) {
     auto & input = inputs[0];
 
     auto partitions = ral::operators::partition_table(partitionPlan->toBlazingTableView(), input->toBlazingTableView(), this->expression);
@@ -317,8 +317,8 @@ PartitionKernel::PartitionKernel(std::size_t kernel_id, const std::string & quer
 }
 
 void PartitionKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
-    std::shared_ptr<ral::cache::CacheMachine> output,
-    cudaStream_t stream, const std::map<std::string, std::string>& args) {
+    std::shared_ptr<ral::cache::CacheMachine> /*output*/,
+    cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) {
     auto & input = inputs[0];
 
     std::vector<ral::distribution::NodeColumnView> partitions = ral::distribution::partitionData(this->context.get(), input->toBlazingTableView(), partitionPlan->toBlazingTableView(), sortColIndices, sortOrderTypes);
@@ -343,7 +343,7 @@ kstatus PartitionKernel::run() {
     std::map<std::string, std::map<int32_t, int> > node_count;
 
     std::tie(sortColIndices, sortOrderTypes, std::ignore) =	ral::operators::get_sort_vars(this->expression);
-    auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
+    //auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
     auto nodes = context->getAllNodes();
 
     // If we have no partitionPlan, its because we have no data, therefore its one partition per node
@@ -504,7 +504,7 @@ LimitKernel::LimitKernel(std::size_t kernel_id, const std::string & queryString,
 
 void LimitKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
-    cudaStream_t stream, const std::map<std::string, std::string>& args) {
+    cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) {
     CodeTimer eventTimer(false);
     auto & input = inputs[0];
 

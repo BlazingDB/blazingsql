@@ -299,7 +299,7 @@ ucx_message_listener::ucx_message_listener(ucp_context_h context, ucp_worker_h w
 	ucp_progress_manager::get_instance(worker,_request_size);
 }
 
-tcp_message_listener::tcp_message_listener(const std::map<std::string, comm::node>& nodes,int port, int num_threads) : _port{port} , message_listener{nodes,num_threads}{
+tcp_message_listener::tcp_message_listener(const std::map<std::string, comm::node>& nodes,int port, int num_threads) : message_listener{nodes,num_threads}, _port{port} {
 
 }
 

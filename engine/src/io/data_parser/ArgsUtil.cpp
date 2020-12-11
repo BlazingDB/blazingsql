@@ -239,6 +239,7 @@ std::string getDataTypeName(DataType dataType) {
 	case DataType::JSON: return "json"; break;
 	case DataType::CUDF: return "cudf"; break;
 	case DataType::DASK_CUDF: return "dask_cudf"; break;
+	default: break;
 	}
 
 	return "undefined";
