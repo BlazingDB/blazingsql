@@ -880,7 +880,7 @@ void JoinPartitionKernel::small_table_scatter_distribution(std::unique_ptr<ral::
 
 	std::unique_lock<std::mutex> lock(kernel_mutex);
 	kernel_cv.wait(lock,[this]{
-			return this->tasks.empty();
+		return this->tasks.empty();
 	});
 
 	send_total_partition_counts(

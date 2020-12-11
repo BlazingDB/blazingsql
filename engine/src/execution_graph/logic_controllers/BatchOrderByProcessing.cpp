@@ -181,6 +181,12 @@ void SortAndSampleKernel::compute_partition_plan(std::vector<ral::frame::Blazing
     }
 }
 
+void SortAndSampleKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+    std::shared_ptr<ral::cache::CacheMachine> output,
+    cudaStream_t stream, const std::map<std::string, std::string>& args) {
+}
+
+
 kstatus SortAndSampleKernel::run() {
     CodeTimer timer;
     CodeTimer eventTimer(false);
@@ -251,14 +257,21 @@ kstatus SortAndSampleKernel::run() {
             // TODO add retry here
             // Note that we have to handle the collected samples in a special way. We need to compare to the current batch_count and perhaps evict one set of samples
             logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
-                                        "query_id"_a=context->getContextToken(),
-                                        "step"_a=context->getQueryStep(),
-                                        "substep"_a=context->getQuerySubstep(),
-                                        "info"_a="In SortAndSample kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
-                                        "duration"_a="");
+                                "query_id"_a=context->getContextToken(),
+                                "step"_a=context->getQueryStep(),
+                                "substep"_a=context->getQuerySubstep(),
+                                "info"_a="In SortAndSample kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
+                                "duration"_a="");
             throw;
         }
     }
+
+    // TODO: uncomment this block to the final
+    //std::unique_lock<std::mutex> lock(kernel_mutex);
+    //kernel_cv.wait(lock,[this]{
+    //    return this->tasks.empty();
+    //});
+
 
     if (partition_plan_thread.joinable()){
         partition_plan_thread.join();

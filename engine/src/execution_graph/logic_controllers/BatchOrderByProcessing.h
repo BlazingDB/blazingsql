@@ -16,7 +16,9 @@ using namespace fmt::literals;
 
 class PartitionSingleNodeKernel : public kernel {
 public:
-	PartitionSingleNodeKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph);
+	PartitionSingleNodeKernel(std::size_t kernel_id, const std::string & queryString,
+	std::shared_ptr<Context> context,
+	std::shared_ptr<ral::cache::graph> query_graph);
 
 	std::string kernel_name() { return "PartitionSingleNode";}
 
@@ -36,11 +38,19 @@ std::size_t SAMPLES_MESSAGE_TRACKER_IDX = 0;
 std::size_t PARTITION_PLAN_MESSAGE_TRACKER_IDX = 1;
 
 public:
-	SortAndSampleKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph);
+	SortAndSampleKernel(std::size_t kernel_id, const std::string & queryString,
+	std::shared_ptr<Context> context,
+	std::shared_ptr<ral::cache::graph> query_graph);
 
 	std::string kernel_name() { return "SortAndSample";}
 
-	void compute_partition_plan(std::vector<ral::frame::BlazingTableView> sampledTableViews, std::size_t avg_bytes_per_row, std::size_t local_total_num_rows);
+	void compute_partition_plan(std::vector<ral::frame::BlazingTableView> sampledTableViews,
+	std::size_t avg_bytes_per_row,
+	std::size_t local_total_num_rows);
+
+	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+		std::shared_ptr<ral::cache::CacheMachine> output,
+		cudaStream_t stream, const std::map<std::string, std::string>& args) override;
 
 	kstatus run() override;
 
@@ -51,7 +61,9 @@ private:
 
 class PartitionKernel : public distributing_kernel {
 public:
-	PartitionKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph);
+	PartitionKernel(std::size_t kernel_id, const std::string & queryString,
+	std::shared_ptr<Context> context,
+	std::shared_ptr<ral::cache::graph> query_graph);
 
 	std::string kernel_name() { return "Partition";}
 
@@ -74,10 +86,11 @@ private:
  */
 class MergeStreamKernel : public kernel {
 public:
-	MergeStreamKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph);
+	MergeStreamKernel(std::size_t kernel_id, const std::string & queryString,
+	std::shared_ptr<Context> context,
+	std::shared_ptr<ral::cache::graph> query_graph);
 
 	std::string kernel_name() { return "MergeStream";}
-
 
 	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
@@ -93,7 +106,9 @@ public:
 
 class LimitKernel : public distributing_kernel {
 public:
-	LimitKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph);
+	LimitKernel(std::size_t kernel_id, const std::string & queryString,
+	std::shared_ptr<Context> context,
+	std::shared_ptr<ral::cache::graph> query_graph);
 
 	std::string kernel_name() { return "Limit";}
 
