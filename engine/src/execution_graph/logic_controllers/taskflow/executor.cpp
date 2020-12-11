@@ -72,19 +72,75 @@ std::size_t task::task_memory_needed() {
 
 
 void task::run(cudaStream_t stream, executor * executor){
+    std::vector< std::unique_ptr<ral::frame::BlazingTable> > input_gpu;
+
+    int last_input_decached = 0;
+    ///////////////////////////////
+    // Decaching inputs
+    ///////////////////////////////
     try{
-        kernel->process(inputs,output,stream,kernel_process_name);
-        complete();
+
+        for(auto & input : inputs){
+                    //if its in gpu this wont fail
+                    //if its cpu and it fails the buffers arent deleted
+                    //if its disk and fails the file isnt deleted
+                    //so this should be safe
+                    last_input_decached++;     
+                    input_gpu.push_back(std::move(input->decache()));
+   
+            }
     }catch(rmm::bad_alloc e){
+        int i = 0;
+         for(auto & input : inputs){
+            if (i < last_input_decached && (input->get_type() == ral::cache::CacheDataType::GPU || input->get_type() == ral::cache::CacheDataType::GPU_METADATA)){
+                //this was a gpu cachedata so now its not valid
+                static_cast<ral::cache::GPUCacheData *>(input.get())->set_data(std::move(input_gpu[i]));
+            }
+            i++;
+        }
         this->attempts++;
         if(this->attempts < this->attempts_limit){
             executor->add_task(std::move(inputs), output, kernel, attempts, task_id, kernel_process_name);
         }else{
             throw;
         }
+
     }catch(std::exception e){
         throw;
     }
+
+
+
+
+    auto task_result = kernel->process(std::move(input_gpu),output,stream, kernel_process_name);
+    
+    if(task_result.status == ral::execution::task_status::SUCCESS){
+        
+        complete();
+    }else if(task_result.status == ral::execution::task_status::RETRY){
+        int i = 0;
+        for(auto & input : inputs){
+            if  (input->get_type() == ral::cache::CacheDataType::GPU || input->get_type() == ral::cache::CacheDataType::GPU_METADATA){
+                //this was a gpu cachedata so now its not valid
+                if(i <= input_gpu.size()){
+                    static_cast<ral::cache::GPUCacheData *>(input.get())->set_data(std::move(input_gpu[i]));
+                }else{
+                    //the input was lost and it was a gpu dataframe which is not recoverable
+                    throw rmm::bad_alloc(task_result.what.c_str());
+                }
+            }
+            i++;
+        }
+        this->attempts++;
+        if(this->attempts < this->attempts_limit){
+            executor->add_task(std::move(inputs), output, kernel, attempts, task_id, kernel_process_name);
+        }else{
+            throw rmm::bad_alloc("Ran out of memory processing " + kernel_process_name);
+        }
+    }else{
+        throw std::runtime_error(task_result.what.c_str());
+    }
+
 }
 
 void task::complete(){

@@ -3,6 +3,8 @@
 #include "BatchProcessing.h"
 #include "LogicPrimitives.h"
 
+
+
 namespace ral {
 namespace batch {
 using ral::cache::kstatus;
@@ -17,7 +19,7 @@ public:
 
     std::string kernel_name() { return "Union";}
 
-    void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+    ral::execution::task_result do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
         std::shared_ptr<ral::cache::CacheMachine> output,
         cudaStream_t stream, std::string kernel_process_name) override;
 

@@ -156,10 +156,18 @@ TableScan::TableScan(std::size_t kernel_id, const std::string & queryString, std
     this->query_graph = query_graph;
 }
 
-void TableScan::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+ral::execution::task_result TableScan::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
     cudaStream_t stream, std::string kernel_process_name) {
-    output->addToCache(std::move(inputs[0]));
+    try{
+        output->addToCache(std::move(inputs[0]));
+    }catch(rmm::bad_alloc e){
+        //can still recover if the input was not a GPUCacheData 
+        return {ral::execution::task_status::RETRY, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
+    }catch(std::exception e){
+        return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
+    }
+    return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
 }
 
 kstatus TableScan::run() {
@@ -243,19 +251,44 @@ BindableTableScan::BindableTableScan(std::size_t kernel_id, const std::string & 
     this->filtered = is_filtered_bindable_scan(expression);
 }
 
-void BindableTableScan::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+ral::execution::task_result BindableTableScan::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
     cudaStream_t stream, std::string kernel_process_name) {
     auto & input = inputs[0];
-    if(this->filtered) {
-        auto columns = ral::processor::process_filter(input->toBlazingTableView(), expression, this->context.get());
-        columns->setNames(fix_column_aliases(columns->names(), expression));
+    std::unique_ptr<ral::frame::BlazingTable> columns;
 
-        output->addToCache(std::move(columns));
-    } else {
-        input->setNames(fix_column_aliases(input->names(), expression));
-        output->addToCache(std::move(input));
+    try{
+        if(this->filtered) {
+            columns = ral::processor::process_filter(input->toBlazingTableView(), expression, this->context.get());
+            columns->setNames(fix_column_aliases(columns->names(), expression));
+        } else {
+            input->setNames(fix_column_aliases(input->names(), expression));    
+        }
+    }catch(rmm::bad_alloc e){
+        return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
+    }catch(std::exception e){
+        return {ral::execution::task_status::FAIL, std::string(e.what()), std::move(inputs)};   
     }
+
+    try{
+        if(this->filtered) {
+            output->addToCache(std::move(columns));
+        } else {
+            output->addToCache(std::move(input));
+        }
+    }catch(rmm::bad_alloc e){
+        //can still recover if the input was not a GPUCacheData 
+        return {ral::execution::task_status::RETRY, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
+    }catch(std::exception e){
+        return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
+    }
+    return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
+
+
+   
+
+
+
 }
 
 kstatus BindableTableScan::run() {
@@ -344,12 +377,23 @@ Projection::Projection(std::size_t kernel_id, const std::string & queryString, s
     this->query_graph = query_graph;
 }
 
-void Projection::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+ral::execution::task_result Projection::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
     cudaStream_t stream, std::string kernel_process_name) {
-    auto & input = inputs[0];
-    auto columns = ral::processor::process_project(std::move(input), expression, this->context.get());
-    output->addToCache(std::move(columns));
+
+
+    try{
+        auto & input = inputs[0];
+        auto columns = ral::processor::process_project(std::move(input), expression, this->context.get());
+        output->addToCache(std::move(columns));
+    }catch(rmm::bad_alloc e){
+        //can still recover if the input was not a GPUCacheData 
+        return {ral::execution::task_status::RETRY, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
+    }catch(std::exception e){
+        return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
+    }
+    return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
+
 }
 
 kstatus Projection::run() {
@@ -405,12 +449,23 @@ Filter::Filter(std::size_t kernel_id, const std::string & queryString, std::shar
     this->query_graph = query_graph;
 }
 
-void Filter::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+ral::execution::task_result Filter::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
     cudaStream_t stream, std::string kernel_process_name) {
-    auto & input = inputs[0];
-    auto columns = ral::processor::process_filter(input->toBlazingTableView(), expression, this->context.get());
-    output->addToCache(std::move(columns));
+
+    std::unique_ptr<ral::frame::BlazingTable> columns;
+    try{
+        auto & input = inputs[0];
+        columns = ral::processor::process_filter(input->toBlazingTableView(), expression, this->context.get());
+        output->addToCache(std::move(columns));
+    }catch(rmm::bad_alloc e){
+        return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
+    }catch(std::exception e){
+        return {ral::execution::task_status::FAIL, std::string(e.what()), std::move(inputs)};   
+    }
+
+    return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
+
 }
 
 kstatus Filter::run() {

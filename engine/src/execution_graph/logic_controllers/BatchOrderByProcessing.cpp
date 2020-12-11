@@ -14,20 +14,29 @@ PartitionSingleNodeKernel::PartitionSingleNodeKernel(std::size_t kernel_id, cons
     this->input_.add_port("input_a", "input_b");
 }
 
-void PartitionSingleNodeKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+ral::execution::task_result PartitionSingleNodeKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
     cudaStream_t stream, std::string kernel_process_name) {
-    auto & input = inputs[0];
+    
+    try{
+        auto & input = inputs[0];
 
-    auto partitions = ral::operators::partition_table(partitionPlan->toBlazingTableView(), input->toBlazingTableView(), this->expression);
+        auto partitions = ral::operators::partition_table(partitionPlan->toBlazingTableView(), input->toBlazingTableView(), this->expression);
 
-    for (auto i = 0; i < partitions.size(); i++) {
-        std::string cache_id = "output_" + std::to_string(i);
-        this->add_to_output_cache(
-            std::make_unique<ral::frame::BlazingTable>(std::make_unique<cudf::table>(partitions[i]), input->names()),
-            cache_id
-            );
+        for (auto i = 0; i < partitions.size(); i++) {
+            std::string cache_id = "output_" + std::to_string(i);
+            this->add_to_output_cache(
+                std::make_unique<ral::frame::BlazingTable>(std::make_unique<cudf::table>(partitions[i]), input->names()),
+                cache_id
+                );
+        }
+    }catch(rmm::bad_alloc e){
+        return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
+    }catch(std::exception e){
+        return {ral::execution::task_status::FAIL, std::string(e.what()), std::move(inputs)};   
     }
+    
+    return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
 }
 
 kstatus PartitionSingleNodeKernel::run() {
@@ -316,19 +325,27 @@ PartitionKernel::PartitionKernel(std::size_t kernel_id, const std::string & quer
     set_number_of_message_trackers(max_num_order_by_partitions_per_node);
 }
 
-void PartitionKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+ral::execution::task_result PartitionKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
     cudaStream_t stream, std::string kernel_process_name) {
-    auto & input = inputs[0];
 
-    std::vector<ral::distribution::NodeColumnView> partitions = ral::distribution::partitionData(this->context.get(), input->toBlazingTableView(), partitionPlan->toBlazingTableView(), sortColIndices, sortOrderTypes);
-    std::vector<int32_t> part_ids(partitions.size());
-    std::generate(part_ids.begin(), part_ids.end(), [count=0, num_partitions_per_node = num_partitions_per_node] () mutable { return (count++) % (num_partitions_per_node); });
+    try{
+        auto & input = inputs[0];
 
-    scatterParts(partitions,
-        "", //message_id_prefix
-        part_ids
-    );
+        std::vector<ral::distribution::NodeColumnView> partitions = ral::distribution::partitionData(this->context.get(), input->toBlazingTableView(), partitionPlan->toBlazingTableView(), sortColIndices, sortOrderTypes);
+        std::vector<int32_t> part_ids(partitions.size());
+        std::generate(part_ids.begin(), part_ids.end(), [count=0, num_partitions_per_node = num_partitions_per_node] () mutable { return (count++) % (num_partitions_per_node); });
+
+        scatterParts(partitions,
+            "", //message_id_prefix
+            part_ids
+        );
+    }catch(rmm::bad_alloc e){
+        return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
+    }catch(std::exception e){
+        return {ral::execution::task_status::FAIL, std::string(e.what()), std::move(inputs)};   
+    }
+    return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
 }
 
 kstatus PartitionKernel::run() {
@@ -502,39 +519,46 @@ LimitKernel::LimitKernel(std::size_t kernel_id, const std::string & queryString,
     set_number_of_message_trackers(1); //default
 }
 
-void LimitKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+ral::execution::task_result LimitKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
     cudaStream_t stream, std::string kernel_process_name) {
-    CodeTimer eventTimer(false);
-    auto & input = inputs[0];
+    try{
+        CodeTimer eventTimer(false);
+        auto & input = inputs[0];
 
-    if (rows_limit<0) {
-        output->addToCache(std::move(input));
-    } else {
-        auto log_input_num_rows = input->num_rows();
-        auto log_input_num_bytes = input->sizeInBytes();
+        if (rows_limit<0) {
+            output->addToCache(std::move(input));
+        } else {
+            auto log_input_num_rows = input->num_rows();
+            auto log_input_num_bytes = input->sizeInBytes();
 
-        eventTimer.start();
-        std::tie(input, rows_limit) = ral::operators::limit_table(std::move(input), rows_limit);
-        eventTimer.stop();
+            eventTimer.start();
+            std::tie(input, rows_limit) = ral::operators::limit_table(std::move(input), rows_limit);
+            eventTimer.stop();
 
-        auto log_output_num_rows = input->num_rows();
-        auto log_output_num_bytes = input->sizeInBytes();
+            auto log_output_num_rows = input->num_rows();
+            auto log_output_num_bytes = input->sizeInBytes();
 
-        events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-                        "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-                        "query_id"_a=context->getContextToken(),
-                        "kernel_id"_a=this->get_id(),
-                        "input_num_rows"_a=log_input_num_rows,
-                        "input_num_bytes"_a=log_input_num_bytes,
-                        "output_num_rows"_a=log_output_num_rows,
-                        "output_num_bytes"_a=log_output_num_bytes,
-                        "event_type"_a="compute",
-                        "timestamp_begin"_a=eventTimer.start_time(),
-                        "timestamp_end"_a=eventTimer.end_time());
+            events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+                            "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                            "query_id"_a=context->getContextToken(),
+                            "kernel_id"_a=this->get_id(),
+                            "input_num_rows"_a=log_input_num_rows,
+                            "input_num_bytes"_a=log_input_num_bytes,
+                            "output_num_rows"_a=log_output_num_rows,
+                            "output_num_bytes"_a=log_output_num_bytes,
+                            "event_type"_a="compute",
+                            "timestamp_begin"_a=eventTimer.start_time(),
+                            "timestamp_end"_a=eventTimer.end_time());
 
-        output->addToCache(std::move(input));
+            output->addToCache(std::move(input));
+        }
+    }catch(rmm::bad_alloc e){
+        return {ral::execution::task_status::RETRY, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
+    }catch(std::exception e){
+        return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};   
     }
+    return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};   
 }
 
 kstatus LimitKernel::run() {
