@@ -15,10 +15,11 @@
 
 ## Bug Fixes
 - #1249 Fix compilation with cuda 11
+- #1253 Fixed distribution so that its evenly distributes based of rowgroups
 
 
 
-# BlazingSQL 0.17.0 (Date TBS)
+# BlazingSQL 0.17.0 (December 10, 2020)
 
 ## New Features
 - #1105 Implement to_date/to_timestamp functions
@@ -95,6 +96,7 @@
 - #1207 Calcite uses literal as int32 if not explicit CAST was provided
 - #1212 Fixed issue when building the thirdpart, cmake version set to 3.18.4
 - #1225 Fixed issue due to change in gather API
+- #1258 Fixing gtest version issue
 
 
 # BlazingSQL 0.16.0 (October 22, 2020)
