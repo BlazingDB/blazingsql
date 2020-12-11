@@ -146,7 +146,11 @@ ral::execution::task_result kernel::process(std::vector<std::unique_ptr<ral::fra
     if (this->has_limit_ && output->get_num_rows_added() >= this->limit_rows_) {
      //return; 
     }
-    auto result = do_process(std::move(inputs),output,stream,kernel_process_name);
+    size_t bytes = 0;
+    for(auto & input : inputs){
+        bytes += input->sizeInBytes();
+    }
+    auto result = do_process(std::move(inputs),output,stream,args);
     if(result.status == ral::execution::SUCCESS){
         
         total_input_bytes += bytes; // increment this AFTER its been processed successfully

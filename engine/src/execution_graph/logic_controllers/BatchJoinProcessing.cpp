@@ -376,7 +376,7 @@ std::unique_ptr<ral::frame::BlazingTable> PartwiseJoin::join_set(
 	return std::make_unique<ral::frame::BlazingTable>(std::move(result_table), this->result_names);
 }
 
-void PartwiseJoin::do_process(std::vector<std::unique_ptr<ral::frame::BlazingTable>> inputs,
+ral::execution::task_result PartwiseJoin::do_process(std::vector<std::unique_ptr<ral::frame::BlazingTable>> inputs,
 	std::shared_ptr<ral::cache::CacheMachine> output,
 	cudaStream_t stream, const std::map<std::string, std::string>& args) {
 	CodeTimer eventTimer;
@@ -384,48 +384,66 @@ void PartwiseJoin::do_process(std::vector<std::unique_ptr<ral::frame::BlazingTab
 	auto & left_batch = inputs[0];
 	auto & right_batch = inputs[1];
 
-	if (this->normalize_left){
-		ral::utilities::normalize_types(left_batch, this->join_column_common_types, this->left_column_indices);
-	}
-	if (this->normalize_right){
-		ral::utilities::normalize_types(right_batch, this->join_column_common_types, this->right_column_indices);
-	}
 
-	auto log_input_num_rows = left_batch->num_rows() + right_batch->num_rows();
-	auto log_input_num_bytes = left_batch->sizeInBytes() + right_batch->sizeInBytes();
+	try{
+		if (this->normalize_left){
+			ral::utilities::normalize_types(left_batch, this->join_column_common_types, this->left_column_indices);
+		}
+		if (this->normalize_right){
+			ral::utilities::normalize_types(right_batch, this->join_column_common_types, this->right_column_indices);
+		}
 
-	std::unique_ptr<ral::frame::BlazingTable> joined = join_set(left_batch->toBlazingTableView(), right_batch->toBlazingTableView());
+		auto log_input_num_rows = left_batch->num_rows() + right_batch->num_rows();
+		auto log_input_num_bytes = left_batch->sizeInBytes() + right_batch->sizeInBytes();
 
-	auto log_output_num_rows = joined->num_rows();
-	auto log_output_num_bytes = joined->sizeInBytes();
+		std::unique_ptr<ral::frame::BlazingTable> joined = join_set(left_batch->toBlazingTableView(), right_batch->toBlazingTableView());
 
-	if (filter_statement != "") {
-		auto filter_table = ral::processor::process_filter(joined->toBlazingTableView(), filter_statement, this->context.get());
-		eventTimer.stop();
+		auto log_output_num_rows = joined->num_rows();
+		auto log_output_num_bytes = joined->sizeInBytes();
 
-		log_output_num_rows = filter_table->num_rows();
-		log_output_num_bytes = filter_table->sizeInBytes();
+		if (filter_statement != "") {
+			auto filter_table = ral::processor::process_filter(joined->toBlazingTableView(), filter_statement, this->context.get());
+			eventTimer.stop();
 
-		this->add_to_output_cache(std::move(filter_table));
-	} else{
-		eventTimer.stop();
-		this->add_to_output_cache(std::move(joined));
-	}
+			log_output_num_rows = filter_table->num_rows();
+			log_output_num_bytes = filter_table->sizeInBytes();
 
-	this->leftArrayCache->put(std::stoi(args.at("left_idx")), std::move(left_batch));
-	this->rightArrayCache->put(std::stoi(args.at("right_idx")), std::move(right_batch));
+			this->add_to_output_cache(std::move(filter_table));
+		} else{
+			eventTimer.stop();
+			this->add_to_output_cache(std::move(joined));
+		}
 
-	events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-				"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-				"query_id"_a=context->getContextToken(),
-				"kernel_id"_a=this->get_id(),
-				"input_num_rows"_a=log_input_num_rows,
-				"input_num_bytes"_a=log_input_num_bytes,
-				"output_num_rows"_a=log_output_num_rows,
-				"output_num_bytes"_a=log_output_num_bytes,
-				"event_type"_a="computed join",
-				"timestamp_begin"_a=eventTimer.start_time(),
-				"timestamp_end"_a=eventTimer.end_time());
+		events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+			"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+			"query_id"_a=context->getContextToken(),
+			"kernel_id"_a=this->get_id(),
+			"input_num_rows"_a=log_input_num_rows,
+			"input_num_bytes"_a=log_input_num_bytes,
+			"output_num_rows"_a=log_output_num_rows,
+			"output_num_bytes"_a=log_output_num_bytes,
+			"event_type"_a="computed join",
+			"timestamp_begin"_a=eventTimer.start_time(),
+			"timestamp_end"_a=eventTimer.end_time());
+    }catch(rmm::bad_alloc e){
+        return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
+    }catch(std::exception e){
+        return {ral::execution::task_status::FAIL, std::string(e.what()), std::move(inputs)};   
+    }
+
+	try{
+		this->leftArrayCache->put(std::stoi(args.at("left_idx")), std::move(left_batch));
+		this->rightArrayCache->put(std::stoi(args.at("right_idx")), std::move(right_batch));
+    }catch(rmm::bad_alloc e){
+        //can still recover if the input was not a GPUCacheData 
+        return {ral::execution::task_status::RETRY, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
+    }catch(std::exception e){
+        return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
+    }	
+
+
+
+	return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
 }
 
 kstatus PartwiseJoin::run() {
@@ -893,89 +911,97 @@ void JoinPartitionKernel::small_table_scatter_distribution(std::unique_ptr<ral::
 	this->output_cache(small_output_cache_name)->wait_for_count(total_count);
 }
 
-void JoinPartitionKernel::do_process(std::vector<std::unique_ptr<ral::frame::BlazingTable>> inputs,
+ral::execution::task_result JoinPartitionKernel::do_process(std::vector<std::unique_ptr<ral::frame::BlazingTable>> inputs,
 	std::shared_ptr<ral::cache::CacheMachine> output,
 	cudaStream_t stream, const std::map<std::string, std::string>& args) {
+	bool input_consumed = false;
+    try{
+		auto& operation_type = args.at("operation_type");
+		auto & input = inputs[0];
+		if (operation_type == "small_table_scatter") {
+			input_consumed = true;
+			std::string small_output_cache_name = scatter_left_right.first ? "output_a" : "output_b";
+			int small_table_idx = scatter_left_right.first ? LEFT_TABLE_IDX : RIGHT_TABLE_IDX;
 
-	auto& operation_type = args.at("operation_type");
+			broadcast(std::move(input),
+				this->output_.get_cache(small_output_cache_name).get(),
+				"", //message_id_prefix
+				small_output_cache_name, //cache_id
+				small_table_idx //message_tracker_idx
+			);
+		}	else if (operation_type == "big_table_passthrough") {
+			input_consumed = true;
+			std::string big_output_cache_name = scatter_left_right.first ? "output_b" : "output_a";
+			int big_table_idx = scatter_left_right.first ? RIGHT_TABLE_IDX : LEFT_TABLE_IDX;
 
-	auto & input = inputs[0];
-	if (operation_type == "small_table_scatter") {
-		std::string small_output_cache_name = scatter_left_right.first ? "output_a" : "output_b";
-		int small_table_idx = scatter_left_right.first ? LEFT_TABLE_IDX : RIGHT_TABLE_IDX;
-
-		broadcast(std::move(input),
-			this->output_.get_cache(small_output_cache_name).get(),
-			"", //message_id_prefix
-			small_output_cache_name, //cache_id
-			small_table_idx //message_tracker_idx
-		);
-	}	else if (operation_type == "big_table_passthrough") {
-		std::string big_output_cache_name = scatter_left_right.first ? "output_b" : "output_a";
-		int big_table_idx = scatter_left_right.first ? RIGHT_TABLE_IDX : LEFT_TABLE_IDX;
-
-		bool added = this->add_to_output_cache(std::move(input), big_output_cache_name);
-		if (added) {
-			auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
-			increment_node_count(self_node.id(), big_table_idx);
-		}
-	} else if (operation_type == "hash_partition") {
-		bool normalize_types;
-		int table_idx;
-		std::string cache_id;
-		std::vector<cudf::size_type> column_indices;
-		if(args.at("side") == "left"){
-			normalize_types = this->normalize_left;
-			table_idx = LEFT_TABLE_IDX;
-			cache_id = "output_a";
-			column_indices = this->left_column_indices;
-		} else {
-			normalize_types = this->normalize_right;
-			table_idx = RIGHT_TABLE_IDX;
-			cache_id = "output_b";
-			column_indices = this->right_column_indices;
-		}
-
-		if (normalize_types) {
-			ral::utilities::normalize_types(input, join_column_common_types, column_indices);
-		}
-
-		auto batch_view = input->view();
-		std::unique_ptr<cudf::table> hashed_data;
-		std::vector<cudf::table_view> partitioned;
-		if (input->num_rows() > 0) {
-			// When is cross_join. `column_indices` is equal to 0, so we need all `batch` columns to apply cudf::hash_partition correctly
-			if (column_indices.size() == 0) {
-				column_indices.resize(input->num_columns());
-				std::iota(std::begin(column_indices), std::end(column_indices), 0);
+			bool added = this->add_to_output_cache(std::move(input), big_output_cache_name);
+			if (added) {
+				auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
+				increment_node_count(self_node.id(), big_table_idx);
+			}
+		} else if (operation_type == "hash_partition") {
+			bool normalize_types;
+			int table_idx;
+			std::string cache_id;
+			std::vector<cudf::size_type> column_indices;
+			if(args.at("side") == "left"){
+				normalize_types = this->normalize_left;
+				table_idx = LEFT_TABLE_IDX;
+				cache_id = "output_a";
+				column_indices = this->left_column_indices;
+			} else {
+				normalize_types = this->normalize_right;
+				table_idx = RIGHT_TABLE_IDX;
+				cache_id = "output_b";
+				column_indices = this->right_column_indices;
 			}
 
-			int num_partitions = context->getTotalNodes();
-			std::vector<cudf::size_type> hased_data_offsets;
-			std::tie(hashed_data, hased_data_offsets) = cudf::hash_partition(batch_view, column_indices, num_partitions);
-			assert(hased_data_offsets.begin() != hased_data_offsets.end());
-
-			// the offsets returned by hash_partition will always start at 0, which is a value we want to ignore for cudf::split
-			std::vector<cudf::size_type> split_indexes(hased_data_offsets.begin() + 1, hased_data_offsets.end());
-			partitioned = cudf::split(hashed_data->view(), split_indexes);
-		} else {
-			for(int i = 0; i < context->getTotalNodes(); i++ ){
-				partitioned.push_back(batch_view);
+			if (normalize_types) {
+				ral::utilities::normalize_types(input, join_column_common_types, column_indices);
 			}
-		}
 
-		std::vector<ral::frame::BlazingTableView> partitions;
-		for(auto partition : partitioned) {
-			partitions.push_back(ral::frame::BlazingTableView(partition, input->names()));
-		}
+			auto batch_view = input->view();
+			std::unique_ptr<cudf::table> hashed_data;
+			std::vector<cudf::table_view> partitioned;
+			if (input->num_rows() > 0) {
+				// When is cross_join. `column_indices` is equal to 0, so we need all `batch` columns to apply cudf::hash_partition correctly
+				if (column_indices.size() == 0) {
+					column_indices.resize(input->num_columns());
+					std::iota(std::begin(column_indices), std::end(column_indices), 0);
+				}
 
-		scatter(partitions,
-			this->output_.get_cache(cache_id).get(),
-			"", //message_id_prefix
-			cache_id, //cache_id
-			table_idx  //message_tracker_idx
-		);
-	}
+				int num_partitions = context->getTotalNodes();
+				std::vector<cudf::size_type> hased_data_offsets;
+				std::tie(hashed_data, hased_data_offsets) = cudf::hash_partition(batch_view, column_indices, num_partitions);
+				assert(hased_data_offsets.begin() != hased_data_offsets.end());
+
+				// the offsets returned by hash_partition will always start at 0, which is a value we want to ignore for cudf::split
+				std::vector<cudf::size_type> split_indexes(hased_data_offsets.begin() + 1, hased_data_offsets.end());
+				partitioned = cudf::split(hashed_data->view(), split_indexes);
+			} else {
+				for(int i = 0; i < context->getTotalNodes(); i++ ){
+					partitioned.push_back(batch_view);
+				}
+			}
+
+			std::vector<ral::frame::BlazingTableView> partitions;
+			for(auto partition : partitioned) {
+				partitions.push_back(ral::frame::BlazingTableView(partition, input->names()));
+			}
+
+			scatter(partitions,
+				this->output_.get_cache(cache_id).get(),
+				"", //message_id_prefix
+				cache_id, //cache_id
+				table_idx  //message_tracker_idx
+			);
+		}
+    }catch(rmm::bad_alloc e){
+        return {ral::execution::task_status::RETRY, std::string(e.what()), input_consumed ? std::vector< std::unique_ptr<ral::frame::BlazingTable> > () : std::move(inputs)};
+    }catch(std::exception e){
+        return {ral::execution::task_status::FAIL, std::string(e.what()), std::move(inputs)};   
+    }
+	return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
 }
 
 kstatus JoinPartitionKernel::run() {

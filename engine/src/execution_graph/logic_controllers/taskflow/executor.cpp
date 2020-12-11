@@ -108,7 +108,7 @@ void task::run(cudaStream_t stream, executor * executor){
 
 
 
-    auto task_result = kernel->process(std::move(input_gpu),output,stream, kernel_process_name);
+    auto task_result = kernel->process(std::move(input_gpu),output,stream, args);
     
     if(task_result.status == ral::execution::task_status::SUCCESS){
         
@@ -129,9 +129,9 @@ void task::run(cudaStream_t stream, executor * executor){
         }
         this->attempts++;
         if(this->attempts < this->attempts_limit){
-            executor->add_task(std::move(inputs), output, kernel, attempts, task_id, kernel_process_name);
+            executor->add_task(std::move(inputs), output, kernel, attempts, task_id, args);
         }else{
-            throw rmm::bad_alloc("Ran out of memory processing " + kernel_process_name);
+            throw rmm::bad_alloc("Ran out of memory processing ");
         }
     }else{
         throw std::runtime_error(task_result.what.c_str());
