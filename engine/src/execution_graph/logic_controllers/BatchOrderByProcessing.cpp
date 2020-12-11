@@ -16,7 +16,7 @@ PartitionSingleNodeKernel::PartitionSingleNodeKernel(std::size_t kernel_id, cons
 
 ral::execution::task_result PartitionSingleNodeKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
-    cudaStream_t stream, std::string kernel_process_name) {
+    cudaStream_t stream, const std::map<std::string, std::string>& args) {
     
     try{
         auto & input = inputs[0];
@@ -327,8 +327,7 @@ PartitionKernel::PartitionKernel(std::size_t kernel_id, const std::string & quer
 
 ral::execution::task_result PartitionKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
-    cudaStream_t stream, std::string kernel_process_name) {
-
+    cudaStream_t stream, const std::map<std::string, std::string>& args) {
     try{
         auto & input = inputs[0];
 
@@ -521,11 +520,10 @@ LimitKernel::LimitKernel(std::size_t kernel_id, const std::string & queryString,
 
 ral::execution::task_result LimitKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
-    cudaStream_t stream, std::string kernel_process_name) {
+    cudaStream_t stream, const std::map<std::string, std::string>& args) {
     try{
         CodeTimer eventTimer(false);
         auto & input = inputs[0];
-
         if (rows_limit<0) {
             output->addToCache(std::move(input));
         } else {

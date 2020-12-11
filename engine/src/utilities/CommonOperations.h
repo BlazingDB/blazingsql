@@ -29,13 +29,10 @@ std::vector<cudf::data_type> get_common_types(const std::vector<cudf::data_type>
 void normalize_types(std::unique_ptr<ral::frame::BlazingTable> & table,  const std::vector<cudf::data_type> & types,
 	 		std::vector<cudf::size_type> column_indices = std::vector<cudf::size_type>() );
 
-int64_t get_table_size_bytes(const ral::frame::BlazingTableView & table);
-
-
 // This is only for numerics
 template<typename T>
 std::unique_ptr<cudf::column> vector_to_column(std::vector<T> vect, cudf::data_type type){
-	return std::make_unique<cudf::column>(type, vect.size(), rmm::device_buffer{vect.data(), vect.size() * sizeof(T)});	
+	return std::make_unique<cudf::column>(type, vect.size(), rmm::device_buffer{vect.data(), vect.size() * sizeof(T)});
 }
 
 // This is only for numerics

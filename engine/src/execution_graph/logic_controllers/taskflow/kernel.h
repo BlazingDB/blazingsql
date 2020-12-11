@@ -184,13 +184,13 @@ public:
 
 	ral::execution::task_result process(std::vector<std::unique_ptr<ral::frame::BlazingTable > >  inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
-		cudaStream_t stream, std::string kernel_process_name);
+		cudaStream_t stream, const std::map<std::string, std::string>& args);
 
 	virtual ral::execution::task_result do_process(std::vector<std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
-		cudaStream_t stream,std::string kernel_process_name){
+		cudaStream_t stream, const std::map<std::string, std::string>& args){
 			return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
-		}
+  }
 
 	std::size_t estimate_output_bytes(const std::vector<std::unique_ptr<ral::cache::CacheData > > & inputs);
 	std::size_t estimate_operating_bytes(const std::vector<std::unique_ptr<ral::cache::CacheData > > & inputs);

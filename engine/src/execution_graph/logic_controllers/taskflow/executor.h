@@ -27,7 +27,7 @@ public:
 	std::shared_ptr<ral::cache::CacheMachine> output,
 	size_t task_id,
 	ral::cache::kernel * kernel, size_t attempts_limit,
-	std::string kernel_process_name, size_t attempts = 0);
+	const std::map<std::string, std::string>& args, size_t attempts = 0);
 
 	/**
 	* Function which runs the kernel process on the inputs and puts results into output.
@@ -55,7 +55,7 @@ protected:
 	ral::cache::kernel * kernel;
 	size_t attempts = 0;
 	size_t attempts_limit;
-	std::string kernel_process_name = "";
+	std::map<std::string, std::string> args;
 };
 
 
@@ -83,13 +83,13 @@ public:
 	void execute();
 	size_t add_task(std::vector<std::unique_ptr<ral::cache::CacheData > > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
-		ral::cache::kernel * kernel,std::string kernel_process_name = "");
+		ral::cache::kernel * kernel, const std::map<std::string, std::string>& args = {});
 
 	void add_task(std::vector<std::unique_ptr<ral::cache::CacheData > > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
 		ral::cache::kernel * kernel,
 		size_t attempts,
-		size_t task_id,std::string kernel_process_name);
+		size_t task_id, const std::map<std::string, std::string>& args = {});
 
 	void add_task(std::unique_ptr<task> task);
 
@@ -108,7 +108,7 @@ private:
 	static executor * _instance;
 	std::atomic<int> task_id_counter;
 	size_t attempts_limit = 10;
-	
+
 	BlazingMemoryResource* resource;
 	std::atomic<int> active_tasks_counter;
 	std::mutex memory_safety_mutex;

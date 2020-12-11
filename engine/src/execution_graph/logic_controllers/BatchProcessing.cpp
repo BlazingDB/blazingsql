@@ -158,7 +158,7 @@ TableScan::TableScan(std::size_t kernel_id, const std::string & queryString, std
 
 ral::execution::task_result TableScan::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
-    cudaStream_t stream, std::string kernel_process_name) {
+    cudaStream_t stream, const std::map<std::string, std::string>& args) {
     try{
         output->addToCache(std::move(inputs[0]));
     }catch(rmm::bad_alloc e){
@@ -253,7 +253,7 @@ BindableTableScan::BindableTableScan(std::size_t kernel_id, const std::string & 
 
 ral::execution::task_result BindableTableScan::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
-    cudaStream_t stream, std::string kernel_process_name) {
+    cudaStream_t stream, const std::map<std::string, std::string>& args) {
     auto & input = inputs[0];
     std::unique_ptr<ral::frame::BlazingTable> columns;
 
@@ -379,9 +379,8 @@ Projection::Projection(std::size_t kernel_id, const std::string & queryString, s
 
 ral::execution::task_result Projection::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
-    cudaStream_t stream, std::string kernel_process_name) {
-
-
+    cudaStream_t stream, const std::map<std::string, std::string>& args) {
+  
     try{
         auto & input = inputs[0];
         auto columns = ral::processor::process_project(std::move(input), expression, this->context.get());
@@ -393,7 +392,6 @@ ral::execution::task_result Projection::do_process(std::vector< std::unique_ptr<
         return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }
     return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
-
 }
 
 kstatus Projection::run() {
@@ -451,7 +449,7 @@ Filter::Filter(std::size_t kernel_id, const std::string & queryString, std::shar
 
 ral::execution::task_result Filter::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
-    cudaStream_t stream, std::string kernel_process_name) {
+    cudaStream_t stream, const std::map<std::string, std::string>& args) {
 
     std::unique_ptr<ral::frame::BlazingTable> columns;
     try{
@@ -465,7 +463,6 @@ ral::execution::task_result Filter::do_process(std::vector< std::unique_ptr<ral:
     }
 
     return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
-
 }
 
 kstatus Filter::run() {

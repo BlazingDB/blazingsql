@@ -133,7 +133,7 @@ public:
 
 	ral::execution::task_result do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
-		cudaStream_t stream, std::string kernel_process_name) override;
+		cudaStream_t stream, const std::map<std::string, std::string>& args) override;
 
 	/**
 	 * Executes the batch processing.
@@ -141,13 +141,13 @@ public:
 	 * the results are stored in their output port.
 	 * @return kstatus 'stop' to halt processing, or 'proceed' to continue processing.
 	 */
-	virtual kstatus run();
+	kstatus run() override;
 
 	/**
 	 * Returns the estimated num_rows for the output at one point.
 	 * @return A pair representing that there is no data to be processed, or the estimated number of output rows.
 	 */
-	virtual std::pair<bool, uint64_t> get_estimated_output_num_rows();
+	std::pair<bool, uint64_t> get_estimated_output_num_rows() override;
 
 private:
 	std::shared_ptr<ral::io::data_provider> provider;
@@ -181,7 +181,7 @@ public:
 	
 	ral::execution::task_result do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
-		cudaStream_t stream, std::string kernel_process_name) override;
+		cudaStream_t stream, const std::map<std::string, std::string>& args) override;
 
 	/**
 	 * Executes the batch processing.
@@ -189,13 +189,13 @@ public:
 	 * the results are stored in their output port.
 	 * @return kstatus 'stop' to halt processing, or 'proceed' to continue processing.
 	 */
-	virtual kstatus run();
+	kstatus run() override;
 
 	/**
 	 * Returns the estimated num_rows for the output at one point.
 	 * @return A pair representing that there is no data to be processed, or the estimated number of output rows.
 	 */
-	virtual std::pair<bool, uint64_t> get_estimated_output_num_rows();
+	std::pair<bool, uint64_t> get_estimated_output_num_rows() override;
 
 private:
 	std::shared_ptr<ral::io::data_provider> provider;
@@ -224,7 +224,7 @@ public:
 
 	ral::execution::task_result do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
-		cudaStream_t stream, std::string kernel_process_name) override;
+		cudaStream_t stream, const std::map<std::string, std::string>& args) override;
 
 	/**
 	 * Executes the batch processing.
@@ -232,7 +232,7 @@ public:
 	 * the results are stored in their output port.
 	 * @return kstatus 'stop' to halt processing, or 'proceed' to continue processing.
 	 */
-	virtual kstatus run();
+	kstatus run() override;
 };
 
 /**
@@ -253,7 +253,7 @@ public:
 
 	ral::execution::task_result do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
-		cudaStream_t stream, std::string kernel_process_name) override;
+		cudaStream_t stream, const std::map<std::string, std::string>& args) override;
 
 	/**
 	 * Executes the batch processing.
@@ -261,13 +261,13 @@ public:
 	 * the results are stored in their output port.
 	 * @return kstatus 'stop' to halt processing, or 'proceed' to continue processing.
 	 */
-	virtual kstatus run();
+	kstatus run() override;
 
 	/**
 	 * Returns the estimated num_rows for the output at one point.
 	 * @return A pair representing that there is no data to be processed, or the estimated number of output rows.
 	 */
-	std::pair<bool, uint64_t> get_estimated_output_num_rows();
+	std::pair<bool, uint64_t> get_estimated_output_num_rows() override;
 };
 
 /**
@@ -315,7 +315,7 @@ public:
 
 	ral::execution::task_result do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
-		cudaStream_t stream, std::string kernel_process_name) override {
+		cudaStream_t stream, const std::map<std::string, std::string>& args) override {
 			//for now the output kernel is not using do_process
 			//i believe the output should be a cachemachine itself
 			//obviating this concern
@@ -328,7 +328,7 @@ public:
 	 * the results are stored in their output port.
 	 * @return kstatus 'stop' to halt processing, or 'proceed' to continue processing.
 	 */
-	virtual kstatus run();
+	kstatus run() override;
 
 	/**
 	 * Returns the vector containing the final processed output.
