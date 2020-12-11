@@ -39,7 +39,6 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
 
     # conf_opt_4
     conf_opt_4 = {}
-    conf_opt_4['ORDER_BY_SAMPLES_RATIO'] = 0.99
     conf_opt_4['MAX_ORDER_BY_SAMPLES_PER_NODE'] = 5
     conf_opt_4['MAX_SEND_MESSAGE_THREADS'] = 1
     conf_opt_4['TRANSPORT_BUFFER_BYTE_SIZE'] = 10000
@@ -47,7 +46,6 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
 
     # conf_opt_5
     conf_opt_5 = {}
-    conf_opt_5['ORDER_BY_SAMPLES_RATIO'] = 0.99
     conf_opt_5['MAX_ORDER_BY_SAMPLES_PER_NODE'] = 5000000
     conf_opt_5['MAX_SEND_MESSAGE_THREADS'] = 200
     conf_opt_5['TRANSPORT_BUFFER_BYTE_SIZE'] = 10000
@@ -55,7 +53,6 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
 
     # conf_opt_6
     conf_opt_6 = {}
-    conf_opt_6['ORDER_BY_SAMPLES_RATIO'] = 0.00001
     conf_opt_6['MAX_ORDER_BY_SAMPLES_PER_NODE'] = 5
     conf_opt_6['MAX_SEND_MESSAGE_THREADS'] = 200
     conf_opt_6['TRANSPORT_BUFFER_BYTE_SIZE'] = 100000000
@@ -63,7 +60,6 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
 
     # conf_opt_7
     conf_opt_7 = {}
-    conf_opt_7['ORDER_BY_SAMPLES_RATIO'] = 0.00001
     conf_opt_7['MAX_ORDER_BY_SAMPLES_PER_NODE'] = 5000000
     conf_opt_7['MAX_SEND_MESSAGE_THREADS'] = 1
     conf_opt_7['TRANSPORT_BUFFER_BYTE_SIZE'] = 100000000
