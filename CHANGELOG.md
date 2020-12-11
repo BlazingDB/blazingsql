@@ -8,9 +8,10 @@
 - #1232 Update PartwiseJoin and JoinPartition kernel using the task executor internally
 
 
+
 ## Improvements
 - #1236 Moving code from header files to implementation files
-
+- #1255 Kernels are resilient to out of memory errors now and can retry tasks that fail this way.
 
 ## Bug Fixes
 - #1249 Fix compilation with cuda 11
