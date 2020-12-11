@@ -53,8 +53,8 @@ if [ "$UPLOAD_BLAZING" == "1" ]; then
     echo "Upload BlazingSQL to ${CONDA_USERNAME} channel: ${BLAZINGSQL_FILE}"
     anaconda -t ${MY_UPLOAD_KEY} upload -u ${CONDA_USERNAME} ${LABEL_OPTION} --force ${BLAZINGSQL_FILE}
 
-    #if [ ! -z "$RAPIDS_CONDA_USERNAME" ]; then
-    #    echo "Upload BlazingSQL to ${RAPIDS_CONDA_USERNAME} channel: ${BLAZINGSQL_FILE}"
-    #    anaconda -t ${RAPIDS_CONDA_KEY} upload -u ${RAPIDS_CONDA_USERNAME} ${LABEL_OPTION} --force ${BLAZINGSQL_FILE}
-    #fi
+    if [ ! -z "$RAPIDS_CONDA_USERNAME" ]; then
+        echo "Upload BlazingSQL to ${RAPIDS_CONDA_USERNAME} channel: ${BLAZINGSQL_FILE}"
+        anaconda -t ${RAPIDS_CONDA_KEY} upload -u ${RAPIDS_CONDA_USERNAME} ${LABEL_OPTION} --force ${BLAZINGSQL_FILE}
+    fi
 fi

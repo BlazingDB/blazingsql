@@ -35,7 +35,6 @@ if [ ! -z "$TYPE" ] && [ "$TYPE" == "stable" ]; then
   sed -i "/- rapidsai-nightly/g" /conda/.condarc
 else
   echo "  - blazingsql-nightly" >> /conda/.condarc
-  echo "  - blazingsql" >> /conda/.condarc
 fi
 
 gpuci_logger "Activate conda env"
