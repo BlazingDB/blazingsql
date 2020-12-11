@@ -45,7 +45,8 @@ public:
 	kstatus run() override;
 
 private:
-
+	std::vector<std::unique_ptr<ral::frame::BlazingTable>> sampledTables;
+    std::vector<ral::frame::BlazingTableView> sampledTableViews;
 };
 
 class PartitionKernel : public distributing_kernel {

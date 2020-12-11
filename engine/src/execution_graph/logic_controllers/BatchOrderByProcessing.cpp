@@ -88,7 +88,9 @@ SortAndSampleKernel::SortAndSampleKernel(std::size_t kernel_id, const std::strin
     this->output_.add_port("output_a", "output_b");
 }
 
-void SortAndSampleKernel::compute_partition_plan(std::vector<ral::frame::BlazingTableView> sampledTableViews, std::size_t avg_bytes_per_row, std::size_t local_total_num_rows) {
+void SortAndSampleKernel::compute_partition_plan(std::vector<ral::frame::BlazingTableView> sampledTableViews,
+    std::size_t avg_bytes_per_row,
+    std::size_t local_total_num_rows) {
 
     if (this->context->getAllNodes().size() == 1){ // single node mode
         auto partitionPlan = ral::operators::generate_partition_plan(sampledTableViews,
@@ -183,63 +185,41 @@ kstatus SortAndSampleKernel::run() {
     CodeTimer timer;
     CodeTimer eventTimer(false);
 
-    bool try_num_rows_estimation = true;
     bool get_samples = true;
-    bool estimate_samples = false;
-    uint64_t num_rows_estimate = 0;
-    uint64_t population_to_sample = 0;
     uint64_t population_sampled = 0;
     BlazingThread partition_plan_thread;
 
-    float order_by_samples_ratio = 0.1;
     std::map<std::string, std::string> config_options = context->getConfigOptions();
-    auto it = config_options.find("ORDER_BY_SAMPLES_RATIO");
-    if (it != config_options.end()){
-        order_by_samples_ratio = std::stof(config_options["ORDER_BY_SAMPLES_RATIO"]);
-    }
     int max_order_by_samples = 10000;
-    it = config_options.find("MAX_ORDER_BY_SAMPLES_PER_NODE");
+    auto it = config_options.find("MAX_ORDER_BY_SAMPLES_PER_NODE");
     if (it != config_options.end()){
         max_order_by_samples = std::stoi(config_options["MAX_ORDER_BY_SAMPLES_PER_NODE"]);
     }
-
     bool ordered = false;
     BatchSequence input(this->input_cache(), this, ordered);
-    std::vector<std::unique_ptr<ral::frame::BlazingTable>> sampledTables;
-    std::vector<ral::frame::BlazingTableView> sampledTableViews;
     std::size_t localTotalNumRows = 0;
     std::size_t localTotalBytes = 0;
     int batch_count = 0;
     while (input.wait_for_next()) {
         try {
             auto batch = input.next();
-
             eventTimer.start();
             auto log_input_num_rows = batch ? batch->num_rows() : 0;
             auto log_input_num_bytes = batch ? batch->sizeInBytes() : 0;
 
             auto sortedTable = ral::operators::sort(batch->toBlazingTableView(), this->expression);
             if (get_samples) {
-                auto sampledTable = ral::operators::sample(batch->toBlazingTableView(), this->expression, order_by_samples_ratio);
+                auto sampledTable = ral::operators::sample(batch->toBlazingTableView(), this->expression);
+                population_sampled += sampledTable->num_rows();
                 sampledTableViews.push_back(sampledTable->toBlazingTableView());
                 sampledTables.push_back(std::move(sampledTable));
             }
             localTotalNumRows += batch->view().num_rows();
             localTotalBytes += batch->sizeInBytes();
 
-            // Try samples estimation
-            if(try_num_rows_estimation) {
-                std::tie(estimate_samples, num_rows_estimate) = this->query_graph->get_estimated_input_rows_to_cache(this->get_id(), std::to_string(this->get_id()));
-                population_to_sample = static_cast<uint64_t>(num_rows_estimate * order_by_samples_ratio);
-                population_to_sample = (population_to_sample > max_order_by_samples) ? (max_order_by_samples) : population_to_sample;
-                try_num_rows_estimation = false;
-            }
-            population_sampled += batch->num_rows();
-            if (estimate_samples && population_to_sample > 0 && population_sampled > population_to_sample)	{
-
+            if (population_sampled > max_order_by_samples)	{
                 size_t avg_bytes_per_row = localTotalNumRows == 0 ? 1 : localTotalBytes/localTotalNumRows;
-                partition_plan_thread = BlazingThread(&SortAndSampleKernel::compute_partition_plan, this, sampledTableViews, avg_bytes_per_row, num_rows_estimate);
-                estimate_samples = false;
+                partition_plan_thread = BlazingThread(&SortAndSampleKernel::compute_partition_plan, this, sampledTableViews, avg_bytes_per_row, localTotalNumRows);
                 get_samples = false;
             }
             // End estimation
