@@ -14,10 +14,11 @@
 
 ## Bug Fixes
 - #1249 Fix compilation with cuda 11
+- #1253 Fixed distribution so that its evenly distributes based of rowgroups
 
 
 
-# BlazingSQL 0.17.0 (Date TBS)
+# BlazingSQL 0.17.0 (December 10, 2020)
 
 ## New Features
 - #1105 Implement to_date/to_timestamp functions
