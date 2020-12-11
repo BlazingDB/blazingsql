@@ -34,7 +34,6 @@ namespace messages {
 											[chars_column_start] __device__ (int32_t value){
 												return value - chars_column_start;
 											});
-		//thrust::transform();
 
 		return new_offsets;
 	}
