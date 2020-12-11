@@ -115,7 +115,7 @@ std::string internal_blazing_device_memory_resource::get_full_memory_summary() {
     return summary;
 }
 
-void internal_blazing_device_memory_resource::reset_max_used_memory(size_t to) noexcept {
+void internal_blazing_device_memory_resource::reset_max_memory_used(size_t to) noexcept {
     this->max_used_memory = to;
 }
 
@@ -182,8 +182,8 @@ std::string blazing_device_memory_resource::get_full_memory_summary() {
     return initialized_resource->get_full_memory_summary() ;
 }
 
-void blazing_device_memory_resource::reset_max_used_memory(size_t to) {
-    initialized_resource->reset_max_used_memory(to);
+void blazing_device_memory_resource::reset_max_memory_used(size_t to) {
+    initialized_resource->reset_max_memory_used(to);
 }
 
 void blazing_device_memory_resource::initialize(std::string allocation_mode,
