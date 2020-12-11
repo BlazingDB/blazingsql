@@ -447,7 +447,7 @@ kstatus MergeStreamKernel::run() {
     {
         try {
             auto cache_id = "input_" + std::to_string(idx);
-
+            // This Kernel needs all of the input before it can do any output. So lets wait until all the input is available
             this->input_.get_cache(cache_id)->wait_until_finished();
             std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
 
