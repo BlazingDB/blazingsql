@@ -33,6 +33,19 @@ enum column_index : column_index_type {
  * operations, cast, etc on primitives types. Any complex operation inside
  * the expression tree must be removed (or evaluated and replaced by its result)
  * in a preprocess step
+ *
+ * @param expr_tree The expression tree to encode
+ * @param expr_idx_to_col_idx_map A map from input table column indices to expression
+ * left/right input indices
+ * @param start_processing_position The start position from where to store temp results
+ * in the encoded plan
+ * @param final_output_position The ouput position in the encoded plan for this expression
+ * @param left_inputs The encoded left inputs indices from all the processed expressions
+ * @param right_inputs The encoded right inputs indices from all the processed expressions
+ * @param outputs The encoded output indices from all the processed expressions
+ * @param operators The encoded operations from all the processed expressions
+ * @param left_scalars The scalars used as left inputs in the operations
+ * @param right_scalars The scalars used as right inputs in the operations
  */
 void add_expression_to_interpreter_plan(const ral::parser::parse_tree & expr_tree,
 	const std::map<column_index_type, column_index_type> & expr_idx_to_col_idx_map,
@@ -48,6 +61,18 @@ void add_expression_to_interpreter_plan(const ral::parser::parse_tree & expr_tre
 /**
  * @brief Evaluates multiple operations encoded in a GPU friendly format in a
  * single GPU kernel call
+ *
+ * @param out_table The output table to store the results
+ * @param table The input table
+ * @param left_inputs The encoded left inputs indices from all the processed expressions
+ * @param right_inputs The encoded right inputs indices from all the processed expressions
+ * @param outputs The encoded output indices from all the processed expressions
+ * @param final_output_positions The encoded final output indices for all the processed expressions
+ * @param operators The encoded operations from all the processed expressions
+ * @param left_scalars The scalars used as left inputs in the operations
+ * @param right_scalars The scalars used as right inputs in the operations
+ * @param operation_num_rows The output number of rows
+ *
  */
 void perform_interpreter_operation(cudf::mutable_table_view & out_table,
 	const cudf::table_view & table,

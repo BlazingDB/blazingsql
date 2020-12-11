@@ -606,7 +606,7 @@ public:
         std::unique_ptr<cudf::column> computed_col;
         std::vector<std::string> arg_tokens;
         if (op == operator_type::BLZ_FIRST_NON_MAGIC) {
-            // special case for CASE WHEN ELSE END for strings
+            // Handle special case for CASE WHEN ELSE END operation for strings
             assert(node.children[0]->type == parser::node_type::OPERATOR);
             assert(map_to_operator_type(node.children[0]->value) == operator_type::BLZ_MAGIC_IF_NOT);
 
@@ -628,6 +628,9 @@ public:
             computed_col = strings::evaluate_string_functions(cudf::table_view{{table, computed_columns_view()}}, op, arg_tokens);
         }
 
+        // If computed_col is a not nullptr then the node was a complex operation and
+        // we need to remove it from the tree so that only simple operations (that the
+        // interpreter is able to handle) remain
         if (computed_col) {
             // Discard temp columns used in operations
             for (auto &&token : arg_tokens) {
@@ -639,6 +642,7 @@ public:
                 }
             }
 
+            // Replace the operator node with its corresponding result
             std::string computed_var_token = "$" + std::to_string(table.num_columns() + computed_columns.size());
             computed_columns.push_back(std::move(computed_col));
 
