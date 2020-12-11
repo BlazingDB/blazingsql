@@ -77,6 +77,7 @@
 - #1207 Calcite uses literal as int32 if not explicit CAST was provided
 - #1212 Fixed issue when building the thirdpart, cmake version set to 3.18.4
 - #1225 Fixed issue due to change in gather API 
+- #1254 Fixing support of nightly and stable on localhost
 
 
 # BlazingSQL 0.16.0 (October 22, 2020)
