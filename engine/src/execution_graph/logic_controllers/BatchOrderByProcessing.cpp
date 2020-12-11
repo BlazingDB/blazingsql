@@ -414,9 +414,29 @@ kstatus PartitionKernel::run() {
 
 // BEGIN MergeStreamKernel
 
-MergeStreamKernel::MergeStreamKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
+MergeStreamKernel::MergeStreamKernel(std::size_t kernel_id, const std::string & queryString,
+    std::shared_ptr<Context> context,
+    std::shared_ptr<ral::cache::graph> query_graph)
     : kernel{kernel_id, queryString, context, kernel_type::MergeStreamKernel}  {
     this->query_graph = query_graph;
+}
+
+void MergeStreamKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+    std::shared_ptr<ral::cache::CacheMachine> output,
+    cudaStream_t stream, const std::map<std::string, std::string>& args) {
+
+    if (inputs.empty()) {
+        // no op
+    } else if(inputs.size() == 1) {
+        output->addToCache(std::move(inputs[0]));
+    } else {
+        std::vector< ral::frame::BlazingTableView > tableViewsToConcat;
+        for (std::size_t i = 0; i < inputs.size(); i++){
+            tableViewsToConcat.emplace_back(inputs[i]->toBlazingTableView());
+        }
+        auto output_merge = ral::operators::merge(tableViewsToConcat, this->expression);
+        output->addToCache(std::move(output_merge));
+    }
 }
 
 kstatus MergeStreamKernel::run() {
@@ -426,68 +446,60 @@ kstatus MergeStreamKernel::run() {
     for (auto idx = 0; idx < this->input_.count(); idx++)
     {
         try {
-            std::vector<ral::frame::BlazingTableView> tableViews;
-            std::vector<std::unique_ptr<ral::frame::BlazingTable>> tables;
             auto cache_id = "input_" + std::to_string(idx);
-
             // This Kernel needs all of the input before it can do any output. So lets wait until all the input is available
             this->input_.get_cache(cache_id)->wait_until_finished();
+            std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
 
-            while (this->input_.get_cache(cache_id)->wait_for_next()) {
-                CodeTimer cacheEventTimer(false);
-
-                cacheEventTimer.start();
-                auto table = this->input_.get_cache(cache_id)->pullFromCache();
-                cacheEventTimer.stop();
-
-                if (table) {
-                    auto num_rows = table->num_rows();
-                    auto num_bytes = table->sizeInBytes();
-
-                    cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-                                    "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-                                    "query_id"_a=context->getContextToken(),
-                                    "source"_a=this->input_.get_cache(cache_id)->get_id(),
-                                    "sink"_a=this->get_id(),
-                                    "num_rows"_a=num_rows,
-                                    "num_bytes"_a=num_bytes,
-                                    "event_type"_a="removeCache",
-                                    "timestamp_begin"_a=cacheEventTimer.start_time(),
-                                    "timestamp_end"_a=cacheEventTimer.end_time());
-
-                    tableViews.emplace_back(table->toBlazingTableView());
-                    tables.emplace_back(std::move(table));
+            while(this->input_.get_cache(cache_id)->wait_for_next()){
+                std::unique_ptr <ral::cache::CacheData> cache_data = this->input_.get_cache(cache_id)->pullCacheData();
+                if(cache_data != nullptr) {
+                    inputs.push_back(std::move(cache_data));
                 }
             }
 
-            if (tableViews.empty()) {
-                // noop
-            } else if(tableViews.size() == 1) {
-                this->add_to_output_cache(std::move(tables.front()));
-            } else {
-                auto output = ral::operators::merge(tableViews, this->expression);
-                this->add_to_output_cache(std::move(output));
-            }
+            ral::execution::executor::get_instance()->add_task(
+                    std::move(inputs),
+                    this->output_cache(),
+                    this);
+
             batch_count++;
         } catch(const std::exception& e) {
             // TODO add retry here
             logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
-                                            "query_id"_a=context->getContextToken(),
-                                            "step"_a=context->getQueryStep(),
-                                            "substep"_a=context->getQuerySubstep(),
-                                            "info"_a="In MergeStream kernel batch {} for {}. What: {} . max_memory_used: {}"_format(batch_count, expression, e.what(), blazing_device_memory_resource::getInstance().get_full_memory_summary()),
-                                            "duration"_a="");
+                                "query_id"_a=context->getContextToken(),
+                                "step"_a=context->getQueryStep(),
+                                "substep"_a=context->getQuerySubstep(),
+                                "info"_a="In MergeStream kernel batch {} for {}. What: {} . max_memory_used: {}"_format(batch_count, expression, e.what(), blazing_device_memory_resource::getInstance().get_full_memory_summary()),
+                                "duration"_a="");
             throw;
         }
     }
 
-    logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+    if(logger != nullptr) {
+        logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+                                "query_id"_a=context->getContextToken(),
+                                "step"_a=context->getQueryStep(),
+                                "substep"_a=context->getQuerySubstep(),
+                                "info"_a="MergeStream Kernel tasks created",
+                                "duration"_a=timer.elapsed_time(),
+                                "kernel_id"_a=this->get_id());
+    }
+
+    std::unique_lock<std::mutex> lock(kernel_mutex);
+    kernel_cv.wait(lock,[this]{
+        return this->tasks.empty();
+    });
+
+    if(logger != nullptr) {
+        logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
                                 "query_id"_a=context->getContextToken(),
                                 "step"_a=context->getQueryStep(),
                                 "substep"_a=context->getQuerySubstep(),
                                 "info"_a="MergeStream Kernel Completed",
                                 "duration"_a=timer.elapsed_time(),
                                 "kernel_id"_a=this->get_id());
+    }
 
     return kstatus::proceed;
 }
@@ -496,7 +508,9 @@ kstatus MergeStreamKernel::run() {
 
 // BEGIN LimitKernel
 
-LimitKernel::LimitKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
+LimitKernel::LimitKernel(std::size_t kernel_id, const std::string & queryString,
+    std::shared_ptr<Context> context,
+    std::shared_ptr<ral::cache::graph> query_graph)
     : distributing_kernel{kernel_id,queryString, context, kernel_type::LimitKernel}  {
     this->query_graph = query_graph;
     set_number_of_message_trackers(1); //default
@@ -609,11 +623,11 @@ kstatus LimitKernel::run() {
         } catch(const std::exception& e) {
             // TODO add retry here
             logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
-                                        "query_id"_a=context->getContextToken(),
-                                        "step"_a=context->getQueryStep(),
-                                        "substep"_a=context->getQuerySubstep(),
-                                        "info"_a="In Limit kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
-                                        "duration"_a="");
+                                "query_id"_a=context->getContextToken(),
+                                "step"_a=context->getQueryStep(),
+                                "substep"_a=context->getQuerySubstep(),
+                                "info"_a="In Limit kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
+                                "duration"_a="");
             throw;
         }
     }
