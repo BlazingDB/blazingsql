@@ -604,7 +604,6 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
     case operator_type::BLZ_MAGIC_IF_NOT:
         break;
     }
-    }
 
     return computed_col;
 }

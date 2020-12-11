@@ -647,7 +647,7 @@ std::pair<bool, bool> JoinPartitionKernel::determine_if_we_are_scattering_a_smal
 
 	std::vector<std::string> determination_messages_to_wait_for;
 	std::vector<std::string> target_ids;
-	for (auto node_to_send : nodes_to_send.size()) {
+	for (auto node_to_send : nodes_to_send) {
 		target_ids.push_back(node_to_send.id());
 		determination_messages_to_wait_for.push_back(
 			"determine_if_we_are_scattering_a_small_table_" + std::to_string(this->context->getContextToken()) + "_" +	std::to_string(this->get_id()) +	"_" +	node_to_send.id());
@@ -776,7 +776,7 @@ void JoinPartitionKernel::perform_standard_hash_partitioning(
 		if(column_indices[i] >= left_cache_data->num_columns()){
 			this->right_column_indices.push_back(column_indices[i] - left_cache_data->num_columns());
 		}else{
-			this->left_column_indices.push_back(column_indice);
+			this->left_column_indices.push_back(column_indices[i]);
 		}
 	}
 

@@ -195,6 +195,7 @@ std::unique_ptr<ral::frame::BlazingTable> deserialize_from_cpu(const ral::frame:
 				buffer_sz,
 				cudaMemcpyHostToDevice);
 			gpu_raw_buffers.emplace_back(std::move(dev_buffer));
+		}
 	}catch(std::exception e){
 		throw;
 	}
