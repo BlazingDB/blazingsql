@@ -90,6 +90,10 @@ class ResetMaxMemoryUsedError(BlazingError):
     """ResetMaxUsedMemoryError Error."""
 cdef public PyObject * ResetMaxMemoryUsedError_ = <PyObject *>ResetMaxMemoryUsedError
 
+class GetMaxMemoryUsedError(BlazingError):
+    """GetMaxMemoryUsedError Error."""
+cdef public PyObject * GetMaxMemoryUsedError_ = <PyObject *>GetMaxMemoryUsedError
+
 class GetProductDetailsError(BlazingError):
     """GetProductDetails Error."""
 cdef public PyObject * GetProductDetailsError_ = <PyObject *>GetProductDetailsError
