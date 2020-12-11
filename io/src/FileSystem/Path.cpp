@@ -33,12 +33,12 @@ static bool isValidPath(const std::string & path) {
 	return true;
 }
 
-static bool isRootOrInvalidPath(const Path & path) {
+/*static bool isRootOrInvalidPath(const Path & path) {
 	const bool isRoot = path.isRoot();
 	const bool isInvalid = (path.isValid() == false);
 
 	return (isRoot || isInvalid);
-}
+}*/
 
 static int countEndSlashChars(const std::string & path) {
 	int endSlashCount = 0;

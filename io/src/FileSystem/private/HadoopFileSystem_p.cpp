@@ -38,14 +38,14 @@ bool HadoopFileSystem::Private::connect(const FileSystemConnection & fileSystemC
 	const int port = atoi(fileSystemConnection.getConnectionProperty(ConnectionProperty::PORT).c_str());
 	const std::string user = fileSystemConnection.getConnectionProperty(ConnectionProperty::USER);
 
-	DriverType driver;
+	/*DriverType driver;
 
 	// TODO percy too long maybe we should use direct string constants here instead of const map
 	if(fileSystemConnection.getConnectionProperty(ConnectionProperty::DRIVER_TYPE) == "LIBHDFS3") {
 		driver = DriverType::LIBHDFS3;
 	} else if(fileSystemConnection.getConnectionProperty(ConnectionProperty::DRIVER_TYPE) == "LIBHDFS") {
 		driver = DriverType::LIBHDFS;
-	}
+	}*/
 
 	const std::string kerberosTicket = fileSystemConnection.getConnectionProperty(ConnectionProperty::KERBEROS_TICKET);
 

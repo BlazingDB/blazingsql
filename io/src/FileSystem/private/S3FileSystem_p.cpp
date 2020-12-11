@@ -1190,7 +1190,7 @@ bool S3FileSystem::Private::checkBucket() const {
 	return result.IsSuccess();
 }
 
-const S3FileSystemConnection::EncryptionType S3FileSystem::Private::encryptionType() const {
+S3FileSystemConnection::EncryptionType S3FileSystem::Private::encryptionType() const {
 	using namespace S3FileSystemConnection;
 	const std::string encryptionTypeName =
 		this->fileSystemConnection.getConnectionProperty(ConnectionProperty::ENCRYPTION_TYPE);
@@ -1203,12 +1203,13 @@ bool S3FileSystem::Private::isEncrypted() const {
 	return (this->encryptionType() != EncryptionType::NONE) && (this->encryptionType() != EncryptionType::UNDEFINED);
 }
 
-const Aws::S3::Model::ServerSideEncryption S3FileSystem::Private::serverSideEncryption() const {
+Aws::S3::Model::ServerSideEncryption S3FileSystem::Private::serverSideEncryption() const {
 	using namespace S3FileSystemConnection;
 
 	switch(this->encryptionType()) {
 	case EncryptionType::AES_256: return Aws::S3::Model::ServerSideEncryption::AES256; break;
 	case EncryptionType::AWS_KMS: return Aws::S3::Model::ServerSideEncryption::aws_kms; break;
+	default: break;
 	}
 
 	return Aws::S3::Model::ServerSideEncryption::NOT_SET;

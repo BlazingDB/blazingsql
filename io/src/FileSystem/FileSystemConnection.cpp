@@ -13,6 +13,7 @@ const std::string driverTypeName(DriverType driverType) {
 	switch(driverType) {
 	case DriverType::LIBHDFS: return "LIBHDFS"; break;
 	case DriverType::LIBHDFS3: return "LIBHDFS3"; break;
+	default: break;
 	}
 
 	return "UNDEFINED";
@@ -37,6 +38,7 @@ const std::string connectionPropertyName(ConnectionProperty connectionProperty) 
 	case ConnectionProperty::USER: return "hdfs.user"; break;
 	case ConnectionProperty::DRIVER_TYPE: return "hdfs.driver.type"; break;
 	case ConnectionProperty::KERBEROS_TICKET: return "hdfs.kerberos.ticket"; break;
+	default: break;
 	}
 
 	return "UNDEFINED";
@@ -95,6 +97,7 @@ const std::string connectionPropertyName(ConnectionProperty connectionProperty) 
 	case ConnectionProperty::ENDPOINT_OVERRIDE: return "s3.endpoint_override"; break;
 	case ConnectionProperty::REGION: return "s3.region"; break;
     case ConnectionProperty::UNDEFINED: break;
+	default: break;
     }
 
 	return "UNDEFINED";
@@ -114,6 +117,7 @@ const std::string encryptionTypeName(EncryptionType encryptionType) {
 	case EncryptionType::NONE: return "None"; break;
 	case EncryptionType::AES_256: return "AES-256"; break;
 	case EncryptionType::AWS_KMS: return "AWS-KMS"; break;
+	default: break;
 	}
 
 	return "UNDEFINED";
@@ -177,6 +181,7 @@ const std::string connectionPropertyName(ConnectionProperty connectionProperty) 
 	case ConnectionProperty::BUCKET_NAME: return "gcs.bucket_name"; break;
 	case ConnectionProperty::USE_DEFAULT_ADC_JSON_FILE: return "gcs.use_default_adc_json_file"; break;
 	case ConnectionProperty::ADC_JSON_FILE: return "gcs.adc_json_file"; break;
+	default: break;
 	}
 
 	return "UNDEFINED";
@@ -501,6 +506,7 @@ bool FileSystemConnection::requireConnectionProperties() const noexcept {
 	case FileSystemType::HDFS: require = true; break;
 	case FileSystemType::S3: require = true; break;
 	case FileSystemType::GOOGLE_CLOUD_STORAGE: require = true; break;
+	default: break;
 	}
 
 	return require;

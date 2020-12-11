@@ -330,6 +330,7 @@ std::vector<FileStatus> GoogleCloudStorage::Private::list(const Uri & /*uri*/, c
 	//	}
 
 	//	return response;
+	return {};
 }
 
 std::vector<Uri> GoogleCloudStorage::Private::list(const Uri & uri, const std::string & wildcard) const {
@@ -531,6 +532,7 @@ std::vector<std::string> GoogleCloudStorage::Private::listResourceNames(
 	//	}
 
 	//	return response;
+	return {};
 }
 
 std::vector<std::string> GoogleCloudStorage::Private::listResourceNames(
@@ -684,6 +686,7 @@ bool GoogleCloudStorage::Private::remove(const Uri & /*uri*/) const {
 
 	//		return false;
 	//	}
+	return false;
 }
 
 bool GoogleCloudStorage::Private::move(const Uri & /*src*/, const Uri & /*dst*/) const {
@@ -745,6 +748,7 @@ bool GoogleCloudStorage::Private::move(const Uri & /*src*/, const Uri & /*dst*/)
 
 	//		return false;
 	//	}
+	return false;
 }
 
 // TODO: truncate file can't be rolled back easily as it stands
@@ -822,7 +826,7 @@ bool GoogleCloudStorage::Private::truncateFile(const Uri & /*uri*/, long long /*
 	//		//TODO percy this use case is not needed yet
 	//	}
 
-	//	return false;
+	return false;
 }
 
 bool GoogleCloudStorage::Private::openReadable(
@@ -870,10 +874,12 @@ bool GoogleCloudStorage::Private::useDefaultAdcJsonFile() const {
 	using namespace GoogleCloudStorageConnection;
 	//	return (this->encryptionType() != EncryptionType::NONE) && (this->encryptionType() !=
 	//EncryptionType::UNDEFINED);
+	return false;
 }
 
 const std::string GoogleCloudStorage::Private::getAdcJsonFile() const {
 	using namespace GoogleCloudStorageConnection;
 	//	const std::string kmsKey =
 	//this->fileSystemConnection.getConnectionProperty(ConnectionProperty::KMS_KEY_AMAZON_RESOURCE_NAME); 	return kmsKey;
+	return "";
 }

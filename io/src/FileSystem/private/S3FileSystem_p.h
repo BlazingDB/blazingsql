@@ -53,11 +53,11 @@ private:
 
 	const std::string getBucketName() const;  // get the bucket name from the current s3 file system connection
 	bool checkBucket() const;
-	const S3FileSystemConnection::EncryptionType
+	S3FileSystemConnection::EncryptionType
 	encryptionType() const;	// get the encryption type from the current s3 file system connection
 	bool isEncrypted() const;  // returns true if the connection is encrypted (AES-256 or AWS-KMS), returns false when
 							   // EncryptionType is None
-	const Aws::S3::Model::ServerSideEncryption
+	Aws::S3::Model::ServerSideEncryption
 	serverSideEncryption() const;	// get the encryption type from the current s3 file system connection
 	bool isAWSKMSEncrypted() const;  // returns true if the connection is encrypted with AWS-KMS
 	const std::string

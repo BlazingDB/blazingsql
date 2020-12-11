@@ -480,6 +480,7 @@ bool FileUtilv2::copyFile(const Uri & src, const Uri & dst) {
 		ex.append("Caught error in FileUtilv2::copyFile");
 		throw;
 	}
+	return false;
 }
 
 

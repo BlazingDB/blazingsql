@@ -55,4 +55,4 @@ const std::string FileSystemException::getUri1() const noexcept { return this->u
 
 const std::string FileSystemException::getUri2() const noexcept { return this->uri2; }
 
-const FileSystemType FileSystemException::getFileSystemType() const noexcept { return this->fileSystemType; }
+FileSystemType FileSystemException::getFileSystemType() const noexcept { return this->fileSystemType; }

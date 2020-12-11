@@ -104,6 +104,8 @@ bool FileSystemManager::Private::deregisterFileSystem(const std::string & author
 			std::move(this->fileSystems[fileSystemId]);  // transfer ownership so it can be deleted within this scope
 		this->fileSystems.erase(this->fileSystems.begin() + fileSystemId);
 	}
+
+	return found;
 }
 
 bool FileSystemManager::Private::exists(const Uri & uri) const {

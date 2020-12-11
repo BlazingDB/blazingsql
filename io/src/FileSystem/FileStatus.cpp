@@ -29,6 +29,7 @@ bool FileStatus::isDirectory() const noexcept { return (this->fileType == FileTy
 
 std::string FileStatus::toString(bool /*normalize*/) const {
 	// TODO percy
+	return "";
 }
 
 FileStatus & FileStatus::operator=(const FileStatus & other) {
