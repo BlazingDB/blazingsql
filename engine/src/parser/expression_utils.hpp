@@ -46,6 +46,7 @@ enum class operator_type {
 	BLZ_CHAR_LENGTH,
 	BLZ_STR_LOWER,
 	BLZ_STR_UPPER,
+        BLZ_STR_INITCAP,
 	BLZ_STR_REVERSE,
 
 	// Binary operators

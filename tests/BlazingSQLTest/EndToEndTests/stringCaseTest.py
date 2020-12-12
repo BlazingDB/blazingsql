@@ -204,6 +204,60 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 print_result=True,
             )
 
+            queryId = "TEST_11"
+            query = """select o_orderkey, initcap(o_comment) from orders
+                    where o_orderkey < 10000"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+                print_result=True,
+            )
+
+            queryId = "TEST_12"
+            query = """SELECT INITCAP(LOWER(o_clerk)), 
+                    INITCAP(SUBSTRING(o_comment, 0, 10)) || INITCAP(o_orderstatus)
+                    FROM orders WHERE MOD(o_custkey, 2) = 0"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+                print_result=True,
+            )
+
+
+            queryId = "TEST_13"
+            query = """select o_orderkey, 
+                    INITCAP(SUBSTRING(o_comment, 1, 5)) || SUBSTRING(INITCAP(o_comment), 0, 5) 
+                    from orders where o_orderkey < 10000"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+                print_result=True,
+            )
+
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")
                 break
