@@ -184,6 +184,13 @@ void SortAndSampleKernel::compute_partition_plan(std::vector<ral::frame::Blazing
 void SortAndSampleKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
     cudaStream_t stream, const std::map<std::string, std::string>& args) {
+
+    // TODO: reveive new operation_types
+    //auto& operation_type = args.at("operation_type");
+
+	//if (operation_type == "small_table_scatter") {
+	//} else if (operation_type == "big_table_passthrough") {
+    //}
 }
 
 
@@ -225,8 +232,9 @@ kstatus SortAndSampleKernel::run() {
 
             if (population_sampled > max_order_by_samples)	{
                 size_t avg_bytes_per_row = localTotalNumRows == 0 ? 1 : localTotalBytes/localTotalNumRows;
+                // TODO: we want this function be in a new one operation_type
                 partition_plan_thread = BlazingThread(&SortAndSampleKernel::compute_partition_plan, this, sampledTableViews, avg_bytes_per_row, localTotalNumRows);
-                get_samples = false;
+                get_samples = false;    // we got enough samples, at least as max_order_by_samples
             }
             // End estimation
 
@@ -271,7 +279,6 @@ kstatus SortAndSampleKernel::run() {
     //kernel_cv.wait(lock,[this]{
     //    return this->tasks.empty();
     //});
-
 
     if (partition_plan_thread.joinable()){
         partition_plan_thread.join();
