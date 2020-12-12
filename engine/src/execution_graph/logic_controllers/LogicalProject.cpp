@@ -54,6 +54,7 @@ cudf::strings::strip_type map_trim_flag_to_strip_type(const std::string & trim_f
         // Should not reach here
         assert(false);
 }
+
 struct cast_to_str_functor {
     template<typename T, std::enable_if_t<cudf::is_boolean<T>()> * = nullptr>
     std::unique_ptr<cudf::column> operator()(const cudf::column_view & col) {
@@ -86,6 +87,15 @@ struct cast_to_str_functor {
     }
 };
 
+/**
+ * @brief Evaluates a SQL string function.
+ *
+ * The string function is evaluated using cudf functions
+ *
+ * @param table The input table
+ * @param op The string function to evaluate
+ * @param arg_tokens The parsed function arguments
+ */
 std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view & table,
                                                         operator_type op,
                                                         const std::vector<std::string> & arg_tokens)
@@ -464,23 +474,23 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
     {
         assert(arg_tokens.size() == 1);
         RAL_EXPECTS(!is_literal(arg_tokens[0]), "LOWER operator not supported for literals");
-        
+
         cudf::column_view column = table.column(get_index(arg_tokens[0]));
         RAL_EXPECTS(is_type_string(column.type().id()), "LOWER argument must be a column of type string");
-        
+
         computed_col = cudf::strings::to_lower(column);
-        break;         
+        break;
     }
     case operator_type::BLZ_STR_UPPER:
     {
         assert(arg_tokens.size() == 1);
         RAL_EXPECTS(!is_literal(arg_tokens[0]), "UPPER operator not supported for literals");
-        
+
         cudf::column_view column = table.column(get_index(arg_tokens[0]));
         RAL_EXPECTS(is_type_string(column.type().id()), "UPPER argument must be a column of type string");
-        
+
         computed_col = cudf::strings::to_upper(column);
-        break;         
+        break;
     }
     case operator_type::BLZ_STR_TRIM:
     {
@@ -518,6 +528,13 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
     return computed_col;
 }
 
+/**
+ * @brief Evaluates a "CASE WHEN ELSE" when any of the result expressions is a string.
+ *
+ * @param table The input table
+ * @param op The string function to evaluate
+ * @param arg_tokens The parsed function arguments
+ */
 std::unique_ptr<cudf::column> evaluate_string_case_when_else(const cudf::table_view & table,
                                                             const std::string & condition_expr,
                                                             const std::string & expr1,
@@ -569,6 +586,14 @@ std::unique_ptr<cudf::column> evaluate_string_case_when_else(const cudf::table_v
 
 } // namespace strings
 
+/**
+ * @brief A class that traverses an expression tree and prunes nodes that
+ * can't be evaluated by the interpreter.
+ *
+ * Any complex operation that can't be evaluated by the interpreter (e.g. string
+ * functions) is evaluated here and its corresponding node replaced by a new
+ * node containing the result of the operation
+ */
 class function_evaluator_transformer : public parser::node_transformer {
 public:
     function_evaluator_transformer(const cudf::table_view & table) : table{table} {}
@@ -581,7 +606,7 @@ public:
         std::unique_ptr<cudf::column> computed_col;
         std::vector<std::string> arg_tokens;
         if (op == operator_type::BLZ_FIRST_NON_MAGIC) {
-            // special case for CASE WHEN ELSE END for strings
+            // Handle special case for CASE WHEN ELSE END operation for strings
             assert(node.children[0]->type == parser::node_type::OPERATOR);
             assert(map_to_operator_type(node.children[0]->value) == operator_type::BLZ_MAGIC_IF_NOT);
 
@@ -603,6 +628,9 @@ public:
             computed_col = strings::evaluate_string_functions(cudf::table_view{{table, computed_columns_view()}}, op, arg_tokens);
         }
 
+        // If computed_col is a not nullptr then the node was a complex operation and
+        // we need to remove it from the tree so that only simple operations (that the
+        // interpreter is able to handle) remain
         if (computed_col) {
             // Discard temp columns used in operations
             for (auto &&token : arg_tokens) {
@@ -614,6 +642,7 @@ public:
                 }
             }
 
+            // Replace the operator node with its corresponding result
             std::string computed_var_token = "$" + std::to_string(table.num_columns() + computed_columns.size());
             computed_columns.push_back(std::move(computed_col));
 
@@ -638,6 +667,10 @@ private:
     std::vector<std::unique_ptr<cudf::column>> computed_columns;
 };
 
+/**
+ * @brief A class that traverses an expression tree and calculates the final
+ * output type of the expression.
+ */
 struct expr_output_type_visitor : public ral::parser::node_visitor
 {
 public:
@@ -703,8 +736,12 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
     for(size_t i = 0; i < expressions.size(); i++){
         std::string expression = replace_calcite_regex(expressions[i]);
         expression = expand_if_logical_op(expression);
+
         parser::parse_tree tree;
         tree.build(expression);
+
+        // Transform the expression tree so that only nodes that can be evaluated
+        // by the interpreter remain
         tree.transform_to_custom_op();
         tree.transform(evaluator);
 
