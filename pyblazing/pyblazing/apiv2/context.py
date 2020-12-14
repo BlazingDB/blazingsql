@@ -2654,12 +2654,11 @@ class BlazingContext(object):
                     ].tolist()
                     row_group_ids = [row_groups_col[i] for i in row_indices]
                     row_groups_ids.append(row_group_ids)
-        
+
         else:
             actual_files = current_table.files
             uri_values = current_table.uri_values
             row_groups_ids = current_table.row_groups_ids
-        
 
         if self.dask_client is None:
             curr_calcite = current_table.calcite_to_file_indices
@@ -2685,9 +2684,7 @@ class BlazingContext(object):
                     all_sliced_files,
                     all_sliced_uri_values,
                     all_sliced_row_groups_ids,
-                ) = self._sliceRowGroups(
-                    1, actual_files, uri_values, row_groups_ids
-                )
+                ) = self._sliceRowGroups(1, actual_files, uri_values, row_groups_ids)
                 i = 0
                 curr_calcite = current_table.calcite_to_file_indices
                 bt = BlazingTable(
@@ -2746,7 +2743,6 @@ class BlazingContext(object):
                     nodeFilesList.append(bt)
 
         return nodeFilesList
-        
 
     """
     This function has been Deprecated. It is recommended to use ddf.shuffle(on=[colnames])
