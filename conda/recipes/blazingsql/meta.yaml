@@ -45,7 +45,6 @@ requirements:
         - netifaces
         - pyhive
         - {{ pin_compatible('zeromq', max_pin='x.x.x') }}
-        - {{ pin_compatible('gtest', max_pin='x.x') }}
         - dask-cudf {{ minor_version }}.*
         - dask-cuda {{ minor_version }}.*
         - ucx-py {{ minor_version }}.*
@@ -55,6 +54,7 @@ requirements:
 test:
     requires:
         - cudatoolkit {{ cuda_version }}.*
+        - {{ pin_compatible('gtest', max_pin='x.x') }}
     imports:
         - cio
 

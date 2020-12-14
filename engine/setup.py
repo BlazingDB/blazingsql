@@ -58,7 +58,7 @@ extensions = [
             conda_env_lib,
             os.path.join(os.sys.prefix, "lib"),
         ],
-        libraries=["blazingsql-engine", "gtest"],
+        libraries=["blazingsql-engine"],
         language="c++",
         extra_compile_args=["-std=c++14"],
     )
