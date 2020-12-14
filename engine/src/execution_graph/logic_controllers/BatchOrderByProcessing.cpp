@@ -185,105 +185,104 @@ void SortAndSampleKernel::do_process(std::vector< std::unique_ptr<ral::frame::Bl
     std::shared_ptr<ral::cache::CacheMachine> output,
     cudaStream_t stream, const std::map<std::string, std::string>& args) {
 
+    auto& operation_type = args.at("operation_type");
+    BlazingThread partition_plan_thread;
+
+    auto & input = inputs[0];
     // TODO: reveive new operation_types
-    //auto& operation_type = args.at("operation_type");
+    if (operation_type == "ordering_and_get_samples") {
+        auto sortedTable = ral::operators::sort(input->toBlazingTableView(), this->expression);
 
-	//if (operation_type == "small_table_scatter") {
-	//} else if (operation_type == "big_table_passthrough") {
-    //}
+        if (get_samples) {
+                auto sampledTable = ral::operators::sample(input->toBlazingTableView(), this->expression);
+                population_sampled += sampledTable->num_rows();
+                sampledTableViews.push_back(sampledTable->toBlazingTableView());
+                sampledTables.push_back(std::move(sampledTable));
+        }
+
+        localTotalNumRows += input->view().num_rows();
+        localTotalBytes += input->sizeInBytes();
+
+        if (population_sampled > max_order_by_samples)	{
+            avg_bytes_per_row = localTotalNumRows == 0 ? 1 : localTotalBytes/localTotalNumRows;
+            // TODO: we want this function be in a new one operation_type:compute_partition_plan
+            //ral::execution::executor::get_instance()->add_task(
+            //        std::move(inputs),
+            //        this->output_cache("output_b"),
+            //        this,
+            //        {{"operation_type", "compute_partition_plan"}});
+            partition_plan_thread = BlazingThread(&SortAndSampleKernel::compute_partition_plan, this, sampledTableViews, avg_bytes_per_row, localTotalNumRows);
+            get_samples = false;    // we got enough samples, at least as max_order_by_samples
+        }
+
+        /*
+        if(sortedTable){
+            auto log_output_num_rows = sortedTable->num_rows();
+            auto log_output_num_bytes = sortedTable->sizeInBytes();
+
+            events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+                            "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                            "query_id"_a=context->getContextToken(),
+                            "kernel_id"_a=this->get_id(),
+                            "input_num_rows"_a=log_input_num_rows,
+                            "input_num_bytes"_a=log_input_num_bytes,
+                            "output_num_rows"_a=log_output_num_rows,
+                            "output_num_bytes"_a=log_output_num_bytes,
+                            "event_type"_a="compute",
+                            "timestamp_begin"_a=eventTimer.start_time(),
+                            "timestamp_end"_a=eventTimer.end_time());
+        }
+        */
+
+        output->addToCache(std::move(sortedTable), "output_a");
+    }
+    else if (operation_type == "compute_partition_plan") {
+        // TODO add needed code for this operation type
+        
+    }
 }
-
 
 kstatus SortAndSampleKernel::run() {
     CodeTimer timer;
     CodeTimer eventTimer(false);
 
-    bool get_samples = true;
-    uint64_t population_sampled = 0;
     BlazingThread partition_plan_thread;
 
     std::map<std::string, std::string> config_options = context->getConfigOptions();
-    int max_order_by_samples = 10000;
     auto it = config_options.find("MAX_ORDER_BY_SAMPLES_PER_NODE");
     if (it != config_options.end()){
         max_order_by_samples = std::stoi(config_options["MAX_ORDER_BY_SAMPLES_PER_NODE"]);
     }
-    bool ordered = false;
-    BatchSequence input(this->input_cache(), this, ordered);
-    std::size_t localTotalNumRows = 0;
-    std::size_t localTotalBytes = 0;
-    int batch_count = 0;
-    while (input.wait_for_next()) {
-        try {
-            auto batch = input.next();
-            eventTimer.start();
-            auto log_input_num_rows = batch ? batch->num_rows() : 0;
-            auto log_input_num_bytes = batch ? batch->sizeInBytes() : 0;
 
-            auto sortedTable = ral::operators::sort(batch->toBlazingTableView(), this->expression);
-            if (get_samples) {
-                auto sampledTable = ral::operators::sample(batch->toBlazingTableView(), this->expression);
-                population_sampled += sampledTable->num_rows();
-                sampledTableViews.push_back(sampledTable->toBlazingTableView());
-                sampledTables.push_back(std::move(sampledTable));
-            }
-            localTotalNumRows += batch->view().num_rows();
-            localTotalBytes += batch->sizeInBytes();
+    std::unique_ptr <ral::cache::CacheData> cache_data = this->input_cache()->pullCacheData();
+    while (cache_data != nullptr) {
+        std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
+        inputs.push_back(std::move(cache_data));
 
-            if (population_sampled > max_order_by_samples)	{
-                size_t avg_bytes_per_row = localTotalNumRows == 0 ? 1 : localTotalBytes/localTotalNumRows;
-                // TODO: we want this function be in a new one operation_type
-                partition_plan_thread = BlazingThread(&SortAndSampleKernel::compute_partition_plan, this, sampledTableViews, avg_bytes_per_row, localTotalNumRows);
-                get_samples = false;    // we got enough samples, at least as max_order_by_samples
-            }
-            // End estimation
+        ral::execution::executor::get_instance()->add_task(
+                std::move(inputs),
+                this->output_cache("output_a"),
+                this,
+                {{"operation_type", "ordering_and_get_samples"}});
 
-            eventTimer.stop();
-
-            if(sortedTable){
-                auto log_output_num_rows = sortedTable->num_rows();
-                auto log_output_num_bytes = sortedTable->sizeInBytes();
-
-                events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-                                "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-                                "query_id"_a=context->getContextToken(),
-                                "kernel_id"_a=this->get_id(),
-                                "input_num_rows"_a=log_input_num_rows,
-                                "input_num_bytes"_a=log_input_num_bytes,
-                                "output_num_rows"_a=log_output_num_rows,
-                                "output_num_bytes"_a=log_output_num_bytes,
-                                "event_type"_a="compute",
-                                "timestamp_begin"_a=eventTimer.start_time(),
-                                "timestamp_end"_a=eventTimer.end_time());
-            }
-
-            if(this->add_to_output_cache(std::move(sortedTable), "output_a")){
-                batch_count++;
-            }
-
-        } catch(const std::exception& e) {
-            // TODO add retry here
-            // Note that we have to handle the collected samples in a special way. We need to compare to the current batch_count and perhaps evict one set of samples
-            logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
-                                "query_id"_a=context->getContextToken(),
-                                "step"_a=context->getQueryStep(),
-                                "substep"_a=context->getQuerySubstep(),
-                                "info"_a="In SortAndSample kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
-                                "duration"_a="");
-            throw;
-        }
+        cache_data = this->input_cache()->pullCacheData();
     }
 
-    // TODO: uncomment this block to the final
-    //std::unique_lock<std::mutex> lock(kernel_mutex);
-    //kernel_cv.wait(lock,[this]{
-    //    return this->tasks.empty();
-    //});
+    std::unique_lock<std::mutex> lock(kernel_mutex);
+    kernel_cv.wait(lock,[this]{
+        return this->tasks.empty();
+    });
 
     if (partition_plan_thread.joinable()){
         partition_plan_thread.join();
     } else {
-        size_t avg_bytes_per_row = localTotalNumRows == 0 ? 1 : localTotalBytes/localTotalNumRows;
+        // TODO: we want this function be in a new one operation_type:compute_partition_plan
+                //ral::execution::executor::get_instance()->add_task(
+                //        std::move(inputs),
+                //        this->output_cache("output_b"),
+                //        this,
+                //        {{"operation_type", "compute_partition_plan"}});
+        avg_bytes_per_row = localTotalNumRows == 0 ? 1 : localTotalBytes/localTotalNumRows;
         compute_partition_plan(sampledTableViews, avg_bytes_per_row, localTotalNumRows);
     }
 

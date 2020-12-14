@@ -57,6 +57,12 @@ public:
 private:
 	std::vector<std::unique_ptr<ral::frame::BlazingTable>> sampledTables;
     std::vector<ral::frame::BlazingTableView> sampledTableViews;
+	std::size_t avg_bytes_per_row;
+	bool get_samples = true;
+    uint64_t population_sampled = 0;
+	int max_order_by_samples = 10000;
+	std::size_t localTotalNumRows = 0;
+    std::size_t localTotalBytes = 0;
 };
 
 class PartitionKernel : public distributing_kernel {
