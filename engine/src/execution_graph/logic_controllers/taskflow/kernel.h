@@ -166,11 +166,11 @@ public:
 
 	void process(std::vector<std::unique_ptr<ral::cache::CacheData > > & inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
-		cudaStream_t stream, std::string kernel_process_name);
+		cudaStream_t stream, const std::map<std::string, std::string>& args);
 
 	virtual void do_process(std::vector<std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
-		cudaStream_t stream,std::string kernel_process_name){
+		cudaStream_t stream, const std::map<std::string, std::string>& args){
 		}
 
 	std::size_t estimate_output_bytes(const std::vector<std::unique_ptr<ral::cache::CacheData > > & inputs);

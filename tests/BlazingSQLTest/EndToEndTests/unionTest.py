@@ -14,7 +14,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
     start_mem = gpuMemory.capture_gpu_memory_usage()
 
     def executionTest():
-        tables = ["orders"]
+        tables = ["orders", "nation", "lineitem"]
         data_types = [
             DataType.DASK_CUDF,
             DataType.CUDF,
@@ -38,6 +38,8 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             print(queryType)
 
             print("==============================")
+
+            # ------------------ UNION ALL ---------------------
 
             queryId = "TEST_01"
             query = """(select o_orderkey, o_custkey from orders
@@ -156,7 +158,6 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 use_percentage,
                 fileSchemaType,
                 query_spark=query_spark,
-                print_result=True,
             )
 
             queryId = "TEST_05"
@@ -228,6 +229,100 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 use_percentage,
                 fileSchemaType,
             )
+
+            # ------------------ UNION ---------------------
+
+            queryId = "TEST_08"
+            query = """(select o_orderkey, o_custkey from orders
+                        where o_orderkey < 100
+                    )
+                    union
+                    (
+                        select o_orderkey, o_custkey from orders
+                        where o_orderkey < 200 and o_orderkey >= 10
+                    )"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "o_orderkey",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_09"
+            query = """(select o_orderkey, o_custkey from orders
+                        where o_orderkey < 60
+                    )
+                    union
+                    (
+                        select o_orderkey, o_custkey from orders
+                        where o_orderkey < 200 and o_orderkey >= 10
+                    )
+                    order by 2"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "o_orderkey",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_10"
+            query = """(select o_orderkey, o_orderstatus, o_orderstatus
+                        from orders where o_orderkey < 100
+                    )
+                    union
+                    (
+                        select o_orderkey + 100.1 as o_orderkey,
+                        SUBSTRING(o_orderstatus, 2, 4), 'hello work'
+                        from orders where o_orderkey < 300
+                        and o_orderkey >= 5
+                    )"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "o_orderkey",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_11"
+            query = """(select nat1.n_nationkey, nat1.n_name from nation as nat1
+                        inner join lineitem on nat1.n_nationkey = mod(l_suppkey, 1010)
+                        where nat1.n_name like 'INDIA'
+                    ) union
+			        ( select nat2.n_nationkey, nat2.n_name from nation as nat2
+                        inner join orders on nat2.n_nationkey = mod(o_orderkey, 1010)
+                        where nat2.n_name like 'INDIA'
+                    )"""
+            runTest.run_query(
+               bc,
+               spark,
+               query,
+               queryId,
+               queryType,
+               worder,
+               "",
+               acceptable_difference,
+               use_percentage,
+               fileSchemaType,
+            )
+
 
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")

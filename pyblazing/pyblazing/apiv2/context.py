@@ -2578,35 +2578,80 @@ class BlazingContext(object):
                     ].tolist()
                     row_group_ids = [row_groups_col[i] for i in row_indices]
                     row_groups_ids.append(row_group_ids)
+        
+        else:
+            actual_files = current_table.files
+            uri_values = current_table.uri_values
+            row_groups_ids = current_table.row_groups_ids
+        
 
-            if self.dask_client is None:
+        if self.dask_client is None:
+            curr_calcite = current_table.calcite_to_file_indices
+            bt = BlazingTable(
+                current_table.name,
+                current_table.input,
+                current_table.fileType,
+                files=actual_files,
+                calcite_to_file_indices=curr_calcite,
+                uri_values=uri_values,
+                args=current_table.args,
+                row_groups_ids=row_groups_ids,
+                in_file=current_table.in_file,
+            )
+            bt.column_names = current_table.column_names
+            bt.file_column_names = current_table.file_column_names
+            bt.column_types = current_table.column_types
+            nodeFilesList.append(bt)
+
+        else:
+            if single_gpu:
+                (
+                    all_sliced_files,
+                    all_sliced_uri_values,
+                    all_sliced_row_groups_ids,
+                ) = self._sliceRowGroups(
+                    1, actual_files, uri_values, row_groups_ids
+                )
+                i = 0
                 curr_calcite = current_table.calcite_to_file_indices
                 bt = BlazingTable(
                     current_table.name,
                     current_table.input,
                     current_table.fileType,
-                    files=actual_files,
+                    files=all_sliced_files[i],
                     calcite_to_file_indices=curr_calcite,
-                    uri_values=uri_values,
+                    uri_values=all_sliced_uri_values[i],
                     args=current_table.args,
-                    row_groups_ids=row_groups_ids,
+                    row_groups_ids=all_sliced_row_groups_ids[i],
                     in_file=current_table.in_file,
                 )
                 bt.column_names = current_table.column_names
                 bt.file_column_names = current_table.file_column_names
                 bt.column_types = current_table.column_types
                 nodeFilesList.append(bt)
-
             else:
-                if single_gpu:
+                if current_table.local_files is False:
                     (
                         all_sliced_files,
                         all_sliced_uri_values,
                         all_sliced_row_groups_ids,
                     ) = self._sliceRowGroups(
-                        1, actual_files, uri_values, row_groups_ids
+                        len(self.nodes), actual_files, uri_values, row_groups_ids
                     )
-                    i = 0
+                else:
+                    (
+                        all_sliced_files,
+                        all_sliced_uri_values,
+                        all_sliced_row_groups_ids,
+                    ) = self._sliceRowGroupsByWorker(
+                        len(self.nodes),
+                        actual_files,
+                        uri_values,
+                        row_groups_ids,
+                        current_table.mapping_files,
+                    )
+
+                for i, node in enumerate(self.nodes):
                     curr_calcite = current_table.calcite_to_file_indices
                     bt = BlazingTable(
                         current_table.name,
@@ -2623,55 +2668,9 @@ class BlazingContext(object):
                     bt.file_column_names = current_table.file_column_names
                     bt.column_types = current_table.column_types
                     nodeFilesList.append(bt)
-                else:
-                    if current_table.local_files is False:
-                        (
-                            all_sliced_files,
-                            all_sliced_uri_values,
-                            all_sliced_row_groups_ids,
-                        ) = self._sliceRowGroups(
-                            len(self.nodes), actual_files, uri_values, row_groups_ids
-                        )
-                    else:
-                        (
-                            all_sliced_files,
-                            all_sliced_uri_values,
-                            all_sliced_row_groups_ids,
-                        ) = self._sliceRowGroupsByWorker(
-                            len(self.nodes),
-                            actual_files,
-                            uri_values,
-                            row_groups_ids,
-                            current_table.mapping_files,
-                        )
 
-                    for i, node in enumerate(self.nodes):
-                        curr_calcite = current_table.calcite_to_file_indices
-                        bt = BlazingTable(
-                            current_table.name,
-                            current_table.input,
-                            current_table.fileType,
-                            files=all_sliced_files[i],
-                            calcite_to_file_indices=curr_calcite,
-                            uri_values=all_sliced_uri_values[i],
-                            args=current_table.args,
-                            row_groups_ids=all_sliced_row_groups_ids[i],
-                            in_file=current_table.in_file,
-                        )
-                        bt.column_names = current_table.column_names
-                        bt.file_column_names = current_table.file_column_names
-                        bt.column_types = current_table.column_types
-                        nodeFilesList.append(bt)
-
-            return nodeFilesList
-        else:
-            if single_gpu:
-                return current_table.getSlices(1)
-            else:
-                if current_table.local_files is False:
-                    return current_table.getSlices(len(self.nodes))
-                else:
-                    return current_table.getSlicesByWorker(len(self.nodes))
+        return nodeFilesList
+        
 
     """
     This function has been Deprecated. It is recommended to use ddf.shuffle(on=[colnames])

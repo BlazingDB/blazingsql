@@ -158,7 +158,7 @@ TableScan::TableScan(std::size_t kernel_id, const std::string & queryString, std
 
 void TableScan::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
-    cudaStream_t stream, std::string kernel_process_name) {
+    cudaStream_t stream, const std::map<std::string, std::string>& args) {
     output->addToCache(std::move(inputs[0]));
 }
 
@@ -245,7 +245,7 @@ BindableTableScan::BindableTableScan(std::size_t kernel_id, const std::string & 
 
 void BindableTableScan::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
-    cudaStream_t stream, std::string kernel_process_name) {
+    cudaStream_t stream, const std::map<std::string, std::string>& args) {
     auto & input = inputs[0];
     if(this->filtered) {
         auto columns = ral::processor::process_filter(input->toBlazingTableView(), expression, this->context.get());
@@ -346,7 +346,7 @@ Projection::Projection(std::size_t kernel_id, const std::string & queryString, s
 
 void Projection::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
-    cudaStream_t stream, std::string kernel_process_name) {
+    cudaStream_t stream, const std::map<std::string, std::string>& args) {
     auto & input = inputs[0];
     auto columns = ral::processor::process_project(std::move(input), expression, this->context.get());
     output->addToCache(std::move(columns));
@@ -407,7 +407,7 @@ Filter::Filter(std::size_t kernel_id, const std::string & queryString, std::shar
 
 void Filter::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
-    cudaStream_t stream, std::string kernel_process_name) {
+    cudaStream_t stream, const std::map<std::string, std::string>& args) {
     auto & input = inputs[0];
     auto columns = ral::processor::process_filter(input->toBlazingTableView(), expression, this->context.get());
     output->addToCache(std::move(columns));

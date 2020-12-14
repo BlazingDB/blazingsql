@@ -21,7 +21,7 @@ public:
 
     void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
         std::shared_ptr<ral::cache::CacheMachine> output,
-        cudaStream_t stream, std::string kernel_process_name) override;
+        cudaStream_t stream, const std::map<std::string, std::string>& args) override;
 
     virtual kstatus run();
 
@@ -42,7 +42,7 @@ public:
 
     void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
         std::shared_ptr<ral::cache::CacheMachine> output,
-        cudaStream_t stream, std::string kernel_process_name) override;
+        cudaStream_t stream, const std::map<std::string, std::string>& args) override;
 
     virtual kstatus run();
 
@@ -54,7 +54,6 @@ private:
     bool set_empty_part_for_non_master_node = false; // this is only for aggregation without group by
 };
 
-
 class MergeAggregateKernel : public kernel {
 public:
     MergeAggregateKernel(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph);
@@ -63,7 +62,7 @@ public:
 
     void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
         std::shared_ptr<ral::cache::CacheMachine> output,
-        cudaStream_t stream, std::string kernel_process_name) override;
+        cudaStream_t stream, const std::map<std::string, std::string>& args) override;
 
     virtual kstatus run();
 
