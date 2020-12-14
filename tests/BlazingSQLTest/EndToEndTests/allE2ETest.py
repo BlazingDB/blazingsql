@@ -63,6 +63,7 @@ from EndToEndTests import configOptionsTest
 from EndToEndTests import smilesTest
 from EndToEndTests import loggingTest
 from EndToEndTests import dayOfWeekTest
+from EndToEndTests import jsonTest
 from pynvml import nvmlInit
 from Runner import runTest
 from Utils import Execution, init_context
@@ -271,6 +272,9 @@ def main():
 
     if runAllTests or ("smilesTest" in targetTestGroups):
         smilesTest.main(dask_client, spark, dir_data_file, bc, nRals)
+
+    if runAllTests or ("jsonTest" in targetTestGroups):
+        jsonTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     # WARNING!!! This Test must be the last one to test -------------------------------------------------------------------------------------------------------------------------------------------
     if runAllTests or ("configOptionsTest" in targetTestGroups):
