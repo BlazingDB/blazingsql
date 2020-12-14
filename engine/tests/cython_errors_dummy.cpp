@@ -13,7 +13,9 @@ PyObject *InitializeError_ = nullptr,
 				 *RegisterFileSystemLocalError_ = nullptr,
          *InferFolderPartitionMetadataError_ = nullptr,
 				 *GetProductDetailsError_ = nullptr,
-				 *GetFreeMemoryError_ = nullptr ;
+				 *GetFreeMemoryError_ = nullptr,
+				 *ResetMaxMemoryUsedError_ = nullptr,
+				 *GetMaxMemoryUsedError_ = nullptr ;
 
 
 // PyErr_SetString
