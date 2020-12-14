@@ -263,7 +263,6 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingH
               ${CMAKE_SOURCE_DIR}/src/io/data_parser/metadata/parquet_metadata.cpp
               ${CMAKE_SOURCE_DIR}/src/utilities/CommonOperations.cpp
               ${CMAKE_SOURCE_DIR}/src/utilities/scalar_timestamp_parser.cpp
-              ${CMAKE_SOURCE_DIR}/src/utilities/DebuggingUtils.cpp
               ${CMAKE_SOURCE_DIR}/src/utilities/transform.cu
               ${CMAKE_SOURCE_DIR}/src/CalciteExpressionParsing.cpp
               ${CMAKE_SOURCE_DIR}/src/io/DataLoader.cpp
@@ -295,6 +294,13 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingH
               ${CMAKE_SOURCE_DIR}/src/transport/Node.cpp
               ${CMAKE_SOURCE_DIR}/src/transport/io/reader_writer.cpp
         )
+
+if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo" OR "$ENV{CONDA_BUILD}" STREQUAL "1")
+    message(STATUS "This is a release build so the final runtime binaries will not depend on gtest")
+    add_definitions(-DNODBGUTILS) # see DebuggingUtils.h
+else()
+    set(SRC_FILES ${SRC_FILES} ${CMAKE_SOURCE_DIR}/src/utilities/DebuggingUtils.cpp)
+endif()
 
 link_directories(${BSQL_BLD_PREFIX}/lib)
 
