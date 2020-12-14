@@ -524,7 +524,6 @@ ucp_ep_h CreateUcpEp(ucp_worker_h ucp_worker,
 */
 std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> >, int> initialize(uint16_t ralId,
 	std::string worker_id,
-	int /*gpuId*/,
 	std::string network_iface_name,
 	int ralCommunicationPort,
 	std::vector<NodeMetaDataUCP> workers_ucp_info,
@@ -878,7 +877,6 @@ void finalize() {
 
 error_code_t initialize_C(uint16_t ralId,
 	std::string worker_id,
-	int gpuId,
 	std::string network_iface_name,
 
 	int ralCommunicationPort,
@@ -893,7 +891,6 @@ error_code_t initialize_C(uint16_t ralId,
 	try {
 		initialize(ralId,
 			worker_id,
-			gpuId,
 			network_iface_name,
 			ralCommunicationPort,
 			workers_ucp_info,
