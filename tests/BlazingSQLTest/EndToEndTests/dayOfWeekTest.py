@@ -21,8 +21,7 @@ def main(dask_client, spark, dir_data_file, bc, nRals):
             DataType.CUDF,
             DataType.CSV,
             DataType.PARQUET,
-            DataType.JSON
-        ]
+        ]  # TODO json
 
         for fileSchemaType in data_types:
             if skip_test(dask_client, nRals, fileSchemaType, queryType):
@@ -95,7 +94,7 @@ def main(dask_client, spark, dir_data_file, bc, nRals):
             query = """ with dayofweektable as (
                         select o_orderkey, DAYOFWEEK(o_orderdate) as num_of_week from orders
                     )
-                    select o_orderkey, num_of_week,
+                    select o_orderkey, num_of_week, 
                         case when num_of_week = 1 then 'Mon'
                         when num_of_week = 2 then 'Tue'
                         when num_of_week = 3 then 'Wed'
@@ -125,7 +124,7 @@ def main(dask_client, spark, dir_data_file, bc, nRals):
                     )
                     select 'Saturday' as day_, count(o.num_of_week) as n_days
                     from ordersdaystable as o
-                    inner join lineitemdaystable as l
+                    inner join lineitemdaystable as l 
                     ON o.key = l.key
                     where l.num_of_week = 6
                     """
@@ -147,14 +146,14 @@ def main(dask_client, spark, dir_data_file, bc, nRals):
                         select o_orderkey, DAYOFWEEK(o_orderdate) as num_of_week, n_name as country
                         from orders
                         inner join nation on DAYOFWEEK(o_orderdate) = n_nationkey
-                        where n_name in ('PERU', 'ARGENTINA', 'BRAZIL', 'UNITED STATES')
+                        where n_name in ('PERU', 'ARGENTINA', 'BRAZIL', 'UNITED STATES') 
                     ), lineitemamericatable as (
                         select l_orderkey, DAYOFWEEK(l_shipdate) as num_of_week, r_name as region
                         from lineitem
                         inner join region on DAYOFWEEK(l_shipdate) = r_regionkey
                         where r_name = 'AMERICA'
                     )
-                    select o_orderkey, o.num_of_week as num_day_o,
+                    select o_orderkey, o.num_of_week as num_day_o, 
                     case when o.num_of_week = 1 then 'Mon'
                         when o.num_of_week = 2 then 'Tue'
                         when o.num_of_week = 3 then 'Wed'
@@ -163,7 +162,7 @@ def main(dask_client, spark, dir_data_file, bc, nRals):
                         when o.num_of_week = 6 then 'Sat'
                         else 'Sun' end as day_of_week
                     from ordersperutable as o
-                    inner join lineitemamericatable as l
+                    inner join lineitemamericatable as l 
                     ON o_orderkey = l_orderkey
                     where o.num_of_week <> 7
                     and l.num_of_week <> 7

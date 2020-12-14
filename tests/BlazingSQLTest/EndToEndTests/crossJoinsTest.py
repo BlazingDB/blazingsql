@@ -16,14 +16,8 @@ def main(dask_client, spark, dir_data_file, bc, nRals):
 
     def executionTest():
         tables = ["nation", "region", "customer", "lineitem", "orders"]
-        data_types = [
-            DataType.DASK_CUDF,
-            DataType.CUDF,
-            DataType.CSV,
-            DataType.ORC,
-            DataType.PARQUET,
-            DataType.JSON
-        ]
+        data_types = [DataType.DASK_CUDF, DataType.CUDF, DataType.CSV,
+                      DataType.ORC, DataType.PARQUET]  # TODO json
 
         # Create Tables ------------------------------------------------------
         for fileSchemaType in data_types:
@@ -152,3 +146,5 @@ if __name__ == '__main__':
     if Settings.execution_mode != ExecutionMode.GENERATOR:
         runTest.save_log()
         gpuMemory.print_log_gpu_memory()
+
+        

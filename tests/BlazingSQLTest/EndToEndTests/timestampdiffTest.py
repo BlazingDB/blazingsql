@@ -15,11 +15,7 @@ def main(dask_client, spark, dir_data_file, bc, nRals):
 
     def executionTest():
         tables = ["lineitem", "orders"]
-        data_types = [
-            DataType.CSV,
-            DataType.PARQUET,
-            DataType.JSON
-        ]
+        data_types = [DataType.CSV, DataType.PARQUET]  # TODO json
 
         # Create Tables -----------------------------------------------------
         for fileSchemaType in data_types:
