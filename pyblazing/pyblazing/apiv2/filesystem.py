@@ -62,9 +62,9 @@ class FileSystem(object):
         fs["type"] = "local"
         ok, msg, fs = registerFileSystem(client, fs, root, prefix)
         if ok:
-            print('Local Storage Plugin Registered Successfully')
+            print("Local Storage Plugin Registered Successfully")
         else:
-            print('Local Storage Plugin Error: ' + msg)
+            print("Local Storage Plugin Error: " + msg)
 
     def hdfs(self, client, prefix, **kwargs):
         self._verify_prefix(prefix)
@@ -85,9 +85,9 @@ class FileSystem(object):
         fs["kerberos_ticket"] = kerberos_ticket
         ok, msg, fs = registerFileSystem(client, fs, root, prefix)
         if ok:
-            print('HDFS Storage Plugin Registered Successfully')
+            print("HDFS Storage Plugin Registered Successfully")
         else:
-            print('HDFS Storage Plugin Error: ' + msg)
+            print("HDFS Storage Plugin Error: " + msg)
 
     def s3(self, client, prefix, **kwargs):
         self._verify_prefix(prefix)
@@ -114,9 +114,9 @@ class FileSystem(object):
         fs["region"] = region
         ok, msg, fs = registerFileSystem(client, fs, root, prefix)
         if ok:
-            print('S3 Storage Plugin Registered Successfully')
+            print("S3 Storage Plugin Registered Successfully")
         else:
-            print('S3 Storage Plugin Error: ' + msg)
+            print("S3 Storage Plugin Error: " + msg)
 
     def gs(self, client, prefix, **kwargs):
         self._verify_prefix(prefix)
@@ -135,9 +135,9 @@ class FileSystem(object):
         fs["adc_json_file"] = adc_json_file
         ok, msg, fs = registerFileSystem(client, fs, root, prefix)
         if ok:
-            print('Google Cloud Storage Plugin Registered Successfully')
+            print("Google Cloud Storage Plugin Registered Successfully")
         else:
-            print('Google Cloud Storage Plugin Error: ' + msg)
+            print("Google Cloud Storage Plugin Error: " + msg)
 
     def _verify_prefix(self, prefix):
         if prefix in self.file_systems:
