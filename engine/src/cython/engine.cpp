@@ -132,7 +132,6 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(uint32_t masterIndex,
 	std::vector<int> fileTypes,
 	int32_t ctxToken,
 	std::string query,
-	uint64_t accessToken,
 	std::vector<std::vector<std::map<std::string, std::string>>> uri_values,
 	std::map<std::string, std::string> config_options,
 	std::string sql ) {
@@ -163,7 +162,7 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(uint32_t masterIndex,
 									"plan"_a=query,
 									"sql"_a=sql);
 
-	auto graph = generate_graph(input_loaders, schemas, tableNames, tableScans, query, accessToken, queryContext);
+	auto graph = generate_graph(input_loaders, schemas, tableNames, tableScans, query, queryContext);
 
 	comm::graphs_info::getInstance().register_graph(ctxToken, graph);
 	return graph;
@@ -299,7 +298,6 @@ std::pair<std::unique_ptr<PartitionedResultSet>, error_code_t> runQuery_C(int32_
 	std::vector<int> fileTypes,
 	int32_t ctxToken,
 	std::string query,
-	uint64_t accessToken,
 	std::vector<std::vector<std::map<std::string, std::string>>> uri_values,
 	std::map<std::string, std::string> config_options) {
 

@@ -288,7 +288,6 @@ def generateGraphs(
     fileTypes,
     ctxToken,
     algebra,
-    accessToken,
     config_options,
     sql,
     single_gpu=False,
@@ -328,7 +327,6 @@ def generateGraphs(
             fileTypes,
             ctxToken,
             algebra,
-            accessToken,
             config_options,
             sql,
         )
@@ -2857,7 +2855,6 @@ class BlazingContext(object):
                 nodeList.append(currentTableNodes[j])
 
         ctxToken = random.randint(0, np.iinfo(np.int32).max)
-        accessToken = 0
 
         algebra = get_json_plan(algebra)
 
@@ -2871,7 +2868,6 @@ class BlazingContext(object):
                     fileTypes,
                     ctxToken,
                     algebra,
-                    accessToken,
                     query_config_options,
                     query,
                 )
@@ -2900,7 +2896,6 @@ class BlazingContext(object):
                         fileTypes,
                         ctxToken,
                         algebra,
-                        accessToken,
                         query_config_options,
                         query,
                         single_gpu=True,
@@ -2931,7 +2926,6 @@ class BlazingContext(object):
                             fileTypes,
                             ctxToken,
                             algebra,
-                            accessToken,
                             query_config_options,
                             query,
                             workers=[worker],
