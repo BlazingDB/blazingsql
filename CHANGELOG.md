@@ -11,6 +11,7 @@
 ## Improvements
 - #1236 Moving code from header files to implementation files
 - #1256 Improve Logical project documentation
+- #1262 Stop depending on gtest for runtime
 
 
 ## Bug Fixes
