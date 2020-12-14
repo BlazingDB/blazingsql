@@ -7,6 +7,7 @@
 - #1244 Added memory monitor ability to downgrade task data
 - #1232 Update PartwiseJoin and JoinPartition kernel using the task executor internally
 - #1238 Implements MergeStramKernel executor model
+- #1260 Adding the INITCAP function 
 
 ## Improvements
 - #1236 Moving code from header files to implementation files
