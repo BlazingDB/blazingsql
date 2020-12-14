@@ -297,8 +297,8 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingH
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo" OR "$ENV{CONDA_BUILD}" STREQUAL "1")
     message(STATUS "This is a release build so the final runtime binaries will not depend on gtest")
-    add_definitions(-DNODBGUTILS) # see DebuggingUtils.h
 else()
+    add_definitions(-DBSQLDBGUTILS) # see DebuggingUtils.h
     set(SRC_FILES ${SRC_FILES} ${CMAKE_SOURCE_DIR}/src/utilities/DebuggingUtils.cpp)
 endif()
 

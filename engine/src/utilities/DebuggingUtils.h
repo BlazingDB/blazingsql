@@ -1,8 +1,6 @@
 #ifndef _BLAZING_DEBUG_UTILS_H
 #define _BLAZING_DEBUG_UTILS_H
 
-#ifndef NODBGUTILS
-
 #include "execution_graph/logic_controllers/LogicPrimitives.h"
 // #include "execution_graph/logic_controllers/CacheMachine.h"
 
@@ -21,7 +19,5 @@ std::string blazing_table_view_schema_to_string(ral::frame::BlazingTableView tab
 
 }  // namespace utilities
 }  // namespace ral
-
-#endif // NODBGUTILS
 
 #endif  //_BLAZING_DEBUG_UTILS_H
