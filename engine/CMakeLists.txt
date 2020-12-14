@@ -226,6 +226,13 @@ include_directories(
     "${ARROW_INCLUDE_DIR}"
     )
 
+if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo" OR "$ENV{CONDA_BUILD}" STREQUAL "1")
+    message(STATUS "This is a release build so the final runtime binaries will not depend on gtest")
+else()
+    message(WARNING "This is not a release build so the final runtime binaries will depend on gtest (BSQLDBGUTILS precompiler definition is set)")
+    add_definitions(-DBSQLDBGUTILS) # see DebuggingUtils.h
+endif()
+
 ## Target source files
 set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingHostTable.cpp
               ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/CacheMachine.cpp
@@ -264,6 +271,7 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingH
               ${CMAKE_SOURCE_DIR}/src/utilities/CommonOperations.cpp
               ${CMAKE_SOURCE_DIR}/src/utilities/scalar_timestamp_parser.cpp
               ${CMAKE_SOURCE_DIR}/src/utilities/transform.cu
+              ${CMAKE_SOURCE_DIR}/src/utilities/DebuggingUtils.cpp
               ${CMAKE_SOURCE_DIR}/src/CalciteExpressionParsing.cpp
               ${CMAKE_SOURCE_DIR}/src/io/DataLoader.cpp
               ${CMAKE_SOURCE_DIR}/src/Interpreter/interpreter_cpp.cu
@@ -294,13 +302,6 @@ set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingH
               ${CMAKE_SOURCE_DIR}/src/transport/Node.cpp
               ${CMAKE_SOURCE_DIR}/src/transport/io/reader_writer.cpp
         )
-
-if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo" OR "$ENV{CONDA_BUILD}" STREQUAL "1")
-    message(STATUS "This is a release build so the final runtime binaries will not depend on gtest")
-else()
-    add_definitions(-DBSQLDBGUTILS) # see DebuggingUtils.h
-    set(SRC_FILES ${SRC_FILES} ${CMAKE_SOURCE_DIR}/src/utilities/DebuggingUtils.cpp)
-endif()
 
 link_directories(${BSQL_BLD_PREFIX}/lib)
 
