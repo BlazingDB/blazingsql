@@ -843,7 +843,6 @@ void JoinPartitionKernel::small_table_scatter_distribution(std::unique_ptr<ral::
 	std::string small_output_cache_name = scatter_left_right.first ? "output_a" : "output_b";
 	int small_table_idx = scatter_left_right.first ? LEFT_TABLE_IDX : RIGHT_TABLE_IDX;
 	std::string big_output_cache_name = scatter_left_right.first ? "output_b" : "output_a";
-	//int big_table_idx = scatter_left_right.first ? RIGHT_TABLE_IDX : LEFT_TABLE_IDX;
 
 	BlazingThread left_thread([this, &small_input, &small_cache_data](){
 		while(small_cache_data != nullptr ) {

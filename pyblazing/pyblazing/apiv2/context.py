@@ -233,7 +233,6 @@ def initializeBlazing(
     output_cache, input_cache, self_port = cio.initializeCaller(
         ralId,
         worker_id.encode(),
-        0,
         networkInterface.encode(),
         self_port,
         workers_ucp_info,
