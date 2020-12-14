@@ -20,7 +20,8 @@ def main(dask_client, drill, dir_data_file, nRals):
             DataType.CSV,
             DataType.ORC,
             DataType.PARQUET,
-        ]  # TODO json
+            DataType.JSON
+        ]
 
         bc, dask_client = init_context()
 

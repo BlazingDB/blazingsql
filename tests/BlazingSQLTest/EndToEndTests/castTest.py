@@ -28,7 +28,8 @@ def main(dask_client, drill, spark, dir_data_lc, bc, nRals):
             DataType.CSV,
             DataType.ORC,
             DataType.PARQUET,
-        ]  # TODO parquet json
+            DataType.JSON
+        ]
 
         # Create Tables -----------------------------------------------------
         for fileSchemaType in data_types:
@@ -261,8 +262,8 @@ def main(dask_client, drill, spark, dir_data_lc, bc, nRals):
                 )
 
             queryId = 'TEST_13'
-            query = """select cast(o_totalprice AS INTEGER), 4 as scan_type, 4.0 as scan_type2, 
-                        5 as scan_type3, o_comment, o_comment as comento, 'hello' as greeting 
+            query = """select cast(o_totalprice AS INTEGER), 4 as scan_type, 4.0 as scan_type2,
+                        5 as scan_type3, o_comment, o_comment as comento, 'hello' as greeting
                         from orders where o_orderkey < 10"""
             runTest.run_query(
                 bc,

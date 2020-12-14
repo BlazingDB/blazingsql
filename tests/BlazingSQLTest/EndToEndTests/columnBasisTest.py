@@ -26,7 +26,8 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             DataType.CSV,
             DataType.ORC,
             DataType.PARQUET,
-        ]  # TODO parquet json
+            DataType.JSON
+        ]
 
         # Create Tables -----------------------------------------------------
         for fileSchemaType in data_types:
@@ -57,7 +58,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
 
             sql = "select * from main.temp"
             result_gdf = bc.sql(sql)
-            
+
             query = """select c_custkey + 3, c_nationkey, c_acctbal
                     from customer"""
 
@@ -81,16 +82,16 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             queryId = "TEST_02"
 
             query = "select c_custkey, c_nationkey, c_acctbal from customer"
-            
+
             temp_gdf = bc.sql(query)
-            
+
             temp_gdf.drop(columns=["c_custkey"], inplace=True)
 
             bc.create_table("temp2", temp_gdf)
 
             sql = "select * from main.temp2"
             result_gdf = bc.sql(sql)
-            
+
             query = "select c_nationkey, c_acctbal from customer"
 
             runTest.run_query(
@@ -115,7 +116,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             query = """select c_custkey, c_nationkey, c_acctbal
                 from customer where c_acctbal > 1000"""
             temp_gdf = bc.sql(query)
-            
+
             temp_gdf["c_acctbal"] = temp_gdf["c_acctbal"] + 3
             temp_gdf.drop(columns=["c_custkey"], inplace=True)
 
@@ -123,7 +124,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
 
             sql = "select * from main.temp3"
             result_gdf = bc.sql(sql)
-            
+
             query = (
                 """select c_nationkey, c_acctbal + 3
                     from customer where c_acctbal > 1000"""
@@ -151,7 +152,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             query = """select c_custkey, c_nationkey, c_acctbal
                     from customer where c_acctbal > 1000"""
             temp_gdf = bc.sql(query)
-            
+
             temp_gdf["c_acctbal_new"] = temp_gdf["c_acctbal"] + 3
 
             temp_gdf.drop(columns=["c_acctbal"], inplace=True)
@@ -161,14 +162,14 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             sql = "select * from main.temp0"
 
             temp2_gdf = bc.sql(sql)
-            
+
             temp2_gdf.drop(columns=["c_nationkey"], inplace=True)
 
             bc.create_table("temp4", temp2_gdf)
             sql = "select * from main.temp4"
 
             result_gdf = bc.sql(sql)
-            
+
             query = """select c_acctbal + 3 as c_acctbal_new
                     from customer where c_acctbal > 1000"""
 
@@ -199,7 +200,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             sql = "select * from main.temp5"
 
             result_gdf = bc.sql(sql)
-            
+
             query = """select c_acctbal, c_acctbal + 3 as c_acctbal_new
                     from customer where c_acctbal > 1000"""
 
@@ -225,7 +226,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 """select n_nationkey, n_regionkey from nation
                  where n_nationkey < 0"""
             )
-           
+
             bc.create_table("results", result_gdf)
 
             result_gdf1 = bc.sql(
@@ -233,7 +234,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                  from main.nation as n left join main.results as r
                  on n.n_nationkey = r.n_nationkey"""
             )
-            
+
             query = """select n.n_nationkey, r.n_regionkey from nation as n
             left join (select n_nationkey, n_regionkey from nation
             where n_nationkey < 0) as r on n.n_nationkey = r.n_nationkey"""
@@ -257,14 +258,14 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
 
             # Calling a cudf function that returns the same column
             result_gdf = bc.sql("select n_nationkey, n_regionkey from main.nation")
-            
+
             result_gdf["n_nationkey"] = result_gdf[
                                             "n_nationkey"].astype("int32")
 
             bc.create_table("results_tmp", result_gdf)
 
             result_gdf1 = bc.sql("select * from main.results_tmp")
-            
+
             query = "select n_nationkey, n_regionkey from nation"
 
             runTest.run_query(

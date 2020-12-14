@@ -96,7 +96,7 @@ def main():
         createSchema.init_drill_schema(
             drill, Settings.data["TestSettings"]["dataDirectory"], smiles_test=True, fileSchemaType=DataType.PARQUET
         )
-        
+
         # Create Table Spark -------------------------------------------------
         from pyspark.sql import SparkSession
 
@@ -165,7 +165,7 @@ def main():
     if runAllTests or ("crossJoinsTest" in targetTestGroups):
         crossJoinsTest.main(dask_client, spark, dir_data_file, bc, nRals)
 
-    if runAllTests or ("" in targetTestGroups):
+    if runAllTests or ("leftOuterJoinsTest" in targetTestGroups):
         leftOuterJoinsTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     if runAllTests or ("nonEquiJoinsTest" in targetTestGroups):
@@ -238,7 +238,7 @@ def main():
 
     if runAllTests or ("substringTest" in targetTestGroups):
         substringTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
-    
+
     if runAllTests or ("stringCaseTest" in targetTestGroups):
         stringCaseTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 

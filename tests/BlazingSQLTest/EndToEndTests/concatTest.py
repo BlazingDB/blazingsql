@@ -31,7 +31,8 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             DataType.CSV,
             DataType.ORC,
             DataType.PARQUET,
-        ]  # TODO json
+            DataType.JSON
+        ]
 
         # Create Tables -----------------------------------------------------
         for fileSchemaType in data_types:
@@ -274,7 +275,7 @@ if __name__ == "__main__":
 
         # Create Table Spark -------------------------------------------------
         from pyspark.sql import SparkSession
-        
+
         spark = SparkSession.builder.appName("timestampTest").getOrCreate()
         cs.init_spark_schema(spark,
                              Settings.data["TestSettings"]["dataDirectory"])

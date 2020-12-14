@@ -22,7 +22,8 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             DataType.CSV,
             DataType.ORC,
             DataType.PARQUET,
-        ]  # TODO json
+            DataType.JSON
+        ]
 
         for fileSchemaType in data_types:
             if skip_test(dask_client, nRals, fileSchemaType, queryType):
@@ -42,7 +43,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             print("==============================")
 
             queryId = "TEST_01"
-            query = """select c_custkeynew, c_nationkey, c_acctbal 
+            query = """select c_custkeynew, c_nationkey, c_acctbal
                     from customer where c_custkey < 15"""
             runTest.run_query(
                 bc,
@@ -59,8 +60,8 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             )
 
             queryId = "TEST_02"
-            query = """select c_custkey, c_nationkey, c_acctbal 
-                    from customer1 where c_custkey < 150 
+            query = """select c_custkey, c_nationkey, c_acctbal
+                    from customer1 where c_custkey < 150
                     and c_nationkey = 5"""
             runTest.run_query(
                 bc,
@@ -77,7 +78,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             )
 
             queryId = "TEST_03"
-            query = """select maxi(c_custkey), c_nationkey as nkey 
+            query = """select maxi(c_custkey), c_nationkey as nkey
                     from customer where c_custkey < 0"""
             runTest.run_query(
                 bc,
@@ -94,7 +95,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             )
 
             queryId = "TEST_04"
-            query = """select max(c_custkey) c_nationkey as nkey 
+            query = """select max(c_custkey) c_nationkey as nkey
                     from customer where c_custkey < 0"""
             runTest.run_query(
                 bc,
@@ -109,13 +110,13 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 fileSchemaType,
                 message_validation="""SqlSyntaxException
 
-                select max(c_custkey) c_nationkey as nkey 
+                select max(c_custkey) c_nationkey as nkey
                                                 ^^
                                     from customer where c_custkey < 0
 
                 Encountered "as" at line 1, column 35.
                 Was expecting one of:
-                    <EOF> 
+                    <EOF>
                     "EXCEPT" ...
                     "FETCH" ...
                     "FROM" ...

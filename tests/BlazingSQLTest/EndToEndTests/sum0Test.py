@@ -23,7 +23,8 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
             DataType.CSV,
             DataType.ORC,
             DataType.PARQUET,
-        ]  # TODO json
+            DataType.JSON
+        ]
 
         for fileSchemaType in data_types:
             queryType = test_name(testName, fileSchemaType)

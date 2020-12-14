@@ -20,7 +20,8 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             DataType.CUDF,
             DataType.CSV,
             DataType.PARQUET,
-        ]  # TODO json
+            DataType.JSON
+        ]
 
         # Create Tables -----------------------------------------------------
         for fileSchemaType in data_types:

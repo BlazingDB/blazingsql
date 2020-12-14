@@ -21,7 +21,8 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             DataType.CSV,
             DataType.ORC,
             DataType.PARQUET,
-        ]  # TODO json
+            DataType.JSON
+        ]
 
         # Create Tables -----------------------------------------------------
         for fileSchemaType in data_types:
@@ -40,109 +41,109 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             print(queryType)
             print("==============================")
 
-            queryId = "TEST_01"
-            query = """select count(p_partkey), sum(p_partkey),
-                    avg(CAST(p_partkey AS DOUBLE)), max(p_partkey), min(p_partkey)
-                    from part"""
-            runTest.run_query(
-                bc,
-                drill,
-                query,
-                queryId,
-                queryType,
-                worder,
-                "",
-                acceptable_difference,
-                use_percentage,
-                fileSchemaType,
-            )
+            # queryId = "TEST_01"
+            # query = """select count(p_partkey), sum(p_partkey),
+            #         avg(CAST(p_partkey AS DOUBLE)), max(p_partkey), min(p_partkey)
+            #         from part"""
+            # runTest.run_query(
+            #     bc,
+            #     drill,
+            #     query,
+            #     queryId,
+            #     queryType,
+            #     worder,
+            #     "",
+            #     acceptable_difference,
+            #     use_percentage,
+            #     fileSchemaType,
+            # )
 
-            queryId = "TEST_02"
-            query = """select count(p_partkey), sum(p_partkey),
-                    avg(p_partkey), max(p_partkey), min(p_partkey) from part
-                    where p_partkey < 100"""
-            runTest.run_query(
-                bc,
-                drill,
-                query,
-                queryId,
-                queryType,
-                worder,
-                "",
-                acceptable_difference,
-                use_percentage,
-                fileSchemaType,
-            )
+            # queryId = "TEST_02"
+            # query = """select count(p_partkey), sum(p_partkey),
+            #         avg(p_partkey), max(p_partkey), min(p_partkey) from part
+            #         where p_partkey < 100"""
+            # runTest.run_query(
+            #     bc,
+            #     drill,
+            #     query,
+            #     queryId,
+            #     queryType,
+            #     worder,
+            #     "",
+            #     acceptable_difference,
+            #     use_percentage,
+            #     fileSchemaType,
+            # )
 
-            queryId = "TEST_03"
-            query = """select count(p_partkey), sum(p_partkey),
-                    avg(p_partkey), max(p_partkey), min(p_partkey)
-                    from part where p_partkey < 0"""
-            runTest.run_query(
-                bc,
-                drill,
-                query,
-                queryId,
-                queryType,
-                worder,
-                "",
-                acceptable_difference,
-                use_percentage,
-                fileSchemaType,
-            )
+            # queryId = "TEST_03"
+            # query = """select count(p_partkey), sum(p_partkey),
+            #         avg(p_partkey), max(p_partkey), min(p_partkey)
+            #         from part where p_partkey < 0"""
+            # runTest.run_query(
+            #     bc,
+            #     drill,
+            #     query,
+            #     queryId,
+            #     queryType,
+            #     worder,
+            #     "",
+            #     acceptable_difference,
+            #     use_percentage,
+            #     fileSchemaType,
+            # )
 
-            queryId = "TEST_04"
-            query = """select count(p_partkey) + sum(p_partkey),
-                    (max(p_partkey) + min(p_partkey))/2
-                    from part where p_partkey < 100"""
-            runTest.run_query(
-                bc,
-                drill,
-                query,
-                queryId,
-                queryType,
-                worder,
-                "",
-                acceptable_difference,
-                use_percentage,
-                fileSchemaType,
-            )
+            # queryId = "TEST_04"
+            # query = """select count(p_partkey) + sum(p_partkey),
+            #         (max(p_partkey) + min(p_partkey))/2
+            #         from part where p_partkey < 100"""
+            # runTest.run_query(
+            #     bc,
+            #     drill,
+            #     query,
+            #     queryId,
+            #     queryType,
+            #     worder,
+            #     "",
+            #     acceptable_difference,
+            #     use_percentage,
+            #     fileSchemaType,
+            # )
 
-            queryId = "TEST_05"
-            query = """select MIN(n.n_nationkey), MAX(r.r_regionkey),
-                    AVG(n.n_nationkey + r.r_regionkey) from nation as n
-                    left outer join region as r
-                    on n.n_nationkey = r.r_regionkey"""
-            runTest.run_query(
-                bc,
-                drill,
-                query,
-                queryId,
-                queryType,
-                worder,
-                "",
-                acceptable_difference,
-                use_percentage,
-                fileSchemaType,
-            )
+            # queryId = "TEST_05"
+            # query = """select MIN(n.n_nationkey), MAX(r.r_regionkey),
+            #         AVG(n.n_nationkey + r.r_regionkey) from nation as n
+            #         left outer join region as r
+            #         on n.n_nationkey = r.r_regionkey"""
+            # runTest.run_query(
+            #     bc,
+            #     drill,
+            #     query,
+            #     queryId,
+            #     queryType,
+            #     worder,
+            #     "",
+            #     acceptable_difference,
+            #     use_percentage,
+            #     fileSchemaType,
+            # )
 
-            queryId = "TEST_06"
-            query = """select SUM(n1.n_nationkey) as n1key,
-                    AVG(n2.n_nationkey +  n1.n_nationkey ) as n2key
-                    from nation as n1 full outer join nation as n2
-                    on n1.n_nationkey = n2.n_nationkey + 10"""
-            runTest.run_query(
-                bc,
-                drill,
-                query,
-                queryId,
-                queryType,
-                worder,
-                "",
-                acceptable_difference,
-                use_percentage,
-                fileSchemaType,
-            )
+            # queryId = "TEST_06"
+            # query = """select SUM(n1.n_nationkey) as n1key,
+            #         AVG(n2.n_nationkey +  n1.n_nationkey ) as n2key
+            #         from nation as n1 full outer join nation as n2
+            #         on n1.n_nationkey = n2.n_nationkey + 10"""
+            # runTest.run_query(
+            #     bc,
+            #     drill,
+            #     query,
+            #     queryId,
+            #     queryType,
+            #     worder,
+            #     "",
+            #     acceptable_difference,
+            #     use_percentage,
+            #     fileSchemaType,
+            # )
 
             #      queryId = 'TEST_07'
             #      query = "select COUNT(n1.n_nationkey) as n1key,
@@ -168,6 +169,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                     acceptable_difference,
                     use_percentage,
                     fileSchemaType,
+                    print_result=True
                 )
 
             if Settings.execution_mode == ExecutionMode.GENERATOR:
