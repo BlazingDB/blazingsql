@@ -185,6 +185,8 @@ void SortAndSampleKernel::do_process(std::vector< std::unique_ptr<ral::frame::Bl
     std::shared_ptr<ral::cache::CacheMachine> output,
     cudaStream_t stream, const std::map<std::string, std::string>& args) {
 
+    CodeTimer eventTimer(false);
+
     auto& operation_type = args.at("operation_type");
     BlazingThread partition_plan_thread;
 
@@ -215,24 +217,22 @@ void SortAndSampleKernel::do_process(std::vector< std::unique_ptr<ral::frame::Bl
             get_samples = false;    // we got enough samples, at least as max_order_by_samples
         }
 
-        /*
         if(sortedTable){
-            auto log_output_num_rows = sortedTable->num_rows();
-            auto log_output_num_bytes = sortedTable->sizeInBytes();
+            auto num_rows = sortedTable->num_rows();
+            auto num_bytes = sortedTable->sizeInBytes();
 
             events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
                             "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
                             "query_id"_a=context->getContextToken(),
                             "kernel_id"_a=this->get_id(),
-                            "input_num_rows"_a=log_input_num_rows,
-                            "input_num_bytes"_a=log_input_num_bytes,
-                            "output_num_rows"_a=log_output_num_rows,
-                            "output_num_bytes"_a=log_output_num_bytes,
+                            "input_num_rows"_a=num_rows,
+                            "input_num_bytes"_a=num_bytes,
+                            "output_num_rows"_a=num_rows,
+                            "output_num_bytes"_a=num_bytes,
                             "event_type"_a="compute",
                             "timestamp_begin"_a=eventTimer.start_time(),
                             "timestamp_end"_a=eventTimer.end_time());
         }
-        */
 
         output->addToCache(std::move(sortedTable), "output_a");
     }
@@ -244,9 +244,6 @@ void SortAndSampleKernel::do_process(std::vector< std::unique_ptr<ral::frame::Bl
 
 kstatus SortAndSampleKernel::run() {
     CodeTimer timer;
-    CodeTimer eventTimer(false);
-
-    BlazingThread partition_plan_thread;
 
     std::map<std::string, std::string> config_options = context->getConfigOptions();
     auto it = config_options.find("MAX_ORDER_BY_SAMPLES_PER_NODE");
