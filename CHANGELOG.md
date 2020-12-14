@@ -11,6 +11,7 @@
 ## Improvements
 - #1236 Moving code from header files to implementation files
 - #1256 Improve Logical project documentation
+- #1261 Improve storage plugin output messages
 
 
 ## Bug Fixes
