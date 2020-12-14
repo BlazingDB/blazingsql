@@ -5,17 +5,22 @@
 - #1139 Adding centralized task executor for kernels
 - #1237 Added task memory management
 - #1244 Added memory monitor ability to downgrade task data
+- #1232 Update PartwiseJoin and JoinPartition kernel using the task executor internally
+- #1238 Implements MergeStramKernel executor model
 
 ## Improvements
 - #1236 Moving code from header files to implementation files
+- #1256 Improve Logical project documentation
 
 
 ## Bug Fixes
+- #1249 Fix compilation with cuda 11
+- #1253 Fixed distribution so that its evenly distributes based of rowgroups
 - #1241 Fixed cython exception handling
 
 
 
-# BlazingSQL 0.17.0 (Date TBS)
+# BlazingSQL 0.17.0 (December 10, 2020)
 
 ## New Features
 - #1105 Implement to_date/to_timestamp functions
@@ -35,6 +40,7 @@
 - #1216 Add unit test for DAYOFWEEK
 - #1205 Implement string REVERSE
 - #1220 Implement string LEFT and RIGHT 
+- #1223 Add support for UNION statement
 
 
 ## Improvements
@@ -59,7 +65,7 @@
 - #1194 Powerpc building scripts
 - #1186 Removing cuda labels to install due cudatoolkit version
 - #1187 Enable MySQL-specific SQL operators in addition to Standard and Oracle
-- #1206 Improved contribution documentation 
+- #1206 Improved contribution documentation
 - #1224 Added cudaSetDevice to thread initialization so that the cuda context is available to UCX
 - #1229 Change hardcoded version from setup.py
 - #1231 Adding docker support for gpuCI scripts
@@ -87,10 +93,11 @@
 - #1179 Fix ignore headers when multiple CSV files was provided
 - #1199 Fix non thread-safe access to map containing tag to message_metadata for ucx
 - #1196 Fix column_names (table) always as list of string
-- #1203 Changed code back so that parquet is not read a single rowgroup at a time 
+- #1203 Changed code back so that parquet is not read a single rowgroup at a time
 - #1207 Calcite uses literal as int32 if not explicit CAST was provided
 - #1212 Fixed issue when building the thirdpart, cmake version set to 3.18.4
-- #1225 Fixed issue due to change in gather API 
+- #1225 Fixed issue due to change in gather API
+- #1258 Fixing gtest version issue
 
 
 # BlazingSQL 0.16.0 (October 22, 2020)

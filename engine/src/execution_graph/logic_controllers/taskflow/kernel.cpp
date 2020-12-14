@@ -139,7 +139,7 @@ std::pair<bool, uint64_t> kernel::get_estimated_output_num_rows(){
 void kernel::process(std::vector<std::unique_ptr<ral::cache::CacheData > > & inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
 		cudaStream_t stream,
-        std::string kernel_process_name = ""){
+        const std::map<std::string, std::string>& args){
     std::vector< std::unique_ptr<ral::frame::BlazingTable> > input_gpu;
 
     if (this->has_limit_ && output->get_num_rows_added() >= this->limit_rows_) {
@@ -164,9 +164,9 @@ void kernel::process(std::vector<std::unique_ptr<ral::cache::CacheData > > & inp
        for (auto & input : input_gpu) {
            bytes += input->sizeInBytes();
        }
-       do_process(std::move(input_gpu),output,stream, kernel_process_name);
+       do_process(std::move(input_gpu),output,stream, args);
        total_input_bytes += bytes; // increment this AFTER its been processed successfully
-       
+
     }catch(std::exception e){
         //remake inputs here
         int i = 0;
@@ -196,7 +196,7 @@ void kernel::notify_complete(size_t task_id){
 // This is only the default estimate of the bytes to be output by a kernel based on the input.
 // Each kernel should implement its own version of this, if its possible to obtain a better estimate
 std::size_t kernel::estimate_output_bytes(const std::vector<std::unique_ptr<ral::cache::CacheData > > & inputs){
-    
+
     std::size_t input_bytes = 0;
     for (auto & input : inputs) {
         input_bytes += input->sizeInBytes();
