@@ -796,8 +796,8 @@ public:
 				bool done_waiting = this->finished.load(std::memory_order_seq_cst);
 				if (!done_waiting) {
 					size_t total_bytes = 0;
-					for (auto & i : message_queue_){
-						total_bytes += i->get_data().sizeInBytes();
+					for (auto & message : message_queue_){
+						total_bytes += message->get_data().sizeInBytes();
 					}
 					done_waiting = total_bytes > num_bytes;
 				}

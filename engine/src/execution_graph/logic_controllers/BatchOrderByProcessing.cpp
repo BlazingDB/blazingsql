@@ -576,7 +576,7 @@ kstatus LimitKernel::run() {
 
         std::vector<std::string> limit_messages_to_wait_for;
         std::vector<std::string> target_ids;
-        for (auto node_to_send : nodes_to_send) {
+        for (auto & node_to_send : nodes_to_send) {
             target_ids.push_back(node_to_send.id());
             limit_messages_to_wait_for.push_back(
                 std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + node_to_send.id());

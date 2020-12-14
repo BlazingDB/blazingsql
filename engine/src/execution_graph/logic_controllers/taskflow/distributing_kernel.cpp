@@ -140,8 +140,8 @@ void distributing_kernel::broadcast(std::unique_ptr<ral::frame::BlazingTable> ta
     int self_node_idx = context->getNodeIndex(node);
     auto nodes_to_send = context->getAllOtherNodes(self_node_idx);
     std::vector<std::string> target_ids;
-    for (auto & i : nodes_to_send)	{
-        target_ids.push_back(i.id());
+    for (auto & node : nodes_to_send)	{
+        target_ids.push_back(node.id());
     }
     send_message(table->toBlazingTableView().clone(),
         true, //specific_cache

@@ -301,8 +301,8 @@ std::vector<std::string> StringUtil::splitNonQuotedKeepDelimiterInVector(std::st
 
 std::string StringUtil::join(std::vector<std::string> splitString, std::string connector) {
 	int stringSize = 0;
-	for(auto & i : splitString) {
-		stringSize += i.size() + 1;
+	for(auto & splittedString : splitString) {
+		stringSize += splittedString.size() + 1;
 	}
 	stringSize--;
 	return StringUtil::join(splitString, connector, stringSize);
