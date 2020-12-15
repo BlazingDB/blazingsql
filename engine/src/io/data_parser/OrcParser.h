@@ -13,8 +13,6 @@
 namespace ral {
 namespace io {
 
-namespace cudf_io = cudf::io;
-
 class orc_parser : public data_parser {
 public:
 	orc_parser(std::map<std::string, std::string> args_map);

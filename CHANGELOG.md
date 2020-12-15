@@ -18,6 +18,7 @@
 ## Bug Fixes
 - #1249 Fix compilation with cuda 11
 - #1253 Fixed distribution so that its evenly distributes based of rowgroups
+- #1204 Reenable json parser
 
 
 
@@ -40,7 +41,7 @@
 - #1201 Implement string TRIM
 - #1216 Add unit test for DAYOFWEEK
 - #1205 Implement string REVERSE
-- #1220 Implement string LEFT and RIGHT 
+- #1220 Implement string LEFT and RIGHT
 - #1223 Add support for UNION statement
 
 
