@@ -194,27 +194,44 @@ void SortAndSampleKernel::do_process(std::vector< std::unique_ptr<ral::frame::Bl
     if (operation_type == "ordering_and_get_samples") {
         auto sortedTable = ral::operators::sort(input->toBlazingTableView(), this->expression);
 
-        if (get_samples) {
-                auto sampledTable = ral::operators::sample(input->toBlazingTableView(), this->expression);
-                population_sampled += sampledTable->num_rows();
-                sampledTableViews.push_back(sampledTable->toBlazingTableView());
+        if (get_samples.load()) { 
+            auto sampledTable = ral::operators::sample(input->toBlazingTableView(), this->expression);
+            // TODO: population_sampled, sampledTableViews, sampledTables needs to be protected by a mutex
+            
+            std::lock_guard<std::mutex> samples_lock(samples_mutex); // TODO add this samples_mutex to kernel
+            if (get_samples.load()) {
+                population_sampled += sampledTable->num_rows(); 
+                localTotalNumRows += input->view().num_rows();
+                localTotalBytes += input->sizeInBytes();
+                sampledTableViews.push_back(sampledTable->toBlazingTableView()); // TODO, we dont need sampledTableViews anymore
                 sampledTables.push_back(std::move(sampledTable));
+                if (population_sampled > max_order_by_samples) {
+
+                    // TODO create task here
+                    // convert sampledTables into cacheData and create the task
+
+
+                    get_samples = false;
+                }
+            }
         }
 
-        localTotalNumRows += input->view().num_rows();
-        localTotalBytes += input->sizeInBytes();
+        
 
-        if (population_sampled > max_order_by_samples)	{
-            avg_bytes_per_row = localTotalNumRows == 0 ? 1 : localTotalBytes/localTotalNumRows;
-            // TODO: we want this function be in a new one operation_type:compute_partition_plan, inputs should be the samples
-            //ral::execution::executor::get_instance()->add_task(
-            //        std::move(inputs),
-            //        this->output_cache("output_b"),
-            //        this,
-            //        {{"operation_type", "compute_partition_plan"}});
-            partition_plan_thread = BlazingThread(&SortAndSampleKernel::compute_partition_plan, this, sampledTableViews, avg_bytes_per_row, localTotalNumRows);
-            get_samples = false;    // we got enough samples, at least as max_order_by_samples
-        }
+        // // TODO: population_sampled, sampledTableViews, sampledTables needs to be protected by a mutex
+        // if (population_sampled > max_order_by_samples && get_samples)	{
+        //     avg_bytes_per_row = localTotalNumRows == 0 ? 1 : localTotalBytes/localTotalNumRows;
+        //     // TODO: sampledTableViews should just be BlazingTables, not views, that you convert into a GPUCacheData and you make your task using that
+        //     // TODO: we want this function be in a new one operation_type:compute_partition_plan, inputs should be the samples
+        //     //ral::execution::executor::get_instance()->add_task(
+        //     //        std::move(inputs),
+        //     //        this->output_cache("output_b"),
+        //     //        this,
+        //     //        {{"operation_type", "compute_partition_plan"}});
+        //     partition_plan_thread = BlazingThread(&SortAndSampleKernel::compute_partition_plan, this, sampledTableViews, avg_bytes_per_row, localTotalNumRows);
+        //     // TODO: get_samples needs to be protected by a mutex or be an atomic
+        //     get_samples = false;    // we got enough samples, at least as max_order_by_samples
+        // }
 
         if(sortedTable){
             auto num_rows = sortedTable->num_rows();
