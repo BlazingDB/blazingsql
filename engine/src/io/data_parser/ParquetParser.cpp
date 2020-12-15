@@ -88,7 +88,7 @@ void parquet_parser::parse_schema(
 
 	cudf_io::table_with_metadata table_out = cudf_io::read_parquet(pq_args);
 
-	for(size_t i = 0; i < table_out.tbl->num_columns(); i++) {
+	for(int i = 0; i < table_out.tbl->num_columns(); i++) {
 		cudf::type_id type = table_out.tbl->get_column(i).type().id();
 		size_t file_index = i;
 		bool is_in_file = true;
@@ -102,17 +102,16 @@ std::unique_ptr<ral::frame::BlazingTable> parquet_parser::get_metadata(std::vect
 	std::vector<size_t> num_row_groups(files.size());
 	BlazingThread threads[files.size()];
 	std::vector<std::unique_ptr<parquet::ParquetFileReader>> parquet_readers(files.size());
-	for(int file_index = 0; file_index < files.size(); file_index++) {
+	for(size_t file_index = 0; file_index < files.size(); file_index++) {
 		threads[file_index] = BlazingThread([&, file_index]() {
 		  parquet_readers[file_index] =
 			  std::move(parquet::ParquetFileReader::Open(files[file_index]));
 		  std::shared_ptr<parquet::FileMetaData> file_metadata = parquet_readers[file_index]->metadata();
-		  const parquet::SchemaDescriptor * schema = file_metadata->schema();
 		  num_row_groups[file_index] = file_metadata->num_row_groups();
 		});
 	}
 
-	for(int file_index = 0; file_index < files.size(); file_index++) {
+	for(size_t file_index = 0; file_index < files.size(); file_index++) {
 		threads[file_index].join();
 	}
 
@@ -123,7 +122,7 @@ std::unique_ptr<ral::frame::BlazingTable> parquet_parser::get_metadata(std::vect
 	for (auto &reader : parquet_readers) {
 		reader->Close();
 	}
-	return std::move(minmax_metadata_table);
+	return minmax_metadata_table;
 }
 
 } /* namespace io */

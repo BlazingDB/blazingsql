@@ -77,7 +77,7 @@ std::unique_ptr<cudf::table> logicalLimit(const cudf::table_view& table, cudf::s
  *
  * @returns The limit that would be applied to this partition
  *---------------------------------------------------------------------------**/
-int64_t determine_local_limit(Context * context, int64_t local_num_rows, cudf::size_type limit_rows){
+int64_t determine_local_limit(Context * /*context*/, int64_t /*local_num_rows*/, cudf::size_type /*limit_rows*/){
 	// context->incrementQuerySubstep();
 	// ral::distribution::distributeNumRows(context, local_num_rows);
 

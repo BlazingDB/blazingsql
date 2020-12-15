@@ -16,7 +16,7 @@ configure_test(interops_test "${interops_test_SRCS}")
 
 set(project_test_SRCS
     process_project.cpp
-    ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicalProject.cpp
+    ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicalProject.cpp
 )
 
 configure_test(project_test "${project_test_SRCS}")

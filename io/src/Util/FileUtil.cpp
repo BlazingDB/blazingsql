@@ -123,9 +123,9 @@ void moveAndReplaceFilesThread(long long & fileInd,
 
 
 bool FileUtilv2::moveAndReplaceFiles(std::vector<Uri> & srcFiles, std::vector<Uri> & destFiles) {
-	int numThreads = BlazingThread::hardware_concurrency();
+	size_t numThreads = BlazingThread::hardware_concurrency();
 	numThreads = numThreads < srcFiles.size() ? numThreads : srcFiles.size();
-	int maxThreads = 8;
+    size_t maxThreads = 8;
 	numThreads = numThreads < maxThreads ? numThreads : maxThreads;
 	std::vector<BlazingThread> filesThread(numThreads);
 
@@ -138,7 +138,7 @@ bool FileUtilv2::moveAndReplaceFiles(std::vector<Uri> & srcFiles, std::vector<Ur
 #ifdef SINGLE_THREADED
 	moveAndReplaceFilesThread(fileInd, completionMutex, srcFiles, destFiles, successCount, errorCount);
 #else
-	for(int j = 0; j < numThreads; ++j) {
+	for(size_t j = 0; j < numThreads; ++j) {
 		filesThread[j] = BlazingThread(&moveAndReplaceFilesThread,
 			std::ref(fileInd),
 			std::ref(completionMutex),
@@ -147,7 +147,7 @@ bool FileUtilv2::moveAndReplaceFiles(std::vector<Uri> & srcFiles, std::vector<Ur
 			std::ref(successCount),
 			std::ref(errorCount));
 	}
-	for(int j = 0; j < numThreads; ++j) {
+	for(size_t j = 0; j < numThreads; ++j) {
 		filesThread[j].join();
 	}
 #endif
@@ -158,7 +158,7 @@ bool FileUtilv2::moveAndReplaceFiles(std::vector<Uri> & srcFiles, std::vector<Ur
 											" files");
 	}
 
-	return successCount == srcFiles.size();
+	return static_cast<size_t>(successCount) == srcFiles.size();
 }
 
 
@@ -185,8 +185,8 @@ void _createTableFolderCreationThread(std::vector<Uri> & sequentialDrives,
 			return;
 		}
 
-		for(int col = 0; col < colNames.size(); col++) {
-			Uri colFolder = tableFolder + ("/" + colNames[col]);
+		for(auto & colName : colNames) {
+			Uri colFolder = tableFolder + ("/" + colName);
 
 			const Uri sequentialDriveUri2 = colFolder.replaceParentUri(baseFolder, sequentialDrives[curDrive]);
 
@@ -207,7 +207,7 @@ void _createTableFolderCreationThread(std::vector<Uri> & sequentialDrives,
 	success = true;
 }
 
-bool FileUtilv2::createFoldersForTable(Uri & tableFolder, std::vector<std::string> & column_names) {
+bool FileUtilv2::createFoldersForTable(Uri & /*tableFolder*/, std::vector<std::string> & /*column_names*/) {
 	/*
 		std::vector<Uri> sequentialDrives = BlazingConfig::getInstance()->getSequentialFolders();
 		Uri baseFolder = BlazingConfig::getInstance()->getBaseFolder();
@@ -264,9 +264,9 @@ void _removeThread(long long & fileInd,
 
 
 bool FileUtilv2::batchRemove(std::vector<Uri> & fileList) {
-	int numThreads = BlazingThread::hardware_concurrency();
+    size_t numThreads = BlazingThread::hardware_concurrency();
 	numThreads = numThreads < (fileList.size() + 9) / 10 ? numThreads : (fileList.size() + 9) / 10;
-	int maxThreads = 8;
+    size_t maxThreads = 8;
 	numThreads = numThreads < maxThreads ? numThreads : maxThreads;
 	std::vector<BlazingThread> filesThread(numThreads);
 
@@ -279,7 +279,7 @@ bool FileUtilv2::batchRemove(std::vector<Uri> & fileList) {
 #ifdef SINGLE_THREADED
 	_removeThread(fileInd, completionMutex, fileList, successCount, errorCount);
 #else
-	for(int j = 0; j < numThreads; ++j) {
+	for(size_t j = 0; j < numThreads; ++j) {
 		filesThread[j] = BlazingThread(&_removeThread,
 			std::ref(fileInd),
 			std::ref(completionMutex),
@@ -287,7 +287,7 @@ bool FileUtilv2::batchRemove(std::vector<Uri> & fileList) {
 			std::ref(successCount),
 			std::ref(errorCount));
 	}
-	for(int j = 0; j < numThreads; ++j) {
+	for(size_t j = 0; j < numThreads; ++j) {
 		filesThread[j].join();
 	}
 #endif
@@ -298,7 +298,7 @@ bool FileUtilv2::batchRemove(std::vector<Uri> & fileList) {
 											" files");
 	}
 
-	return successCount == fileList.size();
+	return static_cast<size_t>(successCount) == fileList.size();
 }
 
 
@@ -421,9 +421,9 @@ bool FileUtilv2::batchMove(std::vector<Uri> & srcFiles, std::vector<Uri> & destF
 		return false;
 	}
 
-	int numThreads = BlazingThread::hardware_concurrency();
+    size_t numThreads = BlazingThread::hardware_concurrency();
 	numThreads = numThreads < (srcFiles.size() + 9) / 10 ? numThreads : (srcFiles.size() + 9) / 10;
-	int maxThreads = 8;
+    size_t maxThreads = 8;
 	numThreads = numThreads < maxThreads ? numThreads : maxThreads;
 	std::vector<BlazingThread> filesThread(numThreads);
 
@@ -436,7 +436,7 @@ bool FileUtilv2::batchMove(std::vector<Uri> & srcFiles, std::vector<Uri> & destF
 #ifdef SINGLE_THREADED
 	_moveThread(fileInd, completionMutex, srcFiles, destFiles, successCount, errorCount);
 #else
-	for(int j = 0; j < numThreads; ++j) {
+	for(size_t j = 0; j < numThreads; ++j) {
 		filesThread[j] = BlazingThread(&_moveThread,
 			std::ref(fileInd),
 			std::ref(completionMutex),
@@ -445,7 +445,7 @@ bool FileUtilv2::batchMove(std::vector<Uri> & srcFiles, std::vector<Uri> & destF
 			std::ref(successCount),
 			std::ref(errorCount));
 	}
-	for(int j = 0; j < numThreads; ++j) {
+	for(size_t j = 0; j < numThreads; ++j) {
 		filesThread[j].join();
 	}
 #endif
@@ -454,7 +454,7 @@ bool FileUtilv2::batchMove(std::vector<Uri> & srcFiles, std::vector<Uri> & destF
 											std::to_string(srcFiles.size()) + " files");
 	}
 
-	return successCount == srcFiles.size();
+	return static_cast<size_t>(successCount) == srcFiles.size();
 }
 
 bool FileUtilv2::copyFile(const Uri & src, const Uri & dst) {
@@ -480,6 +480,7 @@ bool FileUtilv2::copyFile(const Uri & src, const Uri & dst) {
 		ex.append("Caught error in FileUtilv2::copyFile");
 		throw;
 	}
+	return false;
 }
 
 
