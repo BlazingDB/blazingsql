@@ -23,7 +23,7 @@ requirements:
     build:
         - cmake 3.18.4
         - ninja
-        - gtest 1.8.0
+        - gtest 1.10
         - aws-sdk-cpp
         - google-cloud-cpp 1.16.0
         - cppzmq
