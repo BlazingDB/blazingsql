@@ -133,7 +133,7 @@ bool FileSystemRepository::Private::deleteByAuthority(const std::string & author
 
 	int foundIndex = -1;
 
-	for(int i = 0; i < fileSystemEntities.size(); ++i) {
+	for(size_t i = 0; i < fileSystemEntities.size(); ++i) {
 		const FileSystemEntity & fileSystemEntity = fileSystemEntities.at(i);
 
 		if(fileSystemEntity.getAuthority() == authority) {
@@ -174,7 +174,7 @@ bool FileSystemRepository::Private::deleteByAuthority(const std::string & author
 	const std::string newDataFile = currentDataFile + ".new";
 	const FileSystemRepository fileSystemRepository(newDataFile, this->encrypted);
 
-	for(int i = 0; i < fileSystemEntities.size(); ++i) {
+	for(size_t i = 0; i < fileSystemEntities.size(); ++i) {
 		const FileSystemEntity & fileSystemEntity = fileSystemEntities.at(i);
 		const bool ok = fileSystemRepository.add(fileSystemEntity);
 

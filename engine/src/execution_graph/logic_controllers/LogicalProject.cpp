@@ -82,7 +82,7 @@ struct cast_to_str_functor {
     }
 
     template<typename T, std::enable_if_t<cudf::is_compound<T>() or cudf::is_duration<T>()> * = nullptr>
-    std::unique_ptr<cudf::column> operator()(const cudf::column_view & col) {
+    std::unique_ptr<cudf::column> operator()(const cudf::column_view & /*col*/) {
         return nullptr;
     }
 };
@@ -523,6 +523,8 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         );
         break;
     }
+    default:
+        break;
     }
 
     return computed_col;
@@ -869,7 +871,7 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
 std::unique_ptr<ral::frame::BlazingTable> process_project(
   std::unique_ptr<ral::frame::BlazingTable> blazing_table_in,
   const std::string & query_part,
-  blazingdb::manager::Context * context) {
+  blazingdb::manager::Context * /*context*/) {
 
     std::string combined_expression = query_part.substr(
         query_part.find("(") + 1,
@@ -879,7 +881,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
     std::vector<std::string> named_expressions = get_expressions_from_expression_list(combined_expression);
     std::vector<std::string> expressions(named_expressions.size());
     std::vector<std::string> out_column_names(named_expressions.size());
-    for(int i = 0; i < named_expressions.size(); i++) {
+    for(size_t i = 0; i < named_expressions.size(); i++) {
         const std::string & named_expr = named_expressions[i];
 
         std::string name = named_expr.substr(0, named_expr.find("=["));

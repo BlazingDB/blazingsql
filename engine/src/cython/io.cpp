@@ -29,7 +29,7 @@ TableSchema parseSchema(std::vector<std::string> files,
 	bool ignore_missing_paths) {
 
 	// sanitize and normalize paths
-	for (int i = 0; i < files.size(); ++i) {
+	for (size_t i = 0; i < files.size(); ++i) {
 		files[i] = Uri(files[i]).toString(true);
 	}
 
@@ -252,7 +252,7 @@ void visitPartitionFolder(Uri folder_uri, std::vector<FolderPartitionMetadata>& 
 		std::string name = uri.getPath().getResourceName();
 		auto parts = StringUtil::split(name, '=');
 
-		if (metadata.size() < depth + 1) {
+		if (metadata.size() < static_cast<size_t>(depth) + 1) {
 			metadata.resize(depth + 1);
 		}
 

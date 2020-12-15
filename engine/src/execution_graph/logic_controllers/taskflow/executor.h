@@ -72,7 +72,7 @@ public:
 			_instance = new executor(num_threads);
 			_instance->task_id_counter = 0;
 			_instance->active_tasks_counter = 0;
-			auto thread = std::thread([_instance]{
+			auto thread = std::thread([/*_instance*/]{
 				_instance->execute();
 			});
 			thread.detach();

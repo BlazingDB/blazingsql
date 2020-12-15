@@ -5,7 +5,8 @@
 namespace ral {
 namespace cache {
 
-kernel::kernel(std::size_t kernel_id, std::string expr, std::shared_ptr<Context> context, kernel_type kernel_type_id) : expression{expr}, kernel_id(kernel_id), context{context}, kernel_type_id{kernel_type_id}, total_input_bytes{0} {
+kernel::kernel(std::size_t kernel_id, std::string expr, std::shared_ptr<Context> context, kernel_type kernel_type_id)
+    : total_input_bytes{0}, expression{expr}, kernel_id(kernel_id), kernel_type_id{kernel_type_id}, context{context} {
     parent_id_ = -1;
     has_limit_ = false;
     limit_rows_ = -1;
@@ -142,9 +143,9 @@ void kernel::process(std::vector<std::unique_ptr<ral::cache::CacheData > > & inp
         const std::map<std::string, std::string>& args){
     std::vector< std::unique_ptr<ral::frame::BlazingTable> > input_gpu;
 
-    if (this->has_limit_ && output->get_num_rows_added() >= this->limit_rows_) {
+    /*if (this->has_limit_ && output->get_num_rows_added() >= this->limit_rows_) {
   //      return;
-    }
+    }*/
 
     for(auto & input : inputs){
         try{

@@ -5,9 +5,10 @@
 #include <set>
 
 #include <cuda_runtime_api.h>
+
+#pragma GCC diagnostic ignored "-Wreorder"
 #include <rmm/cuda_stream_view.hpp>
 #include <rmm/mr/device/device_memory_resource.hpp>
-
 #include <rmm/mr/device/owning_wrapper.hpp>
 #include <rmm/mr/device/cuda_memory_resource.hpp>
 #include <rmm/mr/device/managed_memory_resource.hpp>
@@ -15,6 +16,7 @@
 #include <rmm/mr/device/arena_memory_resource.hpp>
 #include <rmm/mr/device/logging_resource_adaptor.hpp>
 #include <rmm/mr/device/per_device_resource.hpp>
+#pragma GCC diagnostic pop
 
 #include "config/GPUManager.cuh"
 
@@ -22,18 +24,17 @@
 #include <sys/statvfs.h>
 
 /**
-	@brief This interface represents a custom memory resource used in the cache system.
+    @brief This interface represents a custom memory resource used in the cache system.
     The Cache Machines uses singleton references to device, host and disk memory resources. 
     Each object of the CacheMachine class has knownlegde about the status of the memory resource by using
     `get_memory_limit`  and `get_memory_used` methods.
 */
 class BlazingMemoryResource {
 public:
-	virtual size_t get_from_driver_used_memory() = 0 ; // driver.get_available_memory()
-	virtual size_t get_memory_limit() = 0 ; // memory_limite = total_memory * threshold
-
-	virtual size_t get_memory_used() = 0 ; // atomic 
-	virtual size_t get_total_memory() = 0 ; // total_memory
+    virtual size_t get_from_driver_used_memory() = 0 ; // driver.get_available_memory()
+    virtual size_t get_memory_limit() = 0 ; // memory_limite = total_memory * threshold
+    virtual size_t get_memory_used() = 0 ; // atomic 
+    virtual size_t get_total_memory() = 0 ; // total_memory
 };
 
 /**

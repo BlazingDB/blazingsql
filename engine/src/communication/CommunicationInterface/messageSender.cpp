@@ -17,7 +17,7 @@ void message_sender::initialize_instance(std::shared_ptr<ral::cache::CacheMachin
 		int num_threads,
 		ucp_context_h context,
 		ucp_worker_h origin_node,
-		int ral_id,
+		uint16_t ral_id,
 		comm::blazing_protocol protocol){
 	
 	if(instance == NULL) {
@@ -32,9 +32,9 @@ message_sender::message_sender(std::shared_ptr<ral::cache::CacheMachine> output_
 		int num_threads,
 		ucp_context_h context,
 		ucp_worker_h origin,
-		int ral_id,
+		uint16_t ral_id,
 		comm::blazing_protocol protocol)
-		: ral_id{ral_id}, origin{origin}, output_cache{output_cache}, input_cache{input_cache}, node_address_map{node_address_map}, pool{num_threads}, protocol{protocol}
+		: pool{num_threads}, output_cache{output_cache}, input_cache{input_cache}, node_address_map{node_address_map}, protocol{protocol}, origin{origin}, ral_id{ral_id}
 {
 
 	request_size = 0;
@@ -68,7 +68,7 @@ void message_sender::run_polling() {
 						node_address_map = node_address_map,
 						output_cache = output_cache,
 							protocol=this->protocol,
-							this](int thread_id) {
+							this](int /*thread_id*/) {
 
 					auto * gpu_cache_data = static_cast<ral::cache::GPUCacheDataMetaData *>(cache_data.get());
 					auto data_and_metadata = gpu_cache_data->decacheWithMetaData();
@@ -86,12 +86,10 @@ void message_sender::run_polling() {
 					try {
 						// tcp / ucp
 						auto metadata_map = metadata.get_values();
-
 						std::vector<node> destinations;
 
 						auto worker_ids = StringUtil::split(metadata_map.at(ral::cache::WORKER_IDS_METADATA_LABEL), ",");
 						for(auto worker_id : worker_ids) {
-
 							if(node_address_map.find(worker_id) == node_address_map.end()) {
 								throw std::runtime_error("Worker id not found!" + worker_id);
 							}

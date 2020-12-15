@@ -13,6 +13,7 @@ const std::string driverTypeName(DriverType driverType) {
 	switch(driverType) {
 	case DriverType::LIBHDFS: return "LIBHDFS"; break;
 	case DriverType::LIBHDFS3: return "LIBHDFS3"; break;
+	default: break;
 	}
 
 	return "UNDEFINED";
@@ -37,6 +38,7 @@ const std::string connectionPropertyName(ConnectionProperty connectionProperty) 
 	case ConnectionProperty::USER: return "hdfs.user"; break;
 	case ConnectionProperty::DRIVER_TYPE: return "hdfs.driver.type"; break;
 	case ConnectionProperty::KERBEROS_TICKET: return "hdfs.kerberos.ticket"; break;
+	default: break;
 	}
 
 	return "UNDEFINED";
@@ -56,7 +58,7 @@ bool verifyConnectionProperties(const std::string & host,
 	int port,
 	const std::string & user,
 	DriverType driverType,
-	const std::string & kerberosTicket) {
+	const std::string & /*kerberosTicket*/) {
 	// TODO percy more checks, use regular expressions here
 
 	if(host.empty()) {
@@ -94,7 +96,9 @@ const std::string connectionPropertyName(ConnectionProperty connectionProperty) 
 	case ConnectionProperty::SESSION_TOKEN: return "s3.session_token"; break;
 	case ConnectionProperty::ENDPOINT_OVERRIDE: return "s3.endpoint_override"; break;
 	case ConnectionProperty::REGION: return "s3.region"; break;
-	}
+    case ConnectionProperty::UNDEFINED: break;
+	default: break;
+    }
 
 	return "UNDEFINED";
 }
@@ -113,6 +117,7 @@ const std::string encryptionTypeName(EncryptionType encryptionType) {
 	case EncryptionType::NONE: return "None"; break;
 	case EncryptionType::AES_256: return "AES-256"; break;
 	case EncryptionType::AWS_KMS: return "AWS-KMS"; break;
+	default: break;
 	}
 
 	return "UNDEFINED";
@@ -138,11 +143,11 @@ EncryptionType encryptionTypeFromName(const std::string & encryptionTypeName) {
 bool verifyConnectionProperties(const std::string & bucketName,
 	S3FileSystemConnection::EncryptionType encryptionType,
 	const std::string & kmsKeyAmazonResourceName,
-	const std::string & accessKeyId,
-	const std::string & secretKey,
-	const std::string & sessionToken,
-	const std::string & endpointOverride,
-	const std::string & region) {
+	const std::string & /*accessKeyId*/,
+	const std::string & /*secretKey*/,
+	const std::string & /*sessionToken*/,
+	const std::string & /*endpointOverride*/,
+	const std::string & /*region*/) {
 	// TODO percy more checks, use regular expressions here
 
 	if(bucketName.empty()) {
@@ -176,6 +181,7 @@ const std::string connectionPropertyName(ConnectionProperty connectionProperty) 
 	case ConnectionProperty::BUCKET_NAME: return "gcs.bucket_name"; break;
 	case ConnectionProperty::USE_DEFAULT_ADC_JSON_FILE: return "gcs.use_default_adc_json_file"; break;
 	case ConnectionProperty::ADC_JSON_FILE: return "gcs.adc_json_file"; break;
+	default: break;
 	}
 
 	return "UNDEFINED";
@@ -500,6 +506,7 @@ bool FileSystemConnection::requireConnectionProperties() const noexcept {
 	case FileSystemType::HDFS: require = true; break;
 	case FileSystemType::S3: require = true; break;
 	case FileSystemType::GOOGLE_CLOUD_STORAGE: require = true; break;
+	default: break;
 	}
 
 	return require;

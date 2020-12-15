@@ -9,8 +9,8 @@ namespace comm {
 /// process.
 class node {
 public:
-  node(int idx, std::string id, ucp_ep_h ucp_ep, ucp_worker_h ucp_worker);
-  node(int idx, std::string id, std::string ip, int port);
+  node(uint16_t idx, std::string id, ucp_ep_h ucp_ep, ucp_worker_h ucp_worker);
+  node(uint16_t idx, std::string id, std::string ip, int port);
 
   int index() const;
   std::string id() const;
@@ -20,7 +20,7 @@ public:
   int port() const;
   std::string ip() const;
 protected:
-  int _idx;
+  uint16_t _idx;
   std::string _id;
   std::string _ip;
   int _port;

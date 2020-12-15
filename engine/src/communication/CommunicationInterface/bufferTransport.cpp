@@ -85,7 +85,7 @@ get_metadata_and_transports_and_buffer_sizes_from_bytes(std::vector<char> data){
 buffer_transport::buffer_transport(ral::cache::MetadataDictionary metadata,
   std::vector<size_t> buffer_sizes,
   std::vector<blazingdb::transport::ColumnTransport> column_transports, std::vector<node> destinations)
-  : column_transports{column_transports}, buffer_sizes{buffer_sizes}, metadata{metadata}, transmitted_begin_frames(0), transmitted_frames(0),
+  : column_transports{column_transports}, metadata{metadata}, buffer_sizes{buffer_sizes}, transmitted_begin_frames(0), transmitted_frames(0),
 	 destinations{destinations}   {
   // iterate for workers this is destined for
 
