@@ -22,6 +22,7 @@ set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 if(CMAKE_COMPILER_IS_GNUCXX)
     # NOTE felipe percy these flags are too strict for blazingsql
     #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wno-error=deprecated-declarations")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
 
     # Suppress parentheses warning which causes gmock to fail
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -Wno-parentheses")
@@ -121,7 +122,7 @@ endif(CUDA_STATIC_RUNTIME)
 
 ###################################################################################################
 
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/" ${CMAKE_MODULE_PATH})
+set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/" ${CMAKE_MODULE_PATH})
 message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 
 ###################################################################################################
@@ -208,92 +209,92 @@ endif(ARROW_INCLUDE_DIR AND ARROW_LIB AND ARROW_CUDA_LIB)
 
 # TODO percy move this to tool-chain and add support for cuda def and more than 1 defs
 add_definitions(${CXX_DEFINES})
-get_directory_property(CXX_COMPILE_DEFINITIONS DIRECTORY ${CMAKE_SOURCE_DIR} COMPILE_DEFINITIONS)
+get_directory_property(CXX_COMPILE_DEFINITIONS DIRECTORY ${PROJECT_SOURCE_DIR} COMPILE_DEFINITIONS)
 message(STATUS "C++ compiler definitions: ${CXX_COMPILE_DEFINITIONS}")
 
 
 include_directories(
     ${PROJECT_BINARY_DIR}
-    ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR}
+    ${PROJECT_SOURCE_DIR} ${CMAKE_BINARY_DIR}
     ${BSQL_BLD_PREFIX}/include/libcudf/libcudacxx/
     ${BSQL_BLD_PREFIX}/include
     ${BSQL_BLD_PREFIX}/include/blazingdb/io
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/include
-    ${CMAKE_SOURCE_DIR}/thirdparty/jitify
+    ${PROJECT_SOURCE_DIR}/src
+    ${PROJECT_SOURCE_DIR}/include
+    ${PROJECT_SOURCE_DIR}/thirdparty/jitify
     ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
     ${PYTHON_INCLUDE_DIRS}
     "${ARROW_INCLUDE_DIR}"
     )
 
 ## Target source files
-set(SRC_FILES ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingHostTable.cpp
-              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/CacheMachine.cpp
-              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicPrimitives.cpp
-              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicalFilter.cpp
-              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicalProject.cpp
-              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingColumnOwner.cpp
-              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/port.cpp
-              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/kernel.cpp
-              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/executor.cpp
-              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/distributing_kernel.cpp
-              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/kernel_type.cpp
-              ${CMAKE_SOURCE_DIR}/src/execution_graph/Context.cpp
-              ${CMAKE_SOURCE_DIR}/src/bmr/MemoryMonitor.cpp
-              ${CMAKE_SOURCE_DIR}/src/bmr/BlazingMemoryResource.cpp
-              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/graph.cpp
-              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BatchAggregationProcessing.cpp
-              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BatchJoinProcessing.cpp
-              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BatchOrderByProcessing.cpp
-              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BatchUnionProcessing.cpp
-              ${CMAKE_SOURCE_DIR}/src/execution_graph/logic_controllers/BatchProcessing.cpp
-              ${CMAKE_SOURCE_DIR}/src/config/GPUManager.cu
-              ${CMAKE_SOURCE_DIR}/src/operators/OrderBy.cpp
-              ${CMAKE_SOURCE_DIR}/src/operators/GroupBy.cpp
-              ${CMAKE_SOURCE_DIR}/src/io/data_provider/UriDataProvider.cpp
-              ${CMAKE_SOURCE_DIR}/src/io/data_provider/GDFDataProvider.cpp
-              ${CMAKE_SOURCE_DIR}/src/io/Schema.cpp
-              ${CMAKE_SOURCE_DIR}/src/io/data_parser/ParquetParser.cpp
-              ${CMAKE_SOURCE_DIR}/src/io/data_parser/CSVParser.cpp
-              ${CMAKE_SOURCE_DIR}/src/io/data_parser/JSONParser.cpp
-              ${CMAKE_SOURCE_DIR}/src/io/data_parser/GDFParser.cpp
-              ${CMAKE_SOURCE_DIR}/src/io/data_parser/OrcParser.cpp
-              ${CMAKE_SOURCE_DIR}/src/io/data_parser/ArrowParser.cpp
-              ${CMAKE_SOURCE_DIR}/src/io/data_parser/ArgsUtil.cpp
-              ${CMAKE_SOURCE_DIR}/src/io/data_parser/metadata/parquet_metadata.cpp
-              ${CMAKE_SOURCE_DIR}/src/utilities/CommonOperations.cpp
-              ${CMAKE_SOURCE_DIR}/src/utilities/scalar_timestamp_parser.cpp
-              ${CMAKE_SOURCE_DIR}/src/utilities/transform.cu
-              ${CMAKE_SOURCE_DIR}/src/utilities/DebuggingUtils.cpp
-              ${CMAKE_SOURCE_DIR}/src/CalciteExpressionParsing.cpp
-              ${CMAKE_SOURCE_DIR}/src/io/DataLoader.cpp
-              ${CMAKE_SOURCE_DIR}/src/Interpreter/interpreter_cpp.cu
-              ${CMAKE_SOURCE_DIR}/src/CalciteInterpreter.cpp
-              ${CMAKE_SOURCE_DIR}/src/parser/expression_utils.cpp
-              ${CMAKE_SOURCE_DIR}/src/parser/expression_tree.cpp
-              ${CMAKE_SOURCE_DIR}/src/skip_data/SkipDataProcessor.cpp
-              ${CMAKE_SOURCE_DIR}/src/skip_data/utils.cpp
-              ${CMAKE_SOURCE_DIR}/src/cython/static.cpp
-              ${CMAKE_SOURCE_DIR}/src/cython/initialize.cpp
-              ${CMAKE_SOURCE_DIR}/src/cython/io.cpp
-              ${CMAKE_SOURCE_DIR}/src/cython/errors.cpp
-              ${CMAKE_SOURCE_DIR}/src/cython/engine.cpp
-              ${CMAKE_SOURCE_DIR}/src/distribution/primitives.cpp
+set(SRC_FILES ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingHostTable.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/CacheMachine.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicPrimitives.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicalFilter.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/LogicalProject.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/BlazingColumnOwner.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/port.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/kernel.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/executor.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/distributing_kernel.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/kernel_type.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/Context.cpp
+              ${PROJECT_SOURCE_DIR}/src/bmr/MemoryMonitor.cpp
+              ${PROJECT_SOURCE_DIR}/src/bmr/BlazingMemoryResource.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/taskflow/graph.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/BatchAggregationProcessing.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/BatchJoinProcessing.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/BatchOrderByProcessing.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/BatchUnionProcessing.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/BatchProcessing.cpp
+              ${PROJECT_SOURCE_DIR}/src/config/GPUManager.cu
+              ${PROJECT_SOURCE_DIR}/src/operators/OrderBy.cpp
+              ${PROJECT_SOURCE_DIR}/src/operators/GroupBy.cpp
+              ${PROJECT_SOURCE_DIR}/src/io/data_provider/UriDataProvider.cpp
+              ${PROJECT_SOURCE_DIR}/src/io/data_provider/GDFDataProvider.cpp
+              ${PROJECT_SOURCE_DIR}/src/io/Schema.cpp
+              ${PROJECT_SOURCE_DIR}/src/io/data_parser/ParquetParser.cpp
+              ${PROJECT_SOURCE_DIR}/src/io/data_parser/CSVParser.cpp
+              ${PROJECT_SOURCE_DIR}/src/io/data_parser/JSONParser.cpp
+              ${PROJECT_SOURCE_DIR}/src/io/data_parser/GDFParser.cpp
+              ${PROJECT_SOURCE_DIR}/src/io/data_parser/OrcParser.cpp
+              ${PROJECT_SOURCE_DIR}/src/io/data_parser/ArrowParser.cpp
+              ${PROJECT_SOURCE_DIR}/src/io/data_parser/ArgsUtil.cpp
+              ${PROJECT_SOURCE_DIR}/src/io/data_parser/metadata/parquet_metadata.cpp
+              ${PROJECT_SOURCE_DIR}/src/utilities/CommonOperations.cpp
+              ${PROJECT_SOURCE_DIR}/src/utilities/scalar_timestamp_parser.cpp
+              ${PROJECT_SOURCE_DIR}/src/utilities/DebuggingUtils.cpp
+              ${PROJECT_SOURCE_DIR}/src/utilities/transform.cu
+              ${PROJECT_SOURCE_DIR}/src/CalciteExpressionParsing.cpp
+              ${PROJECT_SOURCE_DIR}/src/io/DataLoader.cpp
+              ${PROJECT_SOURCE_DIR}/src/Interpreter/interpreter_cpp.cu
+              ${PROJECT_SOURCE_DIR}/src/CalciteInterpreter.cpp
+              ${PROJECT_SOURCE_DIR}/src/parser/expression_utils.cpp
+              ${PROJECT_SOURCE_DIR}/src/parser/expression_tree.cpp
+              ${PROJECT_SOURCE_DIR}/src/skip_data/SkipDataProcessor.cpp
+              ${PROJECT_SOURCE_DIR}/src/skip_data/utils.cpp
+              ${PROJECT_SOURCE_DIR}/src/cython/static.cpp
+              ${PROJECT_SOURCE_DIR}/src/cython/initialize.cpp
+              ${PROJECT_SOURCE_DIR}/src/cython/io.cpp
+              ${PROJECT_SOURCE_DIR}/src/cython/errors.cpp
+              ${PROJECT_SOURCE_DIR}/src/cython/engine.cpp
+              ${PROJECT_SOURCE_DIR}/src/distribution/primitives.cpp
 
-              ${CMAKE_SOURCE_DIR}/src/communication/factory/MessageFactory.cpp
-              ${CMAKE_SOURCE_DIR}/src/communication/CommunicationData.cpp
-              ${CMAKE_SOURCE_DIR}/src/communication/messages/MessageUtil.cu
-              ${CMAKE_SOURCE_DIR}/src/communication/messages/GPUComponentMessage.cpp
-              ${CMAKE_SOURCE_DIR}/src/communication/CommunicationInterface/serializer.cpp
-              ${CMAKE_SOURCE_DIR}/src/communication/CommunicationInterface/node.cpp
-              ${CMAKE_SOURCE_DIR}/src/communication/CommunicationInterface/messageReceiver.cpp
-              ${CMAKE_SOURCE_DIR}/src/communication/CommunicationInterface/messageListener.cpp
-              ${CMAKE_SOURCE_DIR}/src/communication/CommunicationInterface/bufferTransport.cpp
-              ${CMAKE_SOURCE_DIR}/src/communication/CommunicationInterface/protocols.cpp
-              ${CMAKE_SOURCE_DIR}/src/communication/CommunicationInterface/messageSender.cpp
+              ${PROJECT_SOURCE_DIR}/src/communication/factory/MessageFactory.cpp
+              ${PROJECT_SOURCE_DIR}/src/communication/CommunicationData.cpp
+              ${PROJECT_SOURCE_DIR}/src/communication/messages/MessageUtil.cu
+              ${PROJECT_SOURCE_DIR}/src/communication/messages/GPUComponentMessage.cpp
+              ${PROJECT_SOURCE_DIR}/src/communication/CommunicationInterface/serializer.cpp
+              ${PROJECT_SOURCE_DIR}/src/communication/CommunicationInterface/node.cpp
+              ${PROJECT_SOURCE_DIR}/src/communication/CommunicationInterface/messageReceiver.cpp
+              ${PROJECT_SOURCE_DIR}/src/communication/CommunicationInterface/messageListener.cpp
+              ${PROJECT_SOURCE_DIR}/src/communication/CommunicationInterface/bufferTransport.cpp
+              ${PROJECT_SOURCE_DIR}/src/communication/CommunicationInterface/protocols.cpp
+              ${PROJECT_SOURCE_DIR}/src/communication/CommunicationInterface/messageSender.cpp
 
-              ${CMAKE_SOURCE_DIR}/src/transport/Node.cpp
-              ${CMAKE_SOURCE_DIR}/src/transport/io/reader_writer.cpp
+              ${PROJECT_SOURCE_DIR}/src/transport/Node.cpp
+              ${PROJECT_SOURCE_DIR}/src/transport/io/reader_writer.cpp
         )
 
 link_directories(${BSQL_BLD_PREFIX}/lib)

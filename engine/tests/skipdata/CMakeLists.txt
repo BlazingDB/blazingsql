@@ -1,6 +1,6 @@
 
 set(PARQUET_FILE_PATH
-    ${CMAKE_SOURCE_DIR}/tests/skipdata/nation_0_0.parquet)
+    ${PROJECT_SOURCE_DIR}/tests/skipdata/nation_0_0.parquet)
  
 set(skip_data_test_sources
     expression_tree_test.cpp    

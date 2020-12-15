@@ -8,9 +8,8 @@
 #include "common.h"
 #include "execution_graph/logic_controllers/CacheMachine.h"
 
-std::pair<std::pair<std::shared_ptr<ral::cache::CacheMachine>,std::shared_ptr<ral::cache::CacheMachine> >, int> initialize(int ralId,
+std::pair<std::pair<std::shared_ptr<ral::cache::CacheMachine>,std::shared_ptr<ral::cache::CacheMachine> >, int> initialize(uint16_t ralId,
 	std::string worker_id,
-	int gpuId,
 	std::string network_iface_name,
 	int ralCommunicationPort,
 	std::vector<NodeMetaDataUCP> workers_ucp_info,
@@ -24,11 +23,13 @@ std::pair<std::pair<std::shared_ptr<ral::cache::CacheMachine>,std::shared_ptr<ra
 void finalize();
 
 size_t getFreeMemory();
+void resetMaxMemoryUsed(int to = 0);
+size_t getMaxMemoryUsed();
+
 extern "C" {
 
-error_code_t initialize_C(int ralId,
+error_code_t initialize_C(uint16_t ralId,
 	std::string worker_id,
-	int gpuId,
 	std::string network_iface_name,
 	int ralCommunicationPort,
 	std::vector<NodeMetaDataUCP> workers_ucp_info,

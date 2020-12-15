@@ -5,6 +5,8 @@ void raisePerformPartitionError();
 void raiseRunGenerateGraphError();
 void raiseRunExecuteGraphError();
 void raiseGetFreeMemoryError();
+void raiseResetMaxMemoryUsedError();
+void raiseGetMaxMemoryUsedError();
 void raiseRunSkipDataError();
 void raiseParseSchemaError();
 void raiseRegisterFileSystemHDFSError();

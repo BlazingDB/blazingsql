@@ -115,6 +115,10 @@ std::string internal_blazing_device_memory_resource::get_full_memory_summary() {
     return summary;
 }
 
+void internal_blazing_device_memory_resource::reset_max_memory_used(size_t to) noexcept {
+    this->max_used_memory = to;
+}
+
 void* internal_blazing_device_memory_resource::do_allocate(size_t bytes, rmm::cuda_stream_view stream) {
     if (bytes <= 0) { 
         return nullptr;
@@ -176,6 +180,10 @@ std::string blazing_device_memory_resource::get_type() {
 
 std::string blazing_device_memory_resource::get_full_memory_summary() {
     return initialized_resource->get_full_memory_summary() ;
+}
+
+void blazing_device_memory_resource::reset_max_memory_used(size_t to) {
+    initialized_resource->reset_max_memory_used(to);
 }
 
 void blazing_device_memory_resource::initialize(std::string allocation_mode,
@@ -319,7 +327,7 @@ size_t internal_blazing_host_memory_resource::get_memory_limit() {
 // TODO: percy, cordova.Improve the design of get memory in real time 
 blazing_disk_memory_resource::blazing_disk_memory_resource(float custom_threshold) {
     struct statvfs stat_disk;
-    int ret = statvfs("/", &stat_disk);
+    statvfs("/", &stat_disk);
 
     total_memory_size = (size_t)(stat_disk.f_blocks * stat_disk.f_frsize);
     size_t available_disk_size = (size_t)(stat_disk.f_bfree * stat_disk.f_frsize);

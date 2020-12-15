@@ -16,7 +16,7 @@ struct ExpressionTreeTest : public ::testing::Test {
 
   }
 
-  void process(std::string prefix, std::string expected, bool valid_expr = true) {
+  void process(std::string prefix, std::string expected, bool /*valid_expr*/ = true) {
     ral::parser::parse_tree tree;
     tree.build(prefix);
       std::cout << "before:\n";
@@ -153,7 +153,6 @@ TEST_F(ExpressionTreeTest, expr_test_12) {
 TEST_F(ExpressionTreeTest, drop_test1) {
   std::string prefix = "OR(AND(AND(>($0, 100), =(+($0, $1), 123)), <($1, 10)), =($0, 500))";
   std::string expected = "OR > $1 100 AND <= $0 500 >= $1 500";
-  bool valid_expr = true;
   ral::parser::parse_tree tree;
   tree.build(prefix);
     std::cout << "before:\n";
@@ -179,7 +178,6 @@ TEST_F(ExpressionTreeTest, drop_test1) {
 TEST_F(ExpressionTreeTest, drop_test2) {
   std::string prefix = "OR(AND(AND(>($2, 100), =(+($0, $1), 123)), <($1, 10)), =($0, 500))";
   std::string expected = "OR > $5 100 AND <= $0 500 >= $1 500";
-  bool valid_expr = true;
   ral::parser::parse_tree tree;
 
   tree.build(prefix);

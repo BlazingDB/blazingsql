@@ -35,7 +35,7 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 	std::vector<ral::io::data_loader> input_loaders;
 	std::vector<ral::io::Schema> schemas;
 
-	for(int i = 0; i < tableSchemas.size(); i++) {
+	for(size_t i = 0; i < tableSchemas.size(); i++) {
 		auto tableSchema = tableSchemas[i];
 		auto files = filesAll[i];
 		auto fileType = fileTypes[i];
@@ -43,7 +43,7 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 		auto args_map = ral::io::to_map(tableSchemaCppArgKeys[i], tableSchemaCppArgValues[i]);
 
 		std::vector<cudf::type_id> types;
-		for(int col = 0; col < tableSchemas[i].types.size(); col++) {
+		for(size_t col = 0; col < tableSchemas[i].types.size(); col++) {
 			types.push_back(tableSchemas[i].types[col]);
 		}
 
@@ -70,7 +70,7 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 
 		std::shared_ptr<ral::io::data_provider> provider;
 		std::vector<Uri> uris;
-		for(int fileIndex = 0; fileIndex < filesAll[i].size(); fileIndex++) {
+		for(size_t fileIndex = 0; fileIndex < filesAll[i].size(); fileIndex++) {
 			uris.push_back(Uri{filesAll[i][fileIndex]});
 			schema.add_file(filesAll[i][fileIndex]);
 		}
@@ -121,7 +121,7 @@ void fix_column_names_duplicated(std::vector<std::string> & col_names){
 	}
 }
 
-std::shared_ptr<ral::cache::graph> runGenerateGraph(int32_t masterIndex,
+std::shared_ptr<ral::cache::graph> runGenerateGraph(uint32_t masterIndex,
 	std::vector<std::string> worker_ids,
 	std::vector<std::string> tableNames,
 	std::vector<std::string> tableScans,
@@ -132,7 +132,6 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(int32_t masterIndex,
 	std::vector<int> fileTypes,
 	int32_t ctxToken,
 	std::string query,
-	uint64_t accessToken,
 	std::vector<std::vector<std::map<std::string, std::string>>> uri_values,
 	std::map<std::string, std::string> config_options,
 	std::string sql ) {
@@ -149,11 +148,11 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(int32_t masterIndex,
 
 	auto& communicationData = ral::communication::CommunicationData::getInstance();
 
-	std::vector<Node> contextNodes;
-	for(auto worker_id : worker_ids) {
-		contextNodes.push_back(Node( worker_id));
-	}
-	Context queryContext{ctxToken, contextNodes, contextNodes[masterIndex], "", config_options};
+    std::vector<Node> contextNodes;
+    for (const auto &worker_id : worker_ids) {
+        contextNodes.emplace_back(worker_id);
+    }
+	Context queryContext{static_cast<uint32_t>(ctxToken), contextNodes, contextNodes[masterIndex], "", config_options};
 	CodeTimer eventTimer(true);
 	sql = "'" + sql + "'";
 	logger->info("{ral_id}|{query_id}|{start_time}|{plan}|{sql}",
@@ -163,7 +162,7 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(int32_t masterIndex,
 									"plan"_a=query,
 									"sql"_a=sql);
 
-	auto graph = generate_graph(input_loaders, schemas, tableNames, tableScans, query, accessToken, queryContext);
+	auto graph = generate_graph(input_loaders, schemas, tableNames, tableScans, query, queryContext);
 
 	comm::graphs_info::getInstance().register_graph(ctxToken, graph);
 	return graph;
@@ -299,7 +298,6 @@ std::pair<std::unique_ptr<PartitionedResultSet>, error_code_t> runQuery_C(int32_
 	std::vector<int> fileTypes,
 	int32_t ctxToken,
 	std::string query,
-	uint64_t accessToken,
 	std::vector<std::vector<std::map<std::string, std::string>>> uri_values,
 	std::map<std::string, std::string> config_options) {
 
@@ -332,7 +330,7 @@ std::pair<std::unique_ptr<ResultSet>, error_code_t> runSkipData_C(
 		return std::make_pair(std::move(result), E_EXCEPTION);
 	}
 }
-/*
+
 std::pair<std::unique_ptr<ResultSet>, error_code_t> performPartition_C(
 	int32_t masterIndex,
 

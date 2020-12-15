@@ -33,7 +33,7 @@ public:
 	bool makeDirectory(const Uri & uri) const;
 	bool remove(const Uri & uri) const;
 	bool move(const Uri & src, const Uri & dst) const;
-	bool truncateFile(const Uri & uri, long long length) const;
+	bool truncateFile(const Uri & uri, unsigned long long length) const;
 
 	// I/O
 	std::shared_ptr<arrow::io::RandomAccessFile> openReadable(const Uri & uri) const;
