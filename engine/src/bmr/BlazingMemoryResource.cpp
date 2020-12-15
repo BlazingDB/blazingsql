@@ -319,7 +319,7 @@ size_t internal_blazing_host_memory_resource::get_memory_limit() {
 // TODO: percy, cordova.Improve the design of get memory in real time 
 blazing_disk_memory_resource::blazing_disk_memory_resource(float custom_threshold) {
     struct statvfs stat_disk;
-    int ret = statvfs("/", &stat_disk);
+    statvfs("/", &stat_disk);
 
     total_memory_size = (size_t)(stat_disk.f_blocks * stat_disk.f_frsize);
     size_t available_disk_size = (size_t)(stat_disk.f_bfree * stat_disk.f_frsize);

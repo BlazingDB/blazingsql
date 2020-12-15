@@ -33,19 +33,19 @@ static bool isValidPath(const std::string & path) {
 	return true;
 }
 
-static bool isRootOrInvalidPath(const Path & path) {
+/*static bool isRootOrInvalidPath(const Path & path) {
 	const bool isRoot = path.isRoot();
 	const bool isInvalid = (path.isValid() == false);
 
 	return (isRoot || isInvalid);
-}
+}*/
 
 static int countEndSlashChars(const std::string & path) {
 	int endSlashCount = 0;
 
 	// if this->path has the pattern /some/dir// (note the slash / chars at the end)
 	// then we need to know how many slash / chars we have at the end of the path
-	for(int i = 0; i < path.size(); ++i) {
+	for(size_t i = 0; i < path.size(); ++i) {
 		const int index = path.size() - 1 - i;
 
 		if(path.at(index) == SLASH) {
@@ -63,7 +63,7 @@ static int countBeginSlashChars(const std::string & path) {
 
 	// if this->path has the pattern //some///dir// (note the slash / chars in the sub root)
 	// then we need to know how many slash / chars we have at the begining of the path
-	for(int i = 0; i < path.size(); ++i) {
+	for(size_t i = 0; i < path.size(); ++i) {
 		if(path.at(i) == SLASH) {
 			++beginSlashCount;
 		} else {

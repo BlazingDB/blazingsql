@@ -48,9 +48,9 @@ task::task(
     const std::map<std::string, std::string>& args,
     size_t attempts) :
     inputs(std::move(inputs)),
-    task_id(task_id), output(output),
-    kernel(kernel), attempts_limit(attempts_limit),
-    args(args), attempts(attempts) {
+    output(output), task_id(task_id),
+    kernel(kernel),attempts(attempts),
+    attempts_limit(attempts_limit), args(args) {
 }
 
 std::size_t task::task_memory_needed() {

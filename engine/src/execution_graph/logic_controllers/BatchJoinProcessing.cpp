@@ -56,7 +56,7 @@ void parseJoinConditionToColumnIndices(const std::string & condition, std::vecto
 	}
 
 	columnIndices.resize(2 * operator_count);
-	for(size_t i = 0; i < operator_count; i++) {
+	for(int i = 0; i < operator_count; i++) {
 		int right_index = get_index(operand.top());
 		operand.pop();
 		int left_index = get_index(operand.top());
@@ -120,7 +120,7 @@ void split_inequality_join_into_join_and_filter(const std::string & join_stateme
 		new_join_statement_expression = condition;  // the join_out is the same as the original input
 		filter_statement_expression = "";					   // no filter out
 	} else if (tree.root().value == "AND") {
-		int num_equalities = 0;
+		size_t num_equalities = 0;
 		for (auto&& c : tree.root().children) {
 			if (c->value == "=") {
 				num_equalities++;
@@ -231,7 +231,7 @@ std::unique_ptr<ral::cache::CacheData> PartwiseJoin::load_right_set(){
 }
 
 void PartwiseJoin::mark_set_completed(int left_ind, int right_ind){
-	if (completion_matrix.size() <= left_ind){
+	if (completion_matrix.size() <= static_cast<size_t>(left_ind)){
 		size_t old_row_size = completion_matrix.size();
 		completion_matrix.resize(left_ind + 1);
 		if (old_row_size > 0) {
@@ -241,7 +241,7 @@ void PartwiseJoin::mark_set_completed(int left_ind, int right_ind){
 			}
 		}
 	}
-	if (completion_matrix[left_ind].size() <= right_ind){ // if we need to resize, lets resize the whole matrix, making sure that the default is false
+	if (completion_matrix[left_ind].size() <= static_cast<size_t>(right_ind)){ // if we need to resize, lets resize the whole matrix, making sure that the default is false
 		for (std::size_t i = 0; i < completion_matrix.size(); i++){
 			completion_matrix[i].resize(right_ind + 1, false);
 		}
@@ -290,8 +290,8 @@ std::tuple<int, int> PartwiseJoin::check_for_another_set_to_do_with_data_we_alre
 
 // This function returns the first not completed set, otherwise it returns [-1, -1]
 std::tuple<int, int> PartwiseJoin::check_for_set_that_has_not_been_completed(){
-	for (int i = 0; i < completion_matrix.size(); i++){
-		for (int j = 0; j < completion_matrix[i].size(); j++){
+	for (size_t i = 0; i < completion_matrix.size(); i++){
+		for (size_t j = 0; j < completion_matrix[i].size(); j++){
 			if (!completion_matrix[i][j]){
 				return {i, j};
 			}
@@ -377,8 +377,8 @@ std::unique_ptr<ral::frame::BlazingTable> PartwiseJoin::join_set(
 }
 
 void PartwiseJoin::do_process(std::vector<std::unique_ptr<ral::frame::BlazingTable>> inputs,
-	std::shared_ptr<ral::cache::CacheMachine> output,
-	cudaStream_t stream, const std::map<std::string, std::string>& args) {
+	std::shared_ptr<ral::cache::CacheMachine> /*output*/,
+	cudaStream_t /*stream*/, const std::map<std::string, std::string>& args) {
 	CodeTimer eventTimer;
 
 	auto & left_batch = inputs[0];
@@ -453,8 +453,8 @@ kstatus PartwiseJoin::run() {
 			// parsing more of the expression here because we need to have the number of columns of the tables
 			std::vector<int> column_indices;
 			parseJoinConditionToColumnIndices(this->condition, column_indices);
-			for(int i = 0; i < column_indices.size();i++){
-				if(column_indices[i] >= left_cache_data->num_columns()){
+			for(std::size_t i = 0; i < column_indices.size();i++){
+				if(column_indices[i] >= static_cast<int>(left_cache_data->num_columns())){
 					this->right_column_indices.push_back(column_indices[i] - left_cache_data->num_columns());
 				}else{
 					this->left_column_indices.push_back(column_indices[i]);
@@ -647,10 +647,10 @@ std::pair<bool, bool> JoinPartitionKernel::determine_if_we_are_scattering_a_smal
 
 	std::vector<std::string> determination_messages_to_wait_for;
 	std::vector<std::string> target_ids;
-	for (auto i = 0; i < nodes_to_send.size(); i++)	{
-		target_ids.push_back(nodes_to_send[i].id());
+	for (auto & node_to_send : nodes_to_send) {
+		target_ids.push_back(node_to_send.id());
 		determination_messages_to_wait_for.push_back(
-			"determine_if_we_are_scattering_a_small_table_" + std::to_string(this->context->getContextToken()) + "_" +	std::to_string(this->get_id()) +	"_" +	nodes_to_send[i].id());
+			"determine_if_we_are_scattering_a_small_table_" + std::to_string(this->context->getContextToken()) + "_" +	std::to_string(this->get_id()) +	"_" +	node_to_send.id());
 	}
 	send_message(nullptr,
 			false, //specific_cache
@@ -673,9 +673,9 @@ std::pair<bool, bool> JoinPartitionKernel::determine_if_we_are_scattering_a_smal
 	std::vector<int64_t> nodes_num_bytes_left(this->context->getTotalNodes());
 	std::vector<int64_t> nodes_num_bytes_right(this->context->getTotalNodes());
 
-	for (auto i = 0; i < determination_messages_to_wait_for.size(); i++)	{
-		auto message = this->query_graph->get_input_message_cache()->pullCacheData(determination_messages_to_wait_for[i]);
-		auto message_with_metadata = static_cast<ral::cache::GPUCacheDataMetaData*>(message.get());
+	for (auto & message_id : determination_messages_to_wait_for) {
+		auto message = this->query_graph->get_input_message_cache()->pullCacheData(message_id);
+		auto *message_with_metadata = dynamic_cast<ral::cache::GPUCacheDataMetaData*>(message.get());
 		int node_idx = context->getNodeIndex(context->getNode(message_with_metadata->getMetadata().get_values()[ral::cache::SENDER_WORKER_ID_METADATA_LABEL]));
 		nodes_num_bytes_left[node_idx] = std::stoll(message_with_metadata->getMetadata().get_values()[ral::cache::JOIN_LEFT_BYTES_METADATA_LABEL]);
 		nodes_num_bytes_right[node_idx] = std::stoll(message_with_metadata->getMetadata().get_values()[ral::cache::JOIN_RIGHT_BYTES_METADATA_LABEL]);
@@ -743,17 +743,17 @@ std::pair<bool, bool> JoinPartitionKernel::determine_if_we_are_scattering_a_smal
 	// with LEFT_JOIN we cant scatter the left side
 	} else if (this->join_type == LEFT_JOIN) {
 		if(estimate_scatter_right < estimate_regular_distribution &&
-					total_bytes_right < max_join_scatter_mem_overhead) {
+					static_cast<unsigned long long>(total_bytes_right) < max_join_scatter_mem_overhead) {
 			scatter_right = true;
 		}
 	} else {
 		if(estimate_scatter_left < estimate_regular_distribution ||
 			estimate_scatter_right < estimate_regular_distribution) {
 			if(estimate_scatter_left < estimate_scatter_right &&
-				total_bytes_left < max_join_scatter_mem_overhead) {
+				static_cast<unsigned long long>(total_bytes_left) < max_join_scatter_mem_overhead) {
 				scatter_left = true;
 			} else if(estimate_scatter_right < estimate_scatter_left &&
-					total_bytes_right < max_join_scatter_mem_overhead) {
+					static_cast<unsigned long long>(total_bytes_right) < max_join_scatter_mem_overhead) {
 				scatter_right = true;
 			}
 		}
@@ -772,8 +772,8 @@ void JoinPartitionKernel::perform_standard_hash_partitioning(
 	// parsing more of the expression here because we need to have the number of columns of the tables
 	std::vector<int> column_indices;
 	parseJoinConditionToColumnIndices(condition, column_indices);
-	for(int i = 0; i < column_indices.size();i++){
-		if(column_indices[i] >= left_cache_data->num_columns()){
+	for(std::size_t i = 0; i < column_indices.size();i++){
+		if(column_indices[i] >= static_cast<int>(left_cache_data->num_columns())){
 			this->right_column_indices.push_back(column_indices[i] - left_cache_data->num_columns());
 		}else{
 			this->left_column_indices.push_back(column_indices[i]);
@@ -843,7 +843,6 @@ void JoinPartitionKernel::small_table_scatter_distribution(std::unique_ptr<ral::
 	std::string small_output_cache_name = scatter_left_right.first ? "output_a" : "output_b";
 	int small_table_idx = scatter_left_right.first ? LEFT_TABLE_IDX : RIGHT_TABLE_IDX;
 	std::string big_output_cache_name = scatter_left_right.first ? "output_b" : "output_a";
-	int big_table_idx = scatter_left_right.first ? RIGHT_TABLE_IDX : LEFT_TABLE_IDX;
 
 	BlazingThread left_thread([this, &small_input, &small_cache_data](){
 		while(small_cache_data != nullptr ) {
@@ -894,8 +893,8 @@ void JoinPartitionKernel::small_table_scatter_distribution(std::unique_ptr<ral::
 }
 
 void JoinPartitionKernel::do_process(std::vector<std::unique_ptr<ral::frame::BlazingTable>> inputs,
-	std::shared_ptr<ral::cache::CacheMachine> output,
-	cudaStream_t stream, const std::map<std::string, std::string>& args) {
+	std::shared_ptr<ral::cache::CacheMachine> /*output*/,
+	cudaStream_t /*stream*/, const std::map<std::string, std::string>& args) {
 
 	auto& operation_type = args.at("operation_type");
 

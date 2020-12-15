@@ -34,8 +34,8 @@ arrow_parser::~arrow_parser() {}
 // 	}
 // }
 
-void arrow_parser::parse_schema(std::shared_ptr<arrow::io::RandomAccessFile> file,
-		ral::io::Schema & schema){
+void arrow_parser::parse_schema(std::shared_ptr<arrow::io::RandomAccessFile> /*file*/,
+		ral::io::Schema &  /*schema*/){
 	std::vector<std::string> names;
 	std::vector<cudf::type_id> types;
 }

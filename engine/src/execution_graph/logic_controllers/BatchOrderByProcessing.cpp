@@ -15,13 +15,13 @@ PartitionSingleNodeKernel::PartitionSingleNodeKernel(std::size_t kernel_id, cons
 }
 
 void PartitionSingleNodeKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
-    std::shared_ptr<ral::cache::CacheMachine> output,
-    cudaStream_t stream, const std::map<std::string, std::string>& args) {
+    std::shared_ptr<ral::cache::CacheMachine> /*output*/,
+    cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) {
     auto & input = inputs[0];
 
     auto partitions = ral::operators::partition_table(partitionPlan->toBlazingTableView(), input->toBlazingTableView(), this->expression);
 
-    for (auto i = 0; i < partitions.size(); i++) {
+    for (std::size_t i = 0; i < partitions.size(); i++) {
         std::string cache_id = "output_" + std::to_string(i);
         this->add_to_output_cache(
             std::make_unique<ral::frame::BlazingTable>(std::make_unique<cudf::table>(partitions[i]), input->names()),
@@ -231,7 +231,7 @@ kstatus SortAndSampleKernel::run() {
             if(try_num_rows_estimation) {
                 std::tie(estimate_samples, num_rows_estimate) = this->query_graph->get_estimated_input_rows_to_cache(this->get_id(), std::to_string(this->get_id()));
                 population_to_sample = static_cast<uint64_t>(num_rows_estimate * order_by_samples_ratio);
-                population_to_sample = (population_to_sample > max_order_by_samples) ? (max_order_by_samples) : population_to_sample;
+                population_to_sample = (population_to_sample > static_cast<uint64_t>(max_order_by_samples)) ? (max_order_by_samples) : population_to_sample;
                 try_num_rows_estimation = false;
             }
             population_sampled += batch->num_rows();
@@ -317,8 +317,8 @@ PartitionKernel::PartitionKernel(std::size_t kernel_id, const std::string & quer
 }
 
 void PartitionKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
-    std::shared_ptr<ral::cache::CacheMachine> output,
-    cudaStream_t stream, const std::map<std::string, std::string>& args) {
+    std::shared_ptr<ral::cache::CacheMachine> /*output*/,
+    cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) {
     auto & input = inputs[0];
 
     std::vector<ral::distribution::NodeColumnView> partitions = ral::distribution::partitionData(this->context.get(), input->toBlazingTableView(), partitionPlan->toBlazingTableView(), sortColIndices, sortOrderTypes);
@@ -343,14 +343,13 @@ kstatus PartitionKernel::run() {
     std::map<std::string, std::map<int32_t, int> > node_count;
 
     std::tie(sortColIndices, sortOrderTypes, std::ignore) =	ral::operators::get_sort_vars(this->expression);
-    auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
     auto nodes = context->getAllNodes();
 
     // If we have no partitionPlan, its because we have no data, therefore its one partition per node
     num_partitions_per_node = partitionPlan->num_rows() == 0 ? 1 : (partitionPlan->num_rows() + 1) / this->context->getTotalNodes();
 
     std::map<int32_t, int> temp_partitions_map;
-    for (size_t i = 0; i < num_partitions_per_node; i++) {
+    for (int i = 0; i < num_partitions_per_node; i++) {
         temp_partitions_map[i] = 0;
     }
     for (auto &&node : nodes) {
@@ -423,7 +422,7 @@ MergeStreamKernel::MergeStreamKernel(std::size_t kernel_id, const std::string & 
 
 void MergeStreamKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
-    cudaStream_t stream, const std::map<std::string, std::string>& args) {
+    cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) {
 
     if (inputs.empty()) {
         // no op
@@ -443,7 +442,7 @@ kstatus MergeStreamKernel::run() {
     CodeTimer timer;
 
     int batch_count = 0;
-    for (auto idx = 0; idx < this->input_.count(); idx++)
+    for (std::size_t idx = 0; idx < this->input_.count(); idx++)
     {
         try {
             auto cache_id = "input_" + std::to_string(idx);
@@ -518,7 +517,7 @@ LimitKernel::LimitKernel(std::size_t kernel_id, const std::string & queryString,
 
 void LimitKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
-    cudaStream_t stream, const std::map<std::string, std::string>& args) {
+    cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) {
     CodeTimer eventTimer(false);
     auto & input = inputs[0];
 
@@ -577,10 +576,10 @@ kstatus LimitKernel::run() {
 
         std::vector<std::string> limit_messages_to_wait_for;
         std::vector<std::string> target_ids;
-        for (auto i = 0; i < nodes_to_send.size(); i++) {
-            target_ids.push_back(nodes_to_send[i].id());
+        for (auto & node_to_send : nodes_to_send) {
+            target_ids.push_back(node_to_send.id());
             limit_messages_to_wait_for.push_back(
-                std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + nodes_to_send[i].id());
+                std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + node_to_send.id());
         }
         ral::cache::MetadataDictionary extra_metadata;
         extra_metadata.add_value(ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL, total_batch_rows);
@@ -595,9 +594,9 @@ kstatus LimitKernel::run() {
             extra_metadata);
 
         int64_t prev_total_rows = 0;
-        for (auto i = 0; i < limit_messages_to_wait_for.size(); i++)	{
+        for (std::size_t i = 0; i < limit_messages_to_wait_for.size(); i++) {
             auto meta_message = this->query_graph->get_input_message_cache()->pullCacheData(limit_messages_to_wait_for[i]);
-            if(i < context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode())){
+            if(static_cast<int>(i) < context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode())){
                 prev_total_rows += std::stoi(static_cast<ral::cache::GPUCacheDataMetaData*>(meta_message.get())->getMetadata().get_values()[ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL]);
             }
         }

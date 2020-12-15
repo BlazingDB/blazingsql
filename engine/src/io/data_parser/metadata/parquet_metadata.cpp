@@ -30,7 +30,7 @@ std::unique_ptr<ral::frame::BlazingTable> makeMetadataTable(std::vector<std::str
 
 	std::vector<std::unique_ptr<cudf::column>> minmax_metadata_gdf_table;
 	minmax_metadata_gdf_table.resize(metadata_col_names.size());
-	for (int i = 0; i < metadata_col_names.size(); ++i) {
+	for (size_t i = 0; i < metadata_col_names.size(); ++i) {
 		std::vector<int32_t> temp{(int32_t)-1};
 		auto expected_col2 = ral::utilities::vector_to_column(temp, cudf::data_type(cudf::type_id::INT32));
 		minmax_metadata_gdf_table[i] = std::move(expected_col2);
@@ -309,7 +309,7 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 	// NOTE: we must try to use and load always a parquet reader that row groups > 0
 	int valid_parquet_reader = -1;
 
-	for (int i = 0; i < parquet_readers.size(); ++i) {
+	for (size_t i = 0; i < parquet_readers.size(); ++i) {
 		if (parquet_readers[i]->metadata()->num_row_groups() == 0) {
 			continue;
 		}
@@ -386,7 +386,7 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 			for (int row_group_index = 0; row_group_index < num_row_groups; row_group_index++) {
 				auto groupReader = parquet_readers[file_index]->RowGroup(row_group_index);
 				auto *rowGroupMetadata = groupReader->metadata();
-				for (int col_count = 0; col_count < columns_with_metadata.size(); col_count++) {
+				for (size_t col_count = 0; col_count < columns_with_metadata.size(); col_count++) {
 					const parquet::ColumnDescriptor *column = schema->Column(columns_with_metadata[col_count]);
 					auto columnMetaData = rowGroupMetadata->ColumnChunk(columns_with_metadata[col_count]);
 					if (columnMetaData->is_stats_set()) {

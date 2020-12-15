@@ -62,18 +62,16 @@ std::vector<data_handle> gdf_data_provider::get_some(std::size_t num_files, bool
 }
 
 
-data_handle gdf_data_provider::get_next(bool open_file) {
-	if(column_values.size() == 0){
+data_handle gdf_data_provider::get_next(bool /*open_file*/) {
+	if(column_values.size() == 0) {
 		data_handle handle(nullptr,{},Uri("gdf"),table_views[current_file]);
 		current_file++;
 		return handle;
-
-	}else{
+	} else {
 		data_handle handle(nullptr,column_values[current_file],Uri("gdf"),table_views[current_file]);
 		current_file++;
 		return handle;
 	}
-
 }
 
 /**

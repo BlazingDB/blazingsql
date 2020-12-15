@@ -23,9 +23,9 @@ namespace io{
 	void read_from_socket(int socket_fd, void * data, size_t read_size){
 		size_t amount_read = 0;
 		int bytes_read = 0;
-		int count_invalids = 0;
+        size_t count_invalids = 0;
 		while (amount_read < read_size && count_invalids < NUMBER_RETRIES) {
-			bytes_read = read(socket_fd, data + amount_read, read_size - amount_read);
+			bytes_read = read(socket_fd, static_cast<uint8_t*>(data) + amount_read, read_size - amount_read);
 			if (bytes_read != -1) {
 				amount_read += bytes_read;
 				count_invalids = 0;
@@ -44,9 +44,9 @@ namespace io{
     void write_to_socket(int socket_fd, void * data, size_t write_size){
 		size_t amount_written = 0;
 		int bytes_written = 0;
-		int count_invalids = 0;
+        size_t count_invalids = 0;
 		while (amount_written < write_size && count_invalids < NUMBER_RETRIES) {
-			bytes_written = write(socket_fd, data + amount_written, write_size - amount_written);
+			bytes_written = write(socket_fd, static_cast<uint8_t*>(data) + amount_written, write_size - amount_written);
 
 			if (bytes_written != -1) {
 				amount_written += bytes_written;
@@ -92,7 +92,7 @@ ucp_progress_manager * ucp_progress_manager::get_instance() {
 }
 
 ucp_progress_manager::ucp_progress_manager(ucp_worker_h ucp_worker, size_t request_size) :
- ucp_worker{ucp_worker}, _request_size{request_size} {
+ _request_size{request_size}, ucp_worker{ucp_worker} {
     std::thread t([this]{
         cudaSetDevice(0);
         this->check_progress();
@@ -189,14 +189,15 @@ std::shared_ptr<ral::cache::graph> graphs_info::get_graph(int32_t ctx_token) {
 
 
 ucx_buffer_transport::ucx_buffer_transport(size_t request_size,
-	ucp_worker_h origin_node,
+    ucp_worker_h origin_node,
     std::vector<node> destinations,
-	ral::cache::MetadataDictionary metadata,
-	std::vector<size_t> buffer_sizes,
-	std::vector<blazingdb::transport::ColumnTransport> column_transports,
-	int ral_id)
-	: ral_id{ral_id}, buffer_transport(metadata, buffer_sizes, column_transports,destinations), origin_node(origin_node), _request_size{request_size}{
-	tag = generate_message_tag();
+    ral::cache::MetadataDictionary metadata,
+    std::vector<size_t> buffer_sizes,
+    std::vector<blazingdb::transport::ColumnTransport> column_transports,
+    uint16_t ral_id)
+    : buffer_transport(metadata, buffer_sizes, column_transports,destinations),
+    origin_node(origin_node), ral_id{ral_id}, _request_size{request_size} {
+        tag = generate_message_tag();
 }
 
 ucx_buffer_transport::~ucx_buffer_transport() {
@@ -205,22 +206,22 @@ ucx_buffer_transport::~ucx_buffer_transport() {
 std::atomic<int> atomic_message_id(0);
 
 ucp_tag_t ucx_buffer_transport::generate_message_tag() {
-	auto current_message_id = atomic_message_id.fetch_add(1);
-	blazing_ucp_tag blazing_tag = {current_message_id, ral_id, 0u};
-	this->message_id = blazing_tag.message_id;
-	return *reinterpret_cast<ucp_tag_t *>(&blazing_tag);
+    auto current_message_id = atomic_message_id.fetch_add(1);
+    blazing_ucp_tag blazing_tag = {current_message_id, ral_id, 0U};
+    this->message_id = blazing_tag.message_id;
+    return *reinterpret_cast<ucp_tag_t *>(&blazing_tag);
 }
 
 void ucx_buffer_transport::send_begin_transmission() {
-	std::shared_ptr<std::vector<char>> buffer_to_send = std::make_shared<std::vector<char>>(detail::serialize_metadata_and_transports_and_buffer_sizes(metadata, column_transports, buffer_sizes));
+    std::shared_ptr<std::vector<char>> buffer_to_send = std::make_shared<std::vector<char>>(detail::serialize_metadata_and_transports_and_buffer_sizes(metadata, column_transports, buffer_sizes));
 
-	std::vector<char *> requests(destinations.size());
-	int i = 0;
-	for(auto const & node : destinations) {
+    std::vector<char *> requests(destinations.size());
+    int i = 0;
+    for(auto const & node : destinations) {
         char * request = new char[_request_size];
-		auto temp_tag = *reinterpret_cast<blazing_ucp_tag *>(&tag);
-		auto status = ucp_tag_send_nbr(
-			node.get_ucp_endpoint(), buffer_to_send->data(), buffer_to_send->size(), ucp_dt_make_contig(1), tag, request + _request_size);
+        //auto temp_tag = *reinterpret_cast<blazing_ucp_tag *>(&tag);
+        auto status = ucp_tag_send_nbr(
+            node.get_ucp_endpoint(), buffer_to_send->data(), buffer_to_send->size(), ucp_dt_make_contig(1), tag, request + _request_size);
 
         if (!UCS_STATUS_IS_ERR(status)) {
             ucp_progress_manager::get_instance()->add_send_request(request, [buffer_to_send, this]() mutable {
@@ -258,13 +259,13 @@ void ucx_buffer_transport::send_impl(const char * buffer, size_t buffer_size) {
 
 tcp_buffer_transport::tcp_buffer_transport(
         std::vector<node> destinations,
-		ral::cache::MetadataDictionary metadata,
-		std::vector<size_t> buffer_sizes,
-		std::vector<blazingdb::transport::ColumnTransport> column_transports,
-        int ral_id,
+        ral::cache::MetadataDictionary metadata,
+        std::vector<size_t> buffer_sizes,
+        std::vector<blazingdb::transport::ColumnTransport> column_transports,
+        uint16_t ral_id,
         ctpl::thread_pool<BlazingThread> * allocate_copy_buffer_pool)
-        : ral_id{ral_id}, buffer_transport(metadata, buffer_sizes, column_transports,destinations),
-	    allocate_copy_buffer_pool{allocate_copy_buffer_pool} {
+        : buffer_transport(metadata, buffer_sizes, column_transports,destinations),
+        ral_id{ral_id}, allocate_copy_buffer_pool{allocate_copy_buffer_pool} {
 
         //Initialize connection to get
     cudaStreamCreate(&stream);
@@ -292,7 +293,6 @@ tcp_buffer_transport::tcp_buffer_transport(
 }
 
 void tcp_buffer_transport::send_begin_transmission(){
-    status_code status;
     std::vector<char> buffer_to_send = detail::serialize_metadata_and_transports_and_buffer_sizes(metadata, column_transports,buffer_sizes);
 	auto size_to_send = buffer_to_send.size();
 
@@ -346,7 +346,7 @@ void tcp_buffer_transport::send_impl(const char * buffer, size_t buffer_size){
             chunk++;
         }
 
-        for (auto socket_fd : socket_fds){
+        for(size_t i = 0; i < socket_fds.size(); ++i){
             increment_frame_transmission();
         }
     }catch(const std::exception & e ){

@@ -138,8 +138,8 @@ cdef unique_ptr[cio.ResultSet] parseMetadataPython(vector[string] files, pair[in
     with nogil:
         return blaz_move( cio.parseMetadata(files, offset, schema, file_format_hint,arg_keys,arg_values) )
 
-cdef shared_ptr[cio.graph] runGenerateGraphPython(int masterIndex,vector[string] worker_ids, vector[string] tableNames, vector[string] tableScans, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken,vector[vector[map[string,string]]] uri_values_cpp, map[string,string] config_options, string sql) except +:
-    return cio.runGenerateGraph(masterIndex, worker_ids, tableNames, tableScans, tableSchemas, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query, accessToken, uri_values_cpp, config_options,sql)
+cdef shared_ptr[cio.graph] runGenerateGraphPython(uint32_t masterIndex,vector[string] worker_ids, vector[string] tableNames, vector[string] tableScans, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, vector[vector[map[string,string]]] uri_values_cpp, map[string,string] config_options, string sql) except +:
+    return cio.runGenerateGraph(masterIndex, worker_ids, tableNames, tableScans, tableSchemas, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query, uri_values_cpp, config_options,sql)
 
 cdef unique_ptr[cio.PartitionedResultSet] runExecuteGraphPython(shared_ptr[cio.graph] graph, int ctx_token) except +:
     with nogil:
@@ -158,11 +158,11 @@ cdef cio.TableScanInfo getTableScanInfoPython(string logicalPlan) nogil:
         temp = cio.getTableScanInfo(logicalPlan)
     return temp
 
-cdef pair[pair[shared_ptr[cio.CacheMachine], shared_ptr[cio.CacheMachine] ], int] initializePython(int ralId, string worker_id, int gpuId, string network_iface_name,  
+cdef pair[pair[shared_ptr[cio.CacheMachine], shared_ptr[cio.CacheMachine] ], int] initializePython(uint16_t ralId, string worker_id, string network_iface_name,
     int ralCommunicationPort, vector[NodeMetaDataUCP] workers_ucp_info, bool singleNode, map[string,string] config_options,
     string allocation_mode, size_t initial_pool_size, size_t maximum_pool_size, bool enable_logging) nogil except +:
     with nogil:
-        return cio.initialize( ralId, worker_id, gpuId, network_iface_name, ralCommunicationPort, workers_ucp_info, singleNode, config_options, allocation_mode, initial_pool_size, maximum_pool_size, enable_logging)
+        return cio.initialize( ralId, worker_id, network_iface_name, ralCommunicationPort, workers_ucp_info, singleNode, config_options, allocation_mode, initial_pool_size, maximum_pool_size, enable_logging)
 
 
 cdef void finalizePython() nogil except +:
@@ -292,9 +292,9 @@ cdef class PyBlazingCache:
         df._rename_columns(decoded_names)
         return df, metadata_py
 
-cpdef initializeCaller(int ralId, string worker_id, int gpuId, string network_iface_name,  int ralCommunicationPort, vector[NodeMetaDataUCP] workers_ucp_info, 
+cpdef initializeCaller(uint16_t ralId, string worker_id, string network_iface_name,  int ralCommunicationPort, vector[NodeMetaDataUCP] workers_ucp_info,
         bool singleNode, map[string,string] config_options, string allocation_mode, size_t initial_pool_size, size_t maximum_pool_size, bool enable_logging):
-    init_output = initializePython( ralId, worker_id, gpuId, network_iface_name,  ralCommunicationPort, workers_ucp_info, singleNode, config_options,
+    init_output = initializePython( ralId, worker_id, network_iface_name,  ralCommunicationPort, workers_ucp_info, singleNode, config_options,
         allocation_mode, initial_pool_size, maximum_pool_size, enable_logging)
     caches = init_output.first
     port = init_output.second
@@ -435,7 +435,7 @@ cdef class PyBlazingGraph:
     cpdef set_input_and_output_caches(self, PyBlazingCache input_cache, PyBlazingCache output_cache):
         deref(self.ptr).set_input_and_output_caches(input_cache.c_cache, output_cache.c_cache)
 
-cpdef runGenerateGraphCaller(int masterIndex, worker_ids, tables,  table_scans, vector[int] fileTypes, int ctxToken, queryPy, unsigned long accessToken, map[string,string] config_options, sql):
+cpdef runGenerateGraphCaller(uint32_t masterIndex, worker_ids, tables,  table_scans, vector[int] fileTypes, int ctxToken, queryPy, map[string,string] config_options, sql):
     cdef string sql_c
     sql_c = sql.encode()
     cdef string query
@@ -541,7 +541,7 @@ cpdef runGenerateGraphCaller(int masterIndex, worker_ids, tables,  table_scans, 
     for worker_id in worker_ids:
         worker_ids_c.push_back(worker_id.encode())
 
-    pyGraph.ptr = runGenerateGraphPython(masterIndex, worker_ids_c, tableNames, tableScans, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query,accessToken,uri_values_cpp_all, config_options,sql_c)
+    pyGraph.ptr = runGenerateGraphPython(masterIndex, worker_ids_c, tableNames, tableScans, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query, uri_values_cpp_all, config_options,sql_c)
     return pyGraph
 
 cpdef runExecuteGraphCaller(PyBlazingGraph graph, int ctx_token, bool is_single_node):
