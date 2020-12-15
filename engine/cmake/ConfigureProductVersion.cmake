@@ -26,19 +26,19 @@ function(configure_bsqlengine_config_header)
         string(REPLACE "\"" "" OS_RELEASE ${OS_RELEASE})
     endif()
 
-    configure_file(${CMAKE_SOURCE_DIR}/bsqlengine_config.h.cmake ${PROJECT_BINARY_DIR}/bsqlengine_config.h)
+    configure_file(${PROJECT_SOURCE_DIR}/bsqlengine_config.h.cmake ${PROJECT_BINARY_DIR}/bsqlengine_config.h)
 endfunction()
 
 
 # This target will update the git (and other info from CLIs) information in the header git-config-bsql-engine.h, see config-bsql-engine.h.cmake
 add_custom_target(UpdateBSQLEngineInternalConfig
-    COMMAND bash ${CMAKE_SOURCE_DIR}/update_bsqlengine_config.sh "${PROJECT_BINARY_DIR}"
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/..)
+    COMMAND bash ${PROJECT_SOURCE_DIR}/update_bsqlengine_config.sh "${PROJECT_BINARY_DIR}"
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/..)
 
 #execute_process(
-#    COMMAND bash ${CMAKE_SOURCE_DIR}/scripts/build-google-cloud-cpp.sh "${CMAKE_SOURCE_DIR}"
+#    COMMAND bash ${PROJECT_SOURCE_DIR}/scripts/build-google-cloud-cpp.sh "${PROJECT_SOURCE_DIR}"
 #    RESULT_VARIABLE result
-#    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+#    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 #)
 
 configure_bsqlengine_config_header()
@@ -47,7 +47,7 @@ configure_bsqlengine_config_header()
 #    TARGET blazingsql-engine
 #    PRE_BUILD
 #    COMMAND 
-#    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/../
+#    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/../
 #)
 
 # NOTE percy when build ral cpp

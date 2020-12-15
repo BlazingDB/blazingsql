@@ -226,7 +226,7 @@ cudf::data_type infer_type_from_literal_token(const lexer::token & token) {
       float casted_float = static_cast<float>(parsed_double);
       return parsed_double == casted_float ? cudf::data_type{cudf::type_id::FLOAT32} : cudf::data_type{cudf::type_id::FLOAT64};
     } else {
-      int64_t parsed_int64 = std::stoll(token_value);
+      //int64_t parsed_int64 = std::stoll(token_value);
       // as other SQL engines, defaults to int32
       return cudf::data_type{cudf::type_id::INT32};
     }
