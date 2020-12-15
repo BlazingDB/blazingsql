@@ -16,23 +16,6 @@ orc_parser::~orc_parser() {
 	// TODO Auto-generated destructor stub
 }
 
-cudf_io::table_with_metadata get_new_orc(cudf_io::orc_reader_options orc_opts,
-	std::shared_ptr<arrow::io::RandomAccessFile> arrow_file_handle,
-	bool first_row_only = false){
-
-	auto arrow_source = cudf_io::arrow_io_source{arrow_file_handle};
-	orc_opts = cudf_io::orc_reader_options::builder(cudf::io::source_info{&arrow_source});
-
-	if (first_row_only)
-		orc_opts.set_num_rows(1);
-
-	cudf_io::table_with_metadata table_out = cudf_io::read_orc(orc_opts);
-
-	arrow_file_handle->Close();
-
-	return std::move(table_out);
-}
-
 std::unique_ptr<ral::frame::BlazingTable> orc_parser::parse_batch(
 	ral::io::data_handle handle,
 	const Schema & schema,
@@ -46,7 +29,7 @@ std::unique_ptr<ral::frame::BlazingTable> orc_parser::parse_batch(
 	}
 	if(column_indices.size() > 0) {
 		// Fill data to orc_opts
-		auto arrow_source = cudf_io::arrow_io_source{file};
+		auto arrow_source = cudf::io::arrow_io_source{file};
 		cudf::io::orc_reader_options orc_opts = getOrcReaderOptions(args_map, arrow_source);
 
 		std::vector<std::string> col_names;
@@ -59,7 +42,7 @@ std::unique_ptr<ral::frame::BlazingTable> orc_parser::parse_batch(
 		orc_opts.set_columns(col_names);
 		orc_opts.set_stripes(row_groups);
 
-		auto result = cudf_io::read_orc(orc_opts);
+		auto result = cudf::io::read_orc(orc_opts);
 
 		return std::make_unique<ral::frame::BlazingTable>(std::move(result.tbl), result.metadata.column_names);
 	}
@@ -69,11 +52,11 @@ std::unique_ptr<ral::frame::BlazingTable> orc_parser::parse_batch(
 void orc_parser::parse_schema(
 	std::shared_ptr<arrow::io::RandomAccessFile> file, ral::io::Schema & schema) {
 
-	auto arrow_source = cudf_io::arrow_io_source{file};
+	auto arrow_source = cudf::io::arrow_io_source{file};
 	cudf::io::orc_reader_options orc_opts = getOrcReaderOptions(args_map, arrow_source);
 	orc_opts.set_num_rows(1);
 
-	cudf_io::table_with_metadata table_out = cudf_io::read_orc(orc_opts);
+	cudf::io::table_with_metadata table_out = cudf::io::read_orc(orc_opts);
 	file->Close();
 
 	for(cudf::size_type i = 0; i < table_out.tbl->num_columns() ; i++) {

@@ -155,6 +155,7 @@ else
                 git clone --depth 1 https://github.com/BlazingDB/blazingsql-testing-files.git --branch master --single-branch
                 cd blazingsql-testing-files/data
                 tar xf tpch.tar.gz
+                tar xf tpch-json.tar.gz -C .
                 tar xf smiles.tar.gz
                 logger "$CONDA_PREFIX/blazingsql-testing-files folder for end to end tests... ready!"
             fi

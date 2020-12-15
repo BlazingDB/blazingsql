@@ -94,6 +94,7 @@ bool is_binary_operator(operator_type op) {
 	case operator_type::BLZ_TO_DATE:
 	case operator_type::BLZ_TO_TIMESTAMP:
 	case operator_type::BLZ_STR_TRIM:
+	case operator_type::BLZ_STR_REGEXP_REPLACE:
 		assert(false);
 		// Ternary operator. Should not reach here
 		// Should be evaluated in place (inside function_evaluator_transformer) and removed from the tree
@@ -231,6 +232,7 @@ cudf::type_id get_output_type(operator_type op, cudf::type_id input_left_type, c
 		return cudf::type_id::BOOL8;
 	case operator_type::BLZ_STR_SUBSTRING:
 	case operator_type::BLZ_STR_REPLACE:
+	case operator_type::BLZ_STR_REGEXP_REPLACE:
 	case operator_type::BLZ_STR_CONCAT:
 	case operator_type::BLZ_STR_TRIM:
 		return cudf::type_id::STRING;
@@ -307,6 +309,7 @@ operator_type map_to_operator_type(const std::string & operator_token) {
 		{"MAGIC_IF_NOT", operator_type::BLZ_MAGIC_IF_NOT},
 		{"LIKE", operator_type::BLZ_STR_LIKE},
 		{"SUBSTRING", operator_type::BLZ_STR_SUBSTRING},
+		{"REGEXP_REPLACE", operator_type::BLZ_STR_REGEXP_REPLACE},
 		{"REPLACE", operator_type::BLZ_STR_REPLACE},
 		{"TO_DATE", operator_type::BLZ_TO_DATE},
 		{"TO_TIMESTAMP", operator_type::BLZ_TO_TIMESTAMP},
