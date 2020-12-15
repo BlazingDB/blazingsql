@@ -188,7 +188,6 @@ void SortAndSampleKernel::do_process(std::vector< std::unique_ptr<ral::frame::Bl
     CodeTimer eventTimer(false);
 
     auto& operation_type = args.at("operation_type");
-    BlazingThread partition_plan_thread;
 
     auto & input = inputs[0];
     // TODO: reveive new operation_types
@@ -207,7 +206,7 @@ void SortAndSampleKernel::do_process(std::vector< std::unique_ptr<ral::frame::Bl
 
         if (population_sampled > max_order_by_samples)	{
             avg_bytes_per_row = localTotalNumRows == 0 ? 1 : localTotalBytes/localTotalNumRows;
-            // TODO: we want this function be in a new one operation_type:compute_partition_plan
+            // TODO: we want this function be in a new one operation_type:compute_partition_plan, inputs should be the samples
             //ral::execution::executor::get_instance()->add_task(
             //        std::move(inputs),
             //        this->output_cache("output_b"),

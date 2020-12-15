@@ -45,8 +45,8 @@ public:
 	std::string kernel_name() { return "SortAndSample";}
 
 	void compute_partition_plan(std::vector<ral::frame::BlazingTableView> sampledTableViews,
-	std::size_t avg_bytes_per_row,
-	std::size_t local_total_num_rows);
+		std::size_t avg_bytes_per_row,
+		std::size_t local_total_num_rows);
 
 	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
@@ -63,6 +63,7 @@ private:
 	int max_order_by_samples = 10000;
 	std::size_t localTotalNumRows = 0;
     std::size_t localTotalBytes = 0;
+	BlazingThread partition_plan_thread;
 };
 
 class PartitionKernel : public distributing_kernel {

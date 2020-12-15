@@ -59,6 +59,7 @@ kstatus UnionKernel::run() {
             cache_data_a = cache_machine_a->pullCacheData();
         }
     });
+
     BlazingThread right_thread([this, &cache_machine_b, &cache_data_b](){
         while(cache_data_b != nullptr){
             std::vector<cudf::data_type> data_types = cache_data_b->get_schema();

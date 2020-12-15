@@ -910,7 +910,7 @@ void JoinPartitionKernel::do_process(std::vector<std::unique_ptr<ral::frame::Bla
 			small_output_cache_name, //cache_id
 			small_table_idx //message_tracker_idx
 		);
-	}	else if (operation_type == "big_table_passthrough") {
+	} else if (operation_type == "big_table_passthrough") {
 		std::string big_output_cache_name = scatter_left_right.first ? "output_b" : "output_a";
 		int big_table_idx = scatter_left_right.first ? RIGHT_TABLE_IDX : LEFT_TABLE_IDX;
 
