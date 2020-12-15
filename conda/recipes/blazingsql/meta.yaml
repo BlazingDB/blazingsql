@@ -54,7 +54,7 @@ requirements:
 test:
     requires:
         - cudatoolkit {{ cuda_version }}.*
-        - gtest 1.8.0
+        - gtest 1.10
     imports:
         - cio
 
