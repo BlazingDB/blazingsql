@@ -206,7 +206,7 @@ cdef extern from "../include/engine/common.h" nogil:
 
 cdef extern from "../include/engine/engine.h" nogil:
 
-        shared_ptr[graph] runGenerateGraph(int masterIndex,vector[string] worker_ids, vector[string] tableNames, vector[string] tableScans, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, unsigned long accessToken, vector[vector[map[string,string]]] uri_values_cpp, map[string,string] config_options, string sql) except +raiseRunGenerateGraphError
+        shared_ptr[graph] runGenerateGraph(uint32_t masterIndex,vector[string] worker_ids, vector[string] tableNames, vector[string] tableScans, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, vector[vector[map[string,string]]] uri_values_cpp, map[string,string] config_options, string sql) except +raiseRunGenerateGraphError
         unique_ptr[PartitionedResultSet] runExecuteGraph(shared_ptr[graph], int ctx_token) nogil except +raiseRunExecuteGraphError
 
         #unique_ptr[ResultSet] performPartition(int masterIndex, int ctxToken, BlazingTableView blazingTableView, vector[string] columnNames) except +raisePerformPartitionError
@@ -215,7 +215,7 @@ cdef extern from "../include/engine/engine.h" nogil:
         TableScanInfo getTableScanInfo(string logicalPlan)
 
 cdef extern from "../include/engine/initialize.h" nogil:
-    cdef pair[pair[shared_ptr[CacheMachine], shared_ptr[CacheMachine] ], int] initialize(int ralId, string worker_id, int gpuId, string network_iface_name, int ralCommunicationPort, vector[NodeMetaDataUCP] workers_ucp_info, bool singleNode, map[string,string] config_options, string allocation_mode, size_t initial_pool_size, size_t maximum_pool_size,	bool enable_logging) nogil except +raiseInitializeError
+    cdef pair[pair[shared_ptr[CacheMachine], shared_ptr[CacheMachine] ], int] initialize(uint16_t ralId, string worker_id, string network_iface_name, int ralCommunicationPort, vector[NodeMetaDataUCP] workers_ucp_info, bool singleNode, map[string,string] config_options, string allocation_mode, size_t initial_pool_size, size_t maximum_pool_size,	bool enable_logging) nogil except +raiseInitializeError
     cdef void finalize() nogil except +raiseFinalizeError
     cdef size_t getFreeMemory() nogil except +raiseGetFreeMemoryError
 

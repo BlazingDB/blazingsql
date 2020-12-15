@@ -68,7 +68,7 @@ std::vector<NodeColumnView> partitionData(Context * context,
 											const std::vector<int> & searchColIndices,
 											std::vector<cudf::order> sortOrderTypes) {
 
-	RAL_EXPECTS(pivots.view().num_columns() == searchColIndices.size(), "Mismatched pivots num_columns and searchColIndices");
+	RAL_EXPECTS(static_cast<size_t>(pivots.view().num_columns()) == searchColIndices.size(), "Mismatched pivots num_columns and searchColIndices");
 
 	cudf::size_type num_rows = table.view().num_rows();
 	if(num_rows == 0) {
@@ -106,9 +106,9 @@ std::vector<NodeColumnView> partitionData(Context * context,
 
 	int step = static_cast<int>(partitioned_data.size() / all_nodes.size());
 	std::vector<NodeColumnView> partitioned_node_column_views;
-	for (int i = 0; i < partitioned_data.size(); i++){
+	for (int i = 0; static_cast<size_t>(i) < partitioned_data.size(); i++){
 		int node_idx = std::min(i / step, static_cast<int>(all_nodes.size() - 1));
-		partitioned_node_column_views.push_back(std::make_pair(all_nodes[node_idx], BlazingTableView(partitioned_data[i], table.names())));
+		partitioned_node_column_views.emplace_back(all_nodes[node_idx], BlazingTableView(partitioned_data[i], table.names()));
 	}
 
 	return partitioned_node_column_views;

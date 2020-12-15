@@ -225,7 +225,7 @@ cudf::io::csv_reader_options getCsvReaderOptions(const std::map<std::string, std
 
 std::map<std::string, std::string> to_map(std::vector<std::string> arg_keys, std::vector<std::string> arg_values) {
 	std::map<std::string, std::string> ret;
-	for(int i = 0; i < arg_keys.size(); ++i) {
+	for(size_t i = 0; i < arg_keys.size(); ++i) {
 		ret[arg_keys[i]] = arg_values[i];
 	}
 	return ret;
@@ -239,6 +239,7 @@ std::string getDataTypeName(DataType dataType) {
 	case DataType::JSON: return "json"; break;
 	case DataType::CUDF: return "cudf"; break;
 	case DataType::DASK_CUDF: return "dask_cudf"; break;
+	default: break;
 	}
 
 	return "undefined";

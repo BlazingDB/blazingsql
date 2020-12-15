@@ -67,7 +67,7 @@ public:
 	static bool contains(std::string & haystack, std::string needle);
 	static std::vector<bool> generateQuotedVector(std::string input);
 	static int findFirstNotInQuotes(std::string haystack, std::string needle);
-	static int findFirstNotInQuotes(std::string haystack, std::string needle, int pos, std::vector<bool> & quoted);
+	static int findFirstNotInQuotes(std::string haystack, std::string needle, size_t pos, std::vector<bool> & quoted);
 	static int findFirstNotInQuotes(std::string haystack, std::vector<std::string> needles, std::string & needleFound);
 	static int findFirstNotInQuotes(std::string haystack,
 		std::vector<std::string> needles,

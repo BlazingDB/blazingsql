@@ -35,7 +35,7 @@ PinnedBufferProvider::PinnedBufferProvider(std::size_t sizeBuffers,
   if (err != cudaSuccess) {
     throw std::exception();
   }
-  for (int bufferIndex = 0; bufferIndex < this->numBuffers; bufferIndex++) {
+  for (size_t bufferIndex = 0; bufferIndex < this->numBuffers; bufferIndex++) {
     PinnedBuffer *buffer = new PinnedBuffer();
     buffer->size = this->bufferSize;
     buffer->data = allocations[0] + bufferIndex * this->bufferSize;
@@ -73,9 +73,9 @@ PinnedBuffer *PinnedBufferProvider::getBuffer() {
 void PinnedBufferProvider::grow() {
   allocations.resize(allocations.size() + 1);
   std::size_t num_new_buffers = this->numBuffers/2;
-  cudaError_t err = cudaMallocHost((void **)&allocations[allocations.size() -1], this->bufferSize * num_new_buffers);
-  for (int bufferIndex = 0; bufferIndex < num_new_buffers; bufferIndex++) {
-    PinnedBuffer *buffer = new PinnedBuffer();
+  cudaError_t err = cudaMallocHost(reinterpret_cast<void **>(&allocations[allocations.size() -1]), this->bufferSize * num_new_buffers);
+  for (size_t bufferIndex = 0; bufferIndex < num_new_buffers; bufferIndex++) {
+    auto *buffer = new PinnedBuffer();
     buffer->size = this->bufferSize;
     buffer->data = allocations[allocations.size() -1] + bufferIndex * this->bufferSize;
     this->buffers.push(buffer);

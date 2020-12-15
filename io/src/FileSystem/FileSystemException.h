@@ -25,7 +25,7 @@ public:
 		const std::string & uri1,
 		const std::string & uri2) noexcept;
 
-	const FileSystemType getFileSystemType() const noexcept;
+	FileSystemType getFileSystemType() const noexcept;
 	const std::string getError() const noexcept;
 	const std::string getUri1() const noexcept;
 	const std::string getUri2() const noexcept;

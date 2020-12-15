@@ -14,14 +14,16 @@
 #include "Util/StringUtil.h"
 
 HadoopFileSystem::Private::Private(const FileSystemConnection & fileSystemConnection, const Path & root)
-	: hdfs(nullptr), connected(false), root(root) {
+	: connected(false), root(root), hdfs(nullptr) {
 	// TODO percy improve & error handling
-	const bool connected = this->connect(fileSystemConnection);
+//	const bool connected = this->connect(fileSystemConnection);
+    this->connect(fileSystemConnection);
 }
 
 HadoopFileSystem::Private::~Private() {
 	// TODO percy improve & error handling
-	const bool disconnected = this->disconnect();
+//	const bool disconnected = this->disconnect();
+	this->disconnect();
 }
 
 bool HadoopFileSystem::Private::connect(const FileSystemConnection & fileSystemConnection) {
@@ -36,14 +38,14 @@ bool HadoopFileSystem::Private::connect(const FileSystemConnection & fileSystemC
 	const int port = atoi(fileSystemConnection.getConnectionProperty(ConnectionProperty::PORT).c_str());
 	const std::string user = fileSystemConnection.getConnectionProperty(ConnectionProperty::USER);
 
-	DriverType driver;
+	/*DriverType driver;
 
 	// TODO percy too long maybe we should use direct string constants here instead of const map
 	if(fileSystemConnection.getConnectionProperty(ConnectionProperty::DRIVER_TYPE) == "LIBHDFS3") {
 		driver = DriverType::LIBHDFS3;
 	} else if(fileSystemConnection.getConnectionProperty(ConnectionProperty::DRIVER_TYPE) == "LIBHDFS") {
 		driver = DriverType::LIBHDFS;
-	}
+	}*/
 
 	const std::string kerberosTicket = fileSystemConnection.getConnectionProperty(ConnectionProperty::KERBEROS_TICKET);
 
@@ -423,7 +425,7 @@ bool HadoopFileSystem::Private::move(const Uri & src, const Uri & dst) const {
 	return ret;
 }
 
-bool HadoopFileSystem::Private::truncateFile(const Uri & uri, long long length) const {
+bool HadoopFileSystem::Private::truncateFile(const Uri & uri, unsigned long long length) const {
 	const FileStatus fileStatus = this->getFileStatus(uri);
 
 	if(fileStatus.getFileSize() == length) {
