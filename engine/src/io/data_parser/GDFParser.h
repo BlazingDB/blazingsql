@@ -15,14 +15,14 @@ namespace io {
 
 class gdf_parser : public data_parser {
 public:
-	gdf_parser(std::vector<frame::BlazingTableView> blazingTableViews);
-
-	size_t get_num_partitions();
+	gdf_parser();
 
 	virtual ~gdf_parser();
 
+	size_t get_num_partitions();
+
 	std::unique_ptr<ral::frame::BlazingTable> parse_batch(
-		std::shared_ptr<arrow::io::RandomAccessFile> file,
+		ral::io::data_handle handle,
 		const Schema & schema,
 		std::vector<int> column_indices,
 		std::vector<cudf::size_type> row_groups);
@@ -32,7 +32,7 @@ public:
 	DataType type() const override { return DataType::CUDF; }
 
 private:
-	std::vector<frame::BlazingTableView> blazingTableViews_;
+
 };
 
 } /* namespace io */

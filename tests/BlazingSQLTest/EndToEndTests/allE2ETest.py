@@ -63,6 +63,7 @@ from EndToEndTests import configOptionsTest
 from EndToEndTests import smilesTest
 from EndToEndTests import loggingTest
 from EndToEndTests import dayOfWeekTest
+from EndToEndTests import jsonTest
 from pynvml import nvmlInit
 from Runner import runTest
 from Utils import Execution, init_context
@@ -96,7 +97,7 @@ def main():
         createSchema.init_drill_schema(
             drill, Settings.data["TestSettings"]["dataDirectory"], smiles_test=True, fileSchemaType=DataType.PARQUET
         )
-        
+
         # Create Table Spark -------------------------------------------------
         from pyspark.sql import SparkSession
 
@@ -238,7 +239,7 @@ def main():
 
     if runAllTests or ("substringTest" in targetTestGroups):
         substringTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
-    
+
     if runAllTests or ("stringCaseTest" in targetTestGroups):
         stringCaseTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
@@ -271,6 +272,9 @@ def main():
 
     if runAllTests or ("smilesTest" in targetTestGroups):
         smilesTest.main(dask_client, spark, dir_data_file, bc, nRals)
+
+    if runAllTests or ("jsonTest" in targetTestGroups):
+        jsonTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     # WARNING!!! This Test must be the last one to test -------------------------------------------------------------------------------------------------------------------------------------------
     if runAllTests or ("configOptionsTest" in targetTestGroups):

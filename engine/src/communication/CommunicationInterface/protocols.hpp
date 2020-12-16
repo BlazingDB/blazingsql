@@ -96,7 +96,7 @@ public:
 		ral::cache::MetadataDictionary metadata,
 		std::vector<size_t> buffer_sizes,
 		std::vector<blazingdb::transport::ColumnTransport> column_transports,
-        int ral_id);
+        uint16_t ral_id);
     ~ucx_buffer_transport();
 
     void send_begin_transmission() override;
@@ -107,7 +107,7 @@ protected:
 private:
 
     ucp_worker_h origin_node;
-    int ral_id;
+    uint16_t ral_id;
     /**
      * Generates message tag.
      * Generates a tag for the message where the first 4 bytes are our
@@ -119,7 +119,7 @@ private:
     ucp_tag_t tag;  /**< The first 6 bytes are the actual tag the last two
                          indicate which frame this is. */
 
-    int message_id;
+    int32_t message_id;
 
     size_t _request_size;
 };
@@ -130,10 +130,10 @@ public:
 
     tcp_buffer_transport(
         std::vector<node> destinations,
-		ral::cache::MetadataDictionary metadata,
-		std::vector<size_t> buffer_sizes,
-		std::vector<blazingdb::transport::ColumnTransport> column_transports,
-        int ral_id,
+        ral::cache::MetadataDictionary metadata,
+        std::vector<size_t> buffer_sizes,
+        std::vector<blazingdb::transport::ColumnTransport> column_transports,
+        uint16_t ral_id,
         ctpl::thread_pool<BlazingThread> * allocate_copy_buffer_pool);
     ~tcp_buffer_transport();
 
@@ -143,8 +143,7 @@ protected:
     void send_impl(const char * buffer, size_t buffer_size) override;
 
 private:
-
-    int ral_id;
+    uint16_t ral_id;
     int message_id;
     std::vector<int> socket_fds;
     ctpl::thread_pool<BlazingThread> * allocate_copy_buffer_pool;

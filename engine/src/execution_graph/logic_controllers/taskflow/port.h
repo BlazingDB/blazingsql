@@ -19,7 +19,7 @@ struct port_helper {};
 /** stop recursion **/
 template <class PORT>
 struct port_helper<PORT> {
-	static void register_port(PORT & port) { return; }
+	static void register_port(PORT & /*port*/) { return; }
 };
 
 class port;
@@ -79,7 +79,10 @@ public:
 
 	uint64_t total_rows_added();
 
+	uint64_t total_batches_added();
+
 	uint64_t get_num_rows_added(const std::string & port_name);
+
 
 public:
 	kernel * kernel_;

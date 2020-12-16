@@ -67,7 +67,7 @@ public:
 	static bool contains(std::string & haystack, std::string needle);
 	static std::vector<bool> generateQuotedVector(std::string input);
 	static int findFirstNotInQuotes(std::string haystack, std::string needle);
-	static int findFirstNotInQuotes(std::string haystack, std::string needle, int pos, std::vector<bool> & quoted);
+	static int findFirstNotInQuotes(std::string haystack, std::string needle, size_t pos, std::vector<bool> & quoted);
 	static int findFirstNotInQuotes(std::string haystack, std::vector<std::string> needles, std::string & needleFound);
 	static int findFirstNotInQuotes(std::string haystack,
 		std::vector<std::string> needles,
@@ -81,6 +81,7 @@ public:
 	static bool match(std::string & needle, std::string & haystack) { return match(needle.c_str(), haystack.c_str()); }
 	static bool match(char const * needle, char const * haystack);
 	static void findAndReplaceAll(std::string & data, std::string toSearch, std::string replaceStr);
+	static std::string makeCommaDelimitedSequence(std::size_t n_cols);
 };
 
 /**

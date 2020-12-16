@@ -1,15 +1,17 @@
 #include "MemoryMonitor.h"
 #include "BlazingMemoryResource.h"
 #include "execution_graph/logic_controllers/PhysicalPlanGenerator.h"
+#include "execution_graph/logic_controllers/taskflow/executor.h"
 
 namespace ral {
 
-    MemoryMonitor::MemoryMonitor(std::shared_ptr<ral::batch::tree_processor> tree, std::map<std::string, std::string> config_options) : tree(tree), finished(false), resource(&blazing_device_memory_resource::getInstance()){
-        
-        
-        period = std::chrono::milliseconds(50); 
+    MemoryMonitor::MemoryMonitor(std::shared_ptr<ral::batch::tree_processor> tree,
+                                 std::map<std::string, std::string> config_options)
+    : finished(false), tree(tree), resource(&blazing_device_memory_resource::getInstance()) {
+
+        period = std::chrono::milliseconds(50);
         auto it = config_options.find("MEMORY_MONITOR_PERIOD");
-        if (it != config_options.end()){
+        if (it != config_options.end()) {
             period = std::chrono::milliseconds(std::stoull(config_options["MEMORY_MONITOR_PERIOD"]));
         }
     }
@@ -23,19 +25,45 @@ namespace ral {
         finished = true;
         lock.unlock();
         condition.notify_all();
-        this->monitor_thread.join();                
+        this->monitor_thread.join();
     }
 
     void MemoryMonitor::start(){
-        
+
         this->monitor_thread = BlazingThread([this](){
             std::unique_lock<std::mutex> lock(finished_lock);
             while(!condition.wait_for(lock, period, [this] { return this->finished; })){
                 if (need_to_free_memory()){
                     downgradeCaches(&tree->root);
+
+                    std::vector<std::unique_ptr<ral::execution::task>> tasks;
+                     // if after downgrading all caches there is still too much consumption, lets try to downgrade data in tasks
+                     // Lets pull tasks from the back of the queue, since they are ones that will not be operated on immediatelly
+                    while (need_to_free_memory()){
+
+                        std::unique_ptr<ral::execution::task> task = ral::execution::executor::get_instance()->remove_task_from_back();
+                        if (task != nullptr){
+                            std::vector<std::unique_ptr<ral::cache::CacheData > > inputs = task->release_inputs();
+                            for (std::size_t i = 0; i < inputs.size(); i++){
+                                inputs[i] = std::move(inputs[i]->downgradeCacheData(std::move(inputs[i]), "", tree->context));
+                            }
+                            task->set_inputs(std::move(inputs));
+                            tasks.push_back(std::move(task));
+                        } else {
+                            break;
+                        }
+                    }
+                    // we have now decached the inputs from either enough tasks to get below the memory limit or there are no more tasks to work with
+                    // Now lets add the tasks back to the queue in the same order they were in
+                    if (tasks.size() > 0){
+                        for (int i = tasks.size() - 1; i >= 0; i--){
+                            ral::execution::executor::get_instance()->add_task(std::move(tasks[i]));
+                        }
+                    }
+                    ral::execution::executor::get_instance()->notify_memory_safety_cv();
                 }
             }
-        });        
+        });
     }
 
     void MemoryMonitor::downgradeCaches(ral::batch::node* starting_node){
@@ -61,7 +89,7 @@ namespace ral {
                 for(auto & thread : threads) {
                     thread.join();
                 }
-            }            
-        } 
+            }
+        }
     }
 }  // namespace ral

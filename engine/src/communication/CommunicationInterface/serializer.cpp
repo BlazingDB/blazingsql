@@ -158,8 +158,6 @@ std::unique_ptr<ral::frame::BlazingTable> deserialize_from_gpu_raw_buffers(
 			cudf::data_type dtype = cudf::data_type{cudf::type_id(columns_offsets[i].metadata.dtype)};
 			cudf::size_type column_size = (cudf::size_type) columns_offsets[i].metadata.size;
 
-			cudf::valid_type * valid_ptr = nullptr;
-			cudf::size_type valid_size = 0;
 			if(columns_offsets[i].valid != -1) {
 				// this is a valid
 				auto valid_offset = columns_offsets[i].valid;

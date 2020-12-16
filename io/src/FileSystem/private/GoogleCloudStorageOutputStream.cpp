@@ -98,7 +98,7 @@ GoogleCloudStorageOutputStream::GoogleCloudStorageOutputStreamImpl::GoogleCloudS
 }
 
 arrow::Status GoogleCloudStorageOutputStream::GoogleCloudStorageOutputStreamImpl::write(
-	const void * buffer, int64_t nbytes) {
+	const void * /*buffer*/, int64_t /*nbytes*/) {
 	//    Aws::GoogleCloudStorage::Model::UploadPartRequest uploadPartRequest;
 	//	uploadPartRequest.SetBucket(bucket);
 	//	uploadPartRequest.SetKey(key);
@@ -133,6 +133,7 @@ arrow::Status GoogleCloudStorageOutputStream::GoogleCloudStorageOutputStreamImpl
 	//std::to_string(currentPart) + " on file " + this->bucket + "/" + key + ". Problem was " +
 	//uploadOutcome.GetError().GetExceptionName() + " : " + uploadOutcome.GetError().GetMessage());
 	//	}
+	return arrow::Status::OK();
 }
 
 arrow::Status GoogleCloudStorageOutputStream::GoogleCloudStorageOutputStreamImpl::flush() {
@@ -167,6 +168,7 @@ arrow::Status GoogleCloudStorageOutputStream::GoogleCloudStorageOutputStreamImpl
 
 	//	}
 	////	GoogleCloudStorageClient->CompleteMultipartUpload(uploadCompleteRequest);
+	return arrow::Status::OK();
 }
 
 arrow::Result<int64_t> GoogleCloudStorageOutputStream::GoogleCloudStorageOutputStreamImpl::tell() const {

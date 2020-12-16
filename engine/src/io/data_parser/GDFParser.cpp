@@ -14,19 +14,15 @@
 namespace ral {
 namespace io {
 
-gdf_parser::gdf_parser(std::vector<frame::BlazingTableView> blazingTableViews) : blazingTableViews_{blazingTableViews} {}
-
-size_t gdf_parser::get_num_partitions(){
-	return blazingTableViews_.size();
-}
+gdf_parser::gdf_parser() {}
 
 gdf_parser::~gdf_parser() {}
 
 std::unique_ptr<ral::frame::BlazingTable> gdf_parser::parse_batch(
-		std::shared_ptr<arrow::io::RandomAccessFile> file,
+		ral::io::data_handle data_handle,
 		const Schema & schema,
 		std::vector<int> column_indices,
-		std::vector<cudf::size_type> row_groups){
+		std::vector<cudf::size_type> /*row_groups*/){
 
 	if(schema.get_num_columns() == 0) {
 		return nullptr;
@@ -36,7 +32,7 @@ std::unique_ptr<ral::frame::BlazingTable> gdf_parser::parse_batch(
 	indices.reserve(column_indices.size());
 	std::transform(
 		column_indices.cbegin(), column_indices.cend(), std::back_inserter(indices), [](std::size_t x) { return x; });
-	CudfTableView tableView = blazingTableViews_[row_groups[0]].view().select(indices);
+	CudfTableView tableView = data_handle.table_view.view().select(indices);
 
 	if(tableView.num_columns() <= 0) {
 		Library::Logging::Logger().logWarn("gdf_parser::parse_batch no columns were read");
@@ -48,14 +44,16 @@ std::unique_ptr<ral::frame::BlazingTable> gdf_parser::parse_batch(
 	// we need to output the same column names of tableView
 	for (size_t i = 0; i < column_indices.size(); ++i) {
 		size_t idx = column_indices[i];
-		column_names_out[i] = blazingTableViews_[0].names()[idx];
+		column_names_out[i] = data_handle.table_view.names()[idx];
 	}
 
 	return std::make_unique<ral::frame::BlazingTable>(tableView, column_names_out);
 }
 
+size_t gdf_parser::get_num_partitions() {return 0;}
+
 void gdf_parser::parse_schema(
-	std::shared_ptr<arrow::io::RandomAccessFile> file, ral::io::Schema & schema) {}
+	std::shared_ptr<arrow::io::RandomAccessFile> /*file*/, ral::io::Schema & /*schema*/) {}
 
 
 }  // namespace io

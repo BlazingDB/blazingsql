@@ -1,24 +1,19 @@
 
 #pragma once
 
-#include "cudf/column/column_view.hpp"
 #include "cudf/table/table.hpp"
 #include "cudf/table/table_view.hpp"
 #include <memory>
 #include <string>
 #include <vector>
-#include <string>
-#include <bmr/BlazingMemoryResource.h>
 #include "execution_graph/logic_controllers/BlazingColumn.h"
-
 #include "BlazingHostTable.h"
 
 typedef cudf::table CudfTable;
 typedef cudf::table_view CudfTableView;
-typedef cudf::column CudfColumn;
-typedef cudf::column_view CudfColumnView;
 
 namespace ral {
+
 namespace frame {
 
 class BlazingTable;

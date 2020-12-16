@@ -3,11 +3,6 @@
 
 namespace comm {
 
- node message_receiver::get_sender_node(){
-    return _nodes_info_map.at(_metadata.get_values()[ral::cache::SENDER_WORKER_ID_METADATA_LABEL]);
-  }
-
-
 message_receiver::message_receiver(const std::map<std::string, comm::node>& nodes, const std::vector<char> & buffer)
 {
   _nodes_info_map = nodes;
@@ -23,6 +18,52 @@ message_receiver::message_receiver(const std::map<std::string, comm::node>& node
                       graph->get_kernel_output_cache(kernel_id, cache_id) : graph->get_input_message_cache();
 //_metadata.print();
 _raw_buffers.resize(_buffer_sizes.size());
+}
+
+size_t message_receiver::buffer_size(u_int16_t index){
+  return _buffer_sizes[index];
+}
+
+void message_receiver::allocate_buffer(uint16_t index, cudaStream_t stream){
+  if (index >= _raw_buffers.size()) {
+    throw std::runtime_error("Invalid access to raw buffer");
+  }
+  _raw_buffers[index].resize(_buffer_sizes[index]);//,stream);
+}
+
+node message_receiver::get_sender_node(){
+  return _nodes_info_map.at(_metadata.get_values()[ral::cache::SENDER_WORKER_ID_METADATA_LABEL]);
+}
+
+size_t message_receiver::num_buffers(){
+  return _buffer_sizes.size();
+}
+
+void message_receiver::confirm_transmission(){
+  ++_buffer_counter;
+  if (static_cast<size_t>(_buffer_counter) == _raw_buffers.size()) {
+    finish();
+  }
+}
+
+void * message_receiver::get_buffer(uint16_t index){
+  //this is ugly. We are currently doing this because
+    //the UCX apis expect a void * instead of a const void * for
+    //buffers it will fill but that it wont allocate
+    return &_raw_buffers[index][0];
+}
+
+bool message_receiver::is_finished(){
+  return (static_cast<size_t>(_buffer_counter) == _raw_buffers.size());
+}
+
+void message_receiver::finish(cudaStream_t stream) {
+  std::unique_ptr<ral::cache::CacheData> table = 
+      std::make_unique<ral::cache::CPUCacheData>(_column_transports,std::move(_raw_buffers),_metadata);
+ //     std::cout<<"calling finish "<<table->num_rows()<<std::endl;
+  _output_cache->addCacheData(
+          std::move(table), _metadata.get_values()[ral::cache::MESSAGE_ID], true);
+    
 }
 
 } // namespace comm

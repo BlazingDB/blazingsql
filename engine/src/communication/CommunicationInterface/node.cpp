@@ -2,11 +2,11 @@
 
 namespace comm{
 
-node::node(int idx, std::string id, ucp_ep_h ucp_ep, ucp_worker_h ucp_worker)
+node::node(uint16_t idx, std::string id, ucp_ep_h ucp_ep, ucp_worker_h ucp_worker)
 	: _idx{idx}, _id{id}, _ucp_ep{ucp_ep}, _ucp_worker{ucp_worker} {}
 
 
-node::node(int idx, std::string id, std::string ip, int port)
+node::node(uint16_t idx, std::string id, std::string ip, int port)
 	: _idx{idx}, _id{id}, _ip{ip}, _port{port} {}
 
 int node::index() const { return _idx; }
