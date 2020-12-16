@@ -45,6 +45,7 @@ public:
 	std::string kernel_name() { return "SortAndSample";}
 
 	void compute_partition_plan(
+		std::vector<std::unique_ptr<ral::frame::BlazingTable>> inputSamples,
 		std::size_t avg_bytes_per_row,
 		std::size_t local_total_num_rows);
 
@@ -55,7 +56,7 @@ public:
 	kstatus run() override;
 
 private:
-	std::vector<std::unique_ptr<ral::frame::BlazingTable>> sampledTables;
+	std::vector<std::unique_ptr<ral::frame::BlazingTable>> samplesTables;
 	std::size_t avg_bytes_per_row;
 	std::atomic<bool> get_samples;
 	std::atomic<bool> already_computed_partition_plan;
