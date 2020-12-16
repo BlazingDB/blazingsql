@@ -187,7 +187,7 @@ int find_closing_char(const std::string & expression, int start) {
 		return -1;
 	}
 
-	int curInd = start + 1;
+    size_t curInd = start + 1;
 	int depth = 1;
 	bool inQuotes = false;
 
@@ -221,7 +221,7 @@ int find_closing_char(const std::string & expression, int start) {
 // interprets the expression and if is n-ary and logical, then returns their corresponding binary version
 std::string expand_if_logical_op(std::string expression) {
 	std::string output = expression;
-	int start_pos = 0;
+    size_t start_pos = 0;
 
 	while(start_pos < expression.size()) {
 		std::vector<bool> is_quoted_vector = StringUtil::generateQuotedVector(expression);
@@ -277,7 +277,7 @@ std::string expand_if_logical_op(std::string expression) {
 			}
 			output += processed[processed.size() - 1] + ")";
 
-			if(expression_end < expression.size() - 1) {
+			if(static_cast<size_t>(expression_end) < expression.size() - 1) {
 				output += expression.substr(expression_end + 1);
 			}
 			expression = output;
@@ -303,7 +303,7 @@ std::string clean_calcite_expression(const std::string & expression) {
 	std::string new_string = "";
 	new_string.reserve(clean_expression.size());
 
-	for(int i = 0; i < clean_expression.size(); i++) {
+	for(size_t i = 0; i < clean_expression.size(); i++) {
 		if(clean_expression[i] == '(') {
 			new_string.push_back(' ');
 
@@ -316,20 +316,19 @@ std::string clean_calcite_expression(const std::string & expression) {
 }
 
 std::string get_string_between_outer_parentheses(std::string input_string) {
-	int start_pos, end_pos;
-	start_pos = input_string.find("(");
-	end_pos = input_string.rfind(")");
-	if(start_pos == input_string.npos || end_pos == input_string.npos || end_pos < start_pos) {
-		return "";
-	}
-	start_pos++;
+    size_t start_pos = input_string.find("(");
+    size_t end_pos = input_string.rfind(")");
+    if (start_pos == std::string::npos || end_pos == std::string::npos || end_pos < start_pos) {
+        return "";
+    }
+    start_pos++;
 	// end_pos--;
 
 	return input_string.substr(start_pos, end_pos - start_pos);
 }
 
 int count_string_occurrence(std::string haystack, std::string needle) {
-	int position = haystack.find(needle, 0);
+	size_t position = haystack.find(needle, 0);
 	int count = 0;
 	while(position != std::string::npos) {
 		count++;

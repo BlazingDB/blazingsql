@@ -1,8 +1,11 @@
+#pragma GCC diagnostic ignored "-Wunknown-pragmas"
 #include <cudf/types.hpp>
 #include <cudf/utilities/type_dispatcher.hpp>
 #include <cudf/utilities/traits.hpp>
 #include <rmm/thrust_rmm_allocator.h>
 #include <thrust/transform.h>
+#pragma GCC diagnostic pop
+
 #include "transform.hpp"
 #include "error.hpp"
 

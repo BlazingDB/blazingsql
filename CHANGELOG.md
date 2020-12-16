@@ -1,22 +1,27 @@
 # BlazingSQL 0.18.0 (Date TBS)
 
-
 ## New Features
 - #1139 Adding centralized task executor for kernels
+- #1200 Implement string REGEXP_REPLACE
 - #1237 Added task memory management
 - #1244 Added memory monitor ability to downgrade task data
 - #1232 Update PartwiseJoin and JoinPartition kernel using the task executor internally
 - #1238 Implements MergeStramKernel executor model
 - #1260 Adding the INITCAP function 
+- #1259 Implements SortAndSamplernel executor model, also avoid setting up num of samples
 
 ## Improvements
 - #1236 Moving code from header files to implementation files
+- #1257 Expose the reset max memory usage C++ API to python
 - #1256 Improve Logical project documentation
-
+- #1262 Stop depending on gtest for runtime
+- #1261 Improve storage plugin output messages
+- #1153 Enable warnings and fixes
 
 ## Bug Fixes
 - #1249 Fix compilation with cuda 11
 - #1253 Fixed distribution so that its evenly distributes based of rowgroups
+- #1204 Reenable json parser
 
 
 
@@ -39,7 +44,7 @@
 - #1201 Implement string TRIM
 - #1216 Add unit test for DAYOFWEEK
 - #1205 Implement string REVERSE
-- #1220 Implement string LEFT and RIGHT 
+- #1220 Implement string LEFT and RIGHT
 - #1223 Add support for UNION statement
 
 

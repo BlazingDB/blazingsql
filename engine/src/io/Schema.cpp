@@ -14,7 +14,7 @@ Schema::Schema(std::vector<std::string> names,
 	std::vector<size_t> calcite_to_file_indices,
 	std::vector<cudf::type_id> types,
 	std::vector<std::vector<int>> row_groups_ids)
-	: names(names), calcite_to_file_indices(calcite_to_file_indices), types(types), 
+	: names(names), calcite_to_file_indices(calcite_to_file_indices), types(types),
 	  row_groups_ids{row_groups_ids} {
 
 	in_file.resize(names.size(), true);
@@ -26,7 +26,7 @@ Schema::Schema(std::vector<std::string> names,
 	std::vector<bool> in_file,
 	std::vector<std::vector<int>> row_groups_ids)
 	: names(names), calcite_to_file_indices(calcite_to_file_indices), types(types),
-	  in_file(in_file), row_groups_ids{row_groups_ids}  {
+	  in_file(in_file), row_groups_ids{row_groups_ids} {
 	if(in_file.size() != names.size()) {
 		this->in_file.resize(names.size(), true);
 	}
@@ -47,7 +47,6 @@ Schema::~Schema() {
 std::vector<std::string> Schema::get_names() const { return this->names; }
 
 std::vector<cudf::data_type> Schema::get_data_types() const {
-
 	std::vector<cudf::data_type> data_types;
 	for(auto type_id : this->types){
 		data_types.push_back(cudf::data_type(type_id));
@@ -90,8 +89,8 @@ void Schema::add_file(std::string file){
 
 Schema Schema::fileSchema(size_t current_file_index) const {
 	Schema schema;
-	for(int i = 0; i < this->names.size(); i++) {
-		size_t file_index = this->calcite_to_file_indices.size() == 0 ? i : this->calcite_to_file_indices[i];
+	for(size_t i = 0; i < this->names.size(); i++) {
+		size_t file_index = this->calcite_to_file_indices.empty() ? i : this->calcite_to_file_indices[i];
 		if(this->in_file[i]) {
 			schema.add_column(this->names[i], this->types[i], file_index);
 		}
@@ -111,9 +110,9 @@ std::unique_ptr<ral::frame::BlazingTable> Schema::makeEmptyBlazingTable(const st
 	std::vector<cudf::type_id> select_types(column_indices.size());
 	if (column_indices.empty()) {
 		select_names = this->names;
-		select_types = this->types;		
+		select_types = this->types;
 	} else {
-		for (int i = 0; i < column_indices.size(); i++){
+		for (size_t i = 0; i < column_indices.size(); i++){
 			select_names[i] = this->names[column_indices[i]];
 			select_types[i] = this->types[column_indices[i]];
 		}

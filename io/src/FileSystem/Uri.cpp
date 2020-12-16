@@ -16,6 +16,7 @@ const std::string Uri::fileSystemTypeToScheme(FileSystemType fileSystemType) {
 	case FileSystemType::HDFS: return "hdfs"; break;
 	case FileSystemType::S3: return "s3"; break;
 	case FileSystemType::GOOGLE_CLOUD_STORAGE: return "gcs"; break;
+	default: break;
 	}
 
 	return "unknown";

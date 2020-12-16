@@ -9,7 +9,7 @@
 
 const std::string FileSystemException::RUNTIME_ERROR = "file system error";
 
-static const std::string whatMessage(FileSystemType fileSystemType,
+static const std::string whatMessage(FileSystemType /*fileSystemType*/,
 	const std::string & error,
 	const std::string & uri1 = "",
 	const std::string & uri2 = "") {
@@ -35,7 +35,7 @@ static const std::string whatMessage(FileSystemType fileSystemType,
 }
 
 FileSystemException::FileSystemException(FileSystemType fileSystemType, const std::string & error) noexcept
-	: std::runtime_error(whatMessage(fileSystemType, error)), error(error), fileSystemType(fileSystemType) {}
+	: std::runtime_error(whatMessage(fileSystemType, error)), fileSystemType(fileSystemType), error(error) {}
 
 FileSystemException::FileSystemException(
 	FileSystemType fileSystemType, const std::string & error, const std::string & uri1) noexcept
@@ -55,4 +55,4 @@ const std::string FileSystemException::getUri1() const noexcept { return this->u
 
 const std::string FileSystemException::getUri2() const noexcept { return this->uri2; }
 
-const FileSystemType FileSystemException::getFileSystemType() const noexcept { return this->fileSystemType; }
+FileSystemType FileSystemException::getFileSystemType() const noexcept { return this->fileSystemType; }

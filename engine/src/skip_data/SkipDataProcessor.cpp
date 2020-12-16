@@ -271,8 +271,8 @@ std::pair<std::unique_ptr<ral::frame::BlazingTable>, bool> process_skipdata_for_
         std::iota(column_indeces.begin(), column_indeces.end(), 0);
     } else {
         std::vector<std::string> column_index_strings = get_expressions_from_expression_list(projects, true);
-        for (int i = 0; i < column_index_strings.size(); i++){
-            int index = std::stoi(column_index_strings[i]);
+        for (auto & column_index_string : column_index_strings){
+            int index = std::stoi(column_index_string);
             column_indeces.push_back(index);
         }
     }
@@ -286,8 +286,7 @@ std::pair<std::unique_ptr<ral::frame::BlazingTable>, bool> process_skipdata_for_
     std::vector<std::unique_ptr<ral::frame::BlazingColumn>> metadata_columns = metadata_view.toBlazingColumns();
     std::vector<std::unique_ptr<ral::frame::BlazingColumn>> projected_metadata_cols;
     std::vector<bool> valid_metadata_columns;
-    for (int i = 0; i < column_indeces.size(); i++){
-        int col_index = column_indeces[i];
+    for (int col_index : column_indeces){
         std::string metadata_min_name = "min_" + std::to_string(col_index) + '_' + names[col_index];
         std::string metadata_max_name = "max_" + std::to_string(col_index) + '_' + names[col_index];
         if (std::find(metadata_names.begin(), metadata_names.end(), metadata_min_name) != metadata_names.end() &&

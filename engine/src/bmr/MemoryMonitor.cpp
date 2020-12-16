@@ -5,11 +5,13 @@
 
 namespace ral {
 
-    MemoryMonitor::MemoryMonitor(std::shared_ptr<ral::batch::tree_processor> tree, std::map<std::string, std::string> config_options) : tree(tree), finished(false), resource(&blazing_device_memory_resource::getInstance()){
+    MemoryMonitor::MemoryMonitor(std::shared_ptr<ral::batch::tree_processor> tree,
+                                 std::map<std::string, std::string> config_options)
+    : finished(false), tree(tree), resource(&blazing_device_memory_resource::getInstance()) {
 
-        period = std::chrono::milliseconds(50); 
+        period = std::chrono::milliseconds(50);
         auto it = config_options.find("MEMORY_MONITOR_PERIOD");
-        if (it != config_options.end()){
+        if (it != config_options.end()) {
             period = std::chrono::milliseconds(std::stoull(config_options["MEMORY_MONITOR_PERIOD"]));
         }
     }
@@ -54,11 +56,11 @@ namespace ral {
                     // we have now decached the inputs from either enough tasks to get below the memory limit or there are no more tasks to work with
                     // Now lets add the tasks back to the queue in the same order they were in
                     if (tasks.size() > 0){
-                        for (std::size_t i = tasks.size() - 1; i >= 0; i--){
+                        for (int i = tasks.size() - 1; i >= 0; i--){
                             ral::execution::executor::get_instance()->add_task(std::move(tasks[i]));
                         }
                     }
-                    ral::execution::executor::get_instance()->notify_memory_safety_cv();			
+                    ral::execution::executor::get_instance()->notify_memory_safety_cv();
                 }
             }
         });

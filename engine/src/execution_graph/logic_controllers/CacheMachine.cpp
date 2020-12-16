@@ -101,9 +101,10 @@ CacheDataIO::CacheDataIO(ral::io::data_handle handle,
 	ral::io::Schema file_schema,
 	std::vector<int> row_group_ids,
 	std::vector<int> projections)
-	: handle(handle), parser(parser), schema(schema),
+	: CacheData(CacheDataType::IO_FILE, schema.get_names(), schema.get_data_types(), 1),
+	handle(handle), parser(parser), schema(schema),
 	file_schema(file_schema), row_group_ids(row_group_ids),
-	projections(projections), CacheData(CacheDataType::IO_FILE, schema.get_names(), schema.get_data_types(), 1)
+	projections(projections)
 	{
 
 	}
@@ -117,9 +118,9 @@ std::unique_ptr<ral::frame::BlazingTable> CacheDataIO::decache(){
 		return std::move(loaded_table);
 	} else {
 		std::vector<int> column_indices_in_file;  // column indices that are from files
-		for (int i = 0; i < projections.size(); i++){
-			if(schema.get_in_file()[projections[i]]) {
-				column_indices_in_file.push_back(projections[i]);
+		for (auto projection_idx : projections){
+			if(schema.get_in_file()[projection_idx]) {
+				column_indices_in_file.push_back(projection_idx);
 			}
 		}
 
@@ -141,7 +142,7 @@ std::unique_ptr<ral::frame::BlazingTable> CacheDataIO::decache(){
 		}
 
 		int in_file_column_counter = 0;
-		for(int i = 0; i < projections.size(); i++) {
+		for(std::size_t i = 0; i < projections.size(); i++) {
 			int col_ind = projections[i];
 			if(!schema.get_in_file()[col_ind]) {
 				std::string name = schema.get_name(col_ind);
@@ -425,7 +426,7 @@ bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, c
 		}
 		num_rows_added += table->num_rows();
 		num_bytes_added += table->sizeInBytes();
-		int cacheIndex = 0;
+		size_t cacheIndex = 0;
 		while(cacheIndex < memory_resources.size()) {
 
 			auto memory_to_use = (this->memory_resources[cacheIndex]->get_memory_used() + table->sizeInBytes());
@@ -684,7 +685,7 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 	}	else {
 		std::vector<std::unique_ptr<ral::frame::BlazingTable>> tables_holder;
 		std::vector<ral::frame::BlazingTableView> table_views;
-		for (int i = 0; i < collected_messages.size(); i++){
+		for (size_t i = 0; i < collected_messages.size(); i++){
 			auto data = collected_messages[i]->release_data();
 			tables_holder.push_back(std::move(data->decache()));
 			table_views.push_back(tables_holder[i]->toBlazingTableView());
@@ -769,7 +770,7 @@ std::unique_ptr<ral::cache::CacheData> ConcatenatingCacheMachine::pullCacheData(
 		num_rows = output->num_rows();
 	}	else {
 		std::vector<std::unique_ptr<ral::cache::CacheData>> cache_datas;
-		for (int i = 0; i < collected_messages.size(); i++){
+		for (std::size_t i = 0; i < collected_messages.size(); i++){
 			cache_datas.push_back(collected_messages[i]->release_data());
 		}
 

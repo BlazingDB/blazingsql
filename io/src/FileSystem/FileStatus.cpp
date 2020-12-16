@@ -27,8 +27,9 @@ bool FileStatus::isFile() const noexcept { return (this->fileType == FileType::F
 
 bool FileStatus::isDirectory() const noexcept { return (this->fileType == FileType::DIRECTORY); }
 
-std::string FileStatus::toString(bool normalize) const {
+std::string FileStatus::toString(bool /*normalize*/) const {
 	// TODO percy
+	return "";
 }
 
 FileStatus & FileStatus::operator=(const FileStatus & other) {

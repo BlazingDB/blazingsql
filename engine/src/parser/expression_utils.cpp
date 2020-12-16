@@ -95,6 +95,7 @@ bool is_binary_operator(operator_type op) {
 	case operator_type::BLZ_TO_DATE:
 	case operator_type::BLZ_TO_TIMESTAMP:
 	case operator_type::BLZ_STR_TRIM:
+	case operator_type::BLZ_STR_REGEXP_REPLACE:
 		assert(false);
 		// Ternary operator. Should not reach here
 		// Should be evaluated in place (inside function_evaluator_transformer) and removed from the tree
@@ -233,6 +234,7 @@ cudf::type_id get_output_type(operator_type op, cudf::type_id input_left_type, c
 		return cudf::type_id::BOOL8;
 	case operator_type::BLZ_STR_SUBSTRING:
 	case operator_type::BLZ_STR_REPLACE:
+	case operator_type::BLZ_STR_REGEXP_REPLACE:
 	case operator_type::BLZ_STR_CONCAT:
 	case operator_type::BLZ_STR_TRIM:
 		return cudf::type_id::STRING;
@@ -310,6 +312,7 @@ operator_type map_to_operator_type(const std::string & operator_token) {
 		{"MAGIC_IF_NOT", operator_type::BLZ_MAGIC_IF_NOT},
 		{"LIKE", operator_type::BLZ_STR_LIKE},
 		{"SUBSTRING", operator_type::BLZ_STR_SUBSTRING},
+		{"REGEXP_REPLACE", operator_type::BLZ_STR_REGEXP_REPLACE},
 		{"REPLACE", operator_type::BLZ_STR_REPLACE},
 		{"TO_DATE", operator_type::BLZ_TO_DATE},
 		{"TO_TIMESTAMP", operator_type::BLZ_TO_TIMESTAMP},
@@ -418,7 +421,7 @@ std::vector<int> get_projections(const std::string & query_part) {
 		get_expressions_from_expression_list(project_string, true);
 
 	std::vector<int> projections;
-	for(int i = 0; i < project_string_split.size(); i++) {
+	for(size_t i = 0; i < project_string_split.size(); i++) {
 		projections.push_back(std::stoi(project_string_split[i]));
 	}
 
@@ -502,7 +505,7 @@ std::string extract_table_name(std::string query_part) {
 	std::string table_name_text = query_part.substr(start, end - start);
 	std::vector<std::string> table_parts = StringUtil::split(table_name_text, ',');
 	std::string table_name = "";
-	for(int i = 0; i < table_parts.size(); i++) {
+	for(size_t i = 0; i < table_parts.size(); i++) {
 		if(table_parts[i][0] == ' ') {
 			table_parts[i] = table_parts[i].substr(1, table_parts[i].size() - 1);
 		}
@@ -522,8 +525,8 @@ std::vector<std::string> get_expressions_from_expression_list(std::string & comb
 
 	std::vector<std::string> expressions;
 
-	int curInd = 0;
-	int curStart = 0;
+    size_t curInd = 0;
+    size_t curStart = 0;
 	bool inQuotes = false;
 	int parenthesisDepth = 0;
 	int sqBraketsDepth = 0;

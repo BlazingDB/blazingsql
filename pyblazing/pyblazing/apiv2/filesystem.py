@@ -12,7 +12,7 @@ def registerFileSystem(client, fs, root, prefix):
         ok, msg = cio.registerFileSystemCaller(fs, root, prefix)
         msg = msg.decode("utf-8")
         if not ok:
-            print(msg)
+            return ok, msg, fs
     else:
         dask_futures = []
         i = 0
@@ -34,8 +34,8 @@ def registerFileSystem(client, fs, root, prefix):
             ok, msg = connection.result()
             msg = msg.decode("utf-8")
             if not ok:
-                print(msg + " with dask worker")
-                print(worker)
+                msg = msg + " with dask worker " + str(worker)
+                return ok, msg, fs
     return ok, msg, fs
 
 
@@ -60,7 +60,11 @@ class FileSystem(object):
 
         fs = OrderedDict()
         fs["type"] = "local"
-        return registerFileSystem(client, fs, root, prefix)
+        ok, msg, fs = registerFileSystem(client, fs, root, prefix)
+        if ok:
+            print("Local Storage Plugin Registered Successfully")
+        else:
+            print("Local Storage Plugin Error: " + msg)
 
     def hdfs(self, client, prefix, **kwargs):
         self._verify_prefix(prefix)
@@ -79,7 +83,11 @@ class FileSystem(object):
         fs["user"] = user
         fs["driver"] = driver
         fs["kerberos_ticket"] = kerberos_ticket
-        return registerFileSystem(client, fs, root, prefix)
+        ok, msg, fs = registerFileSystem(client, fs, root, prefix)
+        if ok:
+            print("HDFS Storage Plugin Registered Successfully")
+        else:
+            print("HDFS Storage Plugin Error: " + msg)
 
     def s3(self, client, prefix, **kwargs):
         self._verify_prefix(prefix)
@@ -104,7 +112,11 @@ class FileSystem(object):
         fs["kms_key_amazon_resource_name"] = kms_key_amazon_resource_n
         fs["endpoint_override"] = endpoint_override
         fs["region"] = region
-        return registerFileSystem(client, fs, root, prefix)
+        ok, msg, fs = registerFileSystem(client, fs, root, prefix)
+        if ok:
+            print("S3 Storage Plugin Registered Successfully")
+        else:
+            print("S3 Storage Plugin Error: " + msg)
 
     def gs(self, client, prefix, **kwargs):
         self._verify_prefix(prefix)
@@ -121,7 +133,11 @@ class FileSystem(object):
         fs["bucket_name"] = bucket_name
         fs["use_default_adc_json_file"] = use_default_adc_json_file
         fs["adc_json_file"] = adc_json_file
-        return registerFileSystem(client, fs, root, prefix)
+        ok, msg, fs = registerFileSystem(client, fs, root, prefix)
+        if ok:
+            print("Google Cloud Storage Plugin Registered Successfully")
+        else:
+            print("Google Cloud Storage Plugin Error: " + msg)
 
     def _verify_prefix(self, prefix):
         if prefix in self.file_systems:

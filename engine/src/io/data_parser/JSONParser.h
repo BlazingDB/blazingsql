@@ -17,6 +17,11 @@ public:
 
 	virtual ~json_parser();
 
+	std::unique_ptr<ral::frame::BlazingTable> parse_batch(ral::io::data_handle handle,
+		const Schema & schema,
+		std::vector<int> column_indices,
+		std::vector<cudf::size_type> row_groups) override;
+
 	void parse_schema(std::shared_ptr<arrow::io::RandomAccessFile> file, Schema & schema);
 
 	DataType type() const override { return DataType::JSON; }

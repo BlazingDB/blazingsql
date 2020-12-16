@@ -2,6 +2,7 @@
 #include <cudf/copying.hpp>
 #include <cudf/strings/combine.hpp>
 #include <cudf/strings/contains.hpp>
+#include <cudf/strings/replace_re.hpp>
 #include <cudf/strings/replace.hpp>
 #include <cudf/strings/substring.hpp>
 #include <cudf/strings/case.hpp>
@@ -83,7 +84,7 @@ struct cast_to_str_functor {
     }
 
     template<typename T, std::enable_if_t<cudf::is_compound<T>() or cudf::is_duration<T>()> * = nullptr>
-    std::unique_ptr<cudf::column> operator()(const cudf::column_view & col) {
+    std::unique_ptr<cudf::column> operator()(const cudf::column_view & /*col*/) {
         return nullptr;
     }
 };
@@ -141,6 +142,41 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         std::string repl = StringUtil::removeEncapsulation(arg_tokens[2], encapsulation_character);
 
         computed_col = cudf::strings::replace(column, target, repl);
+        break;
+    }
+    case operator_type::BLZ_STR_REGEXP_REPLACE:
+    {
+        // required args: string column, pattern, replacement
+        // optional args: position, occurrence, match_type
+        assert(arg_tokens.size() >= 3 && arg_tokens.size() <= 6);
+        RAL_EXPECTS(arg_tokens.size() <= 4, "Optional parameters occurrence and match_type are not yet supported.");
+        RAL_EXPECTS(!is_literal(arg_tokens[0]), "REGEXP_REPLACE function not supported for string literals");
+
+        cudf::column_view column = table.column(get_index(arg_tokens[0]));
+        RAL_EXPECTS(is_type_string(column.type().id()), "REGEXP_REPLACE argument must be a column of type string");
+
+        std::string pattern = StringUtil::removeEncapsulation(arg_tokens[1], encapsulation_character);
+        std::string repl = StringUtil::removeEncapsulation(arg_tokens[2], encapsulation_character);
+
+        // handle the position argument, if it exists
+        if (arg_tokens.size() == 4) {
+            int32_t start = std::stoi(arg_tokens[3]) - 1;
+            RAL_EXPECTS(start >= 0, "Position must be greater than zero.");
+            int32_t prefix = 0;
+
+            auto prefix_col = cudf::strings::slice_strings(column, prefix, start);
+            auto post_replace_col = cudf::strings::replace_with_backrefs(
+                cudf::column_view(cudf::strings::slice_strings(column, start)->view()),
+                pattern,
+                repl
+            );
+
+            computed_col = cudf::strings::concatenate(
+                cudf::table_view{{prefix_col->view(), post_replace_col->view()}}
+            );
+        } else {
+            computed_col = cudf::strings::replace_with_backrefs(column, pattern, repl);
+        }
         break;
     }
     case operator_type::BLZ_STR_LEFT:
@@ -535,6 +571,8 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         );
         break;
     }
+    default:
+        break;
     }
 
     return computed_col;
@@ -881,7 +919,7 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
 std::unique_ptr<ral::frame::BlazingTable> process_project(
   std::unique_ptr<ral::frame::BlazingTable> blazing_table_in,
   const std::string & query_part,
-  blazingdb::manager::Context * context) {
+  blazingdb::manager::Context * /*context*/) {
 
     std::string combined_expression = query_part.substr(
         query_part.find("(") + 1,
@@ -891,7 +929,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
     std::vector<std::string> named_expressions = get_expressions_from_expression_list(combined_expression);
     std::vector<std::string> expressions(named_expressions.size());
     std::vector<std::string> out_column_names(named_expressions.size());
-    for(int i = 0; i < named_expressions.size(); i++) {
+    for(size_t i = 0; i < named_expressions.size(); i++) {
         const std::string & named_expr = named_expressions[i];
 
         std::string name = named_expr.substr(0, named_expr.find("=["));
