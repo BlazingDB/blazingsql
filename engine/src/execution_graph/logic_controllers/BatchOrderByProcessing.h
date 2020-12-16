@@ -570,7 +570,7 @@ public:
 			for (auto i = 0; i < limit_messages_to_wait_for.size(); i++)	{
 				auto meta_message = this->query_graph->get_input_message_cache()->pullCacheData(limit_messages_to_wait_for[i]);
 				if(i < context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode())){
-					prev_total_rows += std::stoi(static_cast<ral::cache::GPUCacheDataMetaData*>(meta_message.get())->getMetadata().get_values()[ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL]);
+					prev_total_rows += std::stoi(static_cast<ral::cache::CPUCacheData*>(meta_message.get())->getMetadata().get_values()[ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL]);
 				}
 			}
 			rows_limit = std::min(std::max(rows_limit - prev_total_rows, int64_t{0}), total_batch_rows);

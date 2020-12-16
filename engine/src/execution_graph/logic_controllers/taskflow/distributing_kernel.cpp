@@ -91,7 +91,7 @@ int distributing_kernel::get_total_partition_counts(std::size_t message_tracker_
     int total_count = node_count[message_tracker_idx][node.id()];
     for (auto message : messages_to_wait_for[message_tracker_idx]){
         auto meta_message = query_graph->get_input_message_cache()->pullCacheData(message);
-        total_count += std::stoi(static_cast<ral::cache::GPUCacheDataMetaData *>(meta_message.get())->getMetadata().get_values()[ral::cache::PARTITION_COUNT]);
+        total_count += std::stoi(static_cast<ral::cache::CPUCacheData *>(meta_message.get())->getMetadata().get_values()[ral::cache::PARTITION_COUNT]);
     }
     return total_count;
 }
