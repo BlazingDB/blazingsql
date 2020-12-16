@@ -426,7 +426,7 @@ echo "---->>> install fsspec"
 pip install --no-binary fsspec fsspec
 
 
-cudf_version=0.17
+cudf_version=0.18
 
 # BEGIN RMM
 echo "BEGIN RMM"
@@ -459,10 +459,10 @@ if [ ! -d cudf ]; then
     echo "### Cudf ###"
     # once 0.17 is stable, we can checkout just depth 1
     # git clone --depth 1 https://github.com/rapidsai/cudf.git --branch "branch-$cudf_version" --single-branch
-    git clone https://github.com/rapidsai/cudf.git --branch "branch-$cudf_version" --single-branch
+    git clone https://github.com/rapidsai/cudf.git --branch "branch-$cudf_version" 
     cd cudf
     # need to pin to a specific commit to keep this build script stable
-    git checkout 88821fb7fd4b81a98b8efa2f2ab8c7871d02bdef
+    git checkout 7ca3fada0169d68e47d7aa6fb737fb4cd7729fbd
 
     #git submodule update --init --remote --recursive
     #export CUDA_HOME=/usr/local/cuda/
@@ -781,7 +781,7 @@ cd $build_dir
 if [ ! -d cuml ]; then
   git clone https://github.com/rapidsai/cuml.git
   cd cuml
-  git checkout branch-0.17
+  git checkout "branch-$cudf_version" 
   mkdir build
   cd build
   
