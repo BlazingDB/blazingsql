@@ -692,8 +692,8 @@ if [ ! -f ibm-java-sdk-8.0-6.11-ppc64le-archive.bin ]; then
 fi
 export PATH=$PWD/ibm-java-ppc64le-80/bin:$PATH
 export JAVA_HOME=$PWD/ibm-java-ppc64le-80/jre
-echo "ENV JAVA"
-# ENV JAVA
+echo "END JAVA"
+# END JAVA
 
 echo "BEGIN mvn"
 cd $build_dir
@@ -703,9 +703,105 @@ if [ ! -d $VIRTUAL_ENV/apache-maven-3.6.3 ]; then
     mv apache-maven-3.6.3 $VIRTUAL_ENV/
 fi
 export PATH=$VIRTUAL_ENV/apache-maven-3.6.3/bin:$PATH
-echo "ENV mvn"
+echo "END mvn"
+
+#Begin requirements for cuML
+
+# download local installer from https://developer.nvidia.com/nccl
+# (have to register and answer questionnaire)
+# Power  "O/S agnostic local installer"
+# cd $RAPIDS_SRC
+# tar xvfk nccl_2.7.6-1+cuda10.1_ppc64le.txz
+# cp -r nccl_2.7.6-1+cuda10.1_ppc64le/lib/* $VIRTUAL_ENV/lib/
+# cp -r nccl_2.7.6-1+cuda10.1_ppc64le/include/* $VIRTUAL_ENV/include
+
+echo "BEGIN rapidjson"
+cd $build_dir
+if [ ! -d rapidjson ]; then
+  git clone https://github.com/Tencent/rapidjson
+  cp -r rapidjson/include/rapidjson/ $VIRTUAL_ENV/include  
+fi
+echo "END rapidjson"
 
 
+echo "BEGIN treelite"
+cd $build_dir
+if [ ! -d treelite ]; then
+  git clone https://github.com/dmlc/treelite
+  cd treelite
+  export TREELITE_SRC=$PWD
+  mkdir build
+  cd build
+  CXXFLAGS="-I$VIRTUAL_ENV/include -L$VIRTUAL_ENV/lib"  cmake -D CMAKE_INSTALL_PREFIX=$VIRTUAL_ENV $TREELITE_SRC
+  make -j install
+fi
+echo "END treelite"
+
+echo "BEGIN swig"
+cd $build_dir
+if [ ! -d swig ]; then
+  git clone https://github.com/swig/swig.git
+  cd swig
+  ./autogen.sh
+  ./configure --without-python --with-python3 --prefix=$VIRTUAL_ENV 
+  make -j2
+  make -j2 install
+fi
+echo "END swig"
+
+echo "BEGIN faiss"
+cd $build_dir
+if [ ! -d faiss ]; then
+  git clone https://github.com/facebookresearch/faiss.git
+  cd faiss
+  cmake -DCUDAToolkit_ROOT=$OLCF_CUDA_ROOT -DPython_EXECUTABLE=$VIRTUAL_ENV/bin/python -DCMAKE_INSTALL_PREFIX=$VIRTUAL_ENV -B build .
+  make -C build
+  cd build
+  make -j2 install
+  cd faiss/python && python setup.py install
+fi
+echo "END faiss" 
+
+
+echo "BEGIN doxygen"
+cd $build_dir
+if [ ! -d doxygen ]; then
+  git clone https://github.com/doxygen/doxygen
+  cd doxygen
+  mkdir build
+  cd build
+  cmake -G "Unix Makefiles" -D CMAKE_INSTALL_PREFIX=$VIRTUAL_ENV ..
+  make -j2 install
+fi
+echo "END doxygen" 
+
+
+echo "BEGIN cuml"
+cd $build_dir
+if [ ! -d cuml ]; then
+  git clone https://github.com/rapidsai/cuml.git
+  cd cuml
+  git checkout branch-0.17
+  mkdir build
+  cd build
+  
+  CMAKE_PREFIX_PATH=$VIRTUAL_ENV cmake -DCMAKE_INSTALL_PREFIX=$VIRTUAL_ENV \
+        -DBLAS_LIBRARIES=$OLCF_OPENBLAS_ROOT/lib/libopenblas.so.0 \
+        -D GPU_ARCHS=70 \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DBUILD_CUML_C_LIBRARY=ON \
+        -DSINGLEGPU=ON \
+        -DWITH_UCX=ON \
+        -DBUILD_CUML_MPI_COMMS=OFF \
+        -DBUILD_CUML_MG_TESTS=OFF \
+        -DBUILD_STATIC_FAISS=OFF \
+        -DNVTX=OFF \
+        -DBUILD_CUML_TESTS=OFF \
+        -DBUILD_PRIMS_TESTS=OFF \
+        ../cpp
+  make -j install
+  fi
+echo "END cuml" 
 
 
 # BEGIN blazingsql
