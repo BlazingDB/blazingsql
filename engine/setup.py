@@ -35,6 +35,24 @@ conda_env_lib = os.path.join(conda_env_dir, "lib")
 
 print("Using CONDA_PREFIX : " + conda_env_dir)
 
+def use_gtest_lib():
+    bt_sock = os.popen('grep BUILD_TYPE build/CMakeCache.txt')
+    bt = bt_sock.read()
+    bt_val = bt.split("=")[1].strip()
+
+    if bt_val == "Release" or bt_val == "RelWithDebInfo":
+        print("Cython RAL wrapper: This is a release build so the final runtime binaries will not depend on gtest")
+        return False
+
+    print("Cython RAL wrapper: This is not a release build so the final runtime binaries will depend on gtest (BSQLDBGUTILS precompiler definition is set)")
+    return True
+
+def get_libs():
+    ret = ["blazingsql-engine"]
+    if use_gtest_lib():
+        ret.append("gtest")
+    return ret
+
 class BuildExt(build_ext):
     def build_extensions(self):
         if '-Wstrict-prototypes' in self.compiler.compiler_so:
@@ -58,7 +76,7 @@ extensions = [
             conda_env_lib,
             os.path.join(os.sys.prefix, "lib"),
         ],
-        libraries=["blazingsql-engine", "gtest"],
+        libraries=get_libs(),
         language="c++",
         extra_compile_args=["-std=c++14",
                             "-Wno-unknown-pragmas",

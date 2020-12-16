@@ -12,6 +12,7 @@
 - #1236 Moving code from header files to implementation files
 - #1257 Expose the reset max memory usage C++ API to python
 - #1256 Improve Logical project documentation
+- #1262 Stop depending on gtest for runtime
 - #1261 Improve storage plugin output messages
 - #1153 Enable warnings and fixes
 
