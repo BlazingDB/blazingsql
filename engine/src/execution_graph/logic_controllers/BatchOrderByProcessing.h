@@ -58,12 +58,12 @@ private:
 	std::vector<std::unique_ptr<ral::frame::BlazingTable>> sampledTables;
 	std::size_t avg_bytes_per_row;
 	std::atomic<bool> get_samples;
+	std::atomic<bool> already_computed_partition_plan;
 	std::mutex samples_mutex;
     std::size_t population_sampled = 0;
 	std::size_t max_order_by_samples = 10000;
 	std::size_t localTotalNumRows = 0;
     std::size_t localTotalBytes = 0;
-	BlazingThread partition_plan_thread;
 };
 
 class PartitionKernel : public distributing_kernel {

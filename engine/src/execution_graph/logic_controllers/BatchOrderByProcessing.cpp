@@ -87,6 +87,7 @@ SortAndSampleKernel::SortAndSampleKernel(std::size_t kernel_id, const std::strin
     set_number_of_message_trackers(2); //default
     this->output_.add_port("output_a", "output_b");
     get_samples = true;
+    already_computed_partition_plan = false;
 }
 
 void SortAndSampleKernel::compute_partition_plan(
@@ -196,7 +197,6 @@ void SortAndSampleKernel::do_process(std::vector< std::unique_ptr<ral::frame::Bl
     auto& operation_type = args.at("operation_type");
 
     auto & input = inputs[0];
-    // TODO: reveive new operation_types
     if (operation_type == "ordering_and_get_samples") {
         auto sortedTable = ral::operators::sort(input->toBlazingTableView(), this->expression);
 
@@ -211,27 +211,23 @@ void SortAndSampleKernel::do_process(std::vector< std::unique_ptr<ral::frame::Bl
                 sampledTables.push_back(std::move(sampledTable));
                 if (population_sampled > max_order_by_samples) {
 
-                    // TODO create task here
-                    // convert sampledTables into cacheData and create the task
-                    get_samples = false;
+                    std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
+                    for (std::size_t i = 0; i < sampledTables.size(); ++i) {
+                        std::unique_ptr <ral::cache::CacheData> cache_data = std::make_unique<ral::cache::GPUCacheData>(std::move(sampledTables[i]));
+                        inputs.push_back(std::move(cache_data));
+                    }
+
+                    ral::execution::executor::get_instance()->add_task(
+                            std::move(inputs),
+                            this->output_cache("output_b"),
+                            this,
+                            {{"operation_type", "compute_partition_plan"}});
+
+                    get_samples = false;  // we got enough samples, at least as max_order_by_samples
+                    already_computed_partition_plan = true;
                 }
             }
         }
-
-        // // TODO: population_sampled, sampledTableViews, sampledTables needs to be protected by a mutex
-        // if (population_sampled > max_order_by_samples && get_samples)	{
-        //     avg_bytes_per_row = localTotalNumRows == 0 ? 1 : localTotalBytes/localTotalNumRows;
-        //     // TODO: sampledTableViews should just be BlazingTables, not views, that you convert into a GPUCacheData and you make your task using that
-        //     // TODO: we want this function be in a new one operation_type:compute_partition_plan, inputs should be the samples
-        //     //ral::execution::executor::get_instance()->add_task(
-        //     //        std::move(inputs),
-        //     //        this->output_cache("output_b"),
-        //     //        this,
-        //     //        {{"operation_type", "compute_partition_plan"}});
-        //     partition_plan_thread = BlazingThread(&SortAndSampleKernel::compute_partition_plan, this, sampledTableViews, avg_bytes_per_row, localTotalNumRows);
-        //     // TODO: get_samples needs to be protected by a mutex or be an atomic
-        //     get_samples = false;    // we got enough samples, at least as max_order_by_samples
-        // }
 
         if(sortedTable){
             auto num_rows = sortedTable->num_rows();
@@ -253,8 +249,8 @@ void SortAndSampleKernel::do_process(std::vector< std::unique_ptr<ral::frame::Bl
         output->addToCache(std::move(sortedTable), "output_a");
     }
     else if (operation_type == "compute_partition_plan") {
-        // TODO add needed code for this operation type
-        
+        avg_bytes_per_row = localTotalNumRows == 0 ? 1 : localTotalBytes/localTotalNumRows;
+        compute_partition_plan(avg_bytes_per_row, localTotalNumRows);
     }
 }
 
@@ -286,15 +282,7 @@ kstatus SortAndSampleKernel::run() {
         return this->tasks.empty();
     });
 
-    if (partition_plan_thread.joinable()){
-        partition_plan_thread.join();
-    } else {
-        // TODO: we want this function be in a new one operation_type:compute_partition_plan
-                //ral::execution::executor::get_instance()->add_task(
-                //        std::move(inputs),
-                //        this->output_cache("output_b"),
-                //        this,
-                //        {{"operation_type", "compute_partition_plan"}});
+    if (!already_computed_partition_plan) {
         avg_bytes_per_row = localTotalNumRows == 0 ? 1 : localTotalBytes/localTotalNumRows;
         compute_partition_plan(avg_bytes_per_row, localTotalNumRows);
     }
