@@ -86,18 +86,19 @@ SortAndSampleKernel::SortAndSampleKernel(std::size_t kernel_id, const std::strin
     this->query_graph = query_graph;
     set_number_of_message_trackers(2); //default
     this->output_.add_port("output_a", "output_b");
+    get_samples = true;
 }
 
-void SortAndSampleKernel::compute_partition_plan(std::vector<ral::frame::BlazingTableView> sampledTableViews,
+void SortAndSampleKernel::compute_partition_plan(
     std::size_t avg_bytes_per_row,
     std::size_t local_total_num_rows) {
 
     if (this->context->getAllNodes().size() == 1){ // single node mode
-        auto partitionPlan = ral::operators::generate_partition_plan(sampledTableViews,
+        auto partitionPlan = ral::operators::generate_partition_plan(sampledTables,
             local_total_num_rows, avg_bytes_per_row, this->expression, this->context.get());
         this->add_to_output_cache(std::move(partitionPlan), "output_b");
     } else { // distributed mode
-        if( ral::utilities::checkIfConcatenatingStringsWillOverflow(sampledTableViews)) {
+        if( ral::utilities::checkIfConcatenatingStringsWillOverflow(sampledTables)) {
             logger->warn("{query_id}|{step}|{substep}|{info}",
                             "query_id"_a=(context ? std::to_string(context->getContextToken()) : ""),
                             "step"_a=(context ? std::to_string(context->getQueryStep()) : ""),
@@ -113,7 +114,7 @@ void SortAndSampleKernel::compute_partition_plan(std::vector<ral::frame::Blazing
             std::vector<std::unique_ptr<ral::cache::CacheData> >table_scope_holder;
             std::vector<size_t> total_table_rows;
             std::vector<size_t> total_avg_bytes_per_row;
-            std::vector<ral::frame::BlazingTableView> samples;
+            std::vector<std::unique_ptr<ral::frame::BlazingTable>> samples;
 
             for(std::size_t i = 0; i < nodes.size(); ++i) {
                 if(!(nodes[i] == self_node)) {
@@ -124,12 +125,12 @@ void SortAndSampleKernel::compute_partition_plan(std::vector<ral::frame::Blazing
 
                     total_table_rows.push_back(std::stoll(cache_ptr->getMetadata().get_values()[ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL]));
                     total_avg_bytes_per_row.push_back(std::stoll(cache_ptr->getMetadata().get_values()[ral::cache::AVG_BYTES_PER_ROW_METADATA_LABEL]));
-                    samples.push_back(cache_ptr->getTableView());
+                    samples.push_back(cache_ptr->decache());
                 }
             }
 
-            for (std::size_t i = 0; i < sampledTableViews.size(); i++){
-                samples.push_back(sampledTableViews[i]);
+            for (std::size_t i = 0; i < sampledTables.size(); i++){
+                samples.push_back(std::move(sampledTables[i]));
             }
 
             total_table_rows.push_back(local_total_num_rows);
@@ -158,6 +159,11 @@ void SortAndSampleKernel::compute_partition_plan(std::vector<ral::frame::Blazing
         } else {
             context->incrementQuerySubstep();
 
+            // just to concat all the samples
+            std::vector<ral::frame::BlazingTableView> sampledTableViews;
+            for (std::size_t i = 0; i < sampledTables.size(); i++){
+                sampledTableViews.push_back(sampledTables[i]->toBlazingTableView());
+            }
             auto concatSamples = ral::utilities::concatTables(sampledTableViews);
             concatSamples->ensureOwnership();
 
@@ -183,7 +189,7 @@ void SortAndSampleKernel::compute_partition_plan(std::vector<ral::frame::Blazing
 
 void SortAndSampleKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
-    cudaStream_t stream, const std::map<std::string, std::string>& args) {
+    cudaStream_t /*stream*/, const std::map<std::string, std::string>& args) {
 
     CodeTimer eventTimer(false);
 
@@ -196,14 +202,12 @@ void SortAndSampleKernel::do_process(std::vector< std::unique_ptr<ral::frame::Bl
 
         if (get_samples.load()) { 
             auto sampledTable = ral::operators::sample(input->toBlazingTableView(), this->expression);
-            // TODO: population_sampled, sampledTableViews, sampledTables needs to be protected by a mutex
             
-            std::lock_guard<std::mutex> samples_lock(samples_mutex); // TODO add this samples_mutex to kernel
+            std::lock_guard<std::mutex> samples_lock(samples_mutex);
             if (get_samples.load()) {
                 population_sampled += sampledTable->num_rows(); 
                 localTotalNumRows += input->view().num_rows();
                 localTotalBytes += input->sizeInBytes();
-                sampledTableViews.push_back(sampledTable->toBlazingTableView()); // TODO, we dont need sampledTableViews anymore
                 sampledTables.push_back(std::move(sampledTable));
                 if (population_sampled > max_order_by_samples) {
 
@@ -213,8 +217,6 @@ void SortAndSampleKernel::do_process(std::vector< std::unique_ptr<ral::frame::Bl
                 }
             }
         }
-
-        
 
         // // TODO: population_sampled, sampledTableViews, sampledTables needs to be protected by a mutex
         // if (population_sampled > max_order_by_samples && get_samples)	{
@@ -294,7 +296,7 @@ kstatus SortAndSampleKernel::run() {
                 //        this,
                 //        {{"operation_type", "compute_partition_plan"}});
         avg_bytes_per_row = localTotalNumRows == 0 ? 1 : localTotalBytes/localTotalNumRows;
-        compute_partition_plan(sampledTableViews, avg_bytes_per_row, localTotalNumRows);
+        compute_partition_plan(avg_bytes_per_row, localTotalNumRows);
     }
 
     logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",

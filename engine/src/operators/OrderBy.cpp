@@ -195,9 +195,7 @@ std::vector<cudf::table_view> partition_table(const ral::frame::BlazingTableView
 	return cudf::split(sortedTable.view(), split_indexes);
 }
 
-
-// TODO make this use BlazingTable not BlazingTableView
-std::unique_ptr<ral::frame::BlazingTable> generate_partition_plan(const std::vector<ral::frame::BlazingTableView> & samples,
+std::unique_ptr<ral::frame::BlazingTable> generate_partition_plan(const std::vector<std::unique_ptr<ral::frame::BlazingTable>> & samples,
 	std::size_t table_num_rows, std::size_t avg_bytes_per_row, const std::string & query_part, Context * context){
 
 	std::vector<cudf::order> sortOrderTypes;
