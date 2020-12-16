@@ -24,7 +24,7 @@ const int LEFT_TABLE_IDX = 0;
 const int RIGHT_TABLE_IDX = 1;
 
 /* This function takes in the relational algrebra expression and returns:
-- modified relational algrbra expression
+- modified relational algebra expression
 - join condition
 - filter_statement
 - join type */
