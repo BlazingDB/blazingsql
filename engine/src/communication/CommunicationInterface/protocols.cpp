@@ -284,11 +284,13 @@ tcp_buffer_transport::tcp_buffer_transport(
 
         if(inet_pton(AF_INET, destination.ip().c_str(), &address.sin_addr)<=0)
         {
-            throw std::runtime_error("Invalid Communication Address");
+            std::string node_info = "Index: " + std::to_string(destination.index()) + " Id: " + destination.id() + " IP: " + destination.ip() + " Port: " + std::to_string(destination.port());
+            throw std::runtime_error("Invalid Communication Address. Could not get address of node " + node_info);
         }
         if (connect(socket_fd, (struct sockaddr *)&address, sizeof(address)) < 0)
         {
-            throw std::runtime_error("Invalid Communication Address could not connect");
+            std::string node_info = "Index: " + std::to_string(destination.index()) + " Id: " + destination.id() + " IP: " + destination.ip() + " Port: " + std::to_string(destination.port());
+            throw std::runtime_error("Invalid Communication Address could not connect to node " + node_info);
         }
         socket_fds.push_back(socket_fd);
     }
