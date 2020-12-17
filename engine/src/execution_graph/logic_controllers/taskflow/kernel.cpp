@@ -156,6 +156,11 @@ void kernel::process(std::vector<std::unique_ptr<ral::cache::CacheData > > & inp
             input_gpu.push_back(std::move(input->decache()));
 
         }catch(std::exception e){
+            auto logger = spdlog::get("batch_logger");
+            if (logger){
+                logger->error("|||{info}|||||",
+                        "info"_a="ERROR in kernel::process trying to decache. What: {}"_format(e.what()));
+            }
             throw e;
         }
     }
@@ -169,6 +174,11 @@ void kernel::process(std::vector<std::unique_ptr<ral::cache::CacheData > > & inp
        total_input_bytes += bytes; // increment this AFTER its been processed successfully
 
     }catch(std::exception e){
+        auto logger = spdlog::get("batch_logger");
+        if (logger){
+            logger->error("|||{info}|||||",
+                    "info"_a="ERROR in kernel::process trying to do do_process. What: {}"_format(e.what()));
+        }
         //remake inputs here
         int i = 0;
         for(auto & input : inputs){
