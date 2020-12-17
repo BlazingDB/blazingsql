@@ -1,5 +1,7 @@
 #include "messageSender.hpp"
 
+using namespace fmt::literals;
+
 namespace comm {
 
 message_sender * message_sender::instance = nullptr;
@@ -123,7 +125,12 @@ void message_sender::run_polling() {
 							transport->send(raw_buffers[i], buffer_sizes[i]);
 						}
 						transport->wait_until_complete();  // ensures that the message has been sent before returning the thread to the pool
-					} catch(const std::exception&) {
+					} catch(const std::exception & e) {
+						auto logger = spdlog::get("batch_logger");
+						if (logger){
+							logger->error("|||{info}|||||",
+									"info"_a="ERROR in message_sender::run_polling(). What: {}"_format(e.what()));
+						}
 						throw;
 					}
 			});

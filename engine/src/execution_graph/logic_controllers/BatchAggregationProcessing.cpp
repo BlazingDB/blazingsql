@@ -88,7 +88,7 @@ std::pair<bool, uint64_t> ComputeAggregateKernel::get_estimated_output_num_rows(
         std::pair<bool, uint64_t> total_in = this->query_graph->get_estimated_input_rows_to_kernel(this->kernel_id);
         if (total_in.first){
             double out_so_far = (double)this->output_.total_rows_added();
-            double in_so_far = (double)this->input_.total_rows_added();
+            double in_so_far = (double)this->total_input_bytes_processed;
             if (in_so_far == 0) {
                 return std::make_pair(false, 0);
             } else {

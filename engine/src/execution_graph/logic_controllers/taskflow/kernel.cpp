@@ -6,7 +6,7 @@ namespace ral {
 namespace cache {
 
 kernel::kernel(std::size_t kernel_id, std::string expr, std::shared_ptr<Context> context, kernel_type kernel_type_id)
-    : total_input_bytes{0}, expression{expr}, kernel_id(kernel_id), kernel_type_id{kernel_type_id}, context{context} {
+    : total_input_bytes_processed{0}, expression{expr}, kernel_id(kernel_id), kernel_type_id{kernel_type_id}, context{context} {
     parent_id_ = -1;
     has_limit_ = false;
     limit_rows_ = -1;
@@ -171,7 +171,7 @@ void kernel::process(std::vector<std::unique_ptr<ral::cache::CacheData > > & inp
            bytes += input->sizeInBytes();
        }
        do_process(std::move(input_gpu),output,stream, args);
-       total_input_bytes += bytes; // increment this AFTER its been processed successfully
+       total_input_bytes_processed += bytes; // increment this AFTER its been processed successfully
 
     }catch(std::exception e){
         auto logger = spdlog::get("batch_logger");
@@ -214,8 +214,8 @@ std::size_t kernel::estimate_output_bytes(const std::vector<std::unique_ptr<ral:
     }
 
     // if we have already processed, then we can estimate based on previous inputs and outputs
-    if (total_input_bytes.load() > 0){
-        return (std::size_t)((double)input_bytes * ((double)this->output_.total_bytes_added()/(double)total_input_bytes.load()));
+    if (total_input_bytes_processed.load() > 0){
+        return (std::size_t)((double)input_bytes * ((double)this->output_.total_bytes_added()/(double)total_input_bytes_processed.load()));
     } else { // if we have not already any batches, then lets estimate that the output is the same as the input
         return input_bytes;
     }
