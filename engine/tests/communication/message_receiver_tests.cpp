@@ -40,7 +40,7 @@ TEST_F(MessageReceiverTest, receive_test) {
   }
 
   ral::cache::MetadataDictionary metadata;
-  auto output_cache = std::make_shared<ral::cache::CacheMachine>(nullptr);
+  auto output_cache = std::make_shared<ral::cache::CacheMachine>(nullptr, "");
   
   auto meta_buffer = comm::detail::serialize_metadata_and_transports_and_buffer_sizes(metadata,
                     column_transports,
