@@ -41,7 +41,7 @@ size_t message_receiver::num_buffers(){
 
 void message_receiver::confirm_transmission(){
   ++_buffer_counter;
-  if (static_cast<size_t>(_buffer_counter) == _raw_buffers.size()) {
+  if (_buffer_counter == _raw_buffers.size()) {
     finish();
   }
 }
@@ -51,7 +51,7 @@ void * message_receiver::get_buffer(uint16_t index){
 }
 
 bool message_receiver::is_finished(){
-  return (static_cast<size_t>(_buffer_counter) == _raw_buffers.size());
+  return (_buffer_counter == _raw_buffers.size());
 }
 
 void message_receiver::finish(cudaStream_t stream) {

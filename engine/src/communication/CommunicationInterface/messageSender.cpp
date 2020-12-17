@@ -19,7 +19,7 @@ void message_sender::initialize_instance(std::shared_ptr<ral::cache::CacheMachin
 		int num_threads,
 		ucp_context_h context,
 		ucp_worker_h origin_node,
-		uint16_t ral_id,
+		int ral_id,
 		comm::blazing_protocol protocol){
 	
 	if(instance == NULL) {
@@ -34,7 +34,7 @@ message_sender::message_sender(std::shared_ptr<ral::cache::CacheMachine> output_
 		int num_threads,
 		ucp_context_h context,
 		ucp_worker_h origin,
-		uint16_t ral_id,
+		int ral_id,
 		comm::blazing_protocol protocol)
 		: pool{num_threads}, output_cache{output_cache}, input_cache{input_cache}, node_address_map{node_address_map}, protocol{protocol}, origin{origin}, ral_id{ral_id}
 {
