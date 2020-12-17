@@ -12,7 +12,6 @@
 #include <cassert>
 #include <queue>
 #include "transport/ColumnTransport.h"
-#include "ExceptionHandling/BlazingThread.h"
 #include <rmm/device_buffer.hpp>
 
 #include "CodeTimer.h"
@@ -55,11 +54,11 @@ PinnedBuffer *PinnedBufferProvider::getBuffer() {
   std::unique_lock<std::mutex> lock(inUseMutex);
   if (this->buffers.empty()) {
     //if (this->buffer_counter >= 100){
-    //    cv.wait(lock, [this] { return !this->buffers.empty(); });        
+    //    cv.wait(lock, [this] { return !this->buffers.empty(); });
     //}else{
         this->grow();
     //}
-    
+
   }
   this->allocation_counter++;
   PinnedBuffer *temp = this->buffers.top();
@@ -96,7 +95,7 @@ void PinnedBufferProvider::grow() {
 
 void PinnedBufferProvider::freeBuffer(PinnedBuffer *buffer) {
   std::unique_lock<std::mutex> lock(inUseMutex);
-  this->buffers.push(buffer);  
+  this->buffers.push(buffer);
   this->allocation_counter--;
 
 }

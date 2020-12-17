@@ -4,10 +4,10 @@
 #include "ParquetParser.h"
 #include "utilities/CommonOperations.h"
 
+#include <future>
 #include <numeric>
 
 #include <arrow/io/file.h>
-#include "ExceptionHandling/BlazingThread.h"
 
 #include <parquet/column_writer.h>
 #include <parquet/file_writer.h>
@@ -44,7 +44,7 @@ std::unique_ptr<ral::frame::BlazingTable> parquet_parser::parse_batch(
 
 		pq_args.enable_convert_strings_to_categories(false);
 		pq_args.enable_use_pandas_metadata(false);
-		
+
 		std::vector<std::string> col_names(column_indices.size());
 
 		for(size_t column_i = 0; column_i < column_indices.size(); column_i++) {
@@ -100,19 +100,18 @@ void parquet_parser::parse_schema(
 
 std::unique_ptr<ral::frame::BlazingTable> parquet_parser::get_metadata(std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, int offset){
 	std::vector<size_t> num_row_groups(files.size());
-	BlazingThread threads[files.size()];
+	std::vector<std::future<void>> futures;
 	std::vector<std::unique_ptr<parquet::ParquetFileReader>> parquet_readers(files.size());
 	for(size_t file_index = 0; file_index < files.size(); file_index++) {
-		threads[file_index] = BlazingThread([&, file_index]() {
+		futures.push_back(std::async(std::launch::async, [&, file_index]() {
 		  parquet_readers[file_index] =
 			  std::move(parquet::ParquetFileReader::Open(files[file_index]));
 		  std::shared_ptr<parquet::FileMetaData> file_metadata = parquet_readers[file_index]->metadata();
 		  num_row_groups[file_index] = file_metadata->num_row_groups();
-		});
+		}));
 	}
-
-	for(size_t file_index = 0; file_index < files.size(); file_index++) {
-		threads[file_index].join();
+	for (auto &&f : futures){
+		f.get();
 	}
 
 	size_t total_num_row_groups =

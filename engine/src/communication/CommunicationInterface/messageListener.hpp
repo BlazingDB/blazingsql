@@ -4,7 +4,6 @@
 #include <map>
 
 #include "utilities/ctpl_stl.h"
-#include "ExceptionHandling/BlazingThread.h"
 #include <ucp/api/ucp.h>
 #include <ucp/api/ucp_def.h>
 #include "messageReceiver.hpp"
@@ -18,11 +17,11 @@ public:
 
     }
     virtual void start_polling() = 0;
-    ctpl::thread_pool<BlazingThread> & get_pool();
+    ctpl::thread_pool & get_pool();
     std::map<std::string, comm::node> get_node_map();
 
 protected:
-    ctpl::thread_pool<BlazingThread> pool;
+    ctpl::thread_pool pool;
     std::map<std::string, comm::node> _nodes_info_map;
     bool polling_started{false};
 };

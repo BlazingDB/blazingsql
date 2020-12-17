@@ -3,7 +3,7 @@
 #include <condition_variable>
 #include <mutex>
 #include <chrono>
-#include "ExceptionHandling/BlazingThread.h"
+#include <future>
 #include <map>
 
 class BlazingMemoryResource;
@@ -26,7 +26,7 @@ class MemoryMonitor {
         std::shared_ptr<ral::batch::tree_processor> tree;
         std::chrono::milliseconds period;
         BlazingMemoryResource* resource;
-        BlazingThread monitor_thread;
+        std::future<void> monitor_future;
 
         bool need_to_free_memory();
         void downgradeCaches(ral::batch::node* starting_node);

@@ -134,7 +134,7 @@ public:
         std::vector<size_t> buffer_sizes,
         std::vector<blazingdb::transport::ColumnTransport> column_transports,
         uint16_t ral_id,
-        ctpl::thread_pool<BlazingThread> * allocate_copy_buffer_pool);
+        ctpl::thread_pool * allocate_copy_buffer_pool);
     ~tcp_buffer_transport();
 
     void send_begin_transmission() override;
@@ -146,7 +146,7 @@ private:
     uint16_t ral_id;
     int message_id;
     std::vector<int> socket_fds;
-    ctpl::thread_pool<BlazingThread> * allocate_copy_buffer_pool;
+    ctpl::thread_pool * allocate_copy_buffer_pool;
     cudaStream_t stream;
 };
 

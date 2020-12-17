@@ -1,7 +1,6 @@
 #include "BatchProcessing.h"
 #include "CodeTimer.h"
 #include "communication/CommunicationData.h"
-#include "ExceptionHandling/BlazingThread.h"
 #include "io/data_parser/CSVParser.h"
 #include "parser/expression_utils.hpp"
 #include "taskflow/executor.h"

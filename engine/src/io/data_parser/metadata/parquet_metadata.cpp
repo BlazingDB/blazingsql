@@ -5,8 +5,8 @@
 #ifndef BLAZINGDB_RAL_SRC_IO_DATA_PARSER_METADATA_PARQUET_METADATA_CPP_H_
 #define BLAZINGDB_RAL_SRC_IO_DATA_PARSER_METADATA_PARQUET_METADATA_CPP_H_
 
+#include <future>
 #include "parquet_metadata.h"
-#include "ExceptionHandling/BlazingThread.h"
 #include "utilities/CommonOperations.h"
 #include <cudf/column/column_factories.hpp>
 
@@ -63,7 +63,7 @@ void set_min_max(
 		break;
 	case parquet::ConvertedType::type::TIMESTAMP_MILLIS: {
 		auto convertedStats = std::static_pointer_cast<parquet::Int64Statistics>(statistics);
-		int64_t min = statistics->HasMinMax() ? convertedStats->min() : 0;     
+		int64_t min = statistics->HasMinMax() ? convertedStats->min() : 0;
 		int64_t max = statistics->HasMinMax() ? convertedStats->max() : 9223286400; // 04/11/2262 in ms
 		minmax_metadata_table[col_index].back() = min;
 		minmax_metadata_table[col_index + 1].back() = max;
@@ -154,7 +154,7 @@ void set_min_max(
 			throw std::runtime_error("Invalid gdf_dtype in set_min_max");
 			break;
 		}
-	}	
+	}
 }
 
 
@@ -368,13 +368,12 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 
 	std::vector<std::vector<std::vector<int64_t>>> minmax_metadata_table_per_file(parquet_readers.size());
 
-	std::vector<BlazingThread> threads(parquet_readers.size());
-	std::mutex guard;
+	std::vector<std::future<void>> futures;
 	for (size_t file_index = 0; file_index < parquet_readers.size(); file_index++){
-		// NOTE: It is really important to mantain the `file_index order` in order to match the same order in HiveMetadata
-		threads[file_index] = BlazingThread([&guard, metadata_offset,  &parquet_readers, file_index,
+		futures.push_back(std::async(std::launch::async, [metadata_offset, &parquet_readers, file_index,
 									&minmax_metadata_table_per_file, num_metadata_cols, columns_with_metadata](){
 
+		// NOTE: It is really important to mantain the `file_index order` in order to match the same order in HiveMetadata
 		std::shared_ptr<parquet::FileMetaData> file_metadata = parquet_readers[file_index]->metadata();
 
 		if (file_metadata->num_row_groups() > 0){
@@ -402,14 +401,12 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 				this_minmax_metadata_table[this_minmax_metadata_table.size() - 1].push_back(row_group_index);
 			}
 
-			guard.lock();
 			minmax_metadata_table_per_file[file_index] = std::move(this_minmax_metadata_table);
-			guard.unlock();
 		}
-		});
+		}));
 	}
-	for (size_t file_index = 0; file_index < parquet_readers.size(); file_index++){
-		threads[file_index].join();
+	for (auto &&f : futures){
+		f.get();
 	}
 
 	std::vector<std::vector<int64_t>> minmax_metadata_table = minmax_metadata_table_per_file[valid_parquet_reader];

@@ -5,10 +5,10 @@
 
 #include "LocalFileSystem_p.h"
 
-#include "ExceptionHandling/BlazingThread.h"
 #include <chrono>
 #include <cstring>
 #include <iostream>
+#include <thread>
 
 #include <stddef.h>
 
@@ -741,7 +741,7 @@ std::shared_ptr<arrow::io::RandomAccessFile> LocalFileSystem::Private::openReada
 	const Path path = uriWithRoot.getPath();
 
 	auto readableFile = arrow::io::ReadableFile::Open(path.toString());
-            
+
 	if(!readableFile.status().ok()) {
 		throw BlazingFileSystemException("Unable to open " + uriWithRoot.toString() + " for reading");
 	}

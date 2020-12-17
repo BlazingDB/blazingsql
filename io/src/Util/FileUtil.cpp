@@ -1,11 +1,12 @@
 #include "FileUtil.h"
 
-#include "ExceptionHandling/BlazingThread.h"
 #include <cerrno>
 #include <chrono>
 #include <fstream>
 #include <iostream>
 #include <string.h>
+#include <thread>
+#include <future>
 
 #include <dirent.h>
 #include <fcntl.h>  // O_RDONLY
@@ -20,6 +21,7 @@
 
 #include "FileUtil.h"
 
+#include "ExceptionHandling/BlazingException.h"
 
 #include "FileSystem/Path.h"
 #include "FileSystem/Uri.h"
@@ -123,11 +125,11 @@ void moveAndReplaceFilesThread(long long & fileInd,
 
 
 bool FileUtilv2::moveAndReplaceFiles(std::vector<Uri> & srcFiles, std::vector<Uri> & destFiles) {
-	size_t numThreads = BlazingThread::hardware_concurrency();
+	size_t numThreads = std::thread::hardware_concurrency();
 	numThreads = numThreads < srcFiles.size() ? numThreads : srcFiles.size();
     size_t maxThreads = 8;
 	numThreads = numThreads < maxThreads ? numThreads : maxThreads;
-	std::vector<BlazingThread> filesThread(numThreads);
+	std::vector<std::future<void>> futures;
 
 	int successCount = 0;
 	int errorCount = 0;
@@ -139,16 +141,16 @@ bool FileUtilv2::moveAndReplaceFiles(std::vector<Uri> & srcFiles, std::vector<Ur
 	moveAndReplaceFilesThread(fileInd, completionMutex, srcFiles, destFiles, successCount, errorCount);
 #else
 	for(size_t j = 0; j < numThreads; ++j) {
-		filesThread[j] = BlazingThread(&moveAndReplaceFilesThread,
+		futures.push_back(std::async(std::launch::async, moveAndReplaceFilesThread,
 			std::ref(fileInd),
 			std::ref(completionMutex),
 			std::ref(srcFiles),
 			std::ref(destFiles),
 			std::ref(successCount),
-			std::ref(errorCount));
+			std::ref(errorCount)));
 	}
-	for(size_t j = 0; j < numThreads; ++j) {
-		filesThread[j].join();
+	for (auto &&f : futures) {
+		f.get();
 	}
 #endif
 
@@ -264,11 +266,11 @@ void _removeThread(long long & fileInd,
 
 
 bool FileUtilv2::batchRemove(std::vector<Uri> & fileList) {
-    size_t numThreads = BlazingThread::hardware_concurrency();
+    size_t numThreads = std::thread::hardware_concurrency();
 	numThreads = numThreads < (fileList.size() + 9) / 10 ? numThreads : (fileList.size() + 9) / 10;
     size_t maxThreads = 8;
 	numThreads = numThreads < maxThreads ? numThreads : maxThreads;
-	std::vector<BlazingThread> filesThread(numThreads);
+	std::vector<std::future<void>> futures;
 
 	int successCount = 0;
 	int errorCount = 0;
@@ -280,15 +282,15 @@ bool FileUtilv2::batchRemove(std::vector<Uri> & fileList) {
 	_removeThread(fileInd, completionMutex, fileList, successCount, errorCount);
 #else
 	for(size_t j = 0; j < numThreads; ++j) {
-		filesThread[j] = BlazingThread(&_removeThread,
+		futures.push_back(std::async(std::launch::async, _removeThread,
 			std::ref(fileInd),
 			std::ref(completionMutex),
 			std::ref(fileList),
 			std::ref(successCount),
-			std::ref(errorCount));
+			std::ref(errorCount)));
 	}
-	for(size_t j = 0; j < numThreads; ++j) {
-		filesThread[j].join();
+	for (auto &&f : futures) {
+		f.get();
 	}
 #endif
 
@@ -421,11 +423,11 @@ bool FileUtilv2::batchMove(std::vector<Uri> & srcFiles, std::vector<Uri> & destF
 		return false;
 	}
 
-    size_t numThreads = BlazingThread::hardware_concurrency();
+    size_t numThreads = std::thread::hardware_concurrency();
 	numThreads = numThreads < (srcFiles.size() + 9) / 10 ? numThreads : (srcFiles.size() + 9) / 10;
     size_t maxThreads = 8;
 	numThreads = numThreads < maxThreads ? numThreads : maxThreads;
-	std::vector<BlazingThread> filesThread(numThreads);
+	std::vector<std::future<void>> futures;
 
 	int successCount = 0;
 	int errorCount = 0;
@@ -437,16 +439,16 @@ bool FileUtilv2::batchMove(std::vector<Uri> & srcFiles, std::vector<Uri> & destF
 	_moveThread(fileInd, completionMutex, srcFiles, destFiles, successCount, errorCount);
 #else
 	for(size_t j = 0; j < numThreads; ++j) {
-		filesThread[j] = BlazingThread(&_moveThread,
+		futures.push_back(std::async(std::launch::async, _moveThread,
 			std::ref(fileInd),
 			std::ref(completionMutex),
 			std::ref(srcFiles),
 			std::ref(destFiles),
 			std::ref(successCount),
-			std::ref(errorCount));
+			std::ref(errorCount)));
 	}
-	for(size_t j = 0; j < numThreads; ++j) {
-		filesThread[j].join();
+	for (auto &&f : futures) {
+		f.get();
 	}
 #endif
 	if(errorCount > 0) {
@@ -495,7 +497,7 @@ bool FileUtilv2::readCompletely(
 		}
 
         int64_t totalRead = status.ValueOrDie();
-        
+
 		if(totalRead < bytesToRead) {
 			int totalReadTries = 0;
 			int emptyReads = 0;
@@ -508,9 +510,9 @@ bool FileUtilv2::readCompletely(
 														std::to_string(totalRead) + "  status : " + status.status().ToString());
 					return false;
 				}
-                
+
                 bytesRead = status.ValueOrDie();
-                
+
 				if(bytesRead == 0) {
 					emptyReads++;
 				}

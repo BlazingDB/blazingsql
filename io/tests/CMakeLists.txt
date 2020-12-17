@@ -36,7 +36,6 @@ enable_testing()
 message(STATUS "******** Configuring tests ********")
 
 # TODO percy fix tests
-add_subdirectory(ExceptionHandling)
 add_subdirectory(FileSystem)
 #add_subdirectory(Library)
 

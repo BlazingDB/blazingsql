@@ -1,6 +1,6 @@
 #include <string>
+#include <future>
 #include "BatchJoinProcessing.h"
-#include "ExceptionHandling/BlazingThread.h"
 #include "parser/expression_tree.hpp"
 #include "CodeTimer.h"
 #include <cudf/partitioning.hpp>
@@ -782,7 +782,7 @@ void JoinPartitionKernel::perform_standard_hash_partitioning(
 
 	computeNormalizationData(left_cache_data->get_schema(), right_cache_data->get_schema());
 
-	BlazingThread left_thread([this, &left_input, &left_cache_data](){
+	auto left_future = std::async(std::launch::async, [this, &left_input, &left_cache_data](){
 		while(left_cache_data != nullptr) {
 			std::vector<std::unique_ptr<ral::cache::CacheData>> inputs;
 			inputs.push_back(std::move(left_cache_data));
@@ -797,7 +797,7 @@ void JoinPartitionKernel::perform_standard_hash_partitioning(
 		}
 	});
 
-	BlazingThread right_thread([this, &right_input, &right_cache_data](){
+	auto right_future = std::async(std::launch::async, [this, &right_input, &right_cache_data](){
 		while(right_cache_data != nullptr) {
 			std::vector<std::unique_ptr<ral::cache::CacheData>> inputs;
 			inputs.push_back(std::move(right_cache_data));
@@ -812,8 +812,8 @@ void JoinPartitionKernel::perform_standard_hash_partitioning(
 		}
 	});
 
-	left_thread.join();
-	right_thread.join();
+	left_future.get();
+	right_future.get();
 
 	std::unique_lock<std::mutex> lock(kernel_mutex);
 	kernel_cv.wait(lock,[this]{
@@ -844,7 +844,7 @@ void JoinPartitionKernel::small_table_scatter_distribution(std::unique_ptr<ral::
 	int small_table_idx = scatter_left_right.first ? LEFT_TABLE_IDX : RIGHT_TABLE_IDX;
 	std::string big_output_cache_name = scatter_left_right.first ? "output_b" : "output_a";
 
-	BlazingThread left_thread([this, &small_input, &small_cache_data](){
+	auto left_future = std::async(std::launch::async, [this, &small_input, &small_cache_data](){
 		while(small_cache_data != nullptr ) {
 			std::vector<std::unique_ptr<ral::cache::CacheData>> inputs;
 			inputs.push_back(std::move(small_cache_data));
@@ -859,7 +859,7 @@ void JoinPartitionKernel::small_table_scatter_distribution(std::unique_ptr<ral::
 		}
 	});
 
-	BlazingThread right_thread([this, &big_input, &big_cache_data](){
+	auto right_future = std::async(std::launch::async, [this, &big_input, &big_cache_data](){
 		while (big_cache_data != nullptr) {
 			std::vector<std::unique_ptr<ral::cache::CacheData>> inputs;
 			inputs.push_back(std::move(big_cache_data));
@@ -874,8 +874,8 @@ void JoinPartitionKernel::small_table_scatter_distribution(std::unique_ptr<ral::
 		}
 	});
 
-	left_thread.join();
-	right_thread.join();
+	left_future.get();
+	right_future.get();
 
 	std::unique_lock<std::mutex> lock(kernel_mutex);
 	kernel_cv.wait(lock,[this]{

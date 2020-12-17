@@ -47,7 +47,6 @@
 #include "ExceptionHandling/BlazingException.h"
 #include "Util/StringUtil.h"
 
-#include "ExceptionHandling/BlazingThread.h"
 #include <chrono>
 
 #include "Library/Logging/Logger.h"

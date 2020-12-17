@@ -263,7 +263,7 @@ tcp_buffer_transport::tcp_buffer_transport(
         std::vector<size_t> buffer_sizes,
         std::vector<blazingdb::transport::ColumnTransport> column_transports,
         uint16_t ral_id,
-        ctpl::thread_pool<BlazingThread> * allocate_copy_buffer_pool)
+        ctpl::thread_pool * allocate_copy_buffer_pool)
         : buffer_transport(metadata, buffer_sizes, column_transports,destinations),
         ral_id{ral_id}, allocate_copy_buffer_pool{allocate_copy_buffer_pool} {
 

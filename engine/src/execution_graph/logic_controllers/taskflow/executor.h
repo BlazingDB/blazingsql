@@ -2,7 +2,6 @@
 
 #include "kernel.h"
 #include "execution_graph/logic_controllers/CacheMachine.h"
-#include "ExceptionHandling/BlazingThread.h"
 #include "utilities/ctpl_stl.h"
 
 namespace ral {
@@ -100,7 +99,7 @@ public:
 
 private:
 	executor(int num_threads);
-	ctpl::thread_pool<BlazingThread> pool;
+	ctpl::thread_pool pool;
 	std::vector<cudaStream_t> streams; //one stream per thread
 	ral::cache::WaitingQueue< std::unique_ptr<task> > task_queue;
 	int shutdown = 0;

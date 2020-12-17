@@ -49,7 +49,7 @@ namespace cache {
 		mem_monitor->start();
 		check_and_complete_work_flow();
 
-		ctpl::thread_pool<BlazingThread> pool(max_kernel_run_threads);
+		ctpl::thread_pool pool(max_kernel_run_threads);
 		std::vector<std::future<void>> futures;
 		std::set<std::pair<size_t, size_t>> visited;
 		std::deque<size_t> Q;

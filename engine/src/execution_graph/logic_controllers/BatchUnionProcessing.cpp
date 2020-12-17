@@ -1,3 +1,4 @@
+#include <future>
 #include "BatchUnionProcessing.h"
 #include <cudf/types.hpp>
 #include "CodeTimer.h"
@@ -40,7 +41,7 @@ kstatus UnionKernel::run() {
     bool strict = false;
     common_types = ral::utilities::get_common_types(cache_data_a->get_schema(), cache_data_b->get_schema(), strict);
 
-    BlazingThread left_thread([this, &cache_machine_a, &cache_data_a](){
+    auto left_future = std::async(std::launch::async, [this, &cache_machine_a, &cache_data_a](){
         while(cache_data_a != nullptr) {
             std::vector<cudf::data_type> data_types = cache_data_a->get_schema();
             std::vector<std::string> names = cache_data_a->names();
@@ -60,7 +61,7 @@ kstatus UnionKernel::run() {
         }
     });
 
-    BlazingThread right_thread([this, &cache_machine_b, &cache_data_b](){
+    auto right_future = std::async(std::launch::async, [this, &cache_machine_b, &cache_data_b](){
         while(cache_data_b != nullptr){
             std::vector<cudf::data_type> data_types = cache_data_b->get_schema();
             std::vector<std::string> names = cache_data_b->names();
@@ -80,8 +81,8 @@ kstatus UnionKernel::run() {
         }
     });
 
-    left_thread.join();
-    right_thread.join();
+    left_future.get();
+    right_future.get();
 
     if(logger != nullptr) {
         logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",

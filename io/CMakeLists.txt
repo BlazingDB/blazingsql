@@ -117,9 +117,7 @@ set(LOGGING_SRC_FILES
     ${PROJECT_SOURCE_DIR}/src/Library/Logging/TcpOutput.cpp)
 
 set(EXCEPTION_SRC_FILES
-    ${PROJECT_SOURCE_DIR}/src/ExceptionHandling/BlazingThread.cpp
-    ${PROJECT_SOURCE_DIR}/src/ExceptionHandling/BlazingException.cpp
-    ${PROJECT_SOURCE_DIR}/src/ExceptionHandling/BlazingExceptionHolder.cpp)
+    ${PROJECT_SOURCE_DIR}/src/ExceptionHandling/BlazingException.cpp)
 
 set(UTIL_SRC_FILES
     ${PROJECT_SOURCE_DIR}/src/Util/StringUtil.cpp

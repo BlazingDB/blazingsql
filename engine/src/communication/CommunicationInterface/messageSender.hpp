@@ -6,7 +6,6 @@
 #include <utility>
 #include <Util/StringUtil.h>
 
-#include "ExceptionHandling/BlazingThread.h"
 #include "node.hpp"
 #include "serializer.hpp"
 #include "execution_graph/logic_controllers/CacheMachine.h"
@@ -32,7 +31,7 @@ public:
 	 * @param context The ucp_context_h
 	 * @param origin The ucp_worker_h
 	 * @param ral_id The ral_id
-	 * @param protocol The comm::blazing_protocol 
+	 * @param protocol The comm::blazing_protocol
 	 */
 	message_sender(std::shared_ptr<ral::cache::CacheMachine> output_cache,
 		std::shared_ptr<ral::cache::CacheMachine> input_cache,
@@ -66,7 +65,7 @@ public:
 private:
 	static message_sender * instance;
 
-	ctpl::thread_pool<BlazingThread> pool;
+	ctpl::thread_pool pool;
 	std::shared_ptr<ral::cache::CacheMachine> output_cache;
 	std::shared_ptr<ral::cache::CacheMachine> input_cache;
 	std::map<std::string, node> node_address_map;

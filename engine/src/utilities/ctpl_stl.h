@@ -68,7 +68,6 @@ namespace ctpl {
         };
     }
 
-    template <typename T>
     class thread_pool {
 
     public:
@@ -86,7 +85,7 @@ namespace ctpl {
 
         // number of idle threads
         int n_idle() { return this->nWaiting; }
-        T & get_thread(int i) { return *this->threads[i]; }
+        std::thread & get_thread(int i) { return *this->threads[i]; }
 
         // change the number of threads in the pool
         // should be called from one thread, otherwise be careful to not interleave, also with this->stop()
@@ -231,12 +230,12 @@ namespace ctpl {
                         return;  // if the queue is empty and this->isDone == true or *flag then return
                 }
             };
-            this->threads[i].reset(new T(f)); // compiler may not support std::make_unique()
+            this->threads[i].reset(new std::thread(f)); // compiler may not support std::make_unique()
         }
 
         void init() { this->nWaiting = 0; this->isStop = false; this->isDone = false; }
 
-        std::vector<std::unique_ptr<T>> threads;
+        std::vector<std::unique_ptr<std::thread>> threads;
         std::vector<std::shared_ptr<std::atomic<bool>>> flags;
         detail::Queue<std::function<void(int id)> *> q;
         std::atomic<bool> isDone;

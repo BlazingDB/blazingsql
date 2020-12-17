@@ -11,7 +11,7 @@ namespace comm {
 std::map<ucp_tag_t, std::pair<std::vector<char>, std::shared_ptr<ucp_tag_recv_info_t> > > tag_to_begin_buffer_and_info;
 std::mutex tag_to_begin_buffer_and_info_mutex;
 
-ctpl::thread_pool<BlazingThread> & message_listener::get_pool(){
+ctpl::thread_pool & message_listener::get_pool(){
 	return pool;
 }
 
@@ -65,7 +65,7 @@ void recv_begin_callback_c(std::shared_ptr<ucp_tag_recv_info_t> info, size_t req
 	auto message_listener = ucx_message_listener::get_instance();
 
 	auto fwd = message_listener->get_pool().push([&message_listener, info, request_size](int /*thread_id*/) {
-		
+
 		std::vector<char> data_buffer;
 		{
 			std::lock_guard<std::mutex> guard(tag_to_begin_buffer_and_info_mutex);
@@ -76,7 +76,7 @@ void recv_begin_callback_c(std::shared_ptr<ucp_tag_recv_info_t> info, size_t req
 			data_buffer = std::move(iter->second.first);
 			tag_to_begin_buffer_and_info.erase(iter);
 		}
-	
+
 		auto receiver = std::make_shared<message_receiver>(message_listener->get_node_map(), data_buffer);
 
 		message_listener->add_receiver(info->sender_tag, receiver);
@@ -244,7 +244,7 @@ void ucx_message_listener::poll_begin_message_tag(bool running_from_unit_test){
 							std::vector<char>(info_tag->length), info_tag);
 						temp_buffer = tag_to_begin_buffer_and_info[info_tag->sender_tag].first.data();
 					}
-					
+
 
 					auto status = ucp_tag_recv_nbr(ucp_worker,
 						temp_buffer,
