@@ -100,7 +100,7 @@ void task::set_inputs(std::vector<std::unique_ptr<ral::cache::CacheData > > inpu
 executor * executor::_instance;
 
 executor::executor(int num_threads) :
- pool(num_threads), task_id_counter(0), resource(&blazing_device_memory_resource::getInstance()) {
+ pool(num_threads), task_id_counter(0), resource(&blazing_device_memory_resource::getInstance()), task_queue("executor_task_queue") {
      for( int i = 0; i < num_threads; i++){
          cudaStream_t stream;
          cudaStreamCreate(&stream);

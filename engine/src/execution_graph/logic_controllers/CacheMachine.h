@@ -598,7 +598,8 @@ public:
 	/**
 	* Constructor
 	*/
-	WaitingQueue(int timeout = 60000, bool log_timeout = true) : finished{false}, timeout(timeout), log_timeout(log_timeout) {}
+	WaitingQueue(std::string queue_name, int timeout = 60000, bool log_timeout = true) : 
+		queue_name(queue_name), finished{false}, timeout(timeout), log_timeout(log_timeout) {}
 
 	/**
 	* Destructor
@@ -666,7 +667,7 @@ public:
 		std::unique_lock<std::mutex> lock(mutex_);
 		condition_variable_.wait(lock, [&, this] () {
 			if (count < this->processed){
-				throw std::runtime_error("WaitingQueue::wait_for_count encountered " + std::to_string(this->processed) + " when expecting " + std::to_string(count));
+				throw std::runtime_error("WaitingQueue::wait_for_count " + this->queue_name + " encountered " + std::to_string(this->processed) + " when expecting " + std::to_string(count));
 			}
 			return count == this->processed;
 		});
@@ -737,7 +738,7 @@ public:
 					auto logger = spdlog::get("batch_logger");
 					if(logger != nullptr) {
 						logger->warn("|||{info}|{duration}||||",
-											"info"_a="WaitingQueue wait_for_next timed out",
+											"info"_a="WaitingQueue " + this->queue_name + " wait_for_next timed out",
 											"duration"_a=blazing_timer.elapsed_time());
 					}
 				}
@@ -773,7 +774,7 @@ public:
 					auto logger = spdlog::get("batch_logger");
 					if(logger != nullptr) {
 					   logger->warn("|||{info}|{duration}||||",
-										   "info"_a="WaitingQueue wait_until_finished timed out",
+										   "info"_a="WaitingQueue " + this->queue_name + " wait_until_finished timed out",
  										   "duration"_a=blazing_timer.elapsed_time());
 					}
 				}
@@ -805,7 +806,7 @@ public:
 					auto logger = spdlog::get("batch_logger");
 					if(logger != nullptr) {
 						logger->warn("|||{info}|{duration}||||",
-											"info"_a="WaitingQueue wait_until_finished timed out",
+											"info"_a="WaitingQueue " + this->queue_name + " wait_until_finished timed out",
 											"duration"_a=blazing_timer.elapsed_time());
 					}
 				}
@@ -853,7 +854,7 @@ public:
 					auto logger = spdlog::get("batch_logger");
 					if(logger != nullptr) {
 						logger->warn("|||{info}|{duration}|message_id|{message_id}||",
-											"info"_a="WaitingQueue get_or_wait timed out",
+											"info"_a="WaitingQueue " + this->queue_name + " get_or_wait timed out",
 											"duration"_a=blazing_timer.elapsed_time(),
 											"message_id"_a=message_id);
 					}
@@ -927,7 +928,7 @@ public:
 					auto logger = spdlog::get("batch_logger");
 					if(logger != nullptr) {
 						logger->warn("|||{info}|{duration}||||",
-											"info"_a="WaitingQueue get_all_or_wait timed out",
+											"info"_a="WaitingQueue " + this->queue_name + " get_all_or_wait timed out",
 											"duration"_a=blazing_timer.elapsed_time());
 					}
 				}
@@ -972,6 +973,7 @@ public:
 	void put_all(std::vector<message_ptr> messages){
 		std::unique_lock<std::mutex> lock(mutex_);
 		put_all_unsafe(std::move(messages));
+		processed += messages.size();
 		condition_variable_.notify_all();
 	}
 private:
@@ -999,6 +1001,7 @@ private:
 	int processed = 0; /**< Count of messages added to the WaitingQueue. */
 
 	int timeout; /**< timeout period in ms used by the wait_for to log that the condition_variable has been waiting for a long time. */
+	std::string queue_name;
 	bool log_timeout; /**< Whether or not to log when a timeout accurred. */
 };
 
@@ -1015,7 +1018,7 @@ std::unique_ptr<GPUCacheDataMetaData> cast_cache_data_to_gpu_with_meta(std::uniq
 */
 class CacheMachine {
 public:
-	CacheMachine(std::shared_ptr<Context> context, bool log_timeout = true);
+	CacheMachine(std::shared_ptr<Context> context, std::string cache_machine_name, bool log_timeout = true);
 
 	~CacheMachine();
 
@@ -1025,11 +1028,11 @@ public:
 
 	virtual void clear();
 
-	virtual bool addToCache(std::unique_ptr<ral::frame::BlazingTable> table, const std::string & message_id = "", bool always_add = false);
+	virtual bool addToCache(std::unique_ptr<ral::frame::BlazingTable> table, std::string message_id = "", bool always_add = false);
 
-	virtual bool addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, const std::string & message_id = "", bool always_add = false);
+	virtual bool addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, std::string message_id = "", bool always_add = false);
 
-	virtual bool addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> table, const std::string & message_id = "");
+	virtual bool addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> table, std::string message_id = "");
 
 	virtual void finish();
 
@@ -1094,6 +1097,7 @@ protected:
 	std::shared_ptr<spdlog::logger> logger;
 	std::shared_ptr<spdlog::logger> cache_events_logger;
 	const std::size_t cache_id;
+	std::string cache_machine_name;
 };
 
 /**
@@ -1104,7 +1108,7 @@ protected:
 class HostCacheMachine {
 public:
 	HostCacheMachine(std::shared_ptr<Context> context, const std::size_t id) : ctx(context), cache_id(id) {
-		waitingCache = std::make_unique<WaitingQueue <std::unique_ptr< message> > >();
+		waitingCache = std::make_unique<WaitingQueue <std::unique_ptr< message> > >("");
 		logger = spdlog::get("batch_logger");
 		something_added = false;
 
@@ -1196,10 +1200,10 @@ protected:
 */
 class ConcatenatingCacheMachine : public CacheMachine {
 public:
-	ConcatenatingCacheMachine(std::shared_ptr<Context> context);
+	ConcatenatingCacheMachine(std::shared_ptr<Context> context, std::string cache_machine_name);
 
 	ConcatenatingCacheMachine(std::shared_ptr<Context> context,
-			std::size_t concat_cache_num_bytes, bool concat_all);
+			std::size_t concat_cache_num_bytes, bool concat_all, std::string cache_machine_name);
 
 	~ConcatenatingCacheMachine() = default;
 

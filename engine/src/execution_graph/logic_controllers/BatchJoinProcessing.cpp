@@ -208,8 +208,10 @@ PartwiseJoin::PartwiseJoin(std::size_t kernel_id, const std::string & queryStrin
 	cache_machine_config.type = ral::cache::CacheType::SIMPLE;
 	cache_machine_config.context = context->clone();
 
-	this->leftArrayCache = 	ral::cache::create_cache_machine(cache_machine_config);
-	this->rightArrayCache = ral::cache::create_cache_machine(cache_machine_config);
+	std::string left_array_cache_name = std::to_string(this->get_id()) + "_left_array";
+	this->leftArrayCache = 	ral::cache::create_cache_machine(cache_machine_config, left_array_cache_name);
+	std::string right_array_cache_name = std::to_string(this->get_id()) + "_right_array";
+	this->rightArrayCache = ral::cache::create_cache_machine(cache_machine_config, right_array_cache_name);
 
 	std::tie(this->expression, this->condition, this->filter_statement, this->join_type) = parseExpressionToGetTypeAndCondition(this->expression);
 }
@@ -601,7 +603,7 @@ std::pair<bool, bool> JoinPartitionKernel::determine_if_we_are_scattering_a_smal
 								"query_id"_a=context->getContextToken(),
 								"step"_a=context->getQueryStep(),
 								"substep"_a=context->getQuerySubstep(),
-								"info"_a="left_num_rows_estimate was " + left_num_rows_estimate.first ? " valid" : " invalid",
+								"info"_a=left_num_rows_estimate.first ? "left_num_rows_estimate was valid" : "left_num_rows_estimate was invalid",
 								"duration"_a="",
 								"kernel_id"_a=this->get_id(),
 								"rows"_a=left_num_rows_estimate.second);
@@ -611,7 +613,7 @@ std::pair<bool, bool> JoinPartitionKernel::determine_if_we_are_scattering_a_smal
 								"query_id"_a=context->getContextToken(),
 								"step"_a=context->getQueryStep(),
 								"substep"_a=context->getQuerySubstep(),
-								"info"_a="right_num_rows_estimate was " + right_num_rows_estimate.first ? " valid" : " invalid",
+								"info"_a=right_num_rows_estimate.first ? "right_num_rows_estimate was valid" : "right_num_rows_estimate was invalid",
 								"duration"_a="",
 								"kernel_id"_a=this->get_id(),
 								"rows"_a=right_num_rows_estimate.second);

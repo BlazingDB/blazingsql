@@ -725,7 +725,7 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 	auto & communicationData = ral::communication::CommunicationData::getInstance();
 	communicationData.initialize(worker_id, orc_files_path);
 
-	auto output_input_caches = std::make_pair(std::make_shared<CacheMachine>(nullptr, false),std::make_shared<CacheMachine>(nullptr, false));
+	auto output_input_caches = std::make_pair(std::make_shared<CacheMachine>(nullptr, "messages_out", false),std::make_shared<CacheMachine>(nullptr, "messages_in", false));
 
 	// start ucp servers
 	if(!singleNode){
