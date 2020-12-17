@@ -815,18 +815,53 @@ void JoinPartitionKernel::perform_standard_hash_partitioning(
 	left_thread.join();
 	right_thread.join();
 
+	if(logger != nullptr) {
+        logger->debug("{query_id}|{step}|{substep}|{info}||kernel_id|{kernel_id}||",
+                                "query_id"_a=context->getContextToken(),
+                                "step"_a=context->getQueryStep(),
+                                "substep"_a=context->getQuerySubstep(),
+                                "info"_a="JoinPartitionKernel Kernel tasks created",
+                                "kernel_id"_a=this->get_id());
+    }
+
 	std::unique_lock<std::mutex> lock(kernel_mutex);
 	kernel_cv.wait(lock,[this]{
 		return this->tasks.empty();
 	});
 
+	if(logger != nullptr) {
+        logger->debug("{query_id}|{step}|{substep}|{info}||kernel_id|{kernel_id}||",
+                                "query_id"_a=context->getContextToken(),
+                                "step"_a=context->getQueryStep(),
+                                "substep"_a=context->getQuerySubstep(),
+                                "info"_a="JoinPartitionKernel Kernel tasks executed",
+                                "kernel_id"_a=this->get_id());
+    }
+
 	send_total_partition_counts("", "output_a", LEFT_TABLE_IDX);
 	send_total_partition_counts("", "output_b", RIGHT_TABLE_IDX);
 
 	int total_count_left = get_total_partition_counts(LEFT_TABLE_IDX); //left
+
+	if(logger != nullptr) {
+        logger->debug("{query_id}|{step}|{substep}|{info}||kernel_id|{kernel_id}||",
+                                "query_id"_a=context->getContextToken(),
+                                "step"_a=context->getQueryStep(),
+                                "substep"_a=context->getQuerySubstep(),
+                                "info"_a="JoinPartitionKernel Kernel got total_partition_counts left: " + std::to_string(total_count_left),
+                                "kernel_id"_a=this->get_id());
+    }
 	this->output_.get_cache("output_a")->wait_for_count(total_count_left);
 
 	int total_count_right = get_total_partition_counts(RIGHT_TABLE_IDX); //right
+	if(logger != nullptr) {
+        logger->debug("{query_id}|{step}|{substep}|{info}||kernel_id|{kernel_id}||",
+                                "query_id"_a=context->getContextToken(),
+                                "step"_a=context->getQueryStep(),
+                                "substep"_a=context->getQuerySubstep(),
+                                "info"_a="JoinPartitionKernel Kernel got total_partition_counts right " + std::to_string(total_count_right),
+                                "kernel_id"_a=this->get_id());
+    }
 	this->output_.get_cache("output_b")->wait_for_count(total_count_right);
 }
 
@@ -891,6 +926,15 @@ void JoinPartitionKernel::small_table_scatter_distribution(std::unique_ptr<ral::
 		return this->tasks.empty();
 	});
 
+	if(logger != nullptr) {
+        logger->debug("{query_id}|{step}|{substep}|{info}||kernel_id|{kernel_id}||",
+                                "query_id"_a=context->getContextToken(),
+                                "step"_a=context->getQueryStep(),
+                                "substep"_a=context->getQuerySubstep(),
+                                "info"_a="JoinPartitionKernel Kernel tasks executed",
+                                "kernel_id"_a=this->get_id());
+    }
+
 	send_total_partition_counts(
 		"", //message_prefix
 		small_output_cache_name, //cache_id
@@ -904,7 +948,7 @@ void JoinPartitionKernel::small_table_scatter_distribution(std::unique_ptr<ral::
                                 "query_id"_a=context->getContextToken(),
                                 "step"_a=context->getQueryStep(),
                                 "substep"_a=context->getQuerySubstep(),
-                                "info"_a="JoinPartitionKernel Kernel got total_partition_counts",
+                                "info"_a="JoinPartitionKernel Kernel got total_partition_counts  " + std::to_string(total_count),
                                 "kernel_id"_a=this->get_id());
     }
 
