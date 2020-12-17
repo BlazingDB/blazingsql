@@ -13,6 +13,8 @@
 #include "execution_graph/logic_controllers/CacheMachine.h"
 #include "transport/io/reader_writer.h"
 
+using namespace fmt::literals;
+
 constexpr size_t NUMBER_RETRIES = 20;
 constexpr size_t FILE_RETRY_DELAY = 20;
 
@@ -350,6 +352,11 @@ void tcp_buffer_transport::send_impl(const char * buffer, size_t buffer_size){
             increment_frame_transmission();
         }
     }catch(const std::exception & e ){
+        auto logger = spdlog::get("batch_logger");
+        if (logger){
+            logger->error("|||{info}|||||",
+                    "info"_a="ERROR in tcp_buffer_transport::send_impl. What: {}"_format(e.what()));
+        }
         throw;
     }
 

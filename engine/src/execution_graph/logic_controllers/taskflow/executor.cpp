@@ -137,7 +137,7 @@ void executor::execute(){
                     auto logger = spdlog::get("batch_logger");
                     if (logger){
                         logger->warn("|||{info}|||||",
-                                "info"_a="WARNING: launcking task even though over limit, because there are no tasks running. Memory used: {}"_format(std::to_string(resource->get_memory_used())));
+                                "info"_a="WARNING: launching task even though over limit, because there are no tasks running. Memory used: {}"_format(std::to_string(resource->get_memory_used())));
                     }
                 } else {
                     return false;
