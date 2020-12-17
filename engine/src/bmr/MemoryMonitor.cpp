@@ -43,14 +43,13 @@ namespace ral {
                      // Lets pull tasks from the back of the queue, since they are ones that will not be operated on immediatelly
                     while (need_to_free_memory()){
 
-                        if (logger){
-                            logger->info("{query_id}|||{info}|||||",
-                                "query_id"_a=tree->context->getContextToken(),
-                                "info"_a="MemoryMonitor about to free memory from tasks");
-                        }
-
                         std::unique_ptr<ral::execution::task> task = ral::execution::executor::get_instance()->remove_task_from_back();
                         if (task != nullptr){
+                            if (logger){
+                                logger->info("{query_id}|||{info}|||||",
+                                    "query_id"_a=tree->context->getContextToken(),
+                                    "info"_a="MemoryMonitor about to free memory from tasks");
+                            }
                             std::vector<std::unique_ptr<ral::cache::CacheData > > inputs = task->release_inputs();
                             for (std::size_t i = 0; i < inputs.size(); i++){
                                 inputs[i] = std::move(inputs[i]->downgradeCacheData(std::move(inputs[i]), "", tree->context));
