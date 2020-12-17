@@ -805,7 +805,7 @@ public:
 					auto logger = spdlog::get("batch_logger");
 					if(logger != nullptr) {
 						logger->warn("|||{info}|{duration}||||",
-											"info"_a="WaitingQueue wait_until_finished timed out",
+											"info"_a="WaitingQueue wait_until_num_bytes timed out",
 											"duration"_a=blazing_timer.elapsed_time());
 					}
 				}
