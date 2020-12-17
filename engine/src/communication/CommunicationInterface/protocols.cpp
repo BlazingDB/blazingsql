@@ -27,7 +27,7 @@ namespace io{
 		int bytes_read = 0;
         size_t count_invalids = 0;
 		while (amount_read < read_size && count_invalids < NUMBER_RETRIES) {
-			bytes_read = read(socket_fd, static_cast<uint8_t*>(data) + amount_read, read_size - amount_read);
+			bytes_read = read(socket_fd, data + amount_read, read_size - amount_read);
 			if (bytes_read != -1) {
 				amount_read += bytes_read;
 				count_invalids = 0;
@@ -48,7 +48,7 @@ namespace io{
 		int bytes_written = 0;
         size_t count_invalids = 0;
 		while (amount_written < write_size && count_invalids < NUMBER_RETRIES) {
-			bytes_written = write(socket_fd, static_cast<uint8_t*>(data) + amount_written, write_size - amount_written);
+			bytes_written = write(socket_fd, data + amount_written, write_size - amount_written);
 
 			if (bytes_written != -1) {
 				amount_written += bytes_written;
@@ -196,7 +196,7 @@ ucx_buffer_transport::ucx_buffer_transport(size_t request_size,
     ral::cache::MetadataDictionary metadata,
     std::vector<size_t> buffer_sizes,
     std::vector<blazingdb::transport::ColumnTransport> column_transports,
-    uint16_t ral_id)
+    int ral_id)
     : buffer_transport(metadata, buffer_sizes, column_transports,destinations),
     origin_node(origin_node), ral_id{ral_id}, _request_size{request_size} {
         tag = generate_message_tag();
@@ -264,7 +264,7 @@ tcp_buffer_transport::tcp_buffer_transport(
         ral::cache::MetadataDictionary metadata,
         std::vector<size_t> buffer_sizes,
         std::vector<blazingdb::transport::ColumnTransport> column_transports,
-        uint16_t ral_id,
+        int ral_id,
         ctpl::thread_pool<BlazingThread> * allocate_copy_buffer_pool)
         : buffer_transport(metadata, buffer_sizes, column_transports,destinations),
         ral_id{ral_id}, allocate_copy_buffer_pool{allocate_copy_buffer_pool} {
@@ -288,7 +288,7 @@ tcp_buffer_transport::tcp_buffer_transport(
         }
         if (connect(socket_fd, (struct sockaddr *)&address, sizeof(address)) < 0)
         {
-            throw std::runtime_error("Invalid Communication Address");
+            throw std::runtime_error("Invalid Communication Address could not connect");
         }
         socket_fds.push_back(socket_fd);
     }

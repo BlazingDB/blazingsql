@@ -40,7 +40,7 @@ public:
 		int num_threads,
 		ucp_context_h context,
 		ucp_worker_h origin,
-		uint16_t ral_id,
+		int ral_id,
 		comm::blazing_protocol protocol);
 
 	static void initialize_instance(std::shared_ptr<ral::cache::CacheMachine> output_cache,
@@ -49,7 +49,7 @@ public:
 		int num_threads,
 		ucp_context_h context,
 		ucp_worker_h origin_node,
-		uint16_t ral_id,
+		int ral_id,
 		comm::blazing_protocol protocol);
 
 	std::shared_ptr<ral::cache::CacheMachine> get_output_cache(){
@@ -73,7 +73,7 @@ private:
 	blazing_protocol protocol;
 	ucp_worker_h origin;
 	size_t request_size;
-	uint16_t ral_id;
+	int ral_id;
 	bool polling_started{false};
 };
 
