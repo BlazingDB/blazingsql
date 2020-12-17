@@ -843,15 +843,16 @@ void JoinPartitionKernel::small_table_scatter_distribution(std::unique_ptr<ral::
 	std::string small_output_cache_name = scatter_left_right.first ? "output_a" : "output_b";
 	int small_table_idx = scatter_left_right.first ? LEFT_TABLE_IDX : RIGHT_TABLE_IDX;
 	std::string big_output_cache_name = scatter_left_right.first ? "output_b" : "output_a";
+	int big_table_idx = scatter_left_right.first ? RIGHT_TABLE_IDX : LEFT_TABLE_IDX;
 
-	BlazingThread left_thread([this, &small_input, &small_cache_data](){
+	BlazingThread left_thread([this, &small_input, &small_cache_data, small_output_cache_name](){
 		while(small_cache_data != nullptr ) {
 			std::vector<std::unique_ptr<ral::cache::CacheData>> inputs;
 			inputs.push_back(std::move(small_cache_data));
 
 			ral::execution::executor::get_instance()->add_task(
 							std::move(inputs),
-							this->output_cache("output_a"),
+							this->output_cache(small_output_cache_name),
 							this,
 							{{"operation_type", "small_table_scatter"}});
 
@@ -859,16 +860,15 @@ void JoinPartitionKernel::small_table_scatter_distribution(std::unique_ptr<ral::
 		}
 	});
 
-	BlazingThread right_thread([this, &big_input, &big_cache_data](){
-		while (big_cache_data != nullptr) {
-			std::vector<std::unique_ptr<ral::cache::CacheData>> inputs;
-			inputs.push_back(std::move(big_cache_data));
+	BlazingThread right_thread([this, &big_input, &big_cache_data, big_output_cache_name, big_table_idx](){
 
-			ral::execution::executor::get_instance()->add_task(
-							std::move(inputs),
-							this->output_cache("output_b"),
-							this,
-							{{"operation_type", "big_table_passthrough"}});
+		while (big_cache_data != nullptr) {
+			
+			bool added = this->add_to_output_cache(std::move(big_cache_data), big_output_cache_name);
+			if (added) {
+				auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
+				increment_node_count(self_node.id(), big_table_idx);
+			}
 
 			big_cache_data = big_input->pullCacheData();
 		}
@@ -876,6 +876,15 @@ void JoinPartitionKernel::small_table_scatter_distribution(std::unique_ptr<ral::
 
 	left_thread.join();
 	right_thread.join();
+
+	if(logger != nullptr) {
+        logger->debug("{query_id}|{step}|{substep}|{info}||kernel_id|{kernel_id}||",
+                                "query_id"_a=context->getContextToken(),
+                                "step"_a=context->getQueryStep(),
+                                "substep"_a=context->getQuerySubstep(),
+                                "info"_a="JoinPartitionKernel Kernel tasks created",
+                                "kernel_id"_a=this->get_id());
+    }
 
 	std::unique_lock<std::mutex> lock(kernel_mutex);
 	kernel_cv.wait(lock,[this]{
@@ -889,7 +898,26 @@ void JoinPartitionKernel::small_table_scatter_distribution(std::unique_ptr<ral::
 	);
 
 	int total_count = get_total_partition_counts(small_table_idx);
+
+	if(logger != nullptr) {
+        logger->debug("{query_id}|{step}|{substep}|{info}||kernel_id|{kernel_id}||",
+                                "query_id"_a=context->getContextToken(),
+                                "step"_a=context->getQueryStep(),
+                                "substep"_a=context->getQuerySubstep(),
+                                "info"_a="JoinPartitionKernel Kernel got total_partition_counts",
+                                "kernel_id"_a=this->get_id());
+    }
+
 	this->output_cache(small_output_cache_name)->wait_for_count(total_count);
+
+	if(logger != nullptr) {
+        logger->debug("{query_id}|{step}|{substep}|{info}||kernel_id|{kernel_id}||",
+                                "query_id"_a=context->getContextToken(),
+                                "step"_a=context->getQueryStep(),
+                                "substep"_a=context->getQuerySubstep(),
+                                "info"_a="JoinPartitionKernel Kernel waited for count",
+                                "kernel_id"_a=this->get_id());
+    }
 }
 
 void JoinPartitionKernel::do_process(std::vector<std::unique_ptr<ral::frame::BlazingTable>> inputs,
@@ -909,15 +937,6 @@ void JoinPartitionKernel::do_process(std::vector<std::unique_ptr<ral::frame::Bla
 			small_output_cache_name, //cache_id
 			small_table_idx //message_tracker_idx
 		);
-	} else if (operation_type == "big_table_passthrough") {
-		std::string big_output_cache_name = scatter_left_right.first ? "output_b" : "output_a";
-		int big_table_idx = scatter_left_right.first ? RIGHT_TABLE_IDX : LEFT_TABLE_IDX;
-
-		bool added = this->add_to_output_cache(std::move(input), big_output_cache_name);
-		if (added) {
-			auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
-			increment_node_count(self_node.id(), big_table_idx);
-		}
 	} else if (operation_type == "hash_partition") {
 		bool normalize_types;
 		int table_idx;
@@ -974,6 +993,15 @@ void JoinPartitionKernel::do_process(std::vector<std::unique_ptr<ral::frame::Bla
 			cache_id, //cache_id
 			table_idx  //message_tracker_idx
 		);
+	} else { // not an option! error
+		if (logger) {
+			logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+										"query_id"_a=context->getContextToken(),
+										"step"_a=context->getQueryStep(),
+										"substep"_a=context->getQuerySubstep(),
+										"info"_a="In JoinPartitionKernel::do_process Invalid operation_type: {}"_format(operation_type),
+										"duration"_a="");
+		}
 	}
 }
 
