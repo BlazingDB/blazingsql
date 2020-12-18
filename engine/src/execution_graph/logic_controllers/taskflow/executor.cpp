@@ -139,6 +139,7 @@ void executor::execute(){
                         logger->warn("|||{info}|||||",
                                 "info"_a="WARNING: launching task even though over limit, because there are no tasks running. Memory used: {}"_format(std::to_string(resource->get_memory_used())));
                     }
+                    return true;
                 } else {
                     return false;
                 }
