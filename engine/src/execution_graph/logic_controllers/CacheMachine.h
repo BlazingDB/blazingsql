@@ -1060,6 +1060,8 @@ public:
 		return this->waitingCache->has_next_now();
 	}
 
+	bool has_messages_now(std::vector<std::string> messages);
+
 	std::size_t get_num_batches(){
 		return cache_count;
 	}

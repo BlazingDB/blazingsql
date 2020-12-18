@@ -692,6 +692,26 @@ size_t CacheMachine::downgradeCacheData() {
 	return bytes_downgraded;
 }
 
+bool CacheMachine::has_messages_now(std::vector<std::string> messages){
+
+	std::vector<std::string> current_messages = this->waitingCache->get_all_message_ids();
+	for (auto & message : messages){
+		bool found = false;
+		for (auto & cur_message : current_messages){
+			if (message == cur_message)	{
+				found = true;
+				break;
+			}
+		}
+		if (!found){
+			return false;
+		}
+	}
+	return true;
+}
+
+	
+
 ConcatenatingCacheMachine::ConcatenatingCacheMachine(std::shared_ptr<Context> context, std::string cache_machine_name)
 	: CacheMachine(context, cache_machine_name) {}
 
