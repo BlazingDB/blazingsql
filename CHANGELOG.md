@@ -16,6 +16,7 @@
 - #1262 Stop depending on gtest for runtime
 - #1261 Improve storage plugin output messages
 - #1153 Enable warnings and fixes
+- #1266 Remove BlazingThread class
 
 ## Bug Fixes
 - #1249 Fix compilation with cuda 11
