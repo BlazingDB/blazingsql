@@ -91,6 +91,7 @@ SortAndSampleKernel::SortAndSampleKernel(std::size_t kernel_id, const std::strin
 }
 
 void SortAndSampleKernel::make_partition_plan_task(){
+    
     already_computed_partition_plan = true;
 
     std::vector<std::unique_ptr <ral::cache::CacheData> > sampleCacheDatas;
@@ -99,16 +100,19 @@ void SortAndSampleKernel::make_partition_plan_task(){
         std::unique_ptr <ral::cache::CacheData> cache_data = std::make_unique<ral::cache::GPUCacheData>(std::move(samplesTables[i]));
         sampleCacheDatas.push_back(std::move(cache_data));
     }
-    auto nodes = context->getAllNodes();
-    // next lets take the samples from other nodes and add them to the set of samples for the task
-    for(std::size_t i = 0; i < nodes.size(); ++i) {
-        if(!(nodes[i] == ral::communication::CommunicationData::getInstance().getSelfNode())) {
-            std::string message_id = std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + nodes[i].id();
-            auto samples_cache_data = this->query_graph->get_input_message_cache()->pullCacheData(message_id);
-            ral::cache::GPUCacheDataMetaData * cache_ptr = static_cast<ral::cache::GPUCacheDataMetaData *> (samples_cache_data.get());
-            total_num_rows_for_sampling += std::stoll(cache_ptr->getMetadata().get_values()[ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL]);
-            total_bytes_for_sampling += std::stoll(cache_ptr->getMetadata().get_values()[ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL]) * std::stoll(cache_ptr->getMetadata().get_values()[ral::cache::AVG_BYTES_PER_ROW_METADATA_LABEL]);
-            sampleCacheDatas.push_back(std::move(samples_cache_data));
+
+    if (this->context->getAllNodes().size() > 1 && context->isMasterNode(ral::communication::CommunicationData::getInstance().getSelfNode())){
+        auto nodes = context->getAllNodes();
+        // next lets take the samples from other nodes and add them to the set of samples for the task
+        for(std::size_t i = 0; i < nodes.size(); ++i) {
+            if(!(nodes[i] == ral::communication::CommunicationData::getInstance().getSelfNode())) {
+                std::string message_id = std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + nodes[i].id();
+                auto samples_cache_data = this->query_graph->get_input_message_cache()->pullCacheData(message_id);
+                ral::cache::GPUCacheDataMetaData * cache_ptr = static_cast<ral::cache::GPUCacheDataMetaData *> (samples_cache_data.get());
+                total_num_rows_for_sampling += std::stoll(cache_ptr->getMetadata().get_values()[ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL]);
+                total_bytes_for_sampling += std::stoll(cache_ptr->getMetadata().get_values()[ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL]) * std::stoll(cache_ptr->getMetadata().get_values()[ral::cache::AVG_BYTES_PER_ROW_METADATA_LABEL]);
+                sampleCacheDatas.push_back(std::move(samples_cache_data));
+            }
         }
     }
 
@@ -116,7 +120,8 @@ void SortAndSampleKernel::make_partition_plan_task(){
             std::move(sampleCacheDatas),
             this->output_cache("output_b"),
             this,
-            {{"operation_type", "compute_partition_plan"}});    
+            {{"operation_type", "compute_partition_plan"}});  
+
 }
 
 void SortAndSampleKernel::compute_partition_plan(
@@ -138,8 +143,7 @@ void SortAndSampleKernel::compute_partition_plan(
                             "info"_a="In SortAndSampleKernel::compute_partition_plan Concatenating Strings will overflow strings length");
         }
 
-        auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
-        if(context->isMasterNode(self_node)) {
+        if(context->isMasterNode(ral::communication::CommunicationData::getInstance().getSelfNode())) {
             context->incrementQuerySubstep();
             
             std::unique_ptr<ral::frame::BlazingTable> partitionPlan = ral::operators::generate_partition_plan(inputSamples, total_num_rows_for_sampling, final_avg_bytes_per_row, this->expression, this->context.get());
@@ -177,10 +181,11 @@ void SortAndSampleKernel::compute_partition_plan(
 
             context->incrementQuerySubstep();
         }        
-    }
+    }    
 }
 
 bool SortAndSampleKernel::all_node_samples_are_available(){
+
     std::vector<std::string> messged_ids_expected;
     auto nodes = context->getAllNodes();
     for(std::size_t i = 0; i < nodes.size(); ++i) {
@@ -217,9 +222,13 @@ void SortAndSampleKernel::do_process(std::vector< std::unique_ptr<ral::frame::Bl
                 }
             }
         }
-        if (get_samples.load() && !already_computed_partition_plan.load()){
-            if (all_node_samples_are_available()){
-                make_partition_plan_task();   
+        if (!get_samples.load() && !already_computed_partition_plan.load()){
+            if (context->isMasterNode(ral::communication::CommunicationData::getInstance().getSelfNode())){
+                if (all_node_samples_are_available()){
+                    make_partition_plan_task();
+                }
+            } else {
+                make_partition_plan_task();
             }
         }
 
@@ -274,6 +283,7 @@ kstatus SortAndSampleKernel::run() {
     kernel_cv.wait(lock,[this]{
         return this->tasks.empty();
     });
+    lock.unlock();
 
     // If during the other ordering_and_get_samples tasks the computing the partition plan was not made (max_order_by_samples was not reached), then lets do it here
     if (!already_computed_partition_plan.load()) {
@@ -570,8 +580,7 @@ kstatus LimitKernel::run() {
     if(this->context->getTotalNodes() > 1 && rows_limit >= 0) {
         this->context->incrementQuerySubstep();
 
-        auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
-        int self_node_idx = context->getNodeIndex(self_node);
+        int self_node_idx = context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode());
         auto nodes_to_send = context->getAllOtherNodes(self_node_idx);
 
         std::vector<std::string> limit_messages_to_wait_for;
