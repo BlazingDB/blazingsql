@@ -155,7 +155,7 @@ void kernel::process(std::vector<std::unique_ptr<ral::cache::CacheData > > & inp
             //so this should be safe
             input_gpu.push_back(std::move(input->decache()));
 
-        }catch(std::exception e){
+        }catch(std::exception & e){
             auto logger = spdlog::get("batch_logger");
             if (logger){
                 logger->error("|||{info}|||||",
@@ -173,7 +173,7 @@ void kernel::process(std::vector<std::unique_ptr<ral::cache::CacheData > > & inp
        do_process(std::move(input_gpu),output,stream, args);
        total_input_bytes_processed += bytes; // increment this AFTER its been processed successfully
 
-    }catch(std::exception e){
+    }catch(std::exception & e){
         auto logger = spdlog::get("batch_logger");
         if (logger){
             logger->error("|||{info}|||||",

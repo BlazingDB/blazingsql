@@ -86,7 +86,7 @@ void task::run(cudaStream_t stream, executor * executor){
         }else{
             throw;
         }
-    }catch(std::exception e){
+    }catch(std::exception & e){
         auto logger = spdlog::get("batch_logger");
         if (logger){
             logger->error("|||{info}|||||",

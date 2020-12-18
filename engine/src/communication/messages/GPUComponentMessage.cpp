@@ -198,7 +198,7 @@ std::unique_ptr<ral::frame::BlazingTable> deserialize_from_cpu(const ral::frame:
 				cudaMemcpyHostToDevice);
 			gpu_raw_buffers.emplace_back(std::move(dev_buffer));
 		}
-	}catch(std::exception e){
+	}catch(std::exception & e){
 		auto logger = spdlog::get("batch_logger");
         if (logger){
             logger->error("|||{info}|||||",
