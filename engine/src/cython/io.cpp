@@ -181,7 +181,7 @@ std::unique_ptr<ResultSet> parseMetadata(std::vector<std::string> files,
 		return result;
 	} catch(std::exception e) {
 		std::cerr << e.what() << std::endl;
-		throw e;
+		throw;
 	}
 }
 

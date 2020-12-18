@@ -161,7 +161,7 @@ void kernel::process(std::vector<std::unique_ptr<ral::cache::CacheData > > & inp
                 logger->error("|||{info}|||||",
                         "info"_a="ERROR in kernel::process trying to decache. What: {}"_format(e.what()));
             }
-            throw e;
+            throw;
         }
     }
 
@@ -177,7 +177,7 @@ void kernel::process(std::vector<std::unique_ptr<ral::cache::CacheData > > & inp
         auto logger = spdlog::get("batch_logger");
         if (logger){
             logger->error("|||{info}|||||",
-                    "info"_a="ERROR in kernel::process trying to do do_process. What: {}"_format(e.what()));
+                    "info"_a="ERROR in kernel::process trying to do do_process. Kernel name is: " + this->kernel_name() + " Kernel id is: " + std::to_string(this->kernel_id) + " What: {}"_format(e.what()));
         }
         //remake inputs here
         int i = 0;

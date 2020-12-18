@@ -323,14 +323,14 @@ void ucx_message_listener::start_polling(){
 
 ucx_message_listener * ucx_message_listener::get_instance() {
 	if(instance == NULL) {
-		throw::std::exception();
+		throw std::runtime_error("ERROR: ucx_message_listener::get_instance() had a NULL instance");
 	}
 	return instance;
 }
 
 tcp_message_listener * tcp_message_listener::get_instance() {
 	if(instance == NULL) {
-		throw::std::exception();
+		throw std::runtime_error("ERROR: tcp_message_listener::get_instance() had a NULL instance");
 	}
 	return instance;
 }

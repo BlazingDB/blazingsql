@@ -8,7 +8,7 @@ message_sender * message_sender::instance = nullptr;
 
 message_sender * message_sender::get_instance() {
 	if(instance == NULL) {
-		throw std::exception();
+		throw std::runtime_error("ERROR: message_sender::get_instance() had a NULL instance");
 	}
 	return instance;
 }
