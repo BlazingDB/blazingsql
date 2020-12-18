@@ -233,6 +233,7 @@ std::unique_ptr<ral::cache::CacheData> PartwiseJoin::load_right_set(){
 }
 
 void PartwiseJoin::mark_set_completed(int left_ind, int right_ind){
+	assert(left_ind >=0 && right_ind >=0 );
 	if (completion_matrix.size() <= static_cast<size_t>(left_ind)){
 		size_t old_row_size = completion_matrix.size();
 		completion_matrix.resize(left_ind + 1);
@@ -251,23 +252,13 @@ void PartwiseJoin::mark_set_completed(int left_ind, int right_ind){
 	completion_matrix[left_ind][right_ind] = true;
 }
 
-std::vector<int> PartwiseJoin::get_indexes_from_message_id(const std::vector<std::string> & message_ids) {
-	std::vector<int> indexes_available;
-	indexes_available.reserve(message_ids.size());
-	for (size_t i = 0; i < message_ids.size(); i++)	{
-		indexes_available.push_back(std::stoi(message_ids[i]));
-	}
-
-	return indexes_available;
-}
-
 // This function checks to see if there is a set from our current completion_matix (data we have already loaded once)
 // that we have not completed that uses one of our current indices, otherwise it returns [-1, -1]
 std::tuple<int, int> PartwiseJoin::check_for_another_set_to_do_with_data_we_already_have(int left_ind, int right_ind) {
 	assert(left_ind == -1 || right_ind == -1);
 
-	auto left_indices = get_indexes_from_message_id(leftArrayCache->get_all_message_ids());
-	auto right_indices = get_indexes_from_message_id(rightArrayCache->get_all_message_ids());
+	auto left_indices = leftArrayCache->get_all_indexes();
+	auto right_indices = rightArrayCache->get_all_indexes();
 
 	if (left_ind >= 0 ) {
 		assert(left_ind >= completion_matrix.size());
@@ -474,8 +465,8 @@ kstatus PartwiseJoin::run() {
 			// Not first load, so we have joined a set pair. Now lets see if there is another set pair we can do, but keeping one of the two sides we already have
 			std::tie(left_ind, right_ind) = check_for_another_set_to_do_with_data_we_already_have();
 			if (left_ind >= 0 && right_ind >= 0) {
-				left_cache_data = this->leftArrayCache->pullCacheData(std::to_string(left_ind));
-				right_cache_data = this->rightArrayCache->pullCacheData(std::to_string(right_ind));
+				left_cache_data = this->leftArrayCache->get_or_wait_CacheData(left_ind);
+				right_cache_data = this->rightArrayCache->get_or_wait_CacheData(right_ind);
 			} else {
 				if (this->left_input->wait_for_next()){
 					left_cache_data = load_left_set();
@@ -485,21 +476,20 @@ kstatus PartwiseJoin::run() {
 					right_cache_data = load_right_set();
 					right_ind = this->max_right_ind;
 				}
-
 				if (left_ind >= 0 && right_ind >= 0) {
 					// We pulled new data from left and right
 				} else if (left_ind >= 0)	{
 					std::tie(std::ignore, right_ind) = check_for_another_set_to_do_with_data_we_already_have(left_ind, -1);
-					right_cache_data = this->rightArrayCache->pullCacheData(std::to_string(right_ind));
+					right_cache_data = this->rightArrayCache->get_or_wait_CacheData(right_ind);
 				} else if (right_ind >= 0)	{
 					std::tie(left_ind, std::ignore) = check_for_another_set_to_do_with_data_we_already_have(-1, right_ind);
-					left_cache_data = this->leftArrayCache->pullCacheData(std::to_string(left_ind));
+					left_cache_data = this->leftArrayCache->get_or_wait_CacheData(left_ind);
 				} else {
 					// Both inputs are finished, check any remaining pairs to process
 					std::tie(left_ind, right_ind) = check_for_set_that_has_not_been_completed();
 					if (left_ind >= 0 && right_ind >= 0) {
-						left_cache_data = this->leftArrayCache->pullCacheData(std::to_string(left_ind));
-						right_cache_data = this->rightArrayCache->pullCacheData(std::to_string(right_ind));
+						left_cache_data = this->leftArrayCache->get_or_wait_CacheData(left_ind);
+						right_cache_data = this->rightArrayCache->get_or_wait_CacheData(right_ind);
 					} else {
 						done = true;
 					}

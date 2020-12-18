@@ -323,8 +323,8 @@ bool CacheMachine::addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTa
 	return false;
 }
 
-void CacheMachine::put(size_t message_id, std::unique_ptr<ral::frame::BlazingTable> table) {
-	this->addToCache(std::move(table), this->cache_machine_name + "_" + std::to_string(message_id), true);
+void CacheMachine::put(size_t index, std::unique_ptr<ral::frame::BlazingTable> table) {
+	this->addToCache(std::move(table), this->cache_machine_name + "_" + std::to_string(index), true);
 }
 
 void CacheMachine::clear() {
@@ -345,8 +345,16 @@ std::vector<std::unique_ptr<ral::cache::CacheData> > CacheMachine::pull_all_cach
 	return std::move(new_messages);
 }
 
-std::vector<std::string> CacheMachine::get_all_message_ids() {
-	return this->waitingCache->get_all_message_ids();
+std::vector<size_t> CacheMachine::get_all_indexes() {
+	std::vector<std::string> message_ids = this->waitingCache->get_all_message_ids();
+	std::vector<size_t> indexes;
+	indexes.reserve(message_ids.size());
+	for (auto & message_id : message_ids){
+		std::string prefix = this->cache_machine_name + "_";
+		assert(StringUtil::beginsWith(message_id, prefix));
+		indexes.push_back(std::stoi(message_id.substr(prefix.size())));
+	}
+	return indexes;
 }
 
 bool CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, std::string message_id, bool always_add){
@@ -538,6 +546,26 @@ std::unique_ptr<ral::frame::BlazingTable> CacheMachine::get_or_wait(size_t index
 	}		
 
 	std::unique_ptr<ral::frame::BlazingTable> output = message_data->get_data().decache();
+	return std::move(output);
+}
+
+std::unique_ptr<ral::cache::CacheData>  CacheMachine::get_or_wait_CacheData(size_t index) {
+	std::unique_ptr<message> message_data = waitingCache->get_or_wait(this->cache_machine_name + "_" + std::to_string(index));
+	if (message_data == nullptr) {
+		return nullptr;
+	}
+	if (logger != nullptr){
+		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+								"info"_a="CacheMachine::get_or_wait pulling CacheData from cache ",
+								"duration"_a="",
+								"kernel_id"_a=message_data->get_message_id(),
+								"rows"_a=message_data->get_data().num_rows());
+	}		
+
+	std::unique_ptr<ral::cache::CacheData> output = message_data->release_data();
 	return std::move(output);
 }
 
@@ -767,7 +795,7 @@ std::unique_ptr<ral::cache::CacheData> ConcatenatingCacheMachine::pullCacheData(
 	if (concat_all){
 		waitingCache->wait_until_finished();
 	} else {
-		waitingCache->wait_until_num_bytes(this->concat_cache_num_bytes);
+		waitingCache->wait_until_num_bytes(this->concat_cache_num_bytes);		
 	}
 
 	size_t total_bytes = 0;

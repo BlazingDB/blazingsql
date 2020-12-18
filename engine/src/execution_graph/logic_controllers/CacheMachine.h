@@ -1022,9 +1022,11 @@ public:
 
 	~CacheMachine();
 
-	virtual void put(size_t message_id, std::unique_ptr<ral::frame::BlazingTable> table);
+	virtual void put(size_t index, std::unique_ptr<ral::frame::BlazingTable> table);
 
 	virtual std::unique_ptr<ral::frame::BlazingTable> get_or_wait(size_t index);
+
+	virtual std::unique_ptr<ral::cache::CacheData> get_or_wait_CacheData(size_t index);
 
 	virtual void clear();
 
@@ -1071,7 +1073,7 @@ public:
 
 	virtual std::unique_ptr<ral::cache::CacheData> pullCacheData();
 
-	std::vector<std::string> get_all_message_ids();
+	std::vector<size_t> get_all_indexes();
 
 	void wait_for_count(int count){
 		return this->waitingCache->wait_for_count(count);
