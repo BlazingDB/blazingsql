@@ -282,15 +282,17 @@ tcp_buffer_transport::tcp_buffer_transport(
         address.sin_family = AF_INET;
         address.sin_port = htons(destination.port());
 
-        if(inet_pton(AF_INET, destination.ip().c_str(), &address.sin_addr)<=0)
+        int errono = inet_pton(AF_INET, destination.ip().c_str(), &address.sin_addr);
+        if(errono <=0)
         {
             std::string node_info = "Index: " + std::to_string(destination.index()) + " Id: " + destination.id() + " IP: " + destination.ip() + " Port: " + std::to_string(destination.port());
-            throw std::runtime_error("Invalid Communication Address. Could not get address of node " + node_info);
+            throw std::runtime_error("Invalid Communication Address. Errno: " + std::to_string(errono) + " Could not get address of node " + node_info);
         }
-        if (connect(socket_fd, (struct sockaddr *)&address, sizeof(address)) < 0)
+        errno = connect(socket_fd, (struct sockaddr *)&address, sizeof(address));
+        if (errno < 0)
         {
             std::string node_info = "Index: " + std::to_string(destination.index()) + " Id: " + destination.id() + " IP: " + destination.ip() + " Port: " + std::to_string(destination.port());
-            throw std::runtime_error("Invalid Communication Address could not connect to node " + node_info);
+            throw std::runtime_error("Invalid Communication Address could not connect to node. Errno: " + std::to_string(errono) + " Node is: " + node_info);
         }
         socket_fds.push_back(socket_fd);
     }
