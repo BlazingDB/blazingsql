@@ -18,6 +18,7 @@
 #include <numeric>
 
 #include <spdlog/spdlog.h>
+
 using namespace fmt::literals;
 
 namespace ral {
@@ -29,13 +30,18 @@ typedef blazingdb::manager::Context Context;
 typedef blazingdb::transport::Node Node;
 
 
-
 std::unique_ptr<BlazingTable> generatePartitionPlans(
-				cudf::size_type number_partitions, const std::vector<BlazingTableView> & samples,
-				const std::vector<cudf::order> & sortOrderTypes) {
+	cudf::size_type number_partitions,
+	const std::vector<std::unique_ptr<ral::frame::BlazingTable>> & samples,
+	const std::vector<cudf::order> & sortOrderTypes) {
 
-	std::unique_ptr<BlazingTable> concatSamples = ral::utilities::concatTables(samples);
-	
+	// just to call concatTables
+	std::vector<BlazingTableView> samplesView;
+	for (std::size_t i = 0; i < samples.size(); i++){
+		samplesView.push_back(samples[i]->toBlazingTableView());
+	}
+
+	std::unique_ptr<BlazingTable> concatSamples = ral::utilities::concatTables(samplesView);
 
 	std::vector<cudf::null_order> null_orders(sortOrderTypes.size(), cudf::null_order::AFTER);
 	// TODO this is just a default setting. Will want to be able to properly set null_order
@@ -46,8 +52,8 @@ std::unique_ptr<BlazingTable> generatePartitionPlans(
 	// lets get names from a non-empty table
 	std::vector<std::string> names;
 	for(size_t i = 0; i < samples.size(); i++) {
-		if (samples[i].names().size() > 0){
-			names = samples[i].names();
+		if (samples[i]->names().size() > 0){
+			names = samples[i]->names();
 			break;
 		}
 	}
@@ -58,15 +64,14 @@ std::unique_ptr<BlazingTable> generatePartitionPlans(
 	return getPivotPointsTable(number_partitions, BlazingTableView(sortedSamples->view(), names));
 }
 
-
 // This function locates the pivots in the table and partitions the data on those pivot points.
 // IMPORTANT: This function expects data to aready be sorted according to the searchColIndices and sortOrderTypes
 // IMPORTANT: The TableViews of the data returned point to the same data that was input.
 std::vector<NodeColumnView> partitionData(Context * context,
-											const BlazingTableView & table,
-											const BlazingTableView & pivots,
-											const std::vector<int> & searchColIndices,
-											std::vector<cudf::order> sortOrderTypes) {
+	const BlazingTableView & table,
+	const BlazingTableView & pivots,
+	const std::vector<int> & searchColIndices,
+	std::vector<cudf::order> sortOrderTypes) {
 
 	RAL_EXPECTS(static_cast<size_t>(pivots.view().num_columns()) == searchColIndices.size(), "Mismatched pivots num_columns and searchColIndices");
 
@@ -94,7 +99,6 @@ std::vector<NodeColumnView> partitionData(Context * context,
                                     sortOrderTypes,
                                     null_orders);
 	
-
 	std::vector<cudf::size_type> host_data(pivot_indexes->view().size());
 	CUDA_TRY(cudaMemcpy(host_data.data(), pivot_indexes->view().data<cudf::size_type>(), pivot_indexes->view().size() * sizeof(cudf::size_type), cudaMemcpyDeviceToHost));
 
@@ -113,9 +117,6 @@ std::vector<NodeColumnView> partitionData(Context * context,
 
 	return partitioned_node_column_views;
 }
-
-
-
 
 std::unique_ptr<BlazingTable> sortedMerger(std::vector<BlazingTableView> & tables,
 	const std::vector<cudf::order> & sortOrderTypes,
@@ -140,7 +141,6 @@ std::unique_ptr<BlazingTable> sortedMerger(std::vector<BlazingTableView> & table
 	}
 	return std::make_unique<BlazingTable>(std::move(merged_table), names);
 }
-
 
 std::unique_ptr<BlazingTable> getPivotPointsTable(cudf::size_type number_partitions, const BlazingTableView & sortedSamples){
 

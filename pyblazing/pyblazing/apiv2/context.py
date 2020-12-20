@@ -1150,7 +1150,6 @@ def load_config_options_from_env(user_config_options: dict):
         "TABLE_SCAN_KERNEL_NUM_THREADS": 4,
         "MAX_DATA_LOAD_CONCAT_CACHE_BYTE_SIZE": 400000000,
         "FLOW_CONTROL_BYTES_THRESHOLD": 18446744073709551615,  # see https://en.cppreference.com/w/cpp/types/numeric_limits/max
-        "ORDER_BY_SAMPLES_RATIO": 0.1,
         "MAX_ORDER_BY_SAMPLES_PER_NODE": 10000,
         "BLAZING_DEVICE_MEM_CONSUMPTION_THRESHOLD": 0.95,
         "BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD": 0.75,
@@ -1273,10 +1272,6 @@ class BlazingContext(object):
             MAX_DATA_LOAD_CONCAT_CACHE_BYTE_SIZE : The max size in bytes to
                     concatenate the batches read from the scan kernels
                     default: 400000000
-            ORDER_BY_SAMPLES_RATIO : The ratio to multiply the estimated total
-                    number of rows in the SortAndSampleKernel to calculate
-                    the number of samples
-                    default: 0.1
             MAX_ORDER_BY_SAMPLES_PER_NODE : The max number order by samples
                     to capture per node
                     default: 10000
