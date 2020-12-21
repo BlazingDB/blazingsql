@@ -69,7 +69,7 @@ void message_receiver::finish(cudaStream_t stream) {
   "dest_ral_id"_a=destinations, //false
   "dest_ral_count"_a=std::count(destinations.begin(), destinations.end(), ',') + 1,
   "dest_cache_id"_a=_metadata.get_values()[ral::cache::CACHE_ID_METADATA_LABEL],
-  "messsage_id"_a=_metadata.get_values()[ral::cache::MESSAGE_ID]);
+  "message_id"_a=_metadata.get_values()[ral::cache::MESSAGE_ID]);
   
 
   std::unique_ptr<ral::frame::BlazingTable> table = deserialize_from_gpu_raw_buffers(_column_transports, _raw_buffers,stream);

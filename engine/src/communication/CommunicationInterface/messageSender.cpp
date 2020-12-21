@@ -92,7 +92,7 @@ void message_sender::run_polling() {
 						"dest_ral_id"_a=destinations, //false
 						"dest_ral_count"_a=std::count(destinations.begin(), destinations.end(), ',') + 1,
 						"dest_cache_id"_a=metadata.get_values()[ral::cache::CACHE_ID_METADATA_LABEL],
-						"messsage_id"_a=metadata.get_values()[ral::cache::MESSAGE_ID]);
+						"message_id"_a=metadata.get_values()[ral::cache::MESSAGE_ID]);
 
 					std::vector<std::size_t> buffer_sizes;
 					std::vector<const char *> raw_buffers;

@@ -155,7 +155,7 @@ void distributing_kernel::broadcast(std::unique_ptr<ral::frame::BlazingTable> ta
     );
 
     // now lets add to the self node
-    bool added = output->addToCache(std::move(table), message_id_prefix, false);
+    bool added = output->addToCache(std::move(table), message_id_prefix, always_add);
     if (added) {
         node_count[message_tracker_idx].at(node.id())++;
     }
