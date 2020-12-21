@@ -55,18 +55,18 @@ std::unique_ptr<CacheData> CacheData::downgradeCacheData(std::unique_ptr<CacheDa
 			return std::make_unique<CPUCacheData>(std::move(table));
 		
 		} else {
+			// want to get only cache directory where orc files should be saved
+			std::string orc_files_path = ral::communication::CommunicationData::getInstance().get_cache_directory();
 			if(logger != nullptr) {
 				logger->trace("{query_id}|{step}|{substep}|{info}||kernel_id|{kernel_id}|rows|{rows}",
 					"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
 					"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
 					"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-					"info"_a="Downgraded CacheData to Disk cache",
+					"info"_a="Downgraded CacheData to Disk cache to path: " + orc_files_path,
 					"kernel_id"_a=id,
 					"rows"_a=table->num_rows());
 			}
 
-			// want to get only cache directory where orc files should be saved
-			std::string orc_files_path = ral::communication::CommunicationData::getInstance().get_cache_directory();
 			return std::make_unique<CacheDataLocalFile>(std::move(table), orc_files_path, (ctx ? std::to_string(ctx->getContextToken()) : "none"));
 		}
 	}	
@@ -169,15 +169,35 @@ CacheDataLocalFile::CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable>
 	this->size_in_bytes = table->sizeInBytes();
 	this->filePath_ = orc_files_path + "/.blazing-temp-" + ctx_token + "-" + randomString(64) + ".orc";
 
-	cudf::io::table_metadata metadata;
-	for(auto name : table->names()) {
-		metadata.column_names.emplace_back(name);
+	int attempts = 0;
+	int attempts_limit = 10;
+	while(attempts <= attempts_limit){
+		try {
+			cudf::io::table_metadata metadata;
+			for(auto name : table->names()) {
+				metadata.column_names.emplace_back(name);
+			}
+
+			cudf::io::orc_writer_options out_opts = cudf::io::orc_writer_options::builder(cudf::io::sink_info{this->filePath_}, table->view())
+				.metadata(&metadata);
+
+			cudf::io::write_orc(out_opts);
+		} catch (cudf::logic_error & err){
+			auto logger = spdlog::get("batch_logger");
+			if(logger != nullptr) {
+				logger->error("|||{info}||||rows|{rows}",
+					"info"_a="Failed to create CacheDataLocalFile in path: " + this->filePath_ + " attempt " + std::to_string(attempts),
+					"rows"_a=table->num_rows());
+			}	
+			attempts++;
+			if (attempts == attempts_limit){
+				throw;
+			}
+			std::this_thread::sleep_for (std::chrono::milliseconds(5 * attempts));
+		}
 	}
 
-	cudf::io::orc_writer_options out_opts = cudf::io::orc_writer_options::builder(cudf::io::sink_info{this->filePath_}, table->view())
-		.metadata(&metadata);
-
-	cudf::io::write_orc(out_opts);
+	
 }
 
 ConcatCacheData::ConcatCacheData(std::vector<std::unique_ptr<CacheData>> cache_datas, const std::vector<std::string>& col_names, const std::vector<cudf::data_type>& schema)
