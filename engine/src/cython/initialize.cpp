@@ -717,9 +717,10 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 	iter = config_options.find("BLAZING_CACHE_DIRECTORY");
 	if (iter != config_options.end()) {
 		orc_files_path = config_options["BLAZING_CACHE_DIRECTORY"];
+		std::cout << "IF: orc_files_path: " << orc_files_path << std::endl;
 	}
 	if (!singleNode) {
-		orc_files_path += "/" + ralId;
+		orc_files_path += std::to_string(ralId);
 	}
 
 	auto & communicationData = ral::communication::CommunicationData::getInstance();
