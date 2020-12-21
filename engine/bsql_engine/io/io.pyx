@@ -86,6 +86,14 @@ class GetFreeMemoryError(BlazingError):
     """GetFreeMemory Error."""
 cdef public PyObject * GetFreeMemoryError_ = <PyObject *>GetFreeMemoryError
 
+class ResetMaxMemoryUsedError(BlazingError):
+    """ResetMaxUsedMemoryError Error."""
+cdef public PyObject * ResetMaxMemoryUsedError_ = <PyObject *>ResetMaxMemoryUsedError
+
+class GetMaxMemoryUsedError(BlazingError):
+    """GetMaxMemoryUsedError Error."""
+cdef public PyObject * GetMaxMemoryUsedError_ = <PyObject *>GetMaxMemoryUsedError
+
 class GetProductDetailsError(BlazingError):
     """GetProductDetails Error."""
 cdef public PyObject * GetProductDetailsError_ = <PyObject *>GetProductDetailsError
@@ -172,6 +180,14 @@ cdef void finalizePython() nogil except +:
 cdef size_t getFreeMemoryPython() nogil except *:
     with nogil:
         return cio.getFreeMemory()
+
+cdef size_t getMaxMemoryUsedPython() nogil except *:
+    with nogil:
+        return cio.getMaxMemoryUsed()
+
+cdef void resetMaxMemoryUsedPython() nogil except *:
+    with nogil:
+        cio.resetMaxMemoryUsed(0)
 
 cdef map[string, string] getProductDetailsPython() nogil except *:
     with nogil:
@@ -310,6 +326,12 @@ cpdef finalizeCaller():
 
 cpdef getFreeMemoryCaller():
     return getFreeMemoryPython()
+
+cpdef getMaxMemoryUsedCaller():
+    return getMaxMemoryUsedPython()
+
+cpdef resetMaxMemoryUsedCaller():
+    resetMaxMemoryUsedPython()
 
 cpdef getProductDetailsCaller():
     my_map = getProductDetailsPython()

@@ -2,6 +2,7 @@
 #include <cudf/copying.hpp>
 #include <cudf/strings/combine.hpp>
 #include <cudf/strings/contains.hpp>
+#include <cudf/strings/replace_re.hpp>
 #include <cudf/strings/replace.hpp>
 #include <cudf/strings/substring.hpp>
 #include <cudf/strings/case.hpp>
@@ -140,6 +141,41 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         std::string repl = StringUtil::removeEncapsulation(arg_tokens[2], encapsulation_character);
 
         computed_col = cudf::strings::replace(column, target, repl);
+        break;
+    }
+    case operator_type::BLZ_STR_REGEXP_REPLACE:
+    {
+        // required args: string column, pattern, replacement
+        // optional args: position, occurrence, match_type
+        assert(arg_tokens.size() >= 3 && arg_tokens.size() <= 6);
+        RAL_EXPECTS(arg_tokens.size() <= 4, "Optional parameters occurrence and match_type are not yet supported.");
+        RAL_EXPECTS(!is_literal(arg_tokens[0]), "REGEXP_REPLACE function not supported for string literals");
+
+        cudf::column_view column = table.column(get_index(arg_tokens[0]));
+        RAL_EXPECTS(is_type_string(column.type().id()), "REGEXP_REPLACE argument must be a column of type string");
+
+        std::string pattern = StringUtil::removeEncapsulation(arg_tokens[1], encapsulation_character);
+        std::string repl = StringUtil::removeEncapsulation(arg_tokens[2], encapsulation_character);
+
+        // handle the position argument, if it exists
+        if (arg_tokens.size() == 4) {
+            int32_t start = std::stoi(arg_tokens[3]) - 1;
+            RAL_EXPECTS(start >= 0, "Position must be greater than zero.");
+            int32_t prefix = 0;
+
+            auto prefix_col = cudf::strings::slice_strings(column, prefix, start);
+            auto post_replace_col = cudf::strings::replace_with_backrefs(
+                cudf::column_view(cudf::strings::slice_strings(column, start)->view()),
+                pattern,
+                repl
+            );
+
+            computed_col = cudf::strings::concatenate(
+                cudf::table_view{{prefix_col->view(), post_replace_col->view()}}
+            );
+        } else {
+            computed_col = cudf::strings::replace_with_backrefs(column, pattern, repl);
+        }
         break;
     }
     case operator_type::BLZ_STR_LEFT:

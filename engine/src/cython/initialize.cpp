@@ -920,3 +920,13 @@ size_t getFreeMemory() {
 	size_t total_free_memory = resource->get_memory_limit() - resource->get_memory_used();
 	return total_free_memory;
 }
+
+void resetMaxMemoryUsed(int to) {
+	blazing_device_memory_resource* resource = &blazing_device_memory_resource::getInstance();
+	resource->reset_max_memory_used(to);
+}
+
+size_t getMaxMemoryUsed() {
+    blazing_device_memory_resource* resource = &blazing_device_memory_resource::getInstance();
+	return resource->get_max_memory_used();
+}

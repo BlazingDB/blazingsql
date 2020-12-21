@@ -1150,7 +1150,6 @@ def load_config_options_from_env(user_config_options: dict):
         "TABLE_SCAN_KERNEL_NUM_THREADS": 4,
         "MAX_DATA_LOAD_CONCAT_CACHE_BYTE_SIZE": 400000000,
         "FLOW_CONTROL_BYTES_THRESHOLD": 18446744073709551615,  # see https://en.cppreference.com/w/cpp/types/numeric_limits/max
-        "ORDER_BY_SAMPLES_RATIO": 0.1,
         "MAX_ORDER_BY_SAMPLES_PER_NODE": 10000,
         "BLAZING_DEVICE_MEM_CONSUMPTION_THRESHOLD": 0.95,
         "BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD": 0.75,
@@ -1273,10 +1272,6 @@ class BlazingContext(object):
             MAX_DATA_LOAD_CONCAT_CACHE_BYTE_SIZE : The max size in bytes to
                     concatenate the batches read from the scan kernels
                     default: 400000000
-            ORDER_BY_SAMPLES_RATIO : The ratio to multiply the estimated total
-                    number of rows in the SortAndSampleKernel to calculate
-                    the number of samples
-                    default: 0.1
             MAX_ORDER_BY_SAMPLES_PER_NODE : The max number order by samples
                     to capture per node
                     default: 10000
@@ -1820,6 +1815,82 @@ class BlazingContext(object):
             free_memory_dictionary = {}
             free_memory_dictionary[0] = cio.getFreeMemoryCaller()
             return free_memory_dictionary
+
+    def get_max_memory_used(self):
+        """
+        This function returns a dictionary which contains as
+        key the gpuID and as value the max memory (bytes)
+
+        Example
+        --------
+        # single-GPU
+        >>> from blazingsql import BlazingContext
+        >>> bc = BlazingContext()
+        >>> max_mem_used = bc.get_max_memory_used()
+        >>> print(max_mem_used)
+                {0: 4234220154}
+
+        # multi-GPU (4 GPUs):
+        >>> from blazingsql import BlazingContext
+        >>> from dask_cuda import LocalCUDACluster
+        >>> from dask.distributed import Client
+        >>> cluster = LocalCUDACluster()
+        >>> client = Client(cluster)
+        >>> bc = BlazingContext(dask_client=client, network_interface='lo')
+        >>> max_mem_used = bc.get_max_memory_used()
+        >>> print(max_mem_used)
+                {0: 4234220154, 1: 4104210987,
+                 2: 4197720291, 3: 3934320116}
+        """
+        if self.dask_client:
+            dask_futures = []
+            workers_id = []
+            workers = tuple(self.dask_client.scheduler_info()["workers"])
+            for worker_id, worker in enumerate(workers):
+                free_memory = self.dask_client.submit(
+                    cio.getMaxMemoryUsedCaller, workers=[worker], pure=False
+                )
+                dask_futures.append(free_memory)
+                workers_id.append(worker_id)
+            aslist = self.dask_client.gather(dask_futures)
+            free_memory_dictionary = dict(zip(workers_id, aslist))
+            return free_memory_dictionary
+        else:
+            free_memory_dictionary = {}
+            free_memory_dictionary[0] = cio.getMaxMemoryUsedCaller()
+            return free_memory_dictionary
+
+    def reset_max_memory_used(self) -> None:
+        """
+        This function resets the max memory usage counter to 0
+
+        Example
+        --------
+        # single-GPU
+        >>> from blazingsql import BlazingContext
+        >>> bc = BlazingContext()
+        >>> bc.reset_max_memory_used()
+
+        # multi-GPU (4 GPUs):
+        >>> from blazingsql import BlazingContext
+        >>> from dask_cuda import LocalCUDACluster
+        >>> from dask.distributed import Client
+        >>> cluster = LocalCUDACluster()
+        >>> client = Client(cluster)
+        >>> bc = BlazingContext(dask_client=client, network_interface='lo')
+        >>> bc.reset_max_memory_used()
+        """
+        if self.dask_client:
+            dask_futures = []
+            workers = tuple(self.dask_client.scheduler_info()["workers"])
+            for worker_id, worker in enumerate(workers):
+                free_memory = self.dask_client.submit(
+                    cio.resetMaxMemoryUsedCaller, workers=[worker], pure=False
+                )
+                dask_futures.append(free_memory)
+            self.dask_client.gather(dask_futures)
+        else:
+            cio.resetMaxMemoryUsedCaller()
 
     def create_table(self, table_name, input, **kwargs):
         """

@@ -115,6 +115,10 @@ std::string internal_blazing_device_memory_resource::get_full_memory_summary() {
     return summary;
 }
 
+void internal_blazing_device_memory_resource::reset_max_memory_used(size_t to) noexcept {
+    this->max_used_memory = to;
+}
+
 void* internal_blazing_device_memory_resource::do_allocate(size_t bytes, rmm::cuda_stream_view stream) {
     if (bytes <= 0) { 
         return nullptr;
@@ -176,6 +180,10 @@ std::string blazing_device_memory_resource::get_type() {
 
 std::string blazing_device_memory_resource::get_full_memory_summary() {
     return initialized_resource->get_full_memory_summary() ;
+}
+
+void blazing_device_memory_resource::reset_max_memory_used(size_t to) {
+    initialized_resource->reset_max_memory_used(to);
 }
 
 void blazing_device_memory_resource::initialize(std::string allocation_mode,
