@@ -85,7 +85,7 @@ def init_spark_schema(spark, dir_data_lc, **kwargs):
         ext = get_extension(fileSchemaType)
     else:
         ext = "orc"
-    
+
     num_files = kwargs.get("n_files")
     if num_files is not None:
         dir_data_lc = getFiles_to_tmp(dir_data_lc, num_files, ext)
@@ -122,7 +122,7 @@ def init_hive_schema(drill, cursor, dir_data_lc, **kwargs):
     timeout = 300
 
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    
+
     smiles_test = kwargs.get("smiles_test", False)
     if smiles_test:
         dir_data_lc = dir_data_lc + "smiles/"
@@ -1264,7 +1264,7 @@ def create_tables(bc, dir_data_lc, fileSchemaType, **kwargs):
         # using wildcard, note the _ after the table name
         # (it will avoid collisions)
         table_files = ("%s/%s_[0-9]*.%s") % (dir_data_lc, table, ext)
-        if fileSchemaType == DataType.CSV:
+        if fileSchemaType == DataType.CSV or fileSchemaType == DataType.JSON:
             bool_orders_flag = False
 
             if i == bool_orders_index:

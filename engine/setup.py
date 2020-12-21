@@ -3,6 +3,8 @@ import os
 import sysconfig
 from distutils.sysconfig import get_python_lib
 
+from setuptools.command.build_ext import build_ext
+
 import numpy as np
 from Cython.Build import cythonize
 from setuptools import find_packages, setup
@@ -33,6 +35,31 @@ conda_env_lib = os.path.join(conda_env_dir, "lib")
 
 print("Using CONDA_PREFIX : " + conda_env_dir)
 
+def use_gtest_lib():
+    bt_sock = os.popen('grep BUILD_TYPE build/CMakeCache.txt')
+    bt = bt_sock.read()
+    bt_val = bt.split("=")[1].strip()
+
+    if bt_val == "Release" or bt_val == "RelWithDebInfo":
+        print("Cython RAL wrapper: This is a release build so the final runtime binaries will not depend on gtest")
+        return False
+
+    print("Cython RAL wrapper: This is not a release build so the final runtime binaries will depend on gtest (BSQLDBGUTILS precompiler definition is set)")
+    return True
+
+def get_libs():
+    ret = ["blazingsql-engine"]
+    if use_gtest_lib():
+        ret.append("gtest")
+    return ret
+
+class BuildExt(build_ext):
+    def build_extensions(self):
+        if '-Wstrict-prototypes' in self.compiler.compiler_so:
+            self.compiler.compiler_so.remove('-Wstrict-prototypes')
+        super().build_extensions()
+
+
 cython_files = ["bsql_engine/io/io.pyx"]
 
 extensions = [
@@ -42,25 +69,28 @@ extensions = [
         include_dirs=[
             "include/",
             "src/",
-            conda_env_inc,
-            conda_env_inc_cudf,
-            conda_env_inc_cub,
-            conda_env_inc_libcudacxx,
-            conda_env_inc_io,
-            conda_env_inc_communication,
-            conda_env_inc_manager,
-            "/usr/local/cuda/include",
             os.path.dirname(sysconfig.get_path("include")),
-            np.get_include(),
         ],
         library_dirs=[
             get_python_lib(),
             conda_env_lib,
             os.path.join(os.sys.prefix, "lib"),
         ],
-        libraries=["blazingsql-engine", "gtest"],
+        libraries=get_libs(),
         language="c++",
-        extra_compile_args=["-std=c++14"],
+        extra_compile_args=["-std=c++14",
+                            "-Wno-unknown-pragmas",
+                            "-Wno-unused-variable",
+                            "-Wno-unused-function",
+                            '-isystem' + conda_env_inc,
+                            '-isystem' + conda_env_inc_cudf,
+                            '-isystem' + conda_env_inc_cub,
+                            '-isystem' + conda_env_inc_libcudacxx,
+                            '-isystem' + conda_env_inc_io,
+                            '-isystem' + conda_env_inc_communication,
+                            '-isystem' + conda_env_inc_manager,
+                            '-isystem' + "/usr/local/cuda/include",
+                            '-isystem' + np.get_include()],
     )
 ]
 
@@ -70,6 +100,7 @@ setup(
     description="BlazingSQL engine bindings",
     url="https://github.com/blazingdb/blazingdb-ral",
     author="BlazingSQL",
+    cmdclass={'build_ext': BuildExt},
     license="Apache 2.0",
     classifiers=[
         "Intended Audience :: Developers",
@@ -92,3 +123,4 @@ setup(
     install_requires=install_requires,
     zip_safe=False,
 )
+

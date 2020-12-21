@@ -34,7 +34,7 @@ bool FileSystemManager::Private::registerFileSystem(const FileSystemEntity & fil
 
 	int foundIndex = -1;
 
-	for(int i = 0; i < this->fileSystems.size(); ++i) {
+	for(size_t i = 0; i < this->fileSystems.size(); ++i) {
 		const bool found = (this->fileSystems[i]->getFileSystemConnection() == fileSystemConnection) &&
 						   this->fileSystems[i]->getRoot() == root;
 
@@ -61,7 +61,7 @@ bool FileSystemManager::Private::registerFileSystem(const FileSystemEntity & fil
 		this->fileSystemIds[authority] = foundIndex;
 	}
 
-	const int fileSystemId = this->fileSystemIds[authority];
+	this->fileSystemIds[authority];
 
 	this->roots[authority] = root;
 
@@ -104,6 +104,8 @@ bool FileSystemManager::Private::deregisterFileSystem(const std::string & author
 			std::move(this->fileSystems[fileSystemId]);  // transfer ownership so it can be deleted within this scope
 		this->fileSystems.erase(this->fileSystems.begin() + fileSystemId);
 	}
+
+	return found;
 }
 
 bool FileSystemManager::Private::exists(const Uri & uri) const {

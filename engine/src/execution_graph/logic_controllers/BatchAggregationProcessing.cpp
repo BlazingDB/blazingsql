@@ -15,8 +15,8 @@ ComputeAggregateKernel::ComputeAggregateKernel(std::size_t kernel_id, const std:
 
 ral::execution::task_result ComputeAggregateKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
-    cudaStream_t stream, const std::map<std::string, std::string>& args) {
-    
+    cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) {
+
     try{
         auto & input = inputs[0];
         std::unique_ptr<ral::frame::BlazingTable> columns;
@@ -34,7 +34,7 @@ ral::execution::task_result ComputeAggregateKernel::do_process(std::vector< std:
     }catch(rmm::bad_alloc e){
         return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
     }catch(std::exception e){
-        return {ral::execution::task_status::FAIL, std::string(e.what()), std::move(inputs)};   
+        return {ral::execution::task_status::FAIL, std::string(e.what()), std::move(inputs)};
     }
     return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
 }
@@ -118,7 +118,7 @@ DistributeAggregateKernel::DistributeAggregateKernel(std::size_t kernel_id, cons
 
 ral::execution::task_result DistributeAggregateKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
-    cudaStream_t stream, const std::map<std::string, std::string>& args) {
+    cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) {
     auto & input = inputs[0];
 
     // num_partitions = context->getTotalNodes() will do for now, but may want a function to determine this in the future.
@@ -263,7 +263,7 @@ MergeAggregateKernel::MergeAggregateKernel(std::size_t kernel_id, const std::str
 
 ral::execution::task_result MergeAggregateKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
-    cudaStream_t stream, const std::map<std::string, std::string>& args) {
+    cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) {
     try{
         CodeTimer eventTimer(false);
 

@@ -30,7 +30,7 @@ void poll_for_frames(std::shared_ptr<message_receiver> receiver,
 		return;
 	}
 
-	for (int buffer_id = 0; buffer_id < receiver->num_buffers(); buffer_id++) {
+	for (size_t buffer_id = 0; buffer_id < receiver->num_buffers(); buffer_id++) {
     receiver->allocate_buffer(buffer_id);
 
 		message_tag.frame_id = buffer_id + 1;
@@ -64,7 +64,7 @@ void recv_begin_callback_c(std::shared_ptr<ucp_tag_recv_info_t> info, size_t req
 
 	auto message_listener = ucx_message_listener::get_instance();
 
-	auto fwd = message_listener->get_pool().push([&message_listener, info, request_size](int thread_id) {
+	auto fwd = message_listener->get_pool().push([&message_listener, info, request_size](int /*thread_id*/) {
 		
 		std::vector<char> data_buffer;
 		{
@@ -126,7 +126,7 @@ void tcp_message_listener::start_polling() {
 			int connection_fd;
 			// TODO: be able to stop this thread from running when the engine is killed
 			while((connection_fd = accept(socket_fd, (struct sockaddr *) &client_address, &len)) != -1) {
-				pool.push([this, connection_fd](int thread_num) {
+				pool.push([this, connection_fd](int /*thread_num*/) {
 					CodeTimer timer;
 					cudaStream_t stream = 0;
 					//          cudaStreamCreate(&stream);
@@ -135,7 +135,6 @@ void tcp_message_listener::start_polling() {
 
 					std::vector<char> data(message_size);
 					io::read_from_socket(connection_fd, data.data(), message_size);
-					auto meta_read_time = timer.elapsed_time();
 					// status_code success = status_code::OK;
 					// io::write_to_socket(connection_fd, &success, sizeof(success));
 					{
@@ -164,12 +163,12 @@ void tcp_message_listener::start_polling() {
 								if((chunk + 1) == num_chunks) {	 // if its the last chunk, we chunk_size is different
 									chunk_size = buffer_size - (chunk * pinned_buffer_size);
 								}
-								auto pinned_buffer = blazingdb::transport::io::getPinnedBufferProvider().getBuffer();
+								auto *pinned_buffer = blazingdb::transport::io::getPinnedBufferProvider().getBuffer();
 								pinned_buffer->use_size = chunk_size;
 
 								io::read_from_socket(connection_fd, pinned_buffer->data, chunk_size);
 
-								auto buffer_chunk_start = buffer + (chunk * pinned_buffer_size);
+								auto *buffer_chunk_start = static_cast<uint8_t*>(buffer) + (chunk * pinned_buffer_size);
 								cudaMemcpyAsync(buffer_chunk_start,
 									pinned_buffer->data,
 									chunk_size,
@@ -300,7 +299,7 @@ ucx_message_listener::ucx_message_listener(ucp_context_h context, ucp_worker_h w
 	ucp_progress_manager::get_instance(worker,_request_size);
 }
 
-tcp_message_listener::tcp_message_listener(const std::map<std::string, comm::node>& nodes,int port, int num_threads) : _port{port} , message_listener{nodes,num_threads}{
+tcp_message_listener::tcp_message_listener(const std::map<std::string, comm::node>& nodes,int port, int num_threads) : message_listener{nodes,num_threads}, _port{port} {
 
 }
 

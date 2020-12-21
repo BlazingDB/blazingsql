@@ -5,7 +5,8 @@
 namespace ral {
 namespace cache {
 
-kernel::kernel(std::size_t kernel_id, std::string expr, std::shared_ptr<Context> context, kernel_type kernel_type_id) : expression{expr}, kernel_id(kernel_id), context{context}, kernel_type_id{kernel_type_id}, total_input_bytes{0} {
+kernel::kernel(std::size_t kernel_id, std::string expr, std::shared_ptr<Context> context, kernel_type kernel_type_id)
+    : total_input_bytes{0}, expression{expr}, kernel_id(kernel_id), kernel_type_id{kernel_type_id}, context{context} {
     parent_id_ = -1;
     has_limit_ = false;
     limit_rows_ = -1;
@@ -142,20 +143,19 @@ ral::execution::task_result kernel::process(std::vector<std::unique_ptr<ral::fra
     const std::map<std::string, std::string>& args){
     std::vector< std::unique_ptr<ral::frame::BlazingTable> > input_gpu;
 
-    //TODO: figure out if this can be re enabled;
-    if (this->has_limit_ && output->get_num_rows_added() >= this->limit_rows_) {
-     //return; 
-    }
+    // TODO: figure out if this can be re enabled;
+    // if (this->has_limit_ && output->get_num_rows_added() >= this->limit_rows_) {
+    //     return;
+    // }
     size_t bytes = 0;
     for(auto & input : inputs){
         bytes += input->sizeInBytes();
     }
-    auto result = do_process(std::move(inputs),output,stream,args);
+    auto result = do_process(std::move(inputs), output, stream, args);
     if(result.status == ral::execution::SUCCESS){
-        
         total_input_bytes += bytes; // increment this AFTER its been processed successfully
     }
-    return std::move(result);  
+    return std::move(result);
 
 }
 

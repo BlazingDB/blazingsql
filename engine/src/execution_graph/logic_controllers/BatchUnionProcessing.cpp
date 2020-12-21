@@ -15,8 +15,8 @@ UnionKernel::UnionKernel(std::size_t kernel_id, const std::string & queryString,
 }
 
 ral::execution::task_result UnionKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable>> inputs,
-    std::shared_ptr<ral::cache::CacheMachine> output,
-    cudaStream_t stream, const std::map<std::string, std::string>& args) {
+    std::shared_ptr<ral::cache::CacheMachine> /*output*/,
+    cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) {
 
     auto & input = inputs[0];
     try{
@@ -74,6 +74,7 @@ kstatus UnionKernel::run() {
             cache_data_a = cache_machine_a->pullCacheData();
         }
     });
+
     BlazingThread right_thread([this, &cache_machine_b, &cache_data_b](){
         while(cache_data_b != nullptr){
             std::vector<cudf::data_type> data_types = cache_data_b->get_schema();
