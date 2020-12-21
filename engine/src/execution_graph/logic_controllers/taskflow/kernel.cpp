@@ -141,7 +141,6 @@ ral::execution::task_result kernel::process(std::vector<std::unique_ptr<ral::fra
 		std::shared_ptr<ral::cache::CacheMachine> output,
 		cudaStream_t stream,
     const std::map<std::string, std::string>& args){
-    std::vector< std::unique_ptr<ral::frame::BlazingTable> > input_gpu;
 
     // TODO: figure out if this can be re enabled;
     // if (this->has_limit_ && output->get_num_rows_added() >= this->limit_rows_) {

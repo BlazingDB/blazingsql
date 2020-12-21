@@ -75,15 +75,13 @@ void task::run(cudaStream_t stream, executor * executor){
     // Decaching inputs
     ///////////////////////////////
     try{
-
         for(auto & input : inputs){
                     //if its in gpu this wont fail
                     //if its cpu and it fails the buffers arent deleted
                     //if its disk and fails the file isnt deleted
                     //so this should be safe
-                    last_input_decached++;     
+                    last_input_decached++;
                     input_gpu.push_back(std::move(input->decache()));
-   
             }
     }catch(rmm::bad_alloc e){
         int i = 0;
@@ -100,21 +98,16 @@ void task::run(cudaStream_t stream, executor * executor){
         }else{
             throw;
         }
-
     }catch(std::exception e){
         throw;
     }
 
-
-
-
     auto task_result = kernel->process(std::move(input_gpu),output,stream, args);
     
     if(task_result.status == ral::execution::task_status::SUCCESS){
-        
         complete();
     }else if(task_result.status == ral::execution::task_status::RETRY){
-        int i = 0;
+        std::size_t i = 0;
         for(auto & input : inputs){
             if  (input->get_type() == ral::cache::CacheDataType::GPU || input->get_type() == ral::cache::CacheDataType::GPU_METADATA){
                 //this was a gpu cachedata so now its not valid
@@ -131,12 +124,11 @@ void task::run(cudaStream_t stream, executor * executor){
         if(this->attempts < this->attempts_limit){
             executor->add_task(std::move(inputs), output, kernel, attempts, task_id, args);
         }else{
-            throw rmm::bad_alloc("Ran out of memory processing ");
+            throw rmm::bad_alloc("Ran out of memory processing");
         }
     }else{
         throw std::runtime_error(task_result.what.c_str());
     }
-
 }
 
 void task::complete(){
