@@ -112,8 +112,9 @@ void task::set_inputs(std::vector<std::unique_ptr<ral::cache::CacheData > > inpu
 
 executor * executor::_instance;
 
-executor::executor(int num_threads) :
+executor::executor(int num_threads, double processing_memory_limit_threshold) :
  pool(num_threads), task_id_counter(0), resource(&blazing_device_memory_resource::getInstance()), task_queue("executor_task_queue") {
+     processing_memory_limit = resource->get_total_memory() * processing_memory_limit_threshold;
      for( int i = 0; i < num_threads; i++){
          cudaStream_t stream;
          cudaStreamCreate(&stream);
@@ -131,7 +132,7 @@ void executor::execute(){
             // Here we want to wait until we make sure we have enough memory to operate, or if there are no tasks currently running, then we want to go ahead and run
             std::unique_lock<std::mutex> lock(memory_safety_mutex);
             memory_safety_cv.wait(lock, [this, memory_needed] { 
-                if (memory_needed < (resource->get_memory_limit() - resource->get_memory_used())){
+                if (memory_needed < (processing_memory_limit - resource->get_memory_used())){
                     return true;
                 } else if (active_tasks_counter.load() == 0){
                     auto logger = spdlog::get("batch_logger");

@@ -534,7 +534,7 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 	std::size_t maximum_pool_size,
 	bool enable_logging) {
 
-	float device_mem_resouce_consumption_thresh = 0.95;
+	float device_mem_resouce_consumption_thresh = 0.6;
 	auto config_it = config_options.find("BLAZING_DEVICE_MEM_CONSUMPTION_THRESHOLD");
 	if (config_it != config_options.end()){
 		device_mem_resouce_consumption_thresh = std::stof(config_options["BLAZING_DEVICE_MEM_CONSUMPTION_THRESHOLD"]);
@@ -863,7 +863,12 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 		output_input_caches.second = comm::message_sender::get_instance()->get_input_cache();
 	}
 
-	ral::execution::executor::init_executor(executor_threads);
+	double processing_memory_limit_threshold = 0.9;
+	config_it = config_options.find("BLAZING_PROCESSING_DEVICE_MEM_CONSUMPTION_THRESHOLD");
+	if (config_it != config_options.end()){
+		processing_memory_limit_threshold = std::stod(config_options["BLAZING_PROCESSING_DEVICE_MEM_CONSUMPTION_THRESHOLD"]);
+	}
+	ral::execution::executor::init_executor(executor_threads, processing_memory_limit_threshold);
 	return std::make_pair(output_input_caches, ralCommunicationPort);	
 }
 
