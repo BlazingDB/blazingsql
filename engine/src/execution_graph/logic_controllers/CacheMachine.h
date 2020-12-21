@@ -672,7 +672,7 @@ public:
 					auto logger = spdlog::get("batch_logger");
 					if(logger != nullptr) {
 						logger->warn("|||{info}|{duration}||||",
-											"info"_a="WaitingQueue wait_for_count timed out. count = " + std::to_string(count),
+											"info"_a="WaitingQueue " + this->queue_name + " wait_for_count timed out. count = " + std::to_string(count) + " processed = " + std::to_string(this->processed),
 											"duration"_a=blazing_timer.elapsed_time());
 					}
 				}
@@ -709,7 +709,7 @@ public:
 					auto logger = spdlog::get("batch_logger");
 					if(logger != nullptr) {
 						logger->warn("|||{info}|{duration}||||",
-											"info"_a="WaitingQueue pop_or_wait timed out",
+											"info"_a="WaitingQueue " + this->queue_name + " pop_or_wait timed out",
 											"duration"_a=blazing_timer.elapsed_time());
 					}
 				}
@@ -813,8 +813,8 @@ public:
 		std::unique_lock<std::mutex> lock(mutex_);
 		while(!condition_variable_.wait_for(lock, timeout*1ms, [&blazing_timer, num_bytes, this] {
 				bool done_waiting = this->finished.load(std::memory_order_seq_cst);
-				if (!done_waiting) {
-					size_t total_bytes = 0;
+				size_t total_bytes = 0;
+				if (!done_waiting) {					
 					for (auto & message : message_queue_){
 						total_bytes += message->get_data().sizeInBytes();
 					}
@@ -824,7 +824,7 @@ public:
 					auto logger = spdlog::get("batch_logger");
 					if(logger != nullptr) {
 						logger->warn("|||{info}|{duration}||||",
-											"info"_a="WaitingQueue " + this->queue_name + " wait_until_num_bytes timed out",
+											"info"_a="WaitingQueue " + this->queue_name + " wait_until_num_bytes timed out num_bytes wanted: " + std::to_string(num_bytes) + " total_bytes: " + std::to_string(total_bytes),
 											"duration"_a=blazing_timer.elapsed_time());
 					}
 				}
