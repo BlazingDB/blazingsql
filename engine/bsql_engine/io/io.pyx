@@ -146,7 +146,7 @@ cdef unique_ptr[cio.ResultSet] parseMetadataPython(vector[string] files, pair[in
     with nogil:
         return blaz_move( cio.parseMetadata(files, offset, schema, file_format_hint,arg_keys,arg_values) )
 
-cdef shared_ptr[cio.graph] runGenerateGraphPython(uint32_t masterIndex,vector[string] worker_ids, vector[string] tableNames, vector[string] tableScans, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, vector[vector[map[string,string]]] uri_values_cpp, map[string,string] config_options, string sql) except +:
+cdef shared_ptr[cio.graph] runGenerateGraphPython(uint32_t masterIndex,vector[string] worker_ids, vector[string] tableNames, vector[string] tableScans, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, vector[vector[map[string,string]]] uri_values_cpp, map[string,string] config_options, string sql) except *:
     return cio.runGenerateGraph(masterIndex, worker_ids, tableNames, tableScans, tableSchemas, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query, uri_values_cpp, config_options,sql)
 
 cdef unique_ptr[cio.PartitionedResultSet] runExecuteGraphPython(shared_ptr[cio.graph] graph, int ctx_token) except *:

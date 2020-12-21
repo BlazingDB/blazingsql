@@ -2946,6 +2946,9 @@ class BlazingContext(object):
                 remove_orc_files_from_disk(self.cache_dir_path, ctxToken)
                 print(">>>>>>>> ", e)
                 result = cudf.DataFrame()
+            except cio.RunGenerateGraphError as e:
+                print(">>>>>>>> ", e)
+                result = cudf.DataFrame()
             except Exception as e:
                 raise e
         else:
