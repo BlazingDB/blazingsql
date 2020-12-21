@@ -10,7 +10,6 @@ using ral::cache::distributing_kernel;
 using ral::cache::kstatus;
 using ral::cache::kernel;
 using ral::cache::kernel_type;
-using RecordBatch = std::unique_ptr<ral::frame::BlazingTable>;
 using namespace fmt::literals;
 
 class ComputeAggregateKernel : public kernel {

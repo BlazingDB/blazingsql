@@ -86,6 +86,7 @@ size_t CacheDataLocalFile::sizeInBytes() const {
 }
 
 std::unique_ptr<ral::frame::BlazingTable> CacheDataLocalFile::decache() {
+
 	cudf::io::orc_reader_options read_opts = cudf::io::orc_reader_options::builder(cudf::io::source_info{this->filePath_});
 	auto result = cudf::io::read_orc(read_opts);
 
@@ -264,13 +265,14 @@ std::int32_t CacheMachine::get_id() const { return (cache_id); }
 void CacheMachine::finish() {
 	this->waitingCache->finish();
 	if(logger != nullptr) {
-		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|cache_id|{cache_id}||",
+		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|cache_id|{cache_id}|cache_name|{cache_name}",
 									"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
 									"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
 									"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
 									"info"_a="CacheMachine finish()",
 									"duration"_a="",
-									"cache_id"_a=cache_id);
+									"cache_id"_a=cache_id,
+									"cache_name"_a=cache_machine_name);
 	}
 }
 

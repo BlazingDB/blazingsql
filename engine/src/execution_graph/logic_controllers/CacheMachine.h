@@ -664,13 +664,31 @@ public:
 
 	void wait_for_count(int count){
 
+		CodeTimer blazing_timer;
 		std::unique_lock<std::mutex> lock(mutex_);
-		condition_variable_.wait(lock, [&, this] () {
-			if (count < this->processed){
-				throw std::runtime_error("WaitingQueue::wait_for_count " + this->queue_name + " encountered " + std::to_string(this->processed) + " when expecting " + std::to_string(count));
-			}
-			return count == this->processed;
-		});
+		while(!condition_variable_.wait_for(lock, timeout*1ms, [&, this] {
+				bool done_waiting = count == this->processed;
+				if (!done_waiting && blazing_timer.elapsed_time() > 59000 && this->log_timeout){
+					auto logger = spdlog::get("batch_logger");
+					if(logger != nullptr) {
+						logger->warn("|||{info}|{duration}||||",
+											"info"_a="WaitingQueue wait_for_count timed out. count = " + std::to_string(count),
+											"duration"_a=blazing_timer.elapsed_time());
+					}
+				}
+				if (count < this->processed){
+					throw std::runtime_error("WaitingQueue::wait_for_count " + this->queue_name + " encountered " + std::to_string(this->processed) + " when expecting " + std::to_string(count));
+				}
+				return done_waiting;
+			})){}
+
+
+		// condition_variable_.wait(lock, [&, this] () {
+		// 	if (count < this->processed){
+		// 		throw std::runtime_error("WaitingQueue::wait_for_count " + this->queue_name + " encountered " + std::to_string(this->processed) + " when expecting " + std::to_string(count));
+		// 	}
+		// 	return count == this->processed;
+		// });
 	}
 
 	/**
@@ -685,9 +703,9 @@ public:
 
 		CodeTimer blazing_timer;
 		std::unique_lock<std::mutex> lock(mutex_);
-		/*while(!condition_variable_.wait_for(lock, timeout*1ms, [&, this] {
+		while(!condition_variable_.wait_for(lock, timeout*1ms, [&, this] {
 				bool done_waiting = this->finished.load(std::memory_order_seq_cst) or !this->empty();
-				if (!done_waiting && blazing_timer.elapsed_time() > 59000){
+				if (!done_waiting && blazing_timer.elapsed_time() > 59000 && this->log_timeout){
 					auto logger = spdlog::get("batch_logger");
 					if(logger != nullptr) {
 						logger->warn("|||{info}|{duration}||||",
@@ -696,11 +714,11 @@ public:
 					}
 				}
 				return done_waiting;
-			})){}*/
+			})){}
 
-		condition_variable_.wait(lock,[&, this] {
-				return this->finished.load(std::memory_order_seq_cst) or !this->empty();
-		});
+		// condition_variable_.wait(lock,[&, this] {
+		// 		return this->finished.load(std::memory_order_seq_cst) or !this->empty();
+		// });
 		if(this->message_queue_.size() == 0) {
 			return nullptr;
 		}

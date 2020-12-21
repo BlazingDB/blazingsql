@@ -23,7 +23,7 @@ void BatchSequence::set_source(std::shared_ptr<ral::cache::CacheMachine> cache) 
     this->cache = cache;
 }
 
-RecordBatch BatchSequence::next() {
+std::unique_ptr<ral::frame::BlazingTable> BatchSequence::next() {
     std::shared_ptr<spdlog::logger> cache_events_logger;
     cache_events_logger = spdlog::get("cache_events_logger");
 
