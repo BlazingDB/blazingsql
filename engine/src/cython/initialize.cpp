@@ -639,6 +639,13 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 	std::string batchLoggerFileName = logging_dir + "/RAL." + std::to_string(ralId) + ".log";
 	create_logger(batchLoggerFileName, "batch_logger", ralId, flush_level, logger_level_wanted, max_size_logging, false);
 
+	std::string outputCommunicationLoggerFileName = logging_dir + "/output_comms." + std::to_string(ralId) + ".log";
+	create_logger(outputCommunicationLoggerFileName, "output_comms", ralId, flush_level, logger_level_wanted, max_size_logging);
+
+	std::string inputCommunicationLoggerFileName = logging_dir + "/input_comms." + std::to_string(ralId) + ".log";
+	create_logger(inputCommunicationLoggerFileName, "input_comms", ralId, flush_level, logger_level_wanted, max_size_logging);
+
+
 	std::string queriesFileName = logging_dir + "/bsql_queries." + std::to_string(ralId) + ".log";
 	bool existsQueriesFileName = std::ifstream(queriesFileName).good();
 	create_logger(queriesFileName, "queries_logger", ralId, flush_level, logger_level_wanted, max_size_logging);
