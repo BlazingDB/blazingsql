@@ -149,7 +149,7 @@ def test_hive_partition_data(input, table_name, partitions, partitions_schema, o
 
 
 def main():
-	dir_data = '/home/diegodfrf/tpch'
+	dir_data = '/input_path'
 	ext = "parquet"
 
 	test_hive_partition_data(input=("%s/%s_[0-9]*.%s") % (dir_data, "orders", ext),
@@ -161,7 +161,7 @@ def main():
 							 partitions_schema=[('o_orderpriority', 'str'),
 												('o_orderstatus', 'str'),
 												('o_shippriority', 'int')],
-							 output='/home/diegodfrf/BlazingSQL/partitions',
+							 output='/output_path',
 							 num_files_per_parquet=4)
 
 if __name__ == "__main__":
