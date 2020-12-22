@@ -136,7 +136,7 @@ void tcp_message_listener::start_polling() {
 							logger->error("|||{info}|||||",
 									"info"_a="ERROR in message_listener::run_polling() calling except. errno: {}"_format(errno));
 						}
-						std::this_thread::sleep_for(std::chrono::milliseconds(500));
+						std::this_thread::sleep_for(std::chrono::milliseconds(50));
 					continue;
 				}
 				pool.push([this, connection_fd](int /*thread_num*/) {
