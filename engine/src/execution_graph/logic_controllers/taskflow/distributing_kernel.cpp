@@ -44,6 +44,7 @@ void distributing_kernel::send_message(std::unique_ptr<ral::frame::BlazingTable>
     }
 
     ral::cache::MetadataDictionary metadata;
+    metadata.add_value(ral::cache::RAL_ID_METADATA_LABEL,context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()));
     metadata.add_value(ral::cache::KERNEL_ID_METADATA_LABEL, std::to_string(kernel_id));
     metadata.add_value(ral::cache::QUERY_ID_METADATA_LABEL, std::to_string(context->getContextToken()));
     metadata.add_value(ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL, specific_cache ? "true" : "false");

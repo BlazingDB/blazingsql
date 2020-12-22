@@ -27,7 +27,7 @@ namespace io{
 		int bytes_read = 0;
         size_t count_invalids = 0;
 		while (amount_read < read_size && count_invalids < NUMBER_RETRIES) {
-			bytes_read = read(socket_fd, data + amount_read, read_size - amount_read);
+			bytes_read = read(socket_fd, data + amount_read, read_size - amount_read); 
 			if (bytes_read != -1) {
 				amount_read += bytes_read;
 				count_invalids = 0;
@@ -41,6 +41,9 @@ namespace io{
 				count_invalids++;
 			}
 		}
+        if(amount_read < read_size){
+            throw std::runtime_error("Could not read complete message from socket with errno "  + std::to_string(errno));
+        }
     }
 
     void write_to_socket(int socket_fd, void * data, size_t write_size){
@@ -67,6 +70,11 @@ namespace io{
 				}
 			}
 		}
+
+        if(amount_written < write_size ){
+            throw std::runtime_error("Could not write complete message to socket with errno " +std::to_string(errno));   
+        }
+
     }
 }
 

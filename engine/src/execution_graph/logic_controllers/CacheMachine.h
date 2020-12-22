@@ -41,6 +41,7 @@ using namespace fmt::literals;
 enum class CacheDataType { GPU, CPU, LOCAL_FILE, GPU_METADATA, IO_FILE, CONCATENATING };
 
 const std::string KERNEL_ID_METADATA_LABEL = "kernel_id"; /**< A message metadata field that indicates which kernel owns this message. */
+const std::string RAL_ID_METADATA_LABEL = "kernel_id"; /**< A message metadata field that indicates RAL ran this. */
 const std::string QUERY_ID_METADATA_LABEL = "query_id"; /**< A message metadata field that indicates which query owns this message. */
 const std::string CACHE_ID_METADATA_LABEL = "cache_id";  /**< A message metadata field that indicates what cache a message should be routed to. Can be empty string if
  																															and only if add_to_specific_cache == false. */

@@ -63,7 +63,7 @@ void message_receiver::finish(cudaStream_t stream) {
   auto destinations = _metadata.get_values()[ral::cache::WORKER_IDS_METADATA_LABEL];
 
   comms_logger->info("{ral_id}|{query_id}|{kernel_id}|{dest_ral_id}|{dest_ral_count}|{dest_cache_id}|{message_id}",
-  "ral_id"_a=_metadata.get_values()[ral::cache::SENDER_WORKER_ID_METADATA_LABEL],
+  "ral_id"_a=_metadata.get_values()[ral::cache::RAL_ID_METADATA_LABEL],
   "query_id"_a=_metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL],
   "kernel_id"_a=_metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL],
   "dest_ral_id"_a=destinations, //false
