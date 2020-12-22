@@ -80,7 +80,6 @@ void task::run(cudaStream_t stream, executor * executor){
             logger->error("|||{info}|||||",
                     "info"_a="ERROR of type rmm::bad_alloc in task::run. What: {}"_format(e.what()));
         }
-        exit(-1); // WSM DEBUG REMOVE THIS
         this->attempts++;
         if(this->attempts < this->attempts_limit){
             executor->add_task(std::move(inputs), output, kernel, attempts, task_id, args);
@@ -93,7 +92,6 @@ void task::run(cudaStream_t stream, executor * executor){
             logger->error("|||{info}|||||",
                     "info"_a="ERROR in task::run. What: {}"_format(e.what()));
         }
-        exit(-1); // WSM DEBUG REMOVE THIS
         throw;
     }
 }
