@@ -26,9 +26,7 @@ def _get_columns_names(bc, table_name):
 
 	return columns
 
-def _save_parquet(bc, query, output, partition, filename):
-	result = bc.sql(query)
-
+def _save_parquet_from_pandas(pdf, output, partition, filename):
 	partition_folder = '/'.join(partition)
 	partition_folder = partition_folder.replace("'","")
 
@@ -36,9 +34,12 @@ def _save_parquet(bc, query, output, partition, filename):
 	if not os.path.exists(path):
 		os.makedirs(path)
 
-	pdf = result.to_pandas()
 	output_name = path + "/" + filename + '.parquet'
 	pdf.to_parquet(output_name, compression="GZIP")
+
+def _save_parquet_from_blazing(bc, query, output, partition, filename):
+	result = bc.sql(query)
+	_save_parquet_from_pandas(result.to_pandas(), output, partition, filename)
 
 def _are_repeats_partitions(items):
 	comp = set()
@@ -81,30 +82,33 @@ def _save_partition_files(bc, table_name, data_partition_array_dict, output, num
 	columns = _get_columns_names(bc, table_name)
 	view_columns = _select_columns(columns, values_partitions)
 
+	combination_partition = _combine_partitions(data_partition_array_dict)
+
 	if num_files_per_parquet == 1:
-		combination_partition = _combine_partitions(data_partition_array_dict)
 
 		for partition in combination_partition:
 			where_clause = ' and '.join(partition)
 
 			query = 'select {} from {} where {}'.format(view_columns, table_name, where_clause)
-			_save_parquet(bc, query, output, partition, table_name)
+			_save_parquet_from_blazing(bc, query, output, partition, table_name)
 
 	elif num_files_per_parquet >= 1:
-		print('Unsupported')
 
-		# TODO: Enable up to OFFSET clause support.
-		# query = 'select count(*) from {} where {} = {}'.format(table_name, partition, partition_value)
-		# result = bc.sql(query)
-		# total_registers = result.values.tolist()[0][0]
-		# registers_per_parquet = math.ceil(total_registers / num_files_per_parquet)
-		#
-		# index = 0
-		# for i in range(0, total_registers, registers_per_parquet):
-		# 	query = 'select {} from {} where {} = {} limit {} offset {}'.format(view_columns, table_name, partition, partition_value, registers_per_parquet, i)
-		#
-		# 	_save_parquet(bc, query, output, partition, partition_value, table_name + '_' + str(index))
-		# 	index += 1
+		for partition in combination_partition:
+			where_clause = ' and '.join(partition)
+
+			query = 'select count(*) from {} where {}'.format(table_name, where_clause)
+			result = bc.sql(query)
+			total_registers = result.values.tolist()[0][0]
+			registers_per_parquet = math.ceil(total_registers / num_files_per_parquet)
+
+			index = 0
+			df = bc.sql('select {} from {} where {}'.format(view_columns, table_name, where_clause))
+			for i in range(0, total_registers, registers_per_parquet):
+				pf = df.iloc[i:i+registers_per_parquet]
+
+				_save_parquet_from_pandas(pf.to_pandas(), output, partition, table_name + '_' + str(index))
+				index += 1
 
 	else:
 		print('num_files_per_parquet must be greater than 1.')
@@ -167,7 +171,7 @@ def main():
 												('o_orderstatus', 'str'),
 												('o_shippriority', 'int')],
 							 output='/home/diegodfrf/BlazingSQL/partitions',
-							 num_files_per_parquet=1)
+							 num_files_per_parquet=4)
 
 if __name__ == "__main__":
 	main()
