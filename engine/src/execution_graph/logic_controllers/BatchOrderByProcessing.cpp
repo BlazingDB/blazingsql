@@ -223,7 +223,7 @@ void SortAndSampleKernel::do_process(std::vector< std::unique_ptr<ral::frame::Bl
             }
         }
         if (!get_samples.load() && !already_computed_partition_plan.load()){
-            if (context->isMasterNode(ral::communication::CommunicationData::getInstance().getSelfNode())){
+            if (context->getTotalNodes() > 1 && context->isMasterNode(ral::communication::CommunicationData::getInstance().getSelfNode())){
                 if (all_node_samples_are_available()){
                     make_partition_plan_task();
                 }
