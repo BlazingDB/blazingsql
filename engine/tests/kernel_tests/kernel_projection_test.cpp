@@ -50,6 +50,7 @@ template <typename T>
 struct ProjectionTest : public BlazingUnitTest {
 	ProjectionTest() {
 		int executor_threads = 10;
+		BlazingRMMInitialize();
 		ral::execution::executor::init_executor(executor_threads, 0.8);
 	}
 };
