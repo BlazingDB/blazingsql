@@ -118,7 +118,7 @@ def create_hive_partition_data(input, table_name, partitions, output, num_files_
 	bc.create_table(table_name, input)
 
 	# Temporal
-	total = bc.sql('select c_custkey, c_name, c_address, c_nationkey, c_phone, c_acctbal, c_mktsegment, c_comment from customer order by c_custkey')
+	total = bc.sql('select o_orderkey, o_custkey, o_orderstatus, o_totalprice, o_orderdate, o_orderpriority, o_clerk, o_shippriority, o_comment from orders order by o_orderkey')
 	total.to_pandas().to_csv(output + "/origin.csv")
 
 	columns = bc.describe_table(table_name)
@@ -144,8 +144,8 @@ def testing_load_hive_table(table_name, location, partitions, partitions_schema)
 	# bc.create_table(table_name, location, file_format='parquet')
 
 	# Temporal
-	total = bc.sql('select c_custkey, c_name, c_address, c_nationkey, c_phone, c_acctbal, c_mktsegment, c_comment from customer order by c_custkey')
-	total.to_pandas().to_csv(location + "/dest.csv");
+	total = bc.sql('select o_orderkey, o_custkey, o_orderstatus, o_totalprice, o_orderdate, o_orderpriority, o_clerk, o_shippriority, o_comment from orders order by o_orderkey')
+	total.to_pandas().to_csv(location + "/dest.csv")
 
 
 def test_hive_partition_data(input, table_name, partitions, partitions_schema, output, num_files_per_parquet=1):
@@ -157,14 +157,17 @@ def main():
 	dir_data = '/home/diegodfrf/tpch'
 	ext = "parquet"
 
-	test_hive_partition_data(input = ("%s/%s_[0-9]*.%s") % (dir_data, "customer", ext),
-							 table_name = 'customer',
-							 partitions={'c_nationkey': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24],
-										 'c_mktsegment': ['AUTOMOBILE', 'BUILDING', 'FURNITURE', 'HOUSEHOLD', 'MACHINERY']},
-							 partitions_schema=[('c_nationkey', 'int'),
-												('c_mktsegment', 'str')],
+	test_hive_partition_data(input=("%s/%s_[0-9]*.%s") % (dir_data, "orders", ext),
+							 table_name='orders',
+							 partitions={
+								 'o_orderpriority': ['1-URGENT', '2-HIGH', '3-MEDIUM', '4-NOT SPECIFIED', '5-LOW'],
+								 'o_orderstatus': ['F', 'O', 'P'],
+								 'o_shippriority': [0]},
+							 partitions_schema=[('o_orderpriority', 'str'),
+												('o_orderstatus', 'str'),
+												('o_shippriority', 'int')],
 							 output='/home/diegodfrf/BlazingSQL/partitions',
-							 num_files_per_parquet = 1)
+							 num_files_per_parquet=1)
 
 if __name__ == "__main__":
 	main()
