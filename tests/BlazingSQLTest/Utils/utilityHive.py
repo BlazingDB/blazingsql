@@ -121,10 +121,6 @@ def create_hive_partition_data(input, table_name, partitions, output, num_files_
 	bc = BlazingContext()
 	bc.create_table(table_name, input)
 
-	# Temporal
-	total = bc.sql('select o_orderkey, o_custkey, o_orderstatus, o_totalprice, o_orderdate, o_orderpriority, o_clerk, o_shippriority, o_comment from orders order by o_orderkey')
-	total.to_pandas().to_csv(output + "/origin.csv")
-
 	columns = bc.describe_table(table_name)
 	data_partition_array_dict = []
 	for partition in partitions:
@@ -146,11 +142,6 @@ def testing_load_hive_table(table_name, location, partitions, partitions_schema)
 					partitions_schema=partitions_schema)
 
 	# bc.create_table(table_name, location, file_format='parquet')
-
-	# Temporal
-	total = bc.sql('select o_orderkey, o_custkey, o_orderstatus, o_totalprice, o_orderdate, o_orderpriority, o_clerk, o_shippriority, o_comment from orders order by o_orderkey')
-	total.to_pandas().to_csv(location + "/dest.csv")
-
 
 def test_hive_partition_data(input, table_name, partitions, partitions_schema, output, num_files_per_parquet=1):
 	create_hive_partition_data(input, table_name, partitions, output, num_files_per_parquet)
