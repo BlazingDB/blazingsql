@@ -935,25 +935,7 @@ void JoinPartitionKernel::small_table_scatter_distribution(std::unique_ptr<ral::
 
 	int total_count = get_total_partition_counts(small_table_idx);
 
-	if(logger != nullptr) {
-        logger->debug("{query_id}|{step}|{substep}|{info}||kernel_id|{kernel_id}||",
-                                "query_id"_a=context->getContextToken(),
-                                "step"_a=context->getQueryStep(),
-                                "substep"_a=context->getQuerySubstep(),
-                                "info"_a="JoinPartitionKernel Kernel got total_partition_counts  " + std::to_string(total_count),
-                                "kernel_id"_a=this->get_id());
-    }
-
-	this->output_cache(small_output_cache_name)->wait_for_count(total_count);
-
-	if(logger != nullptr) {
-        logger->debug("{query_id}|{step}|{substep}|{info}||kernel_id|{kernel_id}||",
-                                "query_id"_a=context->getContextToken(),
-                                "step"_a=context->getQueryStep(),
-                                "substep"_a=context->getQuerySubstep(),
-                                "info"_a="JoinPartitionKernel Kernel waited for count",
-                                "kernel_id"_a=this->get_id());
-    }
+	this->output_cache(small_output_cache_name)->wait_for_count(total_count);	
 }
 
 void JoinPartitionKernel::do_process(std::vector<std::unique_ptr<ral::frame::BlazingTable>> inputs,
