@@ -161,6 +161,7 @@ void kernel::process(std::vector<std::unique_ptr<ral::cache::CacheData > > & inp
                 logger->error("|||{info}|||||",
                         "info"_a="ERROR in kernel::process trying to decache. What: {}"_format(e.what()));
             }
+            exit(-1); // WSM DEBUG REMOVE THIS
             throw;
         }
     }
