@@ -44,6 +44,7 @@ void distributing_kernel::send_message(std::unique_ptr<ral::frame::BlazingTable>
     }
 
     ral::cache::MetadataDictionary metadata;
+    metadata.add_value(ral::cache::RAL_ID_METADATA_LABEL,context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()));
     metadata.add_value(ral::cache::KERNEL_ID_METADATA_LABEL, std::to_string(kernel_id));
     metadata.add_value(ral::cache::QUERY_ID_METADATA_LABEL, std::to_string(context->getContextToken()));
     metadata.add_value(ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL, specific_cache ? "true" : "false");
@@ -70,10 +71,11 @@ void distributing_kernel::send_message(std::unique_ptr<ral::frame::BlazingTable>
     std::shared_ptr<ral::cache::CacheMachine> output_cache = query_graph->get_output_message_cache();
 
     bool added;
+    std::string message_id = metadata.get_values()[ral::cache::MESSAGE_ID];
     if(table==nullptr) {
-        added = output_cache->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(ral::utilities::create_empty_table({}, {}), metadata), "", always_add);
+        added = output_cache->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(ral::utilities::create_empty_table({}, {}), metadata), message_id, always_add);
     } else {
-        added = output_cache->addCacheData(std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(std::move(table), metadata)), "", always_add);
+        added = output_cache->addCacheData(std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(std::move(table), metadata)), message_id, always_add);
     }
 
     if(wait_for) {
@@ -154,7 +156,7 @@ void distributing_kernel::broadcast(std::unique_ptr<ral::frame::BlazingTable> ta
     );
 
     // now lets add to the self node
-    bool added = output->addToCache(std::move(table), message_id_prefix, false);
+    bool added = output->addToCache(std::move(table), message_id_prefix, always_add);
     if (added) {
         node_count[message_tracker_idx].at(node.id())++;
     }

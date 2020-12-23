@@ -13,6 +13,8 @@
 #include "execution_graph/logic_controllers/CacheMachine.h"
 #include "transport/io/reader_writer.h"
 
+using namespace fmt::literals;
+
 constexpr size_t NUMBER_RETRIES = 20;
 constexpr size_t FILE_RETRY_DELAY = 20;
 
@@ -25,7 +27,7 @@ namespace io{
 		int bytes_read = 0;
         size_t count_invalids = 0;
 		while (amount_read < read_size && count_invalids < NUMBER_RETRIES) {
-			bytes_read = read(socket_fd, static_cast<uint8_t*>(data) + amount_read, read_size - amount_read);
+			bytes_read = read(socket_fd, data + amount_read, read_size - amount_read); 
 			if (bytes_read != -1) {
 				amount_read += bytes_read;
 				count_invalids = 0;
@@ -39,6 +41,9 @@ namespace io{
 				count_invalids++;
 			}
 		}
+        if(amount_read < read_size){
+            throw std::runtime_error("Could not read complete message from socket with errno "  + std::to_string(errno));
+        }
     }
 
     void write_to_socket(int socket_fd, void * data, size_t write_size){
@@ -46,7 +51,7 @@ namespace io{
 		int bytes_written = 0;
         size_t count_invalids = 0;
 		while (amount_written < write_size && count_invalids < NUMBER_RETRIES) {
-			bytes_written = write(socket_fd, static_cast<uint8_t*>(data) + amount_written, write_size - amount_written);
+			bytes_written = write(socket_fd, data + amount_written, write_size - amount_written);
 
 			if (bytes_written != -1) {
 				amount_written += bytes_written;
@@ -65,6 +70,11 @@ namespace io{
 				}
 			}
 		}
+
+        if(amount_written < write_size ){
+            throw std::runtime_error("Could not write complete message to socket with errno " +std::to_string(errno));   
+        }
+
     }
 }
 
@@ -194,7 +204,7 @@ ucx_buffer_transport::ucx_buffer_transport(size_t request_size,
     ral::cache::MetadataDictionary metadata,
     std::vector<size_t> buffer_sizes,
     std::vector<blazingdb::transport::ColumnTransport> column_transports,
-    uint16_t ral_id)
+    int ral_id)
     : buffer_transport(metadata, buffer_sizes, column_transports,destinations),
     origin_node(origin_node), ral_id{ral_id}, _request_size{request_size} {
         tag = generate_message_tag();
@@ -262,7 +272,7 @@ tcp_buffer_transport::tcp_buffer_transport(
         ral::cache::MetadataDictionary metadata,
         std::vector<size_t> buffer_sizes,
         std::vector<blazingdb::transport::ColumnTransport> column_transports,
-        uint16_t ral_id,
+        int ral_id,
         ctpl::thread_pool<BlazingThread> * allocate_copy_buffer_pool)
         : buffer_transport(metadata, buffer_sizes, column_transports,destinations),
         ral_id{ral_id}, allocate_copy_buffer_pool{allocate_copy_buffer_pool} {
@@ -280,13 +290,17 @@ tcp_buffer_transport::tcp_buffer_transport(
         address.sin_family = AF_INET;
         address.sin_port = htons(destination.port());
 
-        if(inet_pton(AF_INET, destination.ip().c_str(), &address.sin_addr)<=0)
+        int error_code = inet_pton(AF_INET, destination.ip().c_str(), &address.sin_addr);
+        if(error_code <=0) // inet_pton returns 1 on success, 0 or -1 on fail
         {
-            throw std::runtime_error("Invalid Communication Address");
+            std::string node_info = "Index: " + std::to_string(destination.index()) + " Id: " + destination.id() + " IP: " + destination.ip() + " Port: " + std::to_string(destination.port());
+            throw std::runtime_error("Invalid Communication Address. Errno: " + std::to_string(errno) + " Could not get address of node " + node_info);
         }
-        if (connect(socket_fd, (struct sockaddr *)&address, sizeof(address)) < 0)
+        error_code = connect(socket_fd, (struct sockaddr *)&address, sizeof(address));
+        if (error_code < 0) // connect returns 0 on success, -1 on fail
         {
-            throw std::runtime_error("Invalid Communication Address");
+            std::string node_info = "Index: " + std::to_string(destination.index()) + " Id: " + destination.id() + " IP: " + destination.ip() + " Port: " + std::to_string(destination.port());
+            throw std::runtime_error("Invalid Communication Address could not connect to node. Errno: " + std::to_string(errno) + " Node is: " + node_info);
         }
         socket_fds.push_back(socket_fd);
     }
@@ -350,6 +364,11 @@ void tcp_buffer_transport::send_impl(const char * buffer, size_t buffer_size){
             increment_frame_transmission();
         }
     }catch(const std::exception & e ){
+        auto logger = spdlog::get("batch_logger");
+        if (logger){
+            logger->error("|||{info}|||||",
+                    "info"_a="ERROR in tcp_buffer_transport::send_impl. What: {}"_format(e.what()));
+        }
         throw;
     }
 
