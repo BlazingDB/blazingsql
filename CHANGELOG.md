@@ -17,6 +17,7 @@
 - #1262 Stop depending on gtest for runtime
 - #1261 Improve storage plugin output messages
 - #1153 Enable warnings and fixes
+- #1267 Added retrys to comms, fixed deadlocks in executor and order by. Improved logging and error management. Caches have names. Improved Joins
 - #1255 Kernels are resilient to out of memory errors now and can retry tasks that fail this way
 
 ## Bug Fixes

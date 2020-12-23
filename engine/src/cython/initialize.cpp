@@ -534,7 +534,7 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 	std::size_t maximum_pool_size,
 	bool enable_logging) {
 
-	float device_mem_resouce_consumption_thresh = 0.95;
+	float device_mem_resouce_consumption_thresh = 0.6;
 	auto config_it = config_options.find("BLAZING_DEVICE_MEM_CONSUMPTION_THRESHOLD");
 	if (config_it != config_options.end()){
 		device_mem_resouce_consumption_thresh = std::stof(config_options["BLAZING_DEVICE_MEM_CONSUMPTION_THRESHOLD"]);
@@ -639,6 +639,13 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 	std::string batchLoggerFileName = logging_dir + "/RAL." + std::to_string(ralId) + ".log";
 	create_logger(batchLoggerFileName, "batch_logger", ralId, flush_level, logger_level_wanted, max_size_logging, false);
 
+	std::string outputCommunicationLoggerFileName = logging_dir + "/output_comms." + std::to_string(ralId) + ".log";
+	create_logger(outputCommunicationLoggerFileName, "output_comms", ralId, flush_level, logger_level_wanted, max_size_logging);
+
+	std::string inputCommunicationLoggerFileName = logging_dir + "/input_comms." + std::to_string(ralId) + ".log";
+	create_logger(inputCommunicationLoggerFileName, "input_comms", ralId, flush_level, logger_level_wanted, max_size_logging);
+
+
 	std::string queriesFileName = logging_dir + "/bsql_queries." + std::to_string(ralId) + ".log";
 	bool existsQueriesFileName = std::ifstream(queriesFileName).good();
 	create_logger(queriesFileName, "queries_logger", ralId, flush_level, logger_level_wanted, max_size_logging);
@@ -719,13 +726,13 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 		orc_files_path = config_options["BLAZING_CACHE_DIRECTORY"];
 	}
 	if (!singleNode) {
-		orc_files_path += "/" + ralId;
+		orc_files_path += std::to_string(ralId);
 	}
 
 	auto & communicationData = ral::communication::CommunicationData::getInstance();
 	communicationData.initialize(worker_id, orc_files_path);
 
-	auto output_input_caches = std::make_pair(std::make_shared<CacheMachine>(nullptr, false),std::make_shared<CacheMachine>(nullptr, false));
+	auto output_input_caches = std::make_pair(std::make_shared<CacheMachine>(nullptr, "messages_out", false),std::make_shared<CacheMachine>(nullptr, "messages_in", false));
 
 	// start ucp servers
 	if(!singleNode){
@@ -863,7 +870,12 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 		output_input_caches.second = comm::message_sender::get_instance()->get_input_cache();
 	}
 
-	ral::execution::executor::init_executor(executor_threads);
+	double processing_memory_limit_threshold = 0.9;
+	config_it = config_options.find("BLAZING_PROCESSING_DEVICE_MEM_CONSUMPTION_THRESHOLD");
+	if (config_it != config_options.end()){
+		processing_memory_limit_threshold = std::stod(config_options["BLAZING_PROCESSING_DEVICE_MEM_CONSUMPTION_THRESHOLD"]);
+	}
+	ral::execution::executor::init_executor(executor_threads, processing_memory_limit_threshold);
 	return std::make_pair(output_input_caches, ralCommunicationPort);	
 }
 

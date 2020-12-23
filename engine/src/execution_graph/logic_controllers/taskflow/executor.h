@@ -68,9 +68,9 @@ public:
 		return _instance;
 	}
 
-	static void init_executor(int num_threads){
+	static void init_executor(int num_threads, double processing_memory_limit_threshold){
 		if(!_instance){
-			_instance = new executor(num_threads);
+			_instance = new executor(num_threads, processing_memory_limit_threshold);
 			_instance->task_id_counter = 0;
 			_instance->active_tasks_counter = 0;
 			auto thread = std::thread([/*_instance*/]{
@@ -100,7 +100,7 @@ public:
 	}
 
 private:
-	executor(int num_threads);
+	executor(int num_threads, double processing_memory_limit_threshold);
 	ctpl::thread_pool<BlazingThread> pool;
 	std::vector<cudaStream_t> streams; //one stream per thread
 	ral::cache::WaitingQueue< std::unique_ptr<task> > task_queue;
@@ -110,6 +110,7 @@ private:
 	size_t attempts_limit = 10;
 
 	BlazingMemoryResource* resource;
+	std::size_t processing_memory_limit;
 	std::atomic<int> active_tasks_counter;
 	std::mutex memory_safety_mutex;
 	std::condition_variable memory_safety_cv;

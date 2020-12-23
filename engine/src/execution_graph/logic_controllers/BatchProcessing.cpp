@@ -23,7 +23,7 @@ void BatchSequence::set_source(std::shared_ptr<ral::cache::CacheMachine> cache) 
     this->cache = cache;
 }
 
-RecordBatch BatchSequence::next() {
+std::unique_ptr<ral::frame::BlazingTable> BatchSequence::next() {
     std::shared_ptr<spdlog::logger> cache_events_logger;
     cache_events_logger = spdlog::get("cache_events_logger");
 
@@ -305,47 +305,48 @@ kstatus BindableTableScan::run() {
         auto empty = schema.makeEmptyBlazingTable(projections);
         empty->setNames(fix_column_aliases(empty->names(), expression));
         this->add_to_output_cache(std::move(empty));
-        return kstatus::proceed;
+    
+    } else {    
+
+        while(provider->has_next()) {
+            //retrieve the file handle but do not open the file
+            //this will allow us to prevent from having too many open file handles by being
+            //able to limit the number of file tasks
+            auto handle = provider->get_next(true);
+            auto file_schema = schema.fileSchema(file_index);
+            auto row_group_ids = schema.get_rowgroup_ids(file_index);
+            //this is the part where we make the task now
+            std::unique_ptr<ral::cache::CacheData> input =
+                std::make_unique<ral::cache::CacheDataIO>(handle,parser,schema,file_schema,row_group_ids,projections);
+            std::vector<std::unique_ptr<ral::cache::CacheData> > inputs;
+            inputs.push_back(std::move(input));
+
+            auto output_cache = this->output_cache();
+
+            ral::execution::executor::get_instance()->add_task(
+                    std::move(inputs),
+                    output_cache,
+                    this);
+
+            file_index++;
+            /*if (this->has_limit_ && output_cache->get_num_rows_added() >= this->limit_rows_) {
+            //	break;
+            }*/
+        }
+
+        logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+                                    "query_id"_a=context->getContextToken(),
+                                    "step"_a=context->getQueryStep(),
+                                    "substep"_a=context->getQuerySubstep(),
+                                    "info"_a="BindableTableScan Kernel tasks created",
+                                    "duration"_a=timer.elapsed_time(),
+                                    "kernel_id"_a=this->get_id());
+
+        std::unique_lock<std::mutex> lock(kernel_mutex);
+        kernel_cv.wait(lock,[this]{
+            return this->tasks.empty();
+        });
     }
-
-    while(provider->has_next()) {
-        //retrieve the file handle but do not open the file
-        //this will allow us to prevent from having too many open file handles by being
-        //able to limit the number of file tasks
-        auto handle = provider->get_next(true);
-        auto file_schema = schema.fileSchema(file_index);
-        auto row_group_ids = schema.get_rowgroup_ids(file_index);
-        //this is the part where we make the task now
-        std::unique_ptr<ral::cache::CacheData> input =
-            std::make_unique<ral::cache::CacheDataIO>(handle,parser,schema,file_schema,row_group_ids,projections);
-        std::vector<std::unique_ptr<ral::cache::CacheData> > inputs;
-        inputs.push_back(std::move(input));
-
-        auto output_cache = this->output_cache();
-
-        ral::execution::executor::get_instance()->add_task(
-                std::move(inputs),
-                output_cache,
-                this);
-
-        file_index++;
-        /*if (this->has_limit_ && output_cache->get_num_rows_added() >= this->limit_rows_) {
-        //	break;
-        }*/
-    }
-
-    logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
-                                "query_id"_a=context->getContextToken(),
-                                "step"_a=context->getQueryStep(),
-                                "substep"_a=context->getQuerySubstep(),
-                                "info"_a="BindableTableScan Kernel tasks created",
-                                "duration"_a=timer.elapsed_time(),
-                                "kernel_id"_a=this->get_id());
-
-    std::unique_lock<std::mutex> lock(kernel_mutex);
-    kernel_cv.wait(lock,[this]{
-        return this->tasks.empty();
-    });
 
     logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
                                 "query_id"_a=context->getContextToken(),
@@ -509,8 +510,8 @@ kstatus Filter::run() {
 std::pair<bool, uint64_t> Filter::get_estimated_output_num_rows(){
     std::pair<bool, uint64_t> total_in = this->query_graph->get_estimated_input_rows_to_kernel(this->kernel_id);
     if (total_in.first){
-        double out_so_far = (double)this->output_.total_rows_added();
-        double in_so_far = (double)this->input_.total_rows_added();
+        double out_so_far = (double)this->output_.total_bytes_added();
+        double in_so_far = (double)this->total_input_bytes_processed;
         if (in_so_far == 0){
             return std::make_pair(false, 0);
         } else {

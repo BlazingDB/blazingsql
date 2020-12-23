@@ -206,7 +206,7 @@ protected:
 	std::set<size_t> tasks;
 	std::mutex kernel_mutex;
 	std::condition_variable kernel_cv;
-	std::atomic<std::size_t> total_input_bytes;
+	std::atomic<std::size_t> total_input_bytes_processed;
 	
 public:
 	std::string expression; /**< Stores the logical expression being processed. */

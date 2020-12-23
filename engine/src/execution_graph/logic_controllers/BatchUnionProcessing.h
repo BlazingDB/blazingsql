@@ -10,7 +10,6 @@ namespace batch {
 using ral::cache::kstatus;
 using ral::cache::kernel;
 using ral::cache::kernel_type;
-using RecordBatch = std::unique_ptr<ral::frame::BlazingTable>;
 using namespace fmt::literals;
 
 class UnionKernel : public kernel {
