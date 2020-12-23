@@ -543,7 +543,7 @@ public:
     set_msg_data_len(message, length - sizeof(*message));
     try {
       generate_test_string(reinterpret_cast<char *>(message + 1), stringLength);
-    } catch (std::exception) {
+    } catch (std::exception & e) {
       std::cerr << "generate test string" << std::endl;
       mem_type_free(message);
       throw std::runtime_error("generate test string");

@@ -90,14 +90,49 @@ SortAndSampleKernel::SortAndSampleKernel(std::size_t kernel_id, const std::strin
     already_computed_partition_plan = false;
 }
 
+void SortAndSampleKernel::make_partition_plan_task(){
+    
+    already_computed_partition_plan = true;
+
+    std::vector<std::unique_ptr <ral::cache::CacheData> > sampleCacheDatas;
+    // first lets take the local samples and convert them to CacheData to make a task
+    for (std::size_t i = 0; i < samplesTables.size(); ++i) {
+        std::unique_ptr <ral::cache::CacheData> cache_data = std::make_unique<ral::cache::GPUCacheData>(std::move(samplesTables[i]));
+        sampleCacheDatas.push_back(std::move(cache_data));
+    }
+
+    if (this->context->getAllNodes().size() > 1 && context->isMasterNode(ral::communication::CommunicationData::getInstance().getSelfNode())){
+        auto nodes = context->getAllNodes();
+        // next lets take the samples from other nodes and add them to the set of samples for the task
+        for(std::size_t i = 0; i < nodes.size(); ++i) {
+            if(!(nodes[i] == ral::communication::CommunicationData::getInstance().getSelfNode())) {
+                std::string message_id = std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + nodes[i].id();
+                auto samples_cache_data = this->query_graph->get_input_message_cache()->pullCacheData(message_id);
+                ral::cache::GPUCacheDataMetaData * cache_ptr = static_cast<ral::cache::GPUCacheDataMetaData *> (samples_cache_data.get());
+                total_num_rows_for_sampling += std::stoll(cache_ptr->getMetadata().get_values()[ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL]);
+                total_bytes_for_sampling += std::stoll(cache_ptr->getMetadata().get_values()[ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL]) * std::stoll(cache_ptr->getMetadata().get_values()[ral::cache::AVG_BYTES_PER_ROW_METADATA_LABEL]);
+                sampleCacheDatas.push_back(std::move(samples_cache_data));
+            }
+        }
+    }
+
+    ral::execution::executor::get_instance()->add_task(
+            std::move(sampleCacheDatas),
+            this->output_cache("output_b"),
+            this,
+            {{"operation_type", "compute_partition_plan"}});  
+
+}
+
 void SortAndSampleKernel::compute_partition_plan(
-    std::vector<std::unique_ptr<ral::frame::BlazingTable>> inputSamples,
-    std::size_t avg_bytes_per_row,
-    std::size_t local_total_num_rows) {
+    std::vector<std::unique_ptr<ral::frame::BlazingTable>> inputSamples) {
+
+    // just in case there is no data
+    size_t final_avg_bytes_per_row = total_num_rows_for_sampling <= 0 ? 1 : total_bytes_for_sampling / total_num_rows_for_sampling;
 
     if (this->context->getAllNodes().size() == 1){ // single node mode
         auto partitionPlan = ral::operators::generate_partition_plan(inputSamples,
-            local_total_num_rows, avg_bytes_per_row, this->expression, this->context.get());
+            total_num_rows_for_sampling, final_avg_bytes_per_row, this->expression, this->context.get());
         this->add_to_output_cache(std::move(partitionPlan), "output_b");
     } else { // distributed mode
         if( ral::utilities::checkIfConcatenatingStringsWillOverflow(inputSamples)) {
@@ -108,48 +143,10 @@ void SortAndSampleKernel::compute_partition_plan(
                             "info"_a="In SortAndSampleKernel::compute_partition_plan Concatenating Strings will overflow strings length");
         }
 
-        auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
-        if(context->isMasterNode(self_node)) {
+        if(context->isMasterNode(ral::communication::CommunicationData::getInstance().getSelfNode())) {
             context->incrementQuerySubstep();
-            auto nodes = context->getAllNodes();
-
-            std::vector<std::unique_ptr<ral::cache::CacheData> >table_scope_holder;
-            std::vector<size_t> total_table_rows;
-            std::vector<size_t> total_avg_bytes_per_row;
-            std::vector<std::unique_ptr<ral::frame::BlazingTable>> samples;
-
-            for(std::size_t i = 0; i < nodes.size(); ++i) {
-                if(!(nodes[i] == self_node)) {
-                    std::string message_id = std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + nodes[i].id();
-
-                    table_scope_holder.push_back(this->query_graph->get_input_message_cache()->pullCacheData(message_id));
-                    ral::cache::GPUCacheDataMetaData * cache_ptr = static_cast<ral::cache::GPUCacheDataMetaData *> (table_scope_holder[table_scope_holder.size() - 1].get());
-
-                    total_table_rows.push_back(std::stoll(cache_ptr->getMetadata().get_values()[ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL]));
-                    total_avg_bytes_per_row.push_back(std::stoll(cache_ptr->getMetadata().get_values()[ral::cache::AVG_BYTES_PER_ROW_METADATA_LABEL]));
-                    samples.push_back(cache_ptr->decache());
-                }
-            }
-
-            for (std::size_t i = 0; i < inputSamples.size(); i++){
-                samples.push_back(std::move(inputSamples[i]));
-            }
-
-            total_table_rows.push_back(local_total_num_rows);
-            total_avg_bytes_per_row.push_back(avg_bytes_per_row);
-
-            // let's recompute the `avg_bytes_per_row` using info from all the other nodes
-            size_t total_bytes = 0;
-            size_t total_rows = 0;
-            for(std::size_t i = 0; i < nodes.size(); ++i) {
-                total_bytes += total_avg_bytes_per_row[i] * total_table_rows[i];
-                total_rows += total_table_rows[i];
-            }
-            // just in case there is no data
-            size_t final_avg_bytes_per_row = total_rows <= 0 ? 1 : total_bytes / total_rows;
-
-            std::size_t totalNumRows = std::accumulate(total_table_rows.begin(), total_table_rows.end(), std::size_t(0));
-            std::unique_ptr<ral::frame::BlazingTable> partitionPlan = ral::operators::generate_partition_plan(samples, totalNumRows, final_avg_bytes_per_row, this->expression, this->context.get());
+            
+            std::unique_ptr<ral::frame::BlazingTable> partitionPlan = ral::operators::generate_partition_plan(inputSamples, total_num_rows_for_sampling, final_avg_bytes_per_row, this->expression, this->context.get());
 
             broadcast(std::move(partitionPlan),
                 this->output_.get_cache("output_b").get(),
@@ -170,8 +167,8 @@ void SortAndSampleKernel::compute_partition_plan(
             concatSamples->ensureOwnership();
 
             ral::cache::MetadataDictionary extra_metadata;
-            extra_metadata.add_value(ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL, local_total_num_rows);
-            extra_metadata.add_value(ral::cache::AVG_BYTES_PER_ROW_METADATA_LABEL, avg_bytes_per_row);
+            extra_metadata.add_value(ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL, total_num_rows_for_sampling);
+            extra_metadata.add_value(ral::cache::AVG_BYTES_PER_ROW_METADATA_LABEL, final_avg_bytes_per_row);
             send_message(std::move(concatSamples),
                 false, //specific_cache
                 "", //cache_id
@@ -183,10 +180,20 @@ void SortAndSampleKernel::compute_partition_plan(
                 extra_metadata);
 
             context->incrementQuerySubstep();
-        }
+        }        
+    }    
+}
 
-        this->output_cache("output_b")->wait_for_count(1); // waiting for the partition_plan to arrive before continuing
+bool SortAndSampleKernel::all_node_samples_are_available(){
+
+    std::vector<std::string> messged_ids_expected;
+    auto nodes = context->getAllNodes();
+    for(std::size_t i = 0; i < nodes.size(); ++i) {
+        if(!(nodes[i] == ral::communication::CommunicationData::getInstance().getSelfNode())) {
+            messged_ids_expected.push_back(std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + nodes[i].id());
+        }
     }
+    return this->query_graph->get_input_message_cache()->has_messages_now(messged_ids_expected);
 }
 
 void SortAndSampleKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
@@ -207,26 +214,21 @@ void SortAndSampleKernel::do_process(std::vector< std::unique_ptr<ral::frame::Bl
             std::lock_guard<std::mutex> samples_lock(samples_mutex);
             if (get_samples.load()) {
                 population_sampled += sampledTable->num_rows(); 
-                localTotalNumRows += input->view().num_rows();
-                localTotalBytes += input->sizeInBytes();
+                total_num_rows_for_sampling += input->view().num_rows();
+                total_bytes_for_sampling += input->sizeInBytes();
                 samplesTables.push_back(std::move(sampledTable));
                 if (population_sampled > max_order_by_samples) {
-
-                    std::vector<std::unique_ptr <ral::cache::CacheData> > sampleCacheDatas;
-                    for (std::size_t i = 0; i < samplesTables.size(); ++i) {
-                        std::unique_ptr <ral::cache::CacheData> cache_data = std::make_unique<ral::cache::GPUCacheData>(std::move(samplesTables[i]));
-                        sampleCacheDatas.push_back(std::move(cache_data));
-                    }
-
-                    ral::execution::executor::get_instance()->add_task(
-                            std::move(sampleCacheDatas),
-                            this->output_cache("output_b"),
-                            this,
-                            {{"operation_type", "compute_partition_plan"}});
-
-                    get_samples = false;  // we got enough samples, at least as max_order_by_samples
-                    already_computed_partition_plan = true;
+                    get_samples = false;  // we got enough samples, at least as max_order_by_samples                   
                 }
+            }
+        }
+        if (!get_samples.load() && !already_computed_partition_plan.load()){
+            if (context->getTotalNodes() > 1 && context->isMasterNode(ral::communication::CommunicationData::getInstance().getSelfNode())){
+                if (all_node_samples_are_available()){
+                    make_partition_plan_task();
+                }
+            } else {
+                make_partition_plan_task();
             }
         }
 
@@ -250,8 +252,7 @@ void SortAndSampleKernel::do_process(std::vector< std::unique_ptr<ral::frame::Bl
         output->addToCache(std::move(sortedTable), "output_a");
     }
     else if (operation_type == "compute_partition_plan") {
-        avg_bytes_per_row = localTotalNumRows == 0 ? 1 : localTotalBytes/localTotalNumRows;
-        compute_partition_plan(std::move(inputs), avg_bytes_per_row, localTotalNumRows);
+        compute_partition_plan(std::move(inputs));
     }
 }
 
@@ -282,11 +283,19 @@ kstatus SortAndSampleKernel::run() {
     kernel_cv.wait(lock,[this]{
         return this->tasks.empty();
     });
+    lock.unlock();
 
-    if (!already_computed_partition_plan) {
-        avg_bytes_per_row = localTotalNumRows == 0 ? 1 : localTotalBytes/localTotalNumRows;
-        compute_partition_plan(std::move(samplesTables), avg_bytes_per_row, localTotalNumRows);
+    // If during the other ordering_and_get_samples tasks the computing the partition plan was not made (max_order_by_samples was not reached), then lets do it here
+    if (!already_computed_partition_plan.load()) {
+        make_partition_plan_task();
+
+        std::unique_lock<std::mutex> lock(kernel_mutex);
+        kernel_cv.wait(lock,[this]{
+            return this->tasks.empty();
+        });
     }
+
+    this->output_cache("output_b")->wait_for_count(1); // waiting for the partition_plan to arrive before continuing
 
     logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
                                 "query_id"_a=context->getContextToken(),
@@ -571,8 +580,7 @@ kstatus LimitKernel::run() {
     if(this->context->getTotalNodes() > 1 && rows_limit >= 0) {
         this->context->incrementQuerySubstep();
 
-        auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
-        int self_node_idx = context->getNodeIndex(self_node);
+        int self_node_idx = context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode());
         auto nodes_to_send = context->getAllOtherNodes(self_node_idx);
 
         std::vector<std::string> limit_messages_to_wait_for;
