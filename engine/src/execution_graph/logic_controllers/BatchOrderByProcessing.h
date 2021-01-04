@@ -44,10 +44,12 @@ public:
 
 	std::string kernel_name() { return "SortAndSample";}
 
+	bool all_node_samples_are_available();
+
+	void make_partition_plan_task();
+
 	void compute_partition_plan(
-		std::vector<std::unique_ptr<ral::frame::BlazingTable>> inputSamples,
-		std::size_t avg_bytes_per_row,
-		std::size_t local_total_num_rows);
+		std::vector<std::unique_ptr<ral::frame::BlazingTable>> inputSamples);
 
 	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
@@ -57,14 +59,13 @@ public:
 
 private:
 	std::vector<std::unique_ptr<ral::frame::BlazingTable>> samplesTables;
-	std::size_t avg_bytes_per_row;
 	std::atomic<bool> get_samples;
 	std::atomic<bool> already_computed_partition_plan;
 	std::mutex samples_mutex;
     std::size_t population_sampled = 0;
 	std::size_t max_order_by_samples = 10000;
-	std::size_t localTotalNumRows = 0;
-    std::size_t localTotalBytes = 0;
+	std::size_t total_num_rows_for_sampling = 0;
+    std::size_t total_bytes_for_sampling = 0;	
 };
 
 class PartitionKernel : public distributing_kernel {
