@@ -42,7 +42,7 @@ void StringUtil::findAndReplaceAll(std::string & data, std::string toSearch, std
 		// Replace this occurrence of Sub String
 		data.replace(pos, toSearch.size(), replaceStr);
 		// Get the next occurrence from the current position
-		pos = data.find(toSearch, pos + toSearch.size());
+		pos = data.find(toSearch, pos);
 	}
 }
 
