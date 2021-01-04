@@ -142,7 +142,7 @@ std::vector<std::string> & StringUtil::split(std::string & s, char delim, std::v
 
 
 bool StringUtil::isPositiveInteger(const std::string & s) {
-	for(int i = 0; i < s.size(); i++) {
+	for(size_t i = 0; i < s.size(); i++) {
 		if(!std::isdigit(s[i])) {
 			return false;
 		}
@@ -156,14 +156,14 @@ std::string StringUtil::replaceNonQuotedChar(
 	std::string textToSearch, std::string quoteChar, std::string charBeingSought, std::string replacingChar) {
 	std::vector<std::string> splitString = StringUtil::split(textToSearch, quoteChar);
 
-	for(int i = 0; i < splitString.size(); i += 2) {
+	for(size_t i = 0; i < splitString.size(); i += 2) {
 		if(i < splitString.size()) {
 			splitString[i] = StringUtil::replace(splitString[i], charBeingSought, replacingChar);
 		}
 	}
 
 	std::string result = "";
-	for(int i = 0; i < splitString.size(); i++) {
+	for(size_t i = 0; i < splitString.size(); i++) {
 		if((i % 2) == 0) {
 			result += splitString[i];
 		} else {
@@ -179,16 +179,16 @@ std::string StringUtil::replaceNonQuotedChar(std::string textToSearch,
 	std::vector<std::string> & replacingChar) {
 	std::vector<std::string> splitString = StringUtil::split(textToSearch, quoteChar);
 
-	for(int i = 0; i < splitString.size(); i += 2) {
+	for(size_t i = 0; i < splitString.size(); i += 2) {
 		if(i < splitString.size()) {
-			for(int j = 0; j < charBeingSought.size(); j++) {
+			for(size_t j = 0; j < charBeingSought.size(); j++) {
 				splitString[i] = StringUtil::replace(splitString[i], charBeingSought[j], replacingChar[j]);
 			}
 		}
 	}
 
 	std::string result = "";
-	for(int i = 0; i < splitString.size(); i++) {
+	for(size_t i = 0; i < splitString.size(); i++) {
 		if((i % 2) == 0) {
 			result += splitString[i];
 		} else {
@@ -204,14 +204,14 @@ std::string StringUtil::replaceQuotedChar(
 	if(splitString.size() == 1) {
 		return textToSearch;
 	}
-	for(int i = 1; i < splitString.size(); i += 2) {
+	for(size_t i = 1; i < splitString.size(); i += 2) {
 		if(i < splitString.size()) {
 			splitString[i] = StringUtil::replace(splitString[i], charBeingSought, replacingChar);
 		}
 	}
 
-	std::string result = "";
-	for(int i = 0; i < splitString.size(); i++) {
+	std::string result;
+	for(size_t i = 0; i < splitString.size(); i++) {
 		if((i % 2) == 0) {
 			result += splitString[i];
 		} else {
@@ -234,7 +234,7 @@ std::vector<std::string> StringUtil::splitNonQuotedKeepDelimiterInVector(std::st
 	bool respectDelimiterWhitespace) {
 	std::vector<bool> quoted(input.size());
 	bool inQuote = false;
-	for(int i = 0; i < quoted.size(); i++) {
+	for(size_t i = 0; i < quoted.size(); i++) {
 		if(input[i] == quoteChar) {
 			inQuote = !inQuote;
 		}
@@ -248,18 +248,18 @@ std::vector<std::string> StringUtil::splitNonQuotedKeepDelimiterInVector(std::st
 	// std::cout<<currentPosition<<std::endl;
 	while(continueSplitting) {
 		int firstDelimiterPosition = 99999999;
-		for(int i = 0; i < delimiters.size(); i++) {
-			int currentDelimiterPosition = input.find(delimiters[i], currentPosition);
+		for(auto & delimiter : delimiters) {
+            size_t currentDelimiterPosition = input.find(delimiter, currentPosition);
 
-			while(currentDelimiterPosition != input.npos) {
+			while(currentDelimiterPosition != std::string::npos) {
 				if(!quoted[currentDelimiterPosition]) {
-					if(currentDelimiterPosition < firstDelimiterPosition) {
+					if(currentDelimiterPosition < static_cast<size_t>(firstDelimiterPosition)) {
 						firstDelimiterPosition = currentDelimiterPosition;
-						delimFound = delimiters[i];
+						delimFound = delimiter;
 					}
 					break;
 				}
-				currentDelimiterPosition = input.find(delimiters[i], currentDelimiterPosition + delimiters[i].size());
+				currentDelimiterPosition = input.find(delimiter, currentDelimiterPosition + delimiter.size());
 			}
 		}
 
@@ -301,19 +301,19 @@ std::vector<std::string> StringUtil::splitNonQuotedKeepDelimiterInVector(std::st
 
 std::string StringUtil::join(std::vector<std::string> splitString, std::string connector) {
 	int stringSize = 0;
-	for(int i = 0; i < splitString.size(); i++) {
-		stringSize += splitString[i].size() + 1;
+	for(auto & splittedString : splitString) {
+		stringSize += splittedString.size() + 1;
 	}
 	stringSize--;
 	return StringUtil::join(splitString, connector, stringSize);
 }
 
-std::string StringUtil::join(std::vector<std::string> splitString, std::string connector, int stringSize) {
+std::string StringUtil::join(std::vector<std::string> splitString, std::string connector, int /*stringSize*/) {
 	// std::string joined(stringSize);
 	std::stringstream joined;
 	if(splitString.size() > 0) {
 		joined << splitString[0];
-		for(int i = 1; i < splitString.size(); i++) {
+		for(size_t i = 1; i < splitString.size(); i++) {
 			joined << connector << splitString[i];
 		}
 		return joined.str();
@@ -356,7 +356,7 @@ std::string StringUtil::NumberToString(int Number) {
 
 std::string StringUtil::splice(std::vector<std::string> stringsToCombine, std::string combinationString) {
 	std::string combinedString = "";
-	for(int i = 0; i < stringsToCombine.size(); i++) {
+	for(size_t i = 0; i < stringsToCombine.size(); i++) {
 		if(i > 0) {
 			combinedString += combinationString;
 		}
@@ -399,7 +399,7 @@ bool StringUtil::contains(std::string & haystack, std::string needle) {
 
 std::string StringUtil::combine(std::vector<std::string> arr, std::string delim) {
 	std::string retString = "";
-	for(int i = 0; i < arr.size(); i++) {
+	for(size_t i = 0; i < arr.size(); i++) {
 		if(i > 0) {
 			retString += delim;
 		}
@@ -481,14 +481,14 @@ std::vector<bool> StringUtil::generateQuotedVector(std::string input) {
 			inDoubleQuote = !inDoubleQuote;
 		}
 		quoted[i] = inQuote | inDoubleQuote;
-		for(int i = 1; i < quoted.size() - 1; i++) {
-			if(input[i] == '\'' && !(input[i + 1] == '\'' || input[i - 1] == '\'')) {
+		for(size_t j = 1; j < quoted.size() - 1; j++) {
+			if(input[j] == '\'' && !(input[j + 1] == '\'' || input[j - 1] == '\'')) {
 				inQuote = !inQuote;
 			}
-			if(input[i] == '"') {
+			if(input[j] == '"') {
 				inDoubleQuote = !inDoubleQuote;
 			}
-			quoted[i] = inQuote | inDoubleQuote;
+			quoted[j] = inQuote | inDoubleQuote;
 		}
 		i = quoted.size() - 1;
 		if(input[i] == '\'' && !(input[i - 1] == '\'')) {
@@ -513,14 +513,14 @@ int StringUtil::findFirstNotInQuotes(
 	return findFirstNotInQuotes(haystack, needles, needleFound, 0, quoted);
 }
 
-int StringUtil::findFirstNotInQuotes(std::string haystack, std::string needle, int pos, std::vector<bool> & quoted) {
+int StringUtil::findFirstNotInQuotes(std::string haystack, std::string needle, size_t pos, std::vector<bool> & quoted) {
 	if(quoted.size() != haystack.size()) {
 		quoted = generateQuotedVector(haystack);
 	}
 
 	while(pos < haystack.size()) {
 		pos = haystack.find(needle, pos);
-		if(pos == -1 || !quoted[pos]) {
+		if(pos == -1ULL || !quoted[pos]) {
 			return pos;
 		}
 		pos += needle.size();
@@ -539,7 +539,7 @@ int StringUtil::findFirstNotInQuotes(std::string haystack,
 
 	int minPos = INT_MAX;
 	needleFound = "";
-	for(int i = 0; i < needles.size(); i++) {
+	for(size_t i = 0; i < needles.size(); i++) {
 		int pos = startPos;
 		while(pos != -1) {
 			pos = haystack.find(needles[i], pos);
@@ -586,7 +586,7 @@ std::vector<std::string> StringUtil::splitNotInQuotes(
 			delimPos = newDelimPos;
 		}
 	}
-	if(delimPos + delimSize < input.size()) {
+	if(static_cast<size_t>(delimPos + delimSize) < input.size()) {
 		elements.push_back(input.substr(delimPos + delimSize));
 	}
 	return elements;
@@ -631,4 +631,25 @@ bool StringUtil::match(char const * needle, char const * haystack) {
 		}
 	}
 	return *haystack == '\0';
+}
+
+// if n_cols = 4: then result: 0,1,2,3
+std::string StringUtil::makeCommaDelimitedSequence(std::size_t n_cols) {
+
+	std::string result;
+
+        if (n_cols == 0) {
+            result = "";
+        }
+        else if (n_cols == 1) {
+            result = "0";
+        }
+        else {
+            for (std::size_t i = 0; i < n_cols - 1; ++i) {
+                result += std::to_string(i) + ",";
+            }
+            result += std::to_string(n_cols - 1);
+        }
+
+        return result;
 }

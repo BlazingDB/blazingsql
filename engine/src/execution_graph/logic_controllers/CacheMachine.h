@@ -17,6 +17,10 @@
 #include <execution_graph/Context.h>
 #include <bmr/BlazingMemoryResource.h>
 #include "communication/CommunicationData.h"
+#include <exception>
+#include "io/data_provider/DataProvider.h"
+#include "io/data_parser/DataParser.h"
+
 #include "communication/messages/GPUComponentMessage.h"
 
 using namespace std::chrono_literals;
@@ -34,9 +38,10 @@ using namespace fmt::literals;
 * CPU, or a file. We can also have GPU messages that contain metadata
 * which are used for sending CacheData from node to node
 */
-enum class CacheDataType { GPU, CPU, LOCAL_FILE, GPU_METADATA };
+enum class CacheDataType { GPU, CPU, LOCAL_FILE, GPU_METADATA, IO_FILE, CONCATENATING };
 
 const std::string KERNEL_ID_METADATA_LABEL = "kernel_id"; /**< A message metadata field that indicates which kernel owns this message. */
+const std::string RAL_ID_METADATA_LABEL = "kernel_id"; /**< A message metadata field that indicates RAL ran this. */
 const std::string QUERY_ID_METADATA_LABEL = "query_id"; /**< A message metadata field that indicates which query owns this message. */
 const std::string CACHE_ID_METADATA_LABEL = "cache_id";  /**< A message metadata field that indicates what cache a message should be routed to. Can be empty string if
  																															and only if add_to_specific_cache == false. */
@@ -120,6 +125,13 @@ public:
 	}
 
 	/**
+	* Get the number of columns this CacheData will generate with decache.
+	*/
+	size_t num_columns() const {
+		return col_names.size();
+	}
+
+	/**
 	* Get the number of rows this CacheData will generate with decache.
 	*/
 	size_t num_rows() const {
@@ -133,6 +145,12 @@ public:
 	CacheDataType get_type() const {
 		return cache_type;
 	}
+
+	/**
+	 * Utility function which can take a CacheData and if its a standard GPU cache data, it will downgrade it to CPU or Disk
+	 * @return If the input CacheData is not of a type that can be downgraded, it will just return the original input, otherwise it will return the downgraded CacheData.
+	 */
+	static std::unique_ptr<CacheData> downgradeCacheData(std::unique_ptr<CacheData> cacheData, std::string id, std::shared_ptr<Context> ctx);
 
 protected:
 	CacheDataType cache_type; /**< The CacheDataType that is used to store the dataframe representation. */
@@ -271,6 +289,9 @@ public:
 		return this->data->toBlazingTableView();
 	}
 
+	void set_data(std::unique_ptr<ral::frame::BlazingTable> table ){
+		this->data = std::move(table);
+	}
 protected:
 	std::unique_ptr<ral::frame::BlazingTable> data; /**< Stores the data to be returned in decache */
 };
@@ -495,7 +516,91 @@ private:
 	size_t size_in_bytes; /**< The size of the file being stored. */
 };
 
-using frame_type = std::unique_ptr<ral::frame::BlazingTable>;
+
+/**
+* A CacheData that stores is data in an ORC file.
+* This allows us to cache onto filesystems to allow larger queries to run on
+* limited resources. This is the least performant cache in most instances.
+*/
+class CacheDataIO : public CacheData {
+public:
+
+	/**
+	* Constructor
+	* @param table The BlazingTable that is converted into an ORC file and stored
+	* on disk.
+	* @ param orc_files_path The path where the file should be stored.
+	*/
+	 CacheDataIO(ral::io::data_handle handle,
+	 	std::shared_ptr<ral::io::data_parser> parser,
+	 	ral::io::Schema schema,
+		ral::io::Schema file_schema,
+		std::vector<int> row_group_ids,
+		std::vector<int> projections
+		 );
+
+	/**
+	* Constructor
+	* @param table The BlazingTable that is converted into an ORC file and stored
+	* on disk.
+	* @ param orc_files_path The path where the file should be stored.
+	*/
+	std::unique_ptr<ral::frame::BlazingTable> decache() override;
+
+	/**
+ 	* Get the amount of GPU memory that the decached BlazingTable WOULD consume.
+ 	* Having this function allows us to have one api for seeing how much GPU
+	* memory is necessary to decache the file from disk.
+ 	* @return The number of bytes needed for the BlazingTable decache would
+	* generate.
+ 	*/
+	size_t sizeInBytes() const override;
+
+
+	/**
+	* Destructor
+	*/
+	virtual ~CacheDataIO() {}
+
+
+private:
+	ral::io::data_handle handle;
+	std::shared_ptr<ral::io::data_parser> parser;
+	ral::io::Schema schema;
+	ral::io::Schema file_schema;
+	std::vector<int> row_group_ids;
+	std::vector<int> projections;
+};
+
+class ConcatCacheData : public CacheData {
+public:
+	/**
+	* Constructor
+	* @param table The cache_datas that will be concatenated when decached.
+	* @param col_names The names of the columns in the dataframe.
+	* @param schema The types of the columns in the dataframe.
+	*/
+	ConcatCacheData(std::vector<std::unique_ptr<CacheData>> cache_datas, const std::vector<std::string>& col_names, const std::vector<cudf::data_type>& schema);
+
+	/**
+	* Decaches all caches datas and concatenates them into one BlazingTable
+	* @return The BlazingTable that results from concatenating all cache datas.
+	*/
+	std::unique_ptr<ral::frame::BlazingTable> decache() override;
+
+	/**
+	* Get the amount of GPU memory consumed by this CacheData
+	* Having this function allows us to have one api for seeing the consumption
+	* of all the CacheData objects that are currently in Caches.
+	* @return The number of bytes the BlazingTable consumes.
+	*/
+	size_t sizeInBytes() const override;
+
+	virtual ~ConcatCacheData() {}
+
+protected:
+	std::vector<std::unique_ptr<CacheData>> _cache_datas;
+};
 
 
 /**
@@ -520,8 +625,8 @@ public:
 	std::unique_ptr<CacheData> release_data() { return std::move(data); }
 
 protected:
-	const std::string message_id;
 	std::unique_ptr<CacheData> data;
+	const std::string message_id;
 };
 
 /**
@@ -531,14 +636,15 @@ protected:
 * many compute resources.This is accomplished through the use of a
 * condition_variable and mutex locks.
 */
+template <typename message_ptr>
 class WaitingQueue {
 public:
-	using message_ptr = std::unique_ptr<message>;
 
 	/**
 	* Constructor
 	*/
-	WaitingQueue(int timeout = 60000, bool log_timeout = true) : finished{false}, timeout(timeout), log_timeout(log_timeout) {}
+	WaitingQueue(std::string queue_name, int timeout = 60000, bool log_timeout = true) : 
+		queue_name(queue_name), finished{false}, timeout(timeout), log_timeout(log_timeout) {}
 
 	/**
 	* Destructor
@@ -569,6 +675,7 @@ public:
 	* @return number of partitions that have been inserted into this WaitingQueue.
 	*/
 	int processed_parts(){
+		std::unique_lock<std::mutex> lock(mutex_);
 		return processed;
 	}
 
@@ -602,13 +709,31 @@ public:
 
 	void wait_for_count(int count){
 
+		CodeTimer blazing_timer;
 		std::unique_lock<std::mutex> lock(mutex_);
-		condition_variable_.wait(lock, [&, this] () {
-			if (count < this->processed){
-				throw std::runtime_error("WaitingQueue::wait_for_count encountered " + std::to_string(this->processed) + " when expecting " + std::to_string(count));
-			}
-			return count == this->processed;
-		});
+		while(!condition_variable_.wait_for(lock, timeout*1ms, [&, this] {
+				bool done_waiting = count == this->processed;
+				if (!done_waiting && blazing_timer.elapsed_time() > 59000 && this->log_timeout){
+					auto logger = spdlog::get("batch_logger");
+					if(logger != nullptr) {
+						logger->warn("|||{info}|{duration}||||",
+											"info"_a="WaitingQueue " + this->queue_name + " wait_for_count timed out. count = " + std::to_string(count) + " processed = " + std::to_string(this->processed),
+											"duration"_a=blazing_timer.elapsed_time());
+					}
+				}
+				if (count < this->processed){
+					throw std::runtime_error("WaitingQueue::wait_for_count " + this->queue_name + " encountered " + std::to_string(this->processed) + " when expecting " + std::to_string(count));
+				}
+				return done_waiting;
+			})){}
+
+
+		// condition_variable_.wait(lock, [&, this] () {
+		// 	if (count < this->processed){
+		// 		throw std::runtime_error("WaitingQueue::wait_for_count " + this->queue_name + " encountered " + std::to_string(this->processed) + " when expecting " + std::to_string(count));
+		// 	}
+		// 	return count == this->processed;
+		// });
 	}
 
 	/**
@@ -623,22 +748,22 @@ public:
 
 		CodeTimer blazing_timer;
 		std::unique_lock<std::mutex> lock(mutex_);
-		/*while(!condition_variable_.wait_for(lock, timeout*1ms, [&, this] {
+		while(!condition_variable_.wait_for(lock, timeout*1ms, [&, this] {
 				bool done_waiting = this->finished.load(std::memory_order_seq_cst) or !this->empty();
-				if (!done_waiting && blazing_timer.elapsed_time() > 59000){
+				if (!done_waiting && blazing_timer.elapsed_time() > 59000 && this->log_timeout){
 					auto logger = spdlog::get("batch_logger");
 					if(logger != nullptr) {
 						logger->warn("|||{info}|{duration}||||",
-											"info"_a="WaitingQueue pop_or_wait timed out",
+											"info"_a="WaitingQueue " + this->queue_name + " pop_or_wait timed out",
 											"duration"_a=blazing_timer.elapsed_time());
 					}
 				}
 				return done_waiting;
-			})){}*/
+			})){}
 
-		condition_variable_.wait(lock,[&, this] {
-				return this->finished.load(std::memory_order_seq_cst) or !this->empty();
-		});
+		// condition_variable_.wait(lock,[&, this] {
+		// 		return this->finished.load(std::memory_order_seq_cst) or !this->empty();
+		// });
 		if(this->message_queue_.size() == 0) {
 			return nullptr;
 		}
@@ -646,6 +771,22 @@ public:
 		this->message_queue_.pop_front();
 		return std::move(data);
 	}
+
+	/**
+	* Get a message_ptr from the back of the queue if it exists in the WaitingQueue else return nullptr.
+	* @return message_ptr from the back of the queue if it exists in the WaitingQueue else return nullptr.
+	*/
+	message_ptr pop_back() {
+
+		std::lock_guard<std::mutex> lock(mutex_);
+		if(this->message_queue_.size() == 0) {
+			return nullptr;
+		}
+		auto data = std::move(this->message_queue_.back());
+		this->message_queue_.pop_back();
+		return std::move(data);
+	}
+
 	/**
 	* Wait for the next message to be ready.
 	* @return Waits for the next CacheData to be available. Returns true when this
@@ -660,7 +801,7 @@ public:
 					auto logger = spdlog::get("batch_logger");
 					if(logger != nullptr) {
 						logger->warn("|||{info}|{duration}||||",
-											"info"_a="WaitingQueue wait_for_next timed out",
+											"info"_a="WaitingQueue " + this->queue_name + " wait_for_next timed out",
 											"duration"_a=blazing_timer.elapsed_time());
 					}
 				}
@@ -696,7 +837,7 @@ public:
 					auto logger = spdlog::get("batch_logger");
 					if(logger != nullptr) {
 					   logger->warn("|||{info}|{duration}||||",
-										   "info"_a="WaitingQueue wait_until_finished timed out",
+										   "info"_a="WaitingQueue " + this->queue_name + " wait_until_finished timed out",
  										   "duration"_a=blazing_timer.elapsed_time());
 					}
 				}
@@ -717,10 +858,10 @@ public:
 		std::unique_lock<std::mutex> lock(mutex_);
 		while(!condition_variable_.wait_for(lock, timeout*1ms, [&blazing_timer, num_bytes, this] {
 				bool done_waiting = this->finished.load(std::memory_order_seq_cst);
-				if (!done_waiting) {
-					size_t total_bytes = 0;
-					for (int i = 0; i < message_queue_.size(); i++){
-						total_bytes += message_queue_[i]->get_data().sizeInBytes();
+				size_t total_bytes = 0;
+				if (!done_waiting) {					
+					for (auto & message : message_queue_){
+						total_bytes += message->get_data().sizeInBytes();
 					}
 					done_waiting = total_bytes > num_bytes;
 				}
@@ -728,7 +869,7 @@ public:
 					auto logger = spdlog::get("batch_logger");
 					if(logger != nullptr) {
 						logger->warn("|||{info}|{duration}||||",
-											"info"_a="WaitingQueue wait_until_finished timed out",
+											"info"_a="WaitingQueue " + this->queue_name + " wait_until_num_bytes timed out num_bytes wanted: " + std::to_string(num_bytes) + " total_bytes: " + std::to_string(total_bytes),
 											"duration"_a=blazing_timer.elapsed_time());
 					}
 				}
@@ -776,7 +917,7 @@ public:
 					auto logger = spdlog::get("batch_logger");
 					if(logger != nullptr) {
 						logger->warn("|||{info}|{duration}|message_id|{message_id}||",
-											"info"_a="WaitingQueue get_or_wait timed out",
+											"info"_a="WaitingQueue " + this->queue_name + " get_or_wait timed out",
 											"duration"_a=blazing_timer.elapsed_time(),
 											"message_id"_a=message_id);
 					}
@@ -822,6 +963,19 @@ public:
 	}
 
 	/**
+	 * gets all the message ids
+	 */
+	std::vector<std::string> get_all_message_ids(){
+		std::unique_lock<std::mutex> lock(mutex_);
+		std::vector<std::string> message_ids;
+		message_ids.reserve(message_queue_.size());
+		for(message_ptr & it : message_queue_) {
+			message_ids.push_back(it->get_message_id());
+		}
+		return message_ids;
+	}
+
+	/**
 	* Waits until all messages are ready then returns all of them.
 	* You should never call this function more than once on a WaitingQueue else
 	* race conditions can occur.
@@ -837,7 +991,7 @@ public:
 					auto logger = spdlog::get("batch_logger");
 					if(logger != nullptr) {
 						logger->warn("|||{info}|{duration}||||",
-											"info"_a="WaitingQueue get_all_or_wait timed out",
+											"info"_a="WaitingQueue " + this->queue_name + " get_all_or_wait timed out",
 											"duration"_a=blazing_timer.elapsed_time());
 					}
 				}
@@ -882,6 +1036,7 @@ public:
 	void put_all(std::vector<message_ptr> messages){
 		std::unique_lock<std::mutex> lock(mutex_);
 		put_all_unsafe(std::move(messages));
+		processed += messages.size();
 		condition_variable_.notify_all();
 	}
 private:
@@ -909,6 +1064,7 @@ private:
 	int processed = 0; /**< Count of messages added to the WaitingQueue. */
 
 	int timeout; /**< timeout period in ms used by the wait_for to log that the condition_variable has been waiting for a long time. */
+	std::string queue_name;
 	bool log_timeout; /**< Whether or not to log when a timeout accurred. */
 };
 
@@ -925,21 +1081,23 @@ std::unique_ptr<GPUCacheDataMetaData> cast_cache_data_to_gpu_with_meta(std::uniq
 */
 class CacheMachine {
 public:
-	CacheMachine(std::shared_ptr<Context> context, bool log_timeout = true, int cache_level_override = -1);
+	CacheMachine(std::shared_ptr<Context> context, std::string cache_machine_name, bool log_timeout = true, int cache_level_override = -1);
 
 	~CacheMachine();
 
-	virtual void put(size_t message_id, std::unique_ptr<ral::frame::BlazingTable> table);
+	virtual void put(size_t index, std::unique_ptr<ral::frame::BlazingTable> table);
 
 	virtual std::unique_ptr<ral::frame::BlazingTable> get_or_wait(size_t index);
 
+	virtual std::unique_ptr<ral::cache::CacheData> get_or_wait_CacheData(size_t index);
+
 	virtual void clear();
 
-	virtual bool addToCache(std::unique_ptr<ral::frame::BlazingTable> table, const std::string & message_id = "", bool always_add = false, const MetadataDictionary & metadata = {}, bool include_meta = false );
+	virtual bool addToCache(std::unique_ptr<ral::frame::BlazingTable> table, std::string message_id = "", bool always_add = false, const MetadataDictionary & metadata = {}, bool include_meta = false );
 
-	virtual bool addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, const std::string & message_id = "", bool always_add = false);
+	virtual bool addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, std::string message_id = "", bool always_add = false);
 
-	virtual bool addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> table, const std::string & message_id = "");
+	virtual bool addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTable> table, std::string message_id = "");
 
 	virtual void finish();
 
@@ -948,6 +1106,8 @@ public:
 	uint64_t get_num_bytes_added();
 
 	uint64_t get_num_rows_added();
+
+	uint64_t get_num_batches_added();
 
 	void wait_until_finished();
 
@@ -962,20 +1122,23 @@ public:
 	bool has_next_now() {
 		return this->waitingCache->has_next_now();
 	}
+
+	bool has_messages_now(std::vector<std::string> messages);
+
+	std::size_t get_num_batches(){
+		return cache_count;
+	}
 	virtual std::unique_ptr<ral::frame::BlazingTable> pullFromCache();
-
-	std::vector<std::unique_ptr<ral::cache::CacheData> > pull_all_cache_data();
-
-	void put_all_cache_data( std::vector<std::unique_ptr<ral::cache::CacheData> > messages, std::vector<std::string> message_ids);
-
-
-
-	virtual std::unique_ptr<ral::cache::CacheData> pullCacheData(std::string message_id);
 
 	virtual std::unique_ptr<ral::frame::BlazingTable> pullUnorderedFromCache();
 
+	std::vector<std::unique_ptr<ral::cache::CacheData> > pull_all_cache_data();
+
+	virtual std::unique_ptr<ral::cache::CacheData> pullCacheData(std::string message_id);
 
 	virtual std::unique_ptr<ral::cache::CacheData> pullCacheData();
+
+	std::vector<size_t> get_all_indexes();
 
 	void wait_for_count(int count){
 		return this->waitingCache->wait_for_count(count);
@@ -989,7 +1152,7 @@ protected:
 	static std::size_t cache_count;
 
 	/// This property represents a waiting queue object which stores all CacheData Objects
-	std::unique_ptr<WaitingQueue> waitingCache;
+	std::unique_ptr<WaitingQueue< std::unique_ptr<message> > > waitingCache;
 
 	/// References to the properties of the multi-tier cache system
 	std::vector<BlazingMemoryResource*> memory_resources;
@@ -1002,6 +1165,7 @@ protected:
 	std::shared_ptr<spdlog::logger> cache_events_logger;
 	const std::size_t cache_id;
 	int cache_level_override;
+	std::string cache_machine_name;
 };
 
 /**
@@ -1012,7 +1176,7 @@ protected:
 class HostCacheMachine {
 public:
 	HostCacheMachine(std::shared_ptr<Context> context, const std::size_t id) : ctx(context), cache_id(id) {
-		waitingCache = std::make_unique<WaitingQueue>();
+		waitingCache = std::make_unique<WaitingQueue <std::unique_ptr< message> > >("");
 		logger = spdlog::get("batch_logger");
 		something_added = false;
 
@@ -1087,7 +1251,7 @@ public:
 	}
 
 protected:
-	std::unique_ptr<WaitingQueue> waitingCache;
+	std::unique_ptr<WaitingQueue <std::unique_ptr<message> > > waitingCache;
 	std::shared_ptr<Context> ctx;
 	std::shared_ptr<spdlog::logger> logger;
 	bool something_added;
@@ -1104,10 +1268,10 @@ protected:
 */
 class ConcatenatingCacheMachine : public CacheMachine {
 public:
-	ConcatenatingCacheMachine(std::shared_ptr<Context> context);
+	ConcatenatingCacheMachine(std::shared_ptr<Context> context, std::string cache_machine_name);
 
 	ConcatenatingCacheMachine(std::shared_ptr<Context> context,
-			std::size_t concat_cache_num_bytes, bool concat_all);
+			std::size_t concat_cache_num_bytes, bool concat_all, std::string cache_machine_name);
 
 	~ConcatenatingCacheMachine() = default;
 
@@ -1116,6 +1280,8 @@ public:
 	std::unique_ptr<ral::frame::BlazingTable> pullUnorderedFromCache() override {
 		return pullFromCache();
 	}
+
+	std::unique_ptr<ral::cache::CacheData> pullCacheData() override;
 
 	size_t downgradeCacheData() override { // dont want to be able to downgrage concatenating caches
 		return 0;
@@ -1131,4 +1297,6 @@ public:
 
 
 }  // namespace cache
+
+
 } // namespace ral

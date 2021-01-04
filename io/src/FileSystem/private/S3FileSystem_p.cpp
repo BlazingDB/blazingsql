@@ -152,14 +152,16 @@ RegionResult getRegion(std::string bucketName,std::shared_ptr< Aws::Auth::AWSCre
 }
 
 S3FileSystem::Private::Private(const FileSystemConnection & fileSystemConnection, const Path & root)
-	: s3Client(nullptr), root(root) {
+	: root(root), s3Client(nullptr) {
 	// TODO percy improve & error handling
-	const bool connected = this->connect(fileSystemConnection);
+//	const bool connected = this->connect(fileSystemConnection);
+	this->connect(fileSystemConnection);
 }
 
 S3FileSystem::Private::~Private() {
 	// TODO percy improve & error handling
-	const bool disconnected = this->disconnect();
+//	const bool disconnected = this->disconnect();
+	this->disconnect();
 }
 
 bool S3FileSystem::Private::connect(const FileSystemConnection & fileSystemConnection) {
@@ -173,8 +175,8 @@ bool S3FileSystem::Private::connect(const FileSystemConnection & fileSystemConne
 	const auto & connectionProperties = fileSystemConnection.getConnectionProperties();
 
 	const std::string bucketName = fileSystemConnection.getConnectionProperty(ConnectionProperty::BUCKET_NAME);
-	const EncryptionType encryptionType =
-		encryptionTypeFromName(fileSystemConnection.getConnectionProperty(ConnectionProperty::ENCRYPTION_TYPE));
+//	const EncryptionType encryptionType =
+//		encryptionTypeFromName(fileSystemConnection.getConnectionProperty(ConnectionProperty::ENCRYPTION_TYPE));
 	const std::string kmsKeyAmazonResourceName =
 		fileSystemConnection.getConnectionProperty(ConnectionProperty::KMS_KEY_AMAZON_RESOURCE_NAME);
 	const std::string accessKeyId = fileSystemConnection.getConnectionProperty(ConnectionProperty::ACCESS_KEY_ID);
@@ -1060,7 +1062,7 @@ bool S3FileSystem::Private::move(const Uri & src, const Uri & dst) const {
 
 // TODO: truncate file can't be rolled back easily as it stands
 // an easier way  might be to use move instead of remove
-bool S3FileSystem::Private::truncateFile(const Uri & uri, long long length) const {
+bool S3FileSystem::Private::truncateFile(const Uri & uri, unsigned long long length) const {
 	if(uri.isValid() == false) {
 		throw BlazingInvalidPathException(uri);
 	}
@@ -1188,7 +1190,7 @@ bool S3FileSystem::Private::checkBucket() const {
 	return result.IsSuccess();
 }
 
-const S3FileSystemConnection::EncryptionType S3FileSystem::Private::encryptionType() const {
+S3FileSystemConnection::EncryptionType S3FileSystem::Private::encryptionType() const {
 	using namespace S3FileSystemConnection;
 	const std::string encryptionTypeName =
 		this->fileSystemConnection.getConnectionProperty(ConnectionProperty::ENCRYPTION_TYPE);
@@ -1201,12 +1203,13 @@ bool S3FileSystem::Private::isEncrypted() const {
 	return (this->encryptionType() != EncryptionType::NONE) && (this->encryptionType() != EncryptionType::UNDEFINED);
 }
 
-const Aws::S3::Model::ServerSideEncryption S3FileSystem::Private::serverSideEncryption() const {
+Aws::S3::Model::ServerSideEncryption S3FileSystem::Private::serverSideEncryption() const {
 	using namespace S3FileSystemConnection;
 
 	switch(this->encryptionType()) {
 	case EncryptionType::AES_256: return Aws::S3::Model::ServerSideEncryption::AES256; break;
 	case EncryptionType::AWS_KMS: return Aws::S3::Model::ServerSideEncryption::aws_kms; break;
+	default: break;
 	}
 
 	return Aws::S3::Model::ServerSideEncryption::NOT_SET;

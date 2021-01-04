@@ -77,7 +77,7 @@ std::unique_ptr<cudf::table> logicalLimit(const cudf::table_view& table, cudf::s
  *
  * @returns The limit that would be applied to this partition
  *---------------------------------------------------------------------------**/
-int64_t determine_local_limit(Context * context, int64_t local_num_rows, cudf::size_type limit_rows){
+int64_t determine_local_limit(Context * /*context*/, int64_t /*local_num_rows*/, cudf::size_type /*limit_rows*/){
 	// context->incrementQuerySubstep();
 	// ral::distribution::distributeNumRows(context, local_num_rows);
 
@@ -146,7 +146,18 @@ std::unique_ptr<ral::frame::BlazingTable> sort(const ral::frame::BlazingTableVie
 	return logicalSort(table, sortColIndices, sortOrderTypes);
 }
 
-std::unique_ptr<ral::frame::BlazingTable> sample(const ral::frame::BlazingTableView & table, const std::string & query_part, float samples_ratio){
+std::size_t compute_total_samples(std::size_t num_rows) {
+	std::size_t num_samples = std::ceil(num_rows * 0.1);
+	std::size_t MAX_SAMPLES = 1000;
+	std::size_t MIN_SAMPLES = 100;
+	num_samples = std::min(num_samples, MAX_SAMPLES);  // max 1000 per batch
+	num_samples = std::max(num_samples, MIN_SAMPLES);  // min 100 per batch
+	num_samples = num_rows < num_samples ? num_rows : num_samples; // lets make sure that `num_samples` is not actually bigger than the batch
+
+	return num_samples;
+}
+
+std::unique_ptr<ral::frame::BlazingTable> sample(const ral::frame::BlazingTableView & table, const std::string & query_part){
 	std::vector<cudf::order> sortOrderTypes;
 	std::vector<int> sortColIndices;
 	cudf::size_type limitRows;
@@ -154,14 +165,14 @@ std::unique_ptr<ral::frame::BlazingTable> sample(const ral::frame::BlazingTableV
 
 	auto tableNames = table.names();
 	std::vector<std::string> sortColNames(sortColIndices.size());
-  std::transform(sortColIndices.begin(), sortColIndices.end(), sortColNames.begin(), [&](auto index) { return tableNames[index]; });
+	std::transform(sortColIndices.begin(), sortColIndices.end(), sortColNames.begin(), [&](auto index) { return tableNames[index]; });
 
+	std::size_t num_samples = compute_total_samples(table.num_rows());
 	std::random_device rd;
-	auto samples = cudf::sample(table.view().select(sortColIndices), std::ceil(table.num_rows() * samples_ratio), cudf::sample_with_replacement::FALSE, rd());
+	auto samples = cudf::sample(table.view().select(sortColIndices), num_samples, cudf::sample_with_replacement::FALSE, rd());
 
 	return std::make_unique<ral::frame::BlazingTable>(std::move(samples), sortColNames);
 }
-
 
 std::vector<cudf::table_view> partition_table(const ral::frame::BlazingTableView & partitionPlan, const ral::frame::BlazingTableView & sortedTable, const std::string & query_part) {
 	std::vector<cudf::order> sortOrderTypes;
@@ -184,7 +195,7 @@ std::vector<cudf::table_view> partition_table(const ral::frame::BlazingTableView
 	return cudf::split(sortedTable.view(), split_indexes);
 }
 
-std::unique_ptr<ral::frame::BlazingTable> generate_partition_plan(const std::vector<ral::frame::BlazingTableView> & samples,
+std::unique_ptr<ral::frame::BlazingTable> generate_partition_plan(const std::vector<std::unique_ptr<ral::frame::BlazingTable>> & samples,
 	std::size_t table_num_rows, std::size_t avg_bytes_per_row, const std::string & query_part, Context * context){
 
 	std::vector<cudf::order> sortOrderTypes;

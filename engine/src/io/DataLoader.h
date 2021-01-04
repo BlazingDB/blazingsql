@@ -38,17 +38,6 @@ public:
 
 	virtual ~data_loader();
 
-	/**
-	 * returns data into a std::unique_ptr<ral::frame::BlazingTable>
-	 */
-	std::unique_ptr<ral::frame::BlazingTable>  load_batch(
-		Context * context,
-		const std::vector<int> & column_indices_in,
-		const Schema & schema,
-		data_handle file_data_handle,
-		size_t file_index,
-		std::vector<cudf::size_type> row_group_ids);
-
 	void get_schema(Schema & schema, std::vector<std::pair<std::string, cudf::type_id>> non_file_columns);
 
 	std::unique_ptr<ral::frame::BlazingTable> get_metadata(int offset);

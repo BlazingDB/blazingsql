@@ -7,7 +7,7 @@
 
 namespace comm {
 
-
+using namespace fmt::literals;
 std::map<ucp_tag_t, std::pair<std::vector<char>, std::shared_ptr<ucp_tag_recv_info_t> > > tag_to_begin_buffer_and_info;
 std::mutex tag_to_begin_buffer_and_info_mutex;
 
@@ -30,7 +30,7 @@ void poll_for_frames(std::shared_ptr<message_receiver> receiver,
 		return;
 	}
 
-	for (int buffer_id = 0; buffer_id < receiver->num_buffers(); buffer_id++) {
+	for (size_t buffer_id = 0; buffer_id < receiver->num_buffers(); buffer_id++) {
     receiver->allocate_buffer(buffer_id);
 
 		message_tag.frame_id = buffer_id + 1;
@@ -64,7 +64,7 @@ void recv_begin_callback_c(std::shared_ptr<ucp_tag_recv_info_t> info, size_t req
 
 	auto message_listener = ucx_message_listener::get_instance();
 
-	auto fwd = message_listener->get_pool().push([&message_listener, info, request_size](int thread_id) {
+	auto fwd = message_listener->get_pool().push([&message_listener, info, request_size](int /*thread_id*/) {
 		
 		std::vector<char> data_buffer;
 		{
@@ -121,59 +121,76 @@ void tcp_message_listener::start_polling() {
 			throw std::runtime_error("Could not listen on socket.");
 		}
 		auto thread = std::thread([this, socket_fd] {
+			
 			struct sockaddr_in client_address;
 			socklen_t len;
 			int connection_fd;
 			// TODO: be able to stop this thread from running when the engine is killed
-			while((connection_fd = accept(socket_fd, (struct sockaddr *) &client_address, &len)) != -1) {
-				pool.push([this, connection_fd](int thread_num) {
-					CodeTimer timer;
-					cudaStream_t stream = 0;
-					//          cudaStreamCreate(&stream);
-					size_t message_size;
-					io::read_from_socket(connection_fd, &message_size, sizeof(message_size));
-
-					std::vector<char> data(message_size);
-					io::read_from_socket(connection_fd, data.data(), message_size);
-					auto meta_read_time = timer.elapsed_time();
-					// status_code success = status_code::OK;
-					// io::write_to_socket(connection_fd, &success, sizeof(success));
-					{
-						auto receiver = std::make_shared<message_receiver>(_nodes_info_map, data);
-
-						//   auto receiver_time = timer.elapsed_time() - meta_read_time;
-				
-						size_t buffer_position = 0;
-				
-						//   size_t total_allocate_time = 0 ;
-						//   size_t total_read_time = 0 ;
-						//   size_t total_sync_time = 0;
-						while(buffer_position < receiver->num_buffers()) {
-							receiver->allocate_buffer(buffer_position, stream);
-							void * buffer = receiver->get_buffer(buffer_position);
-							size_t buffer_size = receiver->buffer_size(buffer_position);
-							io::read_from_socket(connection_fd, buffer, buffer_size);
-
-
-							buffer_position++;
+			while(true) {
+				int accepted_conection = (connection_fd = accept(socket_fd, (struct sockaddr *) &client_address, &len));
+				if(accepted_conection == -1){
+											std::shared_ptr<spdlog::logger> logger;
+						logger = spdlog::get("batch_logger");
+						if (logger){
+							logger->error("|||{info}|||||",
+									"info"_a="ERROR in message_listener::run_polling() calling except. errno: {}"_format(errno));
 						}
+						std::this_thread::sleep_for(std::chrono::milliseconds(10));
+					continue;
+				}
+				pool.push([this, connection_fd](int /*thread_num*/) {
+					try{
+						CodeTimer timer;
+						cudaStream_t stream = 0;
+						//          cudaStreamCreate(&stream);
+						size_t message_size;
+						io::read_from_socket(connection_fd, &message_size, sizeof(message_size));
+
+						std::vector<char> data(message_size);
+						io::read_from_socket(connection_fd, data.data(), message_size);
+						auto meta_read_time = timer.elapsed_time();
+						// status_code success = status_code::OK;
+						// io::write_to_socket(connection_fd, &success, sizeof(success));
+						{
+							auto receiver = std::make_shared<message_receiver>(_nodes_info_map, data);
+
+							//   auto receiver_time = timer.elapsed_time() - meta_read_time;
+					
+							size_t buffer_position = 0;
+					
+							//   size_t total_allocate_time = 0 ;
+							//   size_t total_read_time = 0 ;
+							//   size_t total_sync_time = 0;
+							while(buffer_position < receiver->num_buffers()) {
+								receiver->allocate_buffer(buffer_position, stream);
+								void * buffer = receiver->get_buffer(buffer_position);
+								size_t buffer_size = receiver->buffer_size(buffer_position);
+								io::read_from_socket(connection_fd, buffer, buffer_size);
+
+
+								buffer_position++;
+							}
+							close(connection_fd);
+							//   auto duration = timer.elapsed_time();
+							//   std::cout<<"Transfer duration before finish "<<duration <<" Throughput was "<<
+							//   (( (float) total_size) / 1000000.0)/(((float) duration)/1000.0)<<" MB/s"<<std::endl;
+
+							receiver->finish(stream);
+						}
+						cudaStreamSynchronize(stream);
+						//	cudaStreamDestroy(stream);
+					}catch(std::exception & e){
 						close(connection_fd);
-						//   auto duration = timer.elapsed_time();
-						//   std::cout<<"Transfer duration before finish "<<duration <<" Throughput was "<<
-						//   (( (float) total_size) / 1000000.0)/(((float) duration)/1000.0)<<" MB/s"<<std::endl;
+						std::shared_ptr<spdlog::logger> logger;
+						logger = spdlog::get("batch_logger");
 
-						receiver->finish(stream);
-						// auto duration_2 = timer.elapsed_time();
-						// std::cout<<"Transfer duration with finish "<<duration <<" Throughput was "<<
-						// (( (float) total_size) / 1000000.0)/(((float) duration)/1000.0)<<" MB/s"<<std::endl;
-
-						// std::cout<<"META, Recevier, allocate, read, synchronize, total_before_finish,
-						// total_after_finish,bytes\n"<< meta_read_time<<", "<<receiver_time<<",
-						// "<<total_allocate_time<<", "<<total_read_time<<","<<total_sync_time<<",
-						// "<<duration<<","<<duration_2<<", "<<total_size<<std::endl;
+						if (logger){
+							logger->error("|||{info}|||||",
+									"info"_a="ERROR in message_listener::run_polling(). What: {}"_format(e.what()));
+						}
+						
 					}
-					cudaStreamSynchronize(stream);
-					//	cudaStreamDestroy(stream);
+
 				});
 			}
 		});
@@ -265,7 +282,7 @@ ucx_message_listener::ucx_message_listener(ucp_context_h context, ucp_worker_h w
 	ucp_progress_manager::get_instance(worker,_request_size);
 }
 
-tcp_message_listener::tcp_message_listener(const std::map<std::string, comm::node>& nodes,int port, int num_threads) : _port{port} , message_listener{nodes,num_threads}{
+tcp_message_listener::tcp_message_listener(const std::map<std::string, comm::node>& nodes,int port, int num_threads) : message_listener{nodes,num_threads}, _port{port} {
 
 }
 
@@ -289,14 +306,14 @@ void ucx_message_listener::start_polling(){
 
 ucx_message_listener * ucx_message_listener::get_instance() {
 	if(instance == NULL) {
-		throw::std::exception();
+		throw std::runtime_error("ERROR: ucx_message_listener::get_instance() had a NULL instance");
 	}
 	return instance;
 }
 
 tcp_message_listener * tcp_message_listener::get_instance() {
 	if(instance == NULL) {
-		throw::std::exception();
+		throw std::runtime_error("ERROR: tcp_message_listener::get_instance() had a NULL instance");
 	}
 	return instance;
 }

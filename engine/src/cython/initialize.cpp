@@ -32,8 +32,6 @@
 #include <blazingdb/io/Library/Logging/Logger.h>
 #include "blazingdb/io/Library/Logging/ServiceLogging.h"
 
-#include "config/GPUManager.cuh"
-
 #include "communication/CommunicationData.h"
 
 #include <bmr/initializer.h>
@@ -46,7 +44,8 @@
 #include "communication/CommunicationInterface/protocols.hpp"
 #include "communication/CommunicationInterface/messageSender.hpp"
 #include "communication/CommunicationInterface/messageListener.hpp"
-
+#include "execution_graph/logic_controllers/taskflow/kernel.h"
+#include "execution_graph/logic_controllers/taskflow/executor.h"
 
 #include "error.hpp"
 
@@ -126,7 +125,7 @@ auto log_level_str_to_enum(std::string level) {
 // simple_log: true (no timestamp or log level)
 void create_logger(std::string fileName,
 	std::string loggingName,
-	int ralId, std::string flush_level,
+	uint16_t ralId, std::string flush_level,
 	std::string logger_level_wanted,
 	std::size_t max_size_logging,
 	bool simple_log=true) {
@@ -326,7 +325,7 @@ public:
     CheckError(dsock_ < 0, "server_connect");
 
 		char str_buffer[INET6_ADDRSTRLEN];
-		char * ip_str = get_ip_str(&address, str_buffer, INET6_ADDRSTRLEN);
+		get_ip_str(&address, str_buffer, INET6_ADDRSTRLEN);
 
 		return true;
 	}
@@ -523,9 +522,8 @@ ucp_ep_h CreateUcpEp(ucp_worker_h ucp_worker,
 * and the cache we use for receiving messages
 *
 */
-std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> >, int> initialize(int ralId,
+std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> >, int> initialize(uint16_t ralId,
 	std::string worker_id,
-	int gpuId,
 	std::string network_iface_name,
 	int ralCommunicationPort,
 	std::vector<NodeMetaDataUCP> workers_ucp_info,
@@ -536,7 +534,7 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 	std::size_t maximum_pool_size,
 	bool enable_logging) {
 
-	float device_mem_resouce_consumption_thresh = 0.95;
+	float device_mem_resouce_consumption_thresh = 0.6;
 	auto config_it = config_options.find("BLAZING_DEVICE_MEM_CONSUMPTION_THRESHOLD");
 	if (config_it != config_options.end()){
 		device_mem_resouce_consumption_thresh = std::stof(config_options["BLAZING_DEVICE_MEM_CONSUMPTION_THRESHOLD"]);
@@ -613,7 +611,14 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 
 	spdlog::init_thread_pool(8192, 1);
 
+	int executor_threads = 10;
+	auto exec_it = config_options.find("EXECUTOR_THREADS");
+	if (exec_it != config_options.end()){
+		executor_threads = std::stoi(config_options["EXECUTOR_THREADS"]);
+	}
+	
 	std::string flush_level = "warn";
+	
 	auto log_it = config_options.find("LOGGING_FLUSH_LEVEL");
 	if (log_it != config_options.end()){
 		flush_level = config_options["LOGGING_FLUSH_LEVEL"];
@@ -633,6 +638,13 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 
 	std::string batchLoggerFileName = logging_dir + "/RAL." + std::to_string(ralId) + ".log";
 	create_logger(batchLoggerFileName, "batch_logger", ralId, flush_level, logger_level_wanted, max_size_logging, false);
+
+	std::string outputCommunicationLoggerFileName = logging_dir + "/output_comms." + std::to_string(ralId) + ".log";
+	create_logger(outputCommunicationLoggerFileName, "output_comms", ralId, flush_level, logger_level_wanted, max_size_logging);
+
+	std::string inputCommunicationLoggerFileName = logging_dir + "/input_comms." + std::to_string(ralId) + ".log";
+	create_logger(inputCommunicationLoggerFileName, "input_comms", ralId, flush_level, logger_level_wanted, max_size_logging);
+
 
 	std::string queriesFileName = logging_dir + "/bsql_queries." + std::to_string(ralId) + ".log";
 	bool existsQueriesFileName = std::ifstream(queriesFileName).good();
@@ -714,13 +726,13 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 		orc_files_path = config_options["BLAZING_CACHE_DIRECTORY"];
 	}
 	if (!singleNode) {
-		orc_files_path += "/" + ralId;
+		orc_files_path += std::to_string(ralId);
 	}
 
 	auto & communicationData = ral::communication::CommunicationData::getInstance();
 	communicationData.initialize(worker_id, orc_files_path);
 
-	auto output_input_caches = std::make_pair(std::make_shared<CacheMachine>(nullptr, false,CACHE_LEVEL_CPU ),std::make_shared<CacheMachine>(nullptr, false));
+	auto output_input_caches = std::make_pair(std::make_shared<CacheMachine>(nullptr, "messages_out", false,CACHE_LEVEL_CPU ),std::make_shared<CacheMachine>(nullptr, "messages_in", false));
 
 	// start ucp servers
 	if(!singleNode){
@@ -735,7 +747,6 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 		ucp_context_h ucp_context = nullptr;
 		ucp_worker_h self_worker = nullptr;
 		if(protocol == comm::blazing_protocol::ucx){
-
 			ucp_context = reinterpret_cast<ucp_context_h>(workers_ucp_info[0].context_handle);
 
 			self_worker = CreatetUcpWorker(ucp_context);
@@ -755,17 +766,17 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 						// Receive worker_id size
 						size_t worker_id_buff_size;
 						ret = recv(exchanger.fd(), &worker_id_buff_size, sizeof(size_t), MSG_WAITALL);
-						CheckError(ret != sizeof(size_t), "recv worker_id_buff_size");
+						CheckError(static_cast<size_t>(ret) != sizeof(size_t), "recv worker_id_buff_size");
 
 						// Receive worker_id
 						std::string worker_id(worker_id_buff_size, '\0');
 						ret = recv(exchanger.fd(), &worker_id[0], worker_id.size(), MSG_WAITALL);
-						CheckError(ret != worker_id.size(), "recv worker_id");
+						CheckError(static_cast<size_t>(ret) != worker_id.size(), "recv worker_id");
 
 						// Receive ucp_worker_address size
 						size_t ucp_worker_address_size;
 						ret = recv(exchanger.fd(), &ucp_worker_address_size, sizeof(size_t), MSG_WAITALL);
-						CheckError(ret != sizeof(size_t), "recv ucp_worker_address_size");
+						CheckError(static_cast<size_t>(ret) != sizeof(size_t), "recv ucp_worker_address_size");
 
 						// Receive ucp_worker_address
 						std::uint8_t *data = new std::uint8_t[ucp_worker_address_size];
@@ -774,7 +785,7 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 								ucp_worker_address_size};
 
 						ret = recv(exchanger.fd(), peerUcpWorkerAddress.address, ucp_worker_address_size, MSG_WAITALL);
-						CheckError(ret != ucp_worker_address_size, "recv ucp_worker_address");
+						CheckError(static_cast<size_t>(ret) != ucp_worker_address_size, "recv ucp_worker_address");
 
 						peer_addresses_map.emplace(worker_id, peerUcpWorkerAddress);
 
@@ -794,19 +805,19 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 				// Send worker_id size
 				size_t worker_id_buff_size = worker_id.size();
 				ret = send(exchanger.fd(), &worker_id_buff_size, sizeof(size_t), 0);
-				CheckError(ret != sizeof(size_t), "send worker_id_buff_size");
+				CheckError(static_cast<size_t>(ret) != sizeof(size_t), "send worker_id_buff_size");
 
 				// Send worker_id
 				ret = send(exchanger.fd(), worker_id.data(), worker_id.size(), 0);
-				CheckError(ret != worker_id.size(), "send worker_id");
+				CheckError(static_cast<size_t>(ret) != worker_id.size(), "send worker_id");
 
 				// Send ucp_worker_address size
 				ret = send(exchanger.fd(), &ucpWorkerAddress.length, sizeof(size_t), 0);
-				CheckError(ret != sizeof(size_t), "send ucp_worker_address_size");
+				CheckError(static_cast<size_t>(ret) != sizeof(size_t), "send ucp_worker_address_size");
 
 				// Send ucp_worker_address
 				ret = send(exchanger.fd(), ucpWorkerAddress.address, ucpWorkerAddress.length, 0);
-				CheckError(ret != ucpWorkerAddress.length, "send ucp_worker_address");
+				CheckError(static_cast<size_t>(ret) != ucpWorkerAddress.length, "send ucp_worker_address");
 			}
 
 			th.join();
@@ -859,7 +870,13 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 		output_input_caches.second = comm::message_sender::get_instance()->get_input_cache();
 	}
 
-	return std::make_pair(output_input_caches, ralCommunicationPort);
+	double processing_memory_limit_threshold = 0.9;
+	config_it = config_options.find("BLAZING_PROCESSING_DEVICE_MEM_CONSUMPTION_THRESHOLD");
+	if (config_it != config_options.end()){
+		processing_memory_limit_threshold = std::stod(config_options["BLAZING_PROCESSING_DEVICE_MEM_CONSUMPTION_THRESHOLD"]);
+	}
+	ral::execution::executor::init_executor(executor_threads, processing_memory_limit_threshold);
+	return std::make_pair(output_input_caches, ralCommunicationPort);	
 }
 
 void finalize() {
@@ -870,9 +887,8 @@ void finalize() {
 	exit(0);
 }
 
-error_code_t initialize_C(int ralId,
+error_code_t initialize_C(uint16_t ralId,
 	std::string worker_id,
-	int gpuId,
 	std::string network_iface_name,
 
 	int ralCommunicationPort,
@@ -887,7 +903,6 @@ error_code_t initialize_C(int ralId,
 	try {
 		initialize(ralId,
 			worker_id,
-			gpuId,
 			network_iface_name,
 			ralCommunicationPort,
 			workers_ucp_info,
@@ -916,4 +931,14 @@ size_t getFreeMemory() {
 	BlazingMemoryResource* resource = &blazing_device_memory_resource::getInstance();
 	size_t total_free_memory = resource->get_memory_limit() - resource->get_memory_used();
 	return total_free_memory;
+}
+
+void resetMaxMemoryUsed(int to) {
+	blazing_device_memory_resource* resource = &blazing_device_memory_resource::getInstance();
+	resource->reset_max_memory_used(to);
+}
+
+size_t getMaxMemoryUsed() {
+    blazing_device_memory_resource* resource = &blazing_device_memory_resource::getInstance();
+	return resource->get_max_memory_used();
 }

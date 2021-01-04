@@ -51,6 +51,8 @@ bool FileTypeWildcardFilter::operator()(const FileStatus & fileStatus) const {
 	case FileType::DIRECTORY: {
 		fileFilter = DirsFilter();
 	} break;
+
+	default: break;
 	}
 
 	WildcardFilter wildcardFilter(wildcard);

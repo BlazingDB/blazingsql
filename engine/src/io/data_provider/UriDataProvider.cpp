@@ -18,20 +18,24 @@ namespace ral {
 namespace io {
 
 uri_data_provider::uri_data_provider(std::vector<Uri> uris, bool ignore_missing_paths)
-	: data_provider(), file_uris(uris), uri_values({}), opened_files({}),
-	  current_file(0), errors({}), directory_uris({}), directory_current_file(0), ignore_missing_paths(ignore_missing_paths) {}
+	: data_provider(), file_uris(uris), current_file(0), opened_files({}), errors({}),
+	uri_values({}), directory_uris({}), directory_current_file(0), ignore_missing_paths(ignore_missing_paths) {}
 
 uri_data_provider::uri_data_provider(std::vector<Uri> uris,
 	std::vector<std::map<std::string, std::string>> uri_values,
 	bool ignore_missing_paths)
-	: data_provider(), file_uris(uris), uri_values(uri_values), 
-	opened_files({}), current_file(0), errors({}), directory_uris({}),
+	: data_provider(), file_uris(uris), current_file(0),
+	opened_files({}), errors({}), uri_values(uri_values), directory_uris({}),
 	  directory_current_file(0), ignore_missing_paths(ignore_missing_paths) {
 	// thanks to c++11 we no longer have anything interesting to do here :)
 }
 
 std::shared_ptr<data_provider> uri_data_provider::clone() {
 	return std::make_shared<uri_data_provider>(this->file_uris, this->uri_values);
+}
+
+size_t uri_data_provider::get_num_handles(){
+	return file_uris.size();
 }
 
 uri_data_provider::~uri_data_provider() {
@@ -95,7 +99,7 @@ data_handle uri_data_provider::get_next(bool open_file) {
 			this->current_file++;
 		}
 
-		handle.fileHandle = file;
+		handle.file_handle = file;
 		return handle;
 	} else if (this->current_file < this->file_uris.size()) {
 		FileStatus fileStatus;
@@ -168,7 +172,7 @@ data_handle uri_data_provider::get_next(bool open_file) {
 			};
 
 			std::vector<Uri> new_uris;
-			for(int i = 0; i < this->directory_uris.size(); i++) {
+			for(size_t i = 0; i < this->directory_uris.size(); i++) {
 				std::string fileName = this->directory_uris[i].getPath().toString();
 
 				bool is_valid=true;
@@ -213,7 +217,7 @@ data_handle uri_data_provider::get_next(bool open_file) {
             
 			data_handle handle;
 			handle.uri = current_uri;
-			handle.fileHandle = file;
+			handle.file_handle = file;
 			if(this->uri_values.size() != 0) {
 				if(this->uri_values.size() > this->current_file) {
 					handle.column_values = this->uri_values[this->current_file];

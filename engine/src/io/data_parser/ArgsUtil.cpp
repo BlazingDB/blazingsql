@@ -89,6 +89,9 @@ cudf::io::json_reader_options getJsonReaderOptions(const std::map<std::string, s
 	if(map_contains("lines", args)) {
 		reader_opts.enable_lines(to_bool(args.at("lines")));
 	}
+	if(map_contains("dayfirst", args)) {
+		reader_opts.enable_dayfirst(to_bool(args.at("dayfirst")));
+	}
 	if(map_contains("byte_range_offset", args)) {
 		reader_opts.set_byte_range_offset( (size_t) to_int(args.at("byte_range_offset")) );
 	}
@@ -225,7 +228,7 @@ cudf::io::csv_reader_options getCsvReaderOptions(const std::map<std::string, std
 
 std::map<std::string, std::string> to_map(std::vector<std::string> arg_keys, std::vector<std::string> arg_values) {
 	std::map<std::string, std::string> ret;
-	for(int i = 0; i < arg_keys.size(); ++i) {
+	for(size_t i = 0; i < arg_keys.size(); ++i) {
 		ret[arg_keys[i]] = arg_values[i];
 	}
 	return ret;
@@ -239,6 +242,7 @@ std::string getDataTypeName(DataType dataType) {
 	case DataType::JSON: return "json"; break;
 	case DataType::CUDF: return "cudf"; break;
 	case DataType::DASK_CUDF: return "dask_cudf"; break;
+	default: break;
 	}
 
 	return "undefined";

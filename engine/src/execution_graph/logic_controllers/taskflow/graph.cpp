@@ -69,12 +69,11 @@ namespace cache {
 				if(source) {
 					for(auto edge : get_neighbours(source)) {
 						auto target_id = edge.target;
-						auto target = get_node(target_id);
 						auto edge_id = std::make_pair(source_id, target_id);
 						if(visited.find(edge_id) == visited.end()) {
 							visited.insert(edge_id);
 							Q.push_back(target_id);
-							futures.push_back(pool.push([this, source, source_id, edge] (int thread_id) {
+							futures.push_back(pool.push([this, source, source_id, edge] (int /*thread_id*/) {
 								try	{
 									auto state = source->run();
 									source->output_.finish();
@@ -83,7 +82,12 @@ namespace cache {
 										std::string log_detail = "ERROR kernel " + std::to_string(source_id) + " did not finished successfully";
 										logger->error("|||{info}|||||","info"_a=log_detail);
 									}
-								}	catch(...) {
+								} catch(const std::exception & e) {
+									auto logger = spdlog::get("batch_logger");
+									if (logger){
+										logger->error("|||{info}|||||",
+												"info"_a="ERROR in graph::execute. What: {}"_format(e.what()));
+									}
 									source->output_.finish();
 									throw;
 								}
@@ -98,7 +102,7 @@ namespace cache {
 			}
 		}
 		// Lets iterate through the futures to check for exceptions
-		for(int i = 0; i < futures.size(); i++){
+		for(size_t i = 0; i < futures.size(); i++){
 			futures[i].get();
 		}
 
@@ -124,7 +128,6 @@ namespace cache {
 			if(source) {
 				for(auto edge : get_neighbours(source)) {
 					auto target_id = edge.target;
-					auto target = get_node(target_id);
 					auto edge_id = std::make_pair(source_id, target_id);
 					if(visited.find(edge_id) == visited.end()) {
 						std::cout << "source_id: " << source_id << " -> " << target_id << std::endl;
@@ -153,7 +156,6 @@ namespace cache {
 			if(target) {
 				for(auto edge : get_reverse_neighbours(target)) {
 					auto source_id = edge.source;
-					auto source = get_node(source_id);
 					auto edge_id = std::make_pair(target_id, source_id);
 					if(visited.find(edge_id) == visited.end()) {
 						std::cout << "target_id: " << target_id << " <- " << source_id << std::endl;
@@ -240,7 +242,7 @@ namespace cache {
 
 		target->set_parent(source->get_id());
 		{
-			std::vector<std::shared_ptr<CacheMachine>> cache_machines = create_cache_machines(config);
+			std::vector<std::shared_ptr<CacheMachine>> cache_machines = create_cache_machines(config, source_port, source->get_id());
 			if(config.type == CacheType::FOR_EACH) {
 				for(size_t index = 0; index < cache_machines.size(); index++) {
 

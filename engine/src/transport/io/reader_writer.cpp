@@ -33,9 +33,9 @@ PinnedBufferProvider::PinnedBufferProvider(std::size_t sizeBuffers,
   this->allocations = std::vector<char *>(1);
   cudaError_t err = cudaMallocHost((void **)&allocations[0], this->numBuffers * sizeBuffers);
   if (err != cudaSuccess) {
-    throw std::exception();
+    throw std::runtime_error("ERROR: PinnedBufferProvider could not cudaMallocHost cudaError_t=" + std::to_string(err));
   }
-  for (int bufferIndex = 0; bufferIndex < this->numBuffers; bufferIndex++) {
+  for (size_t bufferIndex = 0; bufferIndex < this->numBuffers; bufferIndex++) {
     PinnedBuffer *buffer = new PinnedBuffer();
     buffer->size = this->bufferSize;
     buffer->data = allocations[0] + bufferIndex * this->bufferSize;
@@ -73,9 +73,12 @@ PinnedBuffer *PinnedBufferProvider::getBuffer() {
 void PinnedBufferProvider::grow() {
   allocations.resize(allocations.size() + 1);
   std::size_t num_new_buffers = this->numBuffers/2;
-  cudaError_t err = cudaMallocHost((void **)&allocations[allocations.size() -1], this->bufferSize * num_new_buffers);
-  for (int bufferIndex = 0; bufferIndex < num_new_buffers; bufferIndex++) {
-    PinnedBuffer *buffer = new PinnedBuffer();
+  cudaError_t err = cudaMallocHost(reinterpret_cast<void **>(&allocations[allocations.size() -1]), this->bufferSize * num_new_buffers);
+  if (err != cudaSuccess) {
+    throw std::runtime_error("ERROR: PinnedBufferProvider::grow() could not cudaMallocHost cudaError_t=" + std::to_string(err));
+  }
+  for (size_t bufferIndex = 0; bufferIndex < num_new_buffers; bufferIndex++) {
+    auto *buffer = new PinnedBuffer();
     buffer->size = this->bufferSize;
     buffer->data = allocations[allocations.size() -1] + bufferIndex * this->bufferSize;
     this->buffers.push(buffer);
@@ -87,11 +90,6 @@ void PinnedBufferProvider::grow() {
   log_detail += std::to_string(this->buffer_counter);
   log_detail += ", bufferSize: " + std::to_string(this->bufferSize);
   logger->debug("|||{info}|||||","info"_a=log_detail);
-
-  if (err != cudaSuccess) {
-    throw std::exception();
-  }
-
 }
 
 void PinnedBufferProvider::freeBuffer(PinnedBuffer *buffer) {

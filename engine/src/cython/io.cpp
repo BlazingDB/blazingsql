@@ -19,6 +19,8 @@ using namespace fmt::literals;
 
 #include <numeric>
 
+
+
 TableSchema parseSchema(std::vector<std::string> files,
 	std::string file_format_hint,
 	std::vector<std::string> arg_keys,
@@ -27,7 +29,7 @@ TableSchema parseSchema(std::vector<std::string> files,
 	bool ignore_missing_paths) {
 
 	// sanitize and normalize paths
-	for (int i = 0; i < files.size(); ++i) {
+	for (size_t i = 0; i < files.size(); ++i) {
 		files[i] = Uri(files[i]).toString(true);
 	}
 
@@ -58,7 +60,35 @@ TableSchema parseSchema(std::vector<std::string> files,
 	ral::io::Schema schema;
 
 	try {
-		loader->get_schema(schema, extra_columns);
+
+		bool got_schema = false;
+		while (!got_schema && provider->has_next()){
+			ral::io::data_handle handle = provider->get_next();
+			if (handle.file_handle != nullptr){
+				parser->parse_schema(handle.file_handle, schema);
+				if (schema.get_num_columns() > 0){
+					got_schema = true;
+					schema.add_file(handle.uri.toString(true));
+				}
+			}
+		}
+		if (!got_schema){
+			std::cout<<"ERROR: Could not get schema"<<std::endl;
+		}
+
+		bool open_file = false;
+		while (provider->has_next()){
+			std::vector<ral::io::data_handle> handles = provider->get_some(64, open_file);
+			for(auto handle : handles) {
+				schema.add_file(handle.uri.toString(true));
+			}
+		}
+
+		for(auto extra_column : extra_columns) {
+			schema.add_column(extra_column.first, extra_column.second, 0, false);
+		}
+		provider->reset();
+
 	} catch(std::exception & e) {
 		std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
 		logger->error("|||{info}|||||",
@@ -149,9 +179,9 @@ std::unique_ptr<ResultSet> parseMetadata(std::vector<std::string> files,
 		result->cudfTable = metadata->releaseCudfTable();
 		result->skipdata_analysis_fail = false;
 		return result;
-	} catch(std::exception e) {
+	} catch(std::exception & e) {
 		std::cerr << e.what() << std::endl;
-		throw e;
+		throw;
 	}
 }
 
@@ -222,7 +252,7 @@ void visitPartitionFolder(Uri folder_uri, std::vector<FolderPartitionMetadata>& 
 		std::string name = uri.getPath().getResourceName();
 		auto parts = StringUtil::split(name, '=');
 
-		if (metadata.size() < depth + 1) {
+		if (metadata.size() < static_cast<size_t>(depth) + 1) {
 			metadata.resize(depth + 1);
 		}
 

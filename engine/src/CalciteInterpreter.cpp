@@ -1,23 +1,6 @@
 #include "CalciteInterpreter.h"
-
-#include <blazingdb/io/Util/StringUtil.h>
-
-#include <regex>
-
-#include "CalciteExpressionParsing.h"
 #include "CodeTimer.h"
-
-#include "operators/OrderBy.h"
-#include "utilities/CommonOperations.h"
-
-
-#include "execution_graph/logic_controllers/LogicalFilter.h"
-#include "execution_graph/logic_controllers/LogicalProject.h"
-#include "execution_graph/logic_controllers/BatchProcessing.h"
 #include "execution_graph/logic_controllers/PhysicalPlanGenerator.h"
-#include "bmr/MemoryMonitor.h"
-
-
 
 using namespace fmt::literals;
 
@@ -26,7 +9,6 @@ std::shared_ptr<ral::cache::graph> generate_graph(std::vector<ral::io::data_load
 	std::vector<std::string> table_names,
 	std::vector<std::string> table_scans,
 	std::string logicalPlan,
-	int64_t connection,
 	Context & queryContext) {
 
 	CodeTimer blazing_timer;
@@ -56,12 +38,12 @@ std::shared_ptr<ral::cache::graph> generate_graph(std::vector<ral::io::data_load
 									"info"_a="\"Query Start\n{}\""_format(tree->to_string()));
 
 		std::string tables_info = "";
-		for (int i = 0; i < table_names.size(); i++){
+		for (size_t i = 0; i < table_names.size(); i++){
 			int num_files = schemas[i].get_files().size();
 			if (num_files > 0){
 				tables_info += "Table " + table_names[i] + ": num files = " + std::to_string(num_files) + "; ";
 			} else {
-				int num_partitions = input_loaders[i].get_parser()->get_num_partitions();
+				int num_partitions = input_loaders[i].get_provider()->get_num_handles();
 				if (num_partitions > 0){
 					tables_info += "Table " + table_names[i] + ": num partitions = " + std::to_string(num_partitions) + "; ";
 				} else {
