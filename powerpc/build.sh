@@ -426,18 +426,19 @@ echo "---->>> install fsspec"
 pip install --no-binary fsspec fsspec
 
 
-cudf_version=0.17
+cudf_version=0.18
 
 # BEGIN RMM
 echo "BEGIN RMM"
 cd $build_dir
 if [ ! -d rmm ]; then
-    # once 0.17 is stable, we can checkout just depth 1
+    # once 0.18 is stable, we can checkout just depth 1
     # git clone --depth 1 https://github.com/rapidsai/rmm.git --branch "branch-$cudf_version" --single-branch
     git clone https://github.com/rapidsai/rmm.git --branch "branch-$cudf_version" --single-branch
     cd rmm
     # need to pin to a specific commit to keep this build script stable
-    git checkout 14e144696b1074a8f2bf0b064bcd61d850d48e79
+    git checkout efd4c08b4bd45e9f70c99c26ee47c02b6d3cbb1d
+
     INSTALL_PREFIX=$tmp_dir CUDACXX=$CUDA_HOME/bin/nvcc ./build.sh  -v clean librmm rmm
 fi
 echo "END RMM"
@@ -457,13 +458,13 @@ echo "BEGIN cudf"
 if [ ! -d cudf ]; then
     cd $build_dir
     echo "### Cudf ###"
-    # once 0.17 is stable, we can checkout just depth 1
+    # once 0.18 is stable, we can checkout just depth 1
     # git clone --depth 1 https://github.com/rapidsai/cudf.git --branch "branch-$cudf_version" --single-branch
     git clone https://github.com/rapidsai/cudf.git --branch "branch-$cudf_version" --single-branch
     cd cudf
     # need to pin to a specific commit to keep this build script stable
     git checkout 88821fb7fd4b81a98b8efa2f2ab8c7871d02bdef
-
+    
     #git submodule update --init --remote --recursive
     #export CUDA_HOME=/usr/local/cuda/
     #export PARALLEL_LEVEL=$build_mode
@@ -549,12 +550,12 @@ echo "END dask"
 echo "BEGIN dask-cuda"
 cd $build_dir
 if [ ! -d dask-cuda ]; then
-  # once 0.17 is stable, we can checkout just depth 1
+  # once 0.18 is stable, we can checkout just depth 1
   # git clone --depth 1 https://github.com/rapidsai/dask-cuda.git --branch "branch-$cudf_version" --single-branch
   git clone https://github.com/rapidsai/dask-cuda.git --branch "branch-$cudf_version" --single-branch
   cd dask-cuda
   # need to pin to a specific commit to keep this build script stable
-  git checkout e9aee6c3f91054d8589affd8e3ec0041f1731a4e
+  git checkout b170b2973a992652a57437937f95b87e6713a6e7
   pip install .
 fi
 echo "END dask-cuda"

@@ -79,7 +79,7 @@ The following instructions are for building on Summit. They are similar to the i
 unset CMAKE_PREFIX_PATH # make sure no conflicting library versions are found
 module load gcc/7.4.0
 module load python/3.7.0
-module load cmake/3.17.3
+module load cmake/3.18.2
 module load boost/1.66.0
 module load cuda/10.1.243
 module load zlib
