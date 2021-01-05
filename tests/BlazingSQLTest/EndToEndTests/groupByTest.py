@@ -164,6 +164,25 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
+            queryId = "TEST_07"
+            query = """SELECT count(distinct l_orderkey),
+                        count(distinct l_partkey),
+                        count(distinct l_suppkey)
+                    FROM lineitem
+                    GROUP BY l_orderkey, l_partkey, l_suppkey"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")
                 break
