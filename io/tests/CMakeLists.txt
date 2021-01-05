@@ -39,5 +39,6 @@ message(STATUS "******** Configuring tests ********")
 add_subdirectory(ExceptionHandling)
 add_subdirectory(FileSystem)
 #add_subdirectory(Library)
+add_subdirectory(Util)
 
 message(STATUS "******** Tests are ready ********")
