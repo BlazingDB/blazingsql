@@ -23,39 +23,49 @@ void poll_for_frames(std::shared_ptr<message_receiver> receiver,
 		                 ucp_tag_t tag,
                      ucp_worker_h ucp_worker,
                      const std::size_t request_size){
-	blazing_ucp_tag message_tag = *reinterpret_cast<blazing_ucp_tag *>(&tag);
+	
+	try {
+		blazing_ucp_tag message_tag = *reinterpret_cast<blazing_ucp_tag *>(&tag);
 
-	if (receiver->num_buffers() == 0) {
-		receiver->finish();
-		return;
-	}
-
-	for (size_t buffer_id = 0; buffer_id < receiver->num_buffers(); buffer_id++) {
-    receiver->allocate_buffer(buffer_id);
-
-		message_tag.frame_id = buffer_id + 1;
-
-    char *request = new char[request_size];
-    ucs_status_t status = ucp_tag_recv_nbr(ucp_worker,
-                                           receiver->get_buffer(buffer_id),
-                                           receiver->buffer_size(buffer_id),
-                                           ucp_dt_make_contig(1),
-                                           *reinterpret_cast<ucp_tag_t *>(&message_tag),
-                                           message_tag_mask,
-                                           request + request_size);
-
-		if (!UCS_STATUS_IS_ERR(status)) {
-			ucp_progress_manager::get_instance()->add_recv_request(request, [tag](){
-				auto receiver = ucx_message_listener::get_instance()->get_receiver(tag & message_tag_mask);
-				receiver->confirm_transmission();
-				if (receiver->is_finished()) {
-					ucx_message_listener::get_instance()->remove_receiver(tag & message_tag_mask);
-				}
-			});
-		} else {
-			throw std::runtime_error("Immediate Communication error in poll_for_frames.");
+		if (receiver->num_buffers() == 0) {
+			receiver->finish();
+			return;
 		}
-  }
+
+		for (size_t buffer_id = 0; buffer_id < receiver->num_buffers(); buffer_id++) {
+			receiver->allocate_buffer(buffer_id);
+
+				message_tag.frame_id = buffer_id + 1;
+
+			char *request = new char[request_size];
+			ucs_status_t status = ucp_tag_recv_nbr(ucp_worker,
+												receiver->get_buffer(buffer_id),
+												receiver->buffer_size(buffer_id),
+												ucp_dt_make_contig(1),
+												*reinterpret_cast<ucp_tag_t *>(&message_tag),
+												message_tag_mask,
+												request + request_size);
+
+				if (!UCS_STATUS_IS_ERR(status)) {
+					ucp_progress_manager::get_instance()->add_recv_request(request, [tag](){
+						auto receiver = ucx_message_listener::get_instance()->get_receiver(tag & message_tag_mask);
+						receiver->confirm_transmission();
+						if (receiver->is_finished()) {
+							ucx_message_listener::get_instance()->remove_receiver(tag & message_tag_mask);
+						}
+					});
+				} else {
+					throw std::runtime_error("Immediate Communication error in poll_for_frames.");
+				}
+		}
+	} catch(std::exception & e){
+        auto logger = spdlog::get("batch_logger");
+        if (logger){
+            logger->error("|||{info}|||||",
+                    "info"_a="ERROR in poll_for_frames. What: {}"_format(e.what()));
+        }
+        throw;
+    }
 
 }
 
@@ -148,7 +158,7 @@ void tcp_message_listener::start_polling() {
 
 						std::vector<char> data(message_size);
 						io::read_from_socket(connection_fd, data.data(), message_size);
-						auto meta_read_time = timer.elapsed_time();
+						// auto meta_read_time = timer.elapsed_time();
 						// status_code success = status_code::OK;
 						// io::write_to_socket(connection_fd, &success, sizeof(success));
 						{
@@ -203,46 +213,56 @@ void ucx_message_listener::poll_begin_message_tag(bool running_from_unit_test){
 	if (!polling_started){
 		polling_started = true;
 		auto thread = std::thread([running_from_unit_test, this]{
-			cudaSetDevice(0);
+			try {
+				cudaSetDevice(0);
 
-			for(;;){
-				std::shared_ptr<ucp_tag_recv_info_t> info_tag = std::make_shared<ucp_tag_recv_info_t>();
-				ucp_tag_message_h message_tag = nullptr;
-				do {
-					message_tag = ucp_tag_probe_nb(
-						ucp_worker, 0ull, begin_tag_mask, 0, info_tag.get());
+				for(;;){
+					std::shared_ptr<ucp_tag_recv_info_t> info_tag = std::make_shared<ucp_tag_recv_info_t>();
+					ucp_tag_message_h message_tag = nullptr;
+					do {
+						message_tag = ucp_tag_probe_nb(
+							ucp_worker, 0ull, begin_tag_mask, 0, info_tag.get());
 
-					// NOTE: comment this out when running using dask workers, it crashes for some reason
-					if (running_from_unit_test && message_tag == nullptr) {
-						ucp_worker_progress(ucp_worker);
-					}
-				}while(message_tag == nullptr);
+						// NOTE: comment this out when running using dask workers, it crashes for some reason
+						if (running_from_unit_test && message_tag == nullptr) {
+							ucp_worker_progress(ucp_worker);
+						}
+					}while(message_tag == nullptr);
 
-					char * request = new char[_request_size];
-					char * temp_buffer;
-					//we have a msg to process
-					{
-						std::lock_guard<std::mutex> guard(tag_to_begin_buffer_and_info_mutex);
-						tag_to_begin_buffer_and_info[info_tag->sender_tag] = std::make_pair(
-							std::vector<char>(info_tag->length), info_tag);
-						temp_buffer = tag_to_begin_buffer_and_info[info_tag->sender_tag].first.data();
-					}
-					
+						char * request = new char[_request_size];
+						char * temp_buffer;
+						//we have a msg to process
+						{
+							std::lock_guard<std::mutex> guard(tag_to_begin_buffer_and_info_mutex);
+							tag_to_begin_buffer_and_info[info_tag->sender_tag] = std::make_pair(
+								std::vector<char>(info_tag->length), info_tag);
+							temp_buffer = tag_to_begin_buffer_and_info[info_tag->sender_tag].first.data();
+						}
+						
 
-					auto status = ucp_tag_recv_nbr(ucp_worker,
-						temp_buffer,
-						info_tag->length,
-						ucp_dt_make_contig(1),
-						0ull,
-						begin_tag_mask,
-						request + _request_size);
+						auto status = ucp_tag_recv_nbr(ucp_worker,
+							temp_buffer,
+							info_tag->length,
+							ucp_dt_make_contig(1),
+							0ull,
+							begin_tag_mask,
+							request + _request_size);
 
-					if (!UCS_STATUS_IS_ERR(status)) {
-						ucp_progress_manager::get_instance()->add_recv_request(request, [info_tag, request_size=_request_size](){ recv_begin_callback_c(info_tag, request_size); });
-					} else {
-						throw std::runtime_error("Immediate Communication error in poll_begin_message_tag.");
-					}
-		}
+						if (!UCS_STATUS_IS_ERR(status)) {
+							ucp_progress_manager::get_instance()->add_recv_request(request, [info_tag, request_size=_request_size](){ recv_begin_callback_c(info_tag, request_size); });
+						} else {
+							throw std::runtime_error("Immediate Communication error in poll_begin_message_tag.");
+						}
+				}
+			} catch(std::exception & e){
+				auto logger = spdlog::get("batch_logger");
+				if (logger){
+					logger->error("|||{info}|||||",
+							"info"_a="ERROR in ucx_message_listener::poll_begin_message_tag. What: {}"_format(e.what()));
+				}
+				throw;
+   			}
+			
 
 		});
 		thread.detach();
@@ -272,14 +292,23 @@ tcp_message_listener * tcp_message_listener::instance = nullptr;
 ucx_message_listener::ucx_message_listener(ucp_context_h context, ucp_worker_h worker, const std::map<std::string, comm::node>& nodes, int num_threads) :
 	message_listener(nodes, num_threads), ucp_worker{worker}
 {
-  ucp_context_attr_t attr;
-  attr.field_mask = UCP_ATTR_FIELD_REQUEST_SIZE;
-  ucs_status_t status = ucp_context_query(context, &attr);
-	if (status != UCS_OK)	{
-		throw std::runtime_error("Error calling ucp_context_query");
-	}
-	_request_size = attr.request_size;
-	ucp_progress_manager::get_instance(worker,_request_size);
+	try {
+		ucp_context_attr_t attr;
+		attr.field_mask = UCP_ATTR_FIELD_REQUEST_SIZE;
+		ucs_status_t status = ucp_context_query(context, &attr);
+		if (status != UCS_OK)	{
+			throw std::runtime_error("Error calling ucp_context_query");
+		}
+		_request_size = attr.request_size;
+		ucp_progress_manager::get_instance(worker,_request_size);
+	} catch(std::exception & e){
+        auto logger = spdlog::get("batch_logger");
+        if (logger){
+            logger->error("|||{info}|||||",
+                    "info"_a="ERROR in ucx_message_listener::ucx_message_listener. What: {}"_format(e.what()));
+        }
+        throw;
+    }
 }
 
 tcp_message_listener::tcp_message_listener(const std::map<std::string, comm::node>& nodes,int port, int num_threads) : message_listener{nodes,num_threads}, _port{port} {
