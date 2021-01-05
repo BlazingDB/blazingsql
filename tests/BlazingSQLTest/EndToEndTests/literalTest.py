@@ -129,11 +129,21 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 query_spark=query_spark,
             )
 
-            queryId = "TEST_06"  # TODO: Blazing not support: 2+2
+            queryId = "TEST_06"
             query = """select 2+2, o_orderdate from orders
                     order by o_orderkey limit 5"""
-            # runTest.run_query(bc, spark, query, queryId, queryType,
-            #  0, '', acceptable_difference, use_percentage, fileSchemaType)
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
 
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")

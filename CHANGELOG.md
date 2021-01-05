@@ -23,6 +23,7 @@
 - #1253 Fixed distribution so that its evenly distributes based of rowgroups
 - #1204 Reenable json parser
 - #1241 Fixed cython exception handling
+- #1243 Fixed wrong CHAR regex replacing
 
 
 
