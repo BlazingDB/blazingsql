@@ -17,6 +17,7 @@
 - #1261 Improve storage plugin output messages
 - #1153 Enable warnings and fixes
 - #1267 Added retrys to comms, fixed deadlocks in executor and order by. Improved logging and error management. Caches have names. Improved Joins
+- #1239 Reducing Memory pressure by moving shuffle data to cpu before transmission
 
 ## Bug Fixes
 - #1249 Fix compilation with cuda 11
@@ -44,7 +45,6 @@
 - #1218 Added smiles test set
 - #1201 Implement string TRIM
 - #1216 Add unit test for DAYOFWEEK
-- #1235 Reducing Memory pressure by moving shuffle data to cpu before transmission
 - #1205 Implement string REVERSE
 - #1220 Implement string LEFT and RIGHT
 - #1223 Add support for UNION statement
