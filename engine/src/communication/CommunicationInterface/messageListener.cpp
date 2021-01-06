@@ -53,7 +53,7 @@ void poll_for_frames(std::shared_ptr<message_receiver> receiver,
 						if (receiver->is_finished()) {
 							ucx_message_listener::get_instance()->remove_receiver(tag & message_tag_mask);
 						}
-					});
+					},status);
 				} else {
 					throw std::runtime_error("Immediate Communication error in poll_for_frames.");
 				}
@@ -249,7 +249,7 @@ void ucx_message_listener::poll_begin_message_tag(bool running_from_unit_test){
 							request + _request_size);
 
 						if (!UCS_STATUS_IS_ERR(status)) {
-							ucp_progress_manager::get_instance()->add_recv_request(request, [info_tag, request_size=_request_size](){ recv_begin_callback_c(info_tag, request_size); });
+							ucp_progress_manager::get_instance()->add_recv_request(request, [info_tag, request_size=_request_size](){ recv_begin_callback_c(info_tag, request_size); },status);
 						} else {
 							throw std::runtime_error("Immediate Communication error in poll_begin_message_tag.");
 						}

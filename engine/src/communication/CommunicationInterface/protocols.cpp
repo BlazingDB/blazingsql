@@ -132,17 +132,24 @@ ucp_progress_manager::ucp_progress_manager(ucp_worker_h ucp_worker, size_t reque
     t.detach();
 }
 
-void ucp_progress_manager::add_recv_request(char * request, std::function<void()> callback){
-    {
+void ucp_progress_manager::add_recv_request(char * request, std::function<void()> callback, ucs_status_t status){
+    
+    if(status == UCS_OK){
+        delete request;
+        callback();
+    }else{
         std::lock_guard<std::mutex> lock(request_mutex);
         recv_requests.insert({request, callback});
     }
-    cv.notify_all();
+    cv.notify_all();            
 }
 
 
-void ucp_progress_manager::add_send_request(char * request, std::function<void()> callback){
-    {
+void ucp_progress_manager::add_send_request(char * request, std::function<void()> callback, ucs_status_t status){
+    if(status == UCS_OK){
+        delete request;
+        callback();
+    }else{
         std::lock_guard<std::mutex> lock(request_mutex);
         send_requests.insert({request, callback});
     }
@@ -269,7 +276,7 @@ void ucx_buffer_transport::send_begin_transmission() {
                 ucp_progress_manager::get_instance()->add_send_request(request, [buffer_to_send, this]() mutable {
                     buffer_to_send.reset();
                     this->increment_begin_transmission();
-                });
+                },status);
             }else {
                 throw std::runtime_error("Immediate Communication error in send_begin_transmission.");
             }
@@ -300,7 +307,7 @@ void ucx_buffer_transport::send_impl(const char * buffer, size_t buffer_size) {
                                             request + _request_size);
 
             if (!UCS_STATUS_IS_ERR(status)) {
-                ucp_progress_manager::get_instance()->add_send_request(request, [this](){ this->increment_frame_transmission(); });
+                ucp_progress_manager::get_instance()->add_send_request(request, [this](){ this->increment_frame_transmission(); },status);
             } else {
                 throw std::runtime_error("Immediate Communication error in send_impl.");
             }
