@@ -8,33 +8,41 @@ using namespace fmt::literals;
 message_receiver::message_receiver(const std::map<std::string, comm::node>& nodes, const std::vector<char> & buffer)
 {
 
+  try {
+    _nodes_info_map = nodes;
+    auto metadata_and_transports = detail::get_metadata_and_transports_and_buffer_sizes_from_bytes(buffer);
+    _metadata = std::get<0>(metadata_and_transports);
+    _column_transports = std::get<1>(metadata_and_transports);
+    _buffer_sizes = std::get<2>(metadata_and_transports);
+    int32_t ctx_token = std::stoi(_metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL]);
+    auto graph = graphs_info::getInstance().get_graph(ctx_token);
+    size_t kernel_id = std::stoull(_metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL]);
+    std::string cache_id = _metadata.get_values()[ral::cache::CACHE_ID_METADATA_LABEL];
+    _output_cache = _metadata.get_values()[ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL] == "true" ?
+                        graph->get_kernel_output_cache(kernel_id, cache_id) : graph->get_input_message_cache();
+  //_metadata.print();
+  _raw_buffers.resize(_buffer_sizes.size());
+    std::shared_ptr<spdlog::logger> comms_logger;
+    comms_logger = spdlog::get("input_comms");
+    auto destinations = _metadata.get_values()[ral::cache::WORKER_IDS_METADATA_LABEL];
 
-  _nodes_info_map = nodes;
-  auto metadata_and_transports = detail::get_metadata_and_transports_and_buffer_sizes_from_bytes(buffer);
-  _metadata = std::get<0>(metadata_and_transports);
-  _column_transports = std::get<1>(metadata_and_transports);
-  _buffer_sizes = std::get<2>(metadata_and_transports);
-  int32_t ctx_token = std::stoi(_metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL]);
-  auto graph = graphs_info::getInstance().get_graph(ctx_token);
-  size_t kernel_id = std::stoull(_metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL]);
-  std::string cache_id = _metadata.get_values()[ral::cache::CACHE_ID_METADATA_LABEL];
-  _output_cache = _metadata.get_values()[ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL] == "true" ?
-                      graph->get_kernel_output_cache(kernel_id, cache_id) : graph->get_input_message_cache();
-//_metadata.print();
-_raw_buffers.resize(_buffer_sizes.size());
-  std::shared_ptr<spdlog::logger> comms_logger;
-	comms_logger = spdlog::get("input_comms");
-  auto destinations = _metadata.get_values()[ral::cache::WORKER_IDS_METADATA_LABEL];
-
-  comms_logger->info("{ral_id}|{query_id}|{kernel_id}|{dest_ral_id}|{dest_ral_count}|{dest_cache_id}|{message_id}|{phase}",
-  "ral_id"_a=_metadata.get_values()[ral::cache::RAL_ID_METADATA_LABEL],
-  "query_id"_a=_metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL],
-  "kernel_id"_a=_metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL],
-  "dest_ral_id"_a=destinations, //false
-  "dest_ral_count"_a=std::count(destinations.begin(), destinations.end(), ',') + 1,
-  "dest_cache_id"_a=_metadata.get_values()[ral::cache::CACHE_ID_METADATA_LABEL],
-  "message_id"_a=_metadata.get_values()[ral::cache::MESSAGE_ID],
-  "phase"_a="begin");
+    comms_logger->info("{ral_id}|{query_id}|{kernel_id}|{dest_ral_id}|{dest_ral_count}|{dest_cache_id}|{message_id}|{phase}",
+    "ral_id"_a=_metadata.get_values()[ral::cache::RAL_ID_METADATA_LABEL],
+    "query_id"_a=_metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL],
+    "kernel_id"_a=_metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL],
+    "dest_ral_id"_a=destinations, //false
+    "dest_ral_count"_a=std::count(destinations.begin(), destinations.end(), ',') + 1,
+    "dest_cache_id"_a=_metadata.get_values()[ral::cache::CACHE_ID_METADATA_LABEL],
+    "message_id"_a=_metadata.get_values()[ral::cache::MESSAGE_ID],
+    "phase"_a="begin");
+  } catch(const std::exception & e) {
+    auto logger = spdlog::get("batch_logger");
+    if (logger){
+      logger->error("|||{info}|||||",
+          "info"_a="ERROR in message_receiver::message_receiver. What: {}"_format(e.what()));
+    }
+    throw;
+  }
 }
 
 size_t message_receiver::buffer_size(u_int16_t index){
