@@ -223,7 +223,7 @@ void ucx_message_listener::poll_begin_message_tag(bool running_from_unit_test){
 							data_buffer.data(),
 							info_tag->length,
 							ucp_dt_make_contig(1),
-							0ull,
+							info_tag->sender_tag,
 							begin_tag_mask,
 							request + _request_size);
 

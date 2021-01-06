@@ -134,25 +134,25 @@ ucp_progress_manager::ucp_progress_manager(ucp_worker_h ucp_worker, size_t reque
 
 void ucp_progress_manager::add_recv_request(char * request, std::function<void()> callback, ucs_status_t status){
     
-    if(status == UCS_OK){
-        delete request;
-        callback();
-    }else{
+    // if(status == UCS_OK){
+    //     // delete request;
+    //     callback();
+    // }else{
         std::lock_guard<std::mutex> lock(request_mutex);
         recv_requests.insert({request, callback});
-    }
+    // }
     cv.notify_all();            
 }
 
 
 void ucp_progress_manager::add_send_request(char * request, std::function<void()> callback, ucs_status_t status){
-    if(status == UCS_OK){
-        delete request;
-        callback();
-    }else{
+    // if(status == UCS_OK){
+    //     // delete request;
+    //     callback();
+    // }else{
         std::lock_guard<std::mutex> lock(request_mutex);
         send_requests.insert({request, callback});
-    }
+    // }
     cv.notify_all();
 }
 
