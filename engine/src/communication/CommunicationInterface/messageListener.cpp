@@ -8,8 +8,6 @@
 namespace comm {
 
 using namespace fmt::literals;
-std::map<ucp_tag_t, std::pair<std::vector<char>, std::shared_ptr<ucp_tag_recv_info_t> > > tag_to_begin_buffer_and_info;
-std::mutex tag_to_begin_buffer_and_info_mutex;
 
 ctpl::thread_pool<BlazingThread> & message_listener::get_pool(){
 	return pool;
@@ -70,23 +68,12 @@ void poll_for_frames(std::shared_ptr<message_receiver> receiver,
 }
 
 
-void recv_begin_callback_c(std::shared_ptr<ucp_tag_recv_info_t> info, size_t request_size) {
+void recv_begin_callback_c(std::shared_ptr<ucp_tag_recv_info_t> info, std::vector<char> data_buffer, size_t request_size) {
 
 	auto message_listener = ucx_message_listener::get_instance();
 
-	auto fwd = message_listener->get_pool().push([&message_listener, info, request_size](int /*thread_id*/) {
+	auto fwd = message_listener->get_pool().push([&message_listener, info, data_buffer{std::move(data_buffer)}, request_size](int /*thread_id*/) {
 		
-		std::vector<char> data_buffer;
-		{
-			std::lock_guard<std::mutex> guard(tag_to_begin_buffer_and_info_mutex);
-			auto iter = tag_to_begin_buffer_and_info.find(info->sender_tag);
-			if (iter == tag_to_begin_buffer_and_info.end()) {
-				return;
-			}
-			data_buffer = std::move(iter->second.first);
-			tag_to_begin_buffer_and_info.erase(iter);
-		}
-	
 		auto receiver = std::make_shared<message_receiver>(message_listener->get_node_map(), data_buffer);
 
 		message_listener->add_receiver(info->sender_tag, receiver);
@@ -230,18 +217,10 @@ void ucx_message_listener::poll_begin_message_tag(bool running_from_unit_test){
 					}while(message_tag == nullptr);
 
 						char * request = new char[_request_size];
-						char * temp_buffer;
-						//we have a msg to process
-						{
-							std::lock_guard<std::mutex> guard(tag_to_begin_buffer_and_info_mutex);
-							tag_to_begin_buffer_and_info[info_tag->sender_tag] = std::make_pair(
-								std::vector<char>(info_tag->length), info_tag);
-							temp_buffer = tag_to_begin_buffer_and_info[info_tag->sender_tag].first.data();
-						}
+						std::vector<char> data_buffer(info_tag->length);
 						
-
 						auto status = ucp_tag_recv_nbr(ucp_worker,
-							temp_buffer,
+							data_buffer.data(),
 							info_tag->length,
 							ucp_dt_make_contig(1),
 							0ull,
@@ -249,7 +228,8 @@ void ucx_message_listener::poll_begin_message_tag(bool running_from_unit_test){
 							request + _request_size);
 
 						if (!UCS_STATUS_IS_ERR(status)) {
-							ucp_progress_manager::get_instance()->add_recv_request(request, [info_tag, request_size=_request_size](){ recv_begin_callback_c(info_tag, request_size); },status);
+							ucp_progress_manager::get_instance()->add_recv_request(request, [info_tag, data_buffer{std::move(data_buffer)}, request_size=_request_size](){ recv_begin_callback_c(info_tag, std::move(data_buffer), request_size); },status);
+
 						} else {
 							throw std::runtime_error("Immediate Communication error in poll_begin_message_tag.");
 						}

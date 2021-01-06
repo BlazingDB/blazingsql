@@ -77,31 +77,32 @@ void message_sender::run_polling() {
 							protocol=this->protocol,
 							this,
 							comms_logger](int /*thread_id*/) {
-
-					auto * cpu_cache_data = static_cast<ral::cache::CPUCacheData *>(cache_data.get());
-					auto table = cpu_cache_data->releaseHostTable();
-					auto metadata = cpu_cache_data->getMetadata();
-
-					auto destinations = metadata.get_values()[ral::cache::WORKER_IDS_METADATA_LABEL];
-					comms_logger->info("{ral_id}|{query_id}|{kernel_id}|{dest_ral_id}|{dest_ral_count}|{dest_cache_id}|{message_id}",
-						"ral_id"_a=ral_id,
-						"query_id"_a=metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL],
-						"kernel_id"_a=metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL],
-						"dest_ral_id"_a=destinations, //false
-						"dest_ral_count"_a=std::count(destinations.begin(), destinations.end(), ',') + 1,
-						"dest_cache_id"_a=metadata.get_values()[ral::cache::CACHE_ID_METADATA_LABEL],
-						"message_id"_a=metadata.get_values()[ral::cache::MESSAGE_ID]);
-
-					std::vector<std::size_t> buffer_sizes;
-					std::vector<const char *> raw_buffers;
-					for(auto & buffer : table->get_raw_buffers()){
-						raw_buffers.push_back(buffer.data());
-						buffer_sizes.push_back(buffer.size());
-					}
-					
-					std::vector<blazingdb::transport::ColumnTransport> column_transports = table->get_columns_offsets();
 					
 					try {
+
+						auto * cpu_cache_data = static_cast<ral::cache::CPUCacheData *>(cache_data.get());
+						auto table = cpu_cache_data->releaseHostTable();
+						auto metadata = cpu_cache_data->getMetadata();
+
+						auto destinations_str = metadata.get_values()[ral::cache::WORKER_IDS_METADATA_LABEL];
+						comms_logger->info("{ral_id}|{query_id}|{kernel_id}|{dest_ral_id}|{dest_ral_count}|{dest_cache_id}|{message_id}",
+							"ral_id"_a=ral_id,
+							"query_id"_a=metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL],
+							"kernel_id"_a=metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL],
+							"dest_ral_id"_a=destinations_str, //false
+							"dest_ral_count"_a=std::count(destinations_str.begin(), destinations_str.end(), ',') + 1,
+							"dest_cache_id"_a=metadata.get_values()[ral::cache::CACHE_ID_METADATA_LABEL],
+							"message_id"_a=metadata.get_values()[ral::cache::MESSAGE_ID]);
+
+						std::vector<std::size_t> buffer_sizes;
+						std::vector<const char *> raw_buffers;
+						for(auto & buffer : table->get_raw_buffers()){
+							raw_buffers.push_back(buffer.data());
+							buffer_sizes.push_back(buffer.size());
+						}
+						
+						std::vector<blazingdb::transport::ColumnTransport> column_transports = table->get_columns_offsets();
+					
 						// tcp / ucp
 						auto metadata_map = metadata.get_values();
 
