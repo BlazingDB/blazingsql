@@ -41,7 +41,7 @@ void poll_for_frames(std::shared_ptr<message_receiver> receiver,
 												receiver->buffer_size(buffer_id),
 												ucp_dt_make_contig(1),
 												*reinterpret_cast<ucp_tag_t *>(&message_tag),
-												message_tag_mask,
+												acknownledge_tag_mask,
 												request + request_size);
 
 				if (!UCS_STATUS_IS_ERR(status)) {
@@ -224,7 +224,7 @@ void ucx_message_listener::poll_begin_message_tag(bool running_from_unit_test){
 							info_tag->length,
 							ucp_dt_make_contig(1),
 							info_tag->sender_tag,
-							begin_tag_mask,
+							acknownledge_tag_mask,
 							request + _request_size);
 
 						if (!UCS_STATUS_IS_ERR(status)) {
