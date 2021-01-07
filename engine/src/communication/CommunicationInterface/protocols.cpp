@@ -4,6 +4,7 @@
 
 #include "protocols.hpp"
 #include "messageReceiver.hpp"
+#include "CodeTimer.h"
 
 #include <ucp/api/ucp.h>
 #include <ucp/api/ucp_def.h>
@@ -14,6 +15,7 @@
 #include "transport/io/reader_writer.h"
 
 using namespace fmt::literals;
+using namespace std::chrono_literals;
 
 constexpr size_t NUMBER_RETRIES = 20;
 constexpr size_t FILE_RETRY_DELAY = 20;
@@ -163,6 +165,7 @@ void ucp_progress_manager::check_progress(){
             std::set<request_struct> cur_send_requests;
             std::set<request_struct> cur_recv_requests;
             {
+                CodeTimer blazing_timer;
                 std::unique_lock<std::mutex> lock(request_mutex);
                 // if(send_requests.size() + recv_requests.size() == 0){
                 //    cv.wait(lock,[this]{
