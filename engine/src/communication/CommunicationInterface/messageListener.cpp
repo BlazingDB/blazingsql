@@ -43,16 +43,27 @@ void poll_for_frames(std::shared_ptr<message_receiver> receiver,
 												*reinterpret_cast<ucp_tag_t *>(&message_tag),
 												acknownledge_tag_mask,
 												request + request_size);
-
+				status = ucp_request_check_status(request + request_size);
 				if (!UCS_STATUS_IS_ERR(status)) {
-					ucp_progress_manager::get_instance()->add_recv_request(request, [tag](){
+					if(status == UCS_OK){
+						auto receiver = ucx_message_listener::get_instance()->get_receiver(tag & message_tag_mask);
+						receiver->confirm_transmission();
+						if (receiver->is_finished()) {
+							ucx_message_listener::get_instance()->remove_receiver(tag & message_tag_mask);
+						}
+						delete request;
+					}else{
+						ucp_progress_manager::get_instance()->add_recv_request(request, [tag](){
 						auto receiver = ucx_message_listener::get_instance()->get_receiver(tag & message_tag_mask);
 						receiver->confirm_transmission();
 						if (receiver->is_finished()) {
 							ucx_message_listener::get_instance()->remove_receiver(tag & message_tag_mask);
 						}
 					},status);
+					}
+					
 				} else {
+					delete request;
 					throw std::runtime_error("Immediate Communication error in poll_for_frames.");
 				}
 		}
@@ -210,10 +221,6 @@ void ucx_message_listener::poll_begin_message_tag(bool running_from_unit_test){
 						message_tag = ucp_tag_probe_nb(
 							ucp_worker, 0ull, begin_tag_mask, 0, info_tag.get());
 
-						// NOTE: comment this out when running using dask workers, it crashes for some reason
-						if (running_from_unit_test && message_tag == nullptr) {
-							ucp_worker_progress(ucp_worker);
-						}
 					}while(message_tag == nullptr);
 
 						char * request = new char[_request_size];
@@ -226,10 +233,18 @@ void ucx_message_listener::poll_begin_message_tag(bool running_from_unit_test){
 							info_tag->sender_tag,
 							acknownledge_tag_mask,
 							request + _request_size);
-
+						status = ucp_request_check_status(request + _request_size);
 						if (!UCS_STATUS_IS_ERR(status)) {
-							ucp_progress_manager::get_instance()->add_recv_request(request, [info_tag, data_buffer{std::move(data_buffer)}, request_size=_request_size](){ recv_begin_callback_c(info_tag, std::move(data_buffer), request_size); },status);
-
+							if(status == UCS_OK){
+								recv_begin_callback_c(info_tag, std::move(data_buffer), _request_size);
+								delete request;
+							}else{
+								ucp_progress_manager::get_instance()->add_recv_request(
+									request, 
+									[info_tag, data_buffer{std::move(data_buffer)}, request_size=_request_size](){ 
+										recv_begin_callback_c(info_tag, std::move(data_buffer), request_size); }
+									,status);
+							}
 						} else {
 							throw std::runtime_error("Immediate Communication error in poll_begin_message_tag.");
 						}

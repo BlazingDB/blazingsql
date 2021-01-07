@@ -566,7 +566,7 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 	std::setlocale(LC_NUMERIC, "en_US.UTF-8");
 	// ---------------------------------------------------------------------------
 
-	// signal(SIGSEGV, handler);   // install our handler. This is for debugging.
+	//signal(SIGSEGV, handler);   // install our handler. This is for debugging.
 
 	std::string ralHost = get_ip(network_iface_name);
 

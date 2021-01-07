@@ -133,27 +133,28 @@ ucp_progress_manager::ucp_progress_manager(ucp_worker_h ucp_worker, size_t reque
 }
 
 void ucp_progress_manager::add_recv_request(char * request, std::function<void()> callback, ucs_status_t status){
-    
-    // if(status == UCS_OK){
-    //     // delete request;
-    //     callback();
-    // }else{
+    if(status == UCS_OK){
+        delete request;
+        callback();
+    }else{
         std::lock_guard<std::mutex> lock(request_mutex);
         recv_requests.insert({request, callback});
-    // }
-    cv.notify_all();            
+        cv.notify_all(); 
+    }
+           
 }
 
 
 void ucp_progress_manager::add_send_request(char * request, std::function<void()> callback, ucs_status_t status){
-    // if(status == UCS_OK){
-    //     // delete request;
-    //     callback();
-    // }else{
+    if(status == UCS_OK){
+        delete request;
+        callback();
+    }else{
         std::lock_guard<std::mutex> lock(request_mutex);
         send_requests.insert({request, callback});
-    // }
-    cv.notify_all();
+        cv.notify_all();
+    }
+
 }
 
 void ucp_progress_manager::check_progress(){
@@ -163,9 +164,9 @@ void ucp_progress_manager::check_progress(){
             std::set<request_struct> cur_recv_requests;
             {
                 std::unique_lock<std::mutex> lock(request_mutex);
-                cv.wait(lock,[this]{
-                    return (send_requests.size() + recv_requests.size()) > 0;
-                });
+                //cv.wait_for(lock,100ms,[this]{
+                //    return (send_requests.size() + recv_requests.size()) > 0;
+                //});
                 cur_send_requests = send_requests;
                 cur_recv_requests = recv_requests;
             }
@@ -271,7 +272,7 @@ void ucx_buffer_transport::send_begin_transmission() {
             //auto temp_tag = *reinterpret_cast<blazing_ucp_tag *>(&tag);
             auto status = ucp_tag_send_nbr(
                 node.get_ucp_endpoint(), buffer_to_send->data(), buffer_to_send->size(), ucp_dt_make_contig(1), tag, request + _request_size);
-
+            status = ucp_request_check_status(request + _request_size);
             if (!UCS_STATUS_IS_ERR(status)) {
                 ucp_progress_manager::get_instance()->add_send_request(request, [buffer_to_send, this]() mutable {
                     buffer_to_send.reset();
@@ -296,14 +297,14 @@ void ucx_buffer_transport::send_begin_transmission() {
 
 void ucx_buffer_transport::send_impl(const char * buffer, size_t buffer_size) {
     try {
-        blazing_ucp_tag blazing_tag = *reinterpret_cast<blazing_ucp_tag *>(&tag);
+
         for (auto const &node : destinations) {
             char *request = new char[_request_size];
             auto status = ucp_tag_send_nbr(node.get_ucp_endpoint(),
                                             buffer,
                                             buffer_size,
                                             ucp_dt_make_contig(1),
-                                            *reinterpret_cast<ucp_tag_t *>(&blazing_tag),
+                                            tag,
                                             request + _request_size);
 
             if (!UCS_STATUS_IS_ERR(status)) {

@@ -7,6 +7,7 @@
 #include "communication/CommunicationData.h"
 #include <stdio.h>
 
+#include "Util/StringUtil.h"
 #include <src/utilities/DebuggingUtils.h>
 using namespace std::chrono_literals;
 namespace ral {
