@@ -126,7 +126,7 @@ void buffer_transport::wait_for_begin_transmission() {
 			auto logger = spdlog::get("batch_logger");
 			if(logger != nullptr) {
 				logger->warn("|||{info}|{duration}||||",
-									"info"_a="buffer_transport::wait_for_begin_transmission() timed out.",
+									"info"_a="buffer_transport::wait_for_begin_transmission() timed out. transmitted_begin_frames: " + std::to_string(transmitted_begin_frames) + " destinations.size(): " + std::to_string(destinations.size()),
 									"duration"_a=blazing_timer.elapsed_time());
 			}
 		}
@@ -144,7 +144,7 @@ void buffer_transport::wait_until_complete() {
 			auto logger = spdlog::get("batch_logger");
 			if(logger != nullptr) {
 				logger->warn("|||{info}|{duration}||||",
-									"info"_a="buffer_transport::wait_until_complete() timed out.",
+									"info"_a="buffer_transport::wait_until_complete() timed out. transmitted_frames: " + std::to_string(transmitted_frames) + " buffer_sizes.size(): " + std::to_string(buffer_sizes.size()) + " destinations.size(): " + std::to_string(destinations.size()),
 									"duration"_a=blazing_timer.elapsed_time());
 			}
 		}
