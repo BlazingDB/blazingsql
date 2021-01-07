@@ -43,8 +43,9 @@ void poll_for_frames(std::shared_ptr<message_receiver> receiver,
 												*reinterpret_cast<ucp_tag_t *>(&message_tag),
 												acknownledge_tag_mask,
 												request + request_size);
-				status = ucp_request_check_status(request + request_size);
+
 				if (!UCS_STATUS_IS_ERR(status)) {
+					status = ucp_request_check_status(request + request_size);
 					if(status == UCS_OK){
 						auto receiver = ucx_message_listener::get_instance()->get_receiver(tag & message_tag_mask);
 						receiver->confirm_transmission();

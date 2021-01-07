@@ -146,14 +146,14 @@ void ucp_progress_manager::add_recv_request(char * request, std::function<void()
 
 
 void ucp_progress_manager::add_send_request(char * request, std::function<void()> callback, ucs_status_t status){
-    if(status == UCS_OK){
-        delete request;
-        callback();
-    }else{
+    // if(status == UCS_OK){
+    //     delete request;
+    //     callback();
+    // }else{
         std::lock_guard<std::mutex> lock(request_mutex);
         send_requests.insert({request, callback});
         cv.notify_all();
-    }
+    // }
 
 }
 
@@ -164,9 +164,24 @@ void ucp_progress_manager::check_progress(){
             std::set<request_struct> cur_recv_requests;
             {
                 std::unique_lock<std::mutex> lock(request_mutex);
-                //cv.wait_for(lock,100ms,[this]{
-                //    return (send_requests.size() + recv_requests.size()) > 0;
-                //});
+                // if(send_requests.size() + recv_requests.size() == 0){
+                //    cv.wait(lock,[this]{
+                //     return (send_requests.size() + recv_requests.size()) > 0;
+                // }) ;
+                // }
+                if(! cv.wait_for(lock,100ms,[this]{
+                    return (send_requests.size() + recv_requests.size()) > 0;
+                })){
+                    if((send_requests.size() + recv_requests.size()) > 0){
+                    std::cout<<"send_requests in flight"<<send_requests.size()<<std::endl;
+                    std::cout<<"recv_requests in flight"<<recv_requests.size()<<std::endl;
+
+                    }else{
+                    std::cout<<"I am empty"<<std::endl;
+       
+                    }
+
+                }
                 cur_send_requests = send_requests;
                 cur_recv_requests = recv_requests;
             }
@@ -177,13 +192,15 @@ void ucp_progress_manager::check_progress(){
                 auto status = ucp_request_check_status(req_struct.request + _request_size);
                 // std::cout<<"checked status of "<<(void *) req_struct.request<<" it was "<<status <<std::endl;
                 if (status == UCS_OK){
+
+                    req_struct.callback();
                     {
                         std::lock_guard<std::mutex> lock(request_mutex);
                         this->send_requests.erase(req_struct);
                     }
                     delete req_struct.request;
-                    req_struct.callback();
                 } else if (status != UCS_INPROGRESS){
+                    std::cout<<"its burningn alive!"<<std::endl;
                     throw std::runtime_error("Communication error in check_progress for send_requests.");
                 }
             }
@@ -192,13 +209,15 @@ void ucp_progress_manager::check_progress(){
                 auto status = ucp_request_check_status(req_struct.request + _request_size);
                 // std::cout<<"checked status of "<<(void *) req_struct.request<<" it was "<<status <<std::endl;
                 if (status == UCS_OK){
+
+                    req_struct.callback();
                     {
                         std::lock_guard<std::mutex> lock(request_mutex);
                         this->recv_requests.erase(req_struct);
                     }
                     delete req_struct.request;
-                    req_struct.callback();
                 }else if (status != UCS_INPROGRESS){
+                    std::cout<<"its freezing to death!"<<std::endl;
                     throw std::runtime_error("Communication error in check_progress for recv_requests.");
                 }
             }
@@ -307,7 +326,7 @@ void ucx_buffer_transport::send_impl(const char * buffer, size_t buffer_size) {
                                             tag,
                                             request + _request_size);
 
-            if (!UCS_STATUS_IS_ERR(status)) {
+            if ((status >= UCS_OK)) {
                 ucp_progress_manager::get_instance()->add_send_request(request, [this](){ this->increment_frame_transmission(); },status);
             } else {
                 throw std::runtime_error("Immediate Communication error in send_impl.");
