@@ -130,12 +130,12 @@ void SortAndSampleKernel::compute_partition_plan(
     // just in case there is no data
     size_t final_avg_bytes_per_row = total_num_rows_for_sampling <= 0 ? 1 : total_bytes_for_sampling / total_num_rows_for_sampling;
 
-    if (this->context->getAllNodes().size() == 1){ // single node mode
+    if (this->context->getAllNodes().size() == 1) { // single node mode
         auto partitionPlan = ral::operators::generate_partition_plan(inputSamples,
             total_num_rows_for_sampling, final_avg_bytes_per_row, this->expression, this->context.get());
         this->add_to_output_cache(std::move(partitionPlan), "output_b");
     } else { // distributed mode
-        if( ral::utilities::checkIfConcatenatingStringsWillOverflow(inputSamples)) {
+        if(ral::utilities::checkIfConcatenatingStringsWillOverflow(inputSamples)) {
             logger->warn("{query_id}|{step}|{substep}|{info}",
                             "query_id"_a=(context ? std::to_string(context->getContextToken()) : ""),
                             "step"_a=(context ? std::to_string(context->getQueryStep()) : ""),

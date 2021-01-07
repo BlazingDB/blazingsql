@@ -484,6 +484,23 @@ bool is_distribute_aggregate(std::string query_part) { return (query_part.find(L
 
 bool is_merge_aggregate(std::string query_part) { return (query_part.find(LOGICAL_MERGE_AGGREGATE_TEXT) != std::string::npos); }
 
+bool is_window(std::string query_part) { return (query_part.find(LOGICAL_WINDOW_TEXT) != std::string::npos); }
+
+bool is_only_sort(std::string query_part) { return (query_part.find(LOGICAL_ONLY_SORT_TEXT) != std::string::npos); }
+
+bool is_concat_partitions_by_keys(std::string query_part) { return (query_part.find(LOGICAL_CONCAT_PARTITIONS_BY_KEY_TEXT) != std::string::npos); }
+
+bool is_split_by_keys(std::string query_part) { return (query_part.find(LOGICAL_SPLIT_BY_KEYS_TEXT) != std::string::npos); }
+
+bool is_window_compute(std::string query_part) { return (query_part.find(LOGICAL_COMPUTE_WINDOW_TEXT) != std::string::npos); }
+
+// TODO: maybe this three functions are not necessary
+bool is_partitioned(std::string query_part) { return (query_part.find("partition") != std::string::npos); }
+
+bool is_order_by_rows(std::string query_part) { return (query_part.find("rows") != std::string::npos); }
+
+bool is_order_by_range(std::string query_part) { return (query_part.find("range") != std::string::npos); }
+
 // Returns the index from table_scan if exists
 size_t get_table_index(std::vector<std::string> table_scans, std::string table_scan) {
 

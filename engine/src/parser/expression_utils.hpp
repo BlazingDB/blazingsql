@@ -49,24 +49,24 @@ enum class operator_type {
 	BLZ_STR_REVERSE,
 
 	// Binary operators
-  BLZ_ADD,            ///< operator +
-  BLZ_SUB,            ///< operator -
-  BLZ_MUL,            ///< operator *
-  BLZ_DIV,            ///< operator / using common type of lhs and rhs
-  BLZ_MOD,            ///< operator %
-  BLZ_POW,            ///< lhs ^ rhs
-  BLZ_ROUND,
-  BLZ_EQUAL,          ///< operator ==
-  BLZ_NOT_EQUAL,      ///< operator !=
-  BLZ_LESS,           ///< operator <
-  BLZ_GREATER,        ///< operator >
-  BLZ_LESS_EQUAL,     ///< operator <=
-  BLZ_GREATER_EQUAL,  ///< operator >=
-  BLZ_BITWISE_AND,    ///< operator &
-  BLZ_BITWISE_OR,     ///< operator |
-  BLZ_BITWISE_XOR,    ///< operator ^
-  BLZ_LOGICAL_AND,    ///< operator &&
-  BLZ_LOGICAL_OR,     ///< operator ||
+	BLZ_ADD,            ///< operator +
+	BLZ_SUB,            ///< operator -
+	BLZ_MUL,            ///< operator *
+	BLZ_DIV,            ///< operator / using common type of lhs and rhs
+	BLZ_MOD,            ///< operator %
+	BLZ_POW,            ///< lhs ^ rhs
+	BLZ_ROUND,
+	BLZ_EQUAL,          ///< operator ==
+	BLZ_NOT_EQUAL,      ///< operator !=
+	BLZ_LESS,           ///< operator <
+	BLZ_GREATER,        ///< operator >
+	BLZ_LESS_EQUAL,     ///< operator <=
+	BLZ_GREATER_EQUAL,  ///< operator >=
+	BLZ_BITWISE_AND,    ///< operator &
+	BLZ_BITWISE_OR,     ///< operator |
+	BLZ_BITWISE_XOR,    ///< operator ^
+	BLZ_LOGICAL_AND,    ///< operator &&
+	BLZ_LOGICAL_OR,     ///< operator ||
 	BLZ_FIRST_NON_MAGIC,
 	BLZ_MAGIC_IF_NOT,
 	BLZ_STR_LIKE,
@@ -127,6 +127,11 @@ const std::string LOGICAL_PARTITION_TEXT = "LogicalPartition";
 const std::string LOGICAL_SORT_AND_SAMPLE_TEXT = "Logical_SortAndSample";
 const std::string LOGICAL_SINGLE_NODE_PARTITION_TEXT = "LogicalSingleNodePartition";
 const std::string LOGICAL_FILTER_TEXT = "LogicalFilter";
+const std::string LOGICAL_WINDOW_TEXT = "LogicalWindow";
+const std::string LOGICAL_CONCAT_PARTITIONS_BY_KEY_TEXT = "LogicalConcatPartitionsByKeys";
+const std::string LOGICAL_SPLIT_BY_KEYS_TEXT = "LogicalSplitByKeys";
+const std::string LOGICAL_ONLY_SORT_TEXT = "LogicalOnlySort";
+const std::string LOGICAL_COMPUTE_WINDOW_TEXT = "LogicalComputeWindow";
 const std::string ASCENDING_ORDER_SORT_TEXT = "ASC";
 const std::string DESCENDING_ORDER_SORT_TEXT = "DESC";
 
@@ -154,6 +159,16 @@ bool is_merge_aggregate(std::string query_part);
 bool is_aggregate_merge(std::string query_part); // to be deprecated
 bool is_aggregate_partition(std::string query_part); // to be deprecated
 bool is_aggregate_and_sample(std::string query_part); // to be deprecated
+bool is_window(std::string query_part);
+bool is_only_sort(std::string query_part);
+bool is_concat_partitions_by_keys(std::string query_part);
+bool is_split_by_keys(std::string query_part);
+bool is_window_compute(std::string query_part);
+
+// TODO: maybe this three functions are not necessary
+bool is_partitioned(std::string query_part);
+bool is_order_by_rows(std::string query_part);
+bool is_order_by_range(std::string query_part);
 
 // Returns the index from table_scan if exists
 size_t get_table_index(std::vector<std::string> table_scans, std::string table_scan);

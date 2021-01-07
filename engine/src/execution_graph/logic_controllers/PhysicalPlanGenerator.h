@@ -5,6 +5,7 @@
 #include "BatchAggregationProcessing.h"
 #include "BatchJoinProcessing.h"
 #include "BatchUnionProcessing.h"
+#include "BatchWindowFunctionProcessing.h"
 #include "io/Schema.h"
 #include "utilities/CommonOperations.h"
 #include "parser/expression_utils.hpp"
@@ -87,6 +88,18 @@ struct tree_processor {
 		} else if (is_sort_and_sample(expr)) {
 			k = std::make_shared<SortAndSampleKernel>(kernel_id,expr, kernel_context, query_graph);
 
+		} else if (is_only_sort(expr)) {
+			k = std::make_shared<SortKernel>(kernel_id,expr, kernel_context, query_graph);
+
+		} else if (is_concat_partitions_by_keys(expr)) {
+			k = std::make_shared<ConcatPartitionsByKeysKernel>(kernel_id,expr, kernel_context, query_graph);
+
+		} else if (is_split_by_keys(expr)) {
+			k = std::make_shared<SplitByKeysKernel>(kernel_id,expr, kernel_context, query_graph);
+
+		} else if (is_window_compute(expr)) {
+			k = std::make_shared<ComputeWindowKernel>(kernel_id,expr, kernel_context, query_graph);
+
 		} else if (is_merge(expr)) {
 			k = std::make_shared<MergeStreamKernel>(kernel_id,expr, kernel_context, query_graph);
 
@@ -121,12 +134,12 @@ struct tree_processor {
 		auto expr = p_tree.get<std::string>("expr", "");
 		root_ptr->expr = expr;
 		root_ptr->level = level;
-		root_ptr->kernel_unit = make_kernel(kernel_id,expr, query_graph);
+		root_ptr->kernel_unit = make_kernel(kernel_id, expr, query_graph);
 		kernel_id++;
 		for (auto &child : p_tree.get_child("children")) {
 			auto child_node_ptr = std::make_shared<node>();
 			root_ptr->children.push_back(child_node_ptr);
-			kernel_id = expr_tree_from_json(kernel_id,child.second, child_node_ptr.get(), level + 1, query_graph);
+			kernel_id = expr_tree_from_json(kernel_id, child.second, child_node_ptr.get(), level + 1, query_graph);
 		}
 		return kernel_id;
 	}
@@ -140,10 +153,11 @@ struct tree_processor {
 	void transform_json_tree(boost::property_tree::ptree &p_tree) {
 		std::string expr = p_tree.get<std::string>("expr", "");
 		if (is_sort(expr)){
-			auto limit_expr = expr;
-			auto merge_expr = expr;
-			auto partition_expr = expr;
-			auto sort_and_sample_expr = expr;
+			std::string limit_expr = expr;
+			std::string merge_expr = expr;
+			std::string partition_expr = expr;
+			std::string sort_and_sample_expr = expr;
+
 			if(ral::operators::has_limit_only(expr)){
 				StringUtil::findAndReplaceAll(limit_expr, LOGICAL_SORT_TEXT, LOGICAL_LIMIT_TEXT);
 
@@ -175,9 +189,9 @@ struct tree_processor {
 			}
 		}
 		else if (is_aggregate(expr)) {
-			auto merge_aggregate_expr = expr;
-			auto distribute_aggregate_expr = expr;
-			auto compute_aggregate_expr = expr;
+			std::string merge_aggregate_expr = expr;
+			std::string distribute_aggregate_expr = expr;
+			std::string compute_aggregate_expr = expr;
 
 			if (this->context->getTotalNodes() == 1) {
 				StringUtil::findAndReplaceAll(merge_aggregate_expr, LOGICAL_AGGREGATE_TEXT, LOGICAL_MERGE_AGGREGATE_TEXT);
@@ -191,7 +205,7 @@ struct tree_processor {
 
 				p_tree.put("expr", merge_aggregate_expr);
 				p_tree.put_child("children", create_array_tree(agg_tree));
-			}	else {
+			} else {
 				StringUtil::findAndReplaceAll(merge_aggregate_expr, LOGICAL_AGGREGATE_TEXT, LOGICAL_MERGE_AGGREGATE_TEXT);
 				StringUtil::findAndReplaceAll(distribute_aggregate_expr, LOGICAL_AGGREGATE_TEXT, LOGICAL_DISTRIBUTE_AGGREGATE_TEXT);
 				StringUtil::findAndReplaceAll(compute_aggregate_expr, LOGICAL_AGGREGATE_TEXT, LOGICAL_COMPUTE_AGGREGATE_TEXT);
@@ -213,12 +227,12 @@ struct tree_processor {
 		else if (is_join(expr)) {
 			if (this->context->getTotalNodes() == 1) {
 				// PartwiseJoin
-				auto pairwise_expr = expr;
+				std::string pairwise_expr = expr;
 				StringUtil::findAndReplaceAll(pairwise_expr, LOGICAL_JOIN_TEXT, LOGICAL_PARTWISE_JOIN_TEXT);
 				p_tree.put("expr", pairwise_expr);
 			} else {
-				auto pairwise_expr = expr;
-				auto join_partition_expr = expr;
+				std::string pairwise_expr = expr;
+				std::string join_partition_expr = expr;
 
 				StringUtil::findAndReplaceAll(pairwise_expr, LOGICAL_JOIN_TEXT, LOGICAL_PARTWISE_JOIN_TEXT);
 				StringUtil::findAndReplaceAll(join_partition_expr, LOGICAL_JOIN_TEXT, LOGICAL_JOIN_PARTITION_TEXT);
@@ -278,6 +292,68 @@ struct tree_processor {
 			}
 
 		}
+		/*
+		There are 5 different scenarios to keep in mind:
+			Window has a PARTITION BY clause
+			Window has a ORDER BY clause using ROWS
+			Window has a ORDER BY clause using RANGE
+			Window has a PARTITION BY and ORDER BY clause using ROWS
+			Window has a PARTITION BY and ORDER BY clause using RANGE
+		*/
+		else if (is_window(expr)) {
+			// When the Window function contains the `partition by` clause
+			if (is_partitioned(expr)) {
+				std::string concat_partitions_by_key_expr = expr;
+				std::string split_by_keys = expr;
+				std::string sort_expr = expr;
+
+				StringUtil::findAndReplaceAll(concat_partitions_by_key_expr, LOGICAL_WINDOW_TEXT, LOGICAL_CONCAT_PARTITIONS_BY_KEY_TEXT);
+				StringUtil::findAndReplaceAll(split_by_keys, LOGICAL_WINDOW_TEXT, LOGICAL_SPLIT_BY_KEYS_TEXT);
+				StringUtil::findAndReplaceAll(sort_expr, LOGICAL_WINDOW_TEXT, LOGICAL_ONLY_SORT_TEXT);
+
+				boost::property_tree::ptree sort_tree;
+				sort_tree.put("expr", sort_expr);
+				sort_tree.add_child("children", p_tree.get_child("children"));
+
+				boost::property_tree::ptree split_by_keys_tree;
+				split_by_keys_tree.put("expr", split_by_keys);
+				split_by_keys_tree.add_child("children", create_array_tree(sort_tree));
+
+				p_tree.clear();
+
+				p_tree.put("expr", concat_partitions_by_key_expr);
+				p_tree.put_child("children", create_array_tree(split_by_keys_tree));
+
+				// in case the Window function also contains an `order by` clause
+				if (expr.find("order by") != std::string::npos) {
+					sort_tree.clear();
+					sort_tree.put("expr", sort_expr);
+					sort_tree.put_child("children", create_array_tree(p_tree));
+
+					p_tree = sort_tree;
+				}
+			} 
+			// TODO: This could be improved, maybe we should use the SortAndSampleKernel, PartitionKernel and MergeStreamKernel
+			// FOr now AVOID Window Functions without PARTITION BY clause
+			// When the Window function just contains the `order by` clause
+			else {
+				std::string sort_expr = expr;
+				StringUtil::findAndReplaceAll(sort_expr, LOGICAL_WINDOW_TEXT, LOGICAL_ONLY_SORT_TEXT);
+
+				p_tree.put("expr", sort_expr);
+			}
+
+			// Add the main Window function
+			std::string window_expr = expr;
+
+			StringUtil::findAndReplaceAll(window_expr, LOGICAL_WINDOW_TEXT, LOGICAL_COMPUTE_WINDOW_TEXT);
+
+			boost::property_tree::ptree compute_window_tree;
+			compute_window_tree.put("expr", window_expr);
+			compute_window_tree.put_child("children", create_array_tree(p_tree));
+
+			p_tree = compute_window_tree;
+		}
 
 		for (auto &child : p_tree.get_child("children")) {
 			transform_json_tree(child.second);
@@ -313,12 +389,10 @@ struct tree_processor {
 			boost::property_tree::ptree p_tree;
 			boost::property_tree::read_json(input, p_tree);
 			transform_json_tree(p_tree);
-
-			max_kernel_id = expr_tree_from_json(0,p_tree, &this->root, 0, query_graph);
+			max_kernel_id = expr_tree_from_json(0, p_tree, &this->root, 0, query_graph);
 		} catch (std::exception & e) {
 			std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
-			logger->error("|||{info}|||||",
-										"info"_a="In build_batch_graph. What: {}"_format(e.what()));
+			logger->error("|||{info}|||||", "info"_a="In build_batch_graph. What: {}"_format(e.what()));
 			throw;
 		}
 
@@ -326,7 +400,7 @@ struct tree_processor {
 			query_graph->add_node(this->root.kernel_unit); // register first node
 			visit(*query_graph, &this->root, this->root.children);
 		}
-		return std::make_tuple(query_graph,max_kernel_id);
+		return std::make_tuple(query_graph, max_kernel_id);
 	}
 
 	void visit(ral::cache::graph& query_graph, node * parent, std::vector<std::shared_ptr<node>>& children) {
@@ -380,18 +454,17 @@ struct tree_processor {
 					query_graph.addPair(ral::cache::kpair(child->kernel_unit, "output_a", parent->kernel_unit, "input_a", left_cache_machine_config));
 					query_graph.addPair(ral::cache::kpair(child->kernel_unit, "output_b", parent->kernel_unit, "input_b", right_cache_machine_config));
 
-				} else if ((child_kernel_type == kernel_type::SortAndSampleKernel &&	parent_kernel_type == kernel_type::PartitionKernel)
-						|| (child_kernel_type == kernel_type::SortAndSampleKernel &&	parent_kernel_type == kernel_type::PartitionSingleNodeKernel)) {
+				} else if ((child_kernel_type == kernel_type::SortAndSampleKernel && parent_kernel_type == kernel_type::PartitionKernel)
+							|| (child_kernel_type == kernel_type::SortAndSampleKernel && parent_kernel_type == kernel_type::PartitionSingleNodeKernel)) {
 
 					cache_settings cache_machine_config;
 					cache_machine_config.context = context->clone();
 
 					query_graph.addPair(ral::cache::kpair(child->kernel_unit, "output_a", parent->kernel_unit, "input_a", cache_machine_config));
 					query_graph.addPair(ral::cache::kpair(child->kernel_unit, "output_b", parent->kernel_unit, "input_b", cache_machine_config));
-					
 
 				} else if ((child_kernel_type == kernel_type::PartitionKernel && parent_kernel_type == kernel_type::MergeStreamKernel)
-									|| (child_kernel_type == kernel_type::PartitionSingleNodeKernel && parent_kernel_type == kernel_type::MergeStreamKernel)) {
+							|| (child_kernel_type == kernel_type::PartitionSingleNodeKernel && parent_kernel_type == kernel_type::MergeStreamKernel)) {
 
 					int max_num_order_by_partitions_per_node = 8;
 					it = config_options.find("MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE");
