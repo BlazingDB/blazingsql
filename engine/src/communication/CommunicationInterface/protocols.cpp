@@ -4,6 +4,7 @@
 
 #include "protocols.hpp"
 #include "messageReceiver.hpp"
+#include "CodeTimer.h"
 
 #include <ucp/api/ucp.h>
 #include <ucp/api/ucp_def.h>
@@ -14,6 +15,7 @@
 #include "transport/io/reader_writer.h"
 
 using namespace fmt::literals;
+using namespace std::chrono_literals;
 
 constexpr size_t NUMBER_RETRIES = 20;
 constexpr size_t FILE_RETRY_DELAY = 20;
@@ -163,10 +165,21 @@ void ucp_progress_manager::check_progress(){
             std::set<request_struct> cur_send_requests;
             std::set<request_struct> cur_recv_requests;
             {
+                CodeTimer blazing_timer;
                 std::unique_lock<std::mutex> lock(request_mutex);
-                //cv.wait_for(lock,100ms,[this]{
-                //    return (send_requests.size() + recv_requests.size()) > 0;
-                //});
+                // while(!cv.wait_for(lock, 1000ms, [&blazing_timer, this] {
+                //     bool done_waiting = (send_requests.size() + recv_requests.size()) > 0;
+                //     if (!done_waiting && blazing_timer.elapsed_time() > 990) {
+                //         auto logger = spdlog::get("batch_logger");
+                //         if(logger != nullptr) {
+                //             logger->warn("|||{info}|{duration}||||",
+                //                                 "info"_a="ucp_progress_manager::check_progress() timed out.",
+                //                                 "duration"_a=blazing_timer.elapsed_time());
+                //         }
+                //     }
+                //     return done_waiting;
+                // })){}
+
                 cur_send_requests = send_requests;
                 cur_recv_requests = recv_requests;
             }
