@@ -45,6 +45,10 @@ cudf::type_id get_aggregation_output_type(cudf::type_id input_type, AggregateKin
 	} else if(aggregation == AggregateKind::MEAN) {
 		return cudf::type_id::FLOAT64;
 	} else if(aggregation == AggregateKind::COUNT_DISTINCT) {
+		/* Currently this conditional is unreachable.
+		   Calcite transforms count distincts through the
+		   AggregateExpandDistinctAggregates rule, so in fact,
+		   each count distinct is replaced by some group by clauses. */
 		return cudf::type_id::INT64;
 	} else {
 		throw std::runtime_error(
@@ -67,6 +71,10 @@ std::string aggregator_to_string(AggregateKind aggregation) {
 	} else if(aggregation == AggregateKind::MEAN) {
 		return "avg";
 	} else if(aggregation == AggregateKind::COUNT_DISTINCT) {
+		/* Currently this conditional is unreachable.
+		   Calcite transforms count distincts through the
+		   AggregateExpandDistinctAggregates rule, so in fact,
+		   each count distinct is replaced by some group by clauses. */
 		return "count_distinct";
 	} else {
 		return "";  // FIXME: is really necessary?
@@ -92,6 +100,10 @@ AggregateKind get_aggregation_operation(std::string expression_in) {
 	} else if(operator_string == "COUNT") {
 		return AggregateKind::COUNT_VALID;
 	} else if(operator_string == "COUNT_DISTINCT") {
+		/* Currently this conditional is unreachable.
+		   Calcite transforms count distincts through the
+		   AggregateExpandDistinctAggregates rule, so in fact,
+		   each count distinct is replaced by some group by clauses. */
 		return AggregateKind::COUNT_DISTINCT;
 	}
 
@@ -115,6 +127,10 @@ std::unique_ptr<cudf::aggregation> makeCudfAggregation(AggregateKind input){
 	}else if(input == AggregateKind::SUM0){
 		return cudf::make_sum_aggregation();
 	}else if(input == AggregateKind::COUNT_DISTINCT){
+		/* Currently this conditional is unreachable.
+		   Calcite transforms count distincts through the
+		   AggregateExpandDistinctAggregates rule, so in fact,
+		   each count distinct is replaced by some group by clauses. */
 		return cudf::make_nunique_aggregation();
 	}
 	throw std::runtime_error(
