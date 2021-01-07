@@ -19,7 +19,15 @@ using namespace fmt::literals;
 
 #include <numeric>
 
-
+// When files does not have extension, it concatenates with the rigth file_format
+void checkFileExtensions(std::vector<std::string>& files, std::string file_format_hint) {
+	for (std::size_t i = 0; i < files.size(); ++i) {
+		std::string last_file_characters = files[i].substr(files[i].size() - file_format_hint.size());
+		if (last_file_characters != file_format_hint && last_file_characters != "log") { // for loggingTest
+			files[i] += "." + file_format_hint;	
+		}
+	}
+}
 
 TableSchema parseSchema(std::vector<std::string> files,
 	std::string file_format_hint,
@@ -38,6 +46,10 @@ TableSchema parseSchema(std::vector<std::string> files,
 	auto args_map = ral::io::to_map(arg_keys, arg_values);
 	TableSchema tableSchema;
 	tableSchema.data_type = fileType;
+
+	if (file_format_hint != "undefined") {
+		checkFileExtensions(files, file_format_hint);
+	}
 
 	std::shared_ptr<ral::io::data_parser> parser;
 	if(fileType == ral::io::DataType::PARQUET) {
