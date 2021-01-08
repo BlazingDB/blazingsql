@@ -848,7 +848,8 @@ TEST_F(ProviderTest, uri_values_empty_dir) {
 			{{"t_year", "2017"}, {"t_company_id", "2"}, {"region", "asia"}}
 		};
 
-	auto provider = std::make_shared<ral::io::uri_data_provider>(uris, uri_values);
+	// passing "" because `dirname` doesn't have extension
+	auto provider = std::make_shared<ral::io::uri_data_provider>(uris, uri_values, "");
 
 	bool open_file = false;
 
