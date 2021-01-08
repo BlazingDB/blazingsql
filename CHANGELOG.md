@@ -24,8 +24,7 @@
 - #1204 Reenable json parser
 - #1241 Fixed cython exception handling
 - #1243 Fixed wrong CHAR regex replacing
-- #1277 Check file format for files when extension is not provided
-
+- #1277 Add extension for FileSystems when extension is not provided
 
 
 # BlazingSQL 0.17.0 (December 10, 2020)
