@@ -231,7 +231,7 @@ void ucp_progress_manager::check_progress(){
         auto logger = spdlog::get("batch_logger");
         if (logger){
             logger->error("|||{info}|||||",
-                    "info"_a="ERROR in ucp_progress_manager::check_progress(). What: {}"_format(e.what()));
+                    "info"_a="ERROR in ucp_progress_manager::check_progress() here. What: {}"_format(e.what()));
         }
         throw;
     }
