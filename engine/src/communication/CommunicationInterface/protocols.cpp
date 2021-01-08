@@ -167,24 +167,11 @@ void ucp_progress_manager::check_progress(){
             {
                 CodeTimer blazing_timer;
                 std::unique_lock<std::mutex> lock(request_mutex);
-                // if(send_requests.size() + recv_requests.size() == 0){
-                //    cv.wait(lock,[this]{
-                //     return (send_requests.size() + recv_requests.size()) > 0;
-                // }) ;
-                // }
-                if(! cv.wait_for(lock,5ms,[this]{
+                
+                cv.wait_for(lock,5ms,[this]{
                     return (send_requests.size() + recv_requests.size()) > 0;
-                })){
-                    if((send_requests.size() + recv_requests.size()) > 0){
-                    std::cout<<"send_requests in flight"<<send_requests.size()<<std::endl;
-                    std::cout<<"recv_requests in flight"<<recv_requests.size()<<std::endl;
+                });
 
-                    }else{
-                   // std::cout<<"I am empty"<<std::endl;
-       
-                    }
-
-                }
                 cur_send_requests = send_requests;
                 cur_recv_requests = recv_requests;
             }
@@ -193,7 +180,7 @@ void ucp_progress_manager::check_progress(){
 
             for(const auto & req_struct : cur_send_requests){
                 auto status = ucp_request_check_status(req_struct.request + _request_size);
-                // std::cout<<"checked status of "<<(void *) req_struct.request<<" it was "<<status <<std::endl;
+
                 if (status == UCS_OK){
 
                     req_struct.callback();
@@ -203,14 +190,12 @@ void ucp_progress_manager::check_progress(){
                     }
                     delete req_struct.request;
                 } else if (status != UCS_INPROGRESS){
-                    std::cout<<"its burningn alive!"<<std::endl;
                     throw std::runtime_error("Communication error in check_progress for send_requests.");
                 }
             }
 
             for(const auto & req_struct : cur_recv_requests){
                 auto status = ucp_request_check_status(req_struct.request + _request_size);
-                // std::cout<<"checked status of "<<(void *) req_struct.request<<" it was "<<status <<std::endl;
                 if (status == UCS_OK){
 
                     req_struct.callback();
@@ -220,12 +205,10 @@ void ucp_progress_manager::check_progress(){
                     }
                     delete req_struct.request;
                 }else if (status != UCS_INPROGRESS){
-                    std::cout<<"its freezing to death!"<<std::endl;
                     throw std::runtime_error("Communication error in check_progress for recv_requests.");
                 }
             }
 
-            // std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
     } catch(std::exception & e){
         auto logger = spdlog::get("batch_logger");
