@@ -12,7 +12,7 @@ namespace io {
 
 DataType inferDataType(std::string file_format_hint);
 
-DataType inferFileType(std::vector<std::string> files, DataType data_type_hint, std::string file_format_hint, bool ignore_missing_paths = false);
+DataType inferFileType(std::vector<std::string> files, DataType data_type_hint, bool ignore_missing_paths = false);
 
 bool in(std::string key, std::map<std::string, std::string> args);
 

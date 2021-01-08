@@ -33,7 +33,6 @@ public:
 	std::string getScheme() const noexcept;
 	std::string getAuthority() const noexcept;
 	Path getPath() const noexcept;
-	void addExtentionToPath(const std::string & file_format_hint);
 	bool isEmpty() const noexcept;
 	bool isValid() const noexcept;
 	bool isParentOf(const Uri & child) const;  // this function assumes that child is a folder and child.scheme/auth ==

@@ -723,7 +723,7 @@ TEST_F(ProviderTest, uri_values_one_folder_multiple_files_wildcard)
 			{{"t_year", "2018"}, {"t_company_id", "6"}, {"region", "europa"}}
 	};
 
-	auto provider = std::make_shared<ral::io::uri_data_provider>(uris, uri_values, "parquet");
+	auto provider = std::make_shared<ral::io::uri_data_provider>(uris, uri_values);
 
 	bool open_file = false;
 
@@ -777,7 +777,7 @@ TEST_F(ProviderTest, uri_values_one_folder_multiple_files)
 			{{"t_year", "2018"}, {"t_company_id", "6"}, {"region", "europa"}}
 		};
 
-	auto provider = std::make_shared<ral::io::uri_data_provider>(uris, uri_values, "parquet");
+	auto provider = std::make_shared<ral::io::uri_data_provider>(uris, uri_values);
 
 	bool open_file = false;
 
@@ -817,7 +817,7 @@ TEST_F(ProviderTest, uri_values_folder_with_one_file)
 			{{"t_year", "2017"}, {"t_company_id", "2"}, {"region", "asia"}}
 		};
 
-	auto provider = std::make_shared<ral::io::uri_data_provider>(uris, uri_values, "csv");
+	auto provider = std::make_shared<ral::io::uri_data_provider>(uris, uri_values);
 
 	bool open_file = false;
 
@@ -848,8 +848,7 @@ TEST_F(ProviderTest, uri_values_empty_dir) {
 			{{"t_year", "2017"}, {"t_company_id", "2"}, {"region", "asia"}}
 		};
 
-	// passing "" because `dirname` doesn't have extension
-	auto provider = std::make_shared<ral::io::uri_data_provider>(uris, uri_values, "");
+	auto provider = std::make_shared<ral::io::uri_data_provider>(uris, uri_values);
 
 	bool open_file = false;
 

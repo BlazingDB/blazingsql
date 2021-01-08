@@ -33,8 +33,6 @@ public:
 	// this function assumes that currentParentPath and newParentPath are folders
 	Path replaceParentPath(const Path & currentParent, const Path & newParent) const;
 
-	void addExtention(const std::string & file_format_hint);
-
 	// normalized folder convention is that if its a folder, it should have a slash at the end (for S3 and GS
 	// compatibility). This function also assumes that if its a file, then it should have a dot something termination.
 	Path getPathWithNormalizedFolderConvention() const;

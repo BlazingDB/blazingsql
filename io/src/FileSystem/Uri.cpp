@@ -182,10 +182,6 @@ std::string Uri::getAuthority() const noexcept { return this->authority; }
 
 Path Uri::getPath() const noexcept { return this->path; }
 
-void Uri::addExtentionToPath(const std::string & file_format_hint) {
-	this->path.addExtention(file_format_hint);
-}
-
 bool Uri::isEmpty() const noexcept {
 	const bool result = (this->scheme.empty() && this->authority.empty() && this->path.isEmpty());
 	return result;

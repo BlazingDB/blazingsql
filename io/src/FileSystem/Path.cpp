@@ -161,10 +161,6 @@ Path Path::getParentPath() const noexcept {
 	return Path(parent, true);
 }
 
-void Path::addExtention(const std::string & file_format_hint) {
-	this->path += "." + file_format_hint;
-}
-
 Path Path::replaceParentPath(const Path & currentParent, const Path & newParent) const {
 	if(currentParent.isParentOf(*this) == false) {
 		return Path();
@@ -182,6 +178,7 @@ Path Path::replaceParentPath(const Path & currentParent, const Path & newParent)
 Path Path::getPathWithNormalizedFolderConvention() const {
 	Path normalized = *this;
 
+	// it's a folder
 	if(normalized.path[normalized.path.size() - 1] == SLASH) {
 		return normalized;
 	}
@@ -189,7 +186,16 @@ Path Path::getPathWithNormalizedFolderConvention() const {
 	int dotPos = normalized.path.find_last_of('.');
 	int slashPos = normalized.path.find_last_of(SLASH);
 
-	if(dotPos > slashPos) {  // its a file
+	bool condition1 = dotPos > slashPos;
+	bool condition2 = (dotPos == -1) && (normalized.path[normalized.path.size() - 1] != SLASH);
+	bool condition3 = (dotPos < slashPos) && (normalized.path[normalized.path.size() - 1] != SLASH);
+
+	// some examples for these conditions
+	// condition N1: /path/to/data/file.orc  --> works
+	// condition N2: /path/to/data/file_without_extension  --> works
+	// condition N3: /path.with_dot/to/data/file_without_extension  --> works
+
+	if (condition1 || condition2 || condition3) {  // its a file
 		return normalized;
 	} else {
 		normalized.path = normalized.path + SLASH;

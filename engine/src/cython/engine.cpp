@@ -53,25 +53,19 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 			tableSchema.in_file,
 			tableSchema.row_groups_ids);
 
-		std::string file_format_hint;
 		std::shared_ptr<ral::io::data_parser> parser;
 		if(fileType == ral::io::DataType::PARQUET) {
 			parser = std::make_shared<ral::io::parquet_parser>();
-			file_format_hint = "parquet";
 		} else if(fileType == gdfFileType || fileType == daskFileType) {
 			parser = std::make_shared<ral::io::gdf_parser>();
 		} else if(fileType == ral::io::DataType::ORC) {
-			file_format_hint = "orc";
 			parser = std::make_shared<ral::io::orc_parser>(args_map);
 		} else if(fileType == ral::io::DataType::JSON) {
-			file_format_hint = "json";
 			parser = std::make_shared<ral::io::json_parser>(args_map);
 		} else if(fileType == ral::io::DataType::CSV) {
-			file_format_hint = "csv";
 			parser = std::make_shared<ral::io::csv_parser>(args_map);
 		} else if(fileType == ral::io::DataType::ARROW){
 	     	parser = std::make_shared<ral::io::arrow_parser>(tableSchema.arrow_table);
-			file_format_hint = "arrow";
 		}
 
 		std::shared_ptr<ral::io::data_provider> provider;
@@ -86,7 +80,7 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 			provider = std::make_shared<ral::io::gdf_data_provider>(tableSchema.blazingTableViews, uri_values[i]);
 		} else {
 			// is file (this includes the case where fileType is UNDEFINED too)
-			provider = std::make_shared<ral::io::uri_data_provider>(uris, uri_values[i], file_format_hint);
+			provider = std::make_shared<ral::io::uri_data_provider>(uris, uri_values[i]);
 		}
 		ral::io::data_loader loader(parser, provider);
 		input_loaders.push_back(loader);
