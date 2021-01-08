@@ -155,7 +155,7 @@ def main():
         fullOuterJoinsTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     if runAllTests or ("groupByTest" in targetTestGroups):
-        groupByTest.main(dask_client, drill, dir_data_file, bc, nRals)
+        groupByTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     if runAllTests or ("GroupByWitoutAggregations" in targetTestGroups):
         GroupByWitoutAggregations.main(dask_client, drill, dir_data_file, bc, nRals)

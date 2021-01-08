@@ -9,7 +9,7 @@ from Utils import Execution,  gpuMemory, init_context, skip_test
 queryType = "Group by"
 
 
-def main(dask_client, drill, dir_data_file, bc, nRals):
+def main(dask_client, drill, spark, dir_data_file, bc, nRals):
 
     start_mem = gpuMemory.capture_gpu_memory_usage()
 
@@ -164,6 +164,42 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
+            queryId = "TEST_07"
+            query = """SELECT count(distinct l_orderkey),
+                        count(distinct l_partkey),
+                        count(distinct l_suppkey)
+                    FROM lineitem
+                    GROUP BY l_orderkey, l_partkey, l_suppkey"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_08"
+            query = """SELECT count(distinct l_partkey, l_suppkey)
+                    FROM lineitem
+                    GROUP BY l_partkey, l_suppkey"""
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")
                 break
@@ -182,6 +218,7 @@ if __name__ == "__main__":
     nvmlInit()
 
     drill = "drill"  # None
+    spark = "spark"
 
     compareResults = True
     if "compare_results" in Settings.data["RunSettings"]:
@@ -198,13 +235,19 @@ if __name__ == "__main__":
         cs.init_drill_schema(drill,
                              Settings.data["TestSettings"]["dataDirectory"])
 
+        # Create Table Spark ------------------------------------------------
+        from pyspark.sql import SparkSession
+
+        spark = SparkSession.builder.appName("timestampTest").getOrCreate()
+        cs.init_spark_schema(spark, Settings.data["TestSettings"]["dataDirectory"])
+
     # Create Context For BlazingSQL
 
     bc, dask_client = init_context()
 
     nRals = Settings.data["RunSettings"]["nRals"]
 
-    main(dask_client, drill, Settings.data["TestSettings"]["dataDirectory"],
+    main(dask_client, drill, spark, Settings.data["TestSettings"]["dataDirectory"],
          bc, nRals)
 
     if Settings.execution_mode != ExecutionMode.GENERATOR:
