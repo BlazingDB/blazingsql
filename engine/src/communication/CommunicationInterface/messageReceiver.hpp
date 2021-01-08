@@ -79,7 +79,9 @@ private:
   std::vector<size_t> _buffer_sizes;
   std::vector<std::basic_string<char>> _raw_buffers;
   std::map<std::string, comm::node> _nodes_info_map;
-  int _buffer_counter = 0;
+  std::atomic<int> _buffer_counter;
+  std::mutex _finish_mutex;
+  bool _finished_called = false;
 };
 
 } // namespace comm

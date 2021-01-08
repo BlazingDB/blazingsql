@@ -172,7 +172,7 @@ void ucp_progress_manager::check_progress(){
                 //     return (send_requests.size() + recv_requests.size()) > 0;
                 // }) ;
                 // }
-                if(! cv.wait_for(lock,100ms,[this]{
+                if(! cv.wait_for(lock,5ms,[this]{
                     return (send_requests.size() + recv_requests.size()) > 0;
                 })){
                     if((send_requests.size() + recv_requests.size()) > 0){
@@ -180,7 +180,7 @@ void ucp_progress_manager::check_progress(){
                     std::cout<<"recv_requests in flight"<<recv_requests.size()<<std::endl;
 
                     }else{
-                    std::cout<<"I am empty"<<std::endl;
+                   // std::cout<<"I am empty"<<std::endl;
        
                     }
 
