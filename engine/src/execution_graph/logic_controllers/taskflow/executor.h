@@ -36,6 +36,7 @@ public:
 	*/
 	void run(cudaStream_t stream, executor * executor);
 	void complete();
+	void fail();
 	std::size_t task_memory_needed();
 
 	/**
@@ -81,6 +82,9 @@ public:
 	}
 
 	void execute();
+	std::exception_ptr last_exception();
+	bool has_exception();
+
 	size_t add_task(std::vector<std::unique_ptr<ral::cache::CacheData > > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
 		ral::cache::kernel * kernel, const std::map<std::string, std::string>& args = {});
@@ -108,6 +112,8 @@ private:
 	static executor * _instance;
 	std::atomic<int> task_id_counter;
 	size_t attempts_limit = 10;
+	std::mutex exception_holder_mutex;
+	std::queue<std::exception_ptr> exception_holder;
 
 	BlazingMemoryResource* resource;
 	std::size_t processing_memory_limit;

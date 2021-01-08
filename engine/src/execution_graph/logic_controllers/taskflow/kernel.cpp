@@ -176,6 +176,11 @@ void kernel::notify_complete(size_t task_id){
     kernel_cv.notify_one();
 }
 
+void kernel::notify_fail(){
+    std::lock_guard<std::mutex> lock(kernel_mutex);
+    kernel_cv.notify_one();
+}
+
 // This is only the default estimate of the bytes to be output by a kernel based on the input.
 // Each kernel should implement its own version of this, if its possible to obtain a better estimate
 std::size_t kernel::estimate_output_bytes(const std::vector<std::unique_ptr<ral::cache::CacheData > > & inputs){

@@ -423,8 +423,12 @@ kstatus Projection::run() {
 
     std::unique_lock<std::mutex> lock(kernel_mutex);
     kernel_cv.wait(lock,[this]{
-        return this->tasks.empty();
+        return this->tasks.empty() || ral::execution::executor::get_instance()->has_exception();
     });
+
+    if(auto ep = ral::execution::executor::get_instance()->last_exception()){
+        std::rethrow_exception(ep);
+    }
 
     if(logger != nullptr) {
         logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",

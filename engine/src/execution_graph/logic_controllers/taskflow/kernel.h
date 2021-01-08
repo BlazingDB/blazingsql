@@ -198,6 +198,7 @@ public:
 	std::string kernel_name() { return "base_kernel"; }
 
 	void notify_complete(size_t task_id);
+	void notify_fail();
 	void add_task(size_t task_id);
 	bool finished_tasks(){
 		return tasks.empty();
