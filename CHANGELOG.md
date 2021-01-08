@@ -25,7 +25,7 @@
 - #1241 Fixed cython exception handling
 - #1243 Fixed wrong CHAR regex replacing
 - #1275 Fixed issue in StringUtil::findAndReplaceAll when there are several matches
-- #1277 Add extension for FileSystems when extension is not provided
+- #1277 Support FileSystems (GS, S3) when extension of the files are not provided
 
 
 # BlazingSQL 0.17.0 (December 10, 2020)
