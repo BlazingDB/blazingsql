@@ -7,18 +7,23 @@
 - #1244 Added memory monitor ability to downgrade task data
 - #1232 Update PartwiseJoin and JoinPartition kernel using the task executor internally
 - #1238 Implements MergeStramKernel executor model
+- #1259 Implements SortAndSamplernel executor model, also avoid setting up num of samples
 
 ## Improvements
 - #1236 Moving code from header files to implementation files
 - #1257 Expose the reset max memory usage C++ API to python
 - #1256 Improve Logical project documentation
+- #1262 Stop depending on gtest for runtime
 - #1261 Improve storage plugin output messages
 - #1153 Enable warnings and fixes
+- #1267 Added retrys to comms, fixed deadlocks in executor and order by. Improved logging and error management. Caches have names. Improved Joins
+- #1239 Reducing Memory pressure by moving shuffle data to cpu before transmission
 
 ## Bug Fixes
 - #1249 Fix compilation with cuda 11
 - #1253 Fixed distribution so that its evenly distributes based of rowgroups
 - #1204 Reenable json parser
+- #1241 Fixed cython exception handling
 
 
 

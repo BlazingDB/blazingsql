@@ -12,7 +12,7 @@
 
 namespace io{
     void read_from_socket(int socket_fd, void * data, size_t read_size);
-    void write_to_socket(int socket_fd, void * data, size_t read_size);
+    void write_to_socket(int socket_fd, const void * data, size_t read_size);
 }
 
 
@@ -26,8 +26,8 @@ public:
 
    	static ucp_progress_manager * get_instance(ucp_worker_h ucp_worker, size_t request_size);
     static ucp_progress_manager * get_instance();
-    void add_recv_request(char * request, std::function<void()> callback);
-    void add_send_request(char * request, std::function<void()> callback);
+    void add_recv_request(char * request, std::function<void()> callback, ucs_status_t status);
+    void add_send_request(char * request, std::function<void()> callback, ucs_status_t status);
 private:
    struct request_struct{
         char * request;
@@ -96,7 +96,7 @@ public:
 		ral::cache::MetadataDictionary metadata,
 		std::vector<size_t> buffer_sizes,
 		std::vector<blazingdb::transport::ColumnTransport> column_transports,
-        uint16_t ral_id);
+        int ral_id);
     ~ucx_buffer_transport();
 
     void send_begin_transmission() override;
@@ -107,7 +107,7 @@ protected:
 private:
 
     ucp_worker_h origin_node;
-    uint16_t ral_id;
+    int ral_id;
     /**
      * Generates message tag.
      * Generates a tag for the message where the first 4 bytes are our
@@ -119,7 +119,7 @@ private:
     ucp_tag_t tag;  /**< The first 6 bytes are the actual tag the last two
                          indicate which frame this is. */
 
-    int32_t message_id;
+    int message_id;
 
     size_t _request_size;
 };
@@ -133,7 +133,7 @@ public:
         ral::cache::MetadataDictionary metadata,
         std::vector<size_t> buffer_sizes,
         std::vector<blazingdb::transport::ColumnTransport> column_transports,
-        uint16_t ral_id,
+        int ral_id,
         ctpl::thread_pool<BlazingThread> * allocate_copy_buffer_pool);
     ~tcp_buffer_transport();
 
@@ -143,7 +143,7 @@ protected:
     void send_impl(const char * buffer, size_t buffer_size) override;
 
 private:
-    uint16_t ral_id;
+    int ral_id;
     int message_id;
     std::vector<int> socket_fds;
     ctpl::thread_pool<BlazingThread> * allocate_copy_buffer_pool;

@@ -1,6 +1,6 @@
 #include "distributing_kernel.h"
 #include "utilities/CommonOperations.h"
-
+#include <src/utilities/DebuggingUtils.h>
 namespace ral {
 namespace cache {
 
@@ -44,6 +44,7 @@ void distributing_kernel::send_message(std::unique_ptr<ral::frame::BlazingTable>
     }
 
     ral::cache::MetadataDictionary metadata;
+    metadata.add_value(ral::cache::RAL_ID_METADATA_LABEL,context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()));
     metadata.add_value(ral::cache::KERNEL_ID_METADATA_LABEL, std::to_string(kernel_id));
     metadata.add_value(ral::cache::QUERY_ID_METADATA_LABEL, std::to_string(context->getContextToken()));
     metadata.add_value(ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL, specific_cache ? "true" : "false");
@@ -70,11 +71,13 @@ void distributing_kernel::send_message(std::unique_ptr<ral::frame::BlazingTable>
     std::shared_ptr<ral::cache::CacheMachine> output_cache = query_graph->get_output_message_cache();
 
     bool added;
+    std::string message_id = metadata.get_values()[ral::cache::MESSAGE_ID];
     if(table==nullptr) {
-        added = output_cache->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(ral::utilities::create_empty_table({}, {}), metadata), "", always_add);
-    } else {
-        added = output_cache->addCacheData(std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(std::move(table), metadata)), "", always_add);
-    }
+        table = ral::utilities::create_empty_table({}, {});
+    } 
+    
+    added = output_cache->addToCache(std::move(table),"",always_add,metadata,true);
+    
 
     if(wait_for) {
         std::lock_guard<std::mutex> lock(messages_to_wait_for_mutex);
@@ -99,7 +102,7 @@ int distributing_kernel::get_total_partition_counts(std::size_t message_tracker_
     int total_count = node_count[message_tracker_idx].at(node.id());
     for (auto message : messages_to_wait_for[message_tracker_idx]){
         auto meta_message = query_graph->get_input_message_cache()->pullCacheData(message);
-        total_count += std::stoi(static_cast<ral::cache::GPUCacheDataMetaData *>(meta_message.get())->getMetadata().get_values()[ral::cache::PARTITION_COUNT]);
+        total_count += std::stoi(static_cast<ral::cache::CPUCacheData *>(meta_message.get())->getMetadata().get_values()[ral::cache::PARTITION_COUNT]);
     }
     return total_count;
 }
@@ -154,7 +157,7 @@ void distributing_kernel::broadcast(std::unique_ptr<ral::frame::BlazingTable> ta
     );
 
     // now lets add to the self node
-    bool added = output->addToCache(std::move(table), message_id_prefix, false);
+    bool added = output->addToCache(std::move(table), message_id_prefix, always_add);
     if (added) {
         node_count[message_tracker_idx].at(node.id())++;
     }

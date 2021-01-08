@@ -4,8 +4,13 @@
 #pragma GCC diagnostic ignored "-Wunknown-pragmas"
 #include <cudf/utilities/type_dispatcher.hpp>
 #include <cudf/strings/string_view.cuh>
-#include <cudf_test/column_utilities.hpp>
+
+#ifdef BSQLDBGUTILS
+#include <cudf_test/column_utilities.hpp> 
+#endif // BSQLDBGUTILS
+
 #pragma GCC diagnostic pop
+
 
 namespace ral {
 namespace utilities {
@@ -49,7 +54,9 @@ void print_blazing_table_view(ral::frame::BlazingTableView table_view, const std
 	for(int col_idx=0; col_idx<table_view.num_columns(); col_idx++){
 		std::string col_string;
 		if (table_view.num_rows() > 0){
+#ifdef BSQLDBGUTILS
 			col_string = cudf::test::to_string(table_view.column(col_idx), "|");
+#endif // BSQLDBGUTILS
 		}
 		std::cout<<"\t"<<table_view.names().at(col_idx)<<" ("<<"type: "<<type_string(table_view.column(col_idx).type())<<"): "<<col_string<<std::endl;
 	}

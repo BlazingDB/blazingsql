@@ -24,7 +24,7 @@ TEST_F(ProviderTest, non_existent_directory) {
         catch(std::runtime_error e){
             SUCCEED();
         }
-        catch(std::exception e){
+        catch(std::exception & e){
             FAIL();
         }
         catch(...){

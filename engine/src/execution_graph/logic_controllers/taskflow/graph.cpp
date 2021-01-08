@@ -82,7 +82,12 @@ namespace cache {
 										std::string log_detail = "ERROR kernel " + std::to_string(source_id) + " did not finished successfully";
 										logger->error("|||{info}|||||","info"_a=log_detail);
 									}
-								}	catch(...) {
+								} catch(const std::exception & e) {
+									auto logger = spdlog::get("batch_logger");
+									if (logger){
+										logger->error("|||{info}|||||",
+												"info"_a="ERROR in graph::execute. What: {}"_format(e.what()));
+									}
 									source->output_.finish();
 									throw;
 								}
@@ -237,7 +242,7 @@ namespace cache {
 
 		target->set_parent(source->get_id());
 		{
-			std::vector<std::shared_ptr<CacheMachine>> cache_machines = create_cache_machines(config);
+			std::vector<std::shared_ptr<CacheMachine>> cache_machines = create_cache_machines(config, source_port, source->get_id());
 			if(config.type == CacheType::FOR_EACH) {
 				for(size_t index = 0; index < cache_machines.size(); index++) {
 

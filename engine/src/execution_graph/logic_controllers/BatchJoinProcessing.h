@@ -24,7 +24,7 @@ const int LEFT_TABLE_IDX = 0;
 const int RIGHT_TABLE_IDX = 1;
 
 /* This function takes in the relational algrebra expression and returns:
-- modified relational algrbra expression
+- modified relational algebra expression
 - join condition
 - filter_statement
 - join type */
@@ -57,8 +57,6 @@ private:
 	std::unique_ptr<ral::cache::CacheData> load_right_set();
 
 	void mark_set_completed(int left_ind, int right_ind);
-
-	std::vector<int> get_indexes_from_message_id(const std::vector<std::string> & message_ids);
 
 	// This function checks to see if there is a set from our current completion_matix (data we have already loaded once)
 	// that we have not completed that uses one of our current indices, otherwise it returns [-1, -1]
