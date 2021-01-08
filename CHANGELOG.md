@@ -24,6 +24,7 @@
 - #1204 Reenable json parser
 - #1241 Fixed cython exception handling
 - #1243 Fixed wrong CHAR regex replacing
+- #1275 Fixed issue in StringUtil::findAndReplaceAll when there are several matches
 
 
 

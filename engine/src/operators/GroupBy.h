@@ -19,7 +19,8 @@ enum AggregateKind{
 	MIN,
 	MAX,
 	COUNT_VALID,
-	COUNT_ALL
+	COUNT_ALL,
+	COUNT_DISTINCT
 };
 
 namespace ral {
