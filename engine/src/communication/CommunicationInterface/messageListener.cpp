@@ -267,15 +267,21 @@ void ucx_message_listener::poll_begin_message_tag(bool running_from_unit_test){
 
 
 void ucx_message_listener::add_receiver(ucp_tag_t tag,std::shared_ptr<message_receiver> receiver){
+	std::lock_guard<std::mutex> lock(this->receiver_mutex);
 	tag_to_receiver[tag] = receiver;
 }
 
 std::shared_ptr<message_receiver> ucx_message_listener::get_receiver(ucp_tag_t tag) {
+	std::lock_guard<std::mutex> lock(this->receiver_mutex);
 	return tag_to_receiver.at(tag);
 }
 
 void ucx_message_listener::remove_receiver(ucp_tag_t tag){
-	tag_to_receiver.erase(tag);
+	std::lock_guard<std::mutex> lock(this->receiver_mutex);
+	if(tag_to_receiver.find(tag) != tag_to_receiver.end()){
+		tag_to_receiver.erase(tag);
+	}
+
 }
 
 ucp_worker_h ucx_message_listener::get_worker(){
