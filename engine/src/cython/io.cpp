@@ -19,16 +19,6 @@ using namespace fmt::literals;
 
 #include <numeric>
 
-// When files does not have extension, it concatenates with the rigth file_format
-void checkFileExtensions(std::vector<std::string>& files, std::string file_format_hint) {
-	for (std::size_t i = 0; i < files.size(); ++i) {
-		std::string last_file_characters = files[i].substr(files[i].size() - file_format_hint.size());
-		if (last_file_characters != file_format_hint && last_file_characters != "log") { // for loggingTest
-			files[i] += "." + file_format_hint;	
-		}
-	}
-}
-
 TableSchema parseSchema(std::vector<std::string> files,
 	std::string file_format_hint,
 	std::vector<std::string> arg_keys,
@@ -42,14 +32,10 @@ TableSchema parseSchema(std::vector<std::string> files,
 	}
 
 	const DataType data_type_hint = ral::io::inferDataType(file_format_hint);
-	const DataType fileType = inferFileType(files, data_type_hint, ignore_missing_paths);
+	const DataType fileType = inferFileType(files, data_type_hint, file_format_hint, ignore_missing_paths);
 	auto args_map = ral::io::to_map(arg_keys, arg_values);
 	TableSchema tableSchema;
 	tableSchema.data_type = fileType;
-
-	if (file_format_hint != "undefined") {
-		checkFileExtensions(files, file_format_hint);
-	}
 
 	std::shared_ptr<ral::io::data_parser> parser;
 	if(fileType == ral::io::DataType::PARQUET) {
@@ -66,7 +52,7 @@ TableSchema parseSchema(std::vector<std::string> files,
 	for(auto file_path : files) {
 		uris.push_back(Uri{file_path});
 	}
-	auto provider = std::make_shared<ral::io::uri_data_provider>(uris, ignore_missing_paths);
+	auto provider = std::make_shared<ral::io::uri_data_provider>(uris, file_format_hint, ignore_missing_paths);
 	auto loader = std::make_shared<ral::io::data_loader>(parser, provider);
 
 	ral::io::Schema schema;
@@ -164,7 +150,7 @@ std::unique_ptr<ResultSet> parseMetadata(std::vector<std::string> files,
 		return result;
 	}
 	const DataType data_type_hint = ral::io::inferDataType(file_format_hint);
-	const DataType fileType = inferFileType(files, data_type_hint);
+	const DataType fileType = inferFileType(files, data_type_hint, file_format_hint);
 	std::map<std::string, std::string> args_map = ral::io::to_map(arg_keys, arg_values);
 
 	std::shared_ptr<ral::io::data_parser> parser;
@@ -181,7 +167,7 @@ std::unique_ptr<ResultSet> parseMetadata(std::vector<std::string> files,
 	for(auto file_path : files) {
 		uris.push_back(Uri{file_path});
 	}
-	auto provider = std::make_shared<ral::io::uri_data_provider>(uris);
+	auto provider = std::make_shared<ral::io::uri_data_provider>(uris, file_format_hint);
 	auto loader = std::make_shared<ral::io::data_loader>(parser, provider);
 	try{
 		std::unique_ptr<ral::frame::BlazingTable> metadata = loader->get_metadata(offset.first);

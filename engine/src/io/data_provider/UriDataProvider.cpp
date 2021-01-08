@@ -18,20 +18,29 @@ namespace ral {
 namespace io {
 
 uri_data_provider::uri_data_provider(std::vector<Uri> uris, bool ignore_missing_paths)
-	: data_provider(), file_uris(uris), current_file(0), opened_files({}), errors({}),
+	: data_provider(), file_uris(uris), current_file(0), opened_files({}), errors({}), file_format(""),
 	uri_values({}), directory_uris({}), directory_current_file(0), ignore_missing_paths(ignore_missing_paths) {}
 
 uri_data_provider::uri_data_provider(std::vector<Uri> uris,
 	std::vector<std::map<std::string, std::string>> uri_values,
+	std::string file_format_hint,
 	bool ignore_missing_paths)
 	: data_provider(), file_uris(uris), current_file(0),
-	opened_files({}), errors({}), uri_values(uri_values), directory_uris({}),
+	opened_files({}), errors({}), uri_values(uri_values), directory_uris({}), file_format(file_format_hint),
 	  directory_current_file(0), ignore_missing_paths(ignore_missing_paths) {
 	// thanks to c++11 we no longer have anything interesting to do here :)
 }
 
+uri_data_provider::uri_data_provider(std::vector<Uri> uris,
+	std::string file_format_hint, 
+	bool ignore_missing_paths)
+	: data_provider(), file_uris(uris), current_file(0),
+	opened_files({}), errors({}), uri_values({}), directory_uris({}), file_format(file_format_hint),
+	  directory_current_file(0), ignore_missing_paths(ignore_missing_paths) {
+}
+
 std::shared_ptr<data_provider> uri_data_provider::clone() {
-	return std::make_shared<uri_data_provider>(this->file_uris, this->uri_values);
+	return std::make_shared<uri_data_provider>(this->file_uris, this->uri_values, this->file_format);
 }
 
 size_t uri_data_provider::get_num_handles(){
@@ -67,7 +76,6 @@ std::vector<data_handle> uri_data_provider::get_some(std::size_t num_files, bool
 	}
 	return file_handles;
 }
-
 
 data_handle uri_data_provider::get_next(bool open_file) {
 	// TODO: Take a look at this later, just calling this function to ensure
@@ -122,6 +130,15 @@ data_handle uri_data_provider::get_next(bool open_file) {
 				target_uri = Uri(current_uri.getScheme(), current_uri.getAuthority(), final_path);
 			}
 
+			// This is a harcoding implementation to support FileSystems that does not have extensions (.orc .parquet .csv ...)
+			// we are adding .ext just to support these kind of files.
+			std::string file_name = target_uri.getPath().getResourceName();
+			std::string extension = target_uri.getPath().getFileExtension(); // it will be "" when the files does not have extension
+			// We want to ensure this affects only to files and not folders
+			if (!fs_manager->exists(target_uri) && file_name.size() > 0 && extension.size() == 0) {
+				target_uri.addExtentionToPath(this->file_format);
+			}
+
 			if(fs_manager && fs_manager->exists(target_uri)) {
 				fileStatus = BlazingContext::getInstance()->getFileSystemManager()->getFileStatus(target_uri);
 			} else if (!ignore_missing_paths){
@@ -131,13 +148,10 @@ data_handle uri_data_provider::get_next(bool open_file) {
 					"For local file paths: '/folder0/folder1/fileName.extension'    " +
 					"For local file paths with wildcard: '/folder0/folder1/*fileName*.*'    " +
 					"For local directory paths: '/folder0/folder1/'    " +
-					"For s3 file paths: 's3://registeredFileSystemName/folder0/folder1/fileName.extension'    " +
 					"For s3 file paths with wildcard: '/folder0/folder1/*fileName*.*'    " +
 					"For s3 directory paths: 's3://registeredFileSystemName/folder0/folder1/'    " +
-					"For gs file paths: 'gs://registeredFileSystemName/folder0/folder1/fileName.extension'    " +
 					"For gs file paths with wildcard: '/folder0/folder1/*fileName*.*'    " +
 					"For gs directory paths: 'gs://registeredFileSystemName/folder0/folder1/'    " +
-					"For HDFS file paths: 'hdfs://registeredFileSystemName/folder0/folder1/fileName.extension'    " +
 					"For HDFS file paths with wildcard: '/folder0/folder1/*fileName*.*'    " +
 					"For HDFS directory paths: 'hdfs://registeredFileSystemName/folder0/folder1/'");
 			} 

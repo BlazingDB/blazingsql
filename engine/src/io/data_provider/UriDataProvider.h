@@ -27,8 +27,12 @@ class uri_data_provider : public data_provider {
 public:
 	uri_data_provider(std::vector<Uri> uris,
 		std::vector<std::map<std::string, std::string>> uri_values,
+		std::string file_format_hint,
 		bool ignore_missing_paths = false);
 	uri_data_provider(std::vector<Uri> uris, 
+		bool ignore_missing_paths = false);
+	uri_data_provider(std::vector<Uri> uris,
+		std::string file_format_hint, 
 		bool ignore_missing_paths = false);
 
 	std::shared_ptr<data_provider> clone() override; 
@@ -92,6 +96,7 @@ private:
 	std::vector<Uri> directory_uris;
 	size_t directory_current_file;
 	bool ignore_missing_paths;
+	std::string file_format;
 };
 
 } /* namespace io */

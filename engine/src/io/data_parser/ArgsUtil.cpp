@@ -28,7 +28,7 @@ DataType inferDataType(std::string file_format_hint) {
 	return DataType::UNDEFINED;
 }
 
-DataType inferFileType(std::vector<std::string> files, DataType data_type_hint, bool ignore_missing_paths) {
+DataType inferFileType(std::vector<std::string> files, DataType data_type_hint, std::string file_format_hint, bool ignore_missing_paths) {
 	if(data_type_hint == DataType::PARQUET || data_type_hint == DataType::CSV || data_type_hint == DataType::JSON ||
 		data_type_hint == DataType::ORC) {
 		return data_type_hint;
@@ -37,7 +37,7 @@ DataType inferFileType(std::vector<std::string> files, DataType data_type_hint, 
 	std::vector<Uri> uris;
 	std::transform(
 		files.begin(), files.end(), std::back_inserter(uris), [](std::string uri) -> Uri { return Uri(uri); });
-	ral::io::uri_data_provider udp(uris, ignore_missing_paths);
+	ral::io::uri_data_provider udp(uris, file_format_hint, ignore_missing_paths);
 	bool open_file = false;
 	const ral::io::data_handle dh = udp.get_next(open_file);
 	std::string ext = dh.uri.getPath().getFileExtension();

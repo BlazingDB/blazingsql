@@ -161,6 +161,10 @@ Path Path::getParentPath() const noexcept {
 	return Path(parent, true);
 }
 
+void Path::addExtention(const std::string & file_format_hint) {
+	this->path += "." + file_format_hint;
+}
+
 Path Path::replaceParentPath(const Path & currentParent, const Path & newParent) const {
 	if(currentParent.isParentOf(*this) == false) {
 		return Path();
