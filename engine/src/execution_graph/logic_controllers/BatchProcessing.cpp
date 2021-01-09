@@ -283,12 +283,6 @@ ral::execution::task_result BindableTableScan::do_process(std::vector< std::uniq
         return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }
     return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
-
-
-   
-
-
-
 }
 
 kstatus BindableTableScan::run() {
@@ -305,8 +299,7 @@ kstatus BindableTableScan::run() {
         auto empty = schema.makeEmptyBlazingTable(projections);
         empty->setNames(fix_column_aliases(empty->names(), expression));
         this->add_to_output_cache(std::move(empty));
-    
-    } else {    
+    } else {
 
         while(provider->has_next()) {
             //retrieve the file handle but do not open the file
@@ -344,8 +337,12 @@ kstatus BindableTableScan::run() {
 
         std::unique_lock<std::mutex> lock(kernel_mutex);
         kernel_cv.wait(lock,[this]{
-            return this->tasks.empty();
+            return this->tasks.empty() || ral::execution::executor::get_instance()->has_exception();
         });
+
+        if(auto ep = ral::execution::executor::get_instance()->last_exception()){
+            std::rethrow_exception(ep);
+        }
     }
 
     logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
