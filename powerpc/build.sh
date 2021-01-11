@@ -711,10 +711,9 @@ echo "END mvn"
 # download local installer from https://developer.nvidia.com/nccl
 # (have to register and answer questionnaire)
 # Power  "O/S agnostic local installer"
-# cd $RAPIDS_SRC
 # tar xvfk nccl_2.7.6-1+cuda10.1_ppc64le.txz
 # cp -r nccl_2.7.6-1+cuda10.1_ppc64le/lib/* $VIRTUAL_ENV/lib/
-# cp -r nccl_2.7.6-1+cuda10.1_ppc64le/include/* $VIRTUAL_ENV/include
+# cp -r nccl_2.7.6-1+cuda10.1_ppc64le/include/* $VIRTUAL_ENV/include/
 
 echo "BEGIN rapidjson"
 cd $build_dir
