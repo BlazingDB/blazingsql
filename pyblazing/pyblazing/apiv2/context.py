@@ -2178,7 +2178,11 @@ class BlazingContext(object):
             # /path/to/data/folder/ -> name_file = /path/to/data/folder/, extension = ''
             name_file, extension = os.path.splitext(input[0])
 
-            if file_format_hint == "undefined" and extension == '' and input[0][-1] != '/':
+            if (
+                file_format_hint == "undefined"
+                and extension == ""
+                and input[0][-1] != "/"
+            ):
                 raise Exception(
                     "ERROR: if your input file doesn't have an extension, you have to specify the `file_format`. Or if its a directory, it needs to end in a slash"
                 )
