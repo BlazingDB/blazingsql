@@ -2172,6 +2172,17 @@ class BlazingContext(object):
             ignore_missing_paths = (user_partitions_schema is not None) or (
                 local_files is True
             )
+
+            # /path/to/data/file.txt -> name_file = /path/to/data/file, extension = "txt"
+            # /path/to/data/file_wo_extens -> name_file = /path/to/data/file_wo_extens, extension = ''
+            # /path/to/data/folder/ -> name_file = /path/to/data/folder/, extension = ''
+            name_file, extension = os.path.splitext(input[0])
+
+            if file_format_hint == "undefined" and extension == '' and input[0][-1] != '/':
+                raise Exception(
+                    "ERROR: if your input file doesn't have an extension, you have to specify the `file_format`. Or if its a directory, it needs to end in a slash"
+                )
+
             parsedSchema, parsed_mapping_files = self._parseSchema(
                 input,
                 file_format_hint,

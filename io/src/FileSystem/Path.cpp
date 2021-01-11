@@ -175,34 +175,6 @@ Path Path::replaceParentPath(const Path & currentParent, const Path & newParent)
 	return result;
 }
 
-Path Path::getPathWithNormalizedFolderConvention() const {
-	Path normalized = *this;
-
-	// it's a folder
-	if(normalized.path[normalized.path.size() - 1] == SLASH) {
-		return normalized;
-	}
-
-	int dotPos = normalized.path.find_last_of('.');
-	int slashPos = normalized.path.find_last_of(SLASH);
-
-	bool condition1 = dotPos > slashPos;
-	bool condition2 = (dotPos == -1) && (normalized.path[normalized.path.size() - 1] != SLASH);
-	bool condition3 = (dotPos < slashPos) && (normalized.path[normalized.path.size() - 1] != SLASH);
-
-	// some examples for these conditions
-	// condition N1: /path/to/data/file.orc  --> works
-	// condition N2: /path/to/data/file_without_extension  --> works
-	// condition N3: /path.with_dot/to/data/file_without_extension  --> works
-
-	if (condition1 || condition2 || condition3) {  // its a file
-		return normalized;
-	} else {
-		normalized.path = normalized.path + SLASH;
-		return normalized;
-	}
-}
-
 bool Path::hasTrailingSlash() const {
 	const bool result = (this->path.back() == SLASH);
 	return result;
