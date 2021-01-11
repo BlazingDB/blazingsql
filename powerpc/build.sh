@@ -733,7 +733,7 @@ if [ ! -d treelite ]; then
   mkdir build
   cd build
   CXXFLAGS="-I$VIRTUAL_ENV/include -L$VIRTUAL_ENV/lib"  cmake -D CMAKE_INSTALL_PREFIX=$VIRTUAL_ENV $TREELITE_SRC
-  make -j install
+  make -j$MAKEJ install
 fi
 echo "END treelite"
 
@@ -744,8 +744,8 @@ if [ ! -d swig ]; then
   cd swig
   ./autogen.sh
   ./configure --without-python --with-python3 --prefix=$VIRTUAL_ENV 
-  make -j2
-  make -j2 install
+  make -j$MAKEJ
+  make -j$MAKEJ install
 fi
 echo "END swig"
 
@@ -754,11 +754,11 @@ cd $build_dir
 if [ ! -d faiss ]; then
   git clone https://github.com/facebookresearch/faiss.git
   cd faiss
-  cmake -DCUDAToolkit_ROOT=$OLCF_CUDA_ROOT -DPython_EXECUTABLE=$VIRTUAL_ENV/bin/python -DCMAKE_INSTALL_PREFIX=$VIRTUAL_ENV -B build .
-  make -C build
-  cd build
-  make -j2 install
-  cd faiss/python && python setup.py install
+  # this is v1.6.3 which is what cuml is expecting, but with some fixes
+  git checkout a93a4b39571db0ab6ad0b4ef42a6b8734ca05135
+  ./configure --with-cuda=$OLCF_CUDA_ROOT --prefix=$VIRTUAL_ENV --with-cuda-arch=-gencode="arch=compute_70,code=sm_70"
+  CXXFLAGS=-fPIC make -j $MAKEJ 
+  make -j $MAKEJ install
 fi
 echo "END faiss" 
 
@@ -771,7 +771,7 @@ if [ ! -d doxygen ]; then
   mkdir build
   cd build
   cmake -G "Unix Makefiles" -D CMAKE_INSTALL_PREFIX=$VIRTUAL_ENV ..
-  make -j2 install
+  make -j$MAKEJ install
 fi
 echo "END doxygen" 
 
@@ -799,7 +799,7 @@ if [ ! -d cuml ]; then
         -DBUILD_CUML_TESTS=OFF \
         -DBUILD_PRIMS_TESTS=OFF \
         ../cpp
-  make -j install
+  make -j$MAKEJ install
   fi
 echo "END cuml" 
 
