@@ -1,6 +1,6 @@
 #include "distributing_kernel.h"
 #include "utilities/CommonOperations.h"
-
+#include <src/utilities/DebuggingUtils.h>
 namespace ral {
 namespace cache {
 
@@ -73,10 +73,11 @@ void distributing_kernel::send_message(std::unique_ptr<ral::frame::BlazingTable>
     bool added;
     std::string message_id = metadata.get_values()[ral::cache::MESSAGE_ID];
     if(table==nullptr) {
-        added = output_cache->addCacheData(std::make_unique<ral::cache::GPUCacheDataMetaData>(ral::utilities::create_empty_table({}, {}), metadata), message_id, always_add);
-    } else {
-        added = output_cache->addCacheData(std::unique_ptr<ral::cache::GPUCacheData>(new ral::cache::GPUCacheDataMetaData(std::move(table), metadata)), message_id, always_add);
-    }
+        table = ral::utilities::create_empty_table({}, {});
+    } 
+    
+    added = output_cache->addToCache(std::move(table),"",always_add,metadata,true);
+    
 
     if(wait_for) {
         std::lock_guard<std::mutex> lock(messages_to_wait_for_mutex);
@@ -101,7 +102,7 @@ int distributing_kernel::get_total_partition_counts(std::size_t message_tracker_
     int total_count = node_count[message_tracker_idx].at(node.id());
     for (auto message : messages_to_wait_for[message_tracker_idx]){
         auto meta_message = query_graph->get_input_message_cache()->pullCacheData(message);
-        total_count += std::stoi(static_cast<ral::cache::GPUCacheDataMetaData *>(meta_message.get())->getMetadata().get_values()[ral::cache::PARTITION_COUNT]);
+        total_count += std::stoi(static_cast<ral::cache::CPUCacheData *>(meta_message.get())->getMetadata().get_values()[ral::cache::PARTITION_COUNT]);
     }
     return total_count;
 }
