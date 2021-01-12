@@ -85,7 +85,8 @@ void message_sender::run_polling() {
 						auto metadata = cpu_cache_data->getMetadata();
 
 						auto destinations_str = metadata.get_values()[ral::cache::WORKER_IDS_METADATA_LABEL];
-						comms_logger->info("{ral_id}|{query_id}|{kernel_id}|{dest_ral_id}|{dest_ral_count}|{dest_cache_id}|{message_id}",
+						comms_logger->info("{unique_id}|{ral_id}|{query_id}|{kernel_id}|{dest_ral_id}|{dest_ral_count}|{dest_cache_id}|{message_id}",
+							"unique_id"_a=metadata.get_values()[ral::cache::UNIQUE_MESSAGE_ID],
 							"ral_id"_a=ral_id,
 							"query_id"_a=metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL],
 							"kernel_id"_a=metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL],

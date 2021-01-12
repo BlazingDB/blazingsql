@@ -54,6 +54,7 @@ const std::string JOIN_RIGHT_BYTES_METADATA_LABEL = "join_right_bytes_metadata_l
 const std::string AVG_BYTES_PER_ROW_METADATA_LABEL = "avg_bytes_per_row"; /** < A message metadata field that indicates the average of bytes per row. */
 const std::string MESSAGE_ID = "message_id"; /**< A message metadata field that indicates the id of a message. Not all messages have an id. Any message that has add_to_specific_cache == false MUST have a message id. */
 const std::string PARTITION_COUNT = "partition_count"; /**< A message metadata field that indicates the number of partitions a kernel processed.  */
+const std::string UNIQUE_MESSAGE_ID = "unique_message_id"; /**< A message metadata field that indicates the unique id of a message. */
 
 const int CACHE_LEVEL_AUTO = -1;
 const int CACHE_LEVEL_GPU = 0;
