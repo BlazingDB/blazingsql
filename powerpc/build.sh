@@ -498,7 +498,7 @@ echo "END cudf"
 echo "BEGIN CUPY"
 cd $build_dir
 if [ ! -d cupy ]; then
-    cupy_version=v7.7.0
+    cupy_version=v7.8.0
     git clone --recurse-submodules --depth 1 https://github.com/cupy/cupy.git --branch $cupy_version --single-branch
     cd cupy
     pip install .
@@ -734,6 +734,10 @@ if [ ! -d treelite ]; then
   cd build
   CXXFLAGS="-I$VIRTUAL_ENV/include -L$VIRTUAL_ENV/lib"  cmake -D CMAKE_INSTALL_PREFIX=$VIRTUAL_ENV $TREELITE_SRC
   make -j$MAKEJ install
+  cd ../python
+  python setup.py install --single-version-externally-managed --record=record.txt
+  cd ../runtime/python
+  python setup.py install --single-version-externally-managed --record=record.txt
 fi
 echo "END treelite"
 
@@ -800,7 +804,11 @@ if [ ! -d cuml ]; then
         -DBUILD_PRIMS_TESTS=OFF \
         ../cpp
   make -j$MAKEJ install
-  fi
+  cd ../python
+  PARALLEL_LEVEL=$MAKEJ LDFLAGS="-L$CUDA_HOME/lib64 -L$VIRTUAL_ENV/lib" python setup.py build_ext --inplace --singlegpu install
+  # LDFLAGS="-L$CUDA_HOME/lib64 -L$VIRTUAL_ENV/lib" python setup.py clean --all build --singlegpu install --record=record.txt
+  
+fi
 echo "END cuml" 
 
 
