@@ -8,6 +8,7 @@
 #include <ucp/api/ucp.h>
 #include <ucp/api/ucp_def.h>
 #include "messageReceiver.hpp"
+#include <mutex>
 
 namespace comm {
 
@@ -68,6 +69,7 @@ private:
     ucp_worker_h ucp_worker;
     std::map<ucp_tag_t,std::shared_ptr<message_receiver> > tag_to_receiver;
 	static ucx_message_listener * instance;
+    std::mutex receiver_mutex;
 };
 
 } // namespace comm

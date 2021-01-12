@@ -4,6 +4,7 @@
 
 #include "protocols.hpp"
 #include "messageReceiver.hpp"
+#include "CodeTimer.h"
 
 #include <ucp/api/ucp.h>
 #include <ucp/api/ucp_def.h>
@@ -14,6 +15,7 @@
 #include "transport/io/reader_writer.h"
 
 using namespace fmt::literals;
+using namespace std::chrono_literals;
 
 constexpr size_t NUMBER_RETRIES = 20;
 constexpr size_t FILE_RETRY_DELAY = 20;
@@ -23,58 +25,75 @@ namespace io{
 
 
 	void read_from_socket(int socket_fd, void * data, size_t read_size){
-		size_t amount_read = 0;
-		int bytes_read = 0;
-        size_t count_invalids = 0;
-		while (amount_read < read_size && count_invalids < NUMBER_RETRIES) {
-			bytes_read = read(socket_fd, data + amount_read, read_size - amount_read); 
-			if (bytes_read != -1) {
-				amount_read += bytes_read;
-				count_invalids = 0;
-			} else {
-				if (errno == 9) { // Bad socket number
-					std::cerr << "Bad socket reading from  " << socket_fd << std::endl;
-					throw std::runtime_error("Bad socket");
-				}
-				const int sleep_milliseconds = (count_invalids + 1) * FILE_RETRY_DELAY;
-				std::this_thread::sleep_for(std::chrono::milliseconds(sleep_milliseconds));
-				count_invalids++;
-			}
-		}
-        if(amount_read < read_size){
-            throw std::runtime_error("Could not read complete message from socket with errno "  + std::to_string(errno));
-        }
+        try {
+            size_t amount_read = 0;
+            int bytes_read = 0;
+            size_t count_invalids = 0;
+            while (amount_read < read_size && count_invalids < NUMBER_RETRIES) {
+                bytes_read = read(socket_fd, data + amount_read, read_size - amount_read); 
+                if (bytes_read != -1) {
+                    amount_read += bytes_read;
+                    count_invalids = 0;
+                } else {
+                    if (errno == 9) { // Bad socket number
+                        std::cerr << "Bad socket reading from  " << socket_fd << std::endl;
+                        throw std::runtime_error("Bad socket");
+                    }
+                    const int sleep_milliseconds = (count_invalids + 1) * FILE_RETRY_DELAY;
+                    std::this_thread::sleep_for(std::chrono::milliseconds(sleep_milliseconds));
+                    count_invalids++;
+                }
+            }
+            if(amount_read < read_size){
+                throw std::runtime_error("Could not read complete message from socket with errno "  + std::to_string(errno));
+            }
+        } catch(std::exception & e){
+            auto logger = spdlog::get("batch_logger");
+            if (logger){
+                logger->error("|||{info}|||||",
+                        "info"_a="ERROR in read_from_socket. What: {}"_format(e.what()));
+            }
+            throw;
+	    }
     }
 
-    void write_to_socket(int socket_fd, void * data, size_t write_size){
-		size_t amount_written = 0;
-		int bytes_written = 0;
-        size_t count_invalids = 0;
-		while (amount_written < write_size && count_invalids < NUMBER_RETRIES) {
-			bytes_written = write(socket_fd, data + amount_written, write_size - amount_written);
+    void write_to_socket(int socket_fd, const void * data, size_t write_size){
+		try {
+            size_t amount_written = 0;
+            int bytes_written = 0;
+            size_t count_invalids = 0;
+            while (amount_written < write_size && count_invalids < NUMBER_RETRIES) {
+                bytes_written = write(socket_fd, data + amount_written, write_size - amount_written);
 
-			if (bytes_written != -1) {
-				amount_written += bytes_written;
-				count_invalids = 0;
-			} else {
-            	if (errno == 9) { // Bad socket number
-					std::cerr << "Bad socket writing to " << socket_fd << std::endl;
-					throw std::runtime_error("Bad socket");
-				}
-				// TODO: add check to make sure that the task was not handlerThread
-				const int sleep_milliseconds = (count_invalids + 1) * FILE_RETRY_DELAY;
-				std::this_thread::sleep_for(
-					std::chrono::milliseconds(sleep_milliseconds));
-				if (count_invalids < 300) {
-					count_invalids++;
-				}
-			}
-		}
+                if (bytes_written != -1) {
+                    amount_written += bytes_written;
+                    count_invalids = 0;
+                } else {
+                    if (errno == 9) { // Bad socket number
+                        std::cerr << "Bad socket writing to " << socket_fd << std::endl;
+                        throw std::runtime_error("Bad socket");
+                    }
+                    // TODO: add check to make sure that the task was not handlerThread
+                    const int sleep_milliseconds = (count_invalids + 1) * FILE_RETRY_DELAY;
+                    std::this_thread::sleep_for(
+                        std::chrono::milliseconds(sleep_milliseconds));
+                    if (count_invalids < 300) {
+                        count_invalids++;
+                    }
+                }
+            }
 
-        if(amount_written < write_size ){
-            throw std::runtime_error("Could not write complete message to socket with errno " +std::to_string(errno));   
-        }
-
+            if(amount_written < write_size ){
+                throw std::runtime_error("Could not write complete message to socket with errno " +std::to_string(errno));   
+            }
+        } catch(std::exception & e){
+            auto logger = spdlog::get("batch_logger");
+            if (logger){
+                logger->error("|||{info}|||||",
+                        "info"_a="ERROR in write_to_socket. What: {}"_format(e.what()));
+            }
+            throw;
+	    }
     }
 }
 
@@ -96,6 +115,11 @@ ucp_progress_manager * ucp_progress_manager::get_instance(ucp_worker_h ucp_worke
 
 ucp_progress_manager * ucp_progress_manager::get_instance() {
 	if(instance == nullptr){
+        auto logger = spdlog::get("batch_logger");
+        if (logger){
+            logger->error("|||{info}|||||",
+                    "info"_a="ERROR in ucp_progress_manager (in blazing) not initialized.");
+        }
         throw std::runtime_error("ucp_progress_manager (in blazing) not initialized.");
     }
 	return instance;
@@ -110,69 +134,89 @@ ucp_progress_manager::ucp_progress_manager(ucp_worker_h ucp_worker, size_t reque
     t.detach();
 }
 
-void ucp_progress_manager::add_recv_request(char * request, std::function<void()> callback){
-    {
+void ucp_progress_manager::add_recv_request(char * request, std::function<void()> callback, ucs_status_t status){
+    if(status == UCS_OK){
+        delete request;
+        callback();
+    }else{
         std::lock_guard<std::mutex> lock(request_mutex);
         recv_requests.insert({request, callback});
+        cv.notify_all(); 
     }
-    cv.notify_all();
+           
 }
 
 
-void ucp_progress_manager::add_send_request(char * request, std::function<void()> callback){
-    {
+void ucp_progress_manager::add_send_request(char * request, std::function<void()> callback, ucs_status_t status){
+    // if(status == UCS_OK){
+    //     delete request;
+    //     callback();
+    // }else{
         std::lock_guard<std::mutex> lock(request_mutex);
         send_requests.insert({request, callback});
-    }
-    cv.notify_all();
+        cv.notify_all();
+    // }
+
 }
 
 void ucp_progress_manager::check_progress(){
-    while(true){
-        std::set<request_struct> cur_send_requests;
-        std::set<request_struct> cur_recv_requests;
-        {
-            std::unique_lock<std::mutex> lock(request_mutex);
-            cv.wait(lock,[this]{
-                return (send_requests.size() + recv_requests.size()) > 0;
-            });
-            cur_send_requests = send_requests;
-            cur_recv_requests = recv_requests;
-        }
+    try {
+        while(true){
+            std::set<request_struct> cur_send_requests;
+            std::set<request_struct> cur_recv_requests;
+            {
+                CodeTimer blazing_timer;
+                std::unique_lock<std::mutex> lock(request_mutex);
+                
+                cv.wait_for(lock,5ms,[this]{
+                    return (send_requests.size() + recv_requests.size()) > 0;
+                });
 
-    	ucp_worker_progress(ucp_worker);
-
-        for(const auto & req_struct : cur_send_requests){
-            auto status = ucp_request_check_status(req_struct.request + _request_size);
-            // std::cout<<"checked status of "<<(void *) req_struct.request<<" it was "<<status <<std::endl;
-            if (status == UCS_OK){
-                {
-                    std::lock_guard<std::mutex> lock(request_mutex);
-                    this->send_requests.erase(req_struct);
-                }
-                delete req_struct.request;
-                req_struct.callback();
-            } else if (status != UCS_INPROGRESS){
-                throw std::runtime_error("Communication error in check_progress for send_requests.");
+                cur_send_requests = send_requests;
+                cur_recv_requests = recv_requests;
             }
-        }
 
-        for(const auto & req_struct : cur_recv_requests){
-            auto status = ucp_request_check_status(req_struct.request + _request_size);
-            // std::cout<<"checked status of "<<(void *) req_struct.request<<" it was "<<status <<std::endl;
-            if (status == UCS_OK){
-                {
-                    std::lock_guard<std::mutex> lock(request_mutex);
-                    this->recv_requests.erase(req_struct);
+            ucp_worker_progress(ucp_worker);
+
+            for(const auto & req_struct : cur_send_requests){
+                auto status = ucp_request_check_status(req_struct.request + _request_size);
+
+                if (status == UCS_OK){
+
+                    req_struct.callback();
+                    {
+                        std::lock_guard<std::mutex> lock(request_mutex);
+                        this->send_requests.erase(req_struct);
+                    }
+                    delete req_struct.request;
+                } else if (status != UCS_INPROGRESS){
+                    throw std::runtime_error("Communication error in check_progress for send_requests.");
                 }
-                delete req_struct.request;
-                req_struct.callback();
-            }else if (status != UCS_INPROGRESS){
-                throw std::runtime_error("Communication error in check_progress for recv_requests.");
             }
-        }
 
-        // std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            for(const auto & req_struct : cur_recv_requests){
+                auto status = ucp_request_check_status(req_struct.request + _request_size);
+                if (status == UCS_OK){
+
+                    req_struct.callback();
+                    {
+                        std::lock_guard<std::mutex> lock(request_mutex);
+                        this->recv_requests.erase(req_struct);
+                    }
+                    delete req_struct.request;
+                }else if (status != UCS_INPROGRESS){
+                    throw std::runtime_error("Communication error in check_progress for recv_requests.");
+                }
+            }
+
+        }
+    } catch(std::exception & e){
+        auto logger = spdlog::get("batch_logger");
+        if (logger){
+            logger->error("|||{info}|||||",
+                    "info"_a="ERROR in ucp_progress_manager::check_progress() here. What: {}"_format(e.what()));
+        }
+        throw;
     }
 }
 
@@ -223,48 +267,66 @@ ucp_tag_t ucx_buffer_transport::generate_message_tag() {
 }
 
 void ucx_buffer_transport::send_begin_transmission() {
-    std::shared_ptr<std::vector<char>> buffer_to_send = std::make_shared<std::vector<char>>(detail::serialize_metadata_and_transports_and_buffer_sizes(metadata, column_transports, buffer_sizes));
+    try {
+        std::shared_ptr<std::vector<char>> buffer_to_send = std::make_shared<std::vector<char>>(detail::serialize_metadata_and_transports_and_buffer_sizes(metadata, column_transports, buffer_sizes));
 
-    std::vector<char *> requests(destinations.size());
-    int i = 0;
-    for(auto const & node : destinations) {
-        char * request = new char[_request_size];
-        //auto temp_tag = *reinterpret_cast<blazing_ucp_tag *>(&tag);
-        auto status = ucp_tag_send_nbr(
-            node.get_ucp_endpoint(), buffer_to_send->data(), buffer_to_send->size(), ucp_dt_make_contig(1), tag, request + _request_size);
+        std::vector<char *> requests(destinations.size());
+        int i = 0;
+        for(auto const & node : destinations) {
+            char * request = new char[_request_size];
+            //auto temp_tag = *reinterpret_cast<blazing_ucp_tag *>(&tag);
+            auto status = ucp_tag_send_nbr(
+                node.get_ucp_endpoint(), buffer_to_send->data(), buffer_to_send->size(), ucp_dt_make_contig(1), tag, request + _request_size);
+            status = ucp_request_check_status(request + _request_size);
+            if (!UCS_STATUS_IS_ERR(status)) {
+                ucp_progress_manager::get_instance()->add_send_request(request, [buffer_to_send, this]() mutable {
+                    buffer_to_send.reset();
+                    this->increment_begin_transmission();
+                },status);
+            }else {
+                throw std::runtime_error("Immediate Communication error in send_begin_transmission.");
+            }
 
-        if (!UCS_STATUS_IS_ERR(status)) {
-            ucp_progress_manager::get_instance()->add_send_request(request, [buffer_to_send, this]() mutable {
-                buffer_to_send.reset();
-                this->increment_begin_transmission();
-            });
-        }else {
-            throw std::runtime_error("Immediate Communication error in send_begin_transmission.");
+            i++;
         }
-
-		i++;
-	}
-    reinterpret_cast<blazing_ucp_tag *>(&tag)->frame_id++;
+        reinterpret_cast<blazing_ucp_tag *>(&tag)->frame_id++;
+    } catch(std::exception & e){
+        auto logger = spdlog::get("batch_logger");
+        if (logger){
+            logger->error("|||{info}|||||",
+                    "info"_a="ERROR in ucx_buffer_transport::send_begin_transmission(). What: {}"_format(e.what()));
+        }
+        throw;
+    }
 }
 
 void ucx_buffer_transport::send_impl(const char * buffer, size_t buffer_size) {
-  blazing_ucp_tag blazing_tag = *reinterpret_cast<blazing_ucp_tag *>(&tag);
-  for (auto const &node : destinations) {
-    char *request = new char[_request_size];
-    auto status = ucp_tag_send_nbr(node.get_ucp_endpoint(),
-                                    buffer,
-                                    buffer_size,
-                                    ucp_dt_make_contig(1),
-                                    *reinterpret_cast<ucp_tag_t *>(&blazing_tag),
-                                    request + _request_size);
+    try {
 
-    if (!UCS_STATUS_IS_ERR(status)) {
-        ucp_progress_manager::get_instance()->add_send_request(request, [this](){ this->increment_frame_transmission(); });
-    } else {
-        throw std::runtime_error("Immediate Communication error in send_impl.");
+        for (auto const &node : destinations) {
+            char *request = new char[_request_size];
+            auto status = ucp_tag_send_nbr(node.get_ucp_endpoint(),
+                                            buffer,
+                                            buffer_size,
+                                            ucp_dt_make_contig(1),
+                                            tag,
+                                            request + _request_size);
+
+            if ((status >= UCS_OK)) {
+                ucp_progress_manager::get_instance()->add_send_request(request, [this](){ this->increment_frame_transmission(); },status);
+            } else {
+                throw std::runtime_error("Immediate Communication error in send_impl.");
+            }
+        }
+        reinterpret_cast<blazing_ucp_tag *>(&tag)->frame_id++;
+    } catch(std::exception & e){
+        auto logger = spdlog::get("batch_logger");
+        if (logger){
+            logger->error("|||{info}|||||",
+                    "info"_a="ERROR in ucx_buffer_transport::send_impl. What: {}"_format(e.what()));
+        }
+        throw;
     }
-  }
-  reinterpret_cast<blazing_ucp_tag *>(&tag)->frame_id++;
 }
 
 tcp_buffer_transport::tcp_buffer_transport(
@@ -324,45 +386,12 @@ void tcp_buffer_transport::send_begin_transmission(){
 }
 
 void tcp_buffer_transport::send_impl(const char * buffer, size_t buffer_size){
-    //this is where it gets fuzzy...
-
-    //allocate pinned + copy from gpu
-    //transmit
-    size_t pinned_buffer_size = blazingdb::transport::io::getPinnedBufferProvider().sizeBuffers();
-    size_t num_chunks = (buffer_size +(pinned_buffer_size - 1))/ pinned_buffer_size;
-    std::vector<blazingdb::transport::io::PinnedBuffer *> buffers(num_chunks);
-
-    for( size_t chunk = 0; chunk < num_chunks; chunk++ ){
-
-        size_t chunk_size = pinned_buffer_size;
-        if(( chunk + 1) == num_chunks){ // if its the last chunk, we chunk_size is different
-            chunk_size = buffer_size - (chunk * pinned_buffer_size);
-        }
-        auto buffer_chunk_start = buffer + (chunk * pinned_buffer_size);
-
-
-        auto pinned_buffer = blazingdb::transport::io::getPinnedBufferProvider().getBuffer();
-        pinned_buffer->use_size = chunk_size;
-        cudaMemcpyAsync(pinned_buffer->data,buffer_chunk_start,chunk_size,cudaMemcpyDeviceToHost,stream);
-        buffers[chunk] = pinned_buffer;
-    }
-    size_t chunk = 0;
     try{
-        cudaStreamSynchronize(stream);
-        while(chunk < num_chunks){
-
-            auto pinned_buffer = buffers[chunk];
-            for (auto socket_fd : socket_fds){
-               // io::write_to_socket(socket_fd, &pinned_buffer->use_size,sizeof(pinned_buffer->use_size));
-                io::write_to_socket(socket_fd, pinned_buffer->data,pinned_buffer->use_size);
-            }
-            blazingdb::transport::io::getPinnedBufferProvider().freeBuffer(pinned_buffer);
-            chunk++;
-        }
-
-        for(size_t i = 0; i < socket_fds.size(); ++i){
+        for (auto socket_fd : socket_fds){
+            io::write_to_socket(socket_fd, buffer,buffer_size);
             increment_frame_transmission();
         }
+        
     }catch(const std::exception & e ){
         auto logger = spdlog::get("batch_logger");
         if (logger){

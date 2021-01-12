@@ -108,7 +108,7 @@ void SortAndSampleKernel::make_partition_plan_task(){
             if(!(nodes[i] == ral::communication::CommunicationData::getInstance().getSelfNode())) {
                 std::string message_id = std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + nodes[i].id();
                 auto samples_cache_data = this->query_graph->get_input_message_cache()->pullCacheData(message_id);
-                ral::cache::GPUCacheDataMetaData * cache_ptr = static_cast<ral::cache::GPUCacheDataMetaData *> (samples_cache_data.get());
+                ral::cache::CPUCacheData * cache_ptr = static_cast<ral::cache::CPUCacheData *> (samples_cache_data.get());
                 total_num_rows_for_sampling += std::stoll(cache_ptr->getMetadata().get_values()[ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL]);
                 total_bytes_for_sampling += std::stoll(cache_ptr->getMetadata().get_values()[ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL]) * std::stoll(cache_ptr->getMetadata().get_values()[ral::cache::AVG_BYTES_PER_ROW_METADATA_LABEL]);
                 sampleCacheDatas.push_back(std::move(samples_cache_data));
@@ -606,7 +606,7 @@ kstatus LimitKernel::run() {
         for (std::size_t i = 0; i < limit_messages_to_wait_for.size(); i++) {
             auto meta_message = this->query_graph->get_input_message_cache()->pullCacheData(limit_messages_to_wait_for[i]);
             if(static_cast<int>(i) < context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode())){
-                prev_total_rows += std::stoi(static_cast<ral::cache::GPUCacheDataMetaData*>(meta_message.get())->getMetadata().get_values()[ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL]);
+                prev_total_rows += std::stoi(static_cast<ral::cache::CPUCacheData*>(meta_message.get())->getMetadata().get_values()[ral::cache::TOTAL_TABLE_ROWS_METADATA_LABEL]);
             }
         }
         rows_limit = std::min(std::max(rows_limit - prev_total_rows, int64_t{0}), total_batch_rows);

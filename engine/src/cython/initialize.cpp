@@ -566,7 +566,7 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 	std::setlocale(LC_NUMERIC, "en_US.UTF-8");
 	// ---------------------------------------------------------------------------
 
-	// signal(SIGSEGV, handler);   // install our handler. This is for debugging.
+	//signal(SIGSEGV, handler);   // install our handler. This is for debugging.
 
 	std::string ralHost = get_ip(network_iface_name);
 
@@ -732,7 +732,7 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 	auto & communicationData = ral::communication::CommunicationData::getInstance();
 	communicationData.initialize(worker_id, orc_files_path);
 
-	auto output_input_caches = std::make_pair(std::make_shared<CacheMachine>(nullptr, "messages_out", false),std::make_shared<CacheMachine>(nullptr, "messages_in", false));
+	auto output_input_caches = std::make_pair(std::make_shared<CacheMachine>(nullptr, "messages_out", false,CACHE_LEVEL_CPU ),std::make_shared<CacheMachine>(nullptr, "messages_in", false));
 
 	// start ucp servers
 	if(!singleNode){
@@ -875,6 +875,17 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 	if (config_it != config_options.end()){
 		processing_memory_limit_threshold = std::stod(config_options["BLAZING_PROCESSING_DEVICE_MEM_CONSUMPTION_THRESHOLD"]);
 	}
+
+	unsigned major_version;
+	unsigned minor_version;
+	unsigned release_number;
+	ucp_get_version	(&major_version,
+	&minor_version,
+	&release_number 
+	);
+
+	std::cout<<"UCX version:"<<major_version<<"."<<minor_version<<"."<<release_number<<std::endl;
+
 	ral::execution::executor::init_executor(executor_threads, processing_memory_limit_threshold);
 	return std::make_pair(output_input_caches, ralCommunicationPort);	
 }
