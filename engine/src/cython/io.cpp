@@ -20,7 +20,6 @@ using namespace fmt::literals;
 #include <numeric>
 
 
-
 TableSchema parseSchema(std::vector<std::string> files,
 	std::string file_format_hint,
 	std::vector<std::string> arg_keys,
