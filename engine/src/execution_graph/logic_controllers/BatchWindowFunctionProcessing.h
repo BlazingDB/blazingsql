@@ -1,6 +1,7 @@
 #pragma once
 
 #include "BatchProcessing.h"
+#include "operators/OrderBy.h"
 
 namespace ral {
 namespace batch {
@@ -55,7 +56,8 @@ public:
 	kstatus run() override;
 
 private:
-
+	std::vector<int> column_indices;
+	std::vector<cudf::type_id> keys_values;
 };
 
 

@@ -201,7 +201,7 @@ std::tuple<std::vector<int>, std::vector<std::string>, std::vector<AggregateKind
 using namespace ral::distribution;
 
 std::unique_ptr<ral::frame::BlazingTable> compute_groupby_without_aggregations(
-		const ral::frame::BlazingTableView & table, const std::vector<int> & group_column_indices) {
+	const ral::frame::BlazingTableView & table, const std::vector<int> & group_column_indices) {
 
 	std::unique_ptr<cudf::table> output = cudf::drop_duplicates(table.view(),
 		group_column_indices,

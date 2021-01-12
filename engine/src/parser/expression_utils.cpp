@@ -64,24 +64,24 @@ bool is_unary_operator(operator_type op) {
 bool is_binary_operator(operator_type op) {
 	switch (op)
 	{
-  case operator_type::BLZ_ADD:
-  case operator_type::BLZ_SUB:
-  case operator_type::BLZ_MUL:
-  case operator_type::BLZ_DIV:
-  case operator_type::BLZ_MOD:
-  case operator_type::BLZ_POW:
-  case operator_type::BLZ_ROUND:
-  case operator_type::BLZ_EQUAL:
-  case operator_type::BLZ_NOT_EQUAL:
-  case operator_type::BLZ_LESS:
-  case operator_type::BLZ_GREATER:
-  case operator_type::BLZ_LESS_EQUAL:
-  case operator_type::BLZ_GREATER_EQUAL:
-  case operator_type::BLZ_BITWISE_AND:
-  case operator_type::BLZ_BITWISE_OR:
-  case operator_type::BLZ_BITWISE_XOR:
-  case operator_type::BLZ_LOGICAL_AND:
-  case operator_type::BLZ_LOGICAL_OR:
+	case operator_type::BLZ_ADD:
+	case operator_type::BLZ_SUB:
+	case operator_type::BLZ_MUL:
+	case operator_type::BLZ_DIV:
+	case operator_type::BLZ_MOD:
+	case operator_type::BLZ_POW:
+	case operator_type::BLZ_ROUND:
+	case operator_type::BLZ_EQUAL:
+	case operator_type::BLZ_NOT_EQUAL:
+	case operator_type::BLZ_LESS:
+	case operator_type::BLZ_GREATER:
+	case operator_type::BLZ_LESS_EQUAL:
+	case operator_type::BLZ_GREATER_EQUAL:
+	case operator_type::BLZ_BITWISE_AND:
+	case operator_type::BLZ_BITWISE_OR:
+	case operator_type::BLZ_BITWISE_XOR:
+	case operator_type::BLZ_LOGICAL_AND:
+	case operator_type::BLZ_LOGICAL_OR:
 	case operator_type::BLZ_FIRST_NON_MAGIC:
 	case operator_type::BLZ_MAGIC_IF_NOT:
 	case operator_type::BLZ_STR_LIKE:
@@ -208,12 +208,12 @@ cudf::type_id get_output_type(operator_type op, cudf::type_id input_left_type, c
 							? input_left_type
 							: input_right_type;
 		}
-  case operator_type::BLZ_EQUAL:
-  case operator_type::BLZ_NOT_EQUAL:
-  case operator_type::BLZ_LESS:
-  case operator_type::BLZ_GREATER:
-  case operator_type::BLZ_LESS_EQUAL:
-  case operator_type::BLZ_GREATER_EQUAL:
+	case operator_type::BLZ_EQUAL:
+	case operator_type::BLZ_NOT_EQUAL:
+	case operator_type::BLZ_LESS:
+	case operator_type::BLZ_GREATER:
+	case operator_type::BLZ_LESS_EQUAL:
+	case operator_type::BLZ_GREATER_EQUAL:
 	case operator_type::BLZ_LOGICAL_AND:
 	case operator_type::BLZ_LOGICAL_OR:
 		return cudf::type_id::BOOL8;
@@ -398,6 +398,26 @@ std::vector<std::string> fix_column_aliases(const std::vector<std::string> & col
 	}
 
 	return col_names;
+}
+
+std::vector<int> get_colums_to_partition(const std::string & query_part) {
+	std::vector<int> column_index;
+	std::string expression_name = "partition ";
+
+	if (query_part.find(expression_name) == query_part.npos) {
+		return column_index;
+	}
+
+	int start_position = query_part.find(expression_name) + expression_name.size();
+    int end_position = query_part.find("}", start_position);
+
+	// Now we have somethig like {0, 1, 2}
+	std::string values = query_part.substr(start_position + 1, end_position - start_position - 1);
+	std::vector<std::string> column_numbers_string = StringUtil::split(values, ",");
+	for (size_t i = 0; i < column_numbers_string.size(); i++) {
+		column_index.push_back(std::stoi(column_numbers_string[i]));
+	}
+	return column_index;
 }
 
 std::string get_named_expression(const std::string & query_part, const std::string & expression_name) {

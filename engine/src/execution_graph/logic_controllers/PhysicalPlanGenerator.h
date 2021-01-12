@@ -333,7 +333,7 @@ struct tree_processor {
 					p_tree = sort_tree;
 				}
 			} 
-			// TODO: This could be improved, maybe we should use the SortAndSampleKernel, PartitionKernel and MergeStreamKernel
+			// TODO: This could be improved, maybe we should just use the SortAndSampleKernel, PartitionKernel and MergeStreamKernel
 			// FOr now AVOID Window Functions without PARTITION BY clause
 			// When the Window function just contains the `order by` clause
 			else {
