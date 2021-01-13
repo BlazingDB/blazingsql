@@ -166,7 +166,7 @@ bool is_split_by_keys(std::string query_part);
 bool is_window_compute(std::string query_part);
 
 // input: window#0=[window(partition {0, 2} aggs [MIN($0)])]
-// ooutput: a vector, [0, 2]
+// output: a vector, [0, 2]
 std::vector<int> get_colums_to_partition(const std::string & query_part);
 
 // TODO: maybe this three functions are not necessary
