@@ -22,13 +22,14 @@ def checkSocket(socketNum):
     try:
         s.bind(("127.0.0.1", socketNum))
         socket_free = True
+        s.close()
     except socket.error as e:
         if e.errno == errno.EADDRINUSE:
             socket_free = False
         else:
             # something else raised the socket.error exception
             print("ERROR: Something happened when checking socket " + str(socketNum))
-    s.close()
+    
     return socket_free
 
 
@@ -42,5 +43,7 @@ def get_communication_port(network_interface):
 
 def listen(client, network_interface=""):
     worker_id_maps = client.run(get_communication_port, network_interface, wait=True)
+    print("worker_id_maps")
+    print(worker_id_maps)
     client.run(set_id_mappings_on_worker, worker_id_maps, wait=True)
     return worker_id_maps
