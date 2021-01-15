@@ -62,6 +62,7 @@ private:
 
 /**
  * @brief This kernel computes the main Window Function (ROW_NUMBER, LAG, LEAD, MIN, ...) to each batch already pattitioned
+ * A new column should be added to the batch
  */
 
 class ComputeWindowKernel : public kernel {

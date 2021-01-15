@@ -5,6 +5,7 @@
 #include "parser/expression_utils.hpp"
 #include "execution_graph/logic_controllers/BlazingColumn.h"
 
+#include <cudf/concatenate.hpp>
 #include <cudf/stream_compaction.hpp>
 #include "cudf/column/column_view.hpp"
 #include <cudf/rolling.hpp>
@@ -189,13 +190,6 @@ kstatus SplitByKeysKernel::run() {
         return this->tasks.empty();
     });
 
-    /*
-    for (auto i = 0; i < 5; i++) {
-        int total_count = 1;
-        std::string cache_id = "output_" + std::to_string(i);
-        this->output_cache(cache_id)->wait_for_count(total_count);
-    }*/
-
     if(logger != nullptr) {
         logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
                     "query_id"_a=context->getContextToken(),
@@ -222,80 +216,71 @@ ComputeWindowKernel::ComputeWindowKernel(std::size_t kernel_id, const std::strin
 }
 
 void ComputeWindowKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
-    std::shared_ptr<ral::cache::CacheMachine> output,
+    std::shared_ptr<ral::cache::CacheMachine> /*output*/,
     cudaStream_t /*stream*/, const std::map<std::string, std::string>& args) {
+
+    auto& cache_pos = args.at("cache_pos");
 
     CodeTimer eventTimer(false);
 
     if (inputs.empty()) {
         // no op
-    } else if(inputs.size() == 1) {
-        output->addToCache(std::move(inputs[0])); // ERROR
-    } else {
+    } else if (inputs.size() == 1) {
+        // TODO : the main Window Funcion process (a new column should be introduced to this table)
+        std::unique_ptr<ral::frame::BlazingTable> & input = inputs[0];
+        cudf::table_view input_cudf_view = input->view();
 
-        for (std::size_t i = 0; i < inputs.size(); i++){
-            std::string cache_id = "output_" + std::to_string(i);
-            this->add_to_output_cache(std::move(inputs[i]),
-            cache_id
-            );
+        cudf::column_view input_col_view = input_cudf_view.column(0); // TODO: get the value of the column ($0) due to the MIN window function,  window#0=[window(partition {2} aggs [MIN($0)])]
+        // TODO: how select the right value for `preceding_window` and `following_window` ? maybe using input_cudf_view.size() when there is no between statement .. FOr some aggregation functions ..
+        std::unique_ptr<CudfColumn> windowed_col = cudf::rolling_window(input_col_view, input->num_rows(), input->num_rows(), 1, cudf::make_min_aggregation());
+
+        std::vector<std::string> input_names = input->names(); // just to save the names of the columns
+
+        // TODO: add this windowed_col to the 
+        std::unique_ptr<cudf::table> cudf_input = input->releaseCudfTable();
+        std::vector< std::unique_ptr<CudfColumn> > output_columns = cudf_input->release();
+        output_columns.push_back(std::move(windowed_col));
+    
+        std::unique_ptr<cudf::table> cudf_table_window = std::make_unique<cudf::table>(std::move(output_columns));
+
+        input_names.push_back("min_keys"); // TODO remove this hardcode
+
+        std::unique_ptr<ral::frame::BlazingTable> windowed_table = std::make_unique<ral::frame::BlazingTable>(std::move(cudf_table_window), input_names);
+
+        if (windowed_table) {
+            auto num_rows = windowed_table->num_rows();
+            auto num_bytes = windowed_table->sizeInBytes();
+
+            events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+                            "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                            "query_id"_a=context->getContextToken(),
+                            "kernel_id"_a=this->get_id(),
+                            "input_num_rows"_a=num_rows,
+                            "input_num_bytes"_a=num_bytes,
+                            "output_num_rows"_a=num_rows,
+                            "output_num_bytes"_a=num_bytes,
+                            "event_type"_a="ComputeWindowKernel compute",
+                            "timestamp_begin"_a=eventTimer.start_time(),
+                            "timestamp_end"_a=eventTimer.end_time());
         }
 
+        // TODO: why all points to `output_0`
+        std::string cache_id = "output_0"; //cache_pos;
+        this->add_to_output_cache(std::move(windowed_table) /*inputs[0])*/,
+        cache_id
+        );
+    } else {
+        // TODO: handle this situation ..
     }
-
-/*
-    std::unique_ptr<ral::frame::BlazingTable> & input = inputs[0];
-
-    std::vector<std::string> naames = input->names();
-    
-    // TODO: momentaneally we should add a new colum, due to the window function
-    // TODO: for now just one window function is supported
-    cudf::table_view input_cudf_view = input->view();
-
-    cudf::column_view input_col_view = input_cudf_view.column(0); //TODO: window#0=[window(partition {2} aggs [MIN($0)])]  $0
-    // TODO: how select the 6 ? maybe using input_cudf_view.size() when there is no between statement
-    std::unique_ptr<CudfColumn> windowed_col = cudf::rolling_window(input_col_view, 5, 0, 1, cudf::make_min_aggregation());
-
-    // TODO: add this windowed_col to 
-    std::unique_ptr<CudfTable> cudf_input = input->releaseCudfTable();
-    std::vector< std::unique_ptr<CudfColumn> > output_columns = cudf_input->release();
-    output_columns.push_back(std::move(windowed_col));
-
-    auto expected = std::make_unique<CudfTable>(std::move(output_columns));
-
-    naames.push_back("min_keys");
-
-    std::unique_ptr<ral::frame::BlazingTable> windowed_table = std::make_unique<ral::frame::BlazingTable>(std::move(expected), naames);
-
-    if (windowed_table) {
-        auto num_rows = windowed_table->num_rows();
-        auto num_bytes = windowed_table->sizeInBytes();
-
-        events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-                        "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-                        "query_id"_a=context->getContextToken(),
-                        "kernel_id"_a=this->get_id(),
-                        "input_num_rows"_a=num_rows,
-                        "input_num_bytes"_a=num_bytes,
-                        "output_num_rows"_a=num_rows,
-                        "output_num_bytes"_a=num_bytes,
-                        "event_type"_a="ComputeWindowKernel compute",
-                        "timestamp_begin"_a=eventTimer.start_time(),
-                        "timestamp_end"_a=eventTimer.end_time());
-    }
-
-    output->addToCache(std::move(windowed_table));
-    */
 }
 
 kstatus ComputeWindowKernel::run() {
     CodeTimer timer;
-
-    // TODO: update this code
     int batch_count = 0;
     for (std::size_t idx = 0; idx < this->input_.count(); idx++)
     {
         try {
-            auto cache_id = "input_" + std::to_string(idx);
+            std::string cache_id = "input_" + std::to_string(idx);
             // This Kernel needs all of the input before it can do any output. So lets wait until all the input is available
             this->input_.get_cache(cache_id)->wait_until_finished();
             std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
@@ -309,58 +294,28 @@ kstatus ComputeWindowKernel::run() {
             ral::execution::executor::get_instance()->add_task(
                     std::move(inputs),
                     nullptr,
-                    this);
+                    this,
+                    {{"cache_pos", std::to_string(idx)}});
+
             batch_count++;
         } catch(const std::exception& e) {
-            // TODO add retry here
             logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
                                 "query_id"_a=context->getContextToken(),
                                 "step"_a=context->getQueryStep(),
                                 "substep"_a=context->getQuerySubstep(),
-                                "info"_a="In ComputeWindow Kernel batch {} for {}. What: {} . max_memory_used: {}"_format(batch_count, expression, e.what(), blazing_device_memory_resource::getInstance().get_full_memory_summary()),
+                                "info"_a="In ComputeWindow Kernel batch {} for {}. What: {} . max_memory_used: {}"_format(batch_count, expression, e.what(),
+                                     blazing_device_memory_resource::getInstance().get_full_memory_summary()),
                                 "duration"_a="");
             throw;
         }
     }
 
-    /*
-    // TODO: for now just using the same as SortKernel
-    std::unique_ptr <ral::cache::CacheData> cache_data = this->input_cache()->pullCacheData();
-    while (cache_data != nullptr) {
-        std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
-        inputs.push_back(std::move(cache_data));
-
-        ral::execution::executor::get_instance()->add_task(
-                std::move(inputs),
-                this->output_cache(),
-                this);
-
-        cache_data = this->input_cache()->pullCacheData();
-    }
-
-    if(logger != nullptr) {
-        logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
-                                "query_id"_a=context->getContextToken(),
-                                "step"_a=context->getQueryStep(),
-                                "substep"_a=context->getQuerySubstep(),
-                                "info"_a="ComputeWindow Kernel tasks created",
-                                "duration"_a=timer.elapsed_time(),
-                                "kernel_id"_a=this->get_id());
-    }*/
-
     std::unique_lock<std::mutex> lock(kernel_mutex);
     kernel_cv.wait(lock,[this]{
         return this->tasks.empty();
     });
-    
-    /*
-    for (auto i = 0; i < 5; i++) {
-        int total_count = 1;
-        std::string cache_id = "output_" + std::to_string(i);
-        this->output_cache(cache_id)->wait_for_count(total_count);
-    }*/
 
-    if(logger != nullptr) {
+    if (logger != nullptr) {
         logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
                     "query_id"_a=context->getContextToken(),
                     "step"_a=context->getQueryStep(),
@@ -369,7 +324,6 @@ kstatus ComputeWindowKernel::run() {
                     "duration"_a=timer.elapsed_time(),
                     "kernel_id"_a=this->get_id());
     }
-
     return kstatus::proceed;
 }
 
@@ -388,7 +342,6 @@ ConcatPartitionsByKeysKernel::ConcatPartitionsByKeysKernel(std::size_t kernel_id
 void ConcatPartitionsByKeysKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
     cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) {
-
     if (inputs.empty()) {
         // no op
     } else if(inputs.size() == 1) {
@@ -398,15 +351,13 @@ void ConcatPartitionsByKeysKernel::do_process(std::vector< std::unique_ptr<ral::
         for (std::size_t i = 0; i < inputs.size(); i++){
             tableViewsToConcat.emplace_back(inputs[i]->toBlazingTableView());
         }
-        auto output_merge = ral::operators::merge(tableViewsToConcat, this->expression); // TODO: Merge or concatenates ???
-        output->addToCache(std::move(output_merge));
+        std::unique_ptr<ral::frame::BlazingTable> concatenated = ral::utilities::concatTables(tableViewsToConcat);
+        output->addToCache(std::move(concatenated));
     }
 }
 
 kstatus ConcatPartitionsByKeysKernel::run() {
     CodeTimer timer;
-
-    // TODO: update this code
     int batch_count = 0;
     for (std::size_t idx = 0; idx < this->input_.count(); idx++)
     {
@@ -430,7 +381,6 @@ kstatus ConcatPartitionsByKeysKernel::run() {
 
             batch_count++;
         } catch(const std::exception& e) {
-            // TODO add retry here
             logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
                                 "query_id"_a=context->getContextToken(),
                                 "step"_a=context->getQueryStep(),
