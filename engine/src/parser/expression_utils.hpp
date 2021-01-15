@@ -167,7 +167,11 @@ bool is_window_compute(std::string query_part);
 
 // input: window#0=[window(partition {0, 2} aggs [MIN($0)])]
 // output: a vector, [0, 2]
-std::vector<int> get_colums_to_partition(const std::string & query_part);
+std::vector<int> get_columns_to_partition(const std::string & query_part);
+
+// input: window#0=[window(partition {0, 2} aggs [MIN($7)])]
+// output: a vector [7]
+std::vector<int> get_columns_to_apply_window_function(const std::string & query_part);
 
 // TODO: maybe this three functions are not necessary
 bool is_partitioned(std::string query_part);

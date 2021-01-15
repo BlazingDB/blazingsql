@@ -120,7 +120,7 @@ void SplitByKeysKernel::do_process(std::vector<std::unique_ptr<ral::frame::Blazi
     std::unique_ptr<ral::frame::BlazingTable> & input = inputs[0];
 
     // TODO: for now just support one col to the PARTIITION BY clause
-    this->column_indices_partitioned = get_colums_to_partition(this->expression);
+    this->column_indices_partitioned = get_columns_to_partition(this->expression);
     
     // we want get only diff keys from each batch
     std::unique_ptr<cudf::table> unique_keys_table = cudf::drop_duplicates(input->view(), this->column_indices_partitioned, cudf::duplicate_keep_option::KEEP_FIRST);
@@ -226,25 +226,25 @@ void ComputeWindowKernel::do_process(std::vector< std::unique_ptr<ral::frame::Bl
     if (inputs.empty()) {
         // no op
     } else if (inputs.size() == 1) {
-        // TODO : the main Window Funcion process (a new column should be introduced to this table)
         std::unique_ptr<ral::frame::BlazingTable> & input = inputs[0];
         cudf::table_view input_cudf_view = input->view();
 
-        cudf::column_view input_col_view = input_cudf_view.column(0); // TODO: get the value of the column ($0) due to the MIN window function,  window#0=[window(partition {2} aggs [MIN($0)])]
-        // TODO: how select the right value for `preceding_window` and `following_window` ? maybe using input_cudf_view.size() when there is no between statement .. FOr some aggregation functions ..
+        this->column_indices_wind_funct = get_columns_to_apply_window_function(this->expression);
+        cudf::column_view input_col_view = input_cudf_view.column(this->column_indices_wind_funct[0]);
+
+        // TODO: if there is no between statement we should use input_cudf_view.size() for `preceding_window` and `following_window`
+        // TODO: select the right cudf::aggregation function, set up to min for now
         std::unique_ptr<CudfColumn> windowed_col = cudf::rolling_window(input_col_view, input->num_rows(), input->num_rows(), 1, cudf::make_min_aggregation());
 
-        std::vector<std::string> input_names = input->names(); // just to save the names of the columns
+        // saving the names of the columns and add one due to the new col
+        std::vector<std::string> input_names = input->names();
+        input_names.push_back("");
 
-        // TODO: add this windowed_col to the 
+        // Adding this new column
         std::unique_ptr<cudf::table> cudf_input = input->releaseCudfTable();
         std::vector< std::unique_ptr<CudfColumn> > output_columns = cudf_input->release();
         output_columns.push_back(std::move(windowed_col));
-    
         std::unique_ptr<cudf::table> cudf_table_window = std::make_unique<cudf::table>(std::move(output_columns));
-
-        input_names.push_back("min_keys"); // TODO remove this hardcode
-
         std::unique_ptr<ral::frame::BlazingTable> windowed_table = std::make_unique<ral::frame::BlazingTable>(std::move(cudf_table_window), input_names);
 
         if (windowed_table) {

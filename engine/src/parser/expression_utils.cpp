@@ -400,7 +400,7 @@ std::vector<std::string> fix_column_aliases(const std::vector<std::string> & col
 	return col_names;
 }
 
-std::vector<int> get_colums_to_partition(const std::string & query_part) {
+std::vector<int> get_columns_to_partition(const std::string & query_part) {
 	std::vector<int> column_index;
 	std::string expression_name = "partition ";
 
@@ -408,8 +408,8 @@ std::vector<int> get_colums_to_partition(const std::string & query_part) {
 		return column_index;
 	}
 
-	int start_position = query_part.find(expression_name) + expression_name.size();
-    int end_position = query_part.find("}", start_position);
+	std::size_t start_position = query_part.find(expression_name) + expression_name.size();
+    std::size_t end_position = query_part.find("}", start_position);
 
 	// Now we have somethig like {0, 1, 2}
 	std::string values = query_part.substr(start_position + 1, end_position - start_position - 1);
@@ -417,6 +417,29 @@ std::vector<int> get_colums_to_partition(const std::string & query_part) {
 	for (size_t i = 0; i < column_numbers_string.size(); i++) {
 		column_index.push_back(std::stoi(column_numbers_string[i]));
 	}
+	return column_index;
+}
+
+// TODO: implementation considering just one window function
+// input: window#0=[window(partition {0, 2} aggs [MIN($7)])]
+std::vector<int> get_columns_to_apply_window_function(const std::string & query_part) {
+	std::vector<int> column_index;
+	std::string expression_name = "aggs ";
+
+	if (query_part.find(expression_name) == query_part.npos) {
+		return column_index;
+	}
+
+	std::size_t start_position = query_part.find(expression_name) + expression_name.size();
+    std::size_t end_position = query_part.find("]", start_position);
+
+	// MIN($7)
+	std::string reduced_query_part = query_part.substr(start_position + 1, end_position - start_position - 1);
+	std::size_t dolar_str = reduced_query_part.find("$");
+    std::size_t closed_parenth_str = reduced_query_part.find(")");
+	std::string indice = reduced_query_part.substr(dolar_str + 1 , closed_parenth_str - dolar_str - 1); // 7
+
+	column_index.push_back(std::stoi(indice));
 	return column_index;
 }
 

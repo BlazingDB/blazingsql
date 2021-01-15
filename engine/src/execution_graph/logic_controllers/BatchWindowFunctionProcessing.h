@@ -55,7 +55,7 @@ public:
 	kstatus run() override;
 
 private:
-	std::vector<int> column_indices_partitioned;        // column indices to be partitioned, for now just support one `partition by`
+	std::vector<int> column_indices_partitioned;   // column indices to be partitioned, for now just support one `partition by`
 	std::vector<cudf::type_id> keys_values;
 };
 
@@ -80,7 +80,7 @@ public:
 	kstatus run() override;
 
 private:
-
+	std::vector<int> column_indices_wind_funct;    // column indices to be agg, for now just support one `partition by`
 };
 
 

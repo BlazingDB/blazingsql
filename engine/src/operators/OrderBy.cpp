@@ -125,7 +125,7 @@ std::tuple< std::vector<int>, std::vector<cudf::order> > get_sort_partition_vars
 	// sortOrderTypes: [ASCENDING]
 	if (query_part.find("order by") == query_part.npos) {
 		sortOrderTypes.push_back(cudf::order::ASCENDING);
-		sortColIndices = get_colums_to_partition(query_part);
+		sortColIndices = get_columns_to_partition(query_part);
 		return std::make_tuple(sortColIndices, sortOrderTypes);
 	} else {
 		// TODO: implements the case when `order by` clause exists 
