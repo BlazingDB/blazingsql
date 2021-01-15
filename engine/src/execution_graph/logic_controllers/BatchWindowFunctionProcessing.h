@@ -14,10 +14,9 @@ using namespace fmt::literals;
 
 
 /**
- * @brief This kernel only SORT each batch
+ * @brief This kernel only SORTs each batch
  */
 
-// TODO: maybe we will want to split SortAndSampleKernel into a SortKernel and the sampling step should be moved into PartitionKernel
 class SortKernel : public kernel {
 public:
 	SortKernel(std::size_t kernel_id, const std::string & queryString,
@@ -38,7 +37,7 @@ private:
 
 
 /**
- * @brief This kernel will split a batch into multiple batches (as N diff keys contains each batch)
+ * @brief This kernel will split a batch (already sorted) into multiple batches (as N diff keys contains each batch)
  */
 
 class SplitByKeysKernel : public kernel {
@@ -56,22 +55,22 @@ public:
 	kstatus run() override;
 
 private:
-	std::vector<int> column_indices;
+	std::vector<int> column_indices_partitioned;        // column indices to be partitioned, for now just support one `partition by`
 	std::vector<cudf::type_id> keys_values;
 };
 
 
 /**
- * @brief This kernel cocatenates all partitions that have the same Keys
+ * @brief This kernel computes the main Window Function (ROW_NUMBER, LAG, LEAD, MIN, ...) to each batch already pattitioned
  */
 
-class ConcatPartitionsByKeysKernel : public kernel { // TODO: public distributing_kernel
+class ComputeWindowKernel : public kernel {
 public:
-	ConcatPartitionsByKeysKernel(std::size_t kernel_id, const std::string & queryString,
+	ComputeWindowKernel(std::size_t kernel_id, const std::string & queryString,
 		std::shared_ptr<Context> context,
 		std::shared_ptr<ral::cache::graph> query_graph);
 
-	std::string kernel_name() { return "ConcatPartitionsByKeys";}
+	std::string kernel_name() { return "ComputeWindow";}
 
 	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
@@ -85,16 +84,17 @@ private:
 
 
 /**
- * @brief This kernel computes the main Window Function (ROW_NUMBER, DENSE_RANK, LAG, LEAD, ...)
+ * @brief This kernel cocatenates all partitions (TODO: for Distributed it could change)
+ * TODO maybe we shoul replace this kernel by the MergeStreamKernel
  */
 
-class ComputeWindowKernel : public kernel {
+class ConcatPartitionsByKeysKernel : public kernel { // TODO: public distributing_kernel
 public:
-	ComputeWindowKernel(std::size_t kernel_id, const std::string & queryString,
+	ConcatPartitionsByKeysKernel(std::size_t kernel_id, const std::string & queryString,
 		std::shared_ptr<Context> context,
 		std::shared_ptr<ral::cache::graph> query_graph);
 
-	std::string kernel_name() { return "ComputeWindow";}
+	std::string kernel_name() { return "ConcatPartitionsByKeys";}
 
 	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,

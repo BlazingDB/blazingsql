@@ -303,11 +303,9 @@ struct tree_processor {
 		else if (is_window(expr)) {
 			// When the Window function contains the `partition by` clause
 			if (is_partitioned(expr)) {
-				std::string concat_partitions_by_key_expr = expr;
 				std::string split_by_keys = expr;
 				std::string sort_expr = expr;
 
-				StringUtil::findAndReplaceAll(concat_partitions_by_key_expr, LOGICAL_WINDOW_TEXT, LOGICAL_CONCAT_PARTITIONS_BY_KEY_TEXT);
 				StringUtil::findAndReplaceAll(split_by_keys, LOGICAL_WINDOW_TEXT, LOGICAL_SPLIT_BY_KEYS_TEXT);
 				StringUtil::findAndReplaceAll(sort_expr, LOGICAL_WINDOW_TEXT, LOGICAL_ONLY_SORT_TEXT);
 
@@ -315,14 +313,10 @@ struct tree_processor {
 				sort_tree.put("expr", sort_expr);
 				sort_tree.add_child("children", p_tree.get_child("children"));
 
-				boost::property_tree::ptree split_by_keys_tree;
-				split_by_keys_tree.put("expr", split_by_keys);
-				split_by_keys_tree.add_child("children", create_array_tree(sort_tree));
-
 				p_tree.clear();
 
-				p_tree.put("expr", concat_partitions_by_key_expr);
-				p_tree.put_child("children", create_array_tree(split_by_keys_tree));
+				p_tree.put("expr", split_by_keys);
+				p_tree.put_child("children", create_array_tree(sort_tree));
 
 				// in case the Window function also contains an `order by` clause
 				if (expr.find("order by") != std::string::npos) {
@@ -345,14 +339,19 @@ struct tree_processor {
 
 			// Add the main Window function
 			std::string window_expr = expr;
+			std::string concat_partitions_by_key_expr = expr;
 
 			StringUtil::findAndReplaceAll(window_expr, LOGICAL_WINDOW_TEXT, LOGICAL_COMPUTE_WINDOW_TEXT);
+			StringUtil::findAndReplaceAll(concat_partitions_by_key_expr, LOGICAL_WINDOW_TEXT, LOGICAL_CONCAT_PARTITIONS_BY_KEY_TEXT);
 
-			boost::property_tree::ptree compute_window_tree;
-			compute_window_tree.put("expr", window_expr);
-			compute_window_tree.put_child("children", create_array_tree(p_tree));
+			boost::property_tree::ptree window_tree;
+			window_tree.put("expr", window_expr);
+			window_tree.add_child("children", create_array_tree(p_tree));
 
-			p_tree = compute_window_tree;
+			p_tree.clear();
+
+			p_tree.put("expr", concat_partitions_by_key_expr);
+			p_tree.put_child("children", create_array_tree(window_tree));
 		}
 
 		for (auto &child : p_tree.get_child("children")) {
@@ -476,7 +475,22 @@ struct tree_processor {
 					cache_machine_config.num_partitions = max_num_order_by_partitions_per_node;
 					cache_machine_config.context = context->clone();
 					query_graph.addPair(ral::cache::kpair(child->kernel_unit, parent->kernel_unit, cache_machine_config));
-					
+
+				// TODO maybe a Distributed version is needed
+				} else if ( (child_kernel_type == kernel_type::SplitByKeysKernel && parent_kernel_type == kernel_type::ComputeWindowKernel)
+							|| (child_kernel_type == kernel_type::ComputeWindowKernel && parent_kernel_type == kernel_type::ConcatPartitionsByKeysKernel) ) {
+					// TODO the MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE should change something like MAX_NUM_PARTITIONS_PER_NODE
+					int max_num_partitions_per_node = 8;
+					it = config_options.find("MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE");
+					if (it != config_options.end()){
+						max_num_partitions_per_node = std::stoi(config_options["MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE"]);
+					}
+					ral::cache::cache_settings cache_machine_config;
+					cache_machine_config.type = ral::cache::CacheType::FOR_EACH;
+					cache_machine_config.num_partitions = max_num_partitions_per_node;
+					cache_machine_config.context = context->clone();
+					query_graph.addPair(ral::cache::kpair(child->kernel_unit, parent->kernel_unit, cache_machine_config));
+
 				} else if(child_kernel_type == kernel_type::TableScanKernel || child_kernel_type == kernel_type::BindableTableScanKernel) {
 					std::size_t concat_cache_num_bytes = 400000000; // 400 MB
 					config_options = context->getConfigOptions();
