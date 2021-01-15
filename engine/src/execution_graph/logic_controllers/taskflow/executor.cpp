@@ -125,7 +125,7 @@ void task::run(cudaStream_t stream, executor * executor){
         for(auto & input : inputs){
             if  (input->get_type() == ral::cache::CacheDataType::GPU || input->get_type() == ral::cache::CacheDataType::GPU_METADATA){
                 //this was a gpu cachedata so now its not valid
-                if(i <= input_gpu.size()){
+                if(input_gpu.size() > 0 && i <= input_gpu.size()){
                     static_cast<ral::cache::GPUCacheData *>(input.get())->set_data(std::move(input_gpu[i]));
                 }else{
                     //the input was lost and it was a gpu dataframe which is not recoverable
