@@ -124,16 +124,16 @@ int64_t get_limit_rows_when_relational_alg_is_simple(const std::string & query_p
 	return limitRows;
 }
 
-std::pair<std::unique_ptr<ral::frame::BlazingTable>, int64_t>
-limit_table(std::unique_ptr<ral::frame::BlazingTable> table, int64_t num_rows_limit) {
+std::tuple<std::unique_ptr<ral::frame::BlazingTable>, bool, int64_t>
+limit_table(const ral::frame::BlazingTableView & table, int64_t num_rows_limit) {
 
-	cudf::size_type table_rows = table->num_rows();
+	cudf::size_type table_rows = table.num_rows();
 	if (num_rows_limit <= 0) {
-		return std::make_pair(std::make_unique<ral::frame::BlazingTable>(cudf::empty_like(table->view()), table->names()), 0);
-	} else if (num_rows_limit >= table_rows)	{
-		return std::make_pair(std::move(table), num_rows_limit - table_rows);
+		return std::make_tuple(std::make_unique<ral::frame::BlazingTable>(cudf::empty_like(table.view()), table.names()), false, 0);
+	} else if (num_rows_limit >= table_rows) {
+		return std::make_tuple(std::make_unique<ral::frame::BlazingTable>(table.view(), table.names()), true, num_rows_limit - table_rows);
 	} else {
-		return std::make_pair(std::make_unique<ral::frame::BlazingTable>(logicalLimit(table->view(), num_rows_limit), table->names()), 0);
+		return std::make_tuple(std::make_unique<ral::frame::BlazingTable>(logicalLimit(table.view(), num_rows_limit), table.names()), false, 0);
 	}
 }
 

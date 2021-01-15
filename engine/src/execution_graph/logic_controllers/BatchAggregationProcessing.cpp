@@ -153,7 +153,7 @@ ral::execution::task_result DistributeAggregateKernel::do_process(std::vector< s
         }catch(rmm::bad_alloc e){
             return {ral::execution::task_status::RETRY, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
         }catch(std::exception e){
-            return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};   
+            return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
         }
 
     } else {
@@ -322,23 +322,23 @@ ral::execution::task_result MergeAggregateKernel::do_process(std::vector< std::u
         auto log_output_num_rows = columns->num_rows();
         auto log_output_num_bytes = columns->sizeInBytes();
 
-        // events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-        //                 "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-        //                 "query_id"_a=context->getContextToken(),
-        //                 "kernel_id"_a=this->get_id(),
-        //                 "input_num_rows"_a=log_input_num_rows,
-        //                 "input_num_bytes"_a=log_input_num_bytes,
-        //                 "output_num_rows"_a=log_output_num_rows,
-        //                 "output_num_bytes"_a=log_output_num_bytes,
-        //                 "event_type"_a="compute",
-        //                 "timestamp_begin"_a=eventTimer.start_time(),
-        //                 "timestamp_end"_a=eventTimer.end_time());
+        events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+                        "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                        "query_id"_a=context->getContextToken(),
+                        "kernel_id"_a=this->get_id(),
+                        "input_num_rows"_a=log_input_num_rows,
+                        "input_num_bytes"_a=log_input_num_bytes,
+                        "output_num_rows"_a=log_output_num_rows,
+                        "output_num_bytes"_a=log_output_num_bytes,
+                        "event_type"_a="compute",
+                        "timestamp_begin"_a=eventTimer.start_time(),
+                        "timestamp_end"_a=eventTimer.end_time());
         output->addToCache(std::move(columns));
         columns = nullptr;
     }catch(rmm::bad_alloc e){
         return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
     }catch(std::exception e){
-        return {ral::execution::task_status::FAIL, std::string(e.what()), std::move(inputs)};   
+        return {ral::execution::task_status::FAIL, std::string(e.what()), std::move(inputs)};
     }
     return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
 }

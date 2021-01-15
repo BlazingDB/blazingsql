@@ -418,23 +418,21 @@ ral::execution::task_result PartwiseJoin::do_process(std::vector<std::unique_ptr
 			"event_type"_a="computed join",
 			"timestamp_begin"_a=eventTimer.start_time(),
 			"timestamp_end"_a=eventTimer.end_time());
-    }catch(rmm::bad_alloc e){
-        return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
-    }catch(std::exception e){
-        return {ral::execution::task_status::FAIL, std::string(e.what()), std::move(inputs)};   
-    }
+	}catch(rmm::bad_alloc e){
+		return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
+	}catch(std::exception e){
+		return {ral::execution::task_status::FAIL, std::string(e.what()), std::move(inputs)};
+	}
 
 	try{
 		this->leftArrayCache->put(std::stoi(args.at("left_idx")), std::move(left_batch));
 		this->rightArrayCache->put(std::stoi(args.at("right_idx")), std::move(right_batch));
-    }catch(rmm::bad_alloc e){
-        //can still recover if the input was not a GPUCacheData 
-        return {ral::execution::task_status::RETRY, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
-    }catch(std::exception e){
-        return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
-    }	
-
-
+	}catch(rmm::bad_alloc e){
+		//can still recover if the input was not a GPUCacheData
+		return {ral::execution::task_status::RETRY, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
+	}catch(std::exception e){
+		return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
+	}
 
 	return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
 }

@@ -37,7 +37,7 @@ bool has_limit_only(const std::string & query_part);
 
 int64_t get_limit_rows_when_relational_alg_is_simple(const std::string & query_part);
 
-std::pair<std::unique_ptr<ral::frame::BlazingTable>, int64_t> limit_table(std::unique_ptr<ral::frame::BlazingTable> table, int64_t num_rows_limit);
+std::tuple<std::unique_ptr<ral::frame::BlazingTable>, bool, int64_t> limit_table(const ral::frame::BlazingTableView & table, int64_t num_rows_limit);
 
 std::unique_ptr<ral::frame::BlazingTable> merge(std::vector<ral::frame::BlazingTableView> partitions_to_merge, const std::string & query_part);
 

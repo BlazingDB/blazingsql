@@ -568,12 +568,15 @@ ral::execution::task_result LimitKernel::do_process(std::vector< std::unique_ptr
             auto log_input_num_rows = input->num_rows();
             auto log_input_num_bytes = input->sizeInBytes();
 
+            std::unique_ptr<ral::frame::BlazingTable> limited_input;
+            bool output_is_just_input;
+
             eventTimer.start();
-            std::tie(input, rows_limit) = ral::operators::limit_table(std::move(input), rows_limit);
+            std::tie(limited_input, output_is_just_input, rows_limit) = ral::operators::limit_table(input->toBlazingTableView(), rows_limit);
             eventTimer.stop();
 
-            auto log_output_num_rows = input->num_rows();
-            auto log_output_num_bytes = input->sizeInBytes();
+            auto log_output_num_rows = limited_input->num_rows();
+            auto log_output_num_bytes = limited_input->sizeInBytes();
 
             events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
                             "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
@@ -587,14 +590,17 @@ ral::execution::task_result LimitKernel::do_process(std::vector< std::unique_ptr
                             "timestamp_begin"_a=eventTimer.start_time(),
                             "timestamp_end"_a=eventTimer.end_time());
 
-            output->addToCache(std::move(input));
+            if (output_is_just_input)
+                output->addToCache(std::move(input));
+            else
+                output->addToCache(std::move(limited_input));
         }
     }catch(rmm::bad_alloc e){
-        return {ral::execution::task_status::RETRY, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
+        return {ral::execution::task_status::RETRY, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > (std::move(inputs))};
     }catch(std::exception e){
-        return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};   
+        return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }
-    return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};   
+    return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
 }
 
 kstatus LimitKernel::run() {
