@@ -8,6 +8,7 @@
 - #1232 Update PartwiseJoin and JoinPartition kernel using the task executor internally
 - #1238 Implements MergeStramKernel executor model
 - #1259 Implements SortAndSamplernel executor model, also avoid setting up num of samples
+- #1284 Initial support for Windows Function
 
 ## Improvements
 - #1236 Moving code from header files to implementation files
