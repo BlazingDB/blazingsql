@@ -12,7 +12,7 @@
 
 namespace io{
     void read_from_socket(int socket_fd, void * data, size_t read_size);
-    void write_to_socket(int socket_fd, void * data, size_t read_size);
+    void write_to_socket(int socket_fd, const void * data, size_t read_size);
 }
 
 
@@ -26,8 +26,8 @@ public:
 
    	static ucp_progress_manager * get_instance(ucp_worker_h ucp_worker, size_t request_size);
     static ucp_progress_manager * get_instance();
-    void add_recv_request(char * request, std::function<void()> callback);
-    void add_send_request(char * request, std::function<void()> callback);
+    void add_recv_request(char * request, std::function<void()> callback, ucs_status_t status);
+    void add_send_request(char * request, std::function<void()> callback, ucs_status_t status);
 private:
    struct request_struct{
         char * request;

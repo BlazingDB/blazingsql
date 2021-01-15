@@ -685,7 +685,7 @@ std::pair<bool, bool> JoinPartitionKernel::determine_if_we_are_scattering_a_smal
 
 	for (auto & message_id : determination_messages_to_wait_for) {
 		auto message = this->query_graph->get_input_message_cache()->pullCacheData(message_id);
-		auto *message_with_metadata = dynamic_cast<ral::cache::GPUCacheDataMetaData*>(message.get());
+		auto *message_with_metadata = dynamic_cast<ral::cache::CPUCacheData*>(message.get());
 		int node_idx = context->getNodeIndex(context->getNode(message_with_metadata->getMetadata().get_values()[ral::cache::SENDER_WORKER_ID_METADATA_LABEL]));
 		nodes_num_bytes_left[node_idx] = std::stoll(message_with_metadata->getMetadata().get_values()[ral::cache::JOIN_LEFT_BYTES_METADATA_LABEL]);
 		nodes_num_bytes_right[node_idx] = std::stoll(message_with_metadata->getMetadata().get_values()[ral::cache::JOIN_RIGHT_BYTES_METADATA_LABEL]);

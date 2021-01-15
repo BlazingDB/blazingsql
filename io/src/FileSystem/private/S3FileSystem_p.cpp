@@ -420,8 +420,7 @@ std::vector<FileStatus> S3FileSystem::Private::list(const Uri & uri, const FileF
 	}
 
 	const Uri uriWithRoot(uri.getScheme(), uri.getAuthority(), this->root + uri.getPath().toString());
-	const Path pathWithRoot = uriWithRoot.getPath();
-	const Path folderPath = pathWithRoot.getPathWithNormalizedFolderConvention();
+	const Path folderPath = uriWithRoot.getPath();
 
 	// NOTE only files is always true basically so we dont check it this is until we implement bucket listing
 	// NOTE we want to get buckets bya filter, the sdk does not currently fully support that, the rest api does
@@ -545,8 +544,7 @@ std::vector<Uri> S3FileSystem::Private::list(const Uri & uri, const std::string 
 	}
 
 	const Uri uriWithRoot(uri.getScheme(), uri.getAuthority(), this->root + uri.getPath().toString());
-	const Path pathWithRoot = uriWithRoot.getPath();
-	const Path folderPath = pathWithRoot.getPathWithNormalizedFolderConvention();
+	const Path folderPath = uriWithRoot.getPath();
 
 	// NOTE only files is always true basically so we dont check it this is until we implement bucket listing
 	// NOTE we want to get buckets bya filter, the sdk does not currently fully support that, the rest api does
@@ -661,7 +659,7 @@ std::vector<std::string> S3FileSystem::Private::listResourceNames(
 	}
 
 	const Uri uriWithRoot(uri.getScheme(), uri.getAuthority(), this->root + uri.getPath().toString());
-	const Path folderPath = uriWithRoot.getPath().getPathWithNormalizedFolderConvention();
+	const Path folderPath = uriWithRoot.getPath();
 
 	// NOTE only files is always true basically so we dont check it this is until we implement bucket listing
 	// NOTE we want to get buckets bya filter, the sdk does not currently fully support that, the rest api does
@@ -909,7 +907,7 @@ bool S3FileSystem::Private::makeDirectory(const Uri & uri) const {
 	}
 
 	const Uri uriWithRoot(uri.getScheme(), uri.getAuthority(), this->root + uri.getPath().toString());
-	const Path path = uriWithRoot.getPath().getPathWithNormalizedFolderConvention();
+	const Path path = uriWithRoot.getPath();
 	const std::string bucket = this->getBucketName();
 
 	std::string mutablePath = path.toString(true);  // TODO ugly ... fix StringUtil api

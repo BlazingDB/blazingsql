@@ -8,6 +8,8 @@
 #include <Util/StringUtil.h>
 #include <stdio.h>
 
+#include "Util/StringUtil.h"
+#include <src/utilities/DebuggingUtils.h>
 using namespace std::chrono_literals;
 namespace ral {
 namespace cache {
@@ -245,8 +247,8 @@ std::unique_ptr<GPUCacheDataMetaData> cast_cache_data_to_gpu_with_meta(std::uniq
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CacheMachine::CacheMachine(std::shared_ptr<Context> context, std::string cache_machine_name, bool log_timeout): 
-	ctx(context), cache_id(CacheMachine::cache_count), cache_machine_name(cache_machine_name)
+CacheMachine::CacheMachine(std::shared_ptr<Context> context, std::string cache_machine_name, bool log_timeout, int cache_level_override): 
+	ctx(context), cache_id(CacheMachine::cache_count), cache_machine_name(cache_machine_name), cache_level_override(cache_level_override)
 {
 	CacheMachine::cache_count++;
 
@@ -455,7 +457,7 @@ bool CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_dat
 	return false;
 }
 
-bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, std::string message_id, bool always_add) {
+bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, std::string message_id, bool always_add,const MetadataDictionary & metadata , bool include_meta) {
 	// we dont want to add empty tables to a cache, unless we have never added anything
 	if (!this->something_added || table->num_rows() > 0 || always_add){
 		for (auto col_ind = 0; col_ind < table->num_columns(); col_ind++){
@@ -477,7 +479,12 @@ bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, s
 
 			auto memory_to_use = (this->memory_resources[cacheIndex]->get_memory_used() + table->sizeInBytes());
 
-			if( memory_to_use < this->memory_resources[cacheIndex]->get_memory_limit()) {
+			if( memory_to_use < this->memory_resources[cacheIndex]->get_memory_limit() || 
+			 	cache_level_override != -1) {
+				
+				if(cache_level_override != -1){
+					cacheIndex = cache_level_override;
+				}
 				if(cacheIndex == 0) {
 					if(logger != nullptr) {
 						logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
@@ -492,8 +499,12 @@ bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, s
 
 					// before we put into a cache, we need to make sure we fully own the table
 					table->ensureOwnership();
-
-					auto cache_data = std::make_unique<GPUCacheData>(std::move(table));
+					std::unique_ptr<CacheData> cache_data;
+					if(include_meta){
+						cache_data = std::make_unique<GPUCacheDataMetaData>(std::move(table),metadata);
+					}else{
+						cache_data = std::make_unique<GPUCacheData>(std::move(table));
+					}
 					auto item =	std::make_unique<message>(std::move(cache_data), message_id);
 					this->waitingCache->put(std::move(item));
 
@@ -510,7 +521,13 @@ bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, s
 								"rows"_a=table->num_rows());
 						}
 
-						auto cache_data = std::make_unique<CPUCacheData>(std::move(table));
+						std::unique_ptr<CacheData> cache_data;
+						if(include_meta){
+							cache_data = std::make_unique<CPUCacheData>(std::move(table),metadata);
+						}else{
+							cache_data = std::make_unique<CPUCacheData>(std::move(table));
+						}
+							
 						auto item =	std::make_unique<message>(std::move(cache_data), message_id);
 						this->waitingCache->put(std::move(item));
 					} else if(cacheIndex == 2) {

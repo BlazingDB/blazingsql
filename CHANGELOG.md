@@ -18,6 +18,8 @@
 - #1261 Improve storage plugin output messages
 - #1153 Enable warnings and fixes
 - #1267 Added retrys to comms, fixed deadlocks in executor and order by. Improved logging and error management. Caches have names. Improved Joins
+- #1239 Reducing Memory pressure by moving shuffle data to cpu before transmission
+- #1278 Fix race conditions with UCX
 - #1255 Kernels are resilient to out of memory errors now and can retry tasks that fail this way
 
 ## Bug Fixes
@@ -27,7 +29,7 @@
 - #1241 Fixed cython exception handling
 - #1243 Fixed wrong CHAR regex replacing
 - #1275 Fixed issue in StringUtil::findAndReplaceAll when there are several matches
-
+- #1277 Support FileSystems (GS, S3) when extension of the files are not provided
 
 
 # BlazingSQL 0.17.0 (December 10, 2020)
