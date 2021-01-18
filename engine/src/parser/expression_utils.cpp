@@ -401,31 +401,24 @@ std::vector<std::string> fix_column_aliases(const std::vector<std::string> & col
 }
 
 std::unique_ptr<cudf::aggregation> get_window_aggregate(const std::string & input){
-	// TODO for now just this three functions are available
 	if(input == "MIN"){
 		return cudf::make_min_aggregation();
 	} else if(input == "MAX"){
 		return cudf::make_max_aggregation();
 	} else if(input == "COUNT"){
 		return cudf::make_count_aggregation(cudf::null_policy::INCLUDE);
-	} else if(input == "SUM0"){ // TODO: handle better this case ..
+	} else if(input == "SUM0"){
 		return cudf::make_sum_aggregation();
+	} else if(input == "ROW_NUMBER"){
+		return cudf::make_row_number_aggregation();
 	}
-	//} else if(input == AggregateKind::MEAN){
-	//	return cudf::make_mean_aggregation();
-	//}else if(input == AggregateKind::SUM){ // LogicalWindow(window#0=[window(partition {2} aggs [COUNT($0), $SUM0($0)])])
-	//	return cudf::make_sum_aggregation();
-	//}else if(input == AggregateKind::COUNT_VALID){
+	//}else if(input == "COUNT_VALID"){
 	//	return cudf::make_count_aggregation(cudf::null_policy::EXCLUDE);
-	//}else if(input == AggregateKind::PRODUCT){
-	//	return cudf::make_product_aggregation();
-	//}//else if(input == AggregateKind::ROW_NUMBER){ // -we need ORDER BY  clause after a PARTITION BY clause
-	//	return cudf::make_row_number_aggregation();
-	//}
-	// TODO: this two agg functions need an aditional argument that should be extracted from the query_part
-	//else if(input == AggregateKind::LEAD){
+
+	// TODO: these two agg functions need an aditional param that should be extracted from the query_part
+	//else if(input == "LEAD"){
 	//	return cudf::make_row_number_aggregation(size_type offset);
-	//}else if(input == AggregateKind::LAG){
+	//}else if(input == "LAG"){
 	//	return cudf::make_lag_aggregation(size_type offset);
 	//}
 
@@ -455,8 +448,8 @@ std::vector<int> get_columns_to_partition(const std::string & query_part) {
 	return column_index;
 }
 
-// input: window#0=[window(partition {0, 2} aggs [MIN($7)])]
-// output: a vector [7]
+// input: LogicalWindow(window#0=[window(partition {2} aggs [COUNT($0), $SUM0($0)])])
+// output: a vector [0, 0]
 std::vector<int> get_columns_to_apply_window_function(const std::string & query_part) {
 	std::vector<int> column_index;
 	std::string expression_name = "aggs ";
@@ -468,24 +461,26 @@ std::vector<int> get_columns_to_apply_window_function(const std::string & query_
 	std::size_t start_position = query_part.find(expression_name) + expression_name.size();
     std::size_t end_position = query_part.find("]", start_position);
 
-	// MIN($7)
+	// COUNT($0), $SUM0($0)
 	std::string reduced_query_part = query_part.substr(start_position + 1, end_position - start_position - 1);
+	std::vector<std::string> column_agg_string = StringUtil::split(reduced_query_part, ",");
 
-	std::cout << "reduced_query_part: " <<  reduced_query_part << std::endl;
-	std::size_t dolar_pos = reduced_query_part.find("$");
-	std::size_t open_parenth_pos = reduced_query_part.find("(");
-    std::size_t closed_parenth_pos = reduced_query_part.find(")");
-
-	// ROW_NUMER()  does not have indice, so we add the any
-	if (open_parenth_pos + 1 == closed_parenth_pos) {
-		column_index.push_back(std::stoi("0"));
-		return column_index;
+	if (column_agg_string.size() == 1) {
+		// ROW_NUMER()  does not have indice, so we add the first indice
+		if (reduced_query_part.find("(") + 1 == reduced_query_part.find(")")) {
+			column_index.push_back(0);
+			return column_index;
+		}
 	}
 
-	std::string indice = reduced_query_part.substr(dolar_pos + 1 , closed_parenth_pos - dolar_pos - 1);
-	std::cout << "indice: " <<  indice << std::endl; // ROW_NUMBER(
-	column_index.push_back(std::stoi(indice));
-	std::cout << "indice: " <<  indice << std::endl;
+	for (std::size_t agg_i; agg_i < column_agg_string.size(); ++agg_i) {
+		std::size_t dolar_pos = reduced_query_part.find("$");
+		std::size_t closed_parenth_pos = reduced_query_part.find(")");
+
+		std::string indice = reduced_query_part.substr(dolar_pos + 1, closed_parenth_pos - dolar_pos - 1);
+		column_index.push_back(std::stoi(indice));
+	}
+
 	return column_index;
 }
 
