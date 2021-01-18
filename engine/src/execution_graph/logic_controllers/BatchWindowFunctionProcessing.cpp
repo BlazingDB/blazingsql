@@ -229,21 +229,30 @@ void ComputeWindowKernel::do_process(std::vector< std::unique_ptr<ral::frame::Bl
         std::unique_ptr<ral::frame::BlazingTable> & input = inputs[0];
         cudf::table_view input_cudf_view = input->view();
 
-        this->column_indices_wind_funct = get_columns_to_apply_window_function(this->expression);
-        cudf::column_view input_col_view = input_cudf_view.column(this->column_indices_wind_funct[0]);
-
-        // TODO: if there is no between statement we should use input_cudf_view.size() for `preceding_window` and `following_window`
-        // TODO: select the right cudf::aggregation function, set up to min for now
-        std::unique_ptr<CudfColumn> windowed_col = cudf::rolling_window(input_col_view, input->num_rows(), input->num_rows(), 1, cudf::make_min_aggregation());
-
         // saving the names of the columns and add one due to the new col
         std::vector<std::string> input_names = input->names();
-        input_names.push_back("");
+        this->column_indices_wind_funct = get_columns_to_apply_window_function(this->expression);
+        this->aggs_wind_func = get_window_function_agg(this->expression);
 
-        // Adding this new column
+        std::vector< std::unique_ptr<CudfColumn> > new_wind_funct_cols;
+
+        for (std::size_t col_i; col_i < this->aggs_wind_func.size(); ++col_i) {
+            std::unique_ptr<cudf::aggregation> window_function = get_window_aggregate(this->aggs_wind_func[col_i]);
+            cudf::column_view input_col_view = input_cudf_view.column(this->column_indices_wind_funct[col_i]);
+
+            // TODO: if there is no between statement we should use input_cudf_view.size() for `preceding_window` and `following_window`
+            std::unique_ptr<CudfColumn> windowed_col = cudf::rolling_window(input_col_view, input->num_rows(), input->num_rows(), 1, window_function);
+            new_wind_funct_cols.push_back(std::move(windowed_col));
+            input_names.push_back("");
+        }
+
+        // Adding these new columns
         std::unique_ptr<cudf::table> cudf_input = input->releaseCudfTable();
         std::vector< std::unique_ptr<CudfColumn> > output_columns = cudf_input->release();
-        output_columns.push_back(std::move(windowed_col));
+        for (std::size_t col_i; col_i < new_wind_funct_cols.size(); ++col_i) {
+            output_columns.push_back(std::move(new_wind_funct_cols[col_i]));
+        }
+
         std::unique_ptr<cudf::table> cudf_table_window = std::make_unique<cudf::table>(std::move(output_columns));
         std::unique_ptr<ral::frame::BlazingTable> windowed_table = std::make_unique<ral::frame::BlazingTable>(std::move(cudf_table_window), input_names);
 

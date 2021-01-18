@@ -400,6 +400,41 @@ std::vector<std::string> fix_column_aliases(const std::vector<std::string> & col
 	return col_names;
 }
 
+std::unique_ptr<cudf::aggregation> get_window_aggregate(const std::string & input){
+	// TODO for now just this three functions are available
+	if(input == "MIN"){
+		return cudf::make_min_aggregation();
+	} else if(input == "MAX"){
+		return cudf::make_max_aggregation();
+	} else if(input == "COUNT"){
+		return cudf::make_count_aggregation(cudf::null_policy::INCLUDE);
+	} else if(input == "SUM0"){ // TODO: handle better this case ..
+		return cudf::make_sum_aggregation();
+	}
+	//} else if(input == AggregateKind::MEAN){
+	//	return cudf::make_mean_aggregation();
+	//}else if(input == AggregateKind::SUM){ // LogicalWindow(window#0=[window(partition {2} aggs [COUNT($0), $SUM0($0)])])
+	//	return cudf::make_sum_aggregation();
+	//}else if(input == AggregateKind::COUNT_VALID){
+	//	return cudf::make_count_aggregation(cudf::null_policy::EXCLUDE);
+	//}else if(input == AggregateKind::PRODUCT){
+	//	return cudf::make_product_aggregation();
+	//}//else if(input == AggregateKind::ROW_NUMBER){ // -we need ORDER BY  clause after a PARTITION BY clause
+	//	return cudf::make_row_number_aggregation();
+	//}
+	// TODO: this two agg functions need an aditional argument that should be extracted from the query_part
+	//else if(input == AggregateKind::LEAD){
+	//	return cudf::make_row_number_aggregation(size_type offset);
+	//}else if(input == AggregateKind::LAG){
+	//	return cudf::make_lag_aggregation(size_type offset);
+	//}
+
+	throw std::runtime_error(
+		"In Window Function: Aggregate type not supported");
+}
+
+// TODO improve the use of these three below functions
+// TODO: implementation considering just one window function
 std::vector<int> get_columns_to_partition(const std::string & query_part) {
 	std::vector<int> column_index;
 	std::string expression_name = "partition ";
@@ -420,8 +455,8 @@ std::vector<int> get_columns_to_partition(const std::string & query_part) {
 	return column_index;
 }
 
-// TODO: implementation considering just one window function
 // input: window#0=[window(partition {0, 2} aggs [MIN($7)])]
+// output: a vector [7]
 std::vector<int> get_columns_to_apply_window_function(const std::string & query_part) {
 	std::vector<int> column_index;
 	std::string expression_name = "aggs ";
@@ -435,13 +470,54 @@ std::vector<int> get_columns_to_apply_window_function(const std::string & query_
 
 	// MIN($7)
 	std::string reduced_query_part = query_part.substr(start_position + 1, end_position - start_position - 1);
-	std::size_t dolar_str = reduced_query_part.find("$");
-    std::size_t closed_parenth_str = reduced_query_part.find(")");
-	std::string indice = reduced_query_part.substr(dolar_str + 1 , closed_parenth_str - dolar_str - 1); // 7
 
+	std::cout << "reduced_query_part: " <<  reduced_query_part << std::endl;
+	std::size_t dolar_pos = reduced_query_part.find("$");
+	std::size_t open_parenth_pos = reduced_query_part.find("(");
+    std::size_t closed_parenth_pos = reduced_query_part.find(")");
+
+	// ROW_NUMER()  does not have indice, so we add the any
+	if (open_parenth_pos + 1 == closed_parenth_pos) {
+		column_index.push_back(std::stoi("0"));
+		return column_index;
+	}
+
+	std::string indice = reduced_query_part.substr(dolar_pos + 1 , closed_parenth_pos - dolar_pos - 1);
+	std::cout << "indice: " <<  indice << std::endl; // ROW_NUMBER(
 	column_index.push_back(std::stoi(indice));
+	std::cout << "indice: " <<  indice << std::endl;
 	return column_index;
 }
+
+// input: LogicalWindow(window#0=[window(partition {2} aggs [COUNT($0), $SUM0($0)])])
+// output: a vector ["COUNT", "SUM0"]
+std::vector<std::string> get_window_function_agg(const std::string & query_part) {
+	std::vector<std::string> aggregations;
+	std::string expression_name = "aggs ";
+
+	if (query_part.find(expression_name) == query_part.npos) {
+		return aggregations;
+	}
+
+	std::size_t start_position = query_part.find(expression_name) + expression_name.size();
+    std::size_t end_position = query_part.find("]", start_position);
+
+	// COUNT($0), $SUM0($0)
+	std::string reduced_query_part = query_part.substr(start_position + 1, end_position - start_position - 1);
+	std::cout << reduced_query_part << std::endl;
+	aggregations = StringUtil::split(reduced_query_part, ",");
+
+	for (std::size_t agg_i; agg_i < aggregations.size(); ++agg_i) {
+		if (aggregations[agg_i].substr(0, 2) == " $") { // TODO: due to SUM()
+			aggregations[agg_i].erase(aggregations[agg_i].begin(), aggregations[agg_i].begin() + 2);
+		}
+
+		std::size_t open_parenthesis = aggregations[agg_i].find('(');
+		aggregations[agg_i] = aggregations[agg_i].substr(0, open_parenthesis);
+	}
+	return aggregations;
+}
+
 
 std::string get_named_expression(const std::string & query_part, const std::string & expression_name) {
 	if(query_part.find(expression_name + "=[") == query_part.npos) {

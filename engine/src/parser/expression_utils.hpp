@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <cudf/types.hpp>
+#include <cudf/aggregation.hpp>
 
 enum class operator_type {
 	BLZ_INVALID_OP,
@@ -165,13 +166,19 @@ bool is_concat_partitions_by_keys(std::string query_part);
 bool is_split_by_keys(std::string query_part);
 bool is_window_compute(std::string query_part);
 
+std::unique_ptr<cudf::aggregation> get_window_aggregate(const std::string & input);
+
 // input: window#0=[window(partition {0, 2} aggs [MIN($0)])]
 // output: a vector, [0, 2]
 std::vector<int> get_columns_to_partition(const std::string & query_part);
 
 // input: window#0=[window(partition {0, 2} aggs [MIN($7)])]
-// output: a vector [7]
+// output: a vector, [7]
 std::vector<int> get_columns_to_apply_window_function(const std::string & query_part);
+
+// input: window#0=[window(partition {0, 2} aggs [MIN($7)])]
+// output: a vector, ["MIN"]
+std::vector<std::string> get_window_function_agg(const std::string & query_part);
 
 // TODO: maybe this three functions are not necessary
 bool is_partitioned(std::string query_part);

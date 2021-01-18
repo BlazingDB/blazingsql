@@ -81,6 +81,7 @@ public:
 
 private:
 	std::vector<int> column_indices_wind_funct;    // column indices to be agg, for now just support one `partition by`
+	std::vector<std::string>  aggs_wind_func; 
 };
 
 
