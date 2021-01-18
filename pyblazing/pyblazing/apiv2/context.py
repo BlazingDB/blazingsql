@@ -12,6 +12,7 @@ from urllib.parse import urlparse
 
 from threading import Lock
 from weakref import ref
+from distributed.comm import parse_address
 from pyblazing.apiv2.filesystem import FileSystem
 from pyblazing.apiv2 import DataType
 from pyblazing.apiv2.comms import listen
@@ -1383,6 +1384,9 @@ class BlazingContext(object):
         self.node_log_paths = set()
         self.finalizeCaller = lambda: NotImplemented
         self.config_options = load_config_options_from_env(config_options)
+        self.config_options["PROTOCOL".encode()] = parse_address(
+            dask_client.scheduler.addr
+        )[0].encode()
 
         logging_dir_path = "blazing_log"
         if "BLAZING_LOGGING_DIRECTORY".encode() in self.config_options:
