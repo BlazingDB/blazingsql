@@ -1384,9 +1384,6 @@ class BlazingContext(object):
         self.node_log_paths = set()
         self.finalizeCaller = lambda: NotImplemented
         self.config_options = load_config_options_from_env(config_options)
-        self.config_options["PROTOCOL".encode()] = parse_address(
-            dask_client.scheduler.addr
-        )[0].encode()
 
         logging_dir_path = "blazing_log"
         if "BLAZING_LOGGING_DIRECTORY".encode() in self.config_options:
@@ -1422,6 +1419,10 @@ class BlazingContext(object):
             ).encode()
 
         if dask_client is not None:
+            self.config_options["PROTOCOL".encode()] = parse_address(
+                dask_client.scheduler.addr
+            )[0].encode()
+
             distributed_initialize_server_directory(self.dask_client, logging_dir_path)
 
             distributed_remove_orc_files_from_disk(
