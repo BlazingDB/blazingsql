@@ -29,7 +29,7 @@ def checkSocket(socketNum):
         else:
             # something else raised the socket.error exception
             print("ERROR: Something happened when checking socket " + str(socketNum))
-    
+
     return socket_free
 
 

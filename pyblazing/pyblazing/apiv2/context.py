@@ -3026,7 +3026,7 @@ class BlazingContext(object):
                     )
                     i = i + 1
                 graph_futures = self.dask_client.gather(graph_futures)
-                
+
                 dask_futures = []
                 for node in self.nodes:
                     worker = node["worker"]
