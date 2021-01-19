@@ -4,7 +4,7 @@
 #include "kpair.h"
 #include "execution_graph/logic_controllers/CacheMachine.h"
 #include "bmr/MemoryMonitor.h"
-
+#include "utilities/ctpl_stl.h"
 namespace ral {
 namespace cache {
 
@@ -74,7 +74,8 @@ public:
 
 	void check_and_complete_work_flow();
 
-	void execute(const std::size_t max_kernel_run_threads);
+	void start_execute(const std::size_t max_kernel_run_threads);
+	void finish_execute();
 
 	void show();
 
@@ -124,6 +125,8 @@ private:
 	std::shared_ptr<spdlog::logger> kernels_edges_logger;
 	int32_t context_token;
 	std::shared_ptr<ral::MemoryMonitor> mem_monitor;
+	ctpl::thread_pool<BlazingThread> pool;
+	std::vector<std::future<void>> futures;
 };
 
 

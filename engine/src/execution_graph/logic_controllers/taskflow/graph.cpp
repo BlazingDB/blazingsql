@@ -1,6 +1,5 @@
 #include "graph.h"
 #include "operators/OrderBy.h"
-#include "utilities/ctpl_stl.h"
 
 namespace ral {
 namespace cache {
@@ -45,12 +44,11 @@ namespace cache {
 		}
 	}
 
-	void graph::execute(const std::size_t max_kernel_run_threads) {
+	void graph::start_execute(const std::size_t max_kernel_run_threads) {
 		mem_monitor->start();
 		check_and_complete_work_flow();
 
-		ctpl::thread_pool<BlazingThread> pool(max_kernel_run_threads);
-		std::vector<std::future<void>> futures;
+		pool.resize(max_kernel_run_threads);
 		std::set<std::pair<size_t, size_t>> visited;
 		std::deque<size_t> Q;
 		for(auto start_node : get_neighbours(head_id_)) {
@@ -100,7 +98,10 @@ namespace cache {
 			} else { // if we dont have all the dependencies, lets put it back at the back and try it later
 				Q.push_back(source_id);
 			}
-		}
+		}		
+	}
+
+	void graph::finish_execute() {
 		// Lets iterate through the futures to check for exceptions
 		for(size_t i = 0; i < futures.size(); i++){
 			futures[i].get();

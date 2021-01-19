@@ -168,10 +168,15 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(uint32_t masterIndex,
 	return graph;
 }
 
-std::unique_ptr<PartitionedResultSet> runExecuteGraph(std::shared_ptr<ral::cache::graph> graph, int32_t ctx_token) {
+void startExecuteGraph(std::shared_ptr<ral::cache::graph> graph, int32_t ctx_token) {
+	// Execute query
+	start_execute_graph(graph);
+}
+
+std::unique_ptr<PartitionedResultSet> getExecuteGraphResult(std::shared_ptr<ral::cache::graph> graph, int32_t ctx_token) {
 	// Execute query
 	std::vector<std::unique_ptr<ral::frame::BlazingTable>> frames;
-	frames = execute_graph(graph);
+	frames = get_execute_graph_results(graph);
 
 	std::unique_ptr<PartitionedResultSet> result = std::make_unique<PartitionedResultSet>();
 

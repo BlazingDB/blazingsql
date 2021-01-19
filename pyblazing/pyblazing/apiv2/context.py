@@ -340,7 +340,15 @@ def generateGraphs(
     worker.query_graphs[ctxToken] = graph
 
 
-def executeGraph(ctxToken):
+def startExecuteGraph(ctxToken):
+    import dask.distributed
+
+    worker = dask.distributed.get_worker()
+
+    graph = worker.query_graphs[ctxToken]
+    cio.startExecuteGraphCaller(graph, ctxToken, is_single_node=False)
+    
+def getExecuteGraphResult(ctxToken):
     import dask.distributed
 
     worker = dask.distributed.get_worker()
@@ -348,7 +356,7 @@ def executeGraph(ctxToken):
     graph = worker.query_graphs[ctxToken]
     del worker.query_graphs[ctxToken]
     with worker._lock:
-        dfs = cio.runExecuteGraphCaller(graph, ctxToken, is_single_node=False)
+        dfs = cio.getExecuteGraphResultCaller(graph, ctxToken, is_single_node=False)
         meta = dask.dataframe.utils.make_meta(dfs[0])
         query_partids = []
 
@@ -2963,7 +2971,7 @@ class BlazingContext(object):
                     query_config_options,
                     query,
                 )
-                result = cio.runExecuteGraphCaller(graph, ctxToken, is_single_node=True)
+                result = cio.startExecuteGraphCaller(graph, ctxToken, is_single_node=True)
             except cio.RunExecuteGraphError as e:
                 remove_orc_files_from_disk(self.cache_dir_path, ctxToken)
                 print(">>>>>>>> ", e)
@@ -3001,7 +3009,7 @@ class BlazingContext(object):
                 self.dask_client.gather(graph_futures)
 
                 dask_futures = [
-                    self.dask_client.submit(executeGraph, ctxToken, pure=False)
+                    self.dask_client.submit(startExecuteGraph, ctxToken, pure=False)
                 ]
             else:
                 worker_ids = []
@@ -3035,7 +3043,17 @@ class BlazingContext(object):
                     worker = node["worker"]
                     dask_futures.append(
                         self.dask_client.submit(
-                            executeGraph, ctxToken, workers=[worker], pure=False
+                            startExecuteGraph, ctxToken, workers=[worker], pure=False
+                        )
+                    )
+                self.dask_client.gather(dask_futures)
+
+                dask_futures = []
+                for node in self.nodes:
+                    worker = node["worker"]
+                    dask_futures.append(
+                        self.dask_client.submit(
+                            getExecuteGraphResult, ctxToken, workers=[worker], pure=False
                         )
                     )
 
