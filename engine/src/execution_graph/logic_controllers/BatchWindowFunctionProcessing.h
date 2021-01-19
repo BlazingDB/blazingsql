@@ -71,6 +71,8 @@ public:
 		std::shared_ptr<Context> context,
 		std::shared_ptr<ral::cache::graph> query_graph);
 
+	std::unique_ptr<CudfColumn> compute_column_from_window_function(cudf::column_view input_col_view, std::size_t pos);
+
 	std::string kernel_name() { return "ComputeWindow";}
 
 	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
@@ -81,7 +83,7 @@ public:
 
 private:
 	std::vector<int> column_indices_wind_funct;    // column indices to be agg, for now just support one `partition by`
-	std::vector<std::string>  aggs_wind_func; 
+	std::vector<std::string> aggs_wind_func; 
 };
 
 

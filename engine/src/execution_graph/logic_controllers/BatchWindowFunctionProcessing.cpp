@@ -9,8 +9,10 @@
 #include <cudf/stream_compaction.hpp>
 #include "cudf/column/column_view.hpp"
 #include <cudf/rolling.hpp>
+#include <cudf/filling.hpp>
 #include <cudf/partitioning.hpp>
 #include <cudf/types.hpp>
+#include <cudf/copying.hpp>
 
 namespace ral {
 namespace batch {
@@ -215,6 +217,30 @@ ComputeWindowKernel::ComputeWindowKernel(std::size_t kernel_id, const std::strin
     this->query_graph = query_graph;
 }
 
+std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_function(cudf::column_view input_col_view, std::size_t pos) {
+
+    // TODO: support for LAG() and LEAD()
+    if (this->aggs_wind_func[pos] == "FIRST_VALUE") {
+        std::vector<cudf::size_type> splits(1, 1);
+        std::vector<cudf::column_view> partitioned = cudf::split(input_col_view, splits);
+        partitioned.pop_back();  // want the first value (as column)
+        cudf::table_view table_view_with_single_col(partitioned);
+        std::vector< std::unique_ptr<CudfColumn> > windowed_col = cudf::repeat(table_view_with_single_col, input_col_view.size())->release();
+        return std::move(windowed_col[0]);
+    } else if (this->aggs_wind_func[pos] == "LAST_VALUE") {
+        std::vector<cudf::size_type> splits(1, input_col_view.size() - 1);
+        std::vector<cudf::column_view> partitioned = cudf::split(input_col_view, splits);
+        partitioned.erase(partitioned.begin());  // want the last value (as column)
+        cudf::table_view table_view_with_single_col(partitioned);
+        std::vector< std::unique_ptr<CudfColumn> > windowed_col = cudf::repeat(table_view_with_single_col, input_col_view.size())->release();
+        return std::move(windowed_col[0]);
+    } else {
+        std::unique_ptr<cudf::aggregation> window_function = get_window_aggregate(this->aggs_wind_func[pos]);
+        std::unique_ptr<CudfColumn> windowed_col = cudf::rolling_window(input_col_view, input_col_view.size(), input_col_view.size(), 1, window_function);
+        return std::move(windowed_col);
+    }
+}
+
 void ComputeWindowKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> /*output*/,
     cudaStream_t /*stream*/, const std::map<std::string, std::string>& args) {
@@ -237,11 +263,10 @@ void ComputeWindowKernel::do_process(std::vector< std::unique_ptr<ral::frame::Bl
         std::vector< std::unique_ptr<CudfColumn> > new_wind_funct_cols;
 
         for (std::size_t col_i; col_i < this->aggs_wind_func.size(); ++col_i) {
-            std::unique_ptr<cudf::aggregation> window_function = get_window_aggregate(this->aggs_wind_func[col_i]);
             cudf::column_view input_col_view = input_cudf_view.column(this->column_indices_wind_funct[col_i]);
 
-            // TODO: if there is no between statement we should use input_cudf_view.size() for `preceding_window` and `following_window`
-            std::unique_ptr<CudfColumn> windowed_col = cudf::rolling_window(input_col_view, input->num_rows(), input->num_rows(), 1, window_function);
+            // calling main window function
+            std::unique_ptr<CudfColumn> windowed_col = compute_column_from_window_function(input_col_view, col_i);
             new_wind_funct_cols.push_back(std::move(windowed_col));
             input_names.push_back("");
         }

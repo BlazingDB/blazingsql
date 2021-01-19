@@ -412,10 +412,9 @@ std::unique_ptr<cudf::aggregation> get_window_aggregate(const std::string & inpu
 	} else if(input == "ROW_NUMBER"){
 		return cudf::make_row_number_aggregation();
 	}
-	//}else if(input == "COUNT_VALID"){
-	//	return cudf::make_count_aggregation(cudf::null_policy::EXCLUDE);
-
+	// TODO: Only LEAD/LAG window functions support default values.
 	// TODO: these two agg functions need an aditional param that should be extracted from the query_part
+	// 		 the current Algebra Optimized plan miss this value. Issue on calcite? Or a new Rule should be added?
 	//else if(input == "LEAD"){
 	//	return cudf::make_row_number_aggregation(size_type offset);
 	//}else if(input == "LAG"){
@@ -499,7 +498,6 @@ std::vector<std::string> get_window_function_agg(const std::string & query_part)
 
 	// COUNT($0), $SUM0($0)
 	std::string reduced_query_part = query_part.substr(start_position + 1, end_position - start_position - 1);
-	std::cout << reduced_query_part << std::endl;
 	aggregations = StringUtil::split(reduced_query_part, ",");
 
 	for (std::size_t agg_i; agg_i < aggregations.size(); ++agg_i) {
