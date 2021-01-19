@@ -170,6 +170,7 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(uint32_t masterIndex,
 
 std::unique_ptr<PartitionedResultSet> runExecuteGraph(std::shared_ptr<ral::cache::graph> graph, int32_t ctx_token) {
 	// Execute query
+
 	std::vector<std::unique_ptr<ral::frame::BlazingTable>> frames;
 	frames = execute_graph(graph);
 
@@ -188,9 +189,6 @@ std::unique_ptr<PartitionedResultSet> runExecuteGraph(std::shared_ptr<ral::cache
 	result->skipdata_analysis_fail = false;
 
 	comm::graphs_info::getInstance().deregister_graph(ctx_token);
-	spdlog::get("batch_logger")->info("{allocation_count}|{total_buffer_count}", 
-			"allocation_count"_a=blazingdb::transport::io::getPinnedBufferProvider().get_allocated_buffers(),
-			"total_buffer_count"_a=blazingdb::transport::io::getPinnedBufferProvider().get_total_buffers());
 	return result;
 }
 /*

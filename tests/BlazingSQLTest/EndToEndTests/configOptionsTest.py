@@ -23,14 +23,12 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
     conf_opt_1 = {}
     conf_opt_1["JOIN_PARTITION_SIZE_THRESHOLD"] = 10
     conf_opt_1["MAX_DATA_LOAD_CONCAT_CACHE_BYTE_SIZE"] = 10
-    conf_opt_1["TABLE_SCAN_KERNEL_NUM_THREADS"] = 3
     conf_opt_1["MAX_KERNEL_RUN_THREADS"] = 5
 
     # conf_opt_2
     conf_opt_2 = {}
     conf_opt_2["JOIN_PARTITION_SIZE_THRESHOLD"] = 10
     conf_opt_2["MAX_DATA_LOAD_CONCAT_CACHE_BYTE_SIZE"] = 10
-    conf_opt_2["TABLE_SCAN_KERNEL_NUM_THREADS"] = 1
     conf_opt_2["MAX_KERNEL_RUN_THREADS"] = 1
 
     # conf_opt_3
