@@ -377,10 +377,13 @@ kstatus MergeAggregateKernel::run() {
 
         std::unique_lock<std::mutex> lock(kernel_mutex);
         kernel_cv.wait(lock,[this]{
-            return this->tasks.empty();
+            return this->tasks.empty() || ral::execution::executor::get_instance()->has_exception();
         });
+
+        if(auto ep = ral::execution::executor::get_instance()->last_exception()){
+            std::rethrow_exception(ep);
+        }
     } catch(const std::exception& e) {
-        // TODO add retry here
         logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
                     "query_id"_a=context->getContextToken(),
                     "step"_a=context->getQueryStep(),
