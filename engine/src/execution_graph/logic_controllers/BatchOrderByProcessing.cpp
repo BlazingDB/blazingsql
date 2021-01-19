@@ -33,7 +33,7 @@ ral::execution::task_result PartitionSingleNodeKernel::do_process(std::vector< s
     }catch(rmm::bad_alloc e){
         return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
     }catch(std::exception e){
-        return {ral::execution::task_status::FAIL, std::string(e.what()), std::move(inputs)};   
+        return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }
     
     return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
@@ -268,7 +268,7 @@ ral::execution::task_result SortAndSampleKernel::do_process(std::vector< std::un
     }catch(rmm::bad_alloc e){
         return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
     }catch(std::exception e){
-        return {ral::execution::task_status::FAIL, std::string(e.what()), std::move(inputs)};
+        return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }
     return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
 }
@@ -360,7 +360,7 @@ ral::execution::task_result PartitionKernel::do_process(std::vector< std::unique
     }catch(rmm::bad_alloc e){
         return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
     }catch(std::exception e){
-        return {ral::execution::task_status::FAIL, std::string(e.what()), std::move(inputs)};   
+        return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }
     return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
 }
@@ -474,7 +474,7 @@ ral::execution::task_result MergeStreamKernel::do_process(std::vector< std::uniq
     }catch(rmm::bad_alloc e){
         return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
     }catch(std::exception e){
-        return {ral::execution::task_status::FAIL, std::string(e.what()), std::move(inputs)};
+        return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }
     return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
 }
@@ -596,7 +596,7 @@ ral::execution::task_result LimitKernel::do_process(std::vector< std::unique_ptr
                 output->addToCache(std::move(limited_input));
         }
     }catch(rmm::bad_alloc e){
-        return {ral::execution::task_status::RETRY, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > (std::move(inputs))};
+        return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
     }catch(std::exception e){
         return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }

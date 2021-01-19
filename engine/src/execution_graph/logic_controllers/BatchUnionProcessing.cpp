@@ -25,14 +25,14 @@ ral::execution::task_result UnionKernel::do_process(std::vector< std::unique_ptr
     }catch(rmm::bad_alloc e){
         return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
     }catch(std::exception e){
-        return {ral::execution::task_status::FAIL, std::string(e.what()), std::move(inputs)};   
+        return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }
 
     try{
         this->add_to_output_cache(std::move(input));
     }catch(rmm::bad_alloc e){
-        //can still recover if the input was not a GPUCacheData 
-        return {ral::execution::task_status::RETRY, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
+        //can still recover if the input was not a GPUCacheData
+        return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
     }catch(std::exception e){
         return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }

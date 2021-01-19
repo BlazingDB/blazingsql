@@ -34,7 +34,7 @@ ral::execution::task_result ComputeAggregateKernel::do_process(std::vector< std:
     }catch(rmm::bad_alloc e){
         return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
     }catch(std::exception e){
-        return {ral::execution::task_status::FAIL, std::string(e.what()), std::move(inputs)};
+        return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }
     return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
 }
@@ -151,7 +151,7 @@ ral::execution::task_result DistributeAggregateKernel::do_process(std::vector< s
                     {this->context->getMasterNode().id()}); //target_id
             }
         }catch(rmm::bad_alloc e){
-            return {ral::execution::task_status::RETRY, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
+            return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
         }catch(std::exception e){
             return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
         }
@@ -188,7 +188,7 @@ ral::execution::task_result DistributeAggregateKernel::do_process(std::vector< s
         }catch(rmm::bad_alloc e){
             return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
         }catch(std::exception e){
-            return {ral::execution::task_status::FAIL, std::string(e.what()), std::move(inputs)};   
+            return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
         }
         
     }
@@ -338,7 +338,7 @@ ral::execution::task_result MergeAggregateKernel::do_process(std::vector< std::u
     }catch(rmm::bad_alloc e){
         return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
     }catch(std::exception e){
-        return {ral::execution::task_status::FAIL, std::string(e.what()), std::move(inputs)};
+        return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }
     return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
 }
