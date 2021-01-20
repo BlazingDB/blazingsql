@@ -354,6 +354,15 @@ def getQueryIsComplete(ctxToken):
     return graph.query_is_complete()
 
 
+def getQueryProgress(ctxToken):
+    import dask.distributed
+
+    worker = dask.distributed.get_worker()
+
+    graph = worker.query_graphs[ctxToken]
+    return graph.get_progress()
+
+
 def getExecuteGraphResult(ctxToken):
     import dask.distributed
 

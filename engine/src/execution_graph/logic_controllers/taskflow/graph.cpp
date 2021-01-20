@@ -413,5 +413,18 @@ namespace cache {
 		return static_cast<ral::batch::OutputKernel&>(*(this->get_last_kernel())).is_done();
 	}
 
+	std::vector<kernel_progress> graph::get_progress() {
+		std::vector<kernel_progress> graph_progress;
+		for (auto kernel_id : ordered_kernel_ids){
+			kernel_progress progress;
+			kernel * kernel = get_node(kernel_id);
+			progress.kernel_description = std::to_string(kernel_id) + "-" + kernel->kernel_name();
+			progress.finished = kernel->output_.all_finished();
+			progress.batches_completed = kernel->output_.total_batches_added();
+			graph_progress.push_back(progress);
+		}
+		return graph_progress;
+	}
+
 }  // namespace cache
 }  // namespace ral

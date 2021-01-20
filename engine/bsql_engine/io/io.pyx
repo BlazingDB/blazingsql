@@ -466,6 +466,9 @@ cdef class PyBlazingGraph:
     cpdef query_is_complete(self):
         return deref(self.ptr).query_is_complete()
 
+    cpdef get_progress(self):
+        return deref(self.ptr).get_progress()
+
 cpdef runGenerateGraphCaller(uint32_t masterIndex, worker_ids, tables,  table_scans, vector[int] fileTypes, int ctxToken, queryPy, map[string,string] config_options, sql):
     cdef string sql_c
     sql_c = sql.encode()

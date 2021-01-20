@@ -35,6 +35,12 @@ static std::shared_ptr<ral::cache::CacheMachine> create_cache_machine( const cac
 	return machines;
 }
 
+struct kernel_progress {
+	std::string kernel_description;
+    bool finished;
+    int batches_completed;
+};
+
 /**
 	@brief A class that represents the execution graph in a taskflow scheme.
 	The taskflow scheme is basically implemeted by the execution graph and the kernels associated to each node in the graph.
@@ -89,6 +95,8 @@ public:
 
 	bool query_is_complete();
 
+	std::vector<kernel_progress> get_progress();
+
 	size_t num_nodes() const;
 
 	size_t add_node(std::shared_ptr<kernel> k);
@@ -134,7 +142,6 @@ private:
 	std::vector<std::future<void>> futures;
 	std::vector<int32_t> ordered_kernel_ids;  // ordered vector containing the kernel_ids in the order they will be started
 };
-
 
 }  // namespace cache
 }  // namespace ral
