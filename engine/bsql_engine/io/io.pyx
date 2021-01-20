@@ -575,7 +575,7 @@ cpdef runGenerateGraphCaller(uint32_t masterIndex, worker_ids, tables,  table_sc
     pyGraph.ptr = runGenerateGraphPython(masterIndex, worker_ids_c, tableNames, tableScans, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query, uri_values_cpp_all, config_options,sql_c)
     return pyGraph
 
-cpdef startExecuteGraphCaller(PyBlazingGraph graph, int ctx_token, bool is_single_node):
+cpdef startExecuteGraphCaller(PyBlazingGraph graph, int ctx_token):
 
     cdef shared_ptr[cio.graph] ptr = graph.ptr
     startExecuteGraphPython(blaz_move(ptr),ctx_token)

@@ -52,6 +52,7 @@ from enum import IntEnum
 import platform
 
 import sys
+from time import sleep
 
 jpype.addClassPath(
     os.path.join(os.getenv("CONDA_PREFIX"), "lib/blazingsql-algebra.jar")
@@ -343,7 +344,7 @@ def startExecuteGraph(ctxToken):
     worker = dask.distributed.get_worker()
 
     graph = worker.query_graphs[ctxToken]
-    cio.startExecuteGraphCaller(graph, ctxToken, is_single_node=False)
+    cio.startExecuteGraphCaller(graph, ctxToken)
 
 def getQueryIsComplete(ctxToken):
     import dask.distributed
@@ -2924,7 +2925,14 @@ class BlazingContext(object):
                     query_config_options,
                     query,
                 )
-                result = cio.startExecuteGraphCaller(graph, ctxToken, is_single_node=True)
+                cio.startExecuteGraphCaller(graph, ctxToken)
+                
+                query_complete = False
+                while (not query_complete):
+                    sleep(0.005)
+                    query_complete = graph.query_is_complete()
+
+                return cio.getExecuteGraphResultCaller(graph, ctxToken, is_single_node=True)
             except cio.RunExecuteGraphError as e:
                 remove_orc_files_from_disk(self.cache_dir_path, ctxToken)
                 print(">>>>>>>> ", e)
@@ -2973,6 +2981,7 @@ class BlazingContext(object):
 
             query_complete = False
             while (not query_complete):
+                sleep(0.005)
                 dask_futures = []
                 for node in self.nodes:
                     worker = node["worker"]
