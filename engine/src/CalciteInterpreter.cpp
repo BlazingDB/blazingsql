@@ -85,6 +85,9 @@ std::shared_ptr<ral::cache::graph> generate_graph(std::vector<ral::io::data_load
 			// useful when the Algebra Relacional only contains: ScanTable (or BindableScan) and Limit
 			query_graph->check_for_simple_scan_with_limit_query();
 		}
+		query_graph->check_and_complete_work_flow();
+		query_graph->set_kernels_order();
+
 		auto  mem_monitor = std::make_shared<ral::MemoryMonitor>(tree,config_options);
 		query_graph->set_memory_monitor(mem_monitor);
 		return query_graph;

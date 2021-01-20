@@ -462,6 +462,9 @@ cdef class PyBlazingGraph:
 
     cpdef set_input_and_output_caches(self, PyBlazingCache input_cache, PyBlazingCache output_cache):
         deref(self.ptr).set_input_and_output_caches(input_cache.c_cache, output_cache.c_cache)
+    
+    cpdef query_is_complete(self):
+        return deref(self.ptr).query_is_complete()
 
 cpdef runGenerateGraphCaller(uint32_t masterIndex, worker_ids, tables,  table_scans, vector[int] fileTypes, int ctxToken, queryPy, map[string,string] config_options, sql):
     cdef string sql_c

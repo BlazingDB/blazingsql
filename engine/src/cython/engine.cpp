@@ -169,7 +169,6 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(uint32_t masterIndex,
 }
 
 void startExecuteGraph(std::shared_ptr<ral::cache::graph> graph, int32_t ctx_token) {
-	// Execute query
 	start_execute_graph(graph);
 }
 

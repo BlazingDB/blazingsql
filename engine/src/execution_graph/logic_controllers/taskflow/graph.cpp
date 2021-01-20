@@ -1,5 +1,6 @@
 #include "graph.h"
 #include "operators/OrderBy.h"
+#include "execution_graph/logic_controllers/BatchProcessing.h"
 
 namespace ral {
 namespace cache {
@@ -29,6 +30,7 @@ namespace cache {
 	void graph::set_memory_monitor(std::shared_ptr<ral::MemoryMonitor> mem_monitor){
 		this->mem_monitor = mem_monitor;
 	}
+
 	void graph::check_and_complete_work_flow() {
 		for(auto node : container_) {
 			std::shared_ptr<kernel> kernel_node = node.second;
@@ -46,60 +48,90 @@ namespace cache {
 
 	void graph::start_execute(const std::size_t max_kernel_run_threads) {
 		mem_monitor->start();
-		check_and_complete_work_flow();
-
+		
 		pool.resize(max_kernel_run_threads);
-		std::set<std::pair<size_t, size_t>> visited;
-		std::deque<size_t> Q;
-		for(auto start_node : get_neighbours(head_id_)) {
-			Q.push_back(start_node.target);
-		}
-		while(not Q.empty()) {
-			auto source_id = Q.front();
+		for (auto source_id : ordered_kernel_ids){
 			auto source = get_node(source_id);
-			auto source_edges = get_reverse_neighbours(source);
-			bool node_has_all_dependencies = source_edges.size() == 0 ? true :
-				std::all_of(source_edges.begin(), source_edges.end(), [visited](Edge edge) {
-					auto edge_id = std::make_pair(edge.source, edge.target);
-					return visited.find(edge_id) != visited.end();});
-			Q.pop_front();
-			if (node_has_all_dependencies){
-				if(source) {
-					for(auto edge : get_neighbours(source)) {
-						auto target_id = edge.target;
-						auto edge_id = std::make_pair(source_id, target_id);
-						if(visited.find(edge_id) == visited.end()) {
-							visited.insert(edge_id);
-							Q.push_back(target_id);
-							futures.push_back(pool.push([this, source, source_id, edge] (int /*thread_id*/) {
-								try	{
-									auto state = source->run();
-									source->output_.finish();
-									if (state != kstatus::proceed && edge.target != -1 /* not a dummy node */) {
-										auto logger = spdlog::get("batch_logger");
-										std::string log_detail = "ERROR kernel " + std::to_string(source_id) + " did not finished successfully";
-										logger->error("|||{info}|||||","info"_a=log_detail);
-									}
-								} catch(const std::exception & e) {
-									auto logger = spdlog::get("batch_logger");
-									if (logger){
-										logger->error("|||{info}|||||",
-												"info"_a="ERROR in graph::execute. What: {}"_format(e.what()));
-									}
-									source->output_.finish();
-									throw;
-								}
-							}));
-						} else {
-							// TODO: and circular graph is defined here. Report and error
-						}
+			futures.push_back(pool.push([this, source, source_id] (int /*thread_id*/) {
+				try	{
+					auto edges = get_neighbours(source);
+					auto state = source->run();
+					source->output_.finish();
+					if (state != kstatus::proceed && source->get_type_id() != ral::cache::kernel_type::OutputKernel) {
+						auto logger = spdlog::get("batch_logger");
+						std::string log_detail = "ERROR kernel " + std::to_string(source_id) + " did not finished successfully";
+						logger->error("|||{info}|||||","info"_a=log_detail);
 					}
+				} catch(const std::exception & e) {
+					auto logger = spdlog::get("batch_logger");
+					if (logger){
+						logger->error("|||{info}|||||",
+								"info"_a="ERROR in graph::execute. What: {}"_format(e.what()));
+					}
+					source->output_.finish();
+					throw;
 				}
-			} else { // if we dont have all the dependencies, lets put it back at the back and try it later
-				Q.push_back(source_id);
-			}
-		}		
+			}));
+		}	
 	}
+
+	// void graph::start_execute(const std::size_t max_kernel_run_threads) {
+	// 	mem_monitor->start();
+	// 	check_and_complete_work_flow();
+
+	// 	pool.resize(max_kernel_run_threads);
+	// 	std::set<std::pair<size_t, size_t>> visited;
+	// 	std::deque<size_t> Q;
+	// 	for(auto start_node : get_neighbours(head_id_)) {
+	// 		Q.push_back(start_node.target);
+	// 	}
+	// 	while(not Q.empty()) {
+	// 		auto source_id = Q.front();
+	// 		auto source = get_node(source_id);
+	// 		auto source_edges = get_reverse_neighbours(source);
+	// 		bool node_has_all_dependencies = source_edges.size() == 0 ? true :
+	// 			std::all_of(source_edges.begin(), source_edges.end(), [visited](Edge edge) {
+	// 				auto edge_id = std::make_pair(edge.source, edge.target);
+	// 				return visited.find(edge_id) != visited.end();});
+	// 		Q.pop_front();
+	// 		if (node_has_all_dependencies){
+	// 			if(source) {
+	// 				for(auto edge : get_neighbours(source)) {
+	// 					auto target_id = edge.target;
+	// 					auto edge_id = std::make_pair(source_id, target_id);
+	// 					if(visited.find(edge_id) == visited.end()) {
+	// 						visited.insert(edge_id);
+	// 						Q.push_back(target_id);
+	// 						futures.push_back(pool.push([this, source, source_id, edge] (int /*thread_id*/) {
+	// 							try	{
+	// 								std::cout<<"starting source_id "<<source_id<<std::endl;
+	// 								auto state = source->run();
+	// 								source->output_.finish();
+	// 								if (state != kstatus::proceed && edge.target != -1 /* not a dummy node */) {
+	// 									auto logger = spdlog::get("batch_logger");
+	// 									std::string log_detail = "ERROR kernel " + std::to_string(source_id) + " did not finished successfully";
+	// 									logger->error("|||{info}|||||","info"_a=log_detail);
+	// 								}
+	// 							} catch(const std::exception & e) {
+	// 								auto logger = spdlog::get("batch_logger");
+	// 								if (logger){
+	// 									logger->error("|||{info}|||||",
+	// 											"info"_a="ERROR in graph::execute. What: {}"_format(e.what()));
+	// 								}
+	// 								source->output_.finish();
+	// 								throw;
+	// 							}
+	// 						}));
+	// 					} else {
+	// 						// TODO: and circular graph is defined here. Report and error
+	// 					}
+	// 				}
+	// 			}
+	// 		} else { // if we dont have all the dependencies, lets put it back at the back and try it later
+	// 			Q.push_back(source_id);
+	// 		}
+	// 	}		
+	// }
 
 	void graph::finish_execute() {
 		// Lets iterate through the futures to check for exceptions
@@ -111,8 +143,7 @@ namespace cache {
 	}
 
 	void graph::show() {
-		check_and_complete_work_flow();
-
+		
 		std::set<std::pair<size_t, size_t>> visited;
 		std::deque<size_t> Q;
 		for(auto start_node : get_neighbours(head_id_)) {
@@ -143,8 +174,7 @@ namespace cache {
 
 	void graph::show_from_kernel (int32_t id) {
 		std::cout<<"show_from_kernel "<<id<<std::endl;
-		check_and_complete_work_flow();
-
+		
 		std::set<std::pair<size_t, size_t>> visited;
 		std::deque<size_t> Q;
 		for(auto start_node : get_reverse_neighbours(id)) {
@@ -341,6 +371,46 @@ namespace cache {
 				get_node(min_index_valid + 1)->limit_rows_ = scan_only_rows;
 			}
 		}
+	}
+
+	void graph::set_kernels_order(){
+		
+		std::set<std::pair<size_t, size_t>> visited;
+		std::deque<size_t> Q;
+		for(auto start_node : get_neighbours(head_id_)) {
+			Q.push_back(start_node.target);
+		}
+		while(not Q.empty()) {
+			auto source_id = Q.front();
+			auto source = get_node(source_id);
+			auto source_edges = get_reverse_neighbours(source);
+			bool node_has_all_dependencies = source_edges.size() == 0 ? true :
+				std::all_of(source_edges.begin(), source_edges.end(), [visited](Edge edge) {
+					auto edge_id = std::make_pair(edge.source, edge.target);
+					return visited.find(edge_id) != visited.end();});
+			Q.pop_front();
+			if (node_has_all_dependencies){
+				if(source) {
+					for(auto edge : get_neighbours(source)) {
+						auto target_id = edge.target;
+						auto edge_id = std::make_pair(source_id, target_id);
+						if(visited.find(edge_id) == visited.end()) {
+							visited.insert(edge_id);
+							Q.push_back(target_id);
+							ordered_kernel_ids.push_back(source_id);							
+						} else {
+							// TODO: and circular graph is defined here. Report and error
+						}
+					}
+				}
+			} else { // if we dont have all the dependencies, lets put it back at the back and try it later
+				Q.push_back(source_id);
+			}
+		}
+	}
+
+	bool graph::query_is_complete(){
+		return static_cast<ral::batch::OutputKernel&>(*(this->get_last_kernel())).is_done();
 	}
 
 }  // namespace cache

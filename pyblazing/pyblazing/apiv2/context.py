@@ -347,6 +347,14 @@ def startExecuteGraph(ctxToken):
 
     graph = worker.query_graphs[ctxToken]
     cio.startExecuteGraphCaller(graph, ctxToken, is_single_node=False)
+
+def getQueryIsComplete(ctxToken):
+    import dask.distributed
+
+    worker = dask.distributed.get_worker()
+
+    graph = worker.query_graphs[ctxToken]
+    return graph.query_is_complete()
     
 def getExecuteGraphResult(ctxToken):
     import dask.distributed
@@ -3047,6 +3055,19 @@ class BlazingContext(object):
                         )
                     )
                 self.dask_client.gather(dask_futures)
+
+                query_complete = False
+                while (not query_complete):
+                    dask_futures = []
+                    for node in self.nodes:
+                        worker = node["worker"]
+                        dask_futures.append(
+                            self.dask_client.submit(
+                                getQueryIsComplete, ctxToken, workers=[worker], pure=False
+                            )
+                        )
+                    workers_is_complete = self.dask_client.gather(dask_futures)
+                    query_complete = all(workers_is_complete) # all workers returned true
 
                 dask_futures = []
                 for node in self.nodes:

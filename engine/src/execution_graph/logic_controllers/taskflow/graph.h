@@ -87,6 +87,8 @@ public:
 
 	std::shared_ptr<kernel> get_last_kernel();
 
+	bool query_is_complete();
+
 	size_t num_nodes() const;
 
 	size_t add_node(std::shared_ptr<kernel> k);
@@ -109,9 +111,12 @@ public:
 	std::set<Edge> get_reverse_neighbours(kernel * from);
 	std::set<Edge> get_reverse_neighbours(int32_t id);
 
+	void set_kernels_order();
+
 	void check_for_simple_scan_with_limit_query();
 	void set_memory_monitor(std::shared_ptr<ral::MemoryMonitor> mem_monitor);
 	void clear_kernels(); 
+	
 private:
 	const std::int32_t head_id_{-1};
 	std::vector<kernel *> kernels_;
@@ -127,6 +132,7 @@ private:
 	std::shared_ptr<ral::MemoryMonitor> mem_monitor;
 	ctpl::thread_pool<BlazingThread> pool;
 	std::vector<std::future<void>> futures;
+	std::vector<int32_t> ordered_kernel_ids;  // ordered vector containing the kernel_ids in the order they will be started
 };
 
 

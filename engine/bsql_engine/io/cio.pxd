@@ -156,6 +156,7 @@ cdef extern from "../src/execution_graph/logic_controllers/taskflow/graph.h" nam
         cdef cppclass graph:
             shared_ptr[CacheMachine] get_kernel_output_cache(size_t kernel_id, string cache_id) except +
             void set_input_and_output_caches(shared_ptr[CacheMachine] input_cache, shared_ptr[CacheMachine] output_cache)
+            bool query_is_complete()
 
 cdef extern from "../src/execution_graph/logic_controllers/CacheMachine.h" namespace "ral::cache":
         cdef cppclass CacheData
