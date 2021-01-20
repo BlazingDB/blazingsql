@@ -21,17 +21,17 @@ TEST_F(PhysicalPlanGeneratorTest, transform_json_tree_one_join)
 	std::string logicalPlan =
 	R"raw(
 	{
-	"expr": "LogicalJoin(condition=[=($3, $1)], joinType=[left])",
-	"children": [
-					{
-						"expr": "LogicalTableScan(table=[[main, product]])",
-						"children": []
-					},
-					{
-						"expr": "LogicalTableScan(table=[[main, client]])",
-						"children": []
-					}
-				]
+		"expr": "LogicalJoin(condition=[=($3, $1)], joinType=[left])",
+		"children": [
+			{
+				"expr": "LogicalTableScan(table=[[main, product]])",
+				"children": []
+			},
+			{
+				"expr": "LogicalTableScan(table=[[main, client]])",
+				"children": []
+			}
+		]
 	}
 	)raw";
 
@@ -48,20 +48,20 @@ TEST_F(PhysicalPlanGeneratorTest, transform_json_tree_one_join)
 	{
 		"expr":"PartwiseJoin(condition=[=($3, $1)], joinType=[left])",
 		"children": [
-			 {
+			{
 				"expr":"JoinPartition(condition=[=($3, $1)], joinType=[left])",
 				"children": [
-					 {
+					{
 						"expr":"LogicalTableScan(table=[[main, product]])",
 						"children":""
-					 },
-					 {
+					},
+					{
 						"expr":"LogicalTableScan(table=[[main, client]])",
 						"children":""
-					 }
-				 ]
-			 }
-		 ]
+					}
+				]
+			}
+		]
 	}
 	)raw";
 
@@ -87,26 +87,26 @@ TEST_F(PhysicalPlanGeneratorTest, transform_json_tree_two_join)
 	std::string logicalPlan =
 	R"raw(
 	{
-	"expr": "LogicalJoin(condition=[=($6, $0)], joinType=[left])",
-	"children": [
-					 {
-					 "expr": "LogicalJoin(condition=[=($3, $1)], joinType=[left])",
-					 "children": [
-									{
-									"expr": "LogicalTableScan(table=[[main, product]])",
-									"children": []
-									},
-									{
-									"expr": "LogicalTableScan(table=[[main, client]])",
-									"children": []
-									}
-								]
-					 },
-					 {
-					 "expr": "LogicalTableScan(table=[[main, preference]])",
-					 "children": []
-					 }
-			 	]
+		"expr": "LogicalJoin(condition=[=($6, $0)], joinType=[left])",
+		"children": [
+			{
+				"expr": "LogicalJoin(condition=[=($3, $1)], joinType=[left])",
+				"children": [
+					{
+						"expr": "LogicalTableScan(table=[[main, product]])",
+						"children": []
+					},
+					{
+						"expr": "LogicalTableScan(table=[[main, client]])",
+						"children": []
+					}
+				]
+			},
+			{
+				"expr": "LogicalTableScan(table=[[main, preference]])",
+				"children": []
+			}
+		]
 	}
 	)raw";
 
@@ -123,34 +123,34 @@ TEST_F(PhysicalPlanGeneratorTest, transform_json_tree_two_join)
 	{
 		"expr": "PartwiseJoin(condition=[=($6, $0)], joinType=[left])",
 		 "children":[
+			{
+				"expr": "JoinPartition(condition=[=($6, $0)], joinType=[left])",
+				"children": [
 					{
-					"expr": "JoinPartition(condition=[=($6, $0)], joinType=[left])",
-					"children": [
-								{
-								"expr": "PartwiseJoin(condition=[=($3, $1)], joinType=[left])",
+						"expr": "PartwiseJoin(condition=[=($3, $1)], joinType=[left])",
+						"children": [
+							{
+								"expr": "JoinPartition(condition=[=($3, $1)], joinType=[left])",
 								"children": [
-											{
-											"expr": "JoinPartition(condition=[=($3, $1)], joinType=[left])",
-											"children": [
-														{
-														"expr": "LogicalTableScan(table=[[main, product]])",
-														"children": ""
-														},
-														{
-														"expr": "LogicalTableScan(table=[[main, client]])",
-														"children": ""
-														}
-														]
-											}
-											]
-								},
-								{
-								"expr": "LogicalTableScan(table=[[main, preference]])",
-								"children": ""
-								}
+									{
+										"expr": "LogicalTableScan(table=[[main, product]])",
+										"children": ""
+									},
+									{
+										"expr": "LogicalTableScan(table=[[main, client]])",
+										"children": ""
+									}
 								]
+							}
+						]
+					},
+					{
+						"expr": "LogicalTableScan(table=[[main, preference]])",
+						"children": ""
 					}
-					]
+				]
+			}
+		]
 	}
 	)raw";
 
@@ -174,18 +174,18 @@ TEST_F(PhysicalPlanGeneratorTest, transform_json_tree_simple_window_function)
 	std::string logicalPlan =
 	R"raw(
 	{
-	"expr": "LogicalProject(product_name=[$1], EXPR$1=[/(CASE(>($2, 0), $3, null:BIGINT), $2)])",
-	"children": [
-				{
+		"expr": "LogicalProject(product_name=[$1], EXPR$1=[/(CASE(>($2, 0), $3, null:BIGINT), $2)])",
+		"children": [
+			{
 				"expr": "LogicalWindow(window#0=[window(partition {1} aggs [COUNT($0), $SUM0($0)])])",
 				"children": [
-						 	{
-							"expr": "BindableTableScan(table=[[main, product]], projects=[[1, 2]], aliases=[[id_client, product_name]])",
-							"children": []
-						 	}
-					 		]
-				}
-			 	]
+					{
+						"expr": "BindableTableScan(table=[[main, product]], projects=[[1, 2]], aliases=[[id_client, product_name]])",
+						"children": []
+					}
+				]
+			}
+		]
 	}
 	)raw";
 
@@ -200,18 +200,33 @@ TEST_F(PhysicalPlanGeneratorTest, transform_json_tree_simple_window_function)
 	std::string jsonCompare =
 	R"raw(
 	{
-	"expr": "LogicalProject(product_name=[$1], EXPR$1=[/(CASE(>($2, 0), $3, null:BIGINT), $2)])",
-	"children":	[
-				{
-				"expr": "LogicalWindow(window#0=[window(partition {1} aggs [COUNT($0), $SUM0($0)])])",
+		"expr": "LogicalProject(product_name=[$1], EXPR$1=[/(CASE(>($2, 0), $3, null:BIGINT), $2)])",
+		"children": [
+			{
+				"expr": "LogicalConcatPartitionsByKeys(window#0=[window(partition {1} aggs [COUNT($0), $SUM0($0)])])",
 				"children": [
+					{
+						"expr": "LogicalComputeWindow(window#0=[window(partition {1} aggs [COUNT($0), $SUM0($0)])])",
+						"children": [
 							{
-							"expr": "BindableTableScan(table=[[main, product]], projects=[[1, 2]], aliases=[[id_client, product_name]])",
-							"children": ""
+								"expr": "LogicalSplitByKeys(window#0=[window(partition {1} aggs [COUNT($0), $SUM0($0)])])",
+								"children": [
+									{
+										"expr" : "LogicalOnlySort(window#0=[window(partition {1} aggs [COUNT($0), $SUM0($0)])])",
+										"children" : [
+											{
+												"expr" : "BindableTableScan(table=[[main, product]], projects=[[1, 2]], aliases=[[id_client, product_name]])",
+												"children" : []
+											}
+										]
+									}
+								]
 							}
-							]
-				}
+						]
+					}
 				]
+			}
+		]
 	}
 	)raw";
 
@@ -235,18 +250,18 @@ TEST_F(PhysicalPlanGeneratorTest, transform_json_tree_window_function)
 	std::string logicalPlan =
 	R"raw(
 	{
-	"expr": "LogicalProject(product_name=[$2], EXPR$1=[/(CASE(>($3, 0), $4, null:BIGINT), $3)])",
-	"children": [
-				{
+		"expr": "LogicalProject(product_name=[$2], EXPR$1=[/(CASE(>($3, 0), $4, null:BIGINT), $3)])",
+		"children": [
+			{
 				"expr": "LogicalWindow(window#0=[window(partition {2} order by [0 DESC] rows between $3 PRECEDING and CURRENT ROW aggs [COUNT($1), $SUM0($1)])])",
 				"children": [
-						 	{
-							"expr": "LogicalTableScan(table=[[main, product]])",
-							"children": []
-						 	}
-					 		]
-				}
-			 	]
+					{
+						"expr": "LogicalTableScan(table=[[main, product]])",
+						"children": []
+					}
+				]
+			}
+		]
 	}
 	)raw";
 
@@ -261,18 +276,38 @@ TEST_F(PhysicalPlanGeneratorTest, transform_json_tree_window_function)
 	std::string jsonCompare =
 	R"raw(
 	{
-	"expr": "LogicalProject(product_name=[$2], EXPR$1=[/(CASE(>($3, 0), $4, null:BIGINT), $3)])",
-	"children":	[
-				{
-				"expr": "LogicalWindow(window#0=[window(partition {2} order by [0 DESC] rows between $3 PRECEDING and CURRENT ROW aggs [COUNT($1), $SUM0($1)])])",
+		"expr": "LogicalProject(product_name=[$2], EXPR$1=[/(CASE(>($3, 0), $4, null:BIGINT), $3)])",
+		"children":	[
+			{
+				"expr": "LogicalConcatPartitionsByKeys(window#0=[window(partition {2} order by [0 DESC] rows between $3 PRECEDING and CURRENT ROW aggs [COUNT($1), $SUM0($1)])])",
 				"children": [
+					{
+						"expr": "LogicalComputeWindow(window#0=[window(partition {2} order by [0 DESC] rows between $3 PRECEDING and CURRENT ROW aggs [COUNT($1), $SUM0($1)])])",
+						"children": [
 							{
-							"expr": "LogicalTableScan(table=[[main, product]])",
-							"children": ""
+								"expr": "LogicalOnlySort(window#0=[window(partition {2} order by [0 DESC] rows between $3 PRECEDING and CURRENT ROW aggs [COUNT($1), $SUM0($1)])])",
+								"children": [
+									{
+										"expr": "LogicalSplitByKeys(window#0=[window(partition {2} order by [0 DESC] rows between $3 PRECEDING and CURRENT ROW aggs [COUNT($1), $SUM0($1)])])",
+										"children": [
+											{
+												"expr": "LogicalOnlySort(window#0=[window(partition {2} order by [0 DESC] rows between $3 PRECEDING and CURRENT ROW aggs [COUNT($1), $SUM0($1)])])",
+												"children": [
+													{
+														"expr": "LogicalTableScan(table=[[main, product]])",
+														"children": []
+													}
+												]
+											}
+										]
+									}
+								]
 							}
-							]
-				}
+						]
+					}
 				]
+			}
+		]
 	}
 	)raw";
 
@@ -297,18 +332,18 @@ TEST_F(PhysicalPlanGeneratorTest, transform_json_tree_window_function_unsupporte
 		std::string logicalPlan =
 		R"raw(
 		{
-		"expr": "LogicalProject(product_name=[$2], EXPR$1=[/(CASE(>($3, 0), $4, null:BIGINT), $3)])",
-		"children": [
-					{
+			"expr": "LogicalProject(product_name=[$2], EXPR$1=[/(CASE(>($3, 0), $4, null:BIGINT), $3)])",
+			"children": [
+				{
 					"expr": "LogicalWindow(window#0=[window(partition {2} order by [0 DESC] rows between $3 PRECEDING and CURRENT ROW aggs [COUNT($1), $SUM0($1)])])",
 					"children": [
-								{
-								"expr": "LogicalTableScan(table=[[main, product]])",
-								"children": []
-								}
-								]
-					}
+						{
+							"expr": "LogicalTableScan(table=[[main, product]])",
+							"children": []
+						}
 					]
+				}
+			]
 		}
 		)raw";
 
@@ -318,9 +353,7 @@ TEST_F(PhysicalPlanGeneratorTest, transform_json_tree_window_function_unsupporte
 		tree.build_batch_graph(logicalPlan);
 
 		FAIL();
-	}
-	catch(const std::exception& e)
-	{
+	} catch(const std::exception& e) {
 		SUCCEED();
 	}
 }

@@ -292,66 +292,64 @@ struct tree_processor {
 			}
 
 		}
-		/*
-		There are 5 different scenarios to keep in mind:
-			Window has a PARTITION BY clause
-			Window has a ORDER BY clause using ROWS
-			Window has a ORDER BY clause using RANGE
-			Window has a PARTITION BY and ORDER BY clause using ROWS
-			Window has a PARTITION BY and ORDER BY clause using RANGE
-		*/
+		// Window Functions. TODO: for now just support Single Node
 		else if (is_window(expr)) {
-			// When the Window function contains the `partition by` clause
-			if (is_partitioned(expr)) {
-				std::string split_by_keys = expr;
-				std::string sort_expr = expr;
+			//if (this->context->getTotalNodes() == 1) {
+				// When the Window function contains the `partition by` clause
+				if (is_partitioned(expr)) {
+					std::string split_by_keys = expr;
+					std::string sort_expr = expr;
 
-				StringUtil::findAndReplaceAll(split_by_keys, LOGICAL_WINDOW_TEXT, LOGICAL_SPLIT_BY_KEYS_TEXT);
-				StringUtil::findAndReplaceAll(sort_expr, LOGICAL_WINDOW_TEXT, LOGICAL_ONLY_SORT_TEXT);
+					StringUtil::findAndReplaceAll(split_by_keys, LOGICAL_WINDOW_TEXT, LOGICAL_SPLIT_BY_KEYS_TEXT);
+					StringUtil::findAndReplaceAll(sort_expr, LOGICAL_WINDOW_TEXT, LOGICAL_ONLY_SORT_TEXT);
 
-				boost::property_tree::ptree sort_tree;
-				sort_tree.put("expr", sort_expr);
-				sort_tree.add_child("children", p_tree.get_child("children"));
+					boost::property_tree::ptree sort_tree;
+					sort_tree.put("expr", sort_expr);
+					sort_tree.add_child("children", p_tree.get_child("children"));
+
+					p_tree.clear();
+
+					p_tree.put("expr", split_by_keys);
+					p_tree.put_child("children", create_array_tree(sort_tree));
+
+					// in case the Window function also contains an `order by` clause
+					if (expr.find("order by") != std::string::npos) {
+						sort_tree.clear();
+						sort_tree.put("expr", sort_expr);
+						sort_tree.put_child("children", create_array_tree(p_tree));
+
+						p_tree = sort_tree;
+					}
+				} 
+				// TODO: This could be improved, maybe we should just use the SortAndSampleKernel, PartitionKernel and MergeStreamKernel
+				// FOr now AVOID Window Functions without PARTITION BY clause
+				// When the Window function just contains the `order by` clause
+				else {
+					std::string sort_expr = expr;
+					StringUtil::findAndReplaceAll(sort_expr, LOGICAL_WINDOW_TEXT, LOGICAL_ONLY_SORT_TEXT);
+
+					p_tree.put("expr", sort_expr);
+				}
+
+				// Add the main Window function
+				std::string window_expr = expr;
+				std::string concat_partitions_by_key_expr = expr;
+
+				StringUtil::findAndReplaceAll(window_expr, LOGICAL_WINDOW_TEXT, LOGICAL_COMPUTE_WINDOW_TEXT);
+				StringUtil::findAndReplaceAll(concat_partitions_by_key_expr, LOGICAL_WINDOW_TEXT, LOGICAL_CONCAT_PARTITIONS_BY_KEY_TEXT);
+
+				boost::property_tree::ptree window_tree;
+				window_tree.put("expr", window_expr);
+				window_tree.add_child("children", create_array_tree(p_tree));
 
 				p_tree.clear();
 
-				p_tree.put("expr", split_by_keys);
-				p_tree.put_child("children", create_array_tree(sort_tree));
-
-				// in case the Window function also contains an `order by` clause
-				if (expr.find("order by") != std::string::npos) {
-					sort_tree.clear();
-					sort_tree.put("expr", sort_expr);
-					sort_tree.put_child("children", create_array_tree(p_tree));
-
-					p_tree = sort_tree;
-				}
-			} 
-			// TODO: This could be improved, maybe we should just use the SortAndSampleKernel, PartitionKernel and MergeStreamKernel
-			// FOr now AVOID Window Functions without PARTITION BY clause
-			// When the Window function just contains the `order by` clause
-			else {
-				std::string sort_expr = expr;
-				StringUtil::findAndReplaceAll(sort_expr, LOGICAL_WINDOW_TEXT, LOGICAL_ONLY_SORT_TEXT);
-
-				p_tree.put("expr", sort_expr);
-			}
-
-			// Add the main Window function
-			std::string window_expr = expr;
-			std::string concat_partitions_by_key_expr = expr;
-
-			StringUtil::findAndReplaceAll(window_expr, LOGICAL_WINDOW_TEXT, LOGICAL_COMPUTE_WINDOW_TEXT);
-			StringUtil::findAndReplaceAll(concat_partitions_by_key_expr, LOGICAL_WINDOW_TEXT, LOGICAL_CONCAT_PARTITIONS_BY_KEY_TEXT);
-
-			boost::property_tree::ptree window_tree;
-			window_tree.put("expr", window_expr);
-			window_tree.add_child("children", create_array_tree(p_tree));
-
-			p_tree.clear();
-
-			p_tree.put("expr", concat_partitions_by_key_expr);
-			p_tree.put_child("children", create_array_tree(window_tree));
+				p_tree.put("expr", concat_partitions_by_key_expr);
+				p_tree.put_child("children", create_array_tree(window_tree));
+			
+			//} else {
+			//	throw std::runtime_error("Window Functions are not supported in distributed mode");
+			//}
 		}
 
 		for (auto &child : p_tree.get_child("children")) {
@@ -381,6 +379,7 @@ struct tree_processor {
 	}
 
 	std::tuple<std::shared_ptr<ral::cache::graph>,std::size_t> build_batch_graph(std::string json) {
+		std::cout << "input json: " << json << std::endl;
 		auto query_graph = std::make_shared<ral::cache::graph>();
 		std::size_t max_kernel_id = 0;
 		try {
@@ -389,6 +388,7 @@ struct tree_processor {
 			boost::property_tree::read_json(input, p_tree);
 			transform_json_tree(p_tree);
 			max_kernel_id = expr_tree_from_json(0, p_tree, &this->root, 0, query_graph);
+			std::cout << "to_string: " << this->to_string() << std::endl;
 		} catch (std::exception & e) {
 			std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
 			logger->error("|||{info}|||||", "info"_a="In build_batch_graph. What: {}"_format(e.what()));
@@ -479,7 +479,7 @@ struct tree_processor {
 				// TODO maybe a Distributed version is needed
 				} else if ( (child_kernel_type == kernel_type::SplitByKeysKernel && parent_kernel_type == kernel_type::ComputeWindowKernel)
 							|| (child_kernel_type == kernel_type::ComputeWindowKernel && parent_kernel_type == kernel_type::ConcatPartitionsByKeysKernel) ) {
-					// TODO the MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE should change something like MAX_NUM_PARTITIONS_PER_NODE
+					// TODO the MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE should change something like MAX_NUM_PARTITIONS_PER_NODE, now 8 could be small
 					int max_num_partitions_per_node = 8;
 					it = config_options.find("MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE");
 					if (it != config_options.end()){
