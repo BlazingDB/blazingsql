@@ -29,6 +29,8 @@
 #include <netdb.h>
 #include <pthread.h> /* pthread_self */
 #include <thread>
+#include <stdio.h> 
+#include <unistd.h> 
 
 #include <spdlog/spdlog.h>
 #include <spdlog/async.h>
@@ -409,7 +411,7 @@ std::shared_ptr<blazingdb::manager::Context> make_context() {
 	std::string logicalPlan;
 	std::map<std::string, std::string> config_options;
 
-	return std::make_shared<Context>(query_id, nodes, master_node, logicalPlan, config_options);
+	return std::make_shared<blazingdb::manager::Context>(query_id, nodes, master_node, logicalPlan, config_options);
 }
 
 std::shared_ptr<ral::cache::graph> create_graph(){
@@ -754,7 +756,7 @@ void SenderCall(const UcpWorkerAddress &peerUcpWorkerAddress,
   std::map<std::string, comm::node> nodes_info_map;
   nodes_info_map.emplace("server", comm::node(1, "server", ucp_ep, ucp_worker));
 
-  auto output_cache = std::make_shared<ral::cache::CacheMachine>(nullptr);
+  auto output_cache = std::make_shared<ral::cache::CacheMachine>(nullptr, "output");
 
   for (size_t i = 0; i < 30; i++)
   {
@@ -780,8 +782,8 @@ void ReceiverCall(const UcpWorkerAddress &peerUcpWorkerAddress,
   std::map<std::string, comm::node> nodes_info_map;
   nodes_info_map.emplace("client", comm::node(0, "client", ucp_ep, ucp_worker));
 
-  auto output_cache = std::make_shared<ral::cache::CacheMachine>(nullptr);
-  auto input_cache = std::make_shared<ral::cache::CacheMachine>(nullptr);
+  auto output_cache = std::make_shared<ral::cache::CacheMachine>(nullptr, "output");
+  auto input_cache = std::make_shared<ral::cache::CacheMachine>(nullptr, "input");
 
   auto graph = create_graph();
   graph->set_input_and_output_caches(input_cache, output_cache);
@@ -804,38 +806,39 @@ void ReceiverCall(const UcpWorkerAddress &peerUcpWorkerAddress,
   }
 }
 
-// struct MessageSendReceiveTest : public BlazingUnitTest {
-//   MessageSendReceiveTest() {}
+struct MessageSendReceiveTest : public BlazingUnitTest {
+  MessageSendReceiveTest() {}
 
-//   ~MessageSendReceiveTest() {}
-// };
+  ~MessageSendReceiveTest() {}
+};
 
-// TEST_F(MessageSendReceiveTest, send_receive_test) {
-//   auto thread = std::thread([]{
-//     ::Run(SenderCall, AddressExchanger::MakeForSender(exchangingPort));
-//   });
-// // std::this_thread::sleep_for(std::chrono::seconds(2));
-//   auto thread_2 = std::thread([]{
-//     ::Run(ReceiverCall, AddressExchanger::MakeForReceiver(exchangingPort, "localhost"));
-//   });
-//   thread.join();
-//   thread_2.join();
-// }
+TEST_F(MessageSendReceiveTest, send_receive_test) {
 
-int main(int argc, char *argv[]){
-	create_test_logger("batch_logger");
-	create_test_logger("queries_logger");
-	create_test_logger("kernels_logger");
-	create_test_logger("kernels_edges_logger");
-	create_test_logger("events_logger");
-	create_test_logger("cache_events_logger");
+  int pid = fork();
 
-  if (argc < 2) {
+  if (pid == 0){
     ::Run(SenderCall, AddressExchanger::MakeForSender(exchangingPort));
-  }else {
+  } else if (pid > 0) {
     ::Run(ReceiverCall, AddressExchanger::MakeForReceiver(exchangingPort, "localhost"));
-  };
-
-  std::cout << ">>>> END UNIT TEST"<<std::endl;
-  return 0;
+  } else {
+    std::cout<<"error forking"<<std::endl;
+  }
 }
+
+// int main(int argc, char *argv[]){
+// 	create_test_logger("batch_logger");
+// 	create_test_logger("queries_logger");
+// 	create_test_logger("kernels_logger");
+// 	create_test_logger("kernels_edges_logger");
+// 	create_test_logger("events_logger");
+// 	create_test_logger("cache_events_logger");
+
+//   if (argc < 2) {
+//     ::Run(SenderCall, AddressExchanger::MakeForSender(exchangingPort));
+//   }else {
+//     ::Run(ReceiverCall, AddressExchanger::MakeForReceiver(exchangingPort, "localhost"));
+//   };
+
+//   std::cout << ">>>> END UNIT TEST"<<std::endl;
+//   return 0;
+// }

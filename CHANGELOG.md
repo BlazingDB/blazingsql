@@ -20,6 +20,7 @@
 - #1267 Added retrys to comms, fixed deadlocks in executor and order by. Improved logging and error management. Caches have names. Improved Joins
 - #1239 Reducing Memory pressure by moving shuffle data to cpu before transmission
 - #1278 Fix race conditions with UCX
+- #1286 Fixes to initialization and adding unique ids to comms 
 
 ## Bug Fixes
 - #1249 Fix compilation with cuda 11
