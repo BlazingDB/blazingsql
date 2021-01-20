@@ -289,7 +289,7 @@ def generateGraphs(
     ctxToken,
     algebra,
     config_options,
-    sql
+    sql,
 ):
 
     import dask.distributed
@@ -306,9 +306,7 @@ def generateGraphs(
                 + "with an input of dask_cudf.core.DataFrame"
             )
 
-        if hasattr(
-            tables[table_index], "partition_keys"
-        ):  # this is a dask cudf table
+        if hasattr(tables[table_index], "partition_keys"):  # this is a dask cudf table
             if len(tables[table_index].partition_keys) > 0:
                 tables[table_index].input = []
                 for key in tables[table_index].partition_keys:
@@ -346,6 +344,7 @@ def startExecuteGraph(ctxToken):
     graph = worker.query_graphs[ctxToken]
     cio.startExecuteGraphCaller(graph, ctxToken)
 
+
 def getQueryIsComplete(ctxToken):
     import dask.distributed
 
@@ -353,7 +352,8 @@ def getQueryIsComplete(ctxToken):
 
     graph = worker.query_graphs[ctxToken]
     return graph.query_is_complete()
-    
+
+
 def getExecuteGraphResult(ctxToken):
     import dask.distributed
 
@@ -2630,9 +2630,7 @@ class BlazingContext(object):
 
         return (all_sliced_files, all_sliced_uri_values, all_sliced_row_groups_ids)
 
-    def _optimize_skip_data_getSlices(
-        self, current_table, scan_table_query
-    ):
+    def _optimize_skip_data_getSlices(self, current_table, scan_table_query):
         nodeFilesList = []
 
         try:
@@ -2754,10 +2752,7 @@ class BlazingContext(object):
         )
 
     def sql(
-        self,
-        query,
-        algebra=None,
-        config_options={},
+        self, query, algebra=None, config_options={},
     ):
         """
         Query a BlazingSQL table.
@@ -2926,13 +2921,15 @@ class BlazingContext(object):
                     query,
                 )
                 cio.startExecuteGraphCaller(graph, ctxToken)
-                
+
                 query_complete = False
-                while (not query_complete):
+                while not query_complete:
                     sleep(0.005)
                     query_complete = graph.query_is_complete()
 
-                return cio.getExecuteGraphResultCaller(graph, ctxToken, is_single_node=True)
+                return cio.getExecuteGraphResultCaller(
+                    graph, ctxToken, is_single_node=True
+                )
             except cio.RunExecuteGraphError as e:
                 remove_orc_files_from_disk(self.cache_dir_path, ctxToken)
                 print(">>>>>>>> ", e)
@@ -2980,7 +2977,7 @@ class BlazingContext(object):
             self.dask_client.gather(dask_futures)
 
             query_complete = False
-            while (not query_complete):
+            while not query_complete:
                 sleep(0.005)
                 dask_futures = []
                 for node in self.nodes:
@@ -2991,7 +2988,7 @@ class BlazingContext(object):
                         )
                     )
                 workers_is_complete = self.dask_client.gather(dask_futures)
-                query_complete = all(workers_is_complete) # all workers returned true
+                query_complete = all(workers_is_complete)  # all workers returned true
 
             dask_futures = []
             for node in self.nodes:
@@ -3015,15 +3012,11 @@ class BlazingContext(object):
                 for query_partid in query_partids:
                     futures.append(
                         self.dask_client.submit(
-                            get_element,
-                            query_partid,
-                            workers=[worker_id],
-                            pure=False,
+                            get_element, query_partid, workers=[worker_id], pure=False,
                         )
                     )
 
             return dask.dataframe.from_delayed(futures, meta=meta)
-         
 
     # END SQL interface
 
