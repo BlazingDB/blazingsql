@@ -332,13 +332,14 @@ def generateGraphs(
         )
         graph.set_input_and_output_caches(worker.input_cache, worker.output_cache)
     except Exception as e:
+        logger = get_blazing_logger(True)
+        logger.error("runGenerateGraphCaller failed")
         raise e
 
     with worker._lock:
         if not hasattr(worker, "query_graphs"):
             worker.query_graphs = {}
-
-    worker.query_graphs[ctxToken] = graph
+        worker.query_graphs[ctxToken] = graph
 
 
 def executeGraph(ctxToken):
@@ -1148,7 +1149,6 @@ def load_config_options_from_env(user_config_options: dict):
         "MAX_JOIN_SCATTER_MEM_OVERHEAD": 500000000,
         "MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE": 8,
         "NUM_BYTES_PER_ORDER_BY_PARTITION": 400000000,
-        "TABLE_SCAN_KERNEL_NUM_THREADS": 4,
         "MAX_DATA_LOAD_CONCAT_CACHE_BYTE_SIZE": 400000000,
         "FLOW_CONTROL_BYTES_THRESHOLD": 18446744073709551615,  # see https://en.cppreference.com/w/cpp/types/numeric_limits/max
         "MAX_ORDER_BY_SAMPLES_PER_NODE": 10000,
@@ -1268,9 +1268,6 @@ class BlazingContext(object):
                     MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE will be enforced over
                     this parameter.
                     default: 400000000
-            TABLE_SCAN_KERNEL_NUM_THREADS: The number of threads used in the
-                    TableScan & BindableTableScan kernels for reading batches
-                    default: 4
             MAX_DATA_LOAD_CONCAT_CACHE_BYTE_SIZE : The max size in bytes to
                     concatenate the batches read from the scan kernels
                     default: 400000000
