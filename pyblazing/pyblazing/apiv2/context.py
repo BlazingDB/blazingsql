@@ -288,8 +288,7 @@ def generateGraphs(
     ctxToken,
     algebra,
     config_options,
-    sql,
-    single_gpu=False,
+    sql
 ):
 
     import dask.distributed
@@ -297,19 +296,16 @@ def generateGraphs(
     worker = dask.distributed.get_worker()
     for table_index in range(len(tables)):
         if isinstance(tables[table_index].input, dask_cudf.core.DataFrame):
-            if single_gpu:
-                tables[table_index].input = [tables[table_index].input.compute()]
-            else:
-                print(
-                    "ERROR: collectPartitionsRunQuery should not be called "
-                    + "with an input of dask_cudf.core.DataFrame"
-                )
-                get_blazing_logger(is_dask=True).error(
-                    "collectPartitionsRunQuery should not be called "
-                    + "with an input of dask_cudf.core.DataFrame"
-                )
+            print(
+                "ERROR: collectPartitionsRunQuery should not be called "
+                + "with an input of dask_cudf.core.DataFrame"
+            )
+            get_blazing_logger(is_dask=True).error(
+                "collectPartitionsRunQuery should not be called "
+                + "with an input of dask_cudf.core.DataFrame"
+            )
 
-        if not single_gpu and hasattr(
+        if hasattr(
             tables[table_index], "partition_keys"
         ):  # this is a dask cudf table
             if len(tables[table_index].partition_keys) > 0:
@@ -1389,7 +1385,6 @@ class BlazingContext(object):
         command ifconfig. The default is set to 'eth0'.
         """
 
-        self.single_gpu_idx = 0
         self.lock = Lock()
         self.finalizeCaller = ref(cio.finalizeCaller)
         self.nodes = []
@@ -2635,7 +2630,7 @@ class BlazingContext(object):
         return (all_sliced_files, all_sliced_uri_values, all_sliced_row_groups_ids)
 
     def _optimize_skip_data_getSlices(
-        self, current_table, scan_table_query, single_gpu
+        self, current_table, scan_table_query
     ):
         nodeFilesList = []
 
@@ -2706,13 +2701,28 @@ class BlazingContext(object):
             nodeFilesList.append(bt)
 
         else:
-            if single_gpu:
+            if current_table.local_files is False:
                 (
                     all_sliced_files,
                     all_sliced_uri_values,
                     all_sliced_row_groups_ids,
-                ) = self._sliceRowGroups(1, actual_files, uri_values, row_groups_ids)
-                i = 0
+                ) = self._sliceRowGroups(
+                    len(self.nodes), actual_files, uri_values, row_groups_ids
+                )
+            else:
+                (
+                    all_sliced_files,
+                    all_sliced_uri_values,
+                    all_sliced_row_groups_ids,
+                ) = self._sliceRowGroupsByWorker(
+                    len(self.nodes),
+                    actual_files,
+                    uri_values,
+                    row_groups_ids,
+                    current_table.mapping_files,
+                )
+
+            for i, node in enumerate(self.nodes):
                 curr_calcite = current_table.calcite_to_file_indices
                 bt = BlazingTable(
                     current_table.name,
@@ -2729,45 +2739,6 @@ class BlazingContext(object):
                 bt.file_column_names = current_table.file_column_names
                 bt.column_types = current_table.column_types
                 nodeFilesList.append(bt)
-            else:
-                if current_table.local_files is False:
-                    (
-                        all_sliced_files,
-                        all_sliced_uri_values,
-                        all_sliced_row_groups_ids,
-                    ) = self._sliceRowGroups(
-                        len(self.nodes), actual_files, uri_values, row_groups_ids
-                    )
-                else:
-                    (
-                        all_sliced_files,
-                        all_sliced_uri_values,
-                        all_sliced_row_groups_ids,
-                    ) = self._sliceRowGroupsByWorker(
-                        len(self.nodes),
-                        actual_files,
-                        uri_values,
-                        row_groups_ids,
-                        current_table.mapping_files,
-                    )
-
-                for i, node in enumerate(self.nodes):
-                    curr_calcite = current_table.calcite_to_file_indices
-                    bt = BlazingTable(
-                        current_table.name,
-                        current_table.input,
-                        current_table.fileType,
-                        files=all_sliced_files[i],
-                        calcite_to_file_indices=curr_calcite,
-                        uri_values=all_sliced_uri_values[i],
-                        args=current_table.args,
-                        row_groups_ids=all_sliced_row_groups_ids[i],
-                        in_file=current_table.in_file,
-                    )
-                    bt.column_names = current_table.column_names
-                    bt.file_column_names = current_table.file_column_names
-                    bt.column_types = current_table.column_types
-                    nodeFilesList.append(bt)
 
         return nodeFilesList
 
@@ -2785,8 +2756,6 @@ class BlazingContext(object):
         self,
         query,
         algebra=None,
-        return_futures=False,
-        single_gpu=False,
         config_options={},
     ):
         """
@@ -2800,13 +2769,6 @@ class BlazingContext(object):
         query :                     string of SQL query.
         algebra (optional) :        string of SQL algebra plan. Use this to
                     run on a relational algebra, instead of the query string.
-        return_futures (optional) : defaulted to false. Set to true if you
-                    want the `sql` function to return futures instead of data.
-        single_gpu (optional) :     defaulted to false. Set to true if you
-                    want to run the query on a single gpu, even is the
-                    BlazingContext is setup with a dask cluster.
-                    This is useful for manually running different queries
-                     on different gpus simultaneously.
         config_options (optional) : defaulted to empty. You can use this to
                     set a specific set of config_options for this query
                     instead of the ones set in BlazingContext.
@@ -2859,10 +2821,6 @@ class BlazingContext(object):
         # TODO: remove hardcoding
         masterIndex = 0
         nodeTableList = [[] for _ in range(len(self.nodes))]
-        if single_gpu:
-            nodeTableList = [
-                [],
-            ]
         fileTypes = []
 
         if algebra is None:
@@ -2893,7 +2851,7 @@ class BlazingContext(object):
                     config_options[option]
                 ).encode()  # make sure all options are encoded strings
 
-        if self.dask_client is None or single_gpu is True:
+        if self.dask_client is None:
             table_names, table_scans = cio.getTableScanInfoCaller(algebra)
         else:
             worker = tuple(self.dask_client.scheduler_info()["workers"])[0]
@@ -2918,33 +2876,23 @@ class BlazingContext(object):
             ):
                 if query_table.has_metadata():
                     currentTableNodes = self._optimize_skip_data_getSlices(
-                        query_table, table_scans[table_idx], single_gpu
+                        query_table, table_scans[table_idx]
                     )
                 else:
-                    if single_gpu:
-                        currentTableNodes = query_table.getSlices(1)
+                    # If all files are accessible by all nodes,
+                    # it is better to distribute them in the old way
+                    # otherwise, each node is responsible for the files
+                    # it has access to.
+                    if query_table.local_files is False:
+                        currentTableNodes = query_table.getSlices(len(self.nodes))
                     else:
-                        # If all files are accessible by all nodes,
-                        # it is better to distribute them in the old way
-                        # otherwise, each node is responsible for the files
-                        # it has access to.
-                        if query_table.local_files is False:
-                            currentTableNodes = query_table.getSlices(len(self.nodes))
-                        else:
-                            currentTableNodes = query_table.getSlicesByWorker(
-                                len(self.nodes)
-                            )
+                        currentTableNodes = query_table.getSlicesByWorker(
+                            len(self.nodes)
+                        )
             elif query_table.fileType == DataType.DASK_CUDF:
-                if single_gpu:
-                    # TODO: repartition onto the node that does the work
-
-                    currentTableNodes = []
-                    for node in self.nodes:
-                        currentTableNodes.append(query_table)
-                else:
-                    currentTableNodes = query_table.getDaskDataFrameKeySlices(
-                        self.nodes, self.dask_client
-                    )
+                currentTableNodes = query_table.getDaskDataFrameKeySlices(
+                    self.nodes, self.dask_client
+                )
 
             elif (
                 query_table.fileType == DataType.CUDF
@@ -2987,119 +2935,86 @@ class BlazingContext(object):
             except Exception as e:
                 raise e
         else:
-            if single_gpu is True:
-                # the following is wrapped in an array because .sql expects to return
-                # an array of dask_futures or a df, this makes it consistent
-                worker = self.nodes[self.single_gpu_idx]["worker"]
-                self.single_gpu_idx = self.single_gpu_idx + 1
-                if self.single_gpu_idx >= len(self.nodes):
-                    self.single_gpu_idx = 0
-                graph_futures = [
+            worker_ids = []
+            for worker in self.dask_client.scheduler_info()["workers"]:
+                worker_ids.append(worker)
+            graph_futures = []
+            i = 0
+            for node in self.nodes:
+                worker = node["worker"]
+                graph_futures.append(
                     self.dask_client.submit(
                         generateGraphs,
                         masterIndex,
-                        [self.nodes[0],],
-                        nodeTableList[0],
+                        self.nodes,
+                        nodeTableList[i],
                         table_scans,
                         fileTypes,
                         ctxToken,
                         algebra,
                         query_config_options,
                         query,
-                        single_gpu=True,
-                        pure=False,
                         workers=[worker],
+                        pure=False,
                     )
-                ]
-                self.dask_client.gather(graph_futures)
+                )
+                i = i + 1
+            graph_futures = self.dask_client.gather(graph_futures)
 
-                dask_futures = [
-                    self.dask_client.submit(startExecuteGraph, ctxToken, pure=False)
-                ]
-            else:
-                worker_ids = []
-                for worker in self.dask_client.scheduler_info()["workers"]:
-                    worker_ids.append(worker)
-                graph_futures = []
-                i = 0
+            dask_futures = []
+            for node in self.nodes:
+                worker = node["worker"]
+                dask_futures.append(
+                    self.dask_client.submit(
+                        startExecuteGraph, ctxToken, workers=[worker], pure=False
+                    )
+                )
+            self.dask_client.gather(dask_futures)
+
+            query_complete = False
+            while (not query_complete):
+                dask_futures = []
                 for node in self.nodes:
                     worker = node["worker"]
-                    graph_futures.append(
+                    dask_futures.append(
                         self.dask_client.submit(
-                            generateGraphs,
-                            masterIndex,
-                            self.nodes,
-                            nodeTableList[i],
-                            table_scans,
-                            fileTypes,
-                            ctxToken,
-                            algebra,
-                            query_config_options,
-                            query,
-                            workers=[worker],
+                            getQueryIsComplete, ctxToken, workers=[worker], pure=False
+                        )
+                    )
+                workers_is_complete = self.dask_client.gather(dask_futures)
+                query_complete = all(workers_is_complete) # all workers returned true
+
+            dask_futures = []
+            for node in self.nodes:
+                worker = node["worker"]
+                dask_futures.append(
+                    self.dask_client.submit(
+                        getExecuteGraphResult, ctxToken, workers=[worker], pure=False
+                    )
+                )
+
+            try:
+                meta_results = self.dask_client.gather(dask_futures)
+            except Exception as e:
+                distributed_remove_orc_files_from_disk(
+                    self.dask_client, self.cache_dir_path, ctxToken
+                )
+                raise e
+
+            futures = []
+            for query_partids, meta, worker_id in meta_results:
+                for query_partid in query_partids:
+                    futures.append(
+                        self.dask_client.submit(
+                            get_element,
+                            query_partid,
+                            workers=[worker_id],
                             pure=False,
                         )
                     )
-                    i = i + 1
-                graph_futures = self.dask_client.gather(graph_futures)
 
-                dask_futures = []
-                for node in self.nodes:
-                    worker = node["worker"]
-                    dask_futures.append(
-                        self.dask_client.submit(
-                            startExecuteGraph, ctxToken, workers=[worker], pure=False
-                        )
-                    )
-                self.dask_client.gather(dask_futures)
-
-                query_complete = False
-                while (not query_complete):
-                    dask_futures = []
-                    for node in self.nodes:
-                        worker = node["worker"]
-                        dask_futures.append(
-                            self.dask_client.submit(
-                                getQueryIsComplete, ctxToken, workers=[worker], pure=False
-                            )
-                        )
-                    workers_is_complete = self.dask_client.gather(dask_futures)
-                    query_complete = all(workers_is_complete) # all workers returned true
-
-                dask_futures = []
-                for node in self.nodes:
-                    worker = node["worker"]
-                    dask_futures.append(
-                        self.dask_client.submit(
-                            getExecuteGraphResult, ctxToken, workers=[worker], pure=False
-                        )
-                    )
-
-            if return_futures:
-                result = dask_futures
-            else:
-                try:
-                    meta_results = self.dask_client.gather(dask_futures)
-                except Exception as e:
-                    distributed_remove_orc_files_from_disk(
-                        self.dask_client, self.cache_dir_path, ctxToken
-                    )
-                    raise e
-
-                futures = []
-                for query_partids, meta, worker_id in meta_results:
-                    for query_partid in query_partids:
-                        futures.append(
-                            self.dask_client.submit(
-                                get_element,
-                                query_partid,
-                                workers=[worker_id],
-                                pure=False,
-                            )
-                        )
-
-                result = dask.dataframe.from_delayed(futures, meta=meta)
-        return result
+            return dask.dataframe.from_delayed(futures, meta=meta)
+         
 
     # END SQL interface
 
