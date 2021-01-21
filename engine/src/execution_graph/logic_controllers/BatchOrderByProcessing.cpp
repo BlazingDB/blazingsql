@@ -71,8 +71,12 @@ kstatus PartitionSingleNodeKernel::run() {
 
     std::unique_lock<std::mutex> lock(kernel_mutex);
     kernel_cv.wait(lock,[this]{
-        return this->tasks.empty();
+        return this->tasks.empty(); || ral::execution::executor::get_instance()->has_exception();
     });
+
+    if(auto ep = ral::execution::executor::get_instance()->last_exception()){
+        std::rethrow_exception(ep);
+    }
 
     logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
                                 "query_id"_a=context->getContextToken(),
@@ -298,8 +302,12 @@ kstatus SortAndSampleKernel::run() {
 
     std::unique_lock<std::mutex> lock(kernel_mutex);
     kernel_cv.wait(lock,[this]{
-        return this->tasks.empty();
+        return this->tasks.empty() || ral::execution::executor::get_instance()->has_exception();
     });
+
+    if(auto ep = ral::execution::executor::get_instance()->last_exception()){
+        std::rethrow_exception(ep);
+    }
     lock.unlock();
 
     // If during the other ordering_and_get_samples tasks the computing the partition plan was not made (max_order_by_samples was not reached), then lets do it here
@@ -308,8 +316,12 @@ kstatus SortAndSampleKernel::run() {
 
         std::unique_lock<std::mutex> lock(kernel_mutex);
         kernel_cv.wait(lock,[this]{
-            return this->tasks.empty();
+            return this->tasks.empty() || ral::execution::executor::get_instance()->has_exception();
         });
+
+        if(auto ep = ral::execution::executor::get_instance()->last_exception()){
+            std::rethrow_exception(ep);
+        }
     }
 
     this->output_cache("output_b")->wait_for_count(1); // waiting for the partition_plan to arrive before continuing
@@ -415,8 +427,12 @@ kstatus PartitionKernel::run() {
 
     std::unique_lock<std::mutex> lock(kernel_mutex);
     kernel_cv.wait(lock,[this]{
-        return this->tasks.empty();
+        return this->tasks.empty() || ral::execution::executor::get_instance()->has_exception();
     });
+
+    if(auto ep = ral::execution::executor::get_instance()->last_exception()){
+        std::rethrow_exception(ep);
+    }
 
     for (auto i = 0; i < num_partitions_per_node; i++) {
         std::string cache_id = "output_" + std::to_string(i);
@@ -528,8 +544,12 @@ kstatus MergeStreamKernel::run() {
 
     std::unique_lock<std::mutex> lock(kernel_mutex);
     kernel_cv.wait(lock,[this]{
-        return this->tasks.empty();
+        return this->tasks.empty() || ral::execution::executor::get_instance()->has_exception();
     });
+
+    if(auto ep = ral::execution::executor::get_instance()->last_exception()){
+        std::rethrow_exception(ep);
+    }
 
     if(logger != nullptr) {
         logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
@@ -695,8 +715,12 @@ kstatus LimitKernel::run() {
 
     std::unique_lock<std::mutex> lock(kernel_mutex);
     kernel_cv.wait(lock,[this]{
-        return this->tasks.empty();
+        return this->tasks.empty() || ral::execution::executor::get_instance()->has_exception();
     });
+
+    if(auto ep = ral::execution::executor::get_instance()->last_exception()){
+        std::rethrow_exception(ep);
+    }
 
     logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
                                 "query_id"_a=context->getContextToken(),
