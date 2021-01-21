@@ -71,7 +71,7 @@ kstatus PartitionSingleNodeKernel::run() {
 
     std::unique_lock<std::mutex> lock(kernel_mutex);
     kernel_cv.wait(lock,[this]{
-        return this->tasks.empty(); || ral::execution::executor::get_instance()->has_exception();
+        return this->tasks.empty() || ral::execution::executor::get_instance()->has_exception();
     });
 
     if(auto ep = ral::execution::executor::get_instance()->last_exception()){
