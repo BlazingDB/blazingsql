@@ -285,19 +285,14 @@ TEST_F(PhysicalPlanGeneratorTest, transform_json_tree_window_function)
 						"expr": "LogicalComputeWindow(window#0=[window(partition {2} order by [0 DESC] rows between $3 PRECEDING and CURRENT ROW aggs [COUNT($1), $SUM0($1)])])",
 						"children": [
 							{
-								"expr": "LogicalOnlySort(window#0=[window(partition {2} order by [0 DESC] rows between $3 PRECEDING and CURRENT ROW aggs [COUNT($1), $SUM0($1)])])",
+								"expr": "LogicalSplitByKeys(window#0=[window(partition {2} order by [0 DESC] rows between $3 PRECEDING and CURRENT ROW aggs [COUNT($1), $SUM0($1)])])",
 								"children": [
 									{
-										"expr": "LogicalSplitByKeys(window#0=[window(partition {2} order by [0 DESC] rows between $3 PRECEDING and CURRENT ROW aggs [COUNT($1), $SUM0($1)])])",
+										"expr": "LogicalOnlySort(window#0=[window(partition {2} order by [0 DESC] rows between $3 PRECEDING and CURRENT ROW aggs [COUNT($1), $SUM0($1)])])",
 										"children": [
 											{
-												"expr": "LogicalOnlySort(window#0=[window(partition {2} order by [0 DESC] rows between $3 PRECEDING and CURRENT ROW aggs [COUNT($1), $SUM0($1)])])",
-												"children": [
-													{
-														"expr": "LogicalTableScan(table=[[main, product]])",
-														"children": []
-													}
-												]
+												"expr": "LogicalTableScan(table=[[main, product]])",
+												"children": []
 											}
 										]
 									}

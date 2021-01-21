@@ -21,11 +21,16 @@ namespace {
 
 std::tuple<std::vector<int>, std::vector<cudf::order>, cudf::size_type> get_sort_vars(const std::string & query_part);
 
-std::tuple< std::vector<int>, std::vector<cudf::order> > get_sort_partition_vars(const std::string & query_part);
+// TODO: cordova for now we just support one column in the `PARTITION BY` clause
+std::tuple< std::vector<int>, std::vector<cudf::order> > get_vars_to_partition(const std::string & query_part);
+
+std::tuple< std::vector<int>, std::vector<cudf::order> > get_vars_to_orders(const std::string & query_part);
 
 std::unique_ptr<ral::frame::BlazingTable> sort(const ral::frame::BlazingTableView & table, const std::string & query_part);
 
-std::unique_ptr<ral::frame::BlazingTable> sort_partition_by(const ral::frame::BlazingTableView & table, const std::string & query_part);
+std::unique_ptr<ral::frame::BlazingTable> sort_to_partition(const ral::frame::BlazingTableView & table, const std::string & query_part);
+
+std::unique_ptr<ral::frame::BlazingTable> sort_partitioned(const ral::frame::BlazingTableView & table, const std::string & query_part);
 
 std::size_t compute_total_samples(std::size_t num_rows);
 

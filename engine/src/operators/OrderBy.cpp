@@ -10,6 +10,7 @@
 #include <random>
 #include "parser/expression_utils.hpp"
 #include "utilities/CommonOperations.h"
+#include <blazingdb/io/Util/StringUtil.h>
 
 using namespace fmt::literals;
 
@@ -113,24 +114,55 @@ get_sort_vars(const std::string & query_part) {
 	return std::make_tuple(sortColIndices, sortOrderTypes, limitRows);
 }
 
-std::tuple< std::vector<int>, std::vector<cudf::order> > get_sort_partition_vars(const std::string & query_part) {
+//input: window#0=[window(partition {0, 2} order by [1 DESC, 2 DESC] aggs [MIN($0)])]
+//output: < [0, 2], [cudf::ASCENDING, cudf::ASCENDING] >
+std::tuple< std::vector<int>, std::vector<cudf::order> > get_vars_to_partition(const std::string & query_part) {
+	std::vector<int> column_index;
+	std::vector<cudf::order> order_types;
 
-	std::vector<int> sortColIndices;
-	std::vector<cudf::order> sortOrderTypes;
-
-	// When query_part doesn't have `order by` clause, just `partition by` clause
-	// example
-	// query_part: window#0=[window(partition {2} aggs [MIN($0)])]
-	// sortColIndices: [2]
-	// sortOrderTypes: [ASCENDING]
-	if (query_part.find("order by") == query_part.npos) {
-		sortOrderTypes.push_back(cudf::order::ASCENDING);
-		sortColIndices = get_columns_to_partition(query_part);
-		return std::make_tuple(sortColIndices, sortOrderTypes);
-	} else {
-		// TODO: implements the case when `order by` clause exists 
-		return std::make_tuple(sortColIndices, sortOrderTypes);
+	std::string expression_name = "partition ";
+	if (query_part.find(expression_name) == query_part.npos) {
+		return std::make_tuple(column_index, order_types);
 	}
+	
+	std::size_t start_position = query_part.find(expression_name) + expression_name.size();
+    std::size_t end_position = query_part.find("}", start_position);
+
+	// Now we have something like {0, 2}
+	std::string values = query_part.substr(start_position + 1, end_position - start_position - 1);
+	std::vector<std::string> column_numbers_string = StringUtil::split(values, ", ");
+	for (size_t i = 0; i < column_numbers_string.size(); i++) {
+		column_index.push_back(std::stoi(column_numbers_string[i]));
+		order_types.push_back(cudf::order::ASCENDING);
+	}
+
+	return std::make_tuple(column_index, order_types);
+}
+
+//input: window#0=[window(partition {2} order by [1 DESC, 3] aggs [MIN($0)])]
+//output: < [1, 3], [cudf::DESCENDING, cudf::ASCENDING] >
+std::tuple< std::vector<int>, std::vector<cudf::order> > get_vars_to_orders(const std::string & query_part) {
+	std::vector<int> column_index;
+	std::vector<cudf::order> order_types;
+
+	std::string expression_name = "order by ";
+
+	std::size_t start_position = query_part.find(expression_name) + expression_name.size();
+    std::size_t end_position = query_part.find("]", start_position);
+
+	// Now we have something like [1 DESC, 3]
+	std::string values = query_part.substr(start_position + 1, end_position - start_position - 1);
+	std::vector<std::string> column_order_string = StringUtil::split(values, ", ");   // ["1 DESC", "3"]
+
+	for (std::size_t i; i < column_order_string.size(); ++i) {
+		std::vector<std::string> split_parts = StringUtil::split(column_order_string[i], " ");
+		if (split_parts.size() == 1) order_types.push_back(cudf::order::ASCENDING);
+		else order_types.push_back(cudf::order::DESCENDING);
+	
+		column_index.push_back(std::stoi(split_parts[0]));
+	}
+
+	return std::make_tuple(column_index, order_types);
 }
 
 bool has_limit_only(const std::string & query_part){
@@ -168,10 +200,18 @@ std::unique_ptr<ral::frame::BlazingTable> sort(const ral::frame::BlazingTableVie
 	return logicalSort(table, sortColIndices, sortOrderTypes);
 }
 
-std::unique_ptr<ral::frame::BlazingTable> sort_partition_by(const ral::frame::BlazingTableView & table, const std::string & query_part) {
+std::unique_ptr<ral::frame::BlazingTable> sort_to_partition(const ral::frame::BlazingTableView & table, const std::string & query_part) {
 	std::vector<cudf::order> sortOrderTypes;
 	std::vector<int> sortColIndices;
-	std::tie(sortColIndices, sortOrderTypes) = get_sort_partition_vars(query_part);
+	std::tie(sortColIndices, sortOrderTypes) = get_vars_to_partition(query_part);
+
+	return logicalSort(table, sortColIndices, sortOrderTypes);
+}
+
+std::unique_ptr<ral::frame::BlazingTable> sort_partitioned(const ral::frame::BlazingTableView & table, const std::string & query_part) {
+	std::vector<cudf::order> sortOrderTypes;
+	std::vector<int> sortColIndices;
+	std::tie(sortColIndices, sortOrderTypes) = get_vars_to_orders(query_part);
 
 	return logicalSort(table, sortColIndices, sortOrderTypes);
 }

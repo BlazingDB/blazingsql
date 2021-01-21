@@ -168,10 +168,6 @@ bool is_window_compute(std::string query_part);
 
 std::unique_ptr<cudf::aggregation> get_window_aggregate(const std::string & input);
 
-// input: window#0=[window(partition {0, 2} aggs [MIN($0)])]
-// output: a vector, [0, 2]
-std::vector<int> get_columns_to_partition(const std::string & query_part);
-
 // input: window#0=[window(partition {0, 2} aggs [MIN($7)])]
 // output: a vector, [7]
 std::vector<int> get_columns_to_apply_window_function(const std::string & query_part);

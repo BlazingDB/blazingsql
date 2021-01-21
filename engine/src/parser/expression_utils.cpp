@@ -425,28 +425,6 @@ std::unique_ptr<cudf::aggregation> get_window_aggregate(const std::string & inpu
 		"In Window Function: Aggregate type not supported");
 }
 
-// TODO improve the use of these three below functions
-// TODO: implementation considering just one window function
-std::vector<int> get_columns_to_partition(const std::string & query_part) {
-	std::vector<int> column_index;
-	std::string expression_name = "partition ";
-
-	if (query_part.find(expression_name) == query_part.npos) {
-		return column_index;
-	}
-
-	std::size_t start_position = query_part.find(expression_name) + expression_name.size();
-    std::size_t end_position = query_part.find("}", start_position);
-
-	// Now we have somethig like {0, 1, 2}
-	std::string values = query_part.substr(start_position + 1, end_position - start_position - 1);
-	std::vector<std::string> column_numbers_string = StringUtil::split(values, ",");
-	for (size_t i = 0; i < column_numbers_string.size(); i++) {
-		column_index.push_back(std::stoi(column_numbers_string[i]));
-	}
-	return column_index;
-}
-
 // input: LogicalWindow(window#0=[window(partition {2} aggs [COUNT($0), $SUM0($0)])])
 // output: a vector [0, 0]
 std::vector<int> get_columns_to_apply_window_function(const std::string & query_part) {

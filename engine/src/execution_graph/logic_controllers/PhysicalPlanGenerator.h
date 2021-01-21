@@ -312,14 +312,15 @@ struct tree_processor {
 					p_tree.put("expr", split_by_keys);
 					p_tree.put_child("children", create_array_tree(sort_tree));
 
+					// TODO: cordova remove this comments
 					// in case the Window function also contains an `order by` clause
-					if (expr.find("order by") != std::string::npos) {
-						sort_tree.clear();
-						sort_tree.put("expr", sort_expr);
-						sort_tree.put_child("children", create_array_tree(p_tree));
-
-						p_tree = sort_tree;
-					}
+					//if (expr.find("order by") != std::string::npos) {
+					//	sort_tree.clear();
+					//	sort_tree.put("expr", sort_expr);
+					//	sort_tree.put_child("children", create_array_tree(p_tree));
+                    //
+					//	p_tree = sort_tree;
+					//}
 				} 
 				// TODO: This could be improved, maybe we should just use the SortAndSampleKernel, PartitionKernel and MergeStreamKernel
 				// FOr now AVOID Window Functions without PARTITION BY clause
@@ -379,7 +380,6 @@ struct tree_processor {
 	}
 
 	std::tuple<std::shared_ptr<ral::cache::graph>,std::size_t> build_batch_graph(std::string json) {
-		std::cout << "input json: " << json << std::endl;
 		auto query_graph = std::make_shared<ral::cache::graph>();
 		std::size_t max_kernel_id = 0;
 		try {
@@ -388,7 +388,6 @@ struct tree_processor {
 			boost::property_tree::read_json(input, p_tree);
 			transform_json_tree(p_tree);
 			max_kernel_id = expr_tree_from_json(0, p_tree, &this->root, 0, query_graph);
-			std::cout << "to_string: " << this->to_string() << std::endl;
 		} catch (std::exception & e) {
 			std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
 			logger->error("|||{info}|||||", "info"_a="In build_batch_graph. What: {}"_format(e.what()));
@@ -476,11 +475,10 @@ struct tree_processor {
 					cache_machine_config.context = context->clone();
 					query_graph.addPair(ral::cache::kpair(child->kernel_unit, parent->kernel_unit, cache_machine_config));
 
-				// TODO maybe a Distributed version is needed
-				} else if ( (child_kernel_type == kernel_type::SplitByKeysKernel && parent_kernel_type == kernel_type::ComputeWindowKernel)
-							|| (child_kernel_type == kernel_type::ComputeWindowKernel && parent_kernel_type == kernel_type::ConcatPartitionsByKeysKernel) ) {
-					// TODO the MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE should change something like MAX_NUM_PARTITIONS_PER_NODE, now 8 could be small
-					int max_num_partitions_per_node = 8;
+				// TODO a Distributed version of PARTITION BY is needed
+				} else if ( (child_kernel_type == kernel_type::SplitByKeysKernel && parent_kernel_type == kernel_type::ComputeWindowKernel) ) {
+					// TODO the MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE should change something like MAX_NUM_PARTITIONS_PER_NODE, now 8 will be very small
+					int max_num_partitions_per_node = 20;
 					it = config_options.find("MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE");
 					if (it != config_options.end()){
 						max_num_partitions_per_node = std::stoi(config_options["MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE"]);
