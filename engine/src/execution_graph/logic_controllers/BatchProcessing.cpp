@@ -179,47 +179,46 @@ kstatus TableScan::run() {
     //if its empty we can just add it to the cache without scheduling
     if (!provider->has_next()) {
         this->add_to_output_cache(std::move(schema.makeEmptyBlazingTable(projections)));
-        return kstatus::proceed;
+    } else {
+
+        while(provider->has_next()) {
+            //retrieve the file handle but do not open the file
+            //this will allow us to prevent from having too many open file handles by being
+            //able to limit the number of file tasks
+            auto handle = provider->get_next(true);
+            auto file_schema = schema.fileSchema(file_index);
+            auto row_group_ids = schema.get_rowgroup_ids(file_index);
+            //this is the part where we make the task now
+            std::unique_ptr<ral::cache::CacheData> input =
+                std::make_unique<ral::cache::CacheDataIO>(handle,parser,schema,file_schema,row_group_ids,projections);
+            std::vector<std::unique_ptr<ral::cache::CacheData> > inputs;
+            inputs.push_back(std::move(input));
+            auto output_cache = this->output_cache();
+
+            ral::execution::executor::get_instance()->add_task(
+                    std::move(inputs),
+                    output_cache,
+                    this);
+
+            /*if (this->has_limit_ && output_cache->get_num_rows_added() >= this->limit_rows_) {
+            //	break;
+            }*/
+            file_index++;
+        }
+
+        logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+                                    "query_id"_a=context->getContextToken(),
+                                    "step"_a=context->getQueryStep(),
+                                    "substep"_a=context->getQuerySubstep(),
+                                    "info"_a="TableScan Kernel tasks created",
+                                    "duration"_a=timer.elapsed_time(),
+                                    "kernel_id"_a=this->get_id());
+
+        std::unique_lock<std::mutex> lock(kernel_mutex);
+        kernel_cv.wait(lock,[this]{
+            return this->tasks.empty();
+        });
     }
-
-    while(provider->has_next()) {
-        //retrieve the file handle but do not open the file
-        //this will allow us to prevent from having too many open file handles by being
-        //able to limit the number of file tasks
-        auto handle = provider->get_next(true);
-        auto file_schema = schema.fileSchema(file_index);
-        auto row_group_ids = schema.get_rowgroup_ids(file_index);
-        //this is the part where we make the task now
-        std::unique_ptr<ral::cache::CacheData> input =
-            std::make_unique<ral::cache::CacheDataIO>(handle,parser,schema,file_schema,row_group_ids,projections);
-        std::vector<std::unique_ptr<ral::cache::CacheData> > inputs;
-        inputs.push_back(std::move(input));
-        auto output_cache = this->output_cache();
-
-        ral::execution::executor::get_instance()->add_task(
-                std::move(inputs),
-                output_cache,
-                this);
-
-        /*if (this->has_limit_ && output_cache->get_num_rows_added() >= this->limit_rows_) {
-        //	break;
-        }*/
-        file_index++;
-    }
-
-    logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
-                                "query_id"_a=context->getContextToken(),
-                                "step"_a=context->getQueryStep(),
-                                "substep"_a=context->getQuerySubstep(),
-                                "info"_a="TableScan Kernel tasks created",
-                                "duration"_a=timer.elapsed_time(),
-                                "kernel_id"_a=this->get_id());
-
-    std::unique_lock<std::mutex> lock(kernel_mutex);
-    kernel_cv.wait(lock,[this]{
-        return this->tasks.empty();
-    });
-
     logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
                                 "query_id"_a=context->getContextToken(),
                                 "step"_a=context->getQueryStep(),
