@@ -1752,24 +1752,18 @@ class BlazingContext(object):
 
         Docs: https://docs.blazingdb.com/docs/explain
         """
+        self.lock.acquire()
         try:
             algebra = self.generator.getRelationalAlgebraString(sql)
 
         except SqlValidationExceptionClass as exception:
-            # jpype.JException as exception:
             raise Exception(exception.message())
-            # algebra = ""
-            # print("SQL Parsing Error")
-            # print(exception.message())
         except SqlSyntaxExceptionClass as exception:
             raise Exception(exception.message())
         except RelConversionExceptionClass as exception:
             raise Exception(exception.message())
-        # if algebra.startswith("fail:"):
-        #     print("Error found")
-        #     print(algebra)
-        #     algebra = ""
-
+        finally:
+            self.lock.release()
         return str(algebra)
 
     def add_remove_table(self, tableName, addTable, table=None):
