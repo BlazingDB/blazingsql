@@ -35,10 +35,10 @@ static std::shared_ptr<ral::cache::CacheMachine> create_cache_machine( const cac
 	return machines;
 }
 
-struct kernel_progress {
-	std::string kernel_description;
-    bool finished;
-    int batches_completed;
+struct graph_progress {
+	std::vector<std::string> kernel_descriptions;
+    std::vector<bool> finished;
+    std::vector<int> batches_completed;
 };
 
 /**
@@ -95,7 +95,7 @@ public:
 
 	bool query_is_complete();
 
-	std::vector<kernel_progress> get_progress();
+	graph_progress get_progress();
 
 	size_t num_nodes() const;
 

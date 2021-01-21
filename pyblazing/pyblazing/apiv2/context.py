@@ -346,26 +346,26 @@ def startExecuteGraph(ctxToken):
 
 
 def getQueryIsComplete(ctxToken):
-    import dask.distributed
-
-    worker = dask.distributed.get_worker()
+    worker = get_worker()
 
     graph = worker.query_graphs[ctxToken]
     return graph.query_is_complete()
 
+def queryProgressAsPandas(progress):
+    progress['kernel_descriptions'] = [kernel.decode() for kernel in progress['kernel_descriptions']]
+    pdf = pandas.DataFrame(list(zip(progress['kernel_descriptions'], progress['finished'], progress['batches_completed'])),columns=["kernel_descriptions", "finished", "batches_completed"])
+    return pdf
 
 def getQueryProgress(ctxToken):
-    import dask.distributed
-
-    worker = dask.distributed.get_worker()
+    worker = get_worker()
 
     graph = worker.query_graphs[ctxToken]
-    return graph.get_progress()
+    progress = graph.get_progress()
+    return queryProgressAsPandas(progress)
 
 
 def getExecuteGraphResult(ctxToken):
     import dask.distributed
-
     worker = dask.distributed.get_worker()
 
     graph = worker.query_graphs[ctxToken]
@@ -1401,6 +1401,7 @@ class BlazingContext(object):
         self.node_log_paths = set()
         self.finalizeCaller = lambda: NotImplemented
         self.config_options = load_config_options_from_env(config_options)
+        self.calcite_primed = False
 
         logging_dir_path = "blazing_log"
         if "BLAZING_LOGGING_DIRECTORY".encode() in self.config_options:
@@ -1767,9 +1768,11 @@ class BlazingContext(object):
         return str(algebra)
 
     def add_remove_table(self, tableName, addTable, table=None):
+        need_to_prime = False
         self.lock.acquire()
         try:
             if addTable:
+                need_to_prime = not self.calcite_primed
                 self.db.removeTable(tableName)
                 self.tables[tableName] = table
 
@@ -1782,13 +1785,19 @@ class BlazingContext(object):
                 tableJava = TableClass(tableName, self.db, arr)
                 self.db.addTable(tableJava)
                 self.schema = BlazingSchemaClass(self.db)
-                self.generator = RelationalAlgebraGeneratorClass(self.schema)
+                self.generator = RelationalAlgebraGeneratorClass(self.schema)                
             else:
                 self.db.removeTable(tableName)
                 self.schema = BlazingSchemaClass(self.db)
                 self.generator = RelationalAlgebraGeneratorClass(self.schema)
                 del self.tables[tableName]
         finally:
+            self.lock.release()
+        
+        if need_to_prime:
+            priming = self.explain('select * from ' + tableName)
+            self.lock.acquire()
+            self.calcite_primed = True
             self.lock.release()
 
     def get_free_memory(self):
@@ -2929,6 +2938,8 @@ class BlazingContext(object):
                 while not query_complete:
                     sleep(0.005)
                     query_complete = graph.query_is_complete()
+                    # progress = graph.get_progress()
+                    # pdf = queryProgressAsPandas(progress)
 
                 return cio.getExecuteGraphResultCaller(
                     graph, ctxToken, is_single_node=True
@@ -2992,7 +3003,25 @@ class BlazingContext(object):
                     )
                 workers_is_complete = self.dask_client.gather(dask_futures)
                 query_complete = all(workers_is_complete)  # all workers returned true
-
+                # if not query_complete:
+                #     dask_futures = []
+                #     for node in self.nodes:
+                #         worker = node["worker"]
+                #         dask_futures.append(
+                #             self.dask_client.submit(
+                #                 getQueryProgress, ctxToken, workers=[worker], pure=False
+                #             )
+                #         )
+                #     workers_progress = dask.dataframe.from_delayed(dask_futures).compute()
+                #     print('workers_progress')
+                #     progress = workers_progress.groupby('kernel_descriptions').agg(finished=('finished','all'),batches_completed=('batches_completed','sum'))
+                #     print(progress)
+                #     print("query_complete")
+                #     print(query_complete)
+                #     # breakpoint()
+            
+            print("out of the loop query_complete")
+            print(query_complete)
             dask_futures = []
             for node in self.nodes:
                 worker = node["worker"]

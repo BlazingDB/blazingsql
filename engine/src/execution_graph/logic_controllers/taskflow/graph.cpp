@@ -413,17 +413,16 @@ namespace cache {
 		return static_cast<ral::batch::OutputKernel&>(*(this->get_last_kernel())).is_done();
 	}
 
-	std::vector<kernel_progress> graph::get_progress() {
-		std::vector<kernel_progress> graph_progress;
-		for (auto kernel_id : ordered_kernel_ids){
-			kernel_progress progress;
+	graph_progress graph::get_progress() {
+		graph_progress progress;
+		for (int i = 0; i < ordered_kernel_ids.size() - 1; i++){ // want to iterate over all the kernels except the last one which is OutputKernel
+			auto kernel_id = ordered_kernel_ids[i];
 			kernel * kernel = get_node(kernel_id);
-			progress.kernel_description = std::to_string(kernel_id) + "-" + kernel->kernel_name();
-			progress.finished = kernel->output_.all_finished();
-			progress.batches_completed = kernel->output_.total_batches_added();
-			graph_progress.push_back(progress);
+			progress.kernel_descriptions.push_back(std::to_string(kernel_id) + "-" + kernel->kernel_name());
+			progress.finished.push_back(kernel->output_.all_finished());
+			progress.batches_completed.push_back(kernel->output_.total_batches_added());			
 		}
-		return graph_progress;
+		return progress;
 	}
 
 }  // namespace cache
