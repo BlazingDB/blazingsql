@@ -130,7 +130,7 @@ def get_blazing_logger(is_dask):
         or locally as a client.
     """
     if is_dask:
-        return logging.getLogger(dask.distributed.get_worker().id)
+        return logging.getLogger(get_worker().id)
     else:
         return logging.getLogger("blz_client")
 
@@ -216,7 +216,7 @@ def initializeBlazing(
     workers_ucp_info = []
     self_port = 0
     if singleNode is False:
-        worker = dask.distributed.get_worker()
+        worker = get_worker()
         for dask_addr in worker.ucx_addresses:
             other_worker = worker.ucx_addresses[dask_addr]
             workers_ucp_info.append(
@@ -274,7 +274,7 @@ def getNodePartitionKeys(df, client):
 
 
 def get_element(query_partid):
-    worker = dask.distributed.get_worker()
+    worker = get_worker()
     df = worker.query_parts[query_partid]
     del worker.query_parts[query_partid]
     return df
@@ -292,9 +292,7 @@ def generateGraphs(
     sql,
 ):
 
-    import dask.distributed
-
-    worker = dask.distributed.get_worker()
+    worker = get_worker()
     for table_index in range(len(tables)):
         if isinstance(tables[table_index].input, dask_cudf.core.DataFrame):
             print(
@@ -337,9 +335,7 @@ def generateGraphs(
 
 
 def startExecuteGraph(ctxToken):
-    import dask.distributed
-
-    worker = dask.distributed.get_worker()
+    worker = get_worker()
 
     graph = worker.query_graphs[ctxToken]
     cio.startExecuteGraphCaller(graph, ctxToken)
@@ -365,8 +361,7 @@ def getQueryProgress(ctxToken):
 
 
 def getExecuteGraphResult(ctxToken):
-    import dask.distributed
-    worker = dask.distributed.get_worker()
+    worker = get_worker()
 
     graph = worker.query_graphs[ctxToken]
     del worker.query_graphs[ctxToken]
@@ -1794,6 +1789,7 @@ class BlazingContext(object):
         finally:
             self.lock.release()
         
+        # this is because if you do multithreaded explains without it ever being called before, it will crash. Dont know why.
         if need_to_prime:
             priming = self.explain('select * from ' + tableName)
             self.lock.acquire()
@@ -3013,15 +3009,13 @@ class BlazingContext(object):
                 #             )
                 #         )
                 #     workers_progress = dask.dataframe.from_delayed(dask_futures).compute()
-                #     print('workers_progress')
                 #     progress = workers_progress.groupby('kernel_descriptions').agg(finished=('finished','all'),batches_completed=('batches_completed','sum'))
-                #     print(progress)
-                #     print("query_complete")
-                #     print(query_complete)
-                #     # breakpoint()
+                #     percent_complete = progress['finished'].sum()/len(progress)
+                #     total_batches_complete = progress['batches_completed'].sum()
+                #     print("Percent complete: " + str(percent_complete))
+                #     print("Batches complete: " + str(total_batches_complete))
+                    
             
-            print("out of the loop query_complete")
-            print(query_complete)
             dask_futures = []
             for node in self.nodes:
                 worker = node["worker"]
