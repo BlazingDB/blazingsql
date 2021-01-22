@@ -93,8 +93,10 @@ buffer_transport::buffer_transport(ral::cache::MetadataDictionary metadata,
 	 destinations{destinations} , require_acknowledge{require_acknowledge}  {
   // iterate for workers this is destined for
 
-	for (const auto & destination : destinations){
-		transmitted_acknowledgements[destination.id()] = false;
+	if(require_acknowledge){
+		for (const auto & destination : destinations){
+			transmitted_acknowledgements[destination.id()] = false;
+		}
 	}
 
 }
