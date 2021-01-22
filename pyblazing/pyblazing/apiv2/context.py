@@ -1167,7 +1167,7 @@ def load_config_options_from_env(user_config_options: dict):
         "LOGGING_MAX_SIZE_PER_FILE": 1073741824,  # 1 GB
         "TRANSPORT_BUFFER_BYTE_SIZE": 1048576,  # 10 MB in bytes
         "TRANSPORT_POOL_NUM_BUFFERS": 100,
-        "PROTOCOL": "TCP",
+        "PROTOCOL": "AUTO",
     }
 
     # key: option_name, value: default_value
@@ -1416,9 +1416,11 @@ class BlazingContext(object):
             ).encode()
 
         if dask_client is not None:
-            self.config_options["PROTOCOL".encode()] = parse_address(
-                dask_client.scheduler.addr
-            )[0].encode()
+            # if the user does not explicitly set it, it will be set by whatever dask client is using
+            if self.config_options["PROTOCOL".encode()] == "AUTO".encode():
+                self.config_options["PROTOCOL".encode()] = parse_address(
+                    dask_client.scheduler.addr
+                )[0].encode()
 
             distributed_initialize_server_directory(self.dask_client, logging_dir_path)
 

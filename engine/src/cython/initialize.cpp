@@ -31,6 +31,7 @@
 #include <blazingdb/io/Library/Logging/CoutOutput.h>
 #include <blazingdb/io/Library/Logging/Logger.h>
 #include "blazingdb/io/Library/Logging/ServiceLogging.h"
+#include <blazingdb/io/Util/StringUtil.h>
 
 #include "communication/CommunicationData.h"
 
@@ -754,7 +755,8 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 		std::map<std::string, comm::node> nodes_info_map;
 
 		comm::blazing_protocol protocol = comm::blazing_protocol::tcp;
-		if (config_options["PROTOCOL"] == "ucx"){
+		std::string protocol_value = StringUtil::toLower(config_options["PROTOCOL"]);
+		if (protocol_value == "ucx"){
 			protocol = comm::blazing_protocol::ucx;
 		}
 		ucp_context_h ucp_context = nullptr;
