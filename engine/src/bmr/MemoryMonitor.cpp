@@ -36,6 +36,8 @@ namespace ral {
                 if (need_to_free_memory()){
                     downgradeCaches(&tree->root);
 
+                    auto logger = spdlog::get("batch_logger");
+
                     std::vector<std::unique_ptr<ral::execution::task>> tasks;
                      // if after downgrading all caches there is still too much consumption, lets try to downgrade data in tasks
                      // Lets pull tasks from the back of the queue, since they are ones that will not be operated on immediatelly
@@ -43,6 +45,11 @@ namespace ral {
 
                         std::unique_ptr<ral::execution::task> task = ral::execution::executor::get_instance()->remove_task_from_back();
                         if (task != nullptr){
+                            if (logger){
+                                logger->info("{query_id}|||{info}|||||",
+                                    "query_id"_a=tree->context->getContextToken(),
+                                    "info"_a="MemoryMonitor about to free memory from tasks");
+                            }
                             std::vector<std::unique_ptr<ral::cache::CacheData > > inputs = task->release_inputs();
                             for (std::size_t i = 0; i < inputs.size(); i++){
                                 inputs[i] = std::move(inputs[i]->downgradeCacheData(std::move(inputs[i]), "", tree->context));
@@ -61,6 +68,13 @@ namespace ral {
                         }
                     }
                     ral::execution::executor::get_instance()->notify_memory_safety_cv();
+                    if (tasks.size() > 0){
+                        if (logger){
+                            logger->info("{query_id}|||{info}|||||",
+                                "query_id"_a=tree->context->getContextToken(),
+                                "info"_a="MemoryMonitor successfully freed memory from tasks");
+                        }
+                    }
                 }
             }
         });

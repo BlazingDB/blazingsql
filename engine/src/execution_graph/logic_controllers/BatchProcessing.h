@@ -16,7 +16,6 @@ using ral::cache::kernel;
 using ral::cache::kernel_type;
 using namespace fmt::literals;
 
-using RecordBatch = std::unique_ptr<ral::frame::BlazingTable>;
 using frame_type = std::vector<std::unique_ptr<ral::frame::BlazingTable>>;
 using Context = blazingdb::manager::Context;
 
@@ -44,7 +43,7 @@ public:
 	 * If there are no more messages on the queue we get a nullptr.
 	 * @return Unique pointer to a BlazingTable containing the next decached message.
 	 */
-	RecordBatch next();
+	std::unique_ptr<ral::frame::BlazingTable> next();
 
 	/**
 	 * Blocks executing thread until a new message is ready or when the message queue is empty.
@@ -309,7 +308,7 @@ public:
 	 * @param kernel_id Kernel identifier.
 	 * @param context Shared context associated to the running query.
 	 */
-	OutputKernel(std::size_t kernel_id, std::shared_ptr<Context> context) : kernel(kernel_id,"OutputKernel", context, kernel_type::OutputKernel) { }
+	OutputKernel(std::size_t kernel_id, std::shared_ptr<Context> context) : kernel(kernel_id,"OutputKernel", context, kernel_type::OutputKernel), done(false) { }
 
 	std::string kernel_name() { return "Output";}
 
@@ -335,8 +334,15 @@ public:
 	 */
 	frame_type release();
 
+
+	/**
+	 * Returns true when the OutputKernel is done
+	 */
+	bool is_done();
+
 protected:
 	frame_type output; /**< Vector of tables with the final output. */
+	std::atomic<bool> done;
 };
 
 } // namespace batch

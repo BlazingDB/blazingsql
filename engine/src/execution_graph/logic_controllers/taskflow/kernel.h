@@ -177,7 +177,7 @@ public:
 	std::size_t estimate_output_bytes(const std::vector<std::unique_ptr<ral::cache::CacheData > > & inputs);
 	std::size_t estimate_operating_bytes(const std::vector<std::unique_ptr<ral::cache::CacheData > > & inputs);
 
-	std::string kernel_name() { return "base_kernel"; }
+	virtual std::string kernel_name() { return "base_kernel"; }
 
 	void notify_complete(size_t task_id);
 	void add_task(size_t task_id);
@@ -188,7 +188,7 @@ protected:
 	std::set<size_t> tasks;
 	std::mutex kernel_mutex;
 	std::condition_variable kernel_cv;
-	std::atomic<std::size_t> total_input_bytes;
+	std::atomic<std::size_t> total_input_bytes_processed;
 	
 public:
 	std::string expression; /**< Stores the logical expression being processed. */

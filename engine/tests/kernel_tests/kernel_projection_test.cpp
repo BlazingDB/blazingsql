@@ -50,7 +50,8 @@ template <typename T>
 struct ProjectionTest : public BlazingUnitTest {
 	ProjectionTest() {
 		int executor_threads = 10;
-		ral::execution::executor::init_executor(executor_threads);
+		BlazingRMMInitialize();
+		ral::execution::executor::init_executor(executor_threads, 0.8);
 	}
 };
 
@@ -79,8 +80,8 @@ std::shared_ptr<kernel> make_project_kernel(std::string project_plan, std::share
 std::tuple<std::shared_ptr<CacheMachine>, std::shared_ptr<CacheMachine>> register_kernel_with_cache_machines(
 	std::shared_ptr<kernel> project_kernel,
 	std::shared_ptr<Context> context) {
-	std::shared_ptr<CacheMachine>  inputCacheMachine = std::make_shared<CacheMachine>(context);
-	std::shared_ptr<CacheMachine> outputCacheMachine = std::make_shared<CacheMachine>(context);
+	std::shared_ptr<CacheMachine>  inputCacheMachine = std::make_shared<CacheMachine>(context, "");
+	std::shared_ptr<CacheMachine> outputCacheMachine = std::make_shared<CacheMachine>(context, "");
 	project_kernel->input_.register_cache("1", inputCacheMachine);
 	project_kernel->output_.register_cache("1", outputCacheMachine);
 

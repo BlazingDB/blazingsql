@@ -1,4 +1,8 @@
 #include "bufferTransport.hpp"
+#include "CodeTimer.h"
+
+using namespace std::chrono_literals;
+using namespace fmt::literals;
 
 namespace comm {
 
@@ -113,26 +117,39 @@ void buffer_transport::increment_begin_transmission() {
 }
 
 void buffer_transport::wait_for_begin_transmission() {
+
+	CodeTimer blazing_timer;
 	std::unique_lock<std::mutex> lock(mutex);
-	completion_condition_variable.wait(lock, [this] {
-		if(transmitted_begin_frames >= destinations.size()) {
-			return true;
-		} else {
-			return false;
+	while(!completion_condition_variable.wait_for(lock, 1000ms, [&blazing_timer, this] {
+		bool done_waiting = transmitted_begin_frames >= destinations.size();
+		if (!done_waiting && blazing_timer.elapsed_time() > 990) {
+			auto logger = spdlog::get("batch_logger");
+			if(logger != nullptr) {
+				logger->warn("|||{info}|{duration}||||",
+									"info"_a="buffer_transport::wait_for_begin_transmission() timed out. transmitted_begin_frames: " + std::to_string(transmitted_begin_frames) + " destinations.size(): " + std::to_string(destinations.size()),
+									"duration"_a=blazing_timer.elapsed_time());
+			}
 		}
-	});
+		return done_waiting;
+	})){}
 }
 
 
 void buffer_transport::wait_until_complete() {
+	CodeTimer blazing_timer;
 	std::unique_lock<std::mutex> lock(mutex);
-	completion_condition_variable.wait(lock, [this] {
-		if(transmitted_frames >= (buffer_sizes.size() * destinations.size())) {
-			return true;
-		} else {
-			return false;
+	while(!completion_condition_variable.wait_for(lock, 1000ms, [&blazing_timer, this] {
+		bool done_waiting = transmitted_frames >= (buffer_sizes.size() * destinations.size());
+		if (!done_waiting && blazing_timer.elapsed_time() > 990) {
+			auto logger = spdlog::get("batch_logger");
+			if(logger != nullptr) {
+				logger->warn("|||{info}|{duration}||||",
+									"info"_a="buffer_transport::wait_until_complete() timed out. transmitted_frames: " + std::to_string(transmitted_frames) + " buffer_sizes.size(): " + std::to_string(buffer_sizes.size()) + " destinations.size(): " + std::to_string(destinations.size()),
+									"duration"_a=blazing_timer.elapsed_time());
+			}
 		}
-	});
+		return done_waiting;
+	})){}
 }
 
 } // namespace comm

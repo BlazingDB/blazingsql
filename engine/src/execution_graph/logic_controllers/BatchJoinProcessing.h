@@ -58,8 +58,6 @@ private:
 
 	void mark_set_completed(int left_ind, int right_ind);
 
-	std::vector<int> get_indexes_from_message_id(const std::vector<std::string> & message_ids);
-
 	// This function checks to see if there is a set from our current completion_matix (data we have already loaded once)
 	// that we have not completed that uses one of our current indices, otherwise it returns [-1, -1]
 	std::tuple<int, int> check_for_another_set_to_do_with_data_we_already_have(int left_ind = -1, int right_ind = -1);

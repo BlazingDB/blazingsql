@@ -58,7 +58,7 @@ std::unique_ptr<BlazingTable> generatePartitionPlans(
 		}
 	}
 	if(names.size() == 0){
-		throw std::exception();
+		throw std::runtime_error("ERROR in generatePartitionPlans. names.size() == 0");
 	}
 
 	return getPivotPointsTable(number_partitions, BlazingTableView(sortedSamples->view(), names));

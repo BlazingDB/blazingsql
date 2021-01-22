@@ -68,7 +68,6 @@ std::vector<data_handle> uri_data_provider::get_some(std::size_t num_files, bool
 	return file_handles;
 }
 
-
 data_handle uri_data_provider::get_next(bool open_file) {
 	// TODO: Take a look at this later, just calling this function to ensure
 	// the uri is in a valid state otherwise throw an exception

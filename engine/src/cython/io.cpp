@@ -20,7 +20,6 @@ using namespace fmt::literals;
 #include <numeric>
 
 
-
 TableSchema parseSchema(std::vector<std::string> files,
 	std::string file_format_hint,
 	std::vector<std::string> arg_keys,
@@ -179,9 +178,9 @@ std::unique_ptr<ResultSet> parseMetadata(std::vector<std::string> files,
 		result->cudfTable = metadata->releaseCudfTable();
 		result->skipdata_analysis_fail = false;
 		return result;
-	} catch(std::exception e) {
+	} catch(std::exception & e) {
 		std::cerr << e.what() << std::endl;
-		throw e;
+		throw;
 	}
 }
 

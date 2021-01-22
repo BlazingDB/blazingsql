@@ -1,5 +1,7 @@
 #include "executor.h"
 
+using namespace fmt::literals;
+
 namespace ral {
 namespace execution{
 
@@ -70,15 +72,26 @@ std::size_t task::task_memory_needed() {
 void task::run(cudaStream_t stream, executor * executor){
     try{
         kernel->process(inputs,output,stream,args);
-        complete();
+        complete();        
     }catch(rmm::bad_alloc e){
+
+        auto logger = spdlog::get("batch_logger");
+        if (logger){
+            logger->error("|||{info}|||||",
+                    "info"_a="ERROR of type rmm::bad_alloc in task::run. What: {}"_format(e.what()));
+        }
         this->attempts++;
         if(this->attempts < this->attempts_limit){
             executor->add_task(std::move(inputs), output, kernel, attempts, task_id, args);
         }else{
             throw;
         }
-    }catch(std::exception e){
+    }catch(std::exception & e){
+        auto logger = spdlog::get("batch_logger");
+        if (logger){
+            logger->error("|||{info}|||||",
+                    "info"_a="ERROR in task::run. What: {}"_format(e.what()));
+        }
         throw;
     }
 }
@@ -99,8 +112,9 @@ void task::set_inputs(std::vector<std::unique_ptr<ral::cache::CacheData > > inpu
 
 executor * executor::_instance;
 
-executor::executor(int num_threads) :
- pool(num_threads), task_id_counter(0), resource(&blazing_device_memory_resource::getInstance()) {
+executor::executor(int num_threads, double processing_memory_limit_threshold) :
+ pool(num_threads), task_id_counter(0), resource(&blazing_device_memory_resource::getInstance()), task_queue("executor_task_queue") {
+     processing_memory_limit = resource->get_total_memory() * processing_memory_limit_threshold;
      for( int i = 0; i < num_threads; i++){
          cudaStream_t stream;
          cudaStreamCreate(&stream);
@@ -117,7 +131,20 @@ void executor::execute(){
 
             // Here we want to wait until we make sure we have enough memory to operate, or if there are no tasks currently running, then we want to go ahead and run
             std::unique_lock<std::mutex> lock(memory_safety_mutex);
-            memory_safety_cv.wait(lock, [this, memory_needed] { return active_tasks_counter.load() == 0 || (memory_needed < resource->get_memory_limit() - resource->get_memory_used()); });
+            memory_safety_cv.wait(lock, [this, memory_needed] { 
+                if (memory_needed < (processing_memory_limit - resource->get_memory_used())){
+                    return true;
+                } else if (active_tasks_counter.load() == 0){
+                    auto logger = spdlog::get("batch_logger");
+                    if (logger){
+                        logger->warn("|||{info}|||||",
+                                "info"_a="WARNING: launching task even though over limit, because there are no tasks running. Memory used: {}"_format(std::to_string(resource->get_memory_used())));
+                    }
+                    return true;
+                } else {
+                    return false;
+                }
+                });
 
             active_tasks_counter++;
             cur_task->run(this->streams[thread_id],this);

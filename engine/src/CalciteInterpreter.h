@@ -15,7 +15,8 @@ std::shared_ptr<ral::cache::graph> generate_graph(std::vector<ral::io::data_load
 																									std::string logicalPlan,
 																									Context & queryContext);
 
-std::vector<std::unique_ptr<ral::frame::BlazingTable>> execute_graph(std::shared_ptr<ral::cache::graph> graph);
+void start_execute_graph(std::shared_ptr<ral::cache::graph> graph);
+std::vector<std::unique_ptr<ral::frame::BlazingTable>> get_execute_graph_results(std::shared_ptr<ral::cache::graph> graph);
 
 void getTableScanInfo(std::string & logicalPlan_in,
 						std::vector<std::string> & relational_algebra_steps_out,

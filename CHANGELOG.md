@@ -9,6 +9,7 @@
 - #1238 Implements MergeStramKernel executor model
 - #1259 Implements SortAndSamplernel executor model, also avoid setting up num of samples
 - #1271 Added Hive utility for partitioned data
+- #1289 Multiple concurrent query support 
 
 ## Improvements
 - #1236 Moving code from header files to implementation files
@@ -17,12 +18,19 @@
 - #1262 Stop depending on gtest for runtime
 - #1261 Improve storage plugin output messages
 - #1153 Enable warnings and fixes
+- #1267 Added retrys to comms, fixed deadlocks in executor and order by. Improved logging and error management. Caches have names. Improved Joins
+- #1239 Reducing Memory pressure by moving shuffle data to cpu before transmission
+- #1278 Fix race conditions with UCX
+- #1286 Fixes to initialization and adding unique ids to comms 
 
 ## Bug Fixes
 - #1249 Fix compilation with cuda 11
 - #1253 Fixed distribution so that its evenly distributes based of rowgroups
 - #1204 Reenable json parser
-
+- #1241 Fixed cython exception handling
+- #1243 Fixed wrong CHAR regex replacing
+- #1275 Fixed issue in StringUtil::findAndReplaceAll when there are several matches
+- #1277 Support FileSystems (GS, S3) when extension of the files are not provided
 
 
 # BlazingSQL 0.17.0 (December 10, 2020)
