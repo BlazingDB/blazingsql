@@ -347,10 +347,23 @@ def getQueryIsComplete(ctxToken):
     graph = worker.query_graphs[ctxToken]
     return graph.query_is_complete()
 
+
 def queryProgressAsPandas(progress):
-    progress['kernel_descriptions'] = [kernel.decode() for kernel in progress['kernel_descriptions']]
-    pdf = pandas.DataFrame(list(zip(progress['kernel_descriptions'], progress['finished'], progress['batches_completed'])),columns=["kernel_descriptions", "finished", "batches_completed"])
+    progress["kernel_descriptions"] = [
+        kernel.decode() for kernel in progress["kernel_descriptions"]
+    ]
+    pdf = pandas.DataFrame(
+        list(
+            zip(
+                progress["kernel_descriptions"],
+                progress["finished"],
+                progress["batches_completed"],
+            )
+        ),
+        columns=["kernel_descriptions", "finished", "batches_completed"],
+    )
     return pdf
+
 
 def getQueryProgress(ctxToken):
     worker = get_worker()
@@ -1780,7 +1793,7 @@ class BlazingContext(object):
                 tableJava = TableClass(tableName, self.db, arr)
                 self.db.addTable(tableJava)
                 self.schema = BlazingSchemaClass(self.db)
-                self.generator = RelationalAlgebraGeneratorClass(self.schema)                
+                self.generator = RelationalAlgebraGeneratorClass(self.schema)
             else:
                 self.db.removeTable(tableName)
                 self.schema = BlazingSchemaClass(self.db)
@@ -1788,10 +1801,10 @@ class BlazingContext(object):
                 del self.tables[tableName]
         finally:
             self.lock.release()
-        
+
         # this is because if you do multithreaded explains without it ever being called before, it will crash. Dont know why.
         if need_to_prime:
-            priming = self.explain('select * from ' + tableName)
+            priming = self.explain("select * from " + tableName)
             self.lock.acquire()
             self.calcite_primed = True
             self.lock.release()
@@ -3014,8 +3027,7 @@ class BlazingContext(object):
                 #     total_batches_complete = progress['batches_completed'].sum()
                 #     print("Percent complete: " + str(percent_complete))
                 #     print("Batches complete: " + str(total_batches_complete))
-                    
-            
+
             dask_futures = []
             for node in self.nodes:
                 worker = node["worker"]
