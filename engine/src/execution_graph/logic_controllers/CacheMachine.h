@@ -1199,14 +1199,16 @@ public:
 	virtual void addToCache(std::unique_ptr<ral::frame::BlazingHostTable> host_table, const std::string & message_id = "") {
 		// we dont want to add empty tables to a cache, unless we have never added anything
 		if (!this->something_added || host_table->num_rows() > 0){
-			logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
-										"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
-										"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
-										"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-										"info"_a="Add to HostCacheMachine",
-										"duration"_a="",
-										"kernel_id"_a=message_id,
-										"rows"_a=host_table->num_rows());
+		    if(logger){
+                logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+                                            "query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+                                            "step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+                                            "substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+                                            "info"_a="Add to HostCacheMachine",
+                                            "duration"_a="",
+                                            "kernel_id"_a=message_id,
+                                            "rows"_a=host_table->num_rows());
+		    }
 
 			auto cache_data = std::make_unique<CPUCacheData>(std::move(host_table));
 			auto item = std::make_unique<message>(std::move(cache_data), message_id);
@@ -1241,14 +1243,16 @@ public:
 
 		assert(message_data->get_data().get_type() == CacheDataType::CPU);
 
-		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
-									"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
-									"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
-									"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-									"info"_a="Pull from HostCacheMachine",
-									"duration"_a="",
-									"kernel_id"_a=message_data->get_message_id(),
-									"rows"_a=message_data->get_data().num_rows());
+		if(logger){
+            logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+                                        "query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
+                                        "step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
+                                        "substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
+                                        "info"_a="Pull from HostCacheMachine",
+                                        "duration"_a="",
+                                        "kernel_id"_a=message_data->get_message_id(),
+                                        "rows"_a=message_data->get_data().num_rows());
+		}
 
 		return static_cast<CPUCacheData&>(message_data->get_data()).releaseHostTable();
 	}

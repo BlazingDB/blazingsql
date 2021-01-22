@@ -236,9 +236,11 @@ std::unique_ptr<ResultSet> performPartition(int32_t masterIndex,
 
 	} catch(const std::exception & e) {
 		std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
-		logger->error("|||{info}|||||",
-									"info"_a="In performPartition. What: {}"_format(e.what()));
-		logger->flush();
+		if(logger){
+            logger->error("|||{info}|||||",
+                                        "info"_a="In performPartition. What: {}"_format(e.what()));
+            logger->flush();
+		}
 
 		std::cerr << "**[performPartition]** error partitioning table.\n";
 		std::cerr << e.what() << std::endl;

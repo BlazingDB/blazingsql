@@ -514,13 +514,13 @@ kstatus PartwiseJoin::run() {
 	}
 
 	if(logger) {
-			logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
-															"query_id"_a=context->getContextToken(),
-															"step"_a=context->getQueryStep(),
-															"substep"_a=context->getQuerySubstep(),
-															"info"_a="Compute Aggregate Kernel tasks created",
-															"duration"_a=timer.elapsed_time(),
-															"kernel_id"_a=this->get_id());
+        logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+                                                        "query_id"_a=context->getContextToken(),
+                                                        "step"_a=context->getQueryStep(),
+                                                        "substep"_a=context->getQuerySubstep(),
+                                                        "info"_a="Compute Aggregate Kernel tasks created",
+                                                        "duration"_a=timer.elapsed_time(),
+                                                        "kernel_id"_a=this->get_id());
 	}
 
 	std::unique_lock<std::mutex> lock(kernel_mutex);

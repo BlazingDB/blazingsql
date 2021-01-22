@@ -200,26 +200,30 @@ kstatus TableScan::run() {
             file_index++;
         }
 
-        logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
-                                    "query_id"_a=context->getContextToken(),
-                                    "step"_a=context->getQueryStep(),
-                                    "substep"_a=context->getQuerySubstep(),
-                                    "info"_a="TableScan Kernel tasks created",
-                                    "duration"_a=timer.elapsed_time(),
-                                    "kernel_id"_a=this->get_id());
+        if(logger){
+            logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+                                        "query_id"_a=context->getContextToken(),
+                                        "step"_a=context->getQueryStep(),
+                                        "substep"_a=context->getQuerySubstep(),
+                                        "info"_a="TableScan Kernel tasks created",
+                                        "duration"_a=timer.elapsed_time(),
+                                        "kernel_id"_a=this->get_id());
+        }
 
         std::unique_lock<std::mutex> lock(kernel_mutex);
         kernel_cv.wait(lock,[this]{
             return this->tasks.empty();
         });
     }
-    logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
-                                "query_id"_a=context->getContextToken(),
-                                "step"_a=context->getQueryStep(),
-                                "substep"_a=context->getQuerySubstep(),
-                                "info"_a="TableScan Kernel Completed",
-                                "duration"_a=timer.elapsed_time(),
-                                "kernel_id"_a=this->get_id());
+    if(logger){
+        logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+                                    "query_id"_a=context->getContextToken(),
+                                    "step"_a=context->getQueryStep(),
+                                    "substep"_a=context->getQuerySubstep(),
+                                    "info"_a="TableScan Kernel Completed",
+                                    "duration"_a=timer.elapsed_time(),
+                                    "kernel_id"_a=this->get_id());
+    }
 
     return kstatus::proceed;
 }
@@ -302,13 +306,15 @@ kstatus BindableTableScan::run() {
             }*/
         }
 
-        logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
-                                    "query_id"_a=context->getContextToken(),
-                                    "step"_a=context->getQueryStep(),
-                                    "substep"_a=context->getQuerySubstep(),
-                                    "info"_a="BindableTableScan Kernel tasks created",
-                                    "duration"_a=timer.elapsed_time(),
-                                    "kernel_id"_a=this->get_id());
+        if(logger){
+            logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+                                        "query_id"_a=context->getContextToken(),
+                                        "step"_a=context->getQueryStep(),
+                                        "substep"_a=context->getQuerySubstep(),
+                                        "info"_a="BindableTableScan Kernel tasks created",
+                                        "duration"_a=timer.elapsed_time(),
+                                        "kernel_id"_a=this->get_id());
+        }
 
         std::unique_lock<std::mutex> lock(kernel_mutex);
         kernel_cv.wait(lock,[this]{
@@ -316,13 +322,15 @@ kstatus BindableTableScan::run() {
         });
     }
 
-    logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
-                                "query_id"_a=context->getContextToken(),
-                                "step"_a=context->getQueryStep(),
-                                "substep"_a=context->getQuerySubstep(),
-                                "info"_a="BindableTableScan Kernel Completed",
-                                "duration"_a=timer.elapsed_time(),
-                                "kernel_id"_a=this->get_id());
+    if(logger){
+        logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+                                    "query_id"_a=context->getContextToken(),
+                                    "step"_a=context->getQueryStep(),
+                                    "substep"_a=context->getQuerySubstep(),
+                                    "info"_a="BindableTableScan Kernel Completed",
+                                    "duration"_a=timer.elapsed_time(),
+                                    "kernel_id"_a=this->get_id());
+    }
     return kstatus::proceed;
 }
 
@@ -370,7 +378,7 @@ kstatus Projection::run() {
         cache_data = this->input_cache()->pullCacheData();
     }
 
-    if(logger != nullptr) {
+    if(logger) {
         logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
                                 "query_id"_a=context->getContextToken(),
                                 "step"_a=context->getQueryStep(),
@@ -385,7 +393,7 @@ kstatus Projection::run() {
         return this->tasks.empty();
     });
 
-    if(logger != nullptr) {
+    if(logger) {
         logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
                                 "query_id"_a=context->getContextToken(),
                                 "step"_a=context->getQueryStep(),
@@ -432,26 +440,30 @@ kstatus Filter::run() {
         cache_data = this->input_cache()->pullCacheData();
     }
 
-    logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
-                                "query_id"_a=context->getContextToken(),
-                                "step"_a=context->getQueryStep(),
-                                "substep"_a=context->getQuerySubstep(),
-                                "info"_a="Filter Kernel tasks created",
-                                "duration"_a=timer.elapsed_time(),
-                                "kernel_id"_a=this->get_id());
+    if(logger){
+        logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+                                    "query_id"_a=context->getContextToken(),
+                                    "step"_a=context->getQueryStep(),
+                                    "substep"_a=context->getQuerySubstep(),
+                                    "info"_a="Filter Kernel tasks created",
+                                    "duration"_a=timer.elapsed_time(),
+                                    "kernel_id"_a=this->get_id());
+    }
 
     std::unique_lock<std::mutex> lock(kernel_mutex);
     kernel_cv.wait(lock,[this]{
         return this->tasks.empty();
     });
 
-    logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
-                                "query_id"_a=context->getContextToken(),
-                                "step"_a=context->getQueryStep(),
-                                "substep"_a=context->getQuerySubstep(),
-                                "info"_a="Filter Kernel Completed",
-                                "duration"_a=timer.elapsed_time(),
-                                "kernel_id"_a=this->get_id());
+    if(logger){
+        logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+                                    "query_id"_a=context->getContextToken(),
+                                    "step"_a=context->getQueryStep(),
+                                    "substep"_a=context->getQuerySubstep(),
+                                    "info"_a="Filter Kernel Completed",
+                                    "duration"_a=timer.elapsed_time(),
+                                    "kernel_id"_a=this->get_id());
+    }
 
     return kstatus::proceed;
 }
@@ -501,16 +513,18 @@ kstatus OutputKernel::run() {
             auto num_rows = temp_output->num_rows();
             auto num_bytes = temp_output->sizeInBytes();
 
-            cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-                            "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-                            "query_id"_a=context->getContextToken(),
-                            "source"_a=this->input_.get_cache()->get_id(),
-                            "sink"_a=this->get_id(),
-                            "num_rows"_a=num_rows,
-                            "num_bytes"_a=num_bytes,
-                            "event_type"_a="removeCache",
-                            "timestamp_begin"_a=cacheEventTimer.start_time(),
-                            "timestamp_end"_a=cacheEventTimer.end_time());
+            if(cache_events_logger){
+                cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+                                "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                                "query_id"_a=context->getContextToken(),
+                                "source"_a=this->input_.get_cache()->get_id(),
+                                "sink"_a=this->get_id(),
+                                "num_rows"_a=num_rows,
+                                "num_bytes"_a=num_bytes,
+                                "event_type"_a="removeCache",
+                                "timestamp_begin"_a=cacheEventTimer.start_time(),
+                                "timestamp_end"_a=cacheEventTimer.end_time());
+            }
 
             output.emplace_back(std::move(temp_output));
         }
