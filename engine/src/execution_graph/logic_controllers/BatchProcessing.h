@@ -308,7 +308,7 @@ public:
 	 * @param kernel_id Kernel identifier.
 	 * @param context Shared context associated to the running query.
 	 */
-	OutputKernel(std::size_t kernel_id, std::shared_ptr<Context> context) : kernel(kernel_id,"OutputKernel", context, kernel_type::OutputKernel) { }
+	OutputKernel(std::size_t kernel_id, std::shared_ptr<Context> context) : kernel(kernel_id,"OutputKernel", context, kernel_type::OutputKernel), done(false) { }
 
 	std::string kernel_name() { return "Output";}
 
@@ -335,8 +335,15 @@ public:
 	 */
 	frame_type release();
 
+
+	/**
+	 * Returns true when the OutputKernel is done
+	 */
+	bool is_done();
+
 protected:
 	frame_type output; /**< Vector of tables with the final output. */
+	std::atomic<bool> done;
 };
 
 } // namespace batch
