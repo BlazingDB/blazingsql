@@ -459,6 +459,102 @@ protected:
  	MetadataDictionary metadata; /**< The metadata used for routing and planning. */
  };
 
+class PinnedCacheData : public CacheData {
+ public:
+	/**
+ 	* Constructor
+	* Takes a GPU based ral::frame::BlazingTable and converts it Pinned version
+	* that is stored in a ral::frame::BlazingHostTable.
+	* @param table The BlazingTable that is converted to a BlazingHostTable and
+	* stored.
+ 	*/
+ 	PinnedCacheData(std::unique_ptr<ral::frame::BlazingTable> gpu_table)
+		: CacheData(CacheDataType::Pinned, gpu_table->names(), gpu_table->get_schema(), gpu_table->num_rows())
+	{
+		this->host_table = ral::communication::messages::serialize_gpu_message_to_host_table(gpu_table->toBlazingTableView());
+ 	}
+
+ 	PinnedCacheData(std::unique_ptr<ral::frame::BlazingTable> gpu_table,const MetadataDictionary & metadata)
+		: CacheData(CacheDataType::Pinned, gpu_table->names(), gpu_table->get_schema(), gpu_table->num_rows()),
+		metadata(metadata)
+	{
+		this->host_table = ral::communication::messages::serialize_gpu_message_to_host_table(gpu_table->toBlazingTableView());
+ 	}
+
+	PinnedCacheData(const std::vector<blazingdb::transport::ColumnTransport> & column_transports,std::vector<std::basic_string<char>> && raw_buffers ,const MetadataDictionary & metadata)
+		: metadata(metadata)
+	{
+
+		this->cache_type = CacheDataType::Pinned;
+		for(int i = 0; i < column_transports.size(); i++){
+			this->col_names.push_back(std::string(column_transports[i].metadata.col_name));
+			this->schema.push_back(cudf::data_type{cudf::type_id(column_transports[i].metadata.dtype)});			
+		}
+		if(column_transports.size() == 0){
+			this->n_rows = 0;
+		}else{
+			this->n_rows = column_transports[0].metadata.size;
+		}
+		this->host_table = std::make_unique<ral::frame::BlazingHostTable>(column_transports,std::move(raw_buffers));
+ 	}
+
+
+	/**
+ 	* Constructor
+ 	* Takes a GPU based ral::frame::BlazingHostTable and stores it in this
+ 	* CacheData instance.
+	* @param table The BlazingHostTable that is moved into the CacheData.
+ 	*/
+	PinnedCacheData(std::unique_ptr<ral::frame::BlazingHostTable> host_table)
+		: CacheData(CacheDataType::Pinned, host_table->names(), host_table->get_schema(), host_table->num_rows()), host_table{std::move(host_table)}
+	{
+	}
+	/**
+	* Decache from a BlazingHostTable to BlazingTable and return the BlazingTable.
+	* @return A unique_ptr to a BlazingTable
+ 	*/
+ 	std::unique_ptr<ral::frame::BlazingTable> decache() override {
+ 		return ral::communication::messages::deserialize_from_cpu(host_table.get());
+ 	}
+
+	/**
+ 	* Release this BlazingHostTable from this CacheData
+	* If you want to allow this CacheData to be destroyed but want to keep the
+	* memory in Pinned this allows you to pull it out as a BlazingHostTable.
+	* @return a unique_ptr to the BlazingHostTable that this was either
+	* constructed with or which was generated during construction from a
+	* BlazingTable.
+ 	*/
+	std::unique_ptr<ral::frame::BlazingPinnedTable> releaseHostTable() {
+ 		return std::move(host_table);
+ 	}
+
+	/**
+	* Get the amount of Pinned memory consumed by this CacheData
+	* Having this function allows us to have one api for seeing the consumption
+	* of all the CacheData objects that are currently in Caches.
+	* @return The number of bytes the BlazingHostTable consumes.
+	*/
+ 	size_t sizeInBytes() const override { return host_table->sizeInBytes(); }
+	/**
+	* Destructor
+	*/
+ 	virtual ~PinnedCacheData() {}
+
+	/**
+	* Get the MetadataDictionary
+	* @return The MetadataDictionary which is used in routing and planning.
+	*/
+	MetadataDictionary getMetadata(){
+		return this->metadata;
+	}
+
+protected:
+	std::unique_ptr<ral::frame::BlazingPinnedTable> host_table; /**< The Pinned representation of a DataFrame  */
+ 	MetadataDictionary metadata; /**< The metadata used for routing and planning. */
+ };
+
+
 /**
 * A CacheData that stores is data in an ORC file.
 * This allows us to cache onto filesystems to allow larger queries to run on
