@@ -248,8 +248,8 @@ void ComputeWindowKernel::do_process(std::vector< std::unique_ptr<ral::frame::Bl
     std::unique_ptr<ral::frame::BlazingTable> & input = inputs[0];
     // When the window function also has a `order by` clause
     // TODO: some agg like {min, max, .. } wrongs the final output with respect to pyspark and drill
+    // could be due to rolling_window, we are using all the <batch.size(), batch.size()> range, maybe we should use the default, <batch.size(), 0] range
     if (this->expression.find("order by") != this->expression.npos) {
-        // DO a sort to each input
         input = ral::operators::sort_partitioned(input->toBlazingTableView(), this->expression);
     }
 
