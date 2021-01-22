@@ -1372,7 +1372,7 @@ class BlazingContext(object):
             ENABLE_GENERAL_ENGINE_LOGS: Enables 'batch_logger' logger
                     default: True
             ENABLE_COMMS_LOGS: Enables 'output_comms' and 'input_comms' logger
-                    default: false
+                    default: False
             ENABLE_CACHES_LOGS: Enables 'cache_events_logger' logger
                     default: False
             ENABLE_OTHER_ENGINE_LOGS: Enables 'queries_logger', 'kernels_logger',
@@ -3220,15 +3220,30 @@ class BlazingContext(object):
 
             for log_table_name in log_schemas:
 
-                options = {"ENABLE_CACHES_LOGS": ["bsql_cache_events"],
-                            "ENABLE_OTHER_ENGINE_LOGS": ["bsql_queries", "bsql_kernels", "bsql_kernels_edges", "bsql_kernel_events"]}
+                options = {
+                    "ENABLE_CACHES_LOGS": ["bsql_cache_events"],
+                    "ENABLE_OTHER_ENGINE_LOGS": [
+                        "bsql_queries",
+                        "bsql_kernels",
+                        "bsql_kernels_edges",
+                        "bsql_kernel_events",
+                    ],
+                }
 
-                if(log_table_name in options["ENABLE_CACHES_LOGS"]):
-                    if(self.config_options["ENABLE_CACHES_LOGS".encode()].decode() == "False"):
+                if log_table_name in options["ENABLE_CACHES_LOGS"]:
+                    if (
+                        self.config_options["ENABLE_CACHES_LOGS".encode()].decode()
+                        == "False"
+                    ):
                         continue
 
-                if (log_table_name in options["ENABLE_OTHER_ENGINE_LOGS"]):
-                    if (self.config_options["ENABLE_OTHER_ENGINE_LOGS".encode()].decode() == "False"):
+                if log_table_name in options["ENABLE_OTHER_ENGINE_LOGS"]:
+                    if (
+                        self.config_options[
+                            "ENABLE_OTHER_ENGINE_LOGS".encode()
+                        ].decode()
+                        == "False"
+                    ):
                         continue
 
                 log_files = [
