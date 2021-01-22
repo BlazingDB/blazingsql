@@ -58,12 +58,14 @@ namespace cache {
 					auto state = source->run();
 					source->output_.finish();
 					if (state != kstatus::proceed && source->get_type_id() != ral::cache::kernel_type::OutputKernel) {
-						auto logger = spdlog::get("batch_logger");
+                        std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
 						std::string log_detail = "ERROR kernel " + std::to_string(source_id) + " did not finished successfully";
-						logger->error("|||{info}|||||","info"_a=log_detail);
+						if(logger){
+						    logger->error("|||{info}|||||","info"_a=log_detail);
+						}
 					}
 				} catch(const std::exception & e) {
-					auto logger = spdlog::get("batch_logger");
+                    std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
 					if (logger){
 						logger->error("|||{info}|||||",
 								"info"_a="ERROR in graph::execute. What: {}"_format(e.what()));

@@ -127,19 +127,21 @@ void start_execute_graph(std::shared_ptr<ral::cache::graph> graph) {
 		graph->start_execute(max_kernel_run_threads);
 
 	} catch(const std::exception& e) {
-		logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
-									"query_id"_a=context_token,
-									"step"_a="",
-									"substep"_a="",
-									"info"_a="In start_execute_graph. What: {}"_format(e.what()),
-									"duration"_a="");
+	    if(logger){
+            logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+                                        "query_id"_a=context_token,
+                                        "step"_a="",
+                                        "substep"_a="",
+                                        "info"_a="In start_execute_graph. What: {}"_format(e.what()),
+                                        "duration"_a="");
+	    }
 		throw;
 	}
 }
 
 std::vector<std::unique_ptr<ral::frame::BlazingTable>> get_execute_graph_results(std::shared_ptr<ral::cache::graph> graph) {
 	CodeTimer blazing_timer;
-	auto logger = spdlog::get("batch_logger");
+    std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
 	uint32_t context_token = graph->get_last_kernel()->get_context()->getContextToken();
 
 	try {
