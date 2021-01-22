@@ -1804,7 +1804,7 @@ class BlazingContext(object):
 
         # this is because if you do multithreaded explains without it ever being called before, it will crash. Dont know why.
         if need_to_prime:
-            priming = self.explain("select * from " + tableName)
+            self.explain("select * from " + tableName)
             self.lock.acquire()
             self.calcite_primed = True
             self.lock.release()
