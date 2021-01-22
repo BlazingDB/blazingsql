@@ -237,7 +237,7 @@ std::pair<bool, uint64_t> TableScan::get_estimated_output_num_rows(){
 // BEGIN BindableTableScan
 
 BindableTableScan::BindableTableScan(std::size_t kernel_id, const std::string & queryString, std::shared_ptr<ral::io::data_provider> provider, std::shared_ptr<ral::io::data_parser> parser, ral::io::Schema & schema, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph)
-: kernel(kernel_id, queryString, context, kernel_type::TableScanKernel), provider(provider), parser(parser), schema(schema) {
+: kernel(kernel_id, queryString, context, kernel_type::BindableTableScanKernel), provider(provider), parser(parser), schema(schema) {
     this->query_graph = query_graph;
     this->filtered = is_filtered_bindable_scan(expression);
 }
@@ -513,12 +513,17 @@ kstatus OutputKernel::run() {
             output.emplace_back(std::move(temp_output));
         }
     }
+    done = true;
 
     return kstatus::stop;
 }
 
 frame_type OutputKernel::release() {
     return std::move(output);
+}
+
+bool OutputKernel::is_done() {
+    return done.load();
 }
 
 // END OutputKernel

@@ -153,9 +153,16 @@ cdef extern from "../src/execution_graph/logic_controllers/LogicPrimitives.h" na
             vector[string] names()
 
 cdef extern from "../src/execution_graph/logic_controllers/taskflow/graph.h" namespace "ral::cache":
+        cdef struct graph_progress:
+            vector[string] kernel_descriptions
+            vector[bool] finished
+            vector[int] batches_completed
+        
         cdef cppclass graph:
             shared_ptr[CacheMachine] get_kernel_output_cache(size_t kernel_id, string cache_id) except +
             void set_input_and_output_caches(shared_ptr[CacheMachine] input_cache, shared_ptr[CacheMachine] output_cache)
+            bool query_is_complete()
+            graph_progress get_progress()
 
 cdef extern from "../src/execution_graph/logic_controllers/CacheMachine.h" namespace "ral::cache":
         cdef cppclass CacheData
@@ -209,7 +216,8 @@ cdef extern from "../include/engine/common.h" nogil:
 cdef extern from "../include/engine/engine.h" nogil:
 
         shared_ptr[graph] runGenerateGraph(uint32_t masterIndex,vector[string] worker_ids, vector[string] tableNames, vector[string] tableScans, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, vector[vector[map[string,string]]] uri_values_cpp, map[string,string] config_options, string sql) except +raiseRunGenerateGraphError
-        unique_ptr[PartitionedResultSet] runExecuteGraph(shared_ptr[graph], int ctx_token) nogil except +raiseRunExecuteGraphError
+        void startExecuteGraph(shared_ptr[graph], int ctx_token) nogil except +raiseRunExecuteGraphError
+        unique_ptr[PartitionedResultSet] getExecuteGraphResult(shared_ptr[graph], int ctx_token) nogil except +raiseRunExecuteGraphError
 
         #unique_ptr[ResultSet] performPartition(int masterIndex, int ctxToken, BlazingTableView blazingTableView, vector[string] columnNames) except +raisePerformPartitionError
         unique_ptr[ResultSet] runSkipData(BlazingTableView metadata, vector[string] all_column_names, string query) nogil except +raiseRunSkipDataError
