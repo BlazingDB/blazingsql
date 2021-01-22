@@ -88,10 +88,14 @@ get_metadata_and_transports_and_buffer_sizes_from_bytes(std::vector<char> data){
 
 buffer_transport::buffer_transport(ral::cache::MetadataDictionary metadata,
   std::vector<size_t> buffer_sizes,
-  std::vector<blazingdb::transport::ColumnTransport> column_transports, std::vector<node> destinations)
+  std::vector<blazingdb::transport::ColumnTransport> column_transports, std::vector<node> destinations, bool require_acknowledge)
   : column_transports{column_transports}, metadata{metadata}, buffer_sizes{buffer_sizes}, transmitted_begin_frames(0), transmitted_frames(0),
-	 destinations{destinations}   {
+	 destinations{destinations} , require_acknowledge{require_acknowledge}  {
   // iterate for workers this is destined for
+
+	for (const auto & destination : destinations){
+		transmitted_acknowledgements[destination.id()] = false;
+	}
 
 }
 
@@ -136,15 +140,30 @@ void buffer_transport::wait_for_begin_transmission() {
 
 
 void buffer_transport::wait_until_complete() {
+	for(const auto destination : destinations){
+
+	}
 	CodeTimer blazing_timer;
 	std::unique_lock<std::mutex> lock(mutex);
 	while(!completion_condition_variable.wait_for(lock, 1000ms, [&blazing_timer, this] {
 		bool done_waiting = transmitted_frames >= (buffer_sizes.size() * destinations.size());
+		if(require_acknowledge){
+			done_waiting = done_waiting && std::all_of(transmitted_acknowledgements.begin(), transmitted_acknowledgements.end(), [](const auto& elem) { return elem.second; });
+		}
 		if (!done_waiting && blazing_timer.elapsed_time() > 990) {
+			std::string missing_parts;
+			std::for_each(transmitted_acknowledgements.begin(),
+                transmitted_acknowledgements.end(),
+                [&missing_parts](const std::pair<std::string,bool> &elem) {
+                    if(!elem.second){
+						missing_parts += elem.first + ",";
+					}
+                });
 			auto logger = spdlog::get("batch_logger");
 			if(logger != nullptr) {
-				logger->warn("|||{info}|{duration}||||",
+				logger->warn("|||{info}|{duration}|{missing_parts}|||",
 									"info"_a="buffer_transport::wait_until_complete() timed out. transmitted_frames: " + std::to_string(transmitted_frames) + " buffer_sizes.size(): " + std::to_string(buffer_sizes.size()) + " destinations.size(): " + std::to_string(destinations.size()),
+									"missing_parts"_a=missing_parts,
 									"duration"_a=blazing_timer.elapsed_time());
 			}
 		}

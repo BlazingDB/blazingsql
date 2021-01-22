@@ -21,11 +21,12 @@ void message_sender::initialize_instance(std::shared_ptr<ral::cache::CacheMachin
 		ucp_context_h context,
 		ucp_worker_h origin_node,
 		int ral_id,
-		comm::blazing_protocol protocol){
+		comm::blazing_protocol protocol,
+		bool require_acknowledge){
 	
 	if(instance == NULL) {
 		message_sender::instance = new message_sender(
-				output_cache,input_cache,node_address_map,num_threads,context,origin_node,ral_id,protocol);
+				output_cache,input_cache,node_address_map,num_threads,context,origin_node,ral_id,protocol,require_acknowledge);
 	}
 }
 
@@ -36,8 +37,9 @@ message_sender::message_sender(std::shared_ptr<ral::cache::CacheMachine> output_
 		ucp_context_h context,
 		ucp_worker_h origin,
 		int ral_id,
-		comm::blazing_protocol protocol)
-		: pool{num_threads}, output_cache{output_cache}, input_cache{input_cache}, node_address_map{node_address_map}, protocol{protocol}, origin{origin}, ral_id{ral_id}
+		comm::blazing_protocol protocol,
+		bool require_acknowledge)
+		: require_acknowledge{require_acknowledge}, pool{num_threads}, output_cache{output_cache}, input_cache{input_cache}, node_address_map{node_address_map}, protocol{protocol}, origin{origin}, ral_id{ral_id}
 {
 
 	request_size = 0;
@@ -122,7 +124,7 @@ void message_sender::run_polling() {
 
 							transport = std::make_shared<ucx_buffer_transport>(
 								request_size, origin, destinations, metadata,
-								buffer_sizes, column_transports,ral_id);
+								buffer_sizes, column_transports,ral_id,require_acknowledge);
 						}else if (blazing_protocol::tcp == protocol){
 
 							transport = std::make_shared<tcp_buffer_transport>(
@@ -131,8 +133,8 @@ void message_sender::run_polling() {
 							buffer_sizes,
 							column_transports,
 							ral_id,
-							&this->pool
-							);
+							&this->pool,
+							require_acknowledge);
 						}
 						else{
 							throw std::runtime_error("Unknown protocol");

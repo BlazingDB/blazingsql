@@ -59,6 +59,7 @@ void poll_for_frames(std::shared_ptr<message_receiver> receiver,
 						receiver->confirm_transmission();
 						if (receiver->is_finished()) {
 							ucx_message_listener::get_instance()->remove_receiver(tag & message_tag_mask);
+								
 						}
 					},status);
 					}
@@ -279,10 +280,36 @@ std::shared_ptr<message_receiver> ucx_message_listener::get_receiver(ucp_tag_t t
 void ucx_message_listener::remove_receiver(ucp_tag_t tag){
 	std::lock_guard<std::mutex> lock(this->receiver_mutex);
 	if(tag_to_receiver.find(tag) != tag_to_receiver.end()){
+		
+		auto receiver = tag_to_receiver[tag];
+		reinterpret_cast<blazing_ucp_tag *>(&tag)->frame_id = 0xFFFF;
+		char * buffer = new char[40];
+		auto node_id = ral::communication::CommunicationData::getInstance().getSelfNode().id();
+		memcpy(buffer, node_id.data(),node_id.length());
+		buffer[node_id.length()] = 0;
+
+		char *request = new char[_request_size];
+        auto status = ucp_tag_send_nbr(receiver->get_sender_node().get_ucp_endpoint(),
+                                            buffer,
+                                            40,
+                                            ucp_dt_make_contig(1),
+                                            tag,
+                                            request + _request_size);
+		
 		tag_to_receiver.erase(tag);
-	}
+		if ((status >= UCS_OK)) {
+			//no callback needed for this
+			ucp_progress_manager::get_instance()->add_send_request(request, [](){  },status);
+		} else {
+			throw std::runtime_error("Immediate Communication error in send_impl.");
+		}
+
+    }
+        
 
 }
+
+
 
 ucp_worker_h ucx_message_listener::get_worker(){
 	return ucp_worker;

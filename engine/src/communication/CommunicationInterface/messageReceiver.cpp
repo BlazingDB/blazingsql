@@ -61,6 +61,7 @@ node message_receiver::get_sender_node(){
   return _nodes_info_map.at(_metadata.get_values()[ral::cache::SENDER_WORKER_ID_METADATA_LABEL]);
 }
 
+
 size_t message_receiver::num_buffers(){
   return _buffer_sizes.size();
 }

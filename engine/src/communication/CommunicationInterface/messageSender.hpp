@@ -41,7 +41,8 @@ public:
 		ucp_context_h context,
 		ucp_worker_h origin,
 		int ral_id,
-		comm::blazing_protocol protocol);
+		comm::blazing_protocol protocol,
+		bool require_acknowledge);
 
 	static void initialize_instance(std::shared_ptr<ral::cache::CacheMachine> output_cache,
 		std::shared_ptr<ral::cache::CacheMachine> input_cache,
@@ -50,7 +51,8 @@ public:
 		ucp_context_h context,
 		ucp_worker_h origin_node,
 		int ral_id,
-		comm::blazing_protocol protocol);
+		comm::blazing_protocol protocol,
+    	bool require_acknowledge);
 
 	std::shared_ptr<ral::cache::CacheMachine> get_output_cache(){
 		return output_cache;
@@ -75,6 +77,7 @@ private:
 	size_t request_size;
 	int ral_id;
 	bool polling_started{false};
+	bool require_acknowledge;
 };
 
 }  // namespace comm

@@ -66,7 +66,8 @@ public:
 	buffer_transport(ral::cache::MetadataDictionary metadata,
 		std::vector<size_t> buffer_sizes,
 		std::vector<blazingdb::transport::ColumnTransport> column_transports,
-		std::vector<node> destinations);
+		std::vector<node> destinations,
+		bool require_acknowledge);
 	virtual ~buffer_transport();
 
   virtual void send_begin_transmission() = 0;
@@ -89,6 +90,7 @@ public:
 	virtual void increment_begin_transmission();
 protected:
 	virtual void send_impl(const char * buffer, size_t buffer_size) = 0;
+	virtual void receive_acknowledge() = 0;
 
 	std::vector<blazingdb::transport::ColumnTransport> column_transports;
 	ral::cache::MetadataDictionary metadata;
@@ -100,6 +102,9 @@ protected:
 	std::mutex mutex;
 	std::condition_variable completion_condition_variable;
 	std::vector<node> destinations;
+
+	std::map<std::string,bool> transmitted_acknowledgements;
+	bool require_acknowledge = false;
 };
 
 

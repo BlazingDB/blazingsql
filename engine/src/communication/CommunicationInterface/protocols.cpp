@@ -248,10 +248,12 @@ ucx_buffer_transport::ucx_buffer_transport(size_t request_size,
     ral::cache::MetadataDictionary metadata,
     std::vector<size_t> buffer_sizes,
     std::vector<blazingdb::transport::ColumnTransport> column_transports,
-    int ral_id)
-    : buffer_transport(metadata, buffer_sizes, column_transports,destinations),
-    origin_node(origin_node), ral_id{ral_id}, _request_size{request_size} {
+    int ral_id,
+    bool require_acknowledge)
+    : buffer_transport(metadata, buffer_sizes, column_transports,destinations,require_acknowledge),
+    origin_node(origin_node), ral_id{ral_id}, _request_size{request_size}{
         tag = generate_message_tag();
+
 }
 
 ucx_buffer_transport::~ucx_buffer_transport() {
@@ -328,6 +330,51 @@ void ucx_buffer_transport::send_impl(const char * buffer, size_t buffer_size) {
         throw;
     }
 }
+#define ACK_BUFFER_SIZE 40
+void ucx_buffer_transport::receive_acknowledge(){
+    for(int i = 0; i < transmitted_acknowledgements.size(); i++){
+        char * request = new char[_request_size];
+        std::vector<char> data_buffer(sizeof(int));
+        char * data = new char[ACK_BUFFER_SIZE];
+        ucp_tag_t temp_tag = tag;
+        blazing_ucp_tag message_tag = *reinterpret_cast<blazing_ucp_tag *>(&temp_tag);
+        message_tag.frame_id = 0xFFFF;
+        auto status = ucp_tag_recv_nbr(origin_node,
+            data,
+            ACK_BUFFER_SIZE,
+            ucp_dt_make_contig(1),
+            temp_tag,
+            acknownledge_tag_mask,
+            request + _request_size);
+        status = ucp_request_check_status(request + _request_size);
+        if (!UCS_STATUS_IS_ERR(status)) {
+                ucp_progress_manager::get_instance()->add_recv_request(
+                    request, 
+                    [data,this](){ 
+                        bool found = false;
+                        std::string node_address(data);
+                        for(auto & destination : destinations){
+
+                            if(destination.id() == node_address){
+                                this->transmitted_acknowledgements[node_address] = true;
+                                found = true;
+                                this->completion_condition_variable.notify_one();
+                            }
+                        }
+                        delete data;
+                        if(!found ){
+                            throw std::runtime_error("invalid ack tag");
+                        }
+
+                    }
+                    ,status);
+        } else {
+            throw std::runtime_error("Immediate Communication error in poll_begin_message_tag.");
+        }
+    }
+}
+
+
 
 tcp_buffer_transport::tcp_buffer_transport(
         std::vector<node> destinations,
@@ -335,8 +382,9 @@ tcp_buffer_transport::tcp_buffer_transport(
         std::vector<size_t> buffer_sizes,
         std::vector<blazingdb::transport::ColumnTransport> column_transports,
         int ral_id,
-        ctpl::thread_pool<BlazingThread> * allocate_copy_buffer_pool)
-        : buffer_transport(metadata, buffer_sizes, column_transports,destinations),
+        ctpl::thread_pool<BlazingThread> * allocate_copy_buffer_pool,
+        bool require_acknowledge)
+        : buffer_transport(metadata, buffer_sizes, column_transports,destinations,require_acknowledge),
         ral_id{ral_id}, allocate_copy_buffer_pool{allocate_copy_buffer_pool} {
 
         //Initialize connection to get
@@ -383,6 +431,11 @@ void tcp_buffer_transport::send_begin_transmission(){
         increment_begin_transmission();
     }
 
+}
+void tcp_buffer_transport::receive_acknowledge(){
+    for(auto & elem : transmitted_acknowledgements){
+        elem.second = true;
+    }
 }
 
 void tcp_buffer_transport::send_impl(const char * buffer, size_t buffer_size){

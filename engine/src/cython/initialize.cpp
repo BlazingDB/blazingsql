@@ -579,8 +579,18 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 	std::string env_cuda_device_str = env_cuda_device == nullptr ? "" : std::string(env_cuda_device);
 	initLogMsg = initLogMsg + "CUDA_VISIBLE_DEVICES is set to: " + env_cuda_device_str + ", ";
 
+
+	bool require_acknowledge = false;  // 10 MBs
+	auto iter = config_options.find("REQUIRE_ACKNOWLEDGE");
+	if (iter != config_options.end()){
+		require_acknowledge = (config_options["REQUIRE_ACKNOWLEDGE"] == "true" ||
+								config_options["REQUIRE_ACKNOWLEDGE"] == "True" ||
+								config_options["REQUIRE_ACKNOWLEDGE"] == "1" ||
+								config_options["REQUIRE_ACKNOWLEDGE"] == "TRUE" );
+	}
+
 	size_t buffers_size = 1048576;  // 10 MBs
-	auto iter = config_options.find("TRANSPORT_BUFFER_BYTE_SIZE");
+	iter = config_options.find("TRANSPORT_BUFFER_BYTE_SIZE");
 	if (iter != config_options.end()){
 		buffers_size = std::stoi(config_options["TRANSPORT_BUFFER_BYTE_SIZE"]);
 	}
@@ -863,7 +873,7 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 		}
 		comm::message_sender::initialize_instance(output_input_caches.first, output_input_caches.second,
 			nodes_info_map,
-			num_comm_threads, ucp_context, self_worker, ralId,protocol);
+			num_comm_threads, ucp_context, self_worker, ralId,protocol,require_acknowledge);
 		comm::message_sender::get_instance()->run_polling();
 
 		output_input_caches.first = comm::message_sender::get_instance()->get_output_cache();
