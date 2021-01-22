@@ -715,8 +715,8 @@ public:
 		while(!condition_variable_.wait_for(lock, timeout*1ms, [&, this] {
 				bool done_waiting = count == this->processed;
 				if (!done_waiting && blazing_timer.elapsed_time() > 59000 && this->log_timeout){
-					auto logger = spdlog::get("batch_logger");
-					if(logger != nullptr) {
+                    std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
+					if(logger) {
 						logger->warn("|||{info}|{duration}||||",
 											"info"_a="WaitingQueue " + this->queue_name + " wait_for_count timed out. count = " + std::to_string(count) + " processed = " + std::to_string(this->processed),
 											"duration"_a=blazing_timer.elapsed_time());
@@ -752,8 +752,8 @@ public:
 		while(!condition_variable_.wait_for(lock, timeout*1ms, [&, this] {
 				bool done_waiting = this->finished.load(std::memory_order_seq_cst) or !this->empty();
 				if (!done_waiting && blazing_timer.elapsed_time() > 59000 && this->log_timeout){
-					auto logger = spdlog::get("batch_logger");
-					if(logger != nullptr) {
+                    std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
+					if(logger) {
 						logger->warn("|||{info}|{duration}||||",
 											"info"_a="WaitingQueue " + this->queue_name + " pop_or_wait timed out",
 											"duration"_a=blazing_timer.elapsed_time());
@@ -799,8 +799,8 @@ public:
 		while(!condition_variable_.wait_for(lock, timeout*1ms, [&, this] {
 				bool done_waiting = this->finished.load(std::memory_order_seq_cst) or !this->empty();
 				if (!done_waiting && blazing_timer.elapsed_time() > 59000 && this->log_timeout){
-					auto logger = spdlog::get("batch_logger");
-					if(logger != nullptr) {
+                    std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
+					if(logger) {
 						logger->warn("|||{info}|{duration}||||",
 											"info"_a="WaitingQueue " + this->queue_name + " wait_for_next timed out",
 											"duration"_a=blazing_timer.elapsed_time());
@@ -835,8 +835,8 @@ public:
 		while(!condition_variable_.wait_for(lock, timeout*1ms, [&blazing_timer, this] {
 				bool done_waiting = this->finished.load(std::memory_order_seq_cst);
 				if (!done_waiting && blazing_timer.elapsed_time() > 59000 && this->log_timeout){
-					auto logger = spdlog::get("batch_logger");
-					if(logger != nullptr) {
+                    std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
+					if(logger) {
 					   logger->warn("|||{info}|{duration}||||",
 										   "info"_a="WaitingQueue " + this->queue_name + " wait_until_finished timed out",
  										   "duration"_a=blazing_timer.elapsed_time());
@@ -867,8 +867,8 @@ public:
 					done_waiting = total_bytes > num_bytes;
 				}
 				if (!done_waiting && blazing_timer.elapsed_time() > 59000 && this->log_timeout){
-					auto logger = spdlog::get("batch_logger");
-					if(logger != nullptr) {
+                    std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
+					if(logger) {
 						logger->warn("|||{info}|{duration}||||",
 											"info"_a="WaitingQueue " + this->queue_name + " wait_until_num_bytes timed out num_bytes wanted: " + std::to_string(num_bytes) + " total_bytes: " + std::to_string(total_bytes),
 											"duration"_a=blazing_timer.elapsed_time());
@@ -915,8 +915,8 @@ public:
 							});
 				bool done_waiting = this->finished.load(std::memory_order_seq_cst) or result;
 				if (!done_waiting && blazing_timer.elapsed_time() > 59000 && this->log_timeout){
-					auto logger = spdlog::get("batch_logger");
-					if(logger != nullptr) {
+                    std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
+					if(logger) {
 						logger->warn("|||{info}|{duration}|message_id|{message_id}||",
 											"info"_a="WaitingQueue " + this->queue_name + " get_or_wait timed out",
 											"duration"_a=blazing_timer.elapsed_time(),
@@ -989,8 +989,8 @@ public:
 		while(!condition_variable_.wait_for(lock, timeout*1ms,  [&blazing_timer, this] {
 				bool done_waiting = this->finished.load(std::memory_order_seq_cst);
 				if (!done_waiting && blazing_timer.elapsed_time() > 59000 && this->log_timeout){
-					auto logger = spdlog::get("batch_logger");
-					if(logger != nullptr) {
+                    std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
+					if(logger) {
 						logger->warn("|||{info}|{duration}||||",
 											"info"_a="WaitingQueue " + this->queue_name + " get_all_or_wait timed out",
 											"duration"_a=blazing_timer.elapsed_time());
@@ -1184,12 +1184,14 @@ public:
 		std::shared_ptr<spdlog::logger> kernels_logger;
 		kernels_logger = spdlog::get("kernels_logger");
 
-		kernels_logger->info("{ral_id}|{query_id}|{kernel_id}|{is_kernel}|{kernel_type}",
-								"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-								"query_id"_a=(context ? std::to_string(context->getContextToken()) : "null"),
-								"kernel_id"_a=id,
-								"is_kernel"_a=0, //false
-								"kernel_type"_a="host_cache");
+		if(kernels_logger){
+            kernels_logger->info("{ral_id}|{query_id}|{kernel_id}|{is_kernel}|{kernel_type}",
+                                    "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                                    "query_id"_a=(context ? std::to_string(context->getContextToken()) : "null"),
+                                    "kernel_id"_a=id,
+                                    "is_kernel"_a=0, //false
+                                    "kernel_type"_a="host_cache");
+		}
 	}
 
 	~HostCacheMachine() {}

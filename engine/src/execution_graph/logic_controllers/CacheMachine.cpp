@@ -38,14 +38,14 @@ std::unique_ptr<CacheData> CacheData::downgradeCacheData(std::unique_ptr<CacheDa
 		return cacheData;
 	} else {
 		std::unique_ptr<ral::frame::BlazingTable> table = cacheData->decache();
-		
-		auto logger = spdlog::get("batch_logger");
+
+        std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
 
 		// lets first try to put it into CPU
 		if (blazing_host_memory_resource::getInstance().get_memory_used() + table->sizeInBytes() <
 				blazing_host_memory_resource::getInstance().get_memory_limit()){
 			
-			if(logger != nullptr) {
+			if(logger) {
 				logger->trace("{query_id}|{step}|{substep}|{info}||kernel_id|{kernel_id}|rows|{rows}",
 					"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
 					"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
@@ -59,7 +59,7 @@ std::unique_ptr<CacheData> CacheData::downgradeCacheData(std::unique_ptr<CacheDa
 		} else {
 			// want to get only cache directory where orc files should be saved
 			std::string orc_files_path = ral::communication::CommunicationData::getInstance().get_cache_directory();
-			if(logger != nullptr) {
+			if(logger) {
 				logger->trace("{query_id}|{step}|{substep}|{info}||kernel_id|{kernel_id}|rows|{rows}",
 					"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
 					"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
@@ -185,8 +185,8 @@ CacheDataLocalFile::CacheDataLocalFile(std::unique_ptr<ral::frame::BlazingTable>
 
 			cudf::io::write_orc(out_opts);
 		} catch (cudf::logic_error & err){
-			auto logger = spdlog::get("batch_logger");
-			if(logger != nullptr) {
+            std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
+			if(logger) {
 				logger->error("|||{info}||||rows|{rows}",
 					"info"_a="Failed to create CacheDataLocalFile in path: " + this->filePath_ + " attempt " + std::to_string(attempts),
 					"rows"_a=table->num_rows());
@@ -266,7 +266,7 @@ CacheMachine::CacheMachine(std::shared_ptr<Context> context, std::string cache_m
 	std::shared_ptr<spdlog::logger> kernels_logger;
 	kernels_logger = spdlog::get("kernels_logger");
 
-	if(kernels_logger != nullptr) {
+	if(kernels_logger) {
 		kernels_logger->info("{ral_id}|{query_id}|{kernel_id}|{is_kernel}|{kernel_type}",
 							"ral_id"_a=(context ? context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()) : -1 ),
 							"query_id"_a=(context ? std::to_string(context->getContextToken()) : "null"),
@@ -286,7 +286,7 @@ std::int32_t CacheMachine::get_id() const { return (cache_id); }
 
 void CacheMachine::finish() {
 	this->waitingCache->finish();
-	if(logger != nullptr) {
+	if(logger) {
 		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|cache_id|{cache_id}|cache_name|{cache_name}",
 									"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
 									"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
@@ -318,7 +318,7 @@ bool CacheMachine::addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTa
 
 	// we dont want to add empty tables to a cache, unless we have never added anything
 	if (!this->something_added || host_table->num_rows() > 0){
-		if(logger != nullptr) {
+		if(logger) {
 			logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
 									"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
 									"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
@@ -402,7 +402,7 @@ bool CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_dat
 		}
 
 		if(cacheIndex == 0) {
-			if(logger != nullptr){
+			if(logger){
 				logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
 					"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
 					"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
@@ -417,7 +417,7 @@ bool CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_dat
 			auto item = std::make_unique<message>(std::move(cache_data), message_id);
 			this->waitingCache->put(std::move(item));
 		} else if(cacheIndex == 1) {
-			if(logger != nullptr){
+			if(logger){
 
 				logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
 					"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
@@ -431,7 +431,7 @@ bool CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_dat
 			auto item = std::make_unique<message>(std::move(cache_data), message_id);
 			this->waitingCache->put(std::move(item));
 		} else if(cacheIndex == 2) {
-			if(logger != nullptr){
+			if(logger){
 
 				logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
 					"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
@@ -485,7 +485,7 @@ bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, s
 					cacheIndex = cache_level_override;
 				}
 				if(cacheIndex == 0) {
-					if(logger != nullptr) {
+					if(logger) {
 						logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
 							"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
 							"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
@@ -509,7 +509,7 @@ bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, s
 
 				} else {
 					if(cacheIndex == 1) {
-						if(logger != nullptr) {
+						if(logger) {
 							logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
 								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
 								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),

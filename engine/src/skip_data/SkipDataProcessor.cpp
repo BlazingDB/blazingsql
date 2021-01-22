@@ -256,8 +256,10 @@ std::pair<std::unique_ptr<ral::frame::BlazingTable>, bool> process_skipdata_for_
         }
     } catch(const std::exception & e) {
         std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
-        logger->error("|||{info}|||||",
-                                    "info"_a="In process_skipdata_for_table. What: {}"_format(e.what()));
+        if(logger){
+            logger->error("|||{info}|||||",
+                                        "info"_a="In process_skipdata_for_table. What: {}"_format(e.what()));
+        }
 
         return std::make_pair(nullptr, true);
     }

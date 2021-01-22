@@ -78,12 +78,14 @@ namespace cache {
 									auto state = source->run();
 									source->output_.finish();
 									if (state != kstatus::proceed && edge.target != -1 /* not a dummy node */) {
-										auto logger = spdlog::get("batch_logger");
+                                        std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
 										std::string log_detail = "ERROR kernel " + std::to_string(source_id) + " did not finished successfully";
-										logger->error("|||{info}|||||","info"_a=log_detail);
+										if(logger){
+										    logger->error("|||{info}|||||","info"_a=log_detail);
+										}
 									}
 								} catch(const std::exception & e) {
-									auto logger = spdlog::get("batch_logger");
+                                    std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
 									if (logger){
 										logger->error("|||{info}|||||",
 												"info"_a="ERROR in graph::execute. What: {}"_format(e.what()));
@@ -204,9 +206,11 @@ namespace cache {
 				return target_kernel->get_estimated_output_num_rows();
 			}
 		}
-		auto logger = spdlog::get("batch_logger");
+        std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
 		std::string log_detail = "ERROR: In get_estimated_input_rows_to_cache could not find edge for kernel " + std::to_string(id) + " cache " + port_name;
-		logger->error("|||{info}|||||","info"_a=log_detail);
+		if(logger){
+		    logger->error("|||{info}|||||","info"_a=log_detail);
+		}
 		return std::make_pair(false, 0);
 	}
 
@@ -246,17 +250,19 @@ namespace cache {
 			if(config.type == CacheType::FOR_EACH) {
 				for(size_t index = 0; index < cache_machines.size(); index++) {
 
-					kernels_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}",
-									"ral_id"_a=config.context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-									"query_id"_a=config.context->getContextToken(),
-									"source"_a=source->get_id(),
-									"sink"_a=cache_machines[index]->get_id());
+				    if(kernels_edges_logger){
+                        kernels_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}",
+                                        "ral_id"_a=config.context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                                        "query_id"_a=config.context->getContextToken(),
+                                        "source"_a=source->get_id(),
+                                        "sink"_a=cache_machines[index]->get_id());
 
-					kernels_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}",
-									"ral_id"_a=config.context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-									"query_id"_a=config.context->getContextToken(),
-									"source"_a=cache_machines[index]->get_id(),
-									"sink"_a=target->get_id());
+                        kernels_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}",
+                                        "ral_id"_a=config.context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                                        "query_id"_a=config.context->getContextToken(),
+                                        "source"_a=cache_machines[index]->get_id(),
+                                        "sink"_a=target->get_id());
+				    }
 
 					source->output_.register_cache("output_" + std::to_string(index), cache_machines[index]);
 					target->input_.register_cache("input_" + std::to_string(index), cache_machines[index]);
@@ -265,17 +271,19 @@ namespace cache {
 				source->output_.register_cache(source_port, cache_machines[0]);
 				target->input_.register_cache(target_port, cache_machines[0]);
 
-				kernels_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}",
-								"ral_id"_a=config.context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-								"query_id"_a=config.context->getContextToken(),
-								"source"_a=source->get_id(),
-								"sink"_a=cache_machines[0]->get_id());
+				if(kernels_edges_logger){
+                    kernels_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}",
+                                    "ral_id"_a=config.context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                                    "query_id"_a=config.context->getContextToken(),
+                                    "source"_a=source->get_id(),
+                                    "sink"_a=cache_machines[0]->get_id());
 
-				kernels_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}",
-								"ral_id"_a=config.context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-								"query_id"_a=config.context->getContextToken(),
-								"source"_a=cache_machines[0]->get_id(),
-								"sink"_a=target->get_id());
+                    kernels_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}",
+                                    "ral_id"_a=config.context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                                    "query_id"_a=config.context->getContextToken(),
+                                    "source"_a=cache_machines[0]->get_id(),
+                                    "sink"_a=target->get_id());
+				}
 			}
 		}
 		if(not source->has_parent()) {
