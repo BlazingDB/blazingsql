@@ -1,9 +1,11 @@
 #include "BatchWindowFunctionProcessing.h"
-#include "CodeTimer.h"
-#include <src/utilities/CommonOperations.h>
-#include "taskflow/executor.h"
-#include "parser/expression_utils.hpp"
 #include "execution_graph/logic_controllers/BlazingColumn.h"
+#include "taskflow/executor.h"
+#include "CodeTimer.h"
+
+#include <src/utilities/CommonOperations.h>
+#include "parser/expression_utils.hpp"
+#include <blazingdb/io/Util/StringUtil.h>
 
 #include <cudf/concatenate.hpp>
 #include <cudf/stream_compaction.hpp>
@@ -28,7 +30,7 @@ SortKernel::SortKernel(std::size_t kernel_id, const std::string & queryString,
 
 void SortKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
-    cudaStream_t /*stream*/, const std::map<std::string, std::string>& args) {
+    cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) {
 
     CodeTimer eventTimer(false);
 
@@ -36,8 +38,8 @@ void SortKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTabl
     std::unique_ptr<ral::frame::BlazingTable> sortedTable = ral::operators::sort_to_partition(input->toBlazingTableView(), this->expression);
 
     if (sortedTable) {
-        auto num_rows = sortedTable->num_rows();
-        auto num_bytes = sortedTable->sizeInBytes();
+        cudf::size_type num_rows = sortedTable->num_rows();
+        std::size_t num_bytes = sortedTable->sizeInBytes();
 
         events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
                         "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
@@ -113,8 +115,8 @@ SplitByKeysKernel::SplitByKeysKernel(std::size_t kernel_id, const std::string & 
 }
 
 void SplitByKeysKernel::do_process(std::vector<std::unique_ptr<ral::frame::BlazingTable> > inputs,
-    std::shared_ptr<ral::cache::CacheMachine> output,
-    cudaStream_t /*stream*/, const std::map<std::string, std::string>& args) {
+    std::shared_ptr<ral::cache::CacheMachine> /*output*/,
+    cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) {
 
     CodeTimer eventTimer(false);
 
@@ -139,7 +141,7 @@ void SplitByKeysKernel::do_process(std::vector<std::unique_ptr<ral::frame::Blazi
         partitioned_cudf_view = cudf::split(hashed_data->view(), split_indexes);
     } else {
         //  copy empty view
-        for (auto i = 0; i < num_partitions; i++) {
+        for (std::size_t i = 0; i < num_partitions; i++) {
             partitioned_cudf_view.push_back(batch_view);
         }
     }
@@ -211,9 +213,10 @@ ComputeWindowKernel::ComputeWindowKernel(std::size_t kernel_id, const std::strin
     this->query_graph = query_graph;
 }
 
+// TODO: support for LAG(), LEAD(), currently looks like Calcite has an issue
+// TODO: Support for RANK() and DENSE_RANK()
 std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_function(cudf::column_view input_col_view, std::size_t pos) {
 
-    // TODO: support for LAG() and LEAD()
     if (this->aggs_wind_func[pos] == "FIRST_VALUE") {
         std::vector<cudf::size_type> splits(1, 1);
         std::vector<cudf::column_view> partitioned = cudf::split(input_col_view, splits);
@@ -222,6 +225,7 @@ std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_func
         std::vector< std::unique_ptr<CudfColumn> > windowed_col = cudf::repeat(table_view_with_single_col, input_col_view.size())->release();
         return std::move(windowed_col[0]);
     } else if (this->aggs_wind_func[pos] == "LAST_VALUE") {
+        // TODO: when PARTITION by + ORDER by, it has a weird behavior
         std::vector<cudf::size_type> splits(1, input_col_view.size() - 1);
         std::vector<cudf::column_view> partitioned = cudf::split(input_col_view, splits);
         partitioned.erase(partitioned.begin());  // want the last value (as column)
@@ -230,14 +234,31 @@ std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_func
         return std::move(windowed_col[0]);
     } else {
         std::unique_ptr<cudf::aggregation> window_function = get_window_aggregate(this->aggs_wind_func[pos]);
-        std::unique_ptr<CudfColumn> windowed_col = cudf::rolling_window(input_col_view, input_col_view.size(), input_col_view.size(), 1, window_function);
+        std::unique_ptr<CudfColumn> windowed_col;
+        // TODO: select the right values from left and right
+        if ( StringUtil::contains(this->expression, "order by") ) {
+            // default case
+            std::cout << this->expression << std::endl;
+            if ( !StringUtil::contains(this->expression, "between") || StringUtil::contains(this->expression, "UNBOUNDED PRECEDING and CURRENT ROW") ) {
+                windowed_col = cudf::rolling_window(input_col_view, input_col_view.size(), 0, 1, window_function);
+            } else {
+                // TODO handle rows and range
+                std::cout << "computeKernel | hay que analizar aca" << std::endl;
+                throw std::runtime_error(
+		            "In Window Function: for now just support default statement: UNBOUNDED PRECEDING and CURRENT ROW");
+            }
+        } else {
+            // we want roll the window with all the rows
+            windowed_col = cudf::rolling_window(input_col_view, input_col_view.size(), input_col_view.size(), 1, window_function);
+        }
+
         return std::move(windowed_col);
     }
 }
 
 void ComputeWindowKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
-    cudaStream_t /*stream*/, const std::map<std::string, std::string>& args) {
+    cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) {
 
     if (inputs.size() == 0) {
         return;
@@ -261,7 +282,7 @@ void ComputeWindowKernel::do_process(std::vector< std::unique_ptr<ral::frame::Bl
     this->aggs_wind_func = get_window_function_agg(this->expression);
 
     std::vector< std::unique_ptr<CudfColumn> > new_wind_funct_cols;
-    for (std::size_t col_i; col_i < this->aggs_wind_func.size(); ++col_i) {
+    for (std::size_t col_i = 0; col_i < this->aggs_wind_func.size(); ++col_i) {
         cudf::column_view input_col_view = input_cudf_view.column(this->column_indices_wind_funct[col_i]);
 
         // calling main window function
@@ -273,7 +294,7 @@ void ComputeWindowKernel::do_process(std::vector< std::unique_ptr<ral::frame::Bl
     // Adding these new columns
     std::unique_ptr<cudf::table> cudf_input = input->releaseCudfTable();
     std::vector< std::unique_ptr<CudfColumn> > output_columns = cudf_input->release();
-    for (std::size_t col_i; col_i < new_wind_funct_cols.size(); ++col_i) {
+    for (std::size_t col_i = 0; col_i < new_wind_funct_cols.size(); ++col_i) {
         output_columns.push_back(std::move(new_wind_funct_cols[col_i]));
     }
 
@@ -281,8 +302,8 @@ void ComputeWindowKernel::do_process(std::vector< std::unique_ptr<ral::frame::Bl
     std::unique_ptr<ral::frame::BlazingTable> windowed_table = std::make_unique<ral::frame::BlazingTable>(std::move(cudf_table_window), input_names);
 
     if (windowed_table) {
-        auto num_rows = windowed_table->num_rows();
-        auto num_bytes = windowed_table->sizeInBytes();
+        cudf::size_type num_rows = windowed_table->num_rows();
+        std::size_t num_bytes = windowed_table->sizeInBytes();
 
         events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
                         "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
