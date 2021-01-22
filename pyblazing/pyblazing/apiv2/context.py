@@ -3219,6 +3219,18 @@ class BlazingContext(object):
             }
 
             for log_table_name in log_schemas:
+
+                options = {"ENABLE_CACHES_LOGS": ["bsql_cache_events"],
+                            "ENABLE_OTHER_ENGINE_LOGS": ["bsql_queries", "bsql_kernels", "bsql_kernels_edges", "bsql_kernel_events"]}
+
+                if(log_table_name in options["ENABLE_CACHES_LOGS"]):
+                    if(self.config_options["ENABLE_CACHES_LOGS".encode()].decode() == "False"):
+                        continue
+
+                if (log_table_name in options["ENABLE_OTHER_ENGINE_LOGS"]):
+                    if (self.config_options["ENABLE_OTHER_ENGINE_LOGS".encode()].decode() == "False"):
+                        continue
+
                 log_files = [
                     os.path.join(log_path, log_table_name + ".*.log")
                     for log_path in self.node_log_paths
