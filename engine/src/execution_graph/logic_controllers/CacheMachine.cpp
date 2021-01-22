@@ -530,7 +530,7 @@ bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, s
 						auto item =	std::make_unique<message>(std::move(cache_data), message_id);
 						this->waitingCache->put(std::move(item));
 					} else if(cacheIndex == 2) {
-						if(logger != nullptr) {
+						if(logger) {
 							logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
 								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
 								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),

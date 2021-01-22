@@ -240,7 +240,7 @@ void SortAndSampleKernel::do_process(std::vector< std::unique_ptr<ral::frame::Bl
             auto num_rows = sortedTable->num_rows();
             auto num_bytes = sortedTable->sizeInBytes();
 
-            if(logger){
+            if(events_logger){
                 events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
                                 "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
                                 "query_id"_a=context->getContextToken(),
