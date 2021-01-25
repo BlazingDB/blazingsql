@@ -10,6 +10,7 @@
 - #1259 Implements SortAndSamplernel executor model, also avoid setting up num of samples
 - #1271 Added Hive utility for partitioned data
 - #1289 Multiple concurrent query support 
+- #1285 Infer PROTOCOL when Dask client is passed
 
 ## Improvements
 - #1236 Moving code from header files to implementation files

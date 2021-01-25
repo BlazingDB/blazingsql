@@ -1376,7 +1376,8 @@ class BlazingContext(object):
                     default: 100 buffers
             PROTOCOL: The protocol to use with the current BlazingContext. 
                     It should use what the user set. If the user does not explicitly set it,
-                    by default it will be set by whatever dask client is using ('tcp', 'ucx', ..). 
+                    by default it will be set by whatever dask client is using ('tcp', 'ucx', ..).
+                    NOTE: This parameter only works when used in the BlazingContext.
 
         Examples
         --------
