@@ -4,7 +4,7 @@
 #include "kpair.h"
 #include "execution_graph/logic_controllers/CacheMachine.h"
 #include "bmr/MemoryMonitor.h"
-
+#include "utilities/ctpl_stl.h"
 namespace ral {
 namespace cache {
 
@@ -34,6 +34,12 @@ static std::shared_ptr<ral::cache::CacheMachine> create_cache_machine( const cac
 	}
 	return machines;
 }
+
+struct graph_progress {
+	std::vector<std::string> kernel_descriptions;
+    std::vector<bool> finished;
+    std::vector<int> batches_completed;
+};
 
 /**
 	@brief A class that represents the execution graph in a taskflow scheme.
@@ -74,7 +80,8 @@ public:
 
 	void check_and_complete_work_flow();
 
-	void execute(const std::size_t max_kernel_run_threads);
+	void start_execute(const std::size_t max_kernel_run_threads);
+	void finish_execute();
 
 	void show();
 
@@ -85,6 +92,10 @@ public:
 	std::pair<bool, uint64_t> get_estimated_input_rows_to_cache(int32_t id, const std::string & port_name);
 
 	std::shared_ptr<kernel> get_last_kernel();
+
+	bool query_is_complete();
+
+	graph_progress get_progress();
 
 	size_t num_nodes() const;
 
@@ -108,9 +119,12 @@ public:
 	std::set<Edge> get_reverse_neighbours(kernel * from);
 	std::set<Edge> get_reverse_neighbours(int32_t id);
 
+	void set_kernels_order();
+
 	void check_for_simple_scan_with_limit_query();
 	void set_memory_monitor(std::shared_ptr<ral::MemoryMonitor> mem_monitor);
 	void clear_kernels(); 
+	
 private:
 	const std::int32_t head_id_{-1};
 	std::vector<kernel *> kernels_;
@@ -124,8 +138,10 @@ private:
 	std::shared_ptr<spdlog::logger> kernels_edges_logger;
 	int32_t context_token;
 	std::shared_ptr<ral::MemoryMonitor> mem_monitor;
+	ctpl::thread_pool<BlazingThread> pool;
+	std::vector<std::future<void>> futures;
+	std::vector<int32_t> ordered_kernel_ids;  // ordered vector containing the kernel_ids in the order they will be started
 };
-
 
 }  // namespace cache
 }  // namespace ral
