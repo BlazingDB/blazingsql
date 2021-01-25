@@ -24,7 +24,8 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(uint32_t masterIndex,
 	std::map<std::string, std::string> config_options,
 	std::string sql);
 
-std::unique_ptr<PartitionedResultSet> runExecuteGraph(std::shared_ptr<ral::cache::graph> graph, int ctx_token);
+void startExecuteGraph(std::shared_ptr<ral::cache::graph> graph, int ctx_token);
+std::unique_ptr<PartitionedResultSet> getExecuteGraphResult(std::shared_ptr<ral::cache::graph> graph, int ctx_token);
 
 TableScanInfo getTableScanInfo(std::string logicalPlan);
 

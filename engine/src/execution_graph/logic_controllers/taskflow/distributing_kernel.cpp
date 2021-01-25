@@ -25,6 +25,8 @@ void distributing_kernel::set_number_of_message_trackers(std::size_t num_message
     messages_to_wait_for.resize(num_message_trackers);
 }
 
+std::atomic<uint32_t> unique_message_id(std::rand());
+
 void distributing_kernel::send_message(std::unique_ptr<ral::frame::BlazingTable> table,
         bool specific_cache,
         std::string cache_id,
@@ -51,6 +53,7 @@ void distributing_kernel::send_message(std::unique_ptr<ral::frame::BlazingTable>
     metadata.add_value(ral::cache::CACHE_ID_METADATA_LABEL, cache_id);
     metadata.add_value(ral::cache::SENDER_WORKER_ID_METADATA_LABEL, node.id());
     metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, worker_ids_metadata);
+    metadata.add_value(ral::cache::UNIQUE_MESSAGE_ID, std::to_string(unique_message_id.fetch_add(1)));
 
     const std::string MESSAGE_ID_CONTENT = metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL] + "_" +
                                            metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL] + "_" +

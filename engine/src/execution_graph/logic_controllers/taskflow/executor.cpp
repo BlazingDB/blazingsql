@@ -72,7 +72,7 @@ std::size_t task::task_memory_needed() {
 void task::run(cudaStream_t stream, executor * executor){
     try{
         kernel->process(inputs,output,stream,args);
-        complete();
+        complete();        
     }catch(rmm::bad_alloc e){
 
         auto logger = spdlog::get("batch_logger");

@@ -149,9 +149,15 @@ cdef unique_ptr[cio.ResultSet] parseMetadataPython(vector[string] files, pair[in
 cdef shared_ptr[cio.graph] runGenerateGraphPython(uint32_t masterIndex,vector[string] worker_ids, vector[string] tableNames, vector[string] tableScans, vector[TableSchema] tableSchemas, vector[vector[string]] tableSchemaCppArgKeys, vector[vector[string]] tableSchemaCppArgValues, vector[vector[string]] filesAll, vector[int] fileTypes, int ctxToken, string query, vector[vector[map[string,string]]] uri_values_cpp, map[string,string] config_options, string sql) except *:
     return cio.runGenerateGraph(masterIndex, worker_ids, tableNames, tableScans, tableSchemas, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query, uri_values_cpp, config_options,sql)
 
-cdef unique_ptr[cio.PartitionedResultSet] runExecuteGraphPython(shared_ptr[cio.graph] graph, int ctx_token) except *:
+cdef unique_ptr[cio.PartitionedResultSet] startExecuteGraphPython(shared_ptr[cio.graph] graph, int ctx_token) except *:
     with nogil:
-      return blaz_move(cio.runExecuteGraph(graph,ctx_token))
+      cio.startExecuteGraph(graph,ctx_token)
+
+cdef unique_ptr[cio.PartitionedResultSet] getExecuteGraphResultPython(shared_ptr[cio.graph] graph, int ctx_token) except *:
+    with nogil:
+      return blaz_move(cio.getExecuteGraphResult(graph,ctx_token))
+
+
 
 #cdef unique_ptr[cio.ResultSet] performPartitionPython(int masterIndex, int ctxToken, BlazingTableView blazingTableView, vector[string] column_names) nogil except +:
 #    with nogil:
@@ -456,6 +462,12 @@ cdef class PyBlazingGraph:
 
     cpdef set_input_and_output_caches(self, PyBlazingCache input_cache, PyBlazingCache output_cache):
         deref(self.ptr).set_input_and_output_caches(input_cache.c_cache, output_cache.c_cache)
+    
+    cpdef query_is_complete(self):
+        return deref(self.ptr).query_is_complete()
+
+    cpdef get_progress(self):
+        return deref(self.ptr).get_progress()
 
 cpdef runGenerateGraphCaller(uint32_t masterIndex, worker_ids, tables,  table_scans, vector[int] fileTypes, int ctxToken, queryPy, map[string,string] config_options, sql):
     cdef string sql_c
@@ -566,11 +578,16 @@ cpdef runGenerateGraphCaller(uint32_t masterIndex, worker_ids, tables,  table_sc
     pyGraph.ptr = runGenerateGraphPython(masterIndex, worker_ids_c, tableNames, tableScans, tableSchemaCpp, tableSchemaCppArgKeys, tableSchemaCppArgValues, filesAll, fileTypes, ctxToken, query, uri_values_cpp_all, config_options,sql_c)
     return pyGraph
 
-cpdef runExecuteGraphCaller(PyBlazingGraph graph, int ctx_token, bool is_single_node):
+cpdef startExecuteGraphCaller(PyBlazingGraph graph, int ctx_token):
+
+    cdef shared_ptr[cio.graph] ptr = graph.ptr
+    startExecuteGraphPython(blaz_move(ptr),ctx_token)
+
+cpdef getExecuteGraphResultCaller(PyBlazingGraph graph, int ctx_token, bool is_single_node):
 
     cdef shared_ptr[cio.graph] ptr = graph.ptr
     graph = None
-    resultSet = blaz_move(runExecuteGraphPython(blaz_move(ptr),ctx_token))
+    resultSet = blaz_move(getExecuteGraphResultPython(blaz_move(ptr),ctx_token))
     names = dereference(resultSet).names
     decoded_names = []
     for i in range(names.size()):
