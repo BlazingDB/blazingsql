@@ -2943,12 +2943,7 @@ class BlazingContext(object):
                 )
                 cio.startExecuteGraphCaller(graph, ctxToken)
 
-                query_complete = False
-                while not query_complete:
-                    sleep(0.005)
-                    query_complete = graph.query_is_complete()
-                    # progress = graph.get_progress()
-                    # pdf = queryProgressAsPandas(progress)
+                self.do_progress_bar_single_node(graph)
 
                 return cio.getExecuteGraphResultCaller(
                     graph, ctxToken, is_single_node=True
@@ -3225,3 +3220,41 @@ class BlazingContext(object):
             self.logs_initialized = True
 
         return self.sql(query)
+
+    def do_progress_bar_single_node(self, graph):
+        from tqdm import tqdm, trange
+
+        query_complete = False
+
+        progress = graph.get_progress()
+        thepdf = queryProgressAsPandas(progress)
+        themax = len(thepdf)
+
+        thepdf = thepdf.drop(thepdf[thepdf.finished == False].index)
+        pasos = len(thepdf)
+
+        pbar = tqdm(total=themax)
+        pbar.update(pasos)
+        last = pasos
+        while True:
+            query_complete = graph.query_is_complete()
+            progress = graph.get_progress()
+            pdf = queryProgressAsPandas(progress)
+            pdf = pdf.drop(pdf[pdf.finished == False].index)
+            pasos = len(pdf)
+            if last != pasos:
+                delta = pasos - last
+                last = pasos
+                pbar.update(delta)
+            sleep(0.005)
+            if query_complete:
+                break
+        pbar.close()
+
+        # original
+        #query_complete = False
+        #while not query_complete:
+        #    sleep(0.005)
+        #    query_complete = graph.query_is_complete()
+            # progress = graph.get_progress()
+            # pdf = queryProgressAsPandas(progress)
