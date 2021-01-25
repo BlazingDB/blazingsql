@@ -195,7 +195,9 @@ std::unique_ptr<ral::frame::BlazingTable> sort(const ral::frame::BlazingTableVie
 	std::vector<cudf::order> sortOrderTypes;
 	std::vector<int> sortColIndices;
 	cudf::size_type limitRows;
-	std::tie(sortColIndices, sortOrderTypes, limitRows) = get_sort_vars(query_part);
+
+	if (query_part.find("window") != query_part.npos) std::tie(sortColIndices, sortOrderTypes) = get_vars_to_orders(query_part);
+	else std::tie(sortColIndices, sortOrderTypes, limitRows) = get_sort_vars(query_part);
 
 	return logicalSort(table, sortColIndices, sortOrderTypes);
 }
@@ -231,7 +233,9 @@ std::unique_ptr<ral::frame::BlazingTable> sample(const ral::frame::BlazingTableV
 	std::vector<cudf::order> sortOrderTypes;
 	std::vector<int> sortColIndices;
 	cudf::size_type limitRows;
-	std::tie(sortColIndices, sortOrderTypes, limitRows) = get_sort_vars(query_part);
+
+	if (query_part.find("window") != query_part.npos) std::tie(sortColIndices, sortOrderTypes) = get_vars_to_orders(query_part);
+	else std::tie(sortColIndices, sortOrderTypes, limitRows) = get_sort_vars(query_part);
 
 	auto tableNames = table.names();
 	std::vector<std::string> sortColNames(sortColIndices.size());

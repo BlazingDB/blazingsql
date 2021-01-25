@@ -115,7 +115,7 @@ SplitByKeysKernel::SplitByKeysKernel(std::size_t kernel_id, const std::string & 
 }
 
 void SplitByKeysKernel::do_process(std::vector<std::unique_ptr<ral::frame::BlazingTable> > inputs,
-    std::shared_ptr<ral::cache::CacheMachine> /*output*/,
+    std::shared_ptr<ral::cache::CacheMachine> output,
     cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) {
 
     CodeTimer eventTimer(false);
@@ -147,11 +147,7 @@ void SplitByKeysKernel::do_process(std::vector<std::unique_ptr<ral::frame::Blazi
     }
 
     for (std::size_t i = 0; i < partitioned_cudf_view.size(); i++) {
-        std::string cache_id = "output_" + std::to_string(i);
-        this->add_to_output_cache(
-            std::make_unique<ral::frame::BlazingTable>(std::make_unique<cudf::table>(partitioned_cudf_view[i]), input->names()),
-            cache_id
-            );
+        output->addToCache(std::make_unique<ral::frame::BlazingTable>(std::make_unique<cudf::table>(partitioned_cudf_view[i]), input->names()));
     }
 }
 
@@ -167,7 +163,7 @@ kstatus SplitByKeysKernel::run() {
 
         ral::execution::executor::get_instance()->add_task(
                 std::move(inputs),
-                nullptr,
+                this->output_cache(),
                 this);
 
         cache_data = this->input_cache()->pullCacheData();
@@ -213,7 +209,7 @@ ComputeWindowKernel::ComputeWindowKernel(std::size_t kernel_id, const std::strin
     this->query_graph = query_graph;
 }
 
-// TODO: support for LAG(), LEAD(), currently looks like Calcite has an issue
+// TODO: support for LAG(), LEAD(), currently looks like Calcite has an issue when obtain the optimized plan
 // TODO: Support for RANK() and DENSE_RANK()
 std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_function(cudf::column_view input_col_view, std::size_t pos) {
 
@@ -224,8 +220,7 @@ std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_func
         cudf::table_view table_view_with_single_col(partitioned);
         std::vector< std::unique_ptr<CudfColumn> > windowed_col = cudf::repeat(table_view_with_single_col, input_col_view.size())->release();
         return std::move(windowed_col[0]);
-    } else if (this->aggs_wind_func[pos] == "LAST_VALUE") {
-        // TODO: when PARTITION by + ORDER by, it has a weird behavior
+    } else if (this->aggs_wind_func[pos] == "LAST_VALUE") { // TODO: sometimes it fails, need more tests
         std::vector<cudf::size_type> splits(1, input_col_view.size() - 1);
         std::vector<cudf::column_view> partitioned = cudf::split(input_col_view, splits);
         partitioned.erase(partitioned.begin());  // want the last value (as column)
@@ -238,12 +233,14 @@ std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_func
         // TODO: select the right values from left and right
         if ( StringUtil::contains(this->expression, "order by") ) {
             // default case
-            std::cout << this->expression << std::endl;
             if ( !StringUtil::contains(this->expression, "between") || StringUtil::contains(this->expression, "UNBOUNDED PRECEDING and CURRENT ROW") ) {
                 windowed_col = cudf::rolling_window(input_col_view, input_col_view.size(), 0, 1, window_function);
             } else {
-                // TODO handle rows and range
-                std::cout << "computeKernel | hay que analizar aca" << std::endl;
+                // TODO handle rows and range, some examples
+                // ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+                // ROWS BETWEEN 2 PRECEDING AND 2 FOLLOWING
+                // ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING
+                // RANGE BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING
                 throw std::runtime_error(
 		            "In Window Function: for now just support default statement: UNBOUNDED PRECEDING and CURRENT ROW");
             }
@@ -323,37 +320,19 @@ void ComputeWindowKernel::do_process(std::vector< std::unique_ptr<ral::frame::Bl
 
 kstatus ComputeWindowKernel::run() {
     CodeTimer timer;
-    int batch_count = 0;
-    for (std::size_t idx = 0; idx < this->input_.count(); idx++)
-    {
-        try {
-            std::string cache_id = "input_" + std::to_string(idx);
-            // This Kernel needs all of the input before it can do any output. So lets wait until all the input is available
-            this->input_.get_cache(cache_id)->wait_until_finished();
-            std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
-            while(this->input_.get_cache(cache_id)->wait_for_next()){
-                std::unique_ptr <ral::cache::CacheData> cache_data = this->input_.get_cache(cache_id)->pullCacheData();
-                if(cache_data != nullptr) {
-                    inputs.push_back(std::move(cache_data));
-                }
-            }
 
-            ral::execution::executor::get_instance()->add_task(
-                    std::move(inputs),
-                    this->output_cache(),
-                    this);
+    std::unique_ptr<ral::cache::CacheData> cache_data = this->input_cache()->pullCacheData();
 
-            batch_count++;
-        } catch(const std::exception& e) {
-            logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
-                                "query_id"_a=context->getContextToken(),
-                                "step"_a=context->getQueryStep(),
-                                "substep"_a=context->getQuerySubstep(),
-                                "info"_a="In ComputeWindow Kernel batch {} for {}. What: {} . max_memory_used: {}"_format(batch_count, expression, e.what(),
-                                     blazing_device_memory_resource::getInstance().get_full_memory_summary()),
-                                "duration"_a="");
-            throw;
-        }
+    while (cache_data != nullptr ){
+        std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
+        inputs.push_back(std::move(cache_data));
+
+        ral::execution::executor::get_instance()->add_task(
+                std::move(inputs),
+                this->output_cache(),
+                this);
+
+        cache_data = this->input_cache()->pullCacheData();
     }
 
     std::unique_lock<std::mutex> lock(kernel_mutex);

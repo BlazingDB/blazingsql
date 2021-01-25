@@ -574,6 +574,9 @@ bool is_distribute_aggregate(std::string query_part) { return (query_part.find(L
 
 bool is_merge_aggregate(std::string query_part) { return (query_part.find(LOGICAL_MERGE_AGGREGATE_TEXT) != std::string::npos); }
 
+bool is_window_only_sort(std::string query_part) {
+	return ( (query_part.find("window") != std::string::npos) && (query_part.find("partition") == std::string::npos) ) ; }
+
 bool is_window(std::string query_part) { return (query_part.find(LOGICAL_WINDOW_TEXT) != std::string::npos); }
 
 bool is_only_sort(std::string query_part) { return (query_part.find(LOGICAL_ONLY_SORT_TEXT) != std::string::npos); }

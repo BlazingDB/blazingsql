@@ -160,6 +160,7 @@ bool is_merge_aggregate(std::string query_part);
 bool is_aggregate_merge(std::string query_part); // to be deprecated
 bool is_aggregate_partition(std::string query_part); // to be deprecated
 bool is_aggregate_and_sample(std::string query_part); // to be deprecated
+bool is_window_only_sort(std::string query_part);
 bool is_window(std::string query_part);
 bool is_only_sort(std::string query_part);
 bool is_concat_partitions_by_keys(std::string query_part);
@@ -175,6 +176,10 @@ std::vector<int> get_columns_to_apply_window_function(const std::string & query_
 // input: window#0=[window(partition {0, 2} aggs [MIN($7)])]
 // output: a vector, ["MIN"]
 std::vector<std::string> get_window_function_agg(const std::string & query_part);
+
+// input: window#0=[window(partition {2} order by [1] rows between 4 PRECEDING and 3 FOLLOWING aggs [FIRST_VALUE($0)])]
+// output: <4, 3>
+std::pair<int, int> get_bounds_from_window_expression(const std::string & query_part);
 
 // TODO: maybe this three functions are not necessary
 bool is_partitioned(std::string query_part);

@@ -150,7 +150,7 @@ struct tree_processor {
 		return children;
 	}
 
-	void transform_json_tree(boost::property_tree::ptree &p_tree) {
+	void transform_json_tree(boost::property_tree::ptree &p_tree, bool is_windowed = false) {
 		std::string expr = p_tree.get<std::string>("expr", "");
 		if (is_sort(expr)){
 			std::string limit_expr = expr;
@@ -158,7 +158,7 @@ struct tree_processor {
 			std::string partition_expr = expr;
 			std::string sort_and_sample_expr = expr;
 
-			if(ral::operators::has_limit_only(expr)){
+			if(ral::operators::has_limit_only(expr) && !is_window_only_sort(expr)){
 				StringUtil::findAndReplaceAll(limit_expr, LOGICAL_SORT_TEXT, LOGICAL_LIMIT_TEXT);
 
 				p_tree.put("expr", limit_expr);
@@ -294,8 +294,8 @@ struct tree_processor {
 		}
 		// Window Functions. TODO: for now just support Single Node
 		else if (is_window(expr)) {
-			//if (this->context->getTotalNodes() == 1) {
-				// When the Window function contains the `partition by` clause
+			if (this->context->getTotalNodes() == 1) {
+				// When the Window function contains a `partition by` clause
 				if (is_partitioned(expr)) {
 					std::string split_by_keys = expr;
 					std::string sort_expr = expr;
@@ -312,45 +312,45 @@ struct tree_processor {
 					p_tree.put("expr", split_by_keys);
 					p_tree.put_child("children", create_array_tree(sort_tree));
 
-					// TODO: cordova remove this comments
-					// in case the Window function also contains an `order by` clause
-					//if (expr.find("order by") != std::string::npos) {
-					//	sort_tree.clear();
-					//	sort_tree.put("expr", sort_expr);
-					//	sort_tree.put_child("children", create_array_tree(p_tree));
-                    //
-					//	p_tree = sort_tree;
-					//}
+					// Add the main Window function
+					std::string window_expr = expr;
+					std::string concat_partitions_by_key_expr = expr;
+
+					StringUtil::findAndReplaceAll(window_expr, LOGICAL_WINDOW_TEXT, LOGICAL_COMPUTE_WINDOW_TEXT);
+					StringUtil::findAndReplaceAll(concat_partitions_by_key_expr, LOGICAL_WINDOW_TEXT, LOGICAL_CONCAT_PARTITIONS_BY_KEY_TEXT);
+
+					boost::property_tree::ptree window_tree;
+					window_tree.put("expr", window_expr);
+					window_tree.add_child("children", create_array_tree(p_tree));
+
+					p_tree.clear();
+
+					p_tree.put("expr", concat_partitions_by_key_expr);
+					p_tree.put_child("children", create_array_tree(window_tree));
 				} 
-				// TODO: This could be improved, maybe we should just use the SortAndSampleKernel, PartitionKernel and MergeStreamKernel
-				// FOr now AVOID Window Functions without PARTITION BY clause
-				// When the Window function just contains the `order by` clause
+				// When the Window function just contains an `order by` clause
+				// we want to reuse the SortAndSampleKernel, PartitionSingleNodeKernel, ... 
 				else {
 					std::string sort_expr = expr;
-					StringUtil::findAndReplaceAll(sort_expr, LOGICAL_WINDOW_TEXT, LOGICAL_ONLY_SORT_TEXT);
+					std::string window_expr = expr;
 
-					p_tree.put("expr", sort_expr);
+					StringUtil::findAndReplaceAll(window_expr, LOGICAL_WINDOW_TEXT, LOGICAL_COMPUTE_WINDOW_TEXT);
+					StringUtil::findAndReplaceAll(sort_expr, LOGICAL_WINDOW_TEXT, LOGICAL_SORT_TEXT);
+
+					boost::property_tree::ptree sort_tree;
+					sort_tree.put("expr", sort_expr);
+					sort_tree.add_child("children", p_tree.get_child("children"));
+
+					p_tree.put("expr", window_expr);
+					p_tree.put_child("children", create_array_tree(sort_tree));
+
+					transform_json_tree(p_tree);
+					return;
 				}
-
-				// Add the main Window function
-				std::string window_expr = expr;
-				std::string concat_partitions_by_key_expr = expr;
-
-				StringUtil::findAndReplaceAll(window_expr, LOGICAL_WINDOW_TEXT, LOGICAL_COMPUTE_WINDOW_TEXT);
-				StringUtil::findAndReplaceAll(concat_partitions_by_key_expr, LOGICAL_WINDOW_TEXT, LOGICAL_CONCAT_PARTITIONS_BY_KEY_TEXT);
-
-				boost::property_tree::ptree window_tree;
-				window_tree.put("expr", window_expr);
-				window_tree.add_child("children", create_array_tree(p_tree));
-
-				p_tree.clear();
-
-				p_tree.put("expr", concat_partitions_by_key_expr);
-				p_tree.put_child("children", create_array_tree(window_tree));
 			
-			//} else {
-			//	throw std::runtime_error("Window Functions are not supported in distributed mode");
-			//}
+			} else {
+				throw std::runtime_error("Window Functions are not supported in distributed mode");
+			}
 		}
 
 		for (auto &child : p_tree.get_child("children")) {
@@ -472,20 +472,6 @@ struct tree_processor {
 					ral::cache::cache_settings cache_machine_config;
 					cache_machine_config.type = ral::cache::CacheType::FOR_EACH;
 					cache_machine_config.num_partitions = max_num_order_by_partitions_per_node;
-					cache_machine_config.context = context->clone();
-					query_graph.addPair(ral::cache::kpair(child->kernel_unit, parent->kernel_unit, cache_machine_config));
-
-				// TODO a Distributed version of PARTITION BY is needed
-				} else if ( (child_kernel_type == kernel_type::SplitByKeysKernel && parent_kernel_type == kernel_type::ComputeWindowKernel) ) {
-					// TODO the MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE should change something like MAX_NUM_PARTITIONS_PER_NODE, now 8 will be very small
-					int max_num_partitions_per_node = 20;
-					it = config_options.find("MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE");
-					if (it != config_options.end()){
-						max_num_partitions_per_node = std::stoi(config_options["MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE"]);
-					}
-					ral::cache::cache_settings cache_machine_config;
-					cache_machine_config.type = ral::cache::CacheType::FOR_EACH;
-					cache_machine_config.num_partitions = max_num_partitions_per_node;
 					cache_machine_config.context = context->clone();
 					query_graph.addPair(ral::cache::kpair(child->kernel_unit, parent->kernel_unit, cache_machine_config));
 
