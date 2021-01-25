@@ -10,6 +10,7 @@
 - #1259 Implements SortAndSamplernel executor model, also avoid setting up num of samples
 - #1271 Added Hive utility for partitioned data
 - #1289 Multiple concurrent query support 
+- #1285 Infer PROTOCOL when Dask client is passed
 
 
 ## Improvements
@@ -22,6 +23,7 @@
 - #1267 Added retrys to comms, fixed deadlocks in executor and order by. Improved logging and error management. Caches have names. Improved Joins
 - #1239 Reducing Memory pressure by moving shuffle data to cpu before transmission
 - #1278 Fix race conditions with UCX
+- #1279 Added cuml to powerpc build scripts
 - #1286 Fixes to initialization and adding unique ids to comms
 - #1255 Kernels are resilient to out of memory errors now and can retry tasks that fail this way
 
