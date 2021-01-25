@@ -12,6 +12,7 @@ from urllib.parse import urlparse
 
 from threading import Lock
 from weakref import ref
+from distributed.comm import parse_address
 from pyblazing.apiv2.filesystem import FileSystem
 from pyblazing.apiv2 import DataType
 from pyblazing.apiv2.comms import listen
@@ -1196,7 +1197,7 @@ def load_config_options_from_env(user_config_options: dict):
         "LOGGING_MAX_SIZE_PER_FILE": 1073741824,  # 1 GB
         "TRANSPORT_BUFFER_BYTE_SIZE": 1048576,  # 10 MB in bytes
         "TRANSPORT_POOL_NUM_BUFFERS": 100,
-        "PROTOCOL": "TCP",
+        "PROTOCOL": "AUTO",
     }
 
     # key: option_name, value: default_value
@@ -1373,6 +1374,9 @@ class BlazingContext(object):
                     default: 10 MBs
             TRANSPORT_POOL_NUM_BUFFERS: The number of buffers in the punned buffer memory pool.
                     default: 100 buffers
+            PROTOCOL: The protocol to use with the current BlazingContext. 
+                    It should use what the user set. If the user does not explicitly set it,
+                    by default it will be set by whatever dask client is using ('tcp', 'ucx', ..). 
 
         Examples
         --------
@@ -1445,6 +1449,12 @@ class BlazingContext(object):
             ).encode()
 
         if dask_client is not None:
+            # if the user does not explicitly set it, it will be set by whatever dask client is using
+            if self.config_options["PROTOCOL".encode()] == "AUTO".encode():
+                self.config_options["PROTOCOL".encode()] = parse_address(
+                    dask_client.scheduler.addr
+                )[0].encode()
+
             distributed_initialize_server_directory(self.dask_client, logging_dir_path)
 
             distributed_remove_orc_files_from_disk(
