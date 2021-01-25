@@ -49,6 +49,7 @@ kstatus UnionKernel::run() {
     auto cache_machine_b = this->input_.get_cache("input_b");
     std::unique_ptr<ral::cache::CacheData> cache_data_a = cache_machine_a->pullCacheData();
     std::unique_ptr<ral::cache::CacheData> cache_data_b = cache_machine_b->pullCacheData();
+    RAL_EXPECTS(cache_data_a != nullptr || cache_data_b != nullptr, "In UnionKernel: The input cache data cannot be null");
 
     common_names = cache_data_a->names();
 

@@ -147,6 +147,10 @@ ral::execution::task_result kernel::process(std::vector<std::unique_ptr<ral::fra
     //     return;
     // }
 
+    if(inputs.size()==0){
+        return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
+    }
+
     size_t bytes = 0;
     for(auto & input : inputs){
         bytes += input->sizeInBytes();

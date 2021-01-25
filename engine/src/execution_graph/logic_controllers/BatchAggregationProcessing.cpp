@@ -43,6 +43,7 @@ kstatus ComputeAggregateKernel::run() {
     CodeTimer timer;
 
     std::unique_ptr <ral::cache::CacheData> cache_data = this->input_cache()->pullCacheData();
+    RAL_EXPECTS(cache_data != nullptr, "In ComputeAggregateKernel: The input cache data cannot be null");
 
     // in case UNION exists, we want to know the num of columns
     std::tie(this->group_column_indices, aggregation_input_expressions, this->aggregation_types,
