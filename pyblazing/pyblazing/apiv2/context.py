@@ -1374,7 +1374,7 @@ class BlazingContext(object):
                     default: 10 MBs
             TRANSPORT_POOL_NUM_BUFFERS: The number of buffers in the punned buffer memory pool.
                     default: 100 buffers
-            PROTOCOL: The protocol to use with the current BlazingContext. 
+            PROTOCOL: The protocol to use with the current BlazingContext.
                     It should use what the user set. If the user does not explicitly set it,
                     by default it will be set by whatever dask client is using ('tcp', 'ucx', ..).
                     NOTE: This parameter only works when used in the BlazingContext.
