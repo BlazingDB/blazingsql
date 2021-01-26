@@ -172,6 +172,8 @@ std::shared_ptr<Context> make_single_context(std::string logicalPlan) {
 	return context;
 }
 
+// TODO: Cordova revwrite these physical plans
+/*
 TEST_F(PhysicalPlanGeneratorTest, transform_json_tree_simple_window_function)
 {
 	//	Query
@@ -363,3 +365,4 @@ TEST_F(PhysicalPlanGeneratorTest, transform_json_tree_window_function_unsupporte
 		SUCCEED();
 	}
 }
+*/

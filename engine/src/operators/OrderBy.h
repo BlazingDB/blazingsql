@@ -26,6 +26,8 @@ std::tuple< std::vector<int>, std::vector<cudf::order> > get_vars_to_partition(c
 
 std::tuple< std::vector<int>, std::vector<cudf::order> > get_vars_to_orders(const std::string & query_part);
 
+std::tuple< std::vector<int>, std::vector<cudf::order> > get_vars_to_partition_and_order(const std::string & query_part);
+
 std::unique_ptr<ral::frame::BlazingTable> sort(const ral::frame::BlazingTableView & table, const std::string & query_part);
 
 std::unique_ptr<ral::frame::BlazingTable> sort_to_partition(const ral::frame::BlazingTableView & table, const std::string & query_part);

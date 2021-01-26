@@ -588,7 +588,7 @@ bool is_split_by_keys(std::string query_part) { return (query_part.find(LOGICAL_
 bool is_window_compute(std::string query_part) { return (query_part.find(LOGICAL_COMPUTE_WINDOW_TEXT) != std::string::npos); }
 
 // TODO: maybe this three functions are not necessary
-bool is_window_partitioned(std::string query_part) { return (query_part.find("partition") != std::string::npos); }
+bool contains_window_expression(std::string query_part) { return (query_part.find("window") != std::string::npos); }
 
 bool is_order_by_rows(std::string query_part) { return (query_part.find("rows") != std::string::npos); }
 

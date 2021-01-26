@@ -158,7 +158,7 @@ struct tree_processor {
 			std::string partition_expr = expr;
 			std::string sort_and_sample_expr = expr;
 
-			if( ral::operators::has_limit_only(expr) && !is_window_partitioned(expr) ){
+			if( ral::operators::has_limit_only(expr) && !contains_window_expression(expr) ){
 				StringUtil::findAndReplaceAll(limit_expr, LOGICAL_SORT_TEXT, LOGICAL_LIMIT_TEXT);
 
 				p_tree.put("expr", limit_expr);
@@ -184,8 +184,12 @@ struct tree_processor {
 				merge_tree.put("expr", merge_expr);
 				merge_tree.add_child("children", create_array_tree(partition_tree));
 
-				p_tree.put("expr", limit_expr);
-				p_tree.put_child("children", create_array_tree(merge_tree));
+				if (contains_window_expression(expr)) {
+					p_tree = merge_tree;
+				} else {
+					p_tree.put("expr", limit_expr);
+					p_tree.put_child("children", create_array_tree(merge_tree));
+				}
 			}
 		}
 		else if (is_aggregate(expr)) {

@@ -114,7 +114,7 @@ get_sort_vars(const std::string & query_part) {
 	return std::make_tuple(sortColIndices, sortOrderTypes, limitRows);
 }
 
-//input: window#0=[window(partition {0, 2} order by [1 DESC, 2 DESC] aggs [MIN($0)])]
+//input: window#0=[window(partition {0, 2} order by [1 DESC, 3, 4 DESC] aggs [MIN($0)])]
 //output: < [0, 2], [cudf::ASCENDING, cudf::ASCENDING] >
 std::tuple< std::vector<int>, std::vector<cudf::order> > get_vars_to_partition(const std::string & query_part) {
 	std::vector<int> column_index;
@@ -139,8 +139,8 @@ std::tuple< std::vector<int>, std::vector<cudf::order> > get_vars_to_partition(c
 	return std::make_tuple(column_index, order_types);
 }
 
-//input: window#0=[window(partition {2} order by [1 DESC, 3] aggs [MIN($0)])]
-//output: < [1, 3], [cudf::DESCENDING, cudf::ASCENDING] >
+//input: window#0=[window(partition {0, 2} order by [1 DESC, 3, 4 DESC] aggs [MIN($0)])]
+//output: < [1, 3, 4], [cudf::DESCENDING, cudf::ASCENDING, cudf::DESCENDING] >
 std::tuple< std::vector<int>, std::vector<cudf::order> > get_vars_to_orders(const std::string & query_part) {
 	std::vector<int> column_index;
 	std::vector<cudf::order> order_types;
@@ -163,6 +163,21 @@ std::tuple< std::vector<int>, std::vector<cudf::order> > get_vars_to_orders(cons
 	}
 
 	return std::make_tuple(column_index, order_types);
+}
+
+//input: window#0=[window(partition {0, 2} order by [1 DESC, 3, 4 DESC] aggs [MIN($0)])]
+//output: < [0, 2, 1, 3, 4], [cudf::ASCENDING, cudf::ASCENDING, cudf::DESCENDING, cudf::ASCENDING, cudf::DESCENDING] >
+std::tuple< std::vector<int>, std::vector<cudf::order> > get_vars_to_partition_and_order(const std::string & query_part) {
+	std::vector<int> column_index_partition, column_index_order;
+	std::vector<cudf::order> order_types_partition, order_types_order;
+
+	std::tie(column_index_partition, order_types_partition) = get_vars_to_partition(query_part);
+	std::tie(column_index_order, order_types_order) = get_vars_to_orders(query_part);
+
+	column_index_partition.insert(column_index_partition.end(), column_index_order.begin(), column_index_order.end());
+	order_types_partition.insert(order_types_partition.end(), order_types_order.begin(), order_types_order.end());
+
+	return std::make_tuple(column_index_partition, order_types_partition);
 }
 
 bool has_limit_only(const std::string & query_part){
@@ -196,12 +211,28 @@ std::unique_ptr<ral::frame::BlazingTable> sort(const ral::frame::BlazingTableVie
 	std::vector<int> sortColIndices;
 	cudf::size_type limitRows;
 
-	if (query_part.find("window") != query_part.npos) std::tie(sortColIndices, sortOrderTypes) = get_vars_to_orders(query_part);
+	// window function
+	if (query_part.find("window") != query_part.npos) {
+		// order by and partition by
+		if (query_part.find("order by") != query_part.npos && query_part.find("partition") != query_part.npos) {
+			std::tie(sortColIndices, sortOrderTypes) = get_vars_to_partition_and_order(query_part);
+		}
+		// just partition by
+		else if (query_part.find("order by") == query_part.npos) {
+			std::tie(sortColIndices, sortOrderTypes) = get_vars_to_partition(query_part);
+		}
+		// just order by. TODO: for now not supported
+		else {
+			throw std::runtime_error("Error, not support window function without partition by clause");
+			//std::tie(sortColIndices, sortOrderTypes) = get_vars_to_orders(query_part);	
+		}
+	}
 	else std::tie(sortColIndices, sortOrderTypes, limitRows) = get_sort_vars(query_part);
 
 	return logicalSort(table, sortColIndices, sortOrderTypes);
 }
 
+// TODO: cordova remove this function
 std::unique_ptr<ral::frame::BlazingTable> sort_to_partition(const ral::frame::BlazingTableView & table, const std::string & query_part) {
 	std::vector<cudf::order> sortOrderTypes;
 	std::vector<int> sortColIndices;
@@ -210,6 +241,7 @@ std::unique_ptr<ral::frame::BlazingTable> sort_to_partition(const ral::frame::Bl
 	return logicalSort(table, sortColIndices, sortOrderTypes);
 }
 
+// TODO: cordova remove this function
 std::unique_ptr<ral::frame::BlazingTable> sort_partitioned(const ral::frame::BlazingTableView & table, const std::string & query_part) {
 	std::vector<cudf::order> sortOrderTypes;
 	std::vector<int> sortColIndices;
@@ -234,7 +266,7 @@ std::unique_ptr<ral::frame::BlazingTable> sample(const ral::frame::BlazingTableV
 	std::vector<int> sortColIndices;
 	cudf::size_type limitRows;
 
-	if (query_part.find("window") != query_part.npos) std::tie(sortColIndices, sortOrderTypes) = get_vars_to_orders(query_part);
+	if (query_part.find("window") != query_part.npos) std::tie(sortColIndices, sortOrderTypes) = get_vars_to_partition(query_part);
 	else std::tie(sortColIndices, sortOrderTypes, limitRows) = get_sort_vars(query_part);
 
 	auto tableNames = table.names();
@@ -252,7 +284,9 @@ std::vector<cudf::table_view> partition_table(const ral::frame::BlazingTableView
 	std::vector<cudf::order> sortOrderTypes;
 	std::vector<int> sortColIndices;
 	cudf::size_type limitRows;
-	std::tie(sortColIndices, sortOrderTypes, limitRows) = get_sort_vars(query_part);
+
+	if (query_part.find("window") != query_part.npos) std::tie(sortColIndices, sortOrderTypes) = get_vars_to_partition(query_part);
+	else std::tie(sortColIndices, sortOrderTypes, limitRows) = get_sort_vars(query_part);
 
 	if(sortedTable.num_rows() == 0) {
 		return {sortedTable.view()};
@@ -274,7 +308,9 @@ std::unique_ptr<ral::frame::BlazingTable> generate_partition_plan(const std::vec
 	std::vector<cudf::order> sortOrderTypes;
 	std::vector<int> sortColIndices;
 	cudf::size_type limitRows;
-	std::tie(sortColIndices, sortOrderTypes, limitRows) = get_sort_vars(query_part);
+	
+	if (query_part.find("window") != query_part.npos) std::tie(sortColIndices, sortOrderTypes) = get_vars_to_partition(query_part);
+	else std::tie(sortColIndices, sortOrderTypes, limitRows) = get_sort_vars(query_part);
 
 	std::unique_ptr<ral::frame::BlazingTable> partitionPlan;
 
@@ -326,7 +362,10 @@ std::unique_ptr<ral::frame::BlazingTable> merge(std::vector<ral::frame::BlazingT
 	std::vector<cudf::order> sortOrderTypes;
 	std::vector<int> sortColIndices;
 	cudf::size_type limitRows;
-	std::tie(sortColIndices, sortOrderTypes, limitRows) = get_sort_vars(query_part);
+
+	if (query_part.find("window") != query_part.npos) std::tie(sortColIndices, sortOrderTypes) = get_vars_to_partition(query_part);
+	else std::tie(sortColIndices, sortOrderTypes, limitRows) = get_sort_vars(query_part);
+
 	return sortedMerger(partitions_to_merge, sortOrderTypes, sortColIndices);
 }
 
