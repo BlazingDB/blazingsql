@@ -161,6 +161,17 @@ TEST_F(PhysicalPlanGeneratorTest, transform_json_tree_two_join)
 	ASSERT_EQ(p_tree, p_tree_cmp);
 }
 
+// Creates a single Context
+std::shared_ptr<Context> make_single_context(std::string logicalPlan) {
+	Node master("self");
+	std::vector<Node> contextNodes;
+	contextNodes.push_back(master);
+	std::map<std::string, std::string> config_options;
+
+	std::shared_ptr<Context> context = std::make_shared<Context>(0, contextNodes, contextNodes[0], logicalPlan, config_options);
+	return context;
+}
+
 TEST_F(PhysicalPlanGeneratorTest, transform_json_tree_simple_window_function)
 {
 	//	Query
@@ -189,8 +200,8 @@ TEST_F(PhysicalPlanGeneratorTest, transform_json_tree_simple_window_function)
 	}
 	)raw";
 
-	Context context(0, {}, {}, logicalPlan, {});
-	ral::batch::tree_processor tree{{}, context.clone(), {}, {}, {}, {}, true};
+	std::shared_ptr<Context> context = make_single_context(logicalPlan);
+	ral::batch::tree_processor tree{{}, context->clone(), {}, {}, {}, {}, true};
 
 	std::istringstream input(logicalPlan);
 	boost::property_tree::ptree p_tree;
@@ -265,8 +276,8 @@ TEST_F(PhysicalPlanGeneratorTest, transform_json_tree_window_function)
 	}
 	)raw";
 
-	Context context(0, {}, {}, logicalPlan, {});
-	ral::batch::tree_processor tree{{}, context.clone(), {}, {}, {}, {}, true};
+	std::shared_ptr<Context> context = make_single_context(logicalPlan);
+	ral::batch::tree_processor tree{{}, context->clone(), {}, {}, {}, {}, true};
 
 	std::istringstream input(logicalPlan);
 	boost::property_tree::ptree p_tree;
@@ -342,8 +353,8 @@ TEST_F(PhysicalPlanGeneratorTest, transform_json_tree_window_function_unsupporte
 		}
 		)raw";
 
-		Context context(0, {}, {}, logicalPlan, {});
-		ral::batch::tree_processor tree{{}, context.clone(), {}, {}, {}, {}, true};
+		std::shared_ptr<Context> context = make_single_context(logicalPlan);
+		ral::batch::tree_processor tree{{}, context->clone(), {}, {}, {}, {}, true};
 
 		tree.build_batch_graph(logicalPlan);
 

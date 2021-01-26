@@ -41,12 +41,12 @@ struct tree_processor {
 	const bool transform_operators_bigger_than_gpu = false;
 
 	tree_processor(	node root,
-	std::shared_ptr<Context> context,
-	std::vector<ral::io::data_loader> input_loaders,
-	std::vector<ral::io::Schema> schemas,
-	std::vector<std::string> table_names,
-	std::vector<std::string> table_scans,
-	const bool transform_operators_bigger_than_gpu) : root(root),context(context),
+		std::shared_ptr<Context> context,
+		std::vector<ral::io::data_loader> input_loaders,
+		std::vector<ral::io::Schema> schemas,
+		std::vector<std::string> table_names,
+		std::vector<std::string> table_scans,
+		const bool transform_operators_bigger_than_gpu) : root(root),context(context),
 	input_loaders(input_loaders),schemas(schemas),table_names(table_names),
 	table_scans(table_scans), transform_operators_bigger_than_gpu(transform_operators_bigger_than_gpu){
 
