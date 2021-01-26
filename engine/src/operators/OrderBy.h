@@ -30,10 +30,6 @@ std::tuple< std::vector<int>, std::vector<cudf::order> > get_vars_to_partition_a
 
 std::unique_ptr<ral::frame::BlazingTable> sort(const ral::frame::BlazingTableView & table, const std::string & query_part);
 
-std::unique_ptr<ral::frame::BlazingTable> sort_to_partition(const ral::frame::BlazingTableView & table, const std::string & query_part);
-
-std::unique_ptr<ral::frame::BlazingTable> sort_partitioned(const ral::frame::BlazingTableView & table, const std::string & query_part);
-
 std::size_t compute_total_samples(std::size_t num_rows);
 
 std::unique_ptr<ral::frame::BlazingTable> sample(const ral::frame::BlazingTableView & table, const std::string & query_part);

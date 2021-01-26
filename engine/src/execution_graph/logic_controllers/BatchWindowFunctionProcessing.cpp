@@ -35,26 +35,8 @@ void SortKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTabl
     CodeTimer eventTimer(false);
 
     std::unique_ptr<ral::frame::BlazingTable> & input = inputs[0];
-    std::unique_ptr<ral::frame::BlazingTable> sortedTable = ral::operators::sort_to_partition(input->toBlazingTableView(), this->expression);
 
-    if (sortedTable) {
-        cudf::size_type num_rows = sortedTable->num_rows();
-        std::size_t num_bytes = sortedTable->sizeInBytes();
-
-        events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-                        "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-                        "query_id"_a=context->getContextToken(),
-                        "kernel_id"_a=this->get_id(),
-                        "input_num_rows"_a=num_rows,
-                        "input_num_bytes"_a=num_bytes,
-                        "output_num_rows"_a=num_rows,
-                        "output_num_bytes"_a=num_bytes,
-                        "event_type"_a="SortKernel compute",
-                        "timestamp_begin"_a=eventTimer.start_time(),
-                        "timestamp_end"_a=eventTimer.end_time());
-    }
-
-    output->addToCache(std::move(sortedTable));
+    output->addToCache(std::move(input));
 }
 
 kstatus SortKernel::run() {
@@ -211,43 +193,30 @@ ComputeWindowKernel::ComputeWindowKernel(std::size_t kernel_id, const std::strin
 
 // TODO: support for LAG(), LEAD(), currently looks like Calcite has an issue when obtain the optimized plan
 // TODO: Support for RANK() and DENSE_RANK()
-std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_function(cudf::column_view input_col_view, std::size_t pos) {
+std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_function(cudf::table_view input_cudf_view, cudf::column_view input_col_view, std::size_t pos) {
 
     if (this->aggs_wind_func[pos] == "FIRST_VALUE") {
         std::vector<cudf::size_type> splits(1, 1);
         std::vector<cudf::column_view> partitioned = cudf::split(input_col_view, splits);
         partitioned.pop_back();  // want the first value (as column)
         cudf::table_view table_view_with_single_col(partitioned);
-        std::vector< std::unique_ptr<CudfColumn> > windowed_col = cudf::repeat(table_view_with_single_col, input_col_view.size())->release();
-        return std::move(windowed_col[0]);
+        std::vector< std::unique_ptr<CudfColumn> > windowed_cols = cudf::repeat(table_view_with_single_col, input_col_view.size())->release();
+        return std::move(windowed_cols[0]);
     } else if (this->aggs_wind_func[pos] == "LAST_VALUE") { // TODO: sometimes it fails, need more tests
         std::vector<cudf::size_type> splits(1, input_col_view.size() - 1);
         std::vector<cudf::column_view> partitioned = cudf::split(input_col_view, splits);
         partitioned.erase(partitioned.begin());  // want the last value (as column)
         cudf::table_view table_view_with_single_col(partitioned);
-        std::vector< std::unique_ptr<CudfColumn> > windowed_col = cudf::repeat(table_view_with_single_col, input_col_view.size())->release();
-        return std::move(windowed_col[0]);
+        std::vector< std::unique_ptr<CudfColumn> > windowed_cols = cudf::repeat(table_view_with_single_col, input_col_view.size())->release();
+        return std::move(windowed_cols[0]);
     } else {
         std::unique_ptr<cudf::aggregation> window_function = get_window_aggregate(this->aggs_wind_func[pos]);
         std::unique_ptr<CudfColumn> windowed_col;
-        // TODO: select the right values from left and right
-        if ( StringUtil::contains(this->expression, "order by") ) {
-            // default case
-            if ( !StringUtil::contains(this->expression, "between") || StringUtil::contains(this->expression, "UNBOUNDED PRECEDING and CURRENT ROW") ) {
-                windowed_col = cudf::rolling_window(input_col_view, input_col_view.size(), 0, 1, window_function);
-            } else {
-                // TODO handle rows and range, some examples
-                // ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-                // ROWS BETWEEN 2 PRECEDING AND 2 FOLLOWING
-                // ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING
-                // RANGE BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING
-                throw std::runtime_error(
-		            "In Window Function: for now just support default statement: UNBOUNDED PRECEDING and CURRENT ROW");
-            }
-        } else {
-            // we want roll the window with all the rows
-            windowed_col = cudf::rolling_window(input_col_view, input_col_view.size(), input_col_view.size(), 1, window_function);
-        }
+
+        std::vector<cudf::column_view> partitionedaaa;
+        partitionedaaa.push_back(input_cudf_view.column(this->column_indices_partitioned[0]));
+        cudf::table_view table_view_with_single_col(partitionedaaa);
+        windowed_col = cudf::grouped_rolling_window(table_view_with_single_col , input_col_view, input_col_view.size(), input_col_view.size(), 1, window_function);
 
         return std::move(windowed_col);
     }
@@ -264,18 +233,13 @@ void ComputeWindowKernel::do_process(std::vector< std::unique_ptr<ral::frame::Bl
     CodeTimer eventTimer(false);
 
     std::unique_ptr<ral::frame::BlazingTable> & input = inputs[0];
-    // When the window function also has a `order by` clause
-    // TODO: some agg like {min, max, .. } wrongs the final output with respect to pyspark and drill
-    // could be due to rolling_window, we are using all the <batch.size(), batch.size()> range, maybe we should use the default, <batch.size(), 0] range
-    if (this->expression.find("order by") != this->expression.npos) {
-        input = ral::operators::sort_partitioned(input->toBlazingTableView(), this->expression);
-    }
 
     cudf::table_view input_cudf_view = input->view();
 
-    // saving the names of the columns and add one due to the new col
+    // saving the names of the columns and after we will add one by each new col
     std::vector<std::string> input_names = input->names();
     this->column_indices_wind_funct = get_columns_to_apply_window_function(this->expression);
+    std::tie(this->column_indices_partitioned, std::ignore) = ral::operators::get_vars_to_partition(this->expression);
     this->aggs_wind_func = get_window_function_agg(this->expression);
 
     std::vector< std::unique_ptr<CudfColumn> > new_wind_funct_cols;
@@ -283,7 +247,7 @@ void ComputeWindowKernel::do_process(std::vector< std::unique_ptr<ral::frame::Bl
         cudf::column_view input_col_view = input_cudf_view.column(this->column_indices_wind_funct[col_i]);
 
         // calling main window function
-        std::unique_ptr<CudfColumn> windowed_col = compute_column_from_window_function(input_col_view, col_i);
+        std::unique_ptr<CudfColumn> windowed_col = compute_column_from_window_function(input_cudf_view, input_col_view, col_i);
         new_wind_funct_cols.push_back(std::move(windowed_col));
         input_names.push_back("");
     }

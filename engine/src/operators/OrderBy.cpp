@@ -232,24 +232,6 @@ std::unique_ptr<ral::frame::BlazingTable> sort(const ral::frame::BlazingTableVie
 	return logicalSort(table, sortColIndices, sortOrderTypes);
 }
 
-// TODO: cordova remove this function
-std::unique_ptr<ral::frame::BlazingTable> sort_to_partition(const ral::frame::BlazingTableView & table, const std::string & query_part) {
-	std::vector<cudf::order> sortOrderTypes;
-	std::vector<int> sortColIndices;
-	std::tie(sortColIndices, sortOrderTypes) = get_vars_to_partition(query_part);
-
-	return logicalSort(table, sortColIndices, sortOrderTypes);
-}
-
-// TODO: cordova remove this function
-std::unique_ptr<ral::frame::BlazingTable> sort_partitioned(const ral::frame::BlazingTableView & table, const std::string & query_part) {
-	std::vector<cudf::order> sortOrderTypes;
-	std::vector<int> sortColIndices;
-	std::tie(sortColIndices, sortOrderTypes) = get_vars_to_orders(query_part);
-
-	return logicalSort(table, sortColIndices, sortOrderTypes);
-}
-
 std::size_t compute_total_samples(std::size_t num_rows) {
 	std::size_t num_samples = std::ceil(num_rows * 0.1);
 	std::size_t MAX_SAMPLES = 1000;

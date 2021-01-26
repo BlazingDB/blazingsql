@@ -71,7 +71,7 @@ public:
 		std::shared_ptr<Context> context,
 		std::shared_ptr<ral::cache::graph> query_graph);
 
-	std::unique_ptr<CudfColumn> compute_column_from_window_function(cudf::column_view input_col_view, std::size_t pos);
+	std::unique_ptr<CudfColumn> compute_column_from_window_function(cudf::table_view input_cudf_view, cudf::column_view input_col_view, std::size_t pos);
 
 	std::string kernel_name() { return "ComputeWindow";}
 
@@ -82,6 +82,7 @@ public:
 	kstatus run() override;
 
 private:
+	std::vector<int> column_indices_partitioned;   // column indices to be partitioned, for now just support one `partition by`
 	std::vector<int> column_indices_wind_funct;    // column indices to be agg, for now just support one `partition by`
 	std::vector<std::string> aggs_wind_func; 
 };
