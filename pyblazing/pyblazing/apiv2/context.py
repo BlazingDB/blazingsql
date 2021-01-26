@@ -345,8 +345,9 @@ def getQueryIsComplete(ctxToken):
     worker = get_worker()
 
     graph = worker.query_graphs[ctxToken]
-    return graph.query_is_complete()
-
+    ret = graph.query_is_complete()
+    print("AHHHHHHHHHHHHHHHH: " + str(ret))
+    return ret
 
 def queryProgressAsPandas(progress):
     progress["kernel_descriptions"] = [
@@ -1237,6 +1238,7 @@ class BlazingContext(object):
         initial_pool_size=None,
         maximum_pool_size=None,
         enable_logging=False,
+        enable_progress_bar=False,
         config_options={},
     ):
         """
@@ -1574,6 +1576,7 @@ class BlazingContext(object):
         self.generator = RelationalAlgebraGeneratorClass(self.schema)
         self.tables = {}
         self.logs_initialized = False
+        self.enable_progress_bar = enable_progress_bar
 
         # waitForPingSuccess(self.client)
         print("BlazingContext ready")
@@ -2994,34 +2997,7 @@ class BlazingContext(object):
                 )
             self.dask_client.gather(dask_futures)
 
-            query_complete = False
-            while not query_complete:
-                sleep(0.005)
-                dask_futures = []
-                for node in self.nodes:
-                    worker = node["worker"]
-                    dask_futures.append(
-                        self.dask_client.submit(
-                            getQueryIsComplete, ctxToken, workers=[worker], pure=False
-                        )
-                    )
-                workers_is_complete = self.dask_client.gather(dask_futures)
-                query_complete = all(workers_is_complete)  # all workers returned true
-                # if not query_complete:
-                #     dask_futures = []
-                #     for node in self.nodes:
-                #         worker = node["worker"]
-                #         dask_futures.append(
-                #             self.dask_client.submit(
-                #                 getQueryProgress, ctxToken, workers=[worker], pure=False
-                #             )
-                #         )
-                #     workers_progress = dask.dataframe.from_delayed(dask_futures).compute()
-                #     progress = workers_progress.groupby('kernel_descriptions').agg(finished=('finished','all'),batches_completed=('batches_completed','sum'))
-                #     percent_complete = progress['finished'].sum()/len(progress)
-                #     total_batches_complete = progress['batches_completed'].sum()
-                #     print("Percent complete: " + str(percent_complete))
-                #     print("Batches complete: " + str(total_batches_complete))
+            self.do_progress_bar_distributed(ctxToken)
 
             dask_futures = []
             for node in self.nodes:
@@ -3222,6 +3198,10 @@ class BlazingContext(object):
         return self.sql(query)
 
     def do_progress_bar_single_node(self, graph):
+        if not self.enable_progress_bar:
+            # TODO wait until complete
+            return
+        # TODO check pb lib
         from tqdm import tqdm, trange
 
         query_complete = False
@@ -3251,10 +3231,95 @@ class BlazingContext(object):
                 break
         pbar.close()
 
-        # original
-        #query_complete = False
+
+    def do_progress_bar_distributed(self, ctxToken):
+        if not self.enable_progress_bar:
+            # TODO wait until complete
+            return
+        # TODO check pb lib
+        from tqdm import tqdm, trange
+
+        ispbarCreated = False
+        pbar = None
+        query_complete = False
+        last = -1
+        themax = -1
         #while not query_complete:
-        #    sleep(0.005)
-        #    query_complete = graph.query_is_complete()
-            # progress = graph.get_progress()
-            # pdf = queryProgressAsPandas(progress)
+        while True:
+            #sleep(0.005)
+            dask_futures = []
+            for node in self.nodes:
+                worker = node["worker"]
+                dask_futures.append(
+                    self.dask_client.submit(
+                        getQueryIsComplete, ctxToken, workers=[worker], pure=False
+                    )
+                )
+            workers_is_complete = self.dask_client.gather(dask_futures)
+            query_complete = all(workers_is_complete)  # all workers returned true
+            #print("TODOS LISTOS: ", query_complete)
+
+            #query_complete = graph.query_is_complete()
+            #progress = graph.get_progress()
+            #pdf = queryProgressAsPandas(progress)
+            #pdf = pdf.drop(pdf[pdf.finished == False].index)
+            #pasos = len(pdf)
+            #if last != pasos:
+            #    delta = pasos - last
+            #    last = pasos
+            #    pbar.update(delta)
+            #sleep(0.005)
+            #if query_complete:
+            #    break
+
+            dask_futures = []
+            for node in self.nodes:
+                worker = node["worker"]
+                dask_futures.append(
+                    self.dask_client.submit(
+                        getQueryProgress, ctxToken, workers=[worker], pure=False
+                    )
+                )
+            workers_progress = dask.dataframe.from_delayed(dask_futures).compute()
+            #print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+            #print(workers_progress)
+            #progress = workers_progress.groupby('kernel_descriptions').agg(finished=('finished','all'),batches_completed=('batches_completed','sum'))
+            themax = len(workers_progress)
+            #pasos = progress['finished'].sum()
+            pdf = workers_progress
+            pdf = pdf.drop(pdf[pdf.finished == False].index)
+            pasos = len(pdf)
+            #print("wattt-> " + str(pasos))
+            if not ispbarCreated:
+                #print("WAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+                ispbarCreated = True
+                pbar = tqdm(total=themax)
+                pbar.update(pasos)
+                last = pasos
+            else:
+                if last != pasos:
+                    delta = pasos - last
+                    last = pasos
+                    pbar.update(delta)
+            #print("LAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAST: " + str(last))
+
+            sleep(0.005)
+            #if last < themax:
+            #    continue
+            if query_complete:
+                break
+
+
+                #percent_complete = progress['finished'].sum()/len(progress)
+                #total_batches_complete = progress['batches_completed'].sum()
+                #print("Percent complete: " + str(percent_complete))
+                #print("Batches complete: " + str(total_batches_complete))
+
+            #if last != pasos:
+            #    delta = pasos - last
+            #    last = pasos
+            #    pbar.update(delta)
+
+        #sleep(5.005)
+        if pbar:
+            pbar.close()
