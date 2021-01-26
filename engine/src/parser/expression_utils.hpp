@@ -182,7 +182,7 @@ std::vector<std::string> get_window_function_agg(const std::string & query_part)
 std::pair<int, int> get_bounds_from_window_expression(const std::string & query_part);
 
 // TODO: maybe this three functions are not necessary
-bool is_partitioned(std::string query_part);
+bool is_window_partitioned(std::string query_part);
 bool is_order_by_rows(std::string query_part);
 bool is_order_by_range(std::string query_part);
 

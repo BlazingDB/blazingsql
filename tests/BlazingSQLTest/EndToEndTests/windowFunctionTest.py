@@ -207,7 +207,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
-            # TODO: last_value fails
+            # TODO: last_value with multiple order by fails
             queryId = "TEST_09"
             query = """select last_value(n_nationkey) over
                             (
