@@ -219,7 +219,7 @@ PartwiseJoin::PartwiseJoin(std::size_t kernel_id, const std::string & queryStrin
 std::unique_ptr<ral::cache::CacheData> PartwiseJoin::load_left_set(){
 	this->max_left_ind++;
 	auto cache_data = this->left_input->pullCacheData();
-	assert(cache_data != nullptr);
+	RAL_EXPECTS(cache_data != nullptr, "In PartwiseJoin: The left input cache data cannot be null");
 
 	return cache_data;
 }
@@ -227,7 +227,7 @@ std::unique_ptr<ral::cache::CacheData> PartwiseJoin::load_left_set(){
 std::unique_ptr<ral::cache::CacheData> PartwiseJoin::load_right_set(){
 	this->max_right_ind++;
 	auto cache_data = this->right_input->pullCacheData();
-	assert(cache_data != nullptr);
+	RAL_EXPECTS(cache_data != nullptr, "In PartwiseJoin: The right input cache data cannot be null");
 
 	return cache_data;
 }
