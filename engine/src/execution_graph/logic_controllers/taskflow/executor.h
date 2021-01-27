@@ -112,8 +112,17 @@ private:
 	static executor * _instance;
 	std::atomic<int> task_id_counter;
 	size_t attempts_limit = 10;
+
+	/** The exception mechanism works in this way:
+	all exceptions caught inside executor::execute()
+	will be kept in the exception_holder. Whenever
+	each kernel starts to wait for the end of the
+	execution of its tasks, it will also check if
+	any task generated an exception. In such a case,
+	the exception will be re-thrown.*/
+
 	std::mutex exception_holder_mutex;
-	std::queue<std::exception_ptr> exception_holder;
+	std::queue<std::exception_ptr> exception_holder; /**< Stores exceptions thrown on task threads. */
 
 	BlazingMemoryResource* resource;
 	std::size_t processing_memory_limit;

@@ -180,8 +180,9 @@ void kernel::notify_complete(size_t task_id){
     kernel_cv.notify_one();
 }
 
-void kernel::notify_fail(){
+void kernel::notify_fail(size_t task_id){
     std::lock_guard<std::mutex> lock(kernel_mutex);
+    this->tasks.erase(task_id);
     kernel_cv.notify_one();
 }
 

@@ -150,7 +150,7 @@ void task::complete(){
 }
 
 void task::fail(){
-    kernel->notify_fail();
+    kernel->notify_fail(task_id);
 }
 
 std::vector<std::unique_ptr<ral::cache::CacheData > > task::release_inputs(){
@@ -218,8 +218,7 @@ void executor::execute(){
 std::exception_ptr executor::last_exception(){
     std::unique_lock<std::mutex> lock(exception_holder_mutex);
     std::exception_ptr e;
-    if (!exception_holder.empty())
-    {
+    if (!exception_holder.empty()) {
         e = exception_holder.front();
         exception_holder.pop();
     }
