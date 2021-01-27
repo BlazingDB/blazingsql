@@ -343,11 +343,10 @@ def startExecuteGraph(ctxToken):
 
 def getQueryIsComplete(ctxToken):
     worker = get_worker()
-
     graph = worker.query_graphs[ctxToken]
     ret = graph.query_is_complete()
-    print("AHHHHHHHHHHHHHHHH: " + str(ret))
     return ret
+
 
 def queryProgressAsPandas(progress):
     progress["kernel_descriptions"] = [
@@ -2946,7 +2945,11 @@ class BlazingContext(object):
                 )
                 cio.startExecuteGraphCaller(graph, ctxToken)
 
-                self.do_progress_bar_single_node(graph)
+                self.do_progress_bar(
+                    graph,
+                    self._run_progress_bar_single_node,
+                    self._wait_completed_single_node
+                )
 
                 return cio.getExecuteGraphResultCaller(
                     graph, ctxToken, is_single_node=True
@@ -2997,7 +3000,11 @@ class BlazingContext(object):
                 )
             self.dask_client.gather(dask_futures)
 
-            self.do_progress_bar_distributed(ctxToken)
+            self.do_progress_bar(
+                ctxToken,
+                self._run_progress_bar_distributed,
+                self._wait_completed_distributed
+            )
 
             dask_futures = []
             for node in self.nodes:
@@ -3197,56 +3204,15 @@ class BlazingContext(object):
 
         return self.sql(query)
 
-    def do_progress_bar_single_node(self, graph):
-        if not self.enable_progress_bar:
-            # TODO wait until complete
-            return
-        # TODO check pb lib
-        from tqdm import tqdm, trange
-
+    def _wait_completed_single_node(self, graph):
         query_complete = False
-
-        progress = graph.get_progress()
-        thepdf = queryProgressAsPandas(progress)
-        themax = len(thepdf)
-
-        thepdf = thepdf.drop(thepdf[thepdf.finished == False].index)
-        pasos = len(thepdf)
-
-        pbar = tqdm(total=themax)
-        pbar.update(pasos)
-        last = pasos
-        while True:
+        while not query_complete:
             query_complete = graph.query_is_complete()
-            progress = graph.get_progress()
-            pdf = queryProgressAsPandas(progress)
-            pdf = pdf.drop(pdf[pdf.finished == False].index)
-            pasos = len(pdf)
-            if last != pasos:
-                delta = pasos - last
-                last = pasos
-                pbar.update(delta)
             sleep(0.005)
-            if query_complete:
-                break
-        pbar.close()
 
-
-    def do_progress_bar_distributed(self, ctxToken):
-        if not self.enable_progress_bar:
-            # TODO wait until complete
-            return
-        # TODO check pb lib
-        from tqdm import tqdm, trange
-
-        ispbarCreated = False
-        pbar = None
+    def _wait_completed_distributed(self, ctxToken):
         query_complete = False
-        last = -1
-        themax = -1
-        #while not query_complete:
-        while True:
-            #sleep(0.005)
+        while not query_complete:
             dask_futures = []
             for node in self.nodes:
                 worker = node["worker"]
@@ -3257,20 +3223,67 @@ class BlazingContext(object):
                 )
             workers_is_complete = self.dask_client.gather(dask_futures)
             query_complete = all(workers_is_complete)  # all workers returned true
-            #print("TODOS LISTOS: ", query_complete)
+            sleep(0.005)
 
-            #query_complete = graph.query_is_complete()
-            #progress = graph.get_progress()
-            #pdf = queryProgressAsPandas(progress)
-            #pdf = pdf.drop(pdf[pdf.finished == False].index)
-            #pasos = len(pdf)
-            #if last != pasos:
-            #    delta = pasos - last
-            #    last = pasos
-            #    pbar.update(delta)
-            #sleep(0.005)
-            #if query_complete:
-            #    break
+    def _run_progress_bar_single_node(self, graph):
+        from tqdm import tqdm
+
+        query_complete = False
+
+        progress = graph.get_progress()
+        thepdf = queryProgressAsPandas(progress)
+        themax = len(thepdf)
+
+        thepdf = thepdf.drop(thepdf[thepdf.finished == False].index)
+        thesteps = len(thepdf)
+
+        pbar = tqdm(total=themax)
+        pbar.update(thesteps)
+        last = thesteps
+        while True:
+            query_complete = graph.query_is_complete()
+            progress = graph.get_progress()
+            pdf = queryProgressAsPandas(progress)
+            pdf = pdf.drop(pdf[pdf.finished == False].index)
+            thesteps = len(pdf)
+            if last != thesteps:
+                delta = thesteps - last
+                last = thesteps
+                pbar.update(delta)
+            sleep(0.005)
+            if query_complete:
+                break
+        pbar.close()
+
+    def _check_tqdm(self):
+        tqdm_found = True
+        try:
+            from tqdm import tqdm
+        except ImportError:
+            tqdm_found = False
+            err_msg = "Warning: Could not set the progress bar, please install tqdm"
+            print(err_msg)
+        return tqdm_found
+
+    def _run_progress_bar_distributed(self, ctxToken):
+        from tqdm import tqdm
+
+        ispbarCreated = False
+        pbar = None
+        query_complete = False
+        last = -1
+        themax = -1
+        while True:
+            dask_futures = []
+            for node in self.nodes:
+                worker = node["worker"]
+                dask_futures.append(
+                    self.dask_client.submit(
+                        getQueryIsComplete, ctxToken, workers=[worker], pure=False
+                    )
+                )
+            workers_is_complete = self.dask_client.gather(dask_futures)
+            query_complete = all(workers_is_complete)  # all workers returned true
 
             dask_futures = []
             for node in self.nodes:
@@ -3281,45 +3294,37 @@ class BlazingContext(object):
                     )
                 )
             workers_progress = dask.dataframe.from_delayed(dask_futures).compute()
-            #print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-            #print(workers_progress)
-            #progress = workers_progress.groupby('kernel_descriptions').agg(finished=('finished','all'),batches_completed=('batches_completed','sum'))
             themax = len(workers_progress)
-            #pasos = progress['finished'].sum()
             pdf = workers_progress
             pdf = pdf.drop(pdf[pdf.finished == False].index)
-            pasos = len(pdf)
-            #print("wattt-> " + str(pasos))
+            thesteps = len(pdf)
             if not ispbarCreated:
-                #print("WAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
                 ispbarCreated = True
                 pbar = tqdm(total=themax)
-                pbar.update(pasos)
-                last = pasos
+                pbar.update(thesteps)
+                last = thesteps
             else:
-                if last != pasos:
-                    delta = pasos - last
-                    last = pasos
+                if last != thesteps:
+                    delta = thesteps - last
+                    last = thesteps
                     pbar.update(delta)
-            #print("LAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAST: " + str(last))
 
             sleep(0.005)
-            #if last < themax:
-            #    continue
             if query_complete:
                 break
 
-
-                #percent_complete = progress['finished'].sum()/len(progress)
-                #total_batches_complete = progress['batches_completed'].sum()
-                #print("Percent complete: " + str(percent_complete))
-                #print("Batches complete: " + str(total_batches_complete))
-
-            #if last != pasos:
-            #    delta = pasos - last
-            #    last = pasos
-            #    pbar.update(delta)
-
-        #sleep(5.005)
         if pbar:
             pbar.close()
+
+    def do_progress_bar(self, arg, progress_bar_fn, wait_fn):
+        if not self.enable_progress_bar:
+            wait_fn(arg)
+            return
+        
+        tqdm_found = self._check_tqdm()
+
+        if not tqdm_found:
+            wait_fn(arg)
+            return
+
+        progress_bar_fn(arg)
