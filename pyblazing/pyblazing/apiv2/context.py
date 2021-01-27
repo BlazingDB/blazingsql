@@ -3153,16 +3153,16 @@ class BlazingContext(object):
 
             log_schemas = {
                 "bsql_queries": (
-                    ["ral_id", "query_id", "start_time", "plan"],
-                    ["int32", "int32", "int64", "str"],
+                    ["ral_id", "query_id", "start_time", "plan", "query"],
+                    ["int32", "int32", "int64", "str", "str"],
                 ),
                 "bsql_kernels": (
                     ["ral_id", "query_id", "kernel_id", "is_kernel", "kernel_type"],
                     ["int32", "int32", "int64", "int16", "str"],
                 ),
                 "bsql_kernels_edges": (
-                    ["ral_id", "query_id", "source", "sink", "port_name"],
-                    ["int32", "int32", "int64", "int64", "str"],
+                    ["ral_id", "query_id", "source", "sink"],
+                    ["int32", "int32", "int64", "int64"],
                 ),
                 "bsql_kernel_events": (
                     [
@@ -3196,7 +3196,6 @@ class BlazingContext(object):
                         "query_id",
                         "source",
                         "sink",
-                        "port_name",
                         "num_rows",
                         "num_bytes",
                         "event_type",
@@ -3210,10 +3209,57 @@ class BlazingContext(object):
                         "int64",
                         "int64",
                         "int64",
-                        "int64",
                         "str",
                         "int64",
                         "int64",
+                    ],
+                ),
+                "input_comms": (
+                    [
+                        "unique_id",
+                        "ral_id",
+                        "query_id",
+                        "kernel_id",
+                        "dest_ral_id",
+                        "dest_ral_count",
+                        "dest_cache_id",
+                        "message_id",
+                        "phase",
+                    ],
+                    [
+                        "str",
+                        "int32",
+                        "str",
+                        "str",
+                        "str",
+                        "int32",
+                        "str",
+                        "str",
+                        "str",
+                    ],
+                ),
+                "output_comms": (
+                    [
+                        "unique_id",
+                        "ral_id",
+                        "query_id",
+                        "kernel_id",
+                        "dest_ral_id",
+                        "dest_ral_count",
+                        "dest_cache_id",
+                        "message_id",
+                        "phase",
+                    ],
+                    [
+                        "str",
+                        "int32",
+                        "str",
+                        "str",
+                        "str",
+                        "int32",
+                        "str",
+                        "str",
+                        "str",
                     ],
                 ),
             }
