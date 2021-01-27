@@ -413,8 +413,7 @@ std::unique_ptr<cudf::aggregation> get_window_aggregate(const std::string & inpu
 		return cudf::make_row_number_aggregation();
 	}
 
-	throw std::runtime_error(
-		"In Window Function: " + input + "is not currently supported");
+	throw std::runtime_error("In Window Function: " + input + " is not currently supported");
 }
 
 // input: LogicalWindow(window#0=[window(partition {2} aggs [COUNT($0), $SUM0($0)])])
@@ -570,12 +569,6 @@ bool is_window_only_sort(std::string query_part) {
 	return ( (query_part.find("window") != std::string::npos) && (query_part.find("partition") == std::string::npos) ) ; }
 
 bool is_window(std::string query_part) { return (query_part.find(LOGICAL_WINDOW_TEXT) != std::string::npos); }
-
-bool is_only_sort(std::string query_part) { return (query_part.find(LOGICAL_ONLY_SORT_TEXT) != std::string::npos); }
-
-bool is_concat_partitions_by_keys(std::string query_part) { return (query_part.find(LOGICAL_CONCAT_PARTITIONS_BY_KEY_TEXT) != std::string::npos); }
-
-bool is_split_by_keys(std::string query_part) { return (query_part.find(LOGICAL_SPLIT_BY_KEYS_TEXT) != std::string::npos); }
 
 bool is_window_compute(std::string query_part) { return (query_part.find(LOGICAL_COMPUTE_WINDOW_TEXT) != std::string::npos); }
 

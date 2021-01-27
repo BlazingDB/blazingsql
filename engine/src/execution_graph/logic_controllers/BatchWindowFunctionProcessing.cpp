@@ -39,9 +39,14 @@ std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_func
     table_to_rolling.push_back(input_cudf_view.column(this->column_indices_partitioned[0]));
     cudf::table_view table_view_with_single_col(table_to_rolling);
 
-    // when contains `order by` -> RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW is the default behavior
-    if (this->expression.find("order by") != std::string::npos  &&  this->expression.find("between") == std::string::npos ) {
-        windowed_col = cudf::grouped_rolling_window(table_view_with_single_col , input_col_view, input_col_view.size(), 0, 1, window_function);
+    if (this->expression.find("order by") != std::string::npos) {
+        // default ROWS/RANGE statement
+        if (this->expression.find("UNBOUNDED PRECEDING and CURRENT ROW") != std::string::npos || this->expression.find("between") == std::string::npos) {
+            windowed_col = cudf::grouped_rolling_window(table_view_with_single_col , input_col_view, input_col_view.size(), 0, 1, window_function);
+        } else {
+            throw std::runtime_error("In Window Function: RANGE or ROWS bound is not currently supported");
+        }
+        
     } else {
         windowed_col = cudf::grouped_rolling_window(table_view_with_single_col , input_col_view, input_col_view.size(), input_col_view.size(), 1, window_function);
     }

@@ -129,9 +129,6 @@ const std::string LOGICAL_SORT_AND_SAMPLE_TEXT = "Logical_SortAndSample";
 const std::string LOGICAL_SINGLE_NODE_PARTITION_TEXT = "LogicalSingleNodePartition";
 const std::string LOGICAL_FILTER_TEXT = "LogicalFilter";
 const std::string LOGICAL_WINDOW_TEXT = "LogicalWindow";
-const std::string LOGICAL_CONCAT_PARTITIONS_BY_KEY_TEXT = "LogicalConcatPartitionsByKeys";
-const std::string LOGICAL_SPLIT_BY_KEYS_TEXT = "LogicalSplitByKeys";
-const std::string LOGICAL_ONLY_SORT_TEXT = "LogicalOnlySort";
 const std::string LOGICAL_COMPUTE_WINDOW_TEXT = "LogicalComputeWindow";
 const std::string ASCENDING_ORDER_SORT_TEXT = "ASC";
 const std::string DESCENDING_ORDER_SORT_TEXT = "DESC";
@@ -162,9 +159,6 @@ bool is_aggregate_partition(std::string query_part); // to be deprecated
 bool is_aggregate_and_sample(std::string query_part); // to be deprecated
 bool is_window_only_sort(std::string query_part);
 bool is_window(std::string query_part);
-bool is_only_sort(std::string query_part);
-bool is_concat_partitions_by_keys(std::string query_part);
-bool is_split_by_keys(std::string query_part);
 bool is_window_compute(std::string query_part);
 
 std::unique_ptr<cudf::aggregation> get_window_aggregate(const std::string & input);
