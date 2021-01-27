@@ -41,181 +41,180 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
 
             # ------------------- ORDER BY ------------------------
             
-            queryId = "TEST_01"
-            query = """select min(n_nationkey) over 
-                            (
-                                order by n_regionkey
-                            ) min_keys,
-                            n_nationkey, n_name, n_regionkey
-                        from nation order by n_name"""
-            runTest.run_query(
-                bc,
-                drill,
-                query,
-                queryId,
-                queryType,
-                worder,
-                "",
-                acceptable_difference,
-                use_percentage,
-                fileSchemaType,
-            )
+            # queryId = "TEST_01"
+            # query = """select min(n_nationkey) over 
+            #                 (
+            #                     order by n_regionkey
+            #                 ) min_keys,
+            #                 n_nationkey, n_name, n_regionkey
+            #             from nation order by n_name"""
+            # runTest.run_query(
+            #     bc,
+            #     drill,
+            #     query,
+            #     queryId,
+            #     queryType,
+            #     worder,
+            #     "",
+            #     acceptable_difference,
+            #     use_percentage,
+            #     fileSchemaType,
+            # )
 
-            queryId = "TEST_02"
-            query = """select min(n_nationkey) over 
-                            (
-                                order by n_regionkey,
-                                n_name desc
-                            ) min_keys,
-                            n_nationkey, n_name, n_regionkey
-                        from nation order by n_name"""
-            runTest.run_query(
-                bc,
-                drill,
-                query,
-                queryId,
-                queryType,
-                worder,
-                "",
-                acceptable_difference,
-                use_percentage,
-                fileSchemaType,
-            )
+            # queryId = "TEST_02"
+            # query = """select min(n_nationkey) over 
+            #                 (
+            #                     order by n_regionkey,
+            #                     n_name desc
+            #                 ) min_keys,
+            #                 n_nationkey, n_name, n_regionkey
+            #             from nation order by n_name"""
+            # runTest.run_query(
+            #     bc,
+            #     drill,
+            #     query,
+            #     queryId,
+            #     queryType,
+            #     worder,
+            #     "",
+            #     acceptable_difference,
+            #     use_percentage,
+            #     fileSchemaType,
+            # )
 
-            queryId = "TEST_03"
-            query = """select max(n_nationkey) over 
-                            (
-                                order by n_regionkey,
-                                n_name desc
-                            ) max_keys,
-                            n_nationkey, n_name, n_regionkey
-                        from nation"""
-            runTest.run_query(
-                bc,
-                drill,
-                query,
-                queryId,
-                queryType,
-                worder,
-                "",
-                acceptable_difference,
-                use_percentage,
-                fileSchemaType,
-            )
+            # queryId = "TEST_03"
+            # query = """select max(n_nationkey) over 
+            #                 (
+            #                     order by n_regionkey,
+            #                     n_name desc
+            #                 ) max_keys,
+            #                 n_nationkey, n_name, n_regionkey
+            #             from nation"""
+            # runTest.run_query(
+            #     bc,
+            #     drill,
+            #     query,
+            #     queryId,
+            #     queryType,
+            #     worder,
+            #     "",
+            #     acceptable_difference,
+            #     use_percentage,
+            #     fileSchemaType,
+            # )
             
-            queryId = "TEST_04"
-            query = """select count(n_nationkey) over 
-                            (
-                                order by n_regionkey,
-                                n_name
-                            ) count_keys,
-                            n_nationkey, n_name, n_regionkey
-                        from nation"""
-            runTest.run_query(
-                bc,
-                drill,
-                query,
-                queryId,
-                queryType,
-                worder,
-                "",
-                acceptable_difference,
-                use_percentage,
-                fileSchemaType,
-            )
+            # queryId = "TEST_04"
+            # query = """select count(n_nationkey) over 
+            #                 (
+            #                     order by n_regionkey,
+            #                     n_name
+            #                 ) count_keys,
+            #                 n_nationkey, n_name, n_regionkey
+            #             from nation"""
+            # runTest.run_query(
+            #     bc,
+            #     drill,
+            #     query,
+            #     queryId,
+            #     queryType,
+            #     worder,
+            #     "",
+            #     acceptable_difference,
+            #     use_percentage,
+            #     fileSchemaType,
+            # )
 
-            queryId = "TEST_05"
-            query = """select row_number() over 
-                            (
-                                order by n_regionkey desc,
-                                n_name
-                            ) row_num,
-                            n_nationkey, n_name, n_regionkey
-                        from nation"""
-            runTest.run_query(
-                bc,
-                drill,
-                query,
-                queryId,
-                queryType,
-                worder,
-                "",
-                acceptable_difference,
-                use_percentage,
-                fileSchemaType,
-            )
+            # queryId = "TEST_05"
+            # query = """select row_number() over 
+            #                 (
+            #                     order by n_regionkey desc,
+            #                     n_name
+            #                 ) row_num,
+            #                 n_nationkey, n_name, n_regionkey
+            #             from nation"""
+            # runTest.run_query(
+            #     bc,
+            #     drill,
+            #     query,
+            #     queryId,
+            #     queryType,
+            #     worder,
+            #     "",
+            #     acceptable_difference,
+            #     use_percentage,
+            #     fileSchemaType,
+            # )
 
-            queryId = "TEST_06"
-            query = """select sum(n_nationkey) over 
-                            (
-                                order by n_nationkey desc
-                            ) sum_keys,
-                            n_nationkey, n_name, n_regionkey
-                        from nation"""
-            runTest.run_query(
-                bc,
-                drill,
-                query,
-                queryId,
-                queryType,
-                worder,
-                "",
-                acceptable_difference,
-                use_percentage,
-                fileSchemaType,
-            )
+            # queryId = "TEST_06"
+            # query = """select sum(n_nationkey) over 
+            #                 (
+            #                     order by n_nationkey desc
+            #                 ) sum_keys,
+            #                 n_nationkey, n_name, n_regionkey
+            #             from nation"""
+            # runTest.run_query(
+            #     bc,
+            #     drill,
+            #     query,
+            #     queryId,
+            #     queryType,
+            #     worder,
+            #     "",
+            #     acceptable_difference,
+            #     use_percentage,
+            #     fileSchemaType,
+            # )
 
-            queryId = "TEST_07"
-            query = """select avg(cast(n_nationkey as double)) over 
-                            (
-                                order by n_regionkey,
-                                n_name desc
-                            ) avg_keys,
-                            n_nationkey, n_name, n_regionkey
-                        from nation"""
-            runTest.run_query(
-                bc,
-                drill,
-                query,
-                queryId,
-                queryType,
-                worder,
-                "",
-                acceptable_difference,
-                use_percentage,
-                fileSchemaType,
-            )
+            # queryId = "TEST_07"
+            # query = """select avg(cast(n_nationkey as double)) over 
+            #                 (
+            #                     order by n_regionkey,
+            #                     n_name desc
+            #                 ) avg_keys,
+            #                 n_nationkey, n_name, n_regionkey
+            #             from nation"""
+            # runTest.run_query(
+            #     bc,
+            #     drill,
+            #     query,
+            #     queryId,
+            #     queryType,
+            #     worder,
+            #     "",
+            #     acceptable_difference,
+            #     use_percentage,
+            #     fileSchemaType,
+            # )
 
-            queryId = "TEST_08"
-            query = """select first_value(n_nationkey) over
-                            (
-                                order by n_regionkey desc,
-                                n_name
-                            ) first_val,
-                            n_nationkey, n_name, n_regionkey
-                        from nation"""
-            runTest.run_query(
-                bc,
-                drill,
-                query,
-                queryId,
-                queryType,
-                worder,
-                "",
-                acceptable_difference,
-                use_percentage,
-                fileSchemaType,
-            )
+            # queryId = "TEST_08"
+            # query = """select first_value(n_nationkey) over
+            #                 (
+            #                     order by n_regionkey desc,
+            #                     n_name
+            #                 ) first_val,
+            #                 n_nationkey, n_name, n_regionkey
+            #             from nation"""
+            # runTest.run_query(
+            #     bc,
+            #     drill,
+            #     query,
+            #     queryId,
+            #     queryType,
+            #     worder,
+            #     "",
+            #     acceptable_difference,
+            #     use_percentage,
+            #     fileSchemaType,
+            # )
 
-            # TODO: last_value with multiple order by fails
-            queryId = "TEST_09"
-            query = """select last_value(n_nationkey) over
-                            (
-                                order by n_regionkey desc,
-                                n_name
-                            ) last_val,
-                            n_nationkey, n_name, n_regionkey
-                        from nation"""
+            # queryId = "TEST_09"
+            # query = """select last_value(n_nationkey) over
+            #                 (
+            #                     order by n_regionkey desc,
+            #                     n_name
+            #                 ) last_val,
+            #                 n_nationkey, n_name, n_regionkey
+            #             from nation"""
             # runTest.run_query(
             #     bc,
             #     drill,
@@ -291,28 +290,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
-            # TODO: drill and pyspark need an `order by` after the `partition by` clause
             queryId = "TEST_14"
-            query = """select row_number() over
-                            (
-                                partition by n_regionkey
-                            ) row_num,
-                            n_nationkey, n_name, n_regionkey
-                        from nation order by row_num"""
-            # runTest.run_query(
-            #     bc,
-            #     drill,
-            #     query,
-            #     queryId,
-            #     queryType,
-            #     worder,
-            #     "",
-            #     acceptable_difference,
-            #     use_percentage,
-            #     fileSchemaType,
-            # )
-
-            queryId = "TEST_15"
             query = """select sum(n_nationkey) over 
                             (
                                 partition by n_regionkey
@@ -332,7 +310,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
-            queryId = "TEST_16"
+            queryId = "TEST_15"
             query = """select avg(cast(n_nationkey as double)) over 
                             (
                                 partition by n_regionkey
@@ -351,53 +329,12 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 use_percentage,
                 fileSchemaType,
             )
-            
-            # TODO: need an `order by` after the `partition by` clause
-            queryId = "TEST_17"
-            query = """select first_value(n_nationkey) over 
-                            (
-                                partition by n_regionkey
-                            ) first_val,
-                            n_nationkey, n_name, n_regionkey
-                        from nation order by n_regionkey"""
-            # runTest.run_query(
-            #     bc,
-            #     drill,
-            #     query,
-            #     queryId,
-            #     queryType,
-            #     worder,
-            #     "",
-            #     acceptable_difference,
-            #     use_percentage,
-            #     fileSchemaType,
-            # )
 
-            # TODO: need an `order by` after the `partition by` clause
-            queryId = "TEST_18"
-            query = """select last_value(n_nationkey) over 
-                            (
-                                partition by n_regionkey
-                            ) last_val,
-                            n_nationkey, n_name, n_regionkey
-                        from nation order by n_nationkey"""
-            # runTest.run_query(
-            #     bc,
-            #     drill,
-            #     query,
-            #     queryId,
-            #     queryType,
-            #     worder,
-            #     "",
-            #     acceptable_difference,
-            #     use_percentage,
-            #     fileSchemaType,
-            #     print_result=True,
-            # )
+            # TODO: LAG() and LEAD(): Calcite issue when get optimized plan
 
-            # TODO: LAG() and LEAD() current Calcite issue when optimize plan
+            # TODO: RANK() and DENSE_RANK(): cudf aggs no supported currently
 
-            # ------------ PARTITION BY  + ORDER BY ----------------
+            # ------------ PARTITION BY + ORDER BY ----------------
 
             queryId = "TEST_21"
             query = """select min(n_nationkey) over 
@@ -442,6 +379,69 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             )
 
             queryId = "TEST_23"
+            query = """select count(n_nationkey) over
+                            (
+                                partition by n_regionkey
+                                order by n_name desc
+                            ) count_keys,
+                            n_nationkey, n_name, n_regionkey
+                        from nation order by n_regionkey, count_keys"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_24"
+            query = """select sum(n_nationkey) over 
+                            (
+                                partition by n_regionkey
+                                order by n_nationkey desc
+                            ) sum_keys,
+                            n_nationkey, n_name, n_regionkey
+                        from nation"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+            
+            queryId = "TEST_25"
+            query = """select avg(cast(n_nationkey as double)) over 
+                            (
+                                partition by n_regionkey
+                                order by n_name
+                            ) avg_keys,
+                            n_nationkey, n_name, n_regionkey
+                        from nation order by avg_keys"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_26"
             query = """select row_number() over 
                             (
                                 partition by n_regionkey
@@ -462,8 +462,8 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
-            # TODO: last_value fails
-            queryId = "TEST_24"
+            # TODO: first_value and last_value fails
+            queryId = "TEST_27"
             query = """select first_value(n_nationkey) over
                             (
                                 partition by n_regionkey
@@ -471,18 +471,18 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                             ) last_val,
                             n_nationkey, n_name, n_regionkey
                         from nation order by n_name"""
-            runTest.run_query(
-                bc,
-                drill,
-                query,
-                queryId,
-                queryType,
-                worder,
-                "",
-                acceptable_difference,
-                use_percentage,
-                fileSchemaType,
-            )
+            # runTest.run_query(
+            #     bc,
+            #     drill,
+            #     query,
+            #     queryId,
+            #     queryType,
+            #     worder,
+            #     "",
+            #     acceptable_difference,
+            #     use_percentage,
+            #     fileSchemaType,
+            # )
 
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")

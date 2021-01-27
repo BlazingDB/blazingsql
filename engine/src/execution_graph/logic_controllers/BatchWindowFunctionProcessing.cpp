@@ -193,8 +193,8 @@ ComputeWindowKernel::ComputeWindowKernel(std::size_t kernel_id, const std::strin
 
 // TODO: support for LAG(), LEAD(), currently looks like Calcite has an issue when obtain the optimized plan
 // TODO: Support for RANK() and DENSE_RANK()
+// TODO: Support for first_value() and last_value() should improve, for now fails
 std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_function(cudf::table_view input_cudf_view, cudf::column_view input_col_view, std::size_t pos) {
-
     if (this->aggs_wind_func[pos] == "FIRST_VALUE") {
         std::vector<cudf::size_type> splits(1, 1);
         std::vector<cudf::column_view> partitioned = cudf::split(input_col_view, splits);
@@ -202,7 +202,7 @@ std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_func
         cudf::table_view table_view_with_single_col(partitioned);
         std::vector< std::unique_ptr<CudfColumn> > windowed_cols = cudf::repeat(table_view_with_single_col, input_col_view.size())->release();
         return std::move(windowed_cols[0]);
-    } else if (this->aggs_wind_func[pos] == "LAST_VALUE") { // TODO: sometimes it fails, need more tests
+    } else if (this->aggs_wind_func[pos] == "LAST_VALUE") {
         std::vector<cudf::size_type> splits(1, input_col_view.size() - 1);
         std::vector<cudf::column_view> partitioned = cudf::split(input_col_view, splits);
         partitioned.erase(partitioned.begin());  // want the last value (as column)
@@ -212,11 +212,16 @@ std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_func
     } else {
         std::unique_ptr<cudf::aggregation> window_function = get_window_aggregate(this->aggs_wind_func[pos]);
         std::unique_ptr<CudfColumn> windowed_col;
+        std::vector<cudf::column_view> table_to_rolling;
+        table_to_rolling.push_back(input_cudf_view.column(this->column_indices_partitioned[0]));
+        cudf::table_view table_view_with_single_col(table_to_rolling);
 
-        std::vector<cudf::column_view> partitionedaaa;
-        partitionedaaa.push_back(input_cudf_view.column(this->column_indices_partitioned[0]));
-        cudf::table_view table_view_with_single_col(partitionedaaa);
-        windowed_col = cudf::grouped_rolling_window(table_view_with_single_col , input_col_view, input_col_view.size(), input_col_view.size(), 1, window_function);
+        // when contains `order by` -> RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW is the default behavior
+        if (this->expression.find("order by") != std::string::npos  &&  this->expression.find("between") == std::string::npos ) {
+            windowed_col = cudf::grouped_rolling_window(table_view_with_single_col , input_col_view, input_col_view.size(), 0, 1, window_function);
+        } else {
+            windowed_col = cudf::grouped_rolling_window(table_view_with_single_col , input_col_view, input_col_view.size(), input_col_view.size(), 1, window_function);
+        }
 
         return std::move(windowed_col);
     }

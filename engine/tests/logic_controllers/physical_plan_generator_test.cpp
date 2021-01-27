@@ -172,9 +172,7 @@ std::shared_ptr<Context> make_single_context(std::string logicalPlan) {
 	return context;
 }
 
-// TODO: Cordova revwrite these physical plans
-/*
-TEST_F(PhysicalPlanGeneratorTest, transform_json_tree_simple_window_function)
+TEST_F(PhysicalPlanGeneratorTest, transform_json_tree_simple_window_function_single_node)
 {
 	//	Query
 	// 	select product_name, avg(id_client) over (partition by product_name) from product
@@ -216,16 +214,16 @@ TEST_F(PhysicalPlanGeneratorTest, transform_json_tree_simple_window_function)
 		"expr": "LogicalProject(product_name=[$1], EXPR$1=[/(CASE(>($2, 0), $3, null:BIGINT), $2)])",
 		"children": [
 			{
-				"expr": "LogicalConcatPartitionsByKeys(window#0=[window(partition {1} aggs [COUNT($0), $SUM0($0)])])",
+				"expr": "LogicalComputeWindow(window#0=[window(partition {1} aggs [COUNT($0), $SUM0($0)])])",
 				"children": [
 					{
-						"expr": "LogicalComputeWindow(window#0=[window(partition {1} aggs [COUNT($0), $SUM0($0)])])",
+						"expr": "LogicalMerge(window#0=[window(partition {1} aggs [COUNT($0), $SUM0($0)])])",
 						"children": [
 							{
-								"expr": "LogicalSplitByKeys(window#0=[window(partition {1} aggs [COUNT($0), $SUM0($0)])])",
+								"expr": "LogicalSingleNodePartition(window#0=[window(partition {1} aggs [COUNT($0), $SUM0($0)])])",
 								"children": [
 									{
-										"expr" : "LogicalOnlySort(window#0=[window(partition {1} aggs [COUNT($0), $SUM0($0)])])",
+										"expr" : "Logical_SortAndSample(window#0=[window(partition {1} aggs [COUNT($0), $SUM0($0)])])",
 										"children" : [
 											{
 												"expr" : "BindableTableScan(table=[[main, product]], projects=[[1, 2]], aliases=[[id_client, product_name]])",
@@ -250,7 +248,83 @@ TEST_F(PhysicalPlanGeneratorTest, transform_json_tree_simple_window_function)
 	ASSERT_EQ(p_tree, p_tree_cmp);
 }
 
-TEST_F(PhysicalPlanGeneratorTest, transform_json_tree_window_function)
+TEST_F(PhysicalPlanGeneratorTest, transform_json_tree_simple_window_function_distributed)
+{
+	//	Query
+	// 	SELECT product_name, AVG(id_client) OVER (PARTITION BY product_name ORDER BY id_product DESC ROWS BETWEEN 5 PRECEDING AND CURRENT ROW ) FROM product
+	//
+	//  Optimized Plan
+	//	LogicalProject(product_name=[$2], EXPR$1=[/(CASE(>($3, 0), $4, null:BIGINT), $3)])
+	//		LogicalWindow(window#0=[window(partition {2} order by [0 DESC] rows between $3 PRECEDING and CURRENT ROW aggs [COUNT($1), $SUM0($1)])])
+	//			LogicalTableScan(table=[[main, product]])
+
+	std::string logicalPlan =
+	R"raw(
+	{
+		"expr": "LogicalProject(product_name=[$2], EXPR$1=[/(CASE(>($3, 0), $4, null:BIGINT), $3)])",
+		"children": [
+			{
+				"expr": "LogicalWindow(window#0=[window(partition {2} order by [0 DESC] rows between $3 PRECEDING and CURRENT ROW aggs [COUNT($1), $SUM0($1)])])",
+				"children": [
+					{
+						"expr": "LogicalTableScan(table=[[main, product]])",
+						"children": []
+					}
+				]
+			}
+		]
+	}
+	)raw";
+
+	Context context(0, {}, {}, logicalPlan, {});
+	ral::batch::tree_processor tree{{}, context.clone(), {}, {}, {}, {}, true};
+
+	std::istringstream input(logicalPlan);
+	boost::property_tree::ptree p_tree;
+	boost::property_tree::read_json(input, p_tree);
+	tree.transform_json_tree(p_tree);
+
+	std::string jsonCompare =
+	R"raw(
+	{
+		"expr": "LogicalProject(product_name=[$2], EXPR$1=[/(CASE(>($3, 0), $4, null:BIGINT), $3)])",
+		"children":	[
+			{
+				"expr": "LogicalComputeWindow(window#0=[window(partition {2} order by [0 DESC] rows between $3 PRECEDING and CURRENT ROW aggs [COUNT($1), $SUM0($1)])])",
+				"children": [
+					{
+						"expr": "LogicalMerge(window#0=[window(partition {2} order by [0 DESC] rows between $3 PRECEDING and CURRENT ROW aggs [COUNT($1), $SUM0($1)])])",
+						"children": [
+							{
+								"expr": "LogicalPartition(window#0=[window(partition {2} order by [0 DESC] rows between $3 PRECEDING and CURRENT ROW aggs [COUNT($1), $SUM0($1)])])",
+								"children": [
+									{
+										"expr": "Logical_SortAndSample(window#0=[window(partition {2} order by [0 DESC] rows between $3 PRECEDING and CURRENT ROW aggs [COUNT($1), $SUM0($1)])])",
+										"children": [
+											{
+												"expr": "LogicalTableScan(table=[[main, product]])",
+												"children": []
+											}
+										]
+									}
+								]
+							}
+						]
+					}
+				]
+			}
+		]
+	}
+	)raw";
+
+	std::istringstream inputcmp(jsonCompare);
+	boost::property_tree::ptree p_tree_cmp;
+	boost::property_tree::read_json(inputcmp, p_tree_cmp);
+
+	ASSERT_EQ(p_tree, p_tree_cmp);
+}
+
+TEST_F(PhysicalPlanGeneratorTest, transform_json_tree_window_function_single_node)
 {
 	//	Query
 	// 	SELECT product_name, AVG(id_client) OVER (PARTITION BY product_name ORDER BY id_product DESC ROWS BETWEEN 5 PRECEDING AND CURRENT ROW ) FROM product
@@ -292,16 +366,16 @@ TEST_F(PhysicalPlanGeneratorTest, transform_json_tree_window_function)
 		"expr": "LogicalProject(product_name=[$2], EXPR$1=[/(CASE(>($3, 0), $4, null:BIGINT), $3)])",
 		"children":	[
 			{
-				"expr": "LogicalConcatPartitionsByKeys(window#0=[window(partition {2} order by [0 DESC] rows between $3 PRECEDING and CURRENT ROW aggs [COUNT($1), $SUM0($1)])])",
+				"expr": "LogicalComputeWindow(window#0=[window(partition {2} order by [0 DESC] rows between $3 PRECEDING and CURRENT ROW aggs [COUNT($1), $SUM0($1)])])",
 				"children": [
 					{
-						"expr": "LogicalComputeWindow(window#0=[window(partition {2} order by [0 DESC] rows between $3 PRECEDING and CURRENT ROW aggs [COUNT($1), $SUM0($1)])])",
+						"expr": "LogicalMerge(window#0=[window(partition {2} order by [0 DESC] rows between $3 PRECEDING and CURRENT ROW aggs [COUNT($1), $SUM0($1)])])",
 						"children": [
 							{
-								"expr": "LogicalSplitByKeys(window#0=[window(partition {2} order by [0 DESC] rows between $3 PRECEDING and CURRENT ROW aggs [COUNT($1), $SUM0($1)])])",
+								"expr": "LogicalSingleNodePartition(window#0=[window(partition {2} order by [0 DESC] rows between $3 PRECEDING and CURRENT ROW aggs [COUNT($1), $SUM0($1)])])",
 								"children": [
 									{
-										"expr": "LogicalOnlySort(window#0=[window(partition {2} order by [0 DESC] rows between $3 PRECEDING and CURRENT ROW aggs [COUNT($1), $SUM0($1)])])",
+										"expr": "Logical_SortAndSample(window#0=[window(partition {2} order by [0 DESC] rows between $3 PRECEDING and CURRENT ROW aggs [COUNT($1), $SUM0($1)])])",
 										"children": [
 											{
 												"expr": "LogicalTableScan(table=[[main, product]])",
@@ -326,7 +400,84 @@ TEST_F(PhysicalPlanGeneratorTest, transform_json_tree_window_function)
 	ASSERT_EQ(p_tree, p_tree_cmp);
 }
 
-TEST_F(PhysicalPlanGeneratorTest, transform_json_tree_window_function_unsupported_throw_exception)
+
+TEST_F(PhysicalPlanGeneratorTest, transform_json_tree_window_function_distributed)
+{
+	//	Query
+	// 	SELECT product_name, AVG(id_client) OVER (PARTITION BY product_name ORDER BY id_product DESC ROWS BETWEEN 5 PRECEDING AND CURRENT ROW ) FROM product
+	//
+	//  Optimized Plan
+	//	LogicalProject(product_name=[$2], EXPR$1=[/(CASE(>($3, 0), $4, null:BIGINT), $3)])
+	//		LogicalWindow(window#0=[window(partition {2} order by [0 DESC] rows between $3 PRECEDING and CURRENT ROW aggs [COUNT($1), $SUM0($1)])])
+	//			LogicalTableScan(table=[[main, product]])
+
+	std::string logicalPlan =
+	R"raw(
+	{
+		"expr": "LogicalProject(product_name=[$2], EXPR$1=[/(CASE(>($3, 0), $4, null:BIGINT), $3)])",
+		"children": [
+			{
+				"expr": "LogicalWindow(window#0=[window(partition {2} order by [0 DESC] rows between $3 PRECEDING and CURRENT ROW aggs [COUNT($1), $SUM0($1)])])",
+				"children": [
+					{
+						"expr": "LogicalTableScan(table=[[main, product]])",
+						"children": []
+					}
+				]
+			}
+		]
+	}
+	)raw";
+
+	Context context(0, {}, {}, logicalPlan, {});
+	ral::batch::tree_processor tree{{}, context.clone(), {}, {}, {}, {}, true};
+
+	std::istringstream input(logicalPlan);
+	boost::property_tree::ptree p_tree;
+	boost::property_tree::read_json(input, p_tree);
+	tree.transform_json_tree(p_tree);
+
+	std::string jsonCompare =
+	R"raw(
+	{
+		"expr": "LogicalProject(product_name=[$2], EXPR$1=[/(CASE(>($3, 0), $4, null:BIGINT), $3)])",
+		"children":	[
+			{
+				"expr": "LogicalComputeWindow(window#0=[window(partition {2} order by [0 DESC] rows between $3 PRECEDING and CURRENT ROW aggs [COUNT($1), $SUM0($1)])])",
+				"children": [
+					{
+						"expr": "LogicalMerge(window#0=[window(partition {2} order by [0 DESC] rows between $3 PRECEDING and CURRENT ROW aggs [COUNT($1), $SUM0($1)])])",
+						"children": [
+							{
+								"expr": "LogicalPartition(window#0=[window(partition {2} order by [0 DESC] rows between $3 PRECEDING and CURRENT ROW aggs [COUNT($1), $SUM0($1)])])",
+								"children": [
+									{
+										"expr": "Logical_SortAndSample(window#0=[window(partition {2} order by [0 DESC] rows between $3 PRECEDING and CURRENT ROW aggs [COUNT($1), $SUM0($1)])])",
+										"children": [
+											{
+												"expr": "LogicalTableScan(table=[[main, product]])",
+												"children": []
+											}
+										]
+									}
+								]
+							}
+						]
+					}
+				]
+			}
+		]
+	}
+	)raw";
+
+	std::istringstream inputcmp(jsonCompare);
+	boost::property_tree::ptree p_tree_cmp;
+	boost::property_tree::read_json(inputcmp, p_tree_cmp);
+
+	ASSERT_EQ(p_tree, p_tree_cmp);
+}
+
+TEST_F(PhysicalPlanGeneratorTest, transform_json_tree_window_function_unsupported_throw_exception_single_node)
 {
 	//	Query
 	// 	SELECT product_name, AVG(id_client) OVER (PARTITION BY product_name ORDER BY id_product DESC ROWS BETWEEN 5 PRECEDING AND CURRENT ROW ) FROM product
@@ -365,4 +516,3 @@ TEST_F(PhysicalPlanGeneratorTest, transform_json_tree_window_function_unsupporte
 		SUCCEED();
 	}
 }
-*/
