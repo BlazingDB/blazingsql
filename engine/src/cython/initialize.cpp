@@ -552,6 +552,21 @@ void printLoggerHeader(){
     if(cache_events_logger){
         cache_events_logger->info("ral_id|query_id|source|sink|num_rows|num_bytes|event_type|timestamp_begin|timestamp_end");
     }
+
+    std::shared_ptr<spdlog::logger> batch_logger = spdlog::get("batch_logger");
+    if(batch_logger){
+        batch_logger->info("log_time|node_id|type|query_id|step|substep|info|duration|extra1|data1|extra2|data2");
+    }
+
+    std::shared_ptr<spdlog::logger> input_comms = spdlog::get("input_comms");
+    if(input_comms){
+        input_comms->info("unique_id|ral_id|query_id|kernel_id|dest_ral_id|dest_ral_count|dest_cache_id|message_id|phase");
+    }
+
+    std::shared_ptr<spdlog::logger> output_comms = spdlog::get("output_comms");
+    if(output_comms){
+        output_comms->info("unique_id|ral_id|query_id|kernel_id|dest_ral_id|dest_ral_count|dest_cache_id|message_id|phase");
+    }
 }
 
 
