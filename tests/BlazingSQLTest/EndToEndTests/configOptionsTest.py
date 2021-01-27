@@ -30,6 +30,10 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
     conf_opt_2["JOIN_PARTITION_SIZE_THRESHOLD"] = 10
     conf_opt_2["MAX_DATA_LOAD_CONCAT_CACHE_BYTE_SIZE"] = 10
     conf_opt_2["MAX_KERNEL_RUN_THREADS"] = 1
+    conf_opt_2["ENABLE_GENERAL_ENGINE_LOGS"] = False
+    conf_opt_2["ENABLE_COMMS_LOGS"] = True
+    conf_opt_2["ENABLE_CACHES_LOGS"] = False
+    conf_opt_2["ENABLE_OTHER_ENGINE_LOGS"] = True
 
     # conf_opt_3
     conf_opt_3 = {}
@@ -42,6 +46,10 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
     conf_opt_4["MAX_SEND_MESSAGE_THREADS"] = 1
     conf_opt_4["TRANSPORT_BUFFER_BYTE_SIZE"] = 10000
     conf_opt_4["TRANSPORT_POOL_NUM_BUFFERS"] = 10000
+    conf_opt_4["ENABLE_GENERAL_ENGINE_LOGS"] = False
+    conf_opt_4["ENABLE_COMMS_LOGS"] = False
+    conf_opt_4["ENABLE_CACHES_LOGS"] = True
+    conf_opt_4["ENABLE_OTHER_ENGINE_LOGS"] = True
 
     # conf_opt_5
     conf_opt_5 = {}
@@ -56,6 +64,10 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
     conf_opt_6["MAX_SEND_MESSAGE_THREADS"] = 200
     conf_opt_6["TRANSPORT_BUFFER_BYTE_SIZE"] = 100000000
     conf_opt_6["TRANSPORT_POOL_NUM_BUFFERS"] = 10
+    conf_opt_6["ENABLE_GENERAL_ENGINE_LOGS"] = True
+    conf_opt_6["ENABLE_COMMS_LOGS"] = True
+    conf_opt_6["ENABLE_CACHES_LOGS"] = False
+    conf_opt_6["ENABLE_OTHER_ENGINE_LOGS"] = False
 
     # conf_opt_7
     conf_opt_7 = {}
@@ -68,20 +80,10 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
     conf_opt_8 = {}
     conf_opt_8["BLAZING_DEVICE_MEM_CONSUMPTION_THRESHOLD"] = 0.0001
     conf_opt_8["MEMORY_MONITOR_PERIOD"] = 5000000
-
-    # conf_opt_9
-    conf_opt_9 = {}
-    conf_opt_9["ENABLE_GENERAL_ENGINE_LOGS"] = True
-    conf_opt_9["ENABLE_COMMS_LOGS"] = True
-    conf_opt_9["ENABLE_CACHES_LOGS"] = True
-    conf_opt_9["ENABLE_OTHER_ENGINE_LOGS"] = True
-
-    # conf_opt_10
-    conf_opt_10 = {}
-    conf_opt_10["ENABLE_GENERAL_ENGINE_LOGS"] = False
-    conf_opt_10["ENABLE_COMMS_LOGS"] = False
-    conf_opt_10["ENABLE_CACHES_LOGS"] = False
-    conf_opt_10["ENABLE_OTHER_ENGINE_LOGS"] = False
+    conf_opt_8["ENABLE_GENERAL_ENGINE_LOGS"] = True
+    conf_opt_8["ENABLE_COMMS_LOGS"] = False
+    conf_opt_8["ENABLE_CACHES_LOGS"] = True
+    conf_opt_8["ENABLE_OTHER_ENGINE_LOGS"] = False
 
     # all sets
     all_set_list = [
@@ -93,8 +95,6 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
         conf_opt_6,
         conf_opt_7,
         conf_opt_8,
-        conf_opt_9,
-        conf_opt_10,
     ]
 
     start_mem = gpuMemory.capture_gpu_memory_usage()
