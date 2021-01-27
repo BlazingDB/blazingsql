@@ -6,7 +6,7 @@ from pynvml import nvmlInit
 from Runner import runTest
 from Utils import Execution, gpuMemory, init_context, skip_test
 
-queryType = "Window"
+queryType = "Window Function"
 
 
 def main(dask_client, drill, spark, dir_data_file, bc, nRals):

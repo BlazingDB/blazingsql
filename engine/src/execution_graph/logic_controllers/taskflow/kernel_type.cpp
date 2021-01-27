@@ -11,9 +11,6 @@ std::string get_kernel_type_name(kernel_type type){
         case kernel_type::MergeStreamKernel: return "MergeStreamKernel";
         case kernel_type::PartitionKernel: return "PartitionKernel";
         case kernel_type::SortAndSampleKernel: return "SortAndSampleKernel";
-        case kernel_type::SortKernel: return "SortKernel";
-        case kernel_type::SplitByKeysKernel: return "SplitByKeysKernel";
-        case kernel_type::ConcatPartitionsByKeysKernel: return "ConcatPartitionsByKeysKernel";
         case kernel_type::ComputeWindowKernel: return "ComputeWindowKernel";
         case kernel_type::PartitionSingleNodeKernel: return "PartitionSingleNodeKernel";
         case kernel_type::LimitKernel: return "LimitKernel";

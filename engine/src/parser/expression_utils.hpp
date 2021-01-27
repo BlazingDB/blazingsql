@@ -181,10 +181,7 @@ std::vector<std::string> get_window_function_agg(const std::string & query_part)
 // output: <4, 3>
 std::pair<int, int> get_bounds_from_window_expression(const std::string & query_part);
 
-// TODO: maybe this three functions are not necessary
 bool contains_window_expression(std::string query_part);
-bool is_order_by_rows(std::string query_part);
-bool is_order_by_range(std::string query_part);
 
 // Returns the index from table_scan if exists
 size_t get_table_index(std::vector<std::string> table_scans, std::string table_scan);

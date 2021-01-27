@@ -88,15 +88,6 @@ struct tree_processor {
 		} else if (is_sort_and_sample(expr)) {
 			k = std::make_shared<SortAndSampleKernel>(kernel_id,expr, kernel_context, query_graph);
 
-		} else if (is_only_sort(expr)) {
-			k = std::make_shared<SortKernel>(kernel_id,expr, kernel_context, query_graph);
-
-		} else if (is_concat_partitions_by_keys(expr)) {
-			k = std::make_shared<ConcatPartitionsByKeysKernel>(kernel_id,expr, kernel_context, query_graph);
-
-		} else if (is_split_by_keys(expr)) {
-			k = std::make_shared<SplitByKeysKernel>(kernel_id,expr, kernel_context, query_graph);
-
 		} else if (is_window_compute(expr)) {
 			k = std::make_shared<ComputeWindowKernel>(kernel_id,expr, kernel_context, query_graph);
 

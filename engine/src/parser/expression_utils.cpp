@@ -412,17 +412,9 @@ std::unique_ptr<cudf::aggregation> get_window_aggregate(const std::string & inpu
 	} else if(input == "ROW_NUMBER"){
 		return cudf::make_row_number_aggregation();
 	}
-	// TODO: Only LEAD/LAG window functions support default values.
-	// TODO: these two agg functions need an aditional param that should be extracted from the query_part
-	// 		 the current Algebra Optimized plan miss this value. Issue on calcite? Or a new Rule should be added?
-	//else if(input == "LEAD"){
-	//	return cudf::make_row_number_aggregation(size_type offset);
-	//}else if(input == "LAG"){
-	//	return cudf::make_lag_aggregation(size_type offset);
-	//}
 
 	throw std::runtime_error(
-		"In Window Function: Aggregate type not supported");
+		"In Window Function: " + input + "is not currently supported");
 }
 
 // input: LogicalWindow(window#0=[window(partition {2} aggs [COUNT($0), $SUM0($0)])])
@@ -587,12 +579,7 @@ bool is_split_by_keys(std::string query_part) { return (query_part.find(LOGICAL_
 
 bool is_window_compute(std::string query_part) { return (query_part.find(LOGICAL_COMPUTE_WINDOW_TEXT) != std::string::npos); }
 
-// TODO: maybe this three functions are not necessary
 bool contains_window_expression(std::string query_part) { return (query_part.find("window") != std::string::npos); }
-
-bool is_order_by_rows(std::string query_part) { return (query_part.find("rows") != std::string::npos); }
-
-bool is_order_by_range(std::string query_part) { return (query_part.find("range") != std::string::npos); }
 
 // Returns the index from table_scan if exists
 size_t get_table_index(std::vector<std::string> table_scans, std::string table_scan) {
