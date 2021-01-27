@@ -2948,7 +2948,7 @@ class BlazingContext(object):
                 self.do_progress_bar(
                     graph,
                     self._run_progress_bar_single_node,
-                    self._wait_completed_single_node
+                    self._wait_completed_single_node,
                 )
 
                 return cio.getExecuteGraphResultCaller(
@@ -3003,7 +3003,7 @@ class BlazingContext(object):
             self.do_progress_bar(
                 ctxToken,
                 self._run_progress_bar_distributed,
-                self._wait_completed_distributed
+                self._wait_completed_distributed,
             )
 
             dask_futures = []
@@ -3320,7 +3320,7 @@ class BlazingContext(object):
         if not self.enable_progress_bar:
             wait_fn(arg)
             return
-        
+
         tqdm_found = self._check_tqdm()
 
         if not tqdm_found:
