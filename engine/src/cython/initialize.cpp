@@ -731,7 +731,6 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 
         if(enable_caches_logs=="True"){
             std::string cacheEventsFileName = logging_dir + "/bsql_cache_events." + std::to_string(ralId) + ".log";
-            bool existsCacheEventsFileName = std::ifstream(cacheEventsFileName).good();
             create_logger(cacheEventsFileName, "cache_events_logger", ralId, flush_level, logger_level_wanted, max_size_logging);
         }
 
