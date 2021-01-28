@@ -1194,6 +1194,10 @@ def load_config_options_from_env(user_config_options: dict):
         "MAX_SEND_MESSAGE_THREADS": 20,
         "LOGGING_LEVEL": "trace",
         "LOGGING_FLUSH_LEVEL": "warn",
+        "ENABLE_GENERAL_ENGINE_LOGS": True,
+        "ENABLE_COMMS_LOGS": False,
+        "ENABLE_CACHES_LOGS": False,
+        "ENABLE_OTHER_ENGINE_LOGS": False,
         "LOGGING_MAX_SIZE_PER_FILE": 1073741824,  # 1 GB
         "TRANSPORT_BUFFER_BYTE_SIZE": 1048576,  # 10 MB in bytes
         "TRANSPORT_POOL_NUM_BUFFERS": 100,
@@ -1366,6 +1370,15 @@ class BlazingContext(object):
                     NOTE: This parameter only works when used in the
                     BlazingContext
                     default: 'warn'
+            ENABLE_GENERAL_ENGINE_LOGS: Enables 'batch_logger' logger
+                    default: True
+            ENABLE_COMMS_LOGS: Enables 'output_comms' and 'input_comms' logger
+                    default: False
+            ENABLE_CACHES_LOGS: Enables 'cache_events_logger' logger
+                    default: False
+            ENABLE_OTHER_ENGINE_LOGS: Enables 'queries_logger', 'kernels_logger',
+                    'kernels_edges_logger', 'events_logger' logger
+                    default: False
             LOGGING_MAX_SIZE_PER_FILE: Set the max size in bytes for the log files.
                     NOTE: This parameter only works when used in the
                     BlazingContext
@@ -3151,16 +3164,16 @@ class BlazingContext(object):
 
             log_schemas = {
                 "bsql_queries": (
-                    ["ral_id", "query_id", "start_time", "plan"],
-                    ["int32", "int32", "int64", "str"],
+                    ["ral_id", "query_id", "start_time", "plan", "query"],
+                    ["int32", "int32", "int64", "str", "str"],
                 ),
                 "bsql_kernels": (
                     ["ral_id", "query_id", "kernel_id", "is_kernel", "kernel_type"],
                     ["int32", "int32", "int64", "int16", "str"],
                 ),
                 "bsql_kernels_edges": (
-                    ["ral_id", "query_id", "source", "sink", "port_name"],
-                    ["int32", "int32", "int64", "int64", "str"],
+                    ["ral_id", "query_id", "source", "sink"],
+                    ["int32", "int32", "int64", "int64"],
                 ),
                 "bsql_kernel_events": (
                     [
@@ -3194,7 +3207,6 @@ class BlazingContext(object):
                         "query_id",
                         "source",
                         "sink",
-                        "port_name",
                         "num_rows",
                         "num_bytes",
                         "event_type",
@@ -3208,15 +3220,107 @@ class BlazingContext(object):
                         "int64",
                         "int64",
                         "int64",
-                        "int64",
                         "str",
                         "int64",
                         "int64",
                     ],
                 ),
+                "input_comms": (
+                    [
+                        "unique_id",
+                        "ral_id",
+                        "query_id",
+                        "kernel_id",
+                        "dest_ral_id",
+                        "dest_ral_count",
+                        "dest_cache_id",
+                        "message_id",
+                        "phase",
+                    ],
+                    [
+                        "str",
+                        "int32",
+                        "str",
+                        "str",
+                        "str",
+                        "int32",
+                        "str",
+                        "str",
+                        "str",
+                    ],
+                ),
+                "output_comms": (
+                    [
+                        "unique_id",
+                        "ral_id",
+                        "query_id",
+                        "kernel_id",
+                        "dest_ral_id",
+                        "dest_ral_count",
+                        "dest_cache_id",
+                        "message_id",
+                        "phase",
+                    ],
+                    [
+                        "int32",
+                        "int64",
+                        "int32",
+                        "str",
+                        "int32",
+                        "int32",
+                        "str",
+                        "str",
+                        "str",
+                    ],
+                ),
             }
 
             for log_table_name in log_schemas:
+
+                options = {
+                    "ENABLE_CACHES_LOGS": ["bsql_cache_events"],
+                    "ENABLE_OTHER_ENGINE_LOGS": [
+                        "bsql_queries",
+                        "bsql_kernels",
+                        "bsql_kernels_edges",
+                        "bsql_kernel_events",
+                    ],
+                    "ENABLE_GENERAL_ENGINE_LOGS": ["bsql_logs"],
+                    "ENABLE_COMMS_LOGS": ["input_comms", "output_comms"],
+                }
+
+                if log_table_name in options["ENABLE_CACHES_LOGS"]:
+                    if (
+                        self.config_options["ENABLE_CACHES_LOGS".encode()].decode()
+                        == "False"
+                    ):
+                        continue
+
+                if log_table_name in options["ENABLE_OTHER_ENGINE_LOGS"]:
+                    if (
+                        self.config_options[
+                            "ENABLE_OTHER_ENGINE_LOGS".encode()
+                        ].decode()
+                        == "False"
+                    ):
+                        continue
+
+                if log_table_name in options["ENABLE_GENERAL_ENGINE_LOGS"]:
+                    if (
+                        self.config_options[
+                            "ENABLE_GENERAL_ENGINE_LOGS".encode()
+                        ].decode()
+                        == "False"
+                    ):
+                        continue
+
+                if log_table_name in options["ENABLE_COMMS_LOGS"]:
+                    if (
+                        self.config_options["ENABLE_COMMS_LOGS".encode()].decode()
+                        == "False"
+                    ):
+                        continue
+
                 log_files = [
                     os.path.join(log_path, log_table_name + ".*.log")
                     for log_path in self.node_log_paths

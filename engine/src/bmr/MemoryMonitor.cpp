@@ -36,7 +36,7 @@ namespace ral {
                 if (need_to_free_memory()){
                     downgradeCaches(&tree->root);
 
-                    auto logger = spdlog::get("batch_logger");
+                    std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
 
                     std::vector<std::unique_ptr<ral::execution::task>> tasks;
                      // if after downgrading all caches there is still too much consumption, lets try to downgrade data in tasks
