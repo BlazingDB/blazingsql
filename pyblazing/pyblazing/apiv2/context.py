@@ -3215,6 +3215,10 @@ class BlazingContext(object):
 
         return self.sql(query)
 
+    def _get_progress_bar_format(self):
+        pbfmt = 'Steps Complete {n_fmt}/{total_fmt}|{bar}|{percentage:3.0f}% ({elapsed} elapsed)'
+        return pbfmt
+
     def _wait_completed_single_node(self, graph):
         query_complete = False
         while not query_complete:
@@ -3244,27 +3248,46 @@ class BlazingContext(object):
         progress = graph.get_progress()
         thepdf = queryProgressAsPandas(progress)
         themax = len(thepdf)
-
-        thepdf = thepdf.drop(thepdf[thepdf.finished == False].index)
+        batches_completed = thepdf['batches_completed'].sum()
+        thepdf = thepdf.drop(thepdf[~thepdf.finished].index)
         thesteps = len(thepdf)
 
-        pbar = tqdm(total=themax)
+        pbar = tqdm(
+            total=themax,
+            miniters=1,
+            bar_format=self._get_progress_bar_format(),
+            leave=False
+        )
+        pbar2 = tqdm(
+            miniters=1,
+            bar_format='Total Batches Processed: {n_fmt}',
+            leave=False
+        )
+
         pbar.update(thesteps)
+        pbar2.update(batches_completed)
         last = thesteps
+        last_sum_batches = batches_completed
         while True:
             query_complete = graph.query_is_complete()
             progress = graph.get_progress()
             pdf = queryProgressAsPandas(progress)
-            pdf = pdf.drop(pdf[pdf.finished == False].index)
+            batches_completed = pdf['batches_completed'].sum()
+            pdf = pdf.drop(pdf[~pdf.finished].index)
             thesteps = len(pdf)
             if last != thesteps:
                 delta = thesteps - last
                 last = thesteps
                 pbar.update(delta)
+                if last_sum_batches != batches_completed:
+                    delt2 = batches_completed - last_sum_batches
+                    pbar2.update(delt2)
+                    last_sum_batches = batches_completed
             sleep(0.005)
             if query_complete:
                 break
         pbar.close()
+        pbar2.close()
 
     def _check_tqdm(self):
         tqdm_found = True
@@ -3284,6 +3307,7 @@ class BlazingContext(object):
         query_complete = False
         last = -1
         themax = -1
+        last_sum_batches = -1
         while True:
             dask_futures = []
             for node in self.nodes:
@@ -3307,25 +3331,44 @@ class BlazingContext(object):
             workers_progress = dask.dataframe.from_delayed(dask_futures).compute()
             themax = len(workers_progress)
             pdf = workers_progress
-            pdf = pdf.drop(pdf[pdf.finished == False].index)
+            batches_completed = pdf['batches_completed'].sum()
+            pdf = pdf.drop(pdf[~pdf.finished].index)
             thesteps = len(pdf)
             if not ispbarCreated:
                 ispbarCreated = True
-                pbar = tqdm(total=themax)
+                pbar = tqdm(
+                    total=themax,
+                    miniters=1,
+                    bar_format=self._get_progress_bar_format(),
+                    leave=False
+                )
                 pbar.update(thesteps)
                 last = thesteps
+                
+                pbar2 = tqdm(
+                    miniters=1,
+                    bar_format='Total Batches Processed: {n_fmt}',
+                    leave=False
+                )
+                last_sum_batches = batches_completed
             else:
                 if last != thesteps:
                     delta = thesteps - last
                     last = thesteps
                     pbar.update(delta)
 
+                    if last_sum_batches != batches_completed:
+                        delt2 = batches_completed - last_sum_batches
+                        pbar2.update(delt2)
+                        last_sum_batches = batches_completed
+
             sleep(0.005)
             if query_complete:
                 break
 
-        if pbar:
+        if ispbarCreated:
             pbar.close()
+            pbar2.close()
 
     def do_progress_bar(self, arg, progress_bar_fn, wait_fn):
         if not self.enable_progress_bar:
