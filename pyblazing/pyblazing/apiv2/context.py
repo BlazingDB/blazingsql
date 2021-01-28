@@ -3285,8 +3285,8 @@ class BlazingContext(object):
                         "bsql_kernels_edges",
                         "bsql_kernel_events",
                     ],
-                    "ENABLE_GENERAL_ENGINE_LOGS":  ["bsql_logs"],
-                    "ENABLE_COMMS_LOGS":  ["input_comms", "output_comms"],
+                    "ENABLE_GENERAL_ENGINE_LOGS": ["bsql_logs"],
+                    "ENABLE_COMMS_LOGS": ["input_comms", "output_comms"],
                 }
 
                 if log_table_name in options["ENABLE_CACHES_LOGS"]:
@@ -3307,19 +3307,17 @@ class BlazingContext(object):
 
                 if log_table_name in options["ENABLE_GENERAL_ENGINE_LOGS"]:
                     if (
-                            self.config_options[
-                                "ENABLE_GENERAL_ENGINE_LOGS".encode()
-                            ].decode()
-                            == "False"
+                        self.config_options[
+                            "ENABLE_GENERAL_ENGINE_LOGS".encode()
+                        ].decode()
+                        == "False"
                     ):
                         continue
 
                 if log_table_name in options["ENABLE_COMMS_LOGS"]:
                     if (
-                            self.config_options[
-                                "ENABLE_COMMS_LOGS".encode()
-                            ].decode()
-                            == "False"
+                        self.config_options["ENABLE_COMMS_LOGS".encode()].decode()
+                        == "False"
                     ):
                         continue
 
