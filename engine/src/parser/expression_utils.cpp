@@ -475,7 +475,7 @@ std::vector<std::string> get_window_function_agg(const std::string & query_part)
 		}
 
 		std::size_t open_parenthesis = aggregations[agg_i].find('(');
-		aggregations[agg_i] = aggregations[agg_i].substr(0, open_parenthesis);
+		aggregations[agg_i] = StringUtil::trim(aggregations[agg_i].substr(0, open_parenthesis));
 	}
 	return aggregations;
 }
@@ -565,14 +565,15 @@ bool is_distribute_aggregate(std::string query_part) { return (query_part.find(L
 
 bool is_merge_aggregate(std::string query_part) { return (query_part.find(LOGICAL_MERGE_AGGREGATE_TEXT) != std::string::npos); }
 
-bool is_window_only_sort(std::string query_part) {
-	return ( (query_part.find("window") != std::string::npos) && (query_part.find("partition") == std::string::npos) ) ; }
-
 bool is_window(std::string query_part) { return (query_part.find(LOGICAL_WINDOW_TEXT) != std::string::npos); }
 
 bool is_window_compute(std::string query_part) { return (query_part.find(LOGICAL_COMPUTE_WINDOW_TEXT) != std::string::npos); }
 
 bool contains_window_expression(std::string query_part) { return (query_part.find("window") != std::string::npos); }
+
+bool window_expression_contains_partition(std::string query_part) { return (query_part.find("partition") != std::string::npos); }
+
+bool window_expression_contains_multiple_windows(std::string query_part) { return (query_part.find("window#1") != std::string::npos); }
 
 // Returns the index from table_scan if exists
 size_t get_table_index(std::vector<std::string> table_scans, std::string table_scan) {

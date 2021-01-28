@@ -39,6 +39,14 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
 
             print("==============================")
 
+            # TODO: LAG() and LEAD(): Calcite issue when get optimized plan
+
+            # TODO: RANK() and DENSE_RANK(): cudf aggs no supported currently
+
+            # TODO: FIRST_VALUE() and LAST_VALUE(): cudf aggs no supported currently
+
+            # TODO: BOUNDED/UNBOUNDED, ROW/RANGE: Calcite issue when get optimized plan
+
             # ------------------- ORDER BY ------------------------
             
             # queryId = "TEST_01"
@@ -330,10 +338,6 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
-            # TODO: LAG() and LEAD(): Calcite issue when get optimized plan
-
-            # TODO: RANK() and DENSE_RANK(): cudf aggs no supported currently
-
             # ------------ PARTITION BY + ORDER BY ----------------
 
             queryId = "TEST_21"
@@ -462,27 +466,62 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
-            # TODO: first_value and last_value fails
-            queryId = "TEST_27"
-            query = """select first_value(n_nationkey) over
+            # ---------- multiple WF with the same OVER clause ------------
+
+            queryId = "TEST_31"
+            query = """select min(n_nationkey) over
                             (
                                 partition by n_regionkey
                                 order by n_name
-                            ) last_val,
-                            n_nationkey, n_name, n_regionkey
+                            ) min_keys, 
+                            max(n_nationkey) over
+                            (
+                                partition by n_regionkey
+                                order by n_name
+                            ) max_keys, n_nationkey, n_name, n_regionkey
                         from nation order by n_name"""
-            # runTest.run_query(
-            #     bc,
-            #     drill,
-            #     query,
-            #     queryId,
-            #     queryType,
-            #     worder,
-            #     "",
-            #     acceptable_difference,
-            #     use_percentage,
-            #     fileSchemaType,
-            # )
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_32"
+            query = """select min(n_nationkey) over
+                            (
+                                partition by n_regionkey
+                                order by n_name
+                            ) min_keys, 
+                            max(n_nationkey) over
+                            (
+                                partition by n_regionkey
+                                order by n_name
+                            ) max_keys,
+                            count(n_nationkey) over
+                            (
+                                partition by n_regionkey
+                                order by n_name
+                            ) count_keys, n_nationkey, n_name, n_regionkey
+                        from nation order by n_nationkey"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
 
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")

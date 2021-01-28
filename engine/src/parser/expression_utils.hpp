@@ -157,9 +157,11 @@ bool is_merge_aggregate(std::string query_part);
 bool is_aggregate_merge(std::string query_part); // to be deprecated
 bool is_aggregate_partition(std::string query_part); // to be deprecated
 bool is_aggregate_and_sample(std::string query_part); // to be deprecated
-bool is_window_only_sort(std::string query_part);
 bool is_window(std::string query_part);
 bool is_window_compute(std::string query_part);
+bool contains_window_expression(std::string query_part);
+bool window_expression_contains_partition(std::string query_part);
+bool window_expression_contains_multiple_windows(std::string query_part);
 
 std::unique_ptr<cudf::aggregation> get_window_aggregate(const std::string & input);
 
@@ -174,8 +176,6 @@ std::vector<std::string> get_window_function_agg(const std::string & query_part)
 // input: window#0=[window(partition {2} order by [1] rows between 4 PRECEDING and 3 FOLLOWING aggs [FIRST_VALUE($0)])]
 // output: <4, 3>
 std::pair<int, int> get_bounds_from_window_expression(const std::string & query_part);
-
-bool contains_window_expression(std::string query_part);
 
 // Returns the index from table_scan if exists
 size_t get_table_index(std::vector<std::string> table_scans, std::string table_scan);

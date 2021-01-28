@@ -286,8 +286,13 @@ struct tree_processor {
 				p_tree.put_child("children", create_array_tree(distribute_aggregate_tree));
 			}
 		}
-		// we want to reuse the SortAndSample, LogicalPartition, LogicalMerge, .. kernels
 		else if (is_window(expr)) {
+			if (!window_expression_contains_partition(expr)) {
+				throw std::runtime_error("In Window Function: PARTITION BY clause is mandatory");
+			}
+			if (window_expression_contains_multiple_windows(expr)) {
+				throw std::runtime_error("In Window Function: multiple WINDOW FUNCTIONs with different OVER clauses are not supported currently");
+			}
 			std::string sort_expr = expr;
 			std::string window_expr = expr;
 

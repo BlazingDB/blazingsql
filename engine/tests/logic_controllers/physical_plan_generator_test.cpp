@@ -161,7 +161,7 @@ TEST_F(PhysicalPlanGeneratorTest, transform_json_tree_two_join)
 	ASSERT_EQ(p_tree, p_tree_cmp);
 }
 
-// Creates a single Context
+// Creates a single node Context
 std::shared_ptr<Context> make_single_context(std::string logicalPlan) {
 	Node master("self");
 	std::vector<Node> contextNodes;
@@ -477,7 +477,128 @@ TEST_F(PhysicalPlanGeneratorTest, transform_json_tree_window_function_distribute
 	ASSERT_EQ(p_tree, p_tree_cmp);
 }
 
-TEST_F(PhysicalPlanGeneratorTest, transform_json_tree_window_function_unsupported_throw_exception_single_node)
+TEST_F(PhysicalPlanGeneratorTest, transform_json_tree_window_function_multiple_equal_over_single_node)
+{
+	//	Query
+	// 	select min(n_nationkey) over ( partition by n_regionkey order by n_name) min_keys, 
+	// 		   max(n_nationkey) over ( partition by n_regionkey order by n_name) max_keys,
+	//		   n_nationkey, n_name, n_regionkey from nation
+
+	//
+	//  Optimized Plan
+	//	LogicalProject(min_keys=[$4], max_keys=[$5], n_nationkey=[$0], n_name=[$1], n_regionkey=[$2])
+  	//		LogicalWindow(window#0=[window(partition {2} order by [1] aggs [MIN($0), MAX($0)])])
+    //			LogicalTableScan(table=[[main, nation]])
+
+	std::string logicalPlan =
+	R"raw(
+	{
+		"expr": "LogicalProject(min_keys=[$4], max_keys=[$5], n_nationkey=[$0], n_name=[$1], n_regionkey=[$2])",
+		"children": [
+			{
+				"expr": "LogicalWindow(window#0=[window(partition {2} order by [1] aggs [MIN($0), MAX($0)])])",
+				"children": [
+					{
+						"expr": "LogicalTableScan(table=[[main, nation]])",
+						"children": []
+					}
+				]
+			}
+		]
+	}
+	)raw";
+
+	std::shared_ptr<Context> context = make_single_context(logicalPlan);
+	ral::batch::tree_processor tree{{}, context->clone(), {}, {}, {}, {}, true};
+
+	std::istringstream input(logicalPlan);
+	boost::property_tree::ptree p_tree;
+	boost::property_tree::read_json(input, p_tree);
+	tree.transform_json_tree(p_tree);
+
+	std::string jsonCompare =
+	R"raw(
+	{
+		"expr": "LogicalProject(min_keys=[$4], max_keys=[$5], n_nationkey=[$0], n_name=[$1], n_regionkey=[$2])",
+		"children":	[
+			{
+				"expr": "LogicalComputeWindow(window#0=[window(partition {2} order by [1] aggs [MIN($0), MAX($0)])])",
+				"children": [
+					{
+						"expr": "LogicalMerge(window#0=[window(partition {2} order by [1] aggs [MIN($0), MAX($0)])])",
+						"children": [
+							{
+								"expr": "LogicalSingleNodePartition(window#0=[window(partition {2} order by [1] aggs [MIN($0), MAX($0)])])",
+								"children": [
+									{
+										"expr": "Logical_SortAndSample(window#0=[window(partition {2} order by [1] aggs [MIN($0), MAX($0)])])",
+										"children": [
+											{
+												"expr": "LogicalTableScan(table=[[main, nation]])",
+												"children": []
+											}
+										]
+									}
+								]
+							}
+						]
+					}
+				]
+			}
+		]
+	}
+	)raw";
+
+	std::istringstream inputcmp(jsonCompare);
+	boost::property_tree::ptree p_tree_cmp;
+	boost::property_tree::read_json(inputcmp, p_tree_cmp);
+
+	ASSERT_EQ(p_tree, p_tree_cmp);
+}
+
+TEST_F(PhysicalPlanGeneratorTest, transform_json_tree_window_function_multiple_differents_over_single_node)
+{
+	//	Query
+	// 	select min(n_nationkey) over ( partition by n_regionkey order by n_name) min_keys, 
+ 	//		  max(n_nationkey) over ( partition by n_regionkey order by n_nationkey) max_keys,
+	//        n_nationkey, n_name, n_regionkey from nation
+	//
+	//  Optimized Plan
+	//	LogicalProject(min_keys=[$4], max_keys=[$5], n_nationkey=[$0], n_name=[$1], n_regionkey=[$2])
+  	//		LogicalWindow(window#0=[window(partition {2} order by [1] aggs [MIN($0)])], window#1=[window(partition {2} order by [0] aggs [MAX($0)])])
+    //			LogicalTableScan(table=[[main, nation]])
+
+	try{
+		std::string logicalPlan =
+		R"raw(
+		{
+			"expr": "LogicalProject(min_keys=[$4], max_keys=[$5], n_nationkey=[$0], n_name=[$1], n_regionkey=[$2])",
+			"children": [
+				{
+					"expr": "LogicalWindow(window#0=[window(partition {2} order by [1] aggs [MIN($0)])], window#1=[window(partition {2} order by [0] aggs [MAX($0)])])",
+					"children": [
+						{
+							"expr": "LogicalTableScan(table=[[main, nation]])",
+							"children": []
+						}
+					]
+				}
+			]
+		}
+		)raw";
+
+		std::shared_ptr<Context> context = make_single_context(logicalPlan);
+		ral::batch::tree_processor tree{{}, context->clone(), {}, {}, {}, {}, true};
+
+		tree.build_batch_graph(logicalPlan);
+
+		FAIL();
+	} catch(const std::exception& e) {
+		SUCCEED();
+	}
+}
+
+TEST_F(PhysicalPlanGeneratorTest, transform_json_tree_window_function_bounded_single_node)
 {
 	//	Query
 	// 	SELECT product_name, AVG(id_client) OVER (PARTITION BY product_name ORDER BY id_product DESC ROWS BETWEEN 5 PRECEDING AND CURRENT ROW ) FROM product
