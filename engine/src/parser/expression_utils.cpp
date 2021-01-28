@@ -475,7 +475,8 @@ std::vector<std::string> get_window_function_agg(const std::string & query_part)
 		}
 
 		std::size_t open_parenthesis = aggregations[agg_i].find('(');
-		aggregations[agg_i] = StringUtil::trim(aggregations[agg_i].substr(0, open_parenthesis));
+		aggregations[agg_i] = aggregations[agg_i].substr(0, open_parenthesis);
+		aggregations[agg_i] = StringUtil::trim(aggregations[agg_i]);
 	}
 	return aggregations;
 }
