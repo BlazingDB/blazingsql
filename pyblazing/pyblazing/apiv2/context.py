@@ -3216,7 +3216,7 @@ class BlazingContext(object):
         return self.sql(query)
 
     def _get_progress_bar_format(self):
-        pbfmt = 'Steps Complete {n_fmt}/{total_fmt}|{bar}|{percentage:3.0f}% ({elapsed} elapsed)'
+        pbfmt = "Steps Complete {n_fmt}/{total_fmt}|{bar}|{percentage:3.0f}% ({elapsed} elapsed)"
         return pbfmt
 
     def _wait_completed_single_node(self, graph):
@@ -3248,7 +3248,7 @@ class BlazingContext(object):
         progress = graph.get_progress()
         thepdf = queryProgressAsPandas(progress)
         themax = len(thepdf)
-        batches_completed = thepdf['batches_completed'].sum()
+        batches_completed = thepdf["batches_completed"].sum()
         thepdf = thepdf.drop(thepdf[~thepdf.finished].index)
         thesteps = len(thepdf)
 
@@ -3256,12 +3256,10 @@ class BlazingContext(object):
             total=themax,
             miniters=1,
             bar_format=self._get_progress_bar_format(),
-            leave=False
+            leave=False,
         )
         pbar2 = tqdm(
-            miniters=1,
-            bar_format='Total Batches Processed: {n_fmt}',
-            leave=False
+            miniters=1, bar_format="Total Batches Processed: {n_fmt}", leave=False
         )
 
         pbar.update(thesteps)
@@ -3272,7 +3270,7 @@ class BlazingContext(object):
             query_complete = graph.query_is_complete()
             progress = graph.get_progress()
             pdf = queryProgressAsPandas(progress)
-            batches_completed = pdf['batches_completed'].sum()
+            batches_completed = pdf["batches_completed"].sum()
             pdf = pdf.drop(pdf[~pdf.finished].index)
             thesteps = len(pdf)
             if last != thesteps:
@@ -3331,7 +3329,7 @@ class BlazingContext(object):
             workers_progress = dask.dataframe.from_delayed(dask_futures).compute()
             themax = len(workers_progress)
             pdf = workers_progress
-            batches_completed = pdf['batches_completed'].sum()
+            batches_completed = pdf["batches_completed"].sum()
             pdf = pdf.drop(pdf[~pdf.finished].index)
             thesteps = len(pdf)
             if not ispbarCreated:
@@ -3340,15 +3338,15 @@ class BlazingContext(object):
                     total=themax,
                     miniters=1,
                     bar_format=self._get_progress_bar_format(),
-                    leave=False
+                    leave=False,
                 )
                 pbar.update(thesteps)
                 last = thesteps
-                
+
                 pbar2 = tqdm(
                     miniters=1,
-                    bar_format='Total Batches Processed: {n_fmt}',
-                    leave=False
+                    bar_format="Total Batches Processed: {n_fmt}",
+                    leave=False,
                 )
                 last_sum_batches = batches_completed
             else:
