@@ -7,7 +7,9 @@
 namespace ral{
 namespace memory{
 
-
+  //TODO:JENS
+  //make this be able to receive  a ucp worker which you will
+  //need for the map an umap routines
 pinned_allocator::pinned_allocator(bool use_ucx) : 
 use_ucx{use_ucx} {
 
@@ -35,6 +37,8 @@ void pinned_allocator::do_allocate(void ** ptr, std::size_t size){
   if (err != cudaSuccess) {
     throw std::runtime_error("Couldn't perform pinned allocation.");
   }
+  //TODO:JENS
+  //call mem_map here if using ucx 
 }
 
 void host_allocator::do_deallocate(void * ptr){
@@ -42,6 +46,8 @@ void host_allocator::do_deallocate(void * ptr){
 }
 
 void pinned_allocator::do_deallocate(void * ptr){
+  //TODO:JENS
+  //call mem_umap here if using ucx
   auto err = cudaFreeHost(ptr);
   if (err != cudaSuccess) {
     throw std::runtime_error("Couldn't free pinned allocation.");
@@ -104,8 +110,6 @@ std::unique_ptr<blazing_allocation_chunk> allocation_pool::get_chunk() {
 }
 
 
-// Will create a new allocation and grow the buffer pool with this->numBuffers/2 new buffers
-// Its not threadsafe and the lock needs to be applied before calling it
 
 void allocation_pool::grow() {
 
@@ -160,6 +164,9 @@ std::size_t allocation_pool::size_buffers() { return this->buffer_size; }
 static std::shared_ptr<allocation_pool> host_buffer_instance{};
 static std::shared_ptr<allocation_pool> pinned_buffer_instance{};
 
+
+//TODO:JENS
+//pass in ucp worker here to use on pinned buffer allocator
 void set_allocation_pools(std::size_t size_buffers_host, std::size_t num_buffers_host,
 std::size_t size_buffers_pinned, std::size_t num_buffers_pinned, bool map_ucx) {
   auto host_alloc = std::make_unique<host_allocator>(false);
@@ -167,6 +174,7 @@ std::size_t size_buffers_pinned, std::size_t num_buffers_pinned, bool map_ucx) {
   host_buffer_instance = std::make_shared<allocation_pool>(
    std::move(host_alloc) ,size_buffers_host,num_buffers_host);
   pinned_buffer_instance = std::make_shared<allocation_pool>(
+    //TODO:JENS its this pinned allocator which will need to take in the worker 
     std::make_unique<pinned_allocator>(map_ucx),size_buffers_host,num_buffers_host);
 }
 
