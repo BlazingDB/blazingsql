@@ -666,7 +666,7 @@ def resolve_relative_path(files):
                 abs_file = os.path.abspath(os.path.join(os.getcwd(), file))
                 # by default os.path.abspath removes the trailing slash,
                 # we must add them again if any
-                if file[-1] == '/': #ends in a slash
+                if file[-1] == "/":  # ends in a slash
                     abs_file = abs_file + "/"
                 # we check if the file exists otherwise we try to expand the
                 # wildcard pattern with glob
