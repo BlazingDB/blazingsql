@@ -75,7 +75,7 @@ void task::run(cudaStream_t stream, executor * executor){
         complete();        
     }catch(rmm::bad_alloc e){
 
-        auto logger = spdlog::get("batch_logger");
+        std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
         if (logger){
             logger->error("|||{info}|||||",
                     "info"_a="ERROR of type rmm::bad_alloc in task::run. What: {}"_format(e.what()));
@@ -87,7 +87,7 @@ void task::run(cudaStream_t stream, executor * executor){
             throw;
         }
     }catch(std::exception & e){
-        auto logger = spdlog::get("batch_logger");
+        std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
         if (logger){
             logger->error("|||{info}|||||",
                     "info"_a="ERROR in task::run. What: {}"_format(e.what()));
@@ -135,7 +135,7 @@ void executor::execute(){
                 if (memory_needed < (processing_memory_limit - resource->get_memory_used())){
                     return true;
                 } else if (active_tasks_counter.load() == 0){
-                    auto logger = spdlog::get("batch_logger");
+                    std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
                     if (logger){
                         logger->warn("|||{info}|||||",
                                 "info"_a="WARNING: launching task even though over limit, because there are no tasks running. Memory used: {}"_format(std::to_string(resource->get_memory_used())));

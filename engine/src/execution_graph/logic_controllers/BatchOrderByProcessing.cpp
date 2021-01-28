@@ -50,7 +50,7 @@ kstatus PartitionSingleNodeKernel::run() {
         }
     }
 
-    if(logger != nullptr) {
+    if(logger) {
         logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
                                 "query_id"_a=context->getContextToken(),
                                 "step"_a=context->getQueryStep(),
@@ -65,13 +65,15 @@ kstatus PartitionSingleNodeKernel::run() {
         return this->tasks.empty();
     });
 
-    logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
-                                "query_id"_a=context->getContextToken(),
-                                "step"_a=context->getQueryStep(),
-                                "substep"_a=context->getQuerySubstep(),
-                                "info"_a="PartitionSingleNode Kernel Completed",
-                                "duration"_a=timer.elapsed_time(),
-                                "kernel_id"_a=this->get_id());
+    if(logger){
+        logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+                                    "query_id"_a=context->getContextToken(),
+                                    "step"_a=context->getQueryStep(),
+                                    "substep"_a=context->getQuerySubstep(),
+                                    "info"_a="PartitionSingleNode Kernel Completed",
+                                    "duration"_a=timer.elapsed_time(),
+                                    "kernel_id"_a=this->get_id());
+    }
 
     return kstatus::proceed;
 }
@@ -135,12 +137,14 @@ void SortAndSampleKernel::compute_partition_plan(
             total_num_rows_for_sampling, final_avg_bytes_per_row, this->expression, this->context.get());
         this->add_to_output_cache(std::move(partitionPlan), "output_b");
     } else { // distributed mode
-        if(ral::utilities::checkIfConcatenatingStringsWillOverflow(inputSamples)) {
-            logger->warn("{query_id}|{step}|{substep}|{info}",
-                            "query_id"_a=(context ? std::to_string(context->getContextToken()) : ""),
-                            "step"_a=(context ? std::to_string(context->getQueryStep()) : ""),
-                            "substep"_a=(context ? std::to_string(context->getQuerySubstep()) : ""),
-                            "info"_a="In SortAndSampleKernel::compute_partition_plan Concatenating Strings will overflow strings length");
+        if( ral::utilities::checkIfConcatenatingStringsWillOverflow(inputSamples)) {
+            if(logger){
+                logger->warn("{query_id}|{step}|{substep}|{info}",
+                                "query_id"_a=(context ? std::to_string(context->getContextToken()) : ""),
+                                "step"_a=(context ? std::to_string(context->getQueryStep()) : ""),
+                                "substep"_a=(context ? std::to_string(context->getQuerySubstep()) : ""),
+                                "info"_a="In SortAndSampleKernel::compute_partition_plan Concatenating Strings will overflow strings length");
+            }
         }
 
         if(context->isMasterNode(ral::communication::CommunicationData::getInstance().getSelfNode())) {
@@ -236,17 +240,19 @@ void SortAndSampleKernel::do_process(std::vector< std::unique_ptr<ral::frame::Bl
             auto num_rows = sortedTable->num_rows();
             auto num_bytes = sortedTable->sizeInBytes();
 
-            events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-                            "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-                            "query_id"_a=context->getContextToken(),
-                            "kernel_id"_a=this->get_id(),
-                            "input_num_rows"_a=num_rows,
-                            "input_num_bytes"_a=num_bytes,
-                            "output_num_rows"_a=num_rows,
-                            "output_num_bytes"_a=num_bytes,
-                            "event_type"_a="compute",
-                            "timestamp_begin"_a=eventTimer.start_time(),
-                            "timestamp_end"_a=eventTimer.end_time());
+            if(events_logger){
+                events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+                                "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                                "query_id"_a=context->getContextToken(),
+                                "kernel_id"_a=this->get_id(),
+                                "input_num_rows"_a=num_rows,
+                                "input_num_bytes"_a=num_bytes,
+                                "output_num_rows"_a=num_rows,
+                                "output_num_bytes"_a=num_bytes,
+                                "event_type"_a="compute",
+                                "timestamp_begin"_a=eventTimer.start_time(),
+                                "timestamp_end"_a=eventTimer.end_time());
+            }
         }
 
         output->addToCache(std::move(sortedTable), "output_a");
@@ -297,13 +303,15 @@ kstatus SortAndSampleKernel::run() {
 
     this->output_cache("output_b")->wait_for_count(1); // waiting for the partition_plan to arrive before continuing
 
-    logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
-                                "query_id"_a=context->getContextToken(),
-                                "step"_a=context->getQueryStep(),
-                                "substep"_a=context->getQuerySubstep(),
-                                "info"_a="SortAndSample Kernel Completed",
-                                "duration"_a=timer.elapsed_time(),
-                                "kernel_id"_a=this->get_id());
+    if(logger){
+        logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+                                    "query_id"_a=context->getContextToken(),
+                                    "step"_a=context->getQueryStep(),
+                                    "substep"_a=context->getQuerySubstep(),
+                                    "info"_a="SortAndSample Kernel Completed",
+                                    "duration"_a=timer.elapsed_time(),
+                                    "kernel_id"_a=this->get_id());
+    }
 
     return kstatus::proceed;
 }
@@ -381,7 +389,7 @@ kstatus PartitionKernel::run() {
         cache_data = this->input_.get_cache("input_a")->pullCacheData();
     }
 
-    if(logger != nullptr) {
+    if(logger) {
         logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
                                 "query_id"_a=context->getContextToken(),
                                 "step"_a=context->getQueryStep(),
@@ -411,13 +419,15 @@ kstatus PartitionKernel::run() {
         this->output_cache(cache_id)->wait_for_count(total_count);
     }
 
-    logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
-                                "query_id"_a=context->getContextToken(),
-                                "step"_a=context->getQueryStep(),
-                                "substep"_a=context->getQuerySubstep(),
-                                "info"_a="Partition Kernel Completed",
-                                "duration"_a=timer.elapsed_time(),
-                                "kernel_id"_a=this->get_id());
+    if(logger){
+        logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+                                    "query_id"_a=context->getContextToken(),
+                                    "step"_a=context->getQueryStep(),
+                                    "substep"_a=context->getQuerySubstep(),
+                                    "info"_a="Partition Kernel Completed",
+                                    "duration"_a=timer.elapsed_time(),
+                                    "kernel_id"_a=this->get_id());
+    }
 
     return kstatus::proceed;
 }
@@ -477,17 +487,19 @@ kstatus MergeStreamKernel::run() {
             batch_count++;
         } catch(const std::exception& e) {
             // TODO add retry here
-            logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
-                                "query_id"_a=context->getContextToken(),
-                                "step"_a=context->getQueryStep(),
-                                "substep"_a=context->getQuerySubstep(),
-                                "info"_a="In MergeStream kernel batch {} for {}. What: {} . max_memory_used: {}"_format(batch_count, expression, e.what(), blazing_device_memory_resource::getInstance().get_full_memory_summary()),
-                                "duration"_a="");
+            if(logger){
+                logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+                                    "query_id"_a=context->getContextToken(),
+                                    "step"_a=context->getQueryStep(),
+                                    "substep"_a=context->getQuerySubstep(),
+                                    "info"_a="In MergeStream kernel batch {} for {}. What: {} . max_memory_used: {}"_format(batch_count, expression, e.what(), blazing_device_memory_resource::getInstance().get_full_memory_summary()),
+                                    "duration"_a="");
+            }
             throw;
         }
     }
 
-    if(logger != nullptr) {
+    if(logger) {
         logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
                                 "query_id"_a=context->getContextToken(),
                                 "step"_a=context->getQueryStep(),
@@ -502,7 +514,7 @@ kstatus MergeStreamKernel::run() {
         return this->tasks.empty();
     });
 
-    if(logger != nullptr) {
+    if(logger) {
         logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
                                 "query_id"_a=context->getContextToken(),
                                 "step"_a=context->getQueryStep(),
@@ -546,17 +558,19 @@ void LimitKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTab
         auto log_output_num_rows = input->num_rows();
         auto log_output_num_bytes = input->sizeInBytes();
 
-        events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-                        "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-                        "query_id"_a=context->getContextToken(),
-                        "kernel_id"_a=this->get_id(),
-                        "input_num_rows"_a=log_input_num_rows,
-                        "input_num_bytes"_a=log_input_num_bytes,
-                        "output_num_rows"_a=log_output_num_rows,
-                        "output_num_bytes"_a=log_output_num_bytes,
-                        "event_type"_a="compute",
-                        "timestamp_begin"_a=eventTimer.start_time(),
-                        "timestamp_end"_a=eventTimer.end_time());
+        if(events_logger){
+            events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+                            "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                            "query_id"_a=context->getContextToken(),
+                            "kernel_id"_a=this->get_id(),
+                            "input_num_rows"_a=log_input_num_rows,
+                            "input_num_bytes"_a=log_input_num_bytes,
+                            "output_num_rows"_a=log_output_num_rows,
+                            "output_num_bytes"_a=log_output_num_bytes,
+                            "event_type"_a="compute",
+                            "timestamp_begin"_a=eventTimer.start_time(),
+                            "timestamp_end"_a=eventTimer.end_time());
+        }
 
         output->addToCache(std::move(input));
     }
@@ -632,17 +646,19 @@ kstatus LimitKernel::run() {
             batch_count++;
         } catch(const std::exception& e) {
             // TODO add retry here
-            logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
-                                "query_id"_a=context->getContextToken(),
-                                "step"_a=context->getQueryStep(),
-                                "substep"_a=context->getQuerySubstep(),
-                                "info"_a="In Limit kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
-                                "duration"_a="");
+            if(logger){
+                logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+                                    "query_id"_a=context->getContextToken(),
+                                    "step"_a=context->getQueryStep(),
+                                    "substep"_a=context->getQuerySubstep(),
+                                    "info"_a="In Limit kernel batch {} for {}. What: {}"_format(batch_count, expression, e.what()),
+                                    "duration"_a="");
+            }
             throw;
         }
     }
 
-    if(logger != nullptr) {
+    if(logger) {
         logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
                                 "query_id"_a=context->getContextToken(),
                                 "step"_a=context->getQueryStep(),
@@ -657,13 +673,15 @@ kstatus LimitKernel::run() {
         return this->tasks.empty();
     });
 
-    logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
-                                "query_id"_a=context->getContextToken(),
-                                "step"_a=context->getQueryStep(),
-                                "substep"_a=context->getQuerySubstep(),
-                                "info"_a="Limit Kernel Completed",
-                                "duration"_a=timer.elapsed_time(),
-                                "kernel_id"_a=this->get_id());
+    if(logger){
+        logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+                                    "query_id"_a=context->getContextToken(),
+                                    "step"_a=context->getQueryStep(),
+                                    "substep"_a=context->getQuerySubstep(),
+                                    "info"_a="Limit Kernel Completed",
+                                    "duration"_a=timer.elapsed_time(),
+                                    "kernel_id"_a=this->get_id());
+    }
 
     return kstatus::proceed;
 }

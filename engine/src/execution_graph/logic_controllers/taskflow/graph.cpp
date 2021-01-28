@@ -48,7 +48,7 @@ namespace cache {
 
 	void graph::start_execute(const std::size_t max_kernel_run_threads) {
 		mem_monitor->start();
-		
+
 		pool.resize(max_kernel_run_threads);
 		for (auto source_id : ordered_kernel_ids){
 			auto source = get_node(source_id);
@@ -58,12 +58,14 @@ namespace cache {
 					auto state = source->run();
 					source->output_.finish();
 					if (state != kstatus::proceed && source->get_type_id() != ral::cache::kernel_type::OutputKernel) {
-						auto logger = spdlog::get("batch_logger");
+                        std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
 						std::string log_detail = "ERROR kernel " + std::to_string(source_id) + " did not finished successfully";
-						logger->error("|||{info}|||||","info"_a=log_detail);
+						if(logger){
+						    logger->error("|||{info}|||||","info"_a=log_detail);
+						}
 					}
 				} catch(const std::exception & e) {
-					auto logger = spdlog::get("batch_logger");
+                    std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
 					if (logger){
 						logger->error("|||{info}|||||",
 								"info"_a="ERROR in graph::execute. What: {}"_format(e.what()));
@@ -72,7 +74,7 @@ namespace cache {
 					throw;
 				}
 			}));
-		}	
+		}
 	}
 
 	void graph::finish_execute() {
@@ -85,7 +87,7 @@ namespace cache {
 	}
 
 	void graph::show() {
-		
+
 		std::set<std::pair<size_t, size_t>> visited;
 		std::deque<size_t> Q;
 		for(auto start_node : get_neighbours(head_id_)) {
@@ -116,7 +118,7 @@ namespace cache {
 
 	void graph::show_from_kernel (int32_t id) {
 		std::cout<<"show_from_kernel "<<id<<std::endl;
-		
+
 		std::set<std::pair<size_t, size_t>> visited;
 		std::deque<size_t> Q;
 		for(auto start_node : get_reverse_neighbours(id)) {
@@ -177,9 +179,11 @@ namespace cache {
 				return target_kernel->get_estimated_output_num_rows();
 			}
 		}
-		auto logger = spdlog::get("batch_logger");
+        std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
 		std::string log_detail = "ERROR: In get_estimated_input_rows_to_cache could not find edge for kernel " + std::to_string(id) + " cache " + port_name;
-		logger->error("|||{info}|||||","info"_a=log_detail);
+		if(logger){
+		    logger->error("|||{info}|||||","info"_a=log_detail);
+		}
 		return std::make_pair(false, 0);
 	}
 
@@ -219,17 +223,19 @@ namespace cache {
 			if(config.type == CacheType::FOR_EACH) {
 				for(size_t index = 0; index < cache_machines.size(); index++) {
 
-					kernels_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}",
-									"ral_id"_a=config.context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-									"query_id"_a=config.context->getContextToken(),
-									"source"_a=source->get_id(),
-									"sink"_a=cache_machines[index]->get_id());
+				    if(kernels_edges_logger){
+                        kernels_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}",
+                                        "ral_id"_a=config.context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                                        "query_id"_a=config.context->getContextToken(),
+                                        "source"_a=source->get_id(),
+                                        "sink"_a=cache_machines[index]->get_id());
 
-					kernels_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}",
-									"ral_id"_a=config.context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-									"query_id"_a=config.context->getContextToken(),
-									"source"_a=cache_machines[index]->get_id(),
-									"sink"_a=target->get_id());
+                        kernels_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}",
+                                        "ral_id"_a=config.context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                                        "query_id"_a=config.context->getContextToken(),
+                                        "source"_a=cache_machines[index]->get_id(),
+                                        "sink"_a=target->get_id());
+				    }
 
 					source->output_.register_cache("output_" + std::to_string(index), cache_machines[index]);
 					target->input_.register_cache("input_" + std::to_string(index), cache_machines[index]);
@@ -238,17 +244,19 @@ namespace cache {
 				source->output_.register_cache(source_port, cache_machines[0]);
 				target->input_.register_cache(target_port, cache_machines[0]);
 
-				kernels_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}",
-								"ral_id"_a=config.context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-								"query_id"_a=config.context->getContextToken(),
-								"source"_a=source->get_id(),
-								"sink"_a=cache_machines[0]->get_id());
+				if(kernels_edges_logger){
+                    kernels_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}",
+                                    "ral_id"_a=config.context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                                    "query_id"_a=config.context->getContextToken(),
+                                    "source"_a=source->get_id(),
+                                    "sink"_a=cache_machines[0]->get_id());
 
-				kernels_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}",
-								"ral_id"_a=config.context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-								"query_id"_a=config.context->getContextToken(),
-								"source"_a=cache_machines[0]->get_id(),
-								"sink"_a=target->get_id());
+                    kernels_edges_logger->info("{ral_id}|{query_id}|{source}|{sink}",
+                                    "ral_id"_a=config.context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                                    "query_id"_a=config.context->getContextToken(),
+                                    "source"_a=cache_machines[0]->get_id(),
+                                    "sink"_a=target->get_id());
+				}
 			}
 		}
 		if(not source->has_parent()) {
@@ -316,7 +324,7 @@ namespace cache {
 	}
 
 	void graph::set_kernels_order(){
-		
+
 		std::set<std::pair<size_t, size_t>> visited;
 		std::deque<size_t> Q;
 		for(auto start_node : get_neighbours(head_id_)) {
@@ -339,7 +347,7 @@ namespace cache {
 						if(visited.find(edge_id) == visited.end()) {
 							visited.insert(edge_id);
 							Q.push_back(target_id);
-							ordered_kernel_ids.push_back(source_id);							
+							ordered_kernel_ids.push_back(source_id);
 						} else {
 							// TODO: and circular graph is defined here. Report and error
 						}
@@ -362,7 +370,7 @@ namespace cache {
 			kernel * kernel = get_node(kernel_id);
 			progress.kernel_descriptions.push_back(std::to_string(kernel_id) + "-" + kernel->kernel_name());
 			progress.finished.push_back(kernel->output_.all_finished());
-			progress.batches_completed.push_back(kernel->output_.total_batches_added());			
+			progress.batches_completed.push_back(kernel->output_.total_batches_added());
 		}
 		return progress;
 	}

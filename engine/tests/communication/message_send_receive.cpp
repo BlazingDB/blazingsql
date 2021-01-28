@@ -43,7 +43,9 @@ void create_test_logger(std::string loggingName){
 
 	spdlog::sinks_init_list sink_list = { stdout_sink};
 	auto logger = std::make_shared<spdlog::async_logger>(loggingName, sink_list, spdlog::thread_pool(), spdlog::async_overflow_policy::block);
-	logger->set_level(spdlog::level::off);
+	if(logger){
+	    logger->set_level(spdlog::level::off);
+	}
 	spdlog::register_logger(logger);
 }
 

@@ -85,11 +85,13 @@ void PinnedBufferProvider::grow() {
     this->buffer_counter++;
   }
 
-  auto logger = spdlog::get("batch_logger");
+  std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
   std::string log_detail = "PinnedBufferProvider::grow() now buffer_counter = ";
   log_detail += std::to_string(this->buffer_counter);
   log_detail += ", bufferSize: " + std::to_string(this->bufferSize);
-  logger->debug("|||{info}|||||","info"_a=log_detail);
+  if(logger){
+      logger->debug("|||{info}|||||","info"_a=log_detail);
+  }
 }
 
 void PinnedBufferProvider::freeBuffer(PinnedBuffer *buffer) {

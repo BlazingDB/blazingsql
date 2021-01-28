@@ -83,7 +83,7 @@ kstatus UnionKernel::run() {
     left_thread.join();
     right_thread.join();
 
-    if(logger != nullptr) {
+    if(logger) {
         logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
                                 "query_id"_a=context->getContextToken(),
                                 "step"_a=context->getQueryStep(),
@@ -98,7 +98,7 @@ kstatus UnionKernel::run() {
         return this->tasks.empty();
     });
 
-    if(logger != nullptr) {
+    if(logger) {
         logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
                     "query_id"_a=context->getContextToken(),
                     "step"_a=context->getQueryStep(),
