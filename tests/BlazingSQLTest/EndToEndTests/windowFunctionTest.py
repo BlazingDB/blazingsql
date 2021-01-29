@@ -310,7 +310,8 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                             (
                                 partition by o_orderpriority
                             ) sum_keys,
-                            o_clerk, o_shippriority, o_orderpriority
+                            o_clerk,
+                            cast(o_shippriority as double) as o_ship_double
                         from orders
                         where o_orderstatus <> 'O'
                         and o_totalprice > 35000
@@ -357,7 +358,9 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                             (
                                 partition by o_orderpriority, o_orderstatus
                             ) sum_keys,
-                            o_clerk, o_shippriority, o_orderpriority
+                            o_clerk,
+                            cast(o_shippriority as double) as o_ship_double,
+                            o_orderpriority
                         from orders
                         where o_orderstatus = 'O'
                         and o_totalprice < 4550
@@ -658,7 +661,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
-            queryId = "TEST_32"
+            queryId = "TEST_33"
             query = """select min(o_orderkey) over
                             (
                                 partition by o_orderstatus, o_clerk
