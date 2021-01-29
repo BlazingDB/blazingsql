@@ -17,7 +17,7 @@ Try our 5-min [Welcome Notebook](https://app.blazingsql.com/jupyter/user-redirec
 
 Here's two copy + paste reproducable BlazingSQL snippets, keep scrolling to find [example Notebooks](#examples) below.
 
-Create and query a table from a `cudf.DataFrame`:
+Create and query a table from a `cudf.DataFrame` with progress bar:
 
 ```python
 import cudf
@@ -28,11 +28,11 @@ df['key'] = ['a', 'b', 'c', 'd', 'e']
 df['val'] = [7.6, 2.9, 7.1, 1.6, 2.2]
 
 from blazingsql import BlazingContext
-bc = BlazingContext()
+bc = BlazingContext(enable_progress_bar=True)
 
 bc.create_table('game_1', df)
 
-bc.sql('SELECT * FROM game_1 WHERE val > 4')
+bc.sql('SELECT * FROM game_1 WHERE val > 4') # the query progress will be shown
 ```
 
 | | Key | Value |
