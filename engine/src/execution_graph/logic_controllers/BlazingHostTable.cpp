@@ -9,16 +9,10 @@ namespace ral {
 namespace frame {
 
 BlazingHostTable::BlazingHostTable(const std::vector<ColumnTransport> &columns_offsets,
-                                   std::vector<std::basic_string<char>> &&raw_buffers)
-        : columns_offsets{columns_offsets}, raw_buffers{std::move(raw_buffers)} {
-    auto size = sizeInBytes();
-    blazing_host_memory_resource::getInstance().allocate(size);
-}
+            std::vector<ral::memory::blazing_chunked_buffer> && buffers,
+            std::vector<std::unique_ptr<ral::memory::blazing_allocation_chunk>> && allocations)
+        : columns_offsets{columns_offsets}, buffers{std::move(buffers)}, allocations{std::move(allocations)} {
 
-BlazingHostTable::BlazingHostTable(const std::vector<ColumnTransport> &columns_offsets,
-        std::vector<ral::memory::blazing_chunked_buffer> && buffers,
-        std::vector<std::unique_ptr<ral::memory::blazing_allocation_chunk>> && allocations) {
-            //TODO-WSM 
         }
 
 BlazingHostTable::~BlazingHostTable() {

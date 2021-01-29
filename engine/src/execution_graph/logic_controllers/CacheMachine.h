@@ -386,10 +386,11 @@ private:
 		this->host_table = ral::communication::messages::serialize_gpu_message_to_host_table(gpu_table->toBlazingTableView());
  	}
 
-	CPUCacheData(const std::vector<blazingdb::transport::ColumnTransport> & column_transports,std::vector<std::basic_string<char>> && raw_buffers ,const MetadataDictionary & metadata)
-		: metadata(metadata)
-	{
-
+	CPUCacheData(const std::vector<blazingdb::transport::ColumnTransport> & column_transports,
+    		    std::vector<ral::memory::blazing_chunked_buffer> && buffers,
+        		std::vector<std::unique_ptr<ral::memory::blazing_allocation_chunk>> && allocations,
+				const MetadataDictionary & metadata) : metadata(metadata) {
+		
 		this->cache_type = CacheDataType::CPU;
 		for(int i = 0; i < column_transports.size(); i++){
 			this->col_names.push_back(std::string(column_transports[i].metadata.col_name));
@@ -400,8 +401,8 @@ private:
 		}else{
 			this->n_rows = column_transports[0].metadata.size;
 		}
-		this->host_table = std::make_unique<ral::frame::BlazingHostTable>(column_transports,std::move(raw_buffers));
- 	}
+		this->host_table = std::make_unique<ral::frame::BlazingHostTable>(column_transports,std::move(buffers), std::move(allocations));
+	}
 
 
 	/**

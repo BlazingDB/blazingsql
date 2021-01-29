@@ -23,8 +23,6 @@ class BlazingTable;  // forward declaration
 class BlazingHostTable {
 public:
 
-    BlazingHostTable(const std::vector<ColumnTransport> &columns_offsets, std::vector<std::basic_string<char>> &&raw_buffers);
-
     BlazingHostTable(const std::vector<ColumnTransport> &columns_offsets,
         std::vector<ral::memory::blazing_chunked_buffer> && buffers,
         std::vector<std::unique_ptr<ral::memory::blazing_allocation_chunk>> && allocations);
@@ -53,7 +51,6 @@ public:
 
 private:
     std::vector<ColumnTransport> columns_offsets;
-    std::vector<std::basic_string<char>> raw_buffers; // TODO-WSM, is this going away?
     std::vector<ral::memory::blazing_chunked_buffer> buffers;
     std::vector<std::unique_ptr<ral::memory::blazing_allocation_chunk>> allocations;
 
