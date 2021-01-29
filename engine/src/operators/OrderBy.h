@@ -21,7 +21,6 @@ namespace {
 
 std::tuple<std::vector<int>, std::vector<cudf::order>, cudf::size_type> get_sort_vars(const std::string & query_part);
 
-// TODO: cordova for now we just support one column in the `PARTITION BY` clause
 std::tuple< std::vector<int>, std::vector<cudf::order> > get_vars_to_partition(const std::string & query_part);
 
 std::tuple< std::vector<int>, std::vector<cudf::order> > get_vars_to_orders(const std::string & query_part);

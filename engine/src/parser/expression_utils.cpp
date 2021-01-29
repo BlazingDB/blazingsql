@@ -400,22 +400,6 @@ std::vector<std::string> fix_column_aliases(const std::vector<std::string> & col
 	return col_names;
 }
 
-std::unique_ptr<cudf::aggregation> get_window_aggregate(const std::string & input){
-	if(input == "MIN"){
-		return cudf::make_min_aggregation();
-	} else if(input == "MAX"){
-		return cudf::make_max_aggregation();
-	} else if(input == "COUNT"){
-		return cudf::make_count_aggregation(cudf::null_policy::INCLUDE);
-	} else if(input == "SUM0"){
-		return cudf::make_sum_aggregation();
-	} else if(input == "ROW_NUMBER"){
-		return cudf::make_row_number_aggregation();
-	}
-
-	throw std::runtime_error("In Window Function: " + input + " is not currently supported");
-}
-
 // input: LogicalWindow(window#0=[window(partition {2} aggs [COUNT($0), $SUM0($0)])])
 // output: a vector [0, 0]
 std::vector<int> get_columns_to_apply_window_function(const std::string & query_part) {
@@ -453,7 +437,7 @@ std::vector<int> get_columns_to_apply_window_function(const std::string & query_
 }
 
 // input: LogicalWindow(window#0=[window(partition {2} aggs [COUNT($0), $SUM0($0)])])
-// output: a vector ["COUNT", "SUM0"]
+// output: a vector ["COUNT", "$SUM0"]
 std::vector<std::string> get_window_function_agg(const std::string & query_part) {
 	std::vector<std::string> aggregations;
 	std::string expression_name = "aggs ";
@@ -470,10 +454,6 @@ std::vector<std::string> get_window_function_agg(const std::string & query_part)
 	aggregations = StringUtil::split(reduced_query_part, ",");
 
 	for (std::size_t agg_i; agg_i < aggregations.size(); ++agg_i) {
-		if (aggregations[agg_i].substr(0, 2) == " $") { // TODO: due to SUM()
-			aggregations[agg_i].erase(aggregations[agg_i].begin(), aggregations[agg_i].begin() + 2);
-		}
-
 		std::size_t open_parenthesis = aggregations[agg_i].find('(');
 		aggregations[agg_i] = aggregations[agg_i].substr(0, open_parenthesis);
 		aggregations[agg_i] = StringUtil::trim(aggregations[agg_i]);

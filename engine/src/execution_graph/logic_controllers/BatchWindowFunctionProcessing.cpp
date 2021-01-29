@@ -32,11 +32,15 @@ ComputeWindowKernel::ComputeWindowKernel(std::size_t kernel_id, const std::strin
 // TODO: Support for RANK() and DENSE_RANK() file an cudf feature/request
 // TODO: Support for first_value() and last_value() file an cudf feature/request
 std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_function(cudf::table_view input_cudf_view, cudf::column_view input_col_view, std::size_t pos) {
-
-    std::unique_ptr<cudf::aggregation> window_function = get_window_aggregate(this->aggs_wind_func[pos]);
+    std::unique_ptr<cudf::aggregation> window_function = ral::operators::makeCudfAggregation(this->aggs_wind_func[pos]);
     std::unique_ptr<CudfColumn> windowed_col;
     std::vector<cudf::column_view> table_to_rolling;
-    table_to_rolling.push_back(input_cudf_view.column(this->column_indices_partitioned[0]));
+
+    // want all columns to be partitioned
+    for (std::size_t col_i = 0; col_i < this->column_indices_partitioned.size(); ++col_i) {
+        table_to_rolling.push_back(input_cudf_view.column(this->column_indices_partitioned[col_i]));
+    }
+
     cudf::table_view table_view_with_single_col(table_to_rolling);
 
     if (this->expression.find("order by") != std::string::npos) {
@@ -70,13 +74,19 @@ void ComputeWindowKernel::do_process(std::vector< std::unique_ptr<ral::frame::Bl
 
     // saving the names of the columns and after we will add one by each new col
     std::vector<std::string> input_names = input->names();
-    this->column_indices_wind_funct = get_columns_to_apply_window_function(this->expression);
+    this->column_indices_wind_func = get_columns_to_apply_window_function(this->expression);
     std::tie(this->column_indices_partitioned, std::ignore) = ral::operators::get_vars_to_partition(this->expression);
-    this->aggs_wind_func = get_window_function_agg(this->expression);
+    std::vector<std::string> aggs_wind_func_str = get_window_function_agg(this->expression); // return MIN  MAX  COUNT
+
+    // fill all the Kind aggregations
+    for (std::size_t col_i = 0; col_i < aggs_wind_func_str.size(); ++col_i) {
+        AggregateKind aggr_kind_i = ral::operators::get_aggregation_operation(aggs_wind_func_str[col_i]);
+        this->aggs_wind_func.push_back(aggr_kind_i);
+    }
 
     std::vector< std::unique_ptr<CudfColumn> > new_wind_funct_cols;
-    for (std::size_t col_i = 0; col_i < this->aggs_wind_func.size(); ++col_i) {
-        cudf::column_view input_col_view = input_cudf_view.column(this->column_indices_wind_funct[col_i]);
+    for (std::size_t col_i = 0; col_i < aggs_wind_func_str.size(); ++col_i) {
+        cudf::column_view input_col_view = input_cudf_view.column(column_indices_wind_func[col_i]);
 
         // calling main window function
         std::unique_ptr<CudfColumn> windowed_col = compute_column_from_window_function(input_cudf_view, input_col_view, col_i);
@@ -98,7 +108,8 @@ void ComputeWindowKernel::do_process(std::vector< std::unique_ptr<ral::frame::Bl
         cudf::size_type num_rows = windowed_table->num_rows();
         std::size_t num_bytes = windowed_table->sizeInBytes();
 
-        events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+        if (events_logger) {
+            events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
                         "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
                         "query_id"_a=context->getContextToken(),
                         "kernel_id"_a=this->get_id(),
@@ -109,6 +120,7 @@ void ComputeWindowKernel::do_process(std::vector< std::unique_ptr<ral::frame::Bl
                         "event_type"_a="ComputeWindowKernel compute",
                         "timestamp_begin"_a=eventTimer.start_time(),
                         "timestamp_end"_a=eventTimer.end_time());
+        }
     }
 
     output->addToCache(std::move(windowed_table));

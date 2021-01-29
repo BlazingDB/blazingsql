@@ -2,6 +2,7 @@
 
 #include "BatchProcessing.h"
 #include "operators/OrderBy.h"
+#include "operators/GroupBy.h"
 
 namespace ral {
 namespace batch {
@@ -33,9 +34,9 @@ public:
 	kstatus run() override;
 
 private:
-	std::vector<int> column_indices_partitioned;   // column indices to be partitioned, for now just support one `partition by`
-	std::vector<int> column_indices_wind_funct;    // column indices to be agg, for now just support one `partition by`
-	std::vector<std::string> aggs_wind_func; 
+	std::vector<int> column_indices_partitioned;   // column indices to be partitioned
+	std::vector<int> column_indices_wind_func;     // column indices to be agg
+	std::vector<AggregateKind> aggs_wind_func; 
 };
 
 } // namespace batch
