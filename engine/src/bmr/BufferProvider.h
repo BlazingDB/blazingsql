@@ -21,22 +21,24 @@ namespace memory{
 
 using Buffer = std::basic_string<char>;
 
-
+// forward declarations
 struct blazing_allocation_chunk;
 class base_allocator;
+class allocation_pool;
+
 
 struct blazing_allocation{
 
     std::size_t size;
     char *data;    
     std::stack< std::unique_ptr<blazing_allocation_chunk> > allocation_chunks;
-    base_allocator * pool;
+    allocation_pool * pool;  // this is to know how to free
 };
 
 struct blazing_allocation_chunk{
     std::size_t size;
     char *data;    
-    blazing_allocation * allocation;
+    blazing_allocation * allocation; // this is to know why make it
 };
 
 

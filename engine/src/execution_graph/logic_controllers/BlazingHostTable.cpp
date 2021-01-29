@@ -25,8 +25,7 @@ BlazingHostTable::~BlazingHostTable() {
     auto size = sizeInBytes();
     blazing_host_memory_resource::getInstance().deallocate(size);
     for(auto & allocation : allocations){
-        // TODO-WSM this free_chunk does not belong to pool?
-        // allocation->allocation->pool->free_chunk(std::move(allocation));
+        allocation->allocation->pool->free_chunk(std::move(allocation));
     }
 }
 
@@ -90,8 +89,7 @@ std::unique_ptr<BlazingTable> BlazingHostTable::get_gpu_table() const {
                 size_t chunk_index = chunked_buffer.chunk_index[i];
                 size_t offset = chunked_buffer.offset[i];
                 size_t chunk_size = chunked_buffer.size[i];
-                //TODO-WSM allocations[chunk_index].data is not a thing
-                // cudaMemcpyAsync((void *) (gpu_raw_buffers[buffer_index].data() + position), allocations[chunk_index].data + offset, chunk_size, cudaMemcpyHostToDevice,0);
+                cudaMemcpyAsync((void *) (gpu_raw_buffers[buffer_index].data() + position), allocations[chunk_index]->data + offset, chunk_size, cudaMemcpyHostToDevice,0);
                 position += chunk_size;
             }
             buffer_index++;
