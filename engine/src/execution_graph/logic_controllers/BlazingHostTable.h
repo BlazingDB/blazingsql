@@ -4,6 +4,7 @@
 #include <string>
 #include "cudf/types.hpp"
 #include "transport/ColumnTransport.h"
+#include "bmr/BufferProvider.h"
 
 namespace ral {
 namespace frame {
