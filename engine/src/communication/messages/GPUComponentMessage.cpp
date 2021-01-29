@@ -115,7 +115,7 @@ gpu_raw_buffer_container serialize_gpu_message_to_gpu_containers(ral::frame::Bla
 	return std::make_tuple(buffer_sizes, raw_buffers, column_offset, std::move(temp_scope_holder));
 }
 
-std::unique_ptr<ral::frame::BlazingHostTable> serialize_gpu_message_to_host_table(ral::frame::BlazingTableView table_view,bool use_pinned) {
+std::unique_ptr<ral::frame::BlazingHostTable> serialize_gpu_message_to_host_table(ral::frame::BlazingTableView table_view, bool use_pinned) {
 	std::vector<std::size_t> buffer_sizes;
 	std::vector<const char *> raw_buffers;
 	std::vector<ColumnTransport> column_offset;
