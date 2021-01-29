@@ -12,6 +12,7 @@
 - #1289 Multiple concurrent query support 
 - #1285 Infer PROTOCOL when Dask client is passed
 - #1294 Add config options for logger
+- #1284 Initial support for Windows Function
 
 ## Improvements
 - #1236 Moving code from header files to implementation files

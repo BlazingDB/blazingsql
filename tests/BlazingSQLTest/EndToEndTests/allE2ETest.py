@@ -19,8 +19,10 @@ from EndToEndTests import columnBasisTest as columnBasisTest
 from EndToEndTests import (
     commonTableExpressionsTest,
     concatTest,
+    configOptionsTest,
     countWithoutGroupByTest,
     dateTest,
+    dayOfWeekTest,
     dirTest,
     fileSystemGSTest,
     fileSystemLocalTest,
@@ -34,7 +36,9 @@ from EndToEndTests import leftOuterJoinsTest as leftOuterJoinsTest
 from EndToEndTests import (
     likeTest,
     literalTest,
+    loggingTest,
     # loadDataTest,
+    messageValidationTest,
     nestedQueriesTest,
     nonEquiJoinsTest,
 )
@@ -58,12 +62,9 @@ from EndToEndTests import unionTest as unionTest
 from EndToEndTests import useLimitTest
 from EndToEndTests import whereClauseTest as whereClauseTest
 from EndToEndTests import wildCardTest
-from EndToEndTests import messageValidationTest
-from EndToEndTests import configOptionsTest
 from EndToEndTests import smilesTest
-from EndToEndTests import loggingTest
-from EndToEndTests import dayOfWeekTest
 from EndToEndTests import jsonTest
+from EndToEndTests import windowFunctionTest
 from pynvml import nvmlInit
 from Runner import runTest
 from Utils import Execution, init_context
@@ -275,6 +276,9 @@ def main():
 
     if runAllTests or ("jsonTest" in targetTestGroups):
         jsonTest.main(dask_client, drill, dir_data_file, bc, nRals)
+
+    if runAllTests or ("windowFunctionTest" in targetTestGroups):
+        windowFunctionTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     # WARNING!!! This Test must be the last one to test -------------------------------------------------------------------------------------------------------------------------------------------
     if runAllTests or ("configOptionsTest" in targetTestGroups):

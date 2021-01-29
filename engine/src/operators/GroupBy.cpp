@@ -97,6 +97,8 @@ AggregateKind get_aggregation_operation(std::string expression_in) {
 		return AggregateKind::MIN;
 	} else if(operator_string == "MAX") {
 		return AggregateKind::MAX;
+	} else if(operator_string == "ROW_NUMBER") {
+		return AggregateKind::ROW_NUMBER;
 	} else if(operator_string == "COUNT") {
 		return AggregateKind::COUNT_VALID;
 	} else if(operator_string == "COUNT_DISTINCT") {
@@ -120,6 +122,8 @@ std::unique_ptr<cudf::aggregation> makeCudfAggregation(AggregateKind input){
 		return cudf::make_min_aggregation();
 	}else if(input == AggregateKind::MAX){
 		return cudf::make_max_aggregation();
+	}else if(input == AggregateKind::ROW_NUMBER) {
+		return cudf::make_row_number_aggregation();
 	}else if(input == AggregateKind::COUNT_VALID){
 		return cudf::make_count_aggregation(cudf::null_policy::EXCLUDE);
 	}else if(input == AggregateKind::COUNT_ALL){
@@ -220,7 +224,7 @@ std::tuple<std::vector<int>, std::vector<std::string>, std::vector<AggregateKind
 using namespace ral::distribution;
 
 std::unique_ptr<ral::frame::BlazingTable> compute_groupby_without_aggregations(
-		const ral::frame::BlazingTableView & table, const std::vector<int> & group_column_indices) {
+	const ral::frame::BlazingTableView & table, const std::vector<int> & group_column_indices) {
 
 	std::unique_ptr<cudf::table> output = cudf::drop_duplicates(table.view(),
 		group_column_indices,
