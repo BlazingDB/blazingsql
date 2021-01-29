@@ -69,22 +69,6 @@ ucp_context_h CreateUcpContext() {
    return ucp_context;
  }
 
-ucp_worker_h CreateUcpWorker(ucp_context_h ucp_context) {
-   ucp_worker_params_t worker_params;
-   std::memset(&worker_params, 0, sizeof(worker_params));
-   worker_params.field_mask = UCP_WORKER_PARAM_FIELD_THREAD_MODE;
-   worker_params.thread_mode = UCS_THREAD_MODE_MULTI;  // UCS_THREAD_MODE_SINGLE;
-
-   ucp_worker_h ucp_worker;
-   ucs_status_t status =
-       ucp_worker_create(ucp_context, &worker_params, &ucp_worker);
-   CheckError(status != UCS_OK, "ucp_worker_create", [&ucp_context]() {
-     ucp_cleanup(ucp_context);
-   });
-
-   return ucp_worker;
- }
-
 
 TEST_F(AllocationPoolTest, initialize_test) {
 	std::size_t size_buffers_host = 4000000;
