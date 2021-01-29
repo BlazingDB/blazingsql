@@ -419,7 +419,7 @@ private:
 	* @return A unique_ptr to a BlazingTable
  	*/
  	std::unique_ptr<ral::frame::BlazingTable> decache() override {
- 		return std::move(host_table.get_gpu_table());
+ 		return std::move(host_table->get_gpu_table());
  	}
 
 	/**

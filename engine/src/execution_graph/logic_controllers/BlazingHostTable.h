@@ -2,9 +2,11 @@
 
 #include <vector>
 #include <string>
+#include <memory>
 #include "cudf/types.hpp"
 #include "transport/ColumnTransport.h"
 #include "bmr/BufferProvider.h"
+#include "LogicPrimitives.h"
 
 namespace ral {
 namespace frame {
@@ -19,9 +21,12 @@ using ColumnTransport = blazingdb::transport::ColumnTransport;
 */ 
 class BlazingHostTable {
 public:
+
+    BlazingHostTable(const std::vector<ColumnTransport> &columns_offsets, std::vector<std::basic_string<char>> &&raw_buffers);
+
     BlazingHostTable(const std::vector<ColumnTransport> &columns_offsets,
-    std::vector<ral::memory::blazing_chunked_buffer> && buffers,
-    std::vector<std::unique_ptr<ral::memory::blazing_allocation_chunk> && allocations);
+        std::vector<ral::memory::blazing_chunked_buffer> && buffers,
+        std::vector<std::unique_ptr<ral::memory::blazing_allocation_chunk>> && allocations);
 
     ~BlazingHostTable();
 
@@ -41,14 +46,15 @@ public:
 
     const std::vector<ColumnTransport> & get_columns_offsets() const ;
 
-    std::vector<rmm::device_buffer> & get_gpu_table() const;
+    std::unique_ptr<BlazingTable> get_gpu_table() const;
 
-    std::vector<ral::memory::blazing_allocation_chunk> BlazingHostTable::get_raw_buffers();
+    std::vector<ral::memory::blazing_allocation_chunk> get_raw_buffers();
 
 private:
     std::vector<ColumnTransport> columns_offsets;
+    std::vector<std::basic_string<char>> raw_buffers; // TODO-WSM, is this going away?
     std::vector<ral::memory::blazing_chunked_buffer> buffers;
-    std::vector<std::unique_ptr<ral::memory::blazing_allocation_chunk> allocations;
+    std::vector<std::unique_ptr<ral::memory::blazing_allocation_chunk>> allocations;
 
     
     size_t part_id;

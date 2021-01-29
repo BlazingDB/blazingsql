@@ -23,6 +23,7 @@ using Buffer = std::basic_string<char>;
 
 
 struct blazing_allocation_chunk;
+class base_allocator;
 
 struct blazing_allocation{
 

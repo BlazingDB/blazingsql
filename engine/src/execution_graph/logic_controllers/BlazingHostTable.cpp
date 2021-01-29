@@ -1,5 +1,9 @@
 #include "BlazingHostTable.h"
 #include "bmr/BlazingMemoryResource.h"
+#include "bmr/BufferProvider.h"
+#include "communication/CommunicationInterface/serializer.hpp"
+
+using namespace fmt::literals;
 
 namespace ral {
 namespace frame {
@@ -11,11 +15,18 @@ BlazingHostTable::BlazingHostTable(const std::vector<ColumnTransport> &columns_o
     blazing_host_memory_resource::getInstance().allocate(size);
 }
 
+BlazingHostTable::BlazingHostTable(const std::vector<ColumnTransport> &columns_offsets,
+        std::vector<ral::memory::blazing_chunked_buffer> && buffers,
+        std::vector<std::unique_ptr<ral::memory::blazing_allocation_chunk>> && allocations) {
+            //TODO-WSM 
+        }
+
 BlazingHostTable::~BlazingHostTable() {
     auto size = sizeInBytes();
     blazing_host_memory_resource::getInstance().deallocate(size);
     for(auto & allocation : allocations){
-        allocation->allocation->pool->free_chunk(std::move(allocation));
+        // TODO-WSM this free_chunk does not belong to pool?
+        // allocation->allocation->pool->free_chunk(std::move(allocation));
     }
 }
 
@@ -65,7 +76,7 @@ const std::vector<ColumnTransport> &BlazingHostTable::get_columns_offsets() cons
 
 
 
-std::unique_ptr<ral::frame::BlazingTable> gpu_raw_buffers BlazingHostTable::get_gpu_table() const {
+std::unique_ptr<BlazingTable> BlazingHostTable::get_gpu_table() const {
 
     std::vector<rmm::device_buffer> gpu_raw_buffers(buffers.size());
 	
@@ -73,13 +84,14 @@ std::unique_ptr<ral::frame::BlazingTable> gpu_raw_buffers BlazingHostTable::get_
         
         int buffer_index = 0;
         for(auto & chunked_buffer : buffers){
-            gpu_raw_buffers[buffer_index].resize(buffer.use_size);
+            gpu_raw_buffers[buffer_index].resize(chunked_buffer.use_size);
             size_t position = 0;
             for(size_t i = 0; i < chunked_buffer.chunk_index.size(); i++){
                 size_t chunk_index = chunked_buffer.chunk_index[i];
                 size_t offset = chunked_buffer.offset[i];
                 size_t chunk_size = chunked_buffer.size[i];
-                cudaMemcpyAsync((void *) (gpu_raw_buffers[buffer_index].data() + position), allocations[chunk_index].data + offset, chunk_size, cudaMemcpyHostToDevice,0);
+                //TODO-WSM allocations[chunk_index].data is not a thing
+                // cudaMemcpyAsync((void *) (gpu_raw_buffers[buffer_index].data() + position), allocations[chunk_index].data + offset, chunk_size, cudaMemcpyHostToDevice,0);
                 position += chunk_size;
             }
             buffer_index++;
@@ -93,18 +105,18 @@ std::unique_ptr<ral::frame::BlazingTable> gpu_raw_buffers BlazingHostTable::get_
         }
 		throw;
 	}
-    return std::move(deserialize_from_gpu_raw_buffers(columns_offsets,
+    return std::move(comm::deserialize_from_gpu_raw_buffers(columns_offsets,
 									  gpu_raw_buffers));
 }
 
 std::vector<ral::memory::blazing_allocation_chunk> BlazingHostTable::get_raw_buffers(){
-    std::vector<blazing_allocation_chunk> chunks;
+    std::vector<ral::memory::blazing_allocation_chunk> chunks;
     for(auto & chunk : allocations){
-        blazing_allocation_chunk new_chunk;
-        new_chunk.size = chunk.size;
-        new_chunk.data = chunk.data;
+        ral::memory::blazing_allocation_chunk new_chunk;
+        new_chunk.size = chunk->size;
+        new_chunk.data = chunk->data;
         new_chunk.allocation = nullptr;
-        chunks.push_back(new_chunk)
+        chunks.push_back(new_chunk);
     }
 
     return chunks;
