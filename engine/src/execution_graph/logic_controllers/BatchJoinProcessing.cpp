@@ -997,16 +997,6 @@ ral::execution::task_result JoinPartitionKernel::do_process(std::vector<std::uni
 				small_output_cache_name, //cache_id
 				small_table_idx //message_tracker_idx
 			);
-		}	else if (operation_type == "big_table_passthrough") {
-			input_consumed = true;
-			std::string big_output_cache_name = scatter_left_right.first ? "output_b" : "output_a";
-			int big_table_idx = scatter_left_right.first ? RIGHT_TABLE_IDX : LEFT_TABLE_IDX;
-
-			bool added = this->add_to_output_cache(std::move(input), big_output_cache_name);
-			if (added) {
-				auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
-				increment_node_count(self_node.id(), big_table_idx);
-			}
 		} else if (operation_type == "hash_partition") {
 			bool normalize_types;
 			int table_idx;

@@ -265,25 +265,15 @@ ral::execution::task_result BindableTableScan::do_process(std::vector< std::uniq
     std::shared_ptr<ral::cache::CacheMachine> output,
     cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) {
     auto & input = inputs[0];
-    std::unique_ptr<ral::frame::BlazingTable> columns;
+    std::unique_ptr<ral::frame::BlazingTable> filtered_input;
 
     try{
         if(this->filtered) {
-            columns = ral::processor::process_filter(input->toBlazingTableView(), expression, this->context.get());
-            columns->setNames(fix_column_aliases(columns->names(), expression));
+            filtered_input = ral::processor::process_filter(input->toBlazingTableView(), expression, this->context.get());
+            filtered_input->setNames(fix_column_aliases(filtered_input->names(), expression));
+            output->addToCache(std::move(filtered_input));
         } else {
             input->setNames(fix_column_aliases(input->names(), expression));
-        }
-    }catch(rmm::bad_alloc e){
-        return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
-    }catch(std::exception e){
-        return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
-    }
-
-    try{
-        if(this->filtered) {
-            output->addToCache(std::move(columns));
-        } else {
             output->addToCache(std::move(input));
         }
     }catch(rmm::bad_alloc e){
@@ -292,6 +282,7 @@ ral::execution::task_result BindableTableScan::do_process(std::vector< std::uniq
     }catch(std::exception e){
         return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }
+
     return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
 }
 

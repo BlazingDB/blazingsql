@@ -123,14 +123,18 @@ void task::run(cudaStream_t stream, executor * executor){
     }else if(task_result.status == ral::execution::task_status::RETRY){
         std::size_t i = 0;
         for(auto & input : inputs){
-            if  (input->get_type() == ral::cache::CacheDataType::GPU || input->get_type() == ral::cache::CacheDataType::GPU_METADATA){
-                //this was a gpu cachedata so now its not valid
-                if(input_gpu.size() > 0 && i <= input_gpu.size()){
-                    static_cast<ral::cache::GPUCacheData *>(input.get())->set_data(std::move(input_gpu[i]));
-                }else{
-                    //the input was lost and it was a gpu dataframe which is not recoverable
-                    throw rmm::bad_alloc(task_result.what.c_str());
+            if(input != nullptr){
+                if  (input->get_type() == ral::cache::CacheDataType::GPU || input->get_type() == ral::cache::CacheDataType::GPU_METADATA){
+                    //this was a gpu cachedata so now its not valid
+                    if(task_result.inputs.size() > 0 && i <= task_result.inputs.size()){
+                        static_cast<ral::cache::GPUCacheData *>(input.get())->set_data(std::move(task_result.inputs[i]));
+                    }else{
+                        //the input was lost and it was a gpu dataframe which is not recoverable
+                        throw rmm::bad_alloc(task_result.what.c_str());
+                    }
                 }
+            } else {
+                throw std::runtime_error("Input is null, cannot recover");
             }
             i++;
         }
