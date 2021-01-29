@@ -142,8 +142,10 @@ data_handle uri_data_provider::get_next(bool open_file) {
 			} 
 		} catch(const std::exception & e) {
 			std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
-			logger->error("|||{info}|||||",
-										"info"_a="In uri_data_provider::get_next. What: {}"_format(e.what()));
+			if(logger){
+                logger->error("|||{info}|||||",
+                                            "info"_a="In uri_data_provider::get_next. What: {}"_format(e.what()));
+			}
 			throw;
 		} catch(...) {
 			throw;
@@ -195,8 +197,8 @@ data_handle uri_data_provider::get_next(bool open_file) {
 			if(this->directory_uris.size()==0){
 				this->current_file++;
 
-				auto logger = spdlog::get("batch_logger");
-				if(logger != nullptr) {
+                std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
+				if(logger) {
 					logger->warn("|||{info}|||||", "info"_a="Folder is empty");
 				}
 

@@ -12,7 +12,7 @@ std::shared_ptr<ral::cache::graph> generate_graph(std::vector<ral::io::data_load
 	Context & queryContext) {
 
 	CodeTimer blazing_timer;
-	auto logger = spdlog::get("batch_logger");
+    std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
 
 	try {
 		assert(input_loaders.size() == table_names.size());
@@ -31,11 +31,13 @@ std::shared_ptr<ral::cache::graph> generate_graph(std::vector<ral::io::data_load
 		auto max_kernel_id = std::get<1>(query_graph_and_max_kernel_id);
 		auto output = std::shared_ptr<ral::cache::kernel>(new ral::batch::OutputKernel(max_kernel_id, queryContext.clone()));
 
-		logger->info("{query_id}|{step}|{substep}|{info}|||||",
-									"query_id"_a=queryContext.getContextToken(),
-									"step"_a=queryContext.getQueryStep(),
-									"substep"_a=queryContext.getQuerySubstep(),
-									"info"_a="\"Query Start\n{}\""_format(tree->to_string()));
+		if(logger){
+            logger->info("{query_id}|{step}|{substep}|{info}|||||",
+                                        "query_id"_a=queryContext.getContextToken(),
+                                        "step"_a=queryContext.getQueryStep(),
+                                        "substep"_a=queryContext.getQuerySubstep(),
+                                        "info"_a="\"Query Start\n{}\""_format(tree->to_string()));
+		}
 
 		std::string tables_info = "";
 		for (size_t i = 0; i < table_names.size(); i++){
@@ -51,11 +53,13 @@ std::shared_ptr<ral::cache::graph> generate_graph(std::vector<ral::io::data_load
 				}
 			}
 		}
-		logger->info("{query_id}|{step}|{substep}|{info}|||||",
-									"query_id"_a=queryContext.getContextToken(),
-									"step"_a=queryContext.getQueryStep(),
-									"substep"_a=queryContext.getQuerySubstep(),
-									"info"_a="\"" + tables_info + "\"");
+		if(logger){
+            logger->info("{query_id}|{step}|{substep}|{info}|||||",
+                                        "query_id"_a=queryContext.getContextToken(),
+                                        "step"_a=queryContext.getQueryStep(),
+                                        "substep"_a=queryContext.getQuerySubstep(),
+                                        "info"_a="\"" + tables_info + "\"");
+		}
 
 		std::map<std::string, std::string> config_options = queryContext.getConfigOptions();
 		// Lets build a string with all the configuration parameters set.
@@ -66,12 +70,14 @@ std::shared_ptr<ral::cache::graph> generate_graph(std::vector<ral::io::data_load
 			config_info += it->first + ": " + it->second + "; ";
 			it++;
 		}
-		logger->info("{query_id}|{step}|{substep}|{info}|{duration}||||",
-									"query_id"_a=queryContext.getContextToken(),
-									"step"_a=queryContext.getQueryStep(),
-									"substep"_a=queryContext.getQuerySubstep(),
-									"info"_a="\"Config Options: {}\""_format(config_info),
-									"duration"_a="");
+		if(logger){
+            logger->info("{query_id}|{step}|{substep}|{info}|{duration}||||",
+                                        "query_id"_a=queryContext.getContextToken(),
+                                        "step"_a=queryContext.getQueryStep(),
+                                        "substep"_a=queryContext.getQuerySubstep(),
+                                        "info"_a="\"Config Options: {}\""_format(config_info),
+                                        "duration"_a="");
+		}
 
 		if (query_graph->num_nodes() > 0) {
 			ral::cache::cache_settings cache_machine_config;
@@ -85,23 +91,28 @@ std::shared_ptr<ral::cache::graph> generate_graph(std::vector<ral::io::data_load
 			// useful when the Algebra Relacional only contains: ScanTable (or BindableScan) and Limit
 			query_graph->check_for_simple_scan_with_limit_query();
 		}
+		query_graph->check_and_complete_work_flow();
+		query_graph->set_kernels_order();
+
 		auto  mem_monitor = std::make_shared<ral::MemoryMonitor>(tree,config_options);
 		query_graph->set_memory_monitor(mem_monitor);
 		return query_graph;
 	} catch(const std::exception& e) {
-		logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
-									"query_id"_a=queryContext.getContextToken(),
-									"step"_a=queryContext.getQueryStep(),
-									"substep"_a=queryContext.getQuerySubstep(),
-									"info"_a="In generate_graph. What: {}"_format(e.what()),
-									"duration"_a="");
+		if(logger){
+            logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+                                        "query_id"_a=queryContext.getContextToken(),
+                                        "step"_a=queryContext.getQueryStep(),
+                                        "substep"_a=queryContext.getQuerySubstep(),
+                                        "info"_a="In generate_graph. What: {}"_format(e.what()),
+                                        "duration"_a="");
+		}
 		throw;
 	}
 }
 
-std::vector<std::unique_ptr<ral::frame::BlazingTable>> execute_graph(std::shared_ptr<ral::cache::graph> graph) {
+void start_execute_graph(std::shared_ptr<ral::cache::graph> graph) {
 	CodeTimer blazing_timer;
-	auto logger = spdlog::get("batch_logger");
+    std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
 	uint32_t context_token = graph->get_last_kernel()->get_context()->getContextToken();
 
 	try {
@@ -113,27 +124,53 @@ std::vector<std::unique_ptr<ral::frame::BlazingTable>> execute_graph(std::shared
 			max_kernel_run_threads = std::stoi(config_options["MAX_KERNEL_RUN_THREADS"]);
 		}
 
-		graph->execute(max_kernel_run_threads);
+		graph->start_execute(max_kernel_run_threads);
+
+	} catch(const std::exception& e) {
+	    if(logger){
+            logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+                                        "query_id"_a=context_token,
+                                        "step"_a="",
+                                        "substep"_a="",
+                                        "info"_a="In start_execute_graph. What: {}"_format(e.what()),
+                                        "duration"_a="");
+	    }
+		throw;
+	}
+}
+
+std::vector<std::unique_ptr<ral::frame::BlazingTable>> get_execute_graph_results(std::shared_ptr<ral::cache::graph> graph) {
+	CodeTimer blazing_timer;
+    std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
+	uint32_t context_token = graph->get_last_kernel()->get_context()->getContextToken();
+
+	try {
+
+		graph->finish_execute();
 
 		auto output_frame = static_cast<ral::batch::OutputKernel&>(*(graph->get_last_kernel())).release();
 		assert(!output_frame.empty());
 
-		logger->info("{query_id}|{step}|{substep}|{info}|{duration}||||",
-									"query_id"_a=context_token,
-									"step"_a="",
-									"substep"_a="",
-									"info"_a="Query Execution Done",
-									"duration"_a=blazing_timer.elapsed_time());
-		logger->flush();
+		if(logger){
+            logger->info("{query_id}|{step}|{substep}|{info}|{duration}||||",
+                                        "query_id"_a=context_token,
+                                        "step"_a="",
+                                        "substep"_a="",
+                                        "info"_a="Query Execution Done",
+                                        "duration"_a=blazing_timer.elapsed_time());
+            logger->flush();
+		}
 
 		return output_frame;
 	} catch(const std::exception& e) {
-		logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
-									"query_id"_a=context_token,
-									"step"_a="",
-									"substep"_a="",
-									"info"_a="In execute_graph. What: {}"_format(e.what()),
-									"duration"_a="");
+	    if(logger){
+            logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+                                        "query_id"_a=context_token,
+                                        "step"_a="",
+                                        "substep"_a="",
+                                        "info"_a="In get_execute_graph_results. What: {}"_format(e.what()),
+                                        "duration"_a="");
+	    }
 		throw;
 	}
 }

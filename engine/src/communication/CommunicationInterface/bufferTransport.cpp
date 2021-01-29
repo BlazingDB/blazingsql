@@ -129,8 +129,8 @@ void buffer_transport::wait_for_begin_transmission() {
 	while(!completion_condition_variable.wait_for(lock, 1000ms, [&blazing_timer, this] {
 		bool done_waiting = transmitted_begin_frames >= destinations.size();
 		if (!done_waiting && blazing_timer.elapsed_time() > 990) {
-			auto logger = spdlog::get("batch_logger");
-			if(logger != nullptr) {
+            std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
+			if(logger) {
 				logger->warn("|||{info}|{duration}||||",
 									"info"_a="buffer_transport::wait_for_begin_transmission() timed out. transmitted_begin_frames: " + std::to_string(transmitted_begin_frames) + " destinations.size(): " + std::to_string(destinations.size()),
 									"duration"_a=blazing_timer.elapsed_time());
@@ -161,8 +161,8 @@ void buffer_transport::wait_until_complete() {
 						missing_parts += elem.first + ",";
 					}
                 });
-			auto logger = spdlog::get("batch_logger");
-			if(logger != nullptr) {
+			std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
+			if(logger) {
 				logger->warn("|||{info}|{duration}|{missing_parts}|||",
 									"info"_a="buffer_transport::wait_until_complete() timed out. transmitted_frames: " + std::to_string(transmitted_frames) + " buffer_sizes.size(): " + std::to_string(buffer_sizes.size()) + " destinations.size(): " + std::to_string(destinations.size()),
 									"missing_parts"_a=missing_parts,

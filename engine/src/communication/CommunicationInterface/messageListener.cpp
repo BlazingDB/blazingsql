@@ -70,7 +70,7 @@ void poll_for_frames(std::shared_ptr<message_receiver> receiver,
 				}
 		}
 	} catch(std::exception & e){
-        auto logger = spdlog::get("batch_logger");
+        std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
         if (logger){
             logger->error("|||{info}|||||",
                     "info"_a="ERROR in poll_for_frames. What: {}"_format(e.what()));
@@ -139,8 +139,7 @@ void tcp_message_listener::start_polling() {
 			while(true) {
 				int accepted_conection = (connection_fd = accept(socket_fd, (struct sockaddr *) &client_address, &len));
 				if(accepted_conection == -1){
-											std::shared_ptr<spdlog::logger> logger;
-						logger = spdlog::get("batch_logger");
+                        std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
 						if (logger){
 							logger->error("|||{info}|||||",
 									"info"_a="ERROR in message_listener::run_polling() calling except. errno: {}"_format(errno));
@@ -191,8 +190,7 @@ void tcp_message_listener::start_polling() {
 						//	cudaStreamDestroy(stream);
 					}catch(std::exception & e){
 						close(connection_fd);
-						std::shared_ptr<spdlog::logger> logger;
-						logger = spdlog::get("batch_logger");
+						std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
 
 						if (logger){
 							logger->error("|||{info}|||||",
@@ -252,7 +250,7 @@ void ucx_message_listener::poll_begin_message_tag(bool running_from_unit_test){
 						}
 				}
 			} catch(std::exception & e){
-				auto logger = spdlog::get("batch_logger");
+                std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
 				if (logger){
 					logger->error("|||{info}|||||",
 							"info"_a="ERROR in ucx_message_listener::poll_begin_message_tag. What: {}"_format(e.what()));
@@ -331,7 +329,7 @@ ucx_message_listener::ucx_message_listener(ucp_context_h context, ucp_worker_h w
 		_request_size = attr.request_size;
 		ucp_progress_manager::get_instance(worker,_request_size);
 	} catch(std::exception & e){
-        auto logger = spdlog::get("batch_logger");
+        std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
         if (logger){
             logger->error("|||{info}|||||",
                     "info"_a="ERROR in ucx_message_listener::ucx_message_listener. What: {}"_format(e.what()));

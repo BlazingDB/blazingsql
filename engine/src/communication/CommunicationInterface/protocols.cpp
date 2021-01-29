@@ -48,7 +48,7 @@ namespace io{
                 throw std::runtime_error("Could not read complete message from socket with errno "  + std::to_string(errno));
             }
         } catch(std::exception & e){
-            auto logger = spdlog::get("batch_logger");
+            std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
             if (logger){
                 logger->error("|||{info}|||||",
                         "info"_a="ERROR in read_from_socket. What: {}"_format(e.what()));
@@ -87,7 +87,7 @@ namespace io{
                 throw std::runtime_error("Could not write complete message to socket with errno " +std::to_string(errno));   
             }
         } catch(std::exception & e){
-            auto logger = spdlog::get("batch_logger");
+            std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
             if (logger){
                 logger->error("|||{info}|||||",
                         "info"_a="ERROR in write_to_socket. What: {}"_format(e.what()));
@@ -115,7 +115,7 @@ ucp_progress_manager * ucp_progress_manager::get_instance(ucp_worker_h ucp_worke
 
 ucp_progress_manager * ucp_progress_manager::get_instance() {
 	if(instance == nullptr){
-        auto logger = spdlog::get("batch_logger");
+        std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
         if (logger){
             logger->error("|||{info}|||||",
                     "info"_a="ERROR in ucp_progress_manager (in blazing) not initialized.");
@@ -211,7 +211,7 @@ void ucp_progress_manager::check_progress(){
 
         }
     } catch(std::exception & e){
-        auto logger = spdlog::get("batch_logger");
+        std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
         if (logger){
             logger->error("|||{info}|||||",
                     "info"_a="ERROR in ucp_progress_manager::check_progress() here. What: {}"_format(e.what()));
@@ -293,7 +293,7 @@ void ucx_buffer_transport::send_begin_transmission() {
         }
         reinterpret_cast<blazing_ucp_tag *>(&tag)->frame_id++;
     } catch(std::exception & e){
-        auto logger = spdlog::get("batch_logger");
+        std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
         if (logger){
             logger->error("|||{info}|||||",
                     "info"_a="ERROR in ucx_buffer_transport::send_begin_transmission(). What: {}"_format(e.what()));
@@ -322,7 +322,7 @@ void ucx_buffer_transport::send_impl(const char * buffer, size_t buffer_size) {
         }
         reinterpret_cast<blazing_ucp_tag *>(&tag)->frame_id++;
     } catch(std::exception & e){
-        auto logger = spdlog::get("batch_logger");
+        std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
         if (logger){
             logger->error("|||{info}|||||",
                     "info"_a="ERROR in ucx_buffer_transport::send_impl. What: {}"_format(e.what()));
@@ -446,7 +446,7 @@ void tcp_buffer_transport::send_impl(const char * buffer, size_t buffer_size){
         }
         
     }catch(const std::exception & e ){
-        auto logger = spdlog::get("batch_logger");
+        std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
         if (logger){
             logger->error("|||{info}|||||",
                     "info"_a="ERROR in tcp_buffer_transport::send_impl. What: {}"_format(e.what()));

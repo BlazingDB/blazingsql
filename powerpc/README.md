@@ -27,6 +27,7 @@ You need these dependencies, they can be provided by OS package system (e.g. apt
 - lsf-tools 2.0
 - hwloc
 - gdrcopy
+- nccl
 
 ### Setup the environment
 Using regular python you just need to make sure that you have an environment.
@@ -79,7 +80,7 @@ The following instructions are for building on Summit. They are similar to the i
 unset CMAKE_PREFIX_PATH # make sure no conflicting library versions are found
 module load gcc/7.4.0
 module load python/3.7.0
-module load cmake/3.17.3
+module load cmake/3.18.2
 module load boost/1.66.0
 module load cuda/10.1.243
 module load zlib
@@ -107,7 +108,17 @@ python -m venv $VIRTUAL_ENV
 source $VIRTUAL_ENV/bin/activate
 ```
 
-4. Make sure you are in the `blazingsql` folder and run the build script and pass your environment folder as argument:
+4. Download and install nccl
+* download local installer from https://developer.nvidia.com/nccl
+* (have to register and answer questionnaire)
+* Power  "O/S agnostic local installer"
+```shell
+tar xvfk nccl_2.7.6-1+cuda10.1_ppc64le.txz
+cp -r nccl_2.7.6-1+cuda10.1_ppc64le/lib/* $VIRTUAL_ENV/lib/
+cp -r nccl_2.7.6-1+cuda10.1_ppc64le/include/* $VIRTUAL_ENV/include/
+```
+
+5. Make sure you are in the `blazingsql` folder and run the build script and pass your environment folder as argument:
 ```shell
 cd blazingsql
 nohup sh powerpc/build.sh $VIRTUAL_ENV &
@@ -118,7 +129,7 @@ Notes:
 * Near the end of the process, you will be prompted to answer some questions for the installation of JAVA.
 * This build process will install cudf and its dependencies (dask-cudf, arrow, etc.), llvm, compiled python packages like (llvmlite, cupy, etc.) and blazingsql.
 
-5. Add the library directory to your `LD_LIBRARY_PATH`, e.g. upon activation of the environment:
+6. Add the library directory to your `LD_LIBRARY_PATH`, e.g. upon activation of the environment:
 ```shell
 patch $VIRTUAL_ENV/bin/activate powerpc/activate.patch
 ```

@@ -141,7 +141,7 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(uint32_t masterIndex,
 	std::tie(input_loaders, schemas) = get_loaders_and_schemas(tableSchemas, tableSchemaCppArgKeys,
 		tableSchemaCppArgValues, filesAll, fileTypes, uri_values);
 
-	auto logger = spdlog::get("queries_logger");
+    std::shared_ptr<spdlog::logger> logger = spdlog::get("queries_logger");
 
 	using blazingdb::manager::Context;
 	using blazingdb::transport::Node;
@@ -155,12 +155,14 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(uint32_t masterIndex,
 	Context queryContext{static_cast<uint32_t>(ctxToken), contextNodes, contextNodes[masterIndex], "", config_options};
 	CodeTimer eventTimer(true);
 	sql = "'" + sql + "'";
-	logger->info("{ral_id}|{query_id}|{start_time}|{plan}|{sql}",
-									"ral_id"_a=queryContext.getNodeIndex(communicationData.getSelfNode()),
-									"query_id"_a=queryContext.getContextToken(),
-									"start_time"_a=eventTimer.start_time(),
-									"plan"_a=query,
-									"sql"_a=sql);
+	if(logger){
+        logger->info("{ral_id}|{query_id}|{start_time}|{plan}|{sql}",
+                                        "ral_id"_a=queryContext.getNodeIndex(communicationData.getSelfNode()),
+                                        "query_id"_a=queryContext.getContextToken(),
+                                        "start_time"_a=eventTimer.start_time(),
+                                        "plan"_a=query,
+                                        "sql"_a=sql);
+	}
 
 	auto graph = generate_graph(input_loaders, schemas, tableNames, tableScans, query, queryContext);
 
@@ -168,10 +170,15 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(uint32_t masterIndex,
 	return graph;
 }
 
-std::unique_ptr<PartitionedResultSet> runExecuteGraph(std::shared_ptr<ral::cache::graph> graph, int32_t ctx_token) {
+void startExecuteGraph(std::shared_ptr<ral::cache::graph> graph, int32_t ctx_token) {
+	start_execute_graph(graph);
+}
+
+std::unique_ptr<PartitionedResultSet> getExecuteGraphResult(std::shared_ptr<ral::cache::graph> graph, int32_t ctx_token) {
 	// Execute query
+
 	std::vector<std::unique_ptr<ral::frame::BlazingTable>> frames;
-	frames = execute_graph(graph);
+	frames = get_execute_graph_results(graph);
 
 	std::unique_ptr<PartitionedResultSet> result = std::make_unique<PartitionedResultSet>();
 
@@ -188,9 +195,6 @@ std::unique_ptr<PartitionedResultSet> runExecuteGraph(std::shared_ptr<ral::cache
 	result->skipdata_analysis_fail = false;
 
 	comm::graphs_info::getInstance().deregister_graph(ctx_token);
-	spdlog::get("batch_logger")->info("{allocation_count}|{total_buffer_count}", 
-			"allocation_count"_a=blazingdb::transport::io::getPinnedBufferProvider().get_allocated_buffers(),
-			"total_buffer_count"_a=blazingdb::transport::io::getPinnedBufferProvider().get_total_buffers());
 	return result;
 }
 /*
@@ -236,9 +240,11 @@ std::unique_ptr<ResultSet> performPartition(int32_t masterIndex,
 
 	} catch(const std::exception & e) {
 		std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
-		logger->error("|||{info}|||||",
-									"info"_a="In performPartition. What: {}"_format(e.what()));
-		logger->flush();
+		if(logger){
+            logger->error("|||{info}|||||",
+                                        "info"_a="In performPartition. What: {}"_format(e.what()));
+            logger->flush();
+		}
 
 		std::cerr << "**[performPartition]** error partitioning table.\n";
 		std::cerr << e.what() << std::endl;
@@ -268,9 +274,11 @@ std::unique_ptr<ResultSet> runSkipData(ral::frame::BlazingTableView metadata,
 		std::cerr << "**[runSkipData]** error parsing metadata.\n";
 		std::cerr << e.what() << std::endl;
 		std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
-		logger->error("|||{info}|||||",
-									"info"_a="In runSkipData. What: {}"_format(e.what()));
-		logger->flush();
+		if(logger){
+            logger->error("|||{info}|||||",
+                                        "info"_a="In runSkipData. What: {}"_format(e.what()));
+            logger->flush();
+		}
 
 
 		throw;

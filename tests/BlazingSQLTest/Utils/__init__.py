@@ -123,7 +123,10 @@ def try_to_get_dask_client(n_workers, n_gpus, iface):
     raise ValueError("ERROR: Bad dask connection '%s'" % daskConnection)
 
 
-def init_context(config_options={}):
+def init_context(config_options={"ENABLE_GENERAL_ENGINE_LOGS": True,
+                                 "ENABLE_COMMS_LOGS": True,
+                                 "ENABLE_CACHES_LOGS": True,
+                                 "ENABLE_OTHER_ENGINE_LOGS": True}):
     bc = None
     dask_client = None
     nRals = int(Settings.data["RunSettings"]["nRals"])
@@ -136,7 +139,7 @@ def init_context(config_options={}):
         dask_client = try_to_get_dask_client(nRals, nGpus, iface)
         if dask_client is not None:
             dask_conn = Settings.data["TestSettings"]["daskConnection"]
-            
+
             # print("Using dask: " + dask_conn)
             # if "local" != dask_conn:
 

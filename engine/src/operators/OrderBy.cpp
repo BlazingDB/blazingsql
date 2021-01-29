@@ -228,20 +228,24 @@ std::unique_ptr<ral::frame::BlazingTable> generate_partition_plan(const std::vec
 							" total_num_partitions: " + std::to_string(total_num_partitions) +
 							" NUM_BYTES_PER_ORDER_BY_PARTITION: " + std::to_string(num_bytes_per_order_by_partition) +
 							" MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE: " + std::to_string(max_num_order_by_partitions_per_node);
-	
-	auto logger = spdlog::get("batch_logger");
-	logger->debug("{query_id}|{step}|{substep}|{info}|||||",
-								"query_id"_a=context->getContextToken(),
-								"step"_a=context->getQueryStep(),
-								"substep"_a=context->getQuerySubstep(),
-								"info"_a="Determining Number of Order By Partitions " + info);
+
+    std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
+    if(logger){
+        logger->debug("{query_id}|{step}|{substep}|{info}|||||",
+                                    "query_id"_a=context->getContextToken(),
+                                    "step"_a=context->getQueryStep(),
+                                    "substep"_a=context->getQuerySubstep(),
+                                    "info"_a="Determining Number of Order By Partitions " + info);
+    }
 
 	if( ral::utilities::checkIfConcatenatingStringsWillOverflow(samples)) {
-		logger->warn("{query_id}|{step}|{substep}|{info}",
-						"query_id"_a=(context ? std::to_string(context->getContextToken()) : ""),
-						"step"_a=(context ? std::to_string(context->getQueryStep()) : ""),
-						"substep"_a=(context ? std::to_string(context->getQuerySubstep()) : ""),
-						"info"_a="In generatePartitionPlans Concatenating Strings will overflow strings length");
+	    if(logger){
+            logger->warn("{query_id}|{step}|{substep}|{info}",
+                            "query_id"_a=(context ? std::to_string(context->getContextToken()) : ""),
+                            "step"_a=(context ? std::to_string(context->getQueryStep()) : ""),
+                            "substep"_a=(context ? std::to_string(context->getQuerySubstep()) : ""),
+                            "info"_a="In generatePartitionPlans Concatenating Strings will overflow strings length");
+	    }
 	}
 
 	partitionPlan = generatePartitionPlans(total_num_partitions, samples, sortOrderTypes);
