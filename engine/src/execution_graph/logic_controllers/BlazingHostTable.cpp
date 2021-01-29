@@ -109,7 +109,7 @@ std::unique_ptr<BlazingTable> BlazingHostTable::get_gpu_table() const {
 									  gpu_raw_buffers));
 }
 
-std::vector<ral::memory::blazing_allocation_chunk> BlazingHostTable::get_raw_buffers(){
+std::vector<ral::memory::blazing_allocation_chunk> BlazingHostTable::get_raw_buffers() const {
     std::vector<ral::memory::blazing_allocation_chunk> chunks;
     for(auto & chunk : allocations){
         ral::memory::blazing_allocation_chunk new_chunk;

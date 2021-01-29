@@ -92,7 +92,9 @@ num_buffers (num_buffers), buffer_size(size_buffers), buffer_counter(num_buffers
         throw;
     }
   allocations[0]->size = this->num_buffers * size_buffers;
-  allocations[0]-> pool = this;
+  
+  // TODO-WSM  cannot convert ‘ral::memory::allocation_pool*’ to ‘ral::memory::base_allocator*’ in assignment
+  // allocations[0]-> pool = this;
   for (int buffer_index = 0; buffer_index < this->num_buffers; buffer_index++) {
     
     auto buffer = std::make_unique<blazing_allocation_chunk>();
@@ -154,7 +156,8 @@ void allocation_pool::grow() {
       this->buffer_counter++;
     }
     allocations[last_index]->size = num_new_buffers * buffer_size;
-    allocations[last_index]-> pool = this;
+    // TODO-WSM  cannot convert ‘ral::memory::allocation_pool*’ to ‘ral::memory::base_allocator*’ in assignment
+    // allocations[last_index]-> pool = this;
   }catch(std::exception & e){
     throw;
   }

@@ -122,8 +122,8 @@ std::unique_ptr<ral::frame::BlazingHostTable> serialize_gpu_message_to_host_tabl
 	std::vector<std::unique_ptr<rmm::device_buffer>> temp_scope_holder;
 	std::tie(buffer_sizes, raw_buffers, column_offset, temp_scope_holder) = serialize_gpu_message_to_gpu_containers(table_view);
 	
-	typedef std::tuple< std::vector<ral::memory::blazing_chunked_buffer>, std::vector<std::unique_ptr<ral::memory::blazing_allocation_chunk> > buffer_alloc_type;
-	buffer_alloc_type buffers_and_allocations = convert_gpu_buffers_to_chunks(raw_buffers,buffer_sizes,use_pinned);
+	typedef std::pair< std::vector<ral::memory::blazing_chunked_buffer>, std::vector<std::unique_ptr<ral::memory::blazing_allocation_chunk> >> buffer_alloc_type;
+	buffer_alloc_type buffers_and_allocations; // WSM-TODO this function does not exist = convert_gpu_buffers_to_chunks(raw_buffers,buffer_sizes,use_pinned);
 	
 	auto & allocations = buffers_and_allocations.second;
 	size_t buffer_index = 0;
@@ -133,14 +133,14 @@ std::unique_ptr<ral::frame::BlazingHostTable> serialize_gpu_message_to_host_tabl
 			size_t chunk_index = chunked_buffer.chunk_index[i];
 			size_t offset = chunked_buffer.offset[i];
 			size_t chunk_size = chunked_buffer.size[i];
-			cudaMemcpyAsync((void *) (allocations[chunk_index].data + offset), raw_buffers[buffer_index] + position, chunk_size, cudaMemcpyDeviceToHost,0);
-		}
-		position += chunk_size;
+			cudaMemcpyAsync((void *) (allocations[chunk_index]->data + offset), raw_buffers[buffer_index] + position, chunk_size, cudaMemcpyDeviceToHost,0);
+			position += chunk_size;
+		}		
 		buffer_index++;
 	}
 	cudaStreamSynchronize(0);
 
-	return std::make_unique<ral::frame::BlazingHostTable>(column_offset, std::move(buffers_and_allocations.second),std::move(buffers_and_allocations.first));
+	return std::make_unique<ral::frame::BlazingHostTable>(column_offset, std::move(buffers_and_allocations.first),std::move(buffers_and_allocations.second));
 }
 
 auto deserialize_from_gpu_raw_buffers(const std::vector<ColumnTransport> & columns_offsets,

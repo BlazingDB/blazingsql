@@ -12,6 +12,7 @@ namespace ral {
 namespace frame {
 
 using ColumnTransport = blazingdb::transport::ColumnTransport;
+class BlazingTable;  // forward declaration
 
 /**
 	@brief A class that represents the BlazingTable store in host memory.
@@ -48,7 +49,7 @@ public:
 
     std::unique_ptr<BlazingTable> get_gpu_table() const;
 
-    std::vector<ral::memory::blazing_allocation_chunk> get_raw_buffers();
+    std::vector<ral::memory::blazing_allocation_chunk> get_raw_buffers() const;
 
 private:
     std::vector<ColumnTransport> columns_offsets;
