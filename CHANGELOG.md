@@ -11,6 +11,7 @@
 - #1271 Added Hive utility for partitioned data
 - #1289 Multiple concurrent query support 
 - #1285 Infer PROTOCOL when Dask client is passed
+- #1294 Add config options for logger
 - #1298 Implement progress bar for run query (using tqdm)
 
 ## Improvements
@@ -23,7 +24,6 @@
 - #1267 Added retrys to comms, fixed deadlocks in executor and order by. Improved logging and error management. Caches have names. Improved Joins
 - #1239 Reducing Memory pressure by moving shuffle data to cpu before transmission
 - #1278 Fix race conditions with UCX
-- #1279 Added cuml to powerpc build scripts
 - #1286 Fixes to initialization and adding unique ids to comms 
 
 ## Bug Fixes
@@ -34,6 +34,7 @@
 - #1243 Fixed wrong CHAR regex replacing
 - #1275 Fixed issue in StringUtil::findAndReplaceAll when there are several matches
 - #1277 Support FileSystems (GS, S3) when extension of the files are not provided
+- #1300 Fixed issue when creating tables from a local dir relative path
 
 
 # BlazingSQL 0.17.0 (December 10, 2020)

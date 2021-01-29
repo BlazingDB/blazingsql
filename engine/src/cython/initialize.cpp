@@ -528,6 +528,37 @@ bool initialized = false;
 
 //=============================================================================
 
+bool isEmptyFile(std::ifstream& pFile)
+{
+    return pFile.peek() == std::ifstream::traits_type::eof();
+}
+
+void printLoggerHeader(const std::string pathLogger, const std::string nameLogger){
+    const std::map<std::string, std::string> headers = {
+        {"queries_logger",      "ral_id|query_id|start_time|plan|query"},
+        {"kernels_logger",      "ral_id|query_id|kernel_id|is_kernel|kernel_type"},
+        {"kernels_edges_logger","ral_id|query_id|source|sink"},
+        {"events_logger",       "ral_id|query_id|kernel_id|input_num_rows|input_num_bytes|output_num_rows|output_num_bytes|event_type|timestamp_begin|timestamp_end"},
+        {"cache_events_logger", "ral_id|query_id|source|sink|num_rows|num_bytes|event_type|timestamp_begin|timestamp_end"},
+        {"batch_logger",        "log_time|node_id|type|query_id|step|substep|info|duration|extra1|data1|extra2|data2"},
+        {"input_comms",         "unique_id|ral_id|query_id|kernel_id|dest_ral_id|dest_ral_count|dest_cache_id|message_id|phase"},
+        {"output_comms",        "unique_id|ral_id|query_id|kernel_id|dest_ral_id|dest_ral_count|dest_cache_id|message_id|phase"}
+    };
+
+    std::ifstream fileLogger(pathLogger);
+    if(fileLogger.good()) {
+        bool emptyLogger = isEmptyFile(fileLogger);
+
+        if(emptyLogger){
+            std::shared_ptr<spdlog::logger> logger = spdlog::get(nameLogger);
+            if(logger){
+                logger->info(headers.at(nameLogger));
+            }
+        }
+    }
+}
+
+
 /**
 * Initializes the engine and gives us shared pointers to both our transport out cache
 * and the cache we use for receiving messages
@@ -632,6 +663,30 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 		flush_level = config_options["LOGGING_FLUSH_LEVEL"];
 	}
 
+	std::string enable_general_engine_logs;
+    log_it = config_options.find("ENABLE_GENERAL_ENGINE_LOGS");
+    if (log_it != config_options.end()){
+        enable_general_engine_logs = config_options["ENABLE_GENERAL_ENGINE_LOGS"];
+    }
+
+    std::string enable_comms_logs;
+    log_it = config_options.find("ENABLE_COMMS_LOGS");
+    if (log_it != config_options.end()){
+        enable_comms_logs = config_options["ENABLE_COMMS_LOGS"];
+    }
+
+    std::string enable_caches_logs;
+    log_it = config_options.find("ENABLE_CACHES_LOGS");
+    if (log_it != config_options.end()){
+        enable_caches_logs = config_options["ENABLE_CACHES_LOGS"];
+    }
+
+    std::string enable_other_engine_logs;
+    log_it = config_options.find("ENABLE_OTHER_ENGINE_LOGS");
+    if (log_it != config_options.end()){
+        enable_other_engine_logs = config_options["ENABLE_OTHER_ENGINE_LOGS"];
+    }
+
 	std::string logger_level_wanted = "trace";
 	auto log_level_it = config_options.find("LOGGING_LEVEL");
 	if (log_level_it != config_options.end()){
@@ -651,70 +706,57 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 
 		spdlog::init_thread_pool(8192, 1);
 
-		std::string batchLoggerFileName = logging_dir + "/RAL." + std::to_string(ralId) + ".log";
-		create_logger(batchLoggerFileName, "batch_logger", ralId, flush_level, logger_level_wanted, max_size_logging, false);
+		if(enable_general_engine_logs=="True") {
+		    std::string batchLoggerFileName = logging_dir + "/RAL." + std::to_string(ralId) + ".log";
+		    create_logger(batchLoggerFileName, "batch_logger", ralId, flush_level, logger_level_wanted, max_size_logging, false);
+		    printLoggerHeader(batchLoggerFileName, "batch_logger");
+        }
 
-		std::string outputCommunicationLoggerFileName = logging_dir + "/output_comms." + std::to_string(ralId) + ".log";
-		create_logger(outputCommunicationLoggerFileName, "output_comms", ralId, flush_level, logger_level_wanted, max_size_logging);
+        if(enable_comms_logs=="True"){
+            std::string outputCommunicationLoggerFileName = logging_dir + "/output_comms." + std::to_string(ralId) + ".log";
+            create_logger(outputCommunicationLoggerFileName, "output_comms", ralId, flush_level, logger_level_wanted, max_size_logging);
+            printLoggerHeader(outputCommunicationLoggerFileName, "output_comms");
 
-		std::string inputCommunicationLoggerFileName = logging_dir + "/input_comms." + std::to_string(ralId) + ".log";
-		create_logger(inputCommunicationLoggerFileName, "input_comms", ralId, flush_level, logger_level_wanted, max_size_logging);
+            std::string inputCommunicationLoggerFileName = logging_dir + "/input_comms." + std::to_string(ralId) + ".log";
+            create_logger(inputCommunicationLoggerFileName, "input_comms", ralId, flush_level, logger_level_wanted, max_size_logging);
+            printLoggerHeader(inputCommunicationLoggerFileName, "input_comms");
+        }
 
+        if(enable_other_engine_logs=="True"){
+            std::string queriesFileName = logging_dir + "/bsql_queries." + std::to_string(ralId) + ".log";
+            create_logger(queriesFileName, "queries_logger", ralId, flush_level, logger_level_wanted, max_size_logging);
+            printLoggerHeader(queriesFileName, "queries_logger");
 
-		std::string queriesFileName = logging_dir + "/bsql_queries." + std::to_string(ralId) + ".log";
-		bool existsQueriesFileName = std::ifstream(queriesFileName).good();
-		create_logger(queriesFileName, "queries_logger", ralId, flush_level, logger_level_wanted, max_size_logging);
+            std::string kernelsFileName = logging_dir + "/bsql_kernels." + std::to_string(ralId) + ".log";
+            create_logger(kernelsFileName, "kernels_logger", ralId, flush_level, logger_level_wanted, max_size_logging);
+            printLoggerHeader(kernelsFileName, "kernels_logger");
 
-		std::string kernelsFileName = logging_dir + "/bsql_kernels." + std::to_string(ralId) + ".log";
-		bool existsKernelsFileName = std::ifstream(kernelsFileName).good();
-		create_logger(kernelsFileName, "kernels_logger", ralId, flush_level, logger_level_wanted, max_size_logging);
+            std::string kernelsEdgesFileName = logging_dir + "/bsql_kernels_edges." + std::to_string(ralId) + ".log";
+            create_logger(kernelsEdgesFileName, "kernels_edges_logger", ralId, flush_level, logger_level_wanted, max_size_logging);
+            printLoggerHeader(kernelsEdgesFileName, "kernels_edges_logger");
 
-		std::string kernelsEdgesFileName = logging_dir + "/bsql_kernels_edges." + std::to_string(ralId) + ".log";
-		bool existsKernelsEdgesFileName = std::ifstream(kernelsEdgesFileName).good();
-		create_logger(kernelsEdgesFileName, "kernels_edges_logger", ralId, flush_level, logger_level_wanted, max_size_logging);
+            std::string kernelEventsFileName = logging_dir + "/bsql_kernel_events." + std::to_string(ralId) + ".log";
+            create_logger(kernelEventsFileName, "events_logger", ralId, flush_level, logger_level_wanted, max_size_logging);
+            printLoggerHeader(kernelEventsFileName, "events_logger");
+        }
 
-		std::string kernelEventsFileName = logging_dir + "/bsql_kernel_events." + std::to_string(ralId) + ".log";
-		bool existsKernelEventsFileName = std::ifstream(kernelEventsFileName).good();
-		create_logger(kernelEventsFileName, "events_logger", ralId, flush_level, logger_level_wanted, max_size_logging);
-
-		std::string cacheEventsFileName = logging_dir + "/bsql_cache_events." + std::to_string(ralId) + ".log";
-		bool existsCacheEventsFileName = std::ifstream(cacheEventsFileName).good();
-		create_logger(cacheEventsFileName, "cache_events_logger", ralId, flush_level, logger_level_wanted, max_size_logging);
-
-		//Logger Headers
-		if(!existsQueriesFileName) {
-			std::shared_ptr<spdlog::logger> queries_logger = spdlog::get("queries_logger");
-			queries_logger->info("ral_id|query_id|start_time|plan|query");
-		}
-
-		if(!existsKernelsFileName) {
-			std::shared_ptr<spdlog::logger> kernels_logger = spdlog::get("kernels_logger");
-			kernels_logger->info("ral_id|query_id|kernel_id|is_kernel|kernel_type");
-		}
-
-		if(!existsKernelsEdgesFileName) {
-			std::shared_ptr<spdlog::logger> kernels_edges_logger = spdlog::get("kernels_edges_logger");
-			kernels_edges_logger->info("ral_id|query_id|source|sink");
-		}
-
-		if(!existsKernelEventsFileName) {
-			std::shared_ptr<spdlog::logger> events_logger = spdlog::get("events_logger");
-			events_logger->info("ral_id|query_id|kernel_id|input_num_rows|input_num_bytes|output_num_rows|output_num_bytes|event_type|timestamp_begin|timestamp_end");
-		}
-
-		if(!existsCacheEventsFileName) {
-			std::shared_ptr<spdlog::logger> cache_events_logger = spdlog::get("cache_events_logger");
-			cache_events_logger->info("ral_id|query_id|source|sink|num_rows|num_bytes|event_type|timestamp_begin|timestamp_end");
-		}
-
+        if(enable_caches_logs=="True"){
+            std::string cacheEventsFileName = logging_dir + "/bsql_cache_events." + std::to_string(ralId) + ".log";
+            create_logger(cacheEventsFileName, "cache_events_logger", ralId, flush_level, logger_level_wanted, max_size_logging);
+            printLoggerHeader(cacheEventsFileName, "cache_events_logger");
+        }
 	} 
 
 	std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
 	if (logging_directory_missing){
-		logger->error("|||{info}|||||","info"_a="BLAZING_LOGGING_DIRECTORY not found. It was not created.");
+	    if(logger){
+		    logger->error("|||{info}|||||","info"_a="BLAZING_LOGGING_DIRECTORY not found. It was not created.");
+	    }
 	}
 
-	logger->debug("|||{info}|||||","info"_a=initLogMsg);
+	if(logger){
+	    logger->debug("|||{info}|||||","info"_a=initLogMsg);
+	}
 	std::map<std::string, std::string> product_details = getProductDetails();
 	std::string product_details_str = "Product Details: ";
 	std::map<std::string, std::string>::iterator it = product_details.begin();
@@ -722,7 +764,9 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 		product_details_str += it->first + ": " + it->second + "; ";
 		it++;
 	}
-	logger->debug("|||{info}|||||","info"_a=product_details_str);
+	if(logger){
+	    logger->debug("|||{info}|||||","info"_a=product_details_str);
+	}
 
 
 	blazing_device_memory_resource* resource = &blazing_device_memory_resource::getInstance();
@@ -733,7 +777,9 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 	alloc_info += ", initial_pool_size: " + std::to_string(initial_pool_size);
 	alloc_info += ", maximum_pool_size: " + std::to_string(maximum_pool_size);
 	alloc_info += ", allocator_logging_file: " + allocator_logging_file;
-	logger->debug("|||{info}|||||","info"_a=alloc_info);
+	if(logger){
+	    logger->debug("|||{info}|||||","info"_a=alloc_info);
+	}
 
 
 	std::string orc_files_path;

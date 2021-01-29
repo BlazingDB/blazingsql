@@ -43,9 +43,11 @@ void data_loader::get_schema(Schema & schema, std::vector<std::pair<std::string,
 		}
 	}
 	if (!got_schema){
-		auto logger = spdlog::get("batch_logger");
+        std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
 		std::string log_detail = "ERROR: Could not get schema";
-		logger->error("|||{info}|||||","info"_a=log_detail);
+		if(logger){
+		    logger->error("|||{info}|||||","info"_a=log_detail);
+		}
 	}
 		
 	bool open_file = false;
@@ -83,9 +85,11 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::get_metadata(int offset) 
 		return std::move(metadata_batches[0]);
 	} else {
 		if( ral::utilities::checkIfConcatenatingStringsWillOverflow(metadata_batche_views) ) {
-			auto logger = spdlog::get("batch_logger");
-			logger->warn("|||{info}|||||",
+            std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
+            if(logger){
+                logger->warn("|||{info}|||||",
 						"info"_a="In data_loader::get_metadata Concatenating will overflow strings length");
+            }
 		}
 
 		return ral::utilities::concatTables(metadata_batche_views);
