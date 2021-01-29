@@ -407,17 +407,20 @@ ral::execution::task_result PartwiseJoin::do_process(std::vector<std::unique_ptr
 			this->add_to_output_cache(std::move(joined));
 		}
 
-		events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-			"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-			"query_id"_a=context->getContextToken(),
-			"kernel_id"_a=this->get_id(),
-			"input_num_rows"_a=log_input_num_rows,
-			"input_num_bytes"_a=log_input_num_bytes,
-			"output_num_rows"_a=log_output_num_rows,
-			"output_num_bytes"_a=log_output_num_bytes,
-			"event_type"_a="computed join",
-			"timestamp_begin"_a=eventTimer.start_time(),
-			"timestamp_end"_a=eventTimer.end_time());
+		if(events_logger){
+			events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+						"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+						"query_id"_a=context->getContextToken(),
+						"kernel_id"_a=this->get_id(),
+						"input_num_rows"_a=log_input_num_rows,
+						"input_num_bytes"_a=log_input_num_bytes,
+						"output_num_rows"_a=log_output_num_rows,
+						"output_num_bytes"_a=log_output_num_bytes,
+						"event_type"_a="computed join",
+						"timestamp_begin"_a=eventTimer.start_time(),
+						"timestamp_end"_a=eventTimer.end_time());
+		}
+
 	}catch(rmm::bad_alloc e){
 		return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
 	}catch(std::exception e){
@@ -527,14 +530,14 @@ kstatus PartwiseJoin::run() {
 		}
 	}
 
-	if(logger != nullptr) {
-			logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
-															"query_id"_a=context->getContextToken(),
-															"step"_a=context->getQueryStep(),
-															"substep"_a=context->getQuerySubstep(),
-															"info"_a="Compute Aggregate Kernel tasks created",
-															"duration"_a=timer.elapsed_time(),
-															"kernel_id"_a=this->get_id());
+	if(logger) {
+        logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+                                                        "query_id"_a=context->getContextToken(),
+                                                        "step"_a=context->getQueryStep(),
+                                                        "substep"_a=context->getQuerySubstep(),
+                                                        "info"_a="Compute Aggregate Kernel tasks created",
+                                                        "duration"_a=timer.elapsed_time(),
+                                                        "kernel_id"_a=this->get_id());
 	}
 
 	std::unique_lock<std::mutex> lock(kernel_mutex);
@@ -546,7 +549,7 @@ kstatus PartwiseJoin::run() {
 		std::rethrow_exception(ep);
 	}
 
-	if(logger != nullptr) {
+	if(logger) {
 		logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
 									"query_id"_a=context->getContextToken(),
 									"step"_a=context->getQueryStep(),
@@ -600,33 +603,39 @@ void JoinPartitionKernel::computeNormalizationData(const	std::vector<cudf::data_
 std::pair<bool, bool> JoinPartitionKernel::determine_if_we_are_scattering_a_small_table(const ral::cache::CacheData& left_cache_data,
 	const ral::cache::CacheData& right_cache_data){
 
-	logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
-								"query_id"_a=context->getContextToken(),
-								"step"_a=context->getQueryStep(),
-								"substep"_a=context->getQuerySubstep(),
-								"info"_a="determine_if_we_are_scattering_a_small_table start",
-								"duration"_a="",
-								"kernel_id"_a=this->get_id());
+    if(logger){
+        logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+                                    "query_id"_a=context->getContextToken(),
+                                    "step"_a=context->getQueryStep(),
+                                    "substep"_a=context->getQuerySubstep(),
+                                    "info"_a="determine_if_we_are_scattering_a_small_table start",
+                                    "duration"_a="",
+                                    "kernel_id"_a=this->get_id());
+    }
 
 	std::pair<bool, uint64_t> left_num_rows_estimate = this->query_graph->get_estimated_input_rows_to_cache(this->kernel_id, "input_a");
-	logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
-								"query_id"_a=context->getContextToken(),
-								"step"_a=context->getQueryStep(),
-								"substep"_a=context->getQuerySubstep(),
-								"info"_a=left_num_rows_estimate.first ? "left_num_rows_estimate was valid" : "left_num_rows_estimate was invalid",
-								"duration"_a="",
-								"kernel_id"_a=this->get_id(),
-								"rows"_a=left_num_rows_estimate.second);
+	if(logger){
+        logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+                                    "query_id"_a=context->getContextToken(),
+                                    "step"_a=context->getQueryStep(),
+                                    "substep"_a=context->getQuerySubstep(),
+                                    "info"_a=left_num_rows_estimate.first ? "left_num_rows_estimate was valid" : "left_num_rows_estimate was invalid",
+                                    "duration"_a="",
+                                    "kernel_id"_a=this->get_id(),
+                                    "rows"_a=left_num_rows_estimate.second);
+	}
 
 	std::pair<bool, uint64_t> right_num_rows_estimate = this->query_graph->get_estimated_input_rows_to_cache(this->kernel_id, "input_b");
-	logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
-								"query_id"_a=context->getContextToken(),
-								"step"_a=context->getQueryStep(),
-								"substep"_a=context->getQuerySubstep(),
-								"info"_a=right_num_rows_estimate.first ? "right_num_rows_estimate was valid" : "right_num_rows_estimate was invalid",
-								"duration"_a="",
-								"kernel_id"_a=this->get_id(),
-								"rows"_a=right_num_rows_estimate.second);
+	if(logger){
+        logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
+                                    "query_id"_a=context->getContextToken(),
+                                    "step"_a=context->getQueryStep(),
+                                    "substep"_a=context->getQuerySubstep(),
+                                    "info"_a=right_num_rows_estimate.first ? "right_num_rows_estimate was valid" : "right_num_rows_estimate was invalid",
+                                    "duration"_a="",
+                                    "kernel_id"_a=this->get_id(),
+                                    "rows"_a=right_num_rows_estimate.second);
+	}
 
 	double left_batch_rows = (double)left_cache_data.num_rows();
 	double left_batch_bytes = (double)left_cache_data.sizeInBytes();
@@ -674,13 +683,15 @@ std::pair<bool, bool> JoinPartitionKernel::determine_if_we_are_scattering_a_smal
 			0, //message_tracker_idx
 			extra_metadata);
 
-	logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
-								"query_id"_a=context->getContextToken(),
-								"step"_a=context->getQueryStep(),
-								"substep"_a=context->getQuerySubstep(),
-								"info"_a="determine_if_we_are_scattering_a_small_table about to collectLeftRightTableSizeBytes",
-								"duration"_a="",
-								"kernel_id"_a=this->get_id());
+	if(logger){
+        logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+                                    "query_id"_a=context->getContextToken(),
+                                    "step"_a=context->getQueryStep(),
+                                    "substep"_a=context->getQuerySubstep(),
+                                    "info"_a="determine_if_we_are_scattering_a_small_table about to collectLeftRightTableSizeBytes",
+                                    "duration"_a="",
+                                    "kernel_id"_a=this->get_id());
+	}
 
 	std::vector<int64_t> nodes_num_bytes_left(this->context->getTotalNodes());
 	std::vector<int64_t> nodes_num_bytes_right(this->context->getTotalNodes());
@@ -702,13 +713,15 @@ std::pair<bool, bool> JoinPartitionKernel::determine_if_we_are_scattering_a_smal
 	for (auto num_bytes : nodes_num_bytes_right){
 		collectLeftRightTableSizeBytesInfo += std::to_string(num_bytes) + ", ";
 	}
-	logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
-								"query_id"_a=context->getContextToken(),
-								"step"_a=context->getQueryStep(),
-								"substep"_a=context->getQuerySubstep(),
-								"info"_a="determine_if_we_are_scattering_a_small_table collected " + collectLeftRightTableSizeBytesInfo,
-								"duration"_a="",
-								"kernel_id"_a=this->get_id());
+	if(logger){
+        logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+                                    "query_id"_a=context->getContextToken(),
+                                    "step"_a=context->getQueryStep(),
+                                    "substep"_a=context->getQuerySubstep(),
+                                    "info"_a="determine_if_we_are_scattering_a_small_table collected " + collectLeftRightTableSizeBytesInfo,
+                                    "duration"_a="",
+                                    "kernel_id"_a=this->get_id());
+	}
 
 	bool any_unknowns_left = std::any_of(nodes_num_bytes_left.begin(), nodes_num_bytes_left.end(), [](int64_t bytes){return bytes == -1;});
 	bool any_unknowns_right = std::any_of(nodes_num_bytes_right.begin(), nodes_num_bytes_right.end(), [](int64_t bytes){return bytes == -1;});
@@ -827,7 +840,7 @@ void JoinPartitionKernel::perform_standard_hash_partitioning(
 	left_thread.join();
 	right_thread.join();
 
-	if(logger != nullptr) {
+	if(logger) {
         logger->debug("{query_id}|{step}|{substep}|{info}||kernel_id|{kernel_id}||",
                                 "query_id"_a=context->getContextToken(),
                                 "step"_a=context->getQueryStep(),
@@ -845,7 +858,7 @@ void JoinPartitionKernel::perform_standard_hash_partitioning(
 		std::rethrow_exception(ep);
 	}
 
-	if(logger != nullptr) {
+	if(logger) {
         logger->debug("{query_id}|{step}|{substep}|{info}||kernel_id|{kernel_id}||",
                                 "query_id"_a=context->getContextToken(),
                                 "step"_a=context->getQueryStep(),
@@ -859,7 +872,7 @@ void JoinPartitionKernel::perform_standard_hash_partitioning(
 
 	int total_count_left = get_total_partition_counts(LEFT_TABLE_IDX); //left
 
-	if(logger != nullptr) {
+	if(logger) {
         logger->debug("{query_id}|{step}|{substep}|{info}||kernel_id|{kernel_id}||",
                                 "query_id"_a=context->getContextToken(),
                                 "step"_a=context->getQueryStep(),
@@ -870,7 +883,7 @@ void JoinPartitionKernel::perform_standard_hash_partitioning(
 	this->output_.get_cache("output_a")->wait_for_count(total_count_left);
 
 	int total_count_right = get_total_partition_counts(RIGHT_TABLE_IDX); //right
-	if(logger != nullptr) {
+	if(logger) {
         logger->debug("{query_id}|{step}|{substep}|{info}||kernel_id|{kernel_id}||",
                                 "query_id"_a=context->getContextToken(),
                                 "step"_a=context->getQueryStep(),
@@ -928,7 +941,7 @@ void JoinPartitionKernel::small_table_scatter_distribution(std::unique_ptr<ral::
 	left_thread.join();
 	right_thread.join();
 
-	if(logger != nullptr) {
+	if(logger) {
         logger->debug("{query_id}|{step}|{substep}|{info}||kernel_id|{kernel_id}||",
                                 "query_id"_a=context->getContextToken(),
                                 "step"_a=context->getQueryStep(),
@@ -946,7 +959,7 @@ void JoinPartitionKernel::small_table_scatter_distribution(std::unique_ptr<ral::
 		std::rethrow_exception(ep);
 	}
 
-	if(logger != nullptr) {
+	if(logger) {
         logger->debug("{query_id}|{step}|{substep}|{info}||kernel_id|{kernel_id}||",
                                 "query_id"_a=context->getContextToken(),
                                 "step"_a=context->getQueryStep(),
@@ -1097,47 +1110,55 @@ kstatus JoinPartitionKernel::run() {
 	}
 
 	if (scatter_left_right.first) {
-		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
-									"query_id"_a=context->getContextToken(),
-									"step"_a=context->getQueryStep(),
-									"substep"_a=context->getQuerySubstep(),
-									"info"_a="JoinPartition Scattering left table",
-									"duration"_a="",
-									"kernel_id"_a=this->get_id());
+	    if(logger){
+            logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+                                        "query_id"_a=context->getContextToken(),
+                                        "step"_a=context->getQueryStep(),
+                                        "substep"_a=context->getQuerySubstep(),
+                                        "info"_a="JoinPartition Scattering left table",
+                                        "duration"_a="",
+                                        "kernel_id"_a=this->get_id());
+	    }
 
 		small_table_scatter_distribution(std::move(left_cache_data), std::move(right_cache_data),
 					left_input, right_input);
 	} else if (scatter_left_right.second) {
-		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
-									"query_id"_a=context->getContextToken(),
-									"step"_a=context->getQueryStep(),
-									"substep"_a=context->getQuerySubstep(),
-									"info"_a="JoinPartition Scattering right table",
-									"duration"_a="",
-									"kernel_id"_a=this->get_id());
+	    if(logger){
+            logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+                                        "query_id"_a=context->getContextToken(),
+                                        "step"_a=context->getQueryStep(),
+                                        "substep"_a=context->getQuerySubstep(),
+                                        "info"_a="JoinPartition Scattering right table",
+                                        "duration"_a="",
+                                        "kernel_id"_a=this->get_id());
+	    }
 
 		small_table_scatter_distribution(std::move(right_cache_data), std::move(left_cache_data),
 					right_input, left_input);
 	} else {
-		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
-									"query_id"_a=context->getContextToken(),
-									"step"_a=context->getQueryStep(),
-									"substep"_a=context->getQuerySubstep(),
-									"info"_a="JoinPartition Standard hash partition",
-									"duration"_a="",
-									"kernel_id"_a=this->get_id());
+	    if(logger){
+            logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+                                        "query_id"_a=context->getContextToken(),
+                                        "step"_a=context->getQueryStep(),
+                                        "substep"_a=context->getQuerySubstep(),
+                                        "info"_a="JoinPartition Standard hash partition",
+                                        "duration"_a="",
+                                        "kernel_id"_a=this->get_id());
+	    }
 
 		perform_standard_hash_partitioning(std::move(left_cache_data), std::move(right_cache_data),
 			left_input, right_input);
 	}
 
-	logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
-								"query_id"_a=context->getContextToken(),
-								"step"_a=context->getQueryStep(),
-								"substep"_a=context->getQuerySubstep(),
-								"info"_a="JoinPartition Kernel Completed",
-								"duration"_a=timer.elapsed_time(),
-								"kernel_id"_a=this->get_id());
+	if(logger){
+        logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+                                    "query_id"_a=context->getContextToken(),
+                                    "step"_a=context->getQueryStep(),
+                                    "substep"_a=context->getQuerySubstep(),
+                                    "info"_a="JoinPartition Kernel Completed",
+                                    "duration"_a=timer.elapsed_time(),
+                                    "kernel_id"_a=this->get_id());
+	}
 
 	return kstatus::proceed;
 }

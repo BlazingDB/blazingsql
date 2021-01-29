@@ -18,7 +18,7 @@ kernel::kernel(std::size_t kernel_id, std::string expr, std::shared_ptr<Context>
     std::shared_ptr<spdlog::logger> kernels_logger;
     kernels_logger = spdlog::get("kernels_logger");
 
-    if(kernels_logger != nullptr) {
+    if(kernels_logger) {
         kernels_logger->info("{ral_id}|{query_id}|{kernel_id}|{is_kernel}|{kernel_type}",
                             "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
                             "query_id"_a=(this->context ? std::to_string(this->context->getContextToken()) : "null"),
@@ -53,7 +53,7 @@ bool kernel::add_to_output_cache(std::unique_ptr<ral::frame::BlazingTable> table
 
     cacheEventTimer.stop();
 
-    if(cache_events_logger != nullptr) {
+    if(cache_events_logger) {
         cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
                     "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
                     "query_id"_a=context->getContextToken(),
@@ -84,7 +84,7 @@ bool kernel::add_to_output_cache(std::unique_ptr<ral::cache::CacheData> cache_da
 
     cacheEventTimer.stop();
 
-    if(cache_events_logger != nullptr) {
+    if(cache_events_logger) {
         cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
                     "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
                     "query_id"_a=context->getContextToken(),
@@ -115,7 +115,7 @@ bool kernel::add_to_output_cache(std::unique_ptr<ral::frame::BlazingHostTable> h
 
     cacheEventTimer.stop();
 
-    if(cache_events_logger != nullptr) {
+    if(cache_events_logger) {
         cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
                     "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
                     "query_id"_a=context->getContextToken(),
@@ -158,10 +158,9 @@ ral::execution::task_result kernel::process(std::vector<std::unique_ptr<ral::fra
     auto result = do_process(std::move(inputs), output, stream, args);
     if(result.status == ral::execution::SUCCESS){
         total_input_bytes_processed += bytes; // increment this AFTER its been processed successfully
-    }
-    else{
+    } else {
         auto logger = spdlog::get("batch_logger");
-        if (logger){
+        if (logger) {
             logger->error("|||{info}|||||",
                     "info"_a="ERROR in kernel::process trying to do do_process. Kernel name is: " + this->kernel_name() + " Kernel id is: " + std::to_string(this->kernel_id));
         }

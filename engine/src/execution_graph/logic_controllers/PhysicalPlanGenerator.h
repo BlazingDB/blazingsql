@@ -317,8 +317,10 @@ struct tree_processor {
 			max_kernel_id = expr_tree_from_json(0,p_tree, &this->root, 0, query_graph);
 		} catch (std::exception & e) {
 			std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
-			logger->error("|||{info}|||||",
-										"info"_a="In build_batch_graph. What: {}"_format(e.what()));
+			if(logger){
+                logger->error("|||{info}|||||",
+                                            "info"_a="In build_batch_graph. What: {}"_format(e.what()));
+			}
 			throw;
 		}
 

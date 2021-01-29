@@ -61,7 +61,7 @@ kstatus ComputeAggregateKernel::run() {
         cache_data = this->input_cache()->pullCacheData();
     }
 
-    if(logger != nullptr) {
+    if(logger) {
         logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
                                 "query_id"_a=context->getContextToken(),
                                 "step"_a=context->getQueryStep(),
@@ -80,7 +80,7 @@ kstatus ComputeAggregateKernel::run() {
         std::rethrow_exception(ep);
     }
 
-    if(logger != nullptr) {
+    if(logger) {
         logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
                     "query_id"_a=context->getContextToken(),
                     "step"_a=context->getQueryStep(),
@@ -223,7 +223,7 @@ kstatus DistributeAggregateKernel::run() {
         cache_data = this->input_cache()->pullCacheData();
     }
 
-    if(logger != nullptr) {
+    if(logger) {
         logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
                                 "query_id"_a=context->getContextToken(),
                                 "step"_a=context->getQueryStep(),
@@ -250,13 +250,15 @@ kstatus DistributeAggregateKernel::run() {
     int total_count = get_total_partition_counts();
     this->output_cache()->wait_for_count(total_count);
 
-    logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
-                "query_id"_a=context->getContextToken(),
-                "step"_a=context->getQueryStep(),
-                "substep"_a=context->getQuerySubstep(),
-                "info"_a="DistributeAggregate Kernel Completed",
-                "duration"_a=timer.elapsed_time(),
-                "kernel_id"_a=this->get_id());
+    if(logger){
+        logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+                    "query_id"_a=context->getContextToken(),
+                    "step"_a=context->getQueryStep(),
+                    "substep"_a=context->getQuerySubstep(),
+                    "info"_a="DistributeAggregate Kernel Completed",
+                    "duration"_a=timer.elapsed_time(),
+                    "kernel_id"_a=this->get_id());
+    }
 
     return kstatus::proceed;
 }
@@ -283,11 +285,13 @@ ral::execution::task_result MergeAggregateKernel::do_process(std::vector< std::u
 
         eventTimer.start();
         if( ral::utilities::checkIfConcatenatingStringsWillOverflow(tableViewsToConcat)) {
-            logger->warn("{query_id}|{step}|{substep}|{info}",
-                            "query_id"_a=(context ? std::to_string(context->getContextToken()) : ""),
-                            "step"_a=(context ? std::to_string(context->getQueryStep()) : ""),
-                            "substep"_a=(context ? std::to_string(context->getQuerySubstep()) : ""),
-                            "info"_a="In MergeAggregateKernel::run Concatenating Strings will overflow strings length");
+            if(logger) {
+                logger->warn("{query_id}|{step}|{substep}|{info}",
+                                "query_id"_a=(context ? std::to_string(context->getContextToken()) : ""),
+                                "step"_a=(context ? std::to_string(context->getQueryStep()) : ""),
+                                "substep"_a=(context ? std::to_string(context->getQuerySubstep()) : ""),
+                                "info"_a="In MergeAggregateKernel::run Concatenating Strings will overflow strings length");
+            }
         }
         auto concatenated = ral::utilities::concatTables(tableViewsToConcat);
 
@@ -331,17 +335,20 @@ ral::execution::task_result MergeAggregateKernel::do_process(std::vector< std::u
         auto log_output_num_rows = columns->num_rows();
         auto log_output_num_bytes = columns->sizeInBytes();
 
-        events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-                        "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-                        "query_id"_a=context->getContextToken(),
-                        "kernel_id"_a=this->get_id(),
-                        "input_num_rows"_a=log_input_num_rows,
-                        "input_num_bytes"_a=log_input_num_bytes,
-                        "output_num_rows"_a=log_output_num_rows,
-                        "output_num_bytes"_a=log_output_num_bytes,
-                        "event_type"_a="compute",
-                        "timestamp_begin"_a=eventTimer.start_time(),
-                        "timestamp_end"_a=eventTimer.end_time());
+        if(events_logger) {
+            events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+                            "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                            "query_id"_a=context->getContextToken(),
+                            "kernel_id"_a=this->get_id(),
+                            "input_num_rows"_a=log_input_num_rows,
+                            "input_num_bytes"_a=log_input_num_bytes,
+                            "output_num_rows"_a=log_output_num_rows,
+                            "output_num_bytes"_a=log_output_num_bytes,
+                            "event_type"_a="compute",
+                            "timestamp_begin"_a=eventTimer.start_time(),
+                            "timestamp_end"_a=eventTimer.end_time());
+        }
+
         output->addToCache(std::move(columns));
         columns = nullptr;
     }catch(rmm::bad_alloc e){
@@ -376,13 +383,15 @@ kstatus MergeAggregateKernel::run() {
                 this->output_cache(),
                 this);
 
-        logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
-                                    "query_id"_a=context->getContextToken(),
-                                    "step"_a=context->getQueryStep(),
-                                    "substep"_a=context->getQuerySubstep(),
-                                    "info"_a="Merge Aggregate Kernel tasks created",
-                                    "duration"_a=timer.elapsed_time(),
-                                    "kernel_id"_a=this->get_id());
+        if(logger){
+            logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+                                        "query_id"_a=context->getContextToken(),
+                                        "step"_a=context->getQueryStep(),
+                                        "substep"_a=context->getQuerySubstep(),
+                                        "info"_a="Merge Aggregate Kernel tasks created",
+                                        "duration"_a=timer.elapsed_time(),
+                                        "kernel_id"_a=this->get_id());
+        }
 
         std::unique_lock<std::mutex> lock(kernel_mutex);
         kernel_cv.wait(lock,[this]{
@@ -393,22 +402,26 @@ kstatus MergeAggregateKernel::run() {
             std::rethrow_exception(ep);
         }
     } catch(const std::exception& e) {
-        logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
-                    "query_id"_a=context->getContextToken(),
-                    "step"_a=context->getQueryStep(),
-                    "substep"_a=context->getQuerySubstep(),
-                    "info"_a="In MergeAggregate kernel for {}. What: {}"_format(expression, e.what()),
-                    "duration"_a="");
+        if(logger){
+            logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+                        "query_id"_a=context->getContextToken(),
+                        "step"_a=context->getQueryStep(),
+                        "substep"_a=context->getQuerySubstep(),
+                        "info"_a="In MergeAggregate kernel for {}. What: {}"_format(expression, e.what()),
+                        "duration"_a="");
+        }
         throw;
     }
 
-    logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
-                "query_id"_a=context->getContextToken(),
-                "step"_a=context->getQueryStep(),
-                "substep"_a=context->getQuerySubstep(),
-                "info"_a="MergeAggregate Kernel Completed",
-                "duration"_a=timer.elapsed_time(),
-                "kernel_id"_a=this->get_id());
+    if(logger){
+        logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+                    "query_id"_a=context->getContextToken(),
+                    "step"_a=context->getQueryStep(),
+                    "substep"_a=context->getQuerySubstep(),
+                    "info"_a="MergeAggregate Kernel Completed",
+                    "duration"_a=timer.elapsed_time(),
+                    "kernel_id"_a=this->get_id());
+    }
 
     return kstatus::proceed;
 }
