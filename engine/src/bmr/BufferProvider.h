@@ -6,6 +6,8 @@
 #include <mutex>
 #include <memory>
 
+#include <ucp/api/ucp.h>
+
 namespace ral{
 
 namespace memory{
@@ -53,6 +55,11 @@ public:
     void allocate(void ** ptr, std::size_t size);
     void deallocate(void * ptr);
 
+    virtual ucp_mem_h getUcpMemoryHandle() const
+        {
+        throw std::runtime_error("getUcpMemoryHandle not implemented in base class");
+        }
+
 protected:
     virtual void do_allocate(void ** ptr, std::size_t size) = 0;
     virtual void do_deallocate(void * ptr) = 0;
@@ -68,11 +75,21 @@ protected:
 
 class pinned_allocator : public base_allocator {
 public:
-    pinned_allocator(bool use_ucx);
+    pinned_allocator();
+
+    void setUcpContext(ucp_context_h context);
+
+    virtual ucp_mem_h getUcpMemoryHandle() const
+        {
+        return mem_handle;
+        }
+
 protected:
     void do_allocate(void ** ptr, std::size_t size);
     void do_deallocate(void * ptr);
     bool use_ucx;
+    ucp_context_h context;
+    ucp_mem_h mem_handle;
 };
 
 class allocation_pool {
@@ -82,6 +99,11 @@ public:
   ~allocation_pool();
 
   std::unique_ptr<blazing_allocation_chunk> get_chunk();
+
+  ucp_mem_h getUcpMemoryHandle() const
+    {
+    return allocator->getUcpMemoryHandle();
+    }
 
   void free_chunk(std::unique_ptr<blazing_allocation_chunk> allocation);
 
@@ -97,7 +119,7 @@ private:
 
   std::mutex in_use_mutex;
 
-    bool use_ucx;
+  bool use_ucx;
 
   std::size_t buffer_size;
 
@@ -117,7 +139,8 @@ std::shared_ptr<allocation_pool > get_host_buffer_provider();
 std::shared_ptr<allocation_pool > get_pinned_buffer_provider();
 
 void set_allocation_pools(std::size_t size_buffers_host, std::size_t num_buffers_host,
-std::size_t size_buffers_pinned, std::size_t num_buffers_pinned, bool map_ucx);
+    std::size_t size_buffers_pinned, std::size_t num_buffers_pinned, bool map_ucx,
+    ucp_context_h context);
 void empty_pools();
 } //namespace memory
 

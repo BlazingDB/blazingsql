@@ -1,20 +1,24 @@
 #include "BufferProvider.h"
 
 #include <mutex>
+#include <cstring>
 #include <cuda.h>
 #include <cuda_runtime.h>
+
+#include <ucs/type/status.h>
 
 namespace ral{
 namespace memory{
 
-  //TODO:JENS
-  //make this be able to receive  a ucp worker which you will
-  //need for the map an umap routines
-pinned_allocator::pinned_allocator(bool use_ucx) : 
-use_ucx{use_ucx} {
-
+pinned_allocator::pinned_allocator() :
+use_ucx{false} {
 }
 
+void pinned_allocator::setUcpContext(ucp_context_h _context)
+    {
+    context = _context;
+    use_ucx = true;
+    }
 
 void base_allocator::allocate(void ** ptr, std::size_t size){
   do_allocate(ptr,size);
@@ -33,12 +37,29 @@ void host_allocator::do_allocate(void ** ptr, std::size_t size){
 }
 
 void pinned_allocator::do_allocate(void ** ptr, std::size_t size){
+
+  // do we really want to do a host allocation instead of a device one? (have to try zero-copy later)
   cudaError_t err = cudaMallocHost(ptr, size);
   if (err != cudaSuccess) {
     throw std::runtime_error("Couldn't perform pinned allocation.");
   }
-  //TODO:JENS
-  //call mem_map here if using ucx 
+
+  if (use_ucx) {
+    ucp_mem_map_params_t mem_map_params;
+    std::memset(&mem_map_params, 0, sizeof(ucp_mem_map_params_t));
+    mem_map_params.field_mask = UCP_MEM_MAP_PARAM_FIELD_ADDRESS |
+                                    UCP_MEM_MAP_PARAM_FIELD_LENGTH |
+                                    UCP_MEM_MAP_PARAM_FIELD_FLAGS;
+    mem_map_params.address = *ptr;
+    mem_map_params.length = size;
+    mem_map_params.flags = 0; // try UCP_MEM_MAP_NONBLOCK
+
+    ucs_status_t status = ucp_mem_map(context, &mem_map_params, &mem_handle);
+    if (status != UCS_OK)
+        {
+        throw std::runtime_error("Error on ucp_mem_map");
+        }
+  }
 }
 
 void host_allocator::do_deallocate(void * ptr){
@@ -46,8 +67,14 @@ void host_allocator::do_deallocate(void * ptr){
 }
 
 void pinned_allocator::do_deallocate(void * ptr){
-  //TODO:JENS
-  //call mem_umap here if using ucx
+  if (use_ucx)
+     {
+     ucs_status_t status = ucp_mem_unmap(context, mem_handle);
+     if (status != UCS_OK)
+        {
+        throw std::runtime_error("Error on ucp_mem_map");
+        }
+    }
   auto err = cudaFreeHost(ptr);
   if (err != cudaSuccess) {
     throw std::runtime_error("Couldn't free pinned allocation.");
@@ -167,17 +194,22 @@ static std::shared_ptr<allocation_pool> host_buffer_instance{};
 static std::shared_ptr<allocation_pool> pinned_buffer_instance{};
 
 
-//TODO:JENS
-//pass in ucp worker here to use on pinned buffer allocator
 void set_allocation_pools(std::size_t size_buffers_host, std::size_t num_buffers_host,
-std::size_t size_buffers_pinned, std::size_t num_buffers_pinned, bool map_ucx) {
+std::size_t size_buffers_pinned, std::size_t num_buffers_pinned, bool map_ucx,
+    ucp_context_h context) {
   auto host_alloc = std::make_unique<host_allocator>(false);
 
   host_buffer_instance = std::make_shared<allocation_pool>(
    std::move(host_alloc) ,size_buffers_host,num_buffers_host);
-  pinned_buffer_instance = std::make_shared<allocation_pool>(
-    //TODO:JENS its this pinned allocator which will need to take in the worker 
-    std::make_unique<pinned_allocator>(map_ucx),size_buffers_host,num_buffers_host);
+
+  auto pinned_alloc = std::make_unique<pinned_allocator>();
+
+  if (map_ucx) {
+    pinned_alloc->setUcpContext(context);
+  }
+
+  pinned_buffer_instance = std::make_shared<allocation_pool>(std::move(pinned_alloc),
+    size_buffers_host,num_buffers_host);
 }
 
 void empty_pools(){
