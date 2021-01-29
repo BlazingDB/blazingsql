@@ -99,8 +99,8 @@ void message_sender::run_polling() {
 						std::vector<std::size_t> buffer_sizes;
 						std::vector<const char *> raw_buffers;
 						for(auto & buffer : table->get_raw_buffers()){
-							raw_buffers.push_back(buffer.data());
-							buffer_sizes.push_back(buffer.size());
+							raw_buffers.push_back(buffer.data);
+							buffer_sizes.push_back(buffer.size);
 						}
 						
 						std::vector<blazingdb::transport::ColumnTransport> column_transports = table->get_columns_offsets();

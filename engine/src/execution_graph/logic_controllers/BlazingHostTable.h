@@ -18,7 +18,9 @@ using ColumnTransport = blazingdb::transport::ColumnTransport;
 */ 
 class BlazingHostTable {
 public:
-    BlazingHostTable(const std::vector<ColumnTransport> &columns_offsets, std::vector<std::basic_string<char>> &&raw_buffers);
+    BlazingHostTable(const std::vector<ColumnTransport> &columns_offsets,
+    std::vector<ral::memory::blazing_chunked_buffer> && buffers,
+    std::vector<std::unique_ptr<ral::memory::blazing_allocation_chunk> && allocations);
 
     ~BlazingHostTable();
 
@@ -38,11 +40,16 @@ public:
 
     const std::vector<ColumnTransport> & get_columns_offsets() const ;
 
-    const std::vector<std::basic_string<char>> & get_raw_buffers() const ;
+    std::vector<rmm::device_buffer> & get_gpu_table() const;
+
+    std::vector<ral::memory::blazing_allocation_chunk> BlazingHostTable::get_raw_buffers();
 
 private:
     std::vector<ColumnTransport> columns_offsets;
-    std::vector<std::basic_string<char>> raw_buffers;
+    std::vector<ral::memory::blazing_chunked_buffer> buffers;
+    std::vector<std::unique_ptr<ral::memory::blazing_allocation_chunk> allocations;
+
+    
     size_t part_id;
 };
 

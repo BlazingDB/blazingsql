@@ -10,12 +10,16 @@ namespace ral{
 
 namespace memory{
 
+
+/**
+ * The wa
+ * 
+ */
+
+
 using Buffer = std::basic_string<char>;
 
-struct BlazingBufferChunk{
-    std::size_t size;
-    char *data;    
-};
+
 struct blazing_allocation_chunk;
 
 struct blazing_allocation{
@@ -23,6 +27,7 @@ struct blazing_allocation{
     std::size_t size;
     char *data;    
     std::stack< std::unique_ptr<blazing_allocation_chunk> > allocation_chunks;
+    base_allocator * pool;
 };
 
 struct blazing_allocation_chunk{
@@ -31,9 +36,13 @@ struct blazing_allocation_chunk{
     blazing_allocation * allocation;
 };
 
-struct BlazingBuffer {
-  std::vector<BlazingBufferChunk> chunks;
-  std::size_t use_size;
+
+
+struct blazing_chunked_buffer {
+    std::vector<size_t> chunk_index; //the index of the chunk this maps to
+    std::vector<size_t> offset; //the offset into each chunk to map to
+    std::vector<size_t> size; //the size of each chunk
+    size_t use_size;
 };
 
 #define BLAZING_ALIGNMENT 64u

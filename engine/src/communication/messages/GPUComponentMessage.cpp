@@ -121,16 +121,26 @@ std::unique_ptr<ral::frame::BlazingHostTable> serialize_gpu_message_to_host_tabl
 	std::vector<ColumnTransport> column_offset;
 	std::vector<std::unique_ptr<rmm::device_buffer>> temp_scope_holder;
 	std::tie(buffer_sizes, raw_buffers, column_offset, temp_scope_holder) = serialize_gpu_message_to_gpu_containers(table_view);
-	std::vector<std::basic_string<char>> cpu_raw_buffers;
-	for(size_t index = 0; index < buffer_sizes.size(); ++index) {
-		std::basic_string<char> buffer;
-		buffer.resize(buffer_sizes[index]);
-		// int currentDeviceId = 0; // TODO: CHECK device_id
-		// cudaSetDevice(currentDeviceId);
-		cudaMemcpy((void *)buffer.data(), raw_buffers[index], buffer_sizes[index], cudaMemcpyHostToHost);
-		cpu_raw_buffers.emplace_back(buffer);
+	
+	typedef std::tuple< std::vector<ral::memory::blazing_chunked_buffer>, std::vector<std::unique_ptr<ral::memory::blazing_allocation_chunk> > buffer_alloc_type;
+	buffer_alloc_type buffers_and_allocations = convert_gpu_buffers_to_chunks(raw_buffers,buffer_sizes,use_pinned);
+	
+	auto & allocations = buffers_and_allocations.second;
+	size_t buffer_index = 0;
+	for(auto & chunked_buffer : buffers_and_allocations.first){
+		size_t position = 0;
+		for(size_t i = 0; i < chunked_buffer.chunk_index.size(); i++){
+			size_t chunk_index = chunked_buffer.chunk_index[i];
+			size_t offset = chunked_buffer.offset[i];
+			size_t chunk_size = chunked_buffer.size[i];
+			cudaMemcpyAsync((void *) (allocations[chunk_index].data + offset), raw_buffers[buffer_index] + position, chunk_size, cudaMemcpyDeviceToHost,0);
+		}
+		position += chunk_size;
+		buffer_index++;
 	}
-	return std::make_unique<ral::frame::BlazingHostTable>(column_offset, std::move(cpu_raw_buffers));
+	cudaStreamSynchronize(0);
+
+	return std::make_unique<ral::frame::BlazingHostTable>(column_offset, std::move(buffers_and_allocations.second),std::move(buffers_and_allocations.first));
 }
 
 auto deserialize_from_gpu_raw_buffers(const std::vector<ColumnTransport> & columns_offsets,
@@ -188,12 +198,12 @@ std::unique_ptr<ral::frame::BlazingTable> deserialize_from_cpu(const ral::frame:
 	const auto & raw_buffers = host_table->get_raw_buffers();
 	try{
 		for(size_t index = 0; index < raw_buffers.size(); ++index) {
-			auto buffer_sz = raw_buffers[index].size();
+			auto buffer_sz = raw_buffers[index].size;
 			rmm::device_buffer dev_buffer(buffer_sz);
 			// int currentDeviceId = 0; // TODO: CHECK device_id
 			// cudaSetDevice(currentDeviceId);
 			cudaMemcpy((void *)dev_buffer.data(),
-				(const void *) raw_buffers[index].data(),
+				(const void *) raw_buffers[index].data,
 				buffer_sz,
 				cudaMemcpyHostToDevice);
 			gpu_raw_buffers.emplace_back(std::move(dev_buffer));

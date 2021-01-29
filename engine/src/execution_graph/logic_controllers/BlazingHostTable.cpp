@@ -14,6 +14,9 @@ BlazingHostTable::BlazingHostTable(const std::vector<ColumnTransport> &columns_o
 BlazingHostTable::~BlazingHostTable() {
     auto size = sizeInBytes();
     blazing_host_memory_resource::getInstance().deallocate(size);
+    for(auto & allocation : allocations){
+        allocation->allocation->pool->free_chunk(std::move(allocation));
+    }
 }
 
 std::vector<cudf::data_type> BlazingHostTable::get_schema() const {
@@ -60,8 +63,51 @@ const std::vector<ColumnTransport> &BlazingHostTable::get_columns_offsets() cons
     return columns_offsets;
 }
 
-const std::vector<std::basic_string<char>> &BlazingHostTable::get_raw_buffers() const {
-    return raw_buffers;
+
+
+std::unique_ptr<ral::frame::BlazingTable> gpu_raw_buffers BlazingHostTable::get_gpu_table() const {
+
+    std::vector<rmm::device_buffer> gpu_raw_buffers(buffers.size());
+	
+	try{
+        
+        int buffer_index = 0;
+        for(auto & chunked_buffer : buffers){
+            gpu_raw_buffers[buffer_index].resize(buffer.use_size);
+            size_t position = 0;
+            for(size_t i = 0; i < chunked_buffer.chunk_index.size(); i++){
+                size_t chunk_index = chunked_buffer.chunk_index[i];
+                size_t offset = chunked_buffer.offset[i];
+                size_t chunk_size = chunked_buffer.size[i];
+                cudaMemcpyAsync((void *) (gpu_raw_buffers[buffer_index].data() + position), allocations[chunk_index].data + offset, chunk_size, cudaMemcpyHostToDevice,0);
+                position += chunk_size;
+            }
+            buffer_index++;
+        }
+    	cudaStreamSynchronize(0);
+	}catch(std::exception & e){
+		auto logger = spdlog::get("batch_logger");
+        if (logger){
+            logger->error("|||{info}|||||",
+                    "info"_a="ERROR in deserialize_from_cpu. What: {}"_format(e.what()));
+        }
+		throw;
+	}
+    return std::move(deserialize_from_gpu_raw_buffers(columns_offsets,
+									  gpu_raw_buffers));
+}
+
+std::vector<ral::memory::blazing_allocation_chunk> BlazingHostTable::get_raw_buffers(){
+    std::vector<blazing_allocation_chunk> chunks;
+    for(auto & chunk : allocations){
+        blazing_allocation_chunk new_chunk;
+        new_chunk.size = chunk.size;
+        new_chunk.data = chunk.data;
+        new_chunk.allocation = nullptr;
+        chunks.push_back(new_chunk)
+    }
+
+    return chunks;
 }
 
 }  // namespace frame
