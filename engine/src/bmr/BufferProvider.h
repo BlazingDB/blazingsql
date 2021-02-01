@@ -43,7 +43,7 @@ struct blazing_allocation_chunk{
 
 
 
-struct blazing_chunked_buffer {
+struct blazing_chunked_column_info {
     std::vector<size_t> chunk_index; //the index of the chunk this maps to
     std::vector<size_t> offset; //the offset into each chunk to map to
     std::vector<size_t> size; //the size of each chunk
@@ -137,7 +137,7 @@ private:
   std::unique_ptr<base_allocator> allocator;
 };
 
-std::pair< std::vector<ral::memory::blazing_chunked_buffer>, std::vector<std::unique_ptr<ral::memory::blazing_allocation_chunk> >> convert_gpu_buffers_to_chunks(
+std::pair< std::vector<ral::memory::blazing_chunked_column_info>, std::vector<std::unique_ptr<ral::memory::blazing_allocation_chunk> >> convert_gpu_buffers_to_chunks(
     std::vector<std::size_t> buffer_sizes,bool use_pinned);
 
 std::shared_ptr<allocation_pool > get_host_buffer_provider();

@@ -120,19 +120,26 @@ std::unique_ptr<ral::frame::BlazingHostTable> serialize_gpu_message_to_host_tabl
 	std::vector<const char *> raw_buffers;
 	std::vector<ColumnTransport> column_offset;
 	std::vector<std::unique_ptr<rmm::device_buffer>> temp_scope_holder;
+
+	std::cout<<"serialize_gpu_message_to_host_table start"<<std::endl;
+
 	std::tie(buffer_sizes, raw_buffers, column_offset, temp_scope_holder) = serialize_gpu_message_to_gpu_containers(table_view);
+
+	std::cout<<"serialize_gpu_message_to_host_table serialize_gpu_message_to_gpu_containers done"<<std::endl;
 	
-	typedef std::pair< std::vector<ral::memory::blazing_chunked_buffer>, std::vector<std::unique_ptr<ral::memory::blazing_allocation_chunk> >> buffer_alloc_type;
+	typedef std::pair< std::vector<ral::memory::blazing_chunked_column_info>, std::vector<std::unique_ptr<ral::memory::blazing_allocation_chunk> >> buffer_alloc_type;
 	buffer_alloc_type buffers_and_allocations = ral::memory::convert_gpu_buffers_to_chunks(buffer_sizes,use_pinned);
+
+	std::cout<<"serialize_gpu_message_to_host_table convert_gpu_buffers_to_chunks done"<<std::endl;
 	
 	auto & allocations = buffers_and_allocations.second;
 	size_t buffer_index = 0;
-	for(auto & chunked_buffer : buffers_and_allocations.first){
+	for(auto & chunked_column_info : buffers_and_allocations.first){
 		size_t position = 0;
-		for(size_t i = 0; i < chunked_buffer.chunk_index.size(); i++){
-			size_t chunk_index = chunked_buffer.chunk_index[i];
-			size_t offset = chunked_buffer.offset[i];
-			size_t chunk_size = chunked_buffer.size[i];
+		for(size_t i = 0; i < chunked_column_info.chunk_index.size(); i++){
+			size_t chunk_index = chunked_column_info.chunk_index[i];
+			size_t offset = chunked_column_info.offset[i];
+			size_t chunk_size = chunked_column_info.size[i];
 			cudaMemcpyAsync((void *) (allocations[chunk_index]->data + offset), raw_buffers[buffer_index] + position, chunk_size, cudaMemcpyDeviceToHost,0);
 			position += chunk_size;
 		}		
@@ -140,7 +147,11 @@ std::unique_ptr<ral::frame::BlazingHostTable> serialize_gpu_message_to_host_tabl
 	}
 	cudaStreamSynchronize(0);
 
-	return std::make_unique<ral::frame::BlazingHostTable>(column_offset, std::move(buffers_and_allocations.first),std::move(buffers_and_allocations.second));
+	std::cout<<"serialize_gpu_message_to_host_table BlazingHostTable in the making"<<std::endl;
+
+	auto table = std::make_unique<ral::frame::BlazingHostTable>(column_offset, std::move(buffers_and_allocations.first),std::move(buffers_and_allocations.second));
+	std::cout<<"serialize_gpu_message_to_host_table done"<<std::endl;
+	return table;
 }
 
 auto deserialize_from_gpu_raw_buffers(const std::vector<ColumnTransport> & columns_offsets,

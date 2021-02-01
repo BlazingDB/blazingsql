@@ -74,7 +74,7 @@ private:
 
 
   std::vector<ColumnTransport> _column_transports;
-  std::vector<ral::memory::blazing_chunked_buffer> _chunked_buffers;
+  std::vector<ral::memory::blazing_chunked_column_info> _chunked_column_infos;
   std::shared_ptr<ral::cache::CacheMachine> _output_cache;
   ral::cache::MetadataDictionary _metadata;
   std::vector<size_t> _buffer_sizes;

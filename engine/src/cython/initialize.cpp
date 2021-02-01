@@ -648,8 +648,7 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 	if (iter != config_options.end()){
 		num_buffers = std::stoi(config_options["TRANSPORT_POOL_NUM_BUFFERS"]);
 	}
-	blazingdb::transport::io::setPinnedBufferProvider(buffers_size, num_buffers);
-
+	
 	//to avoid redundancy the default value or user defined value for this parameter is placed on the pyblazing side
 	assert( config_options.find("BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD") != config_options.end() );
 	float host_memory_quota = std::stof(config_options["BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD"]);
@@ -707,6 +706,12 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 	auto size_log_it = config_options.find("LOGGING_MAX_SIZE_PER_FILE");
 	if (size_log_it != config_options.end()){
 		max_size_logging = std::stoi(config_options["LOGGING_MAX_SIZE_PER_FILE"]);
+	}
+
+	comm::blazing_protocol protocol = comm::blazing_protocol::tcp;
+	std::string protocol_value = StringUtil::toLower(config_options["PROTOCOL"]);
+	if (protocol_value == "ucx"){
+		protocol = comm::blazing_protocol::ucx;
 	}
 
 	if (!initialized){
@@ -806,16 +811,11 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 
 	auto output_input_caches = std::make_pair(std::make_shared<CacheMachine>(nullptr, "messages_out", false,CACHE_LEVEL_CPU ),std::make_shared<CacheMachine>(nullptr, "messages_in", false));
 
+	ucp_context_h ucp_context = nullptr;
 	// start ucp servers
 	if(!singleNode){
 		std::map<std::string, comm::node> nodes_info_map;
 
-		comm::blazing_protocol protocol = comm::blazing_protocol::tcp;
-		std::string protocol_value = StringUtil::toLower(config_options["PROTOCOL"]);
-		if (protocol_value == "ucx"){
-			protocol = comm::blazing_protocol::ucx;
-		}
-		ucp_context_h ucp_context = nullptr;
 		ucp_worker_h self_worker = nullptr;
 		if(protocol == comm::blazing_protocol::ucx){
 			ucp_context = reinterpret_cast<ucp_context_h>(workers_ucp_info[0].context_handle);
@@ -940,6 +940,10 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 		output_input_caches.first = comm::message_sender::get_instance()->get_output_cache();
 		output_input_caches.second = comm::message_sender::get_instance()->get_input_cache();
 	}
+
+	bool map_ucx = protocol == comm::blazing_protocol::ucx;
+	ral::memory::set_allocation_pools(buffers_size, num_buffers,
+										buffers_size, num_buffers, map_ucx, ucp_context);
 
 	double processing_memory_limit_threshold = 0.9;
 	config_it = config_options.find("BLAZING_PROCESSING_DEVICE_MEM_CONSUMPTION_THRESHOLD");

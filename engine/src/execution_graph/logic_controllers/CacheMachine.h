@@ -388,9 +388,11 @@ private:
  	}
 
 	CPUCacheData(const std::vector<blazingdb::transport::ColumnTransport> & column_transports,
-    		    std::vector<ral::memory::blazing_chunked_buffer> && buffers,
+    		    std::vector<ral::memory::blazing_chunked_column_info> && chunked_column_infos,
         		std::vector<std::unique_ptr<ral::memory::blazing_allocation_chunk>> && allocations,
 				const MetadataDictionary & metadata) : metadata(metadata) {
+
+		std::cout<<"CPUCacheData start"<<std::endl;
 		
 		this->cache_type = CacheDataType::CPU;
 		for(int i = 0; i < column_transports.size(); i++){
@@ -402,7 +404,8 @@ private:
 		}else{
 			this->n_rows = column_transports[0].metadata.size;
 		}
-		this->host_table = std::make_unique<ral::frame::BlazingHostTable>(column_transports,std::move(buffers), std::move(allocations));
+		this->host_table = std::make_unique<ral::frame::BlazingHostTable>(column_transports,std::move(chunked_column_infos), std::move(allocations));
+		std::cout<<"CPUCacheData end"<<std::endl;
 	}
 
 

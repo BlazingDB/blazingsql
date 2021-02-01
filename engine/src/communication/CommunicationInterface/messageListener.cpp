@@ -152,11 +152,14 @@ void tcp_message_listener::start_polling() {
 						CodeTimer timer;
 						cudaStream_t stream = 0;
 						//          cudaStreamCreate(&stream);
+						std::cout<<"tcp_message_listener::start_polling() read_from_socket 0"<<std::endl;
 						size_t message_size;
 						io::read_from_socket(connection_fd, &message_size, sizeof(message_size));
+						std::cout<<"tcp_message_listener::start_polling() read_from_socket 1"<<std::endl;
 
 						std::vector<char> data(message_size);
 						io::read_from_socket(connection_fd, data.data(), message_size);
+						std::cout<<"tcp_message_listener::start_polling() read_from_socket 2"<<std::endl;
 						// auto meta_read_time = timer.elapsed_time();
 						// status_code success = status_code::OK;
 						// io::write_to_socket(connection_fd, &success, sizeof(success));
@@ -172,9 +175,13 @@ void tcp_message_listener::start_polling() {
 							//   size_t total_sync_time = 0;
 							while(buffer_position < receiver->num_buffers()) {
 								receiver->allocate_buffer(buffer_position, stream);
+								std::cout<<"tcp_message_listener::start_polling() allocated buffer"<<std::endl;
 								void * buffer = receiver->get_buffer(buffer_position);
+								std::cout<<"tcp_message_listener::start_polling() get_buffer"<<std::endl;
 								size_t buffer_size = receiver->buffer_size(buffer_position);
+								std::cout<<"tcp_message_listener::start_polling() get_buffer"<<std::endl;
 								io::read_from_socket(connection_fd, buffer, buffer_size);
+								std::cout<<"tcp_message_listener::start_polling() read_from_socket"<<std::endl;
 
 
 								buffer_position++;

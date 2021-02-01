@@ -16,7 +16,7 @@ class BlazingTable;  // forward declaration
 
 /**
 	@brief A class that represents the BlazingTable store in host memory.
-    This implementation uses only raw buffers and offtets that represent a BlazingTable.
+    This implementation uses only raw allocations, ColumnTransports and chunked_column_infos that represent a BlazingTable.
     The reference to implement this class was based on the way how BlazingTable objects are send/received 
     by the communication library.
 */ 
@@ -24,7 +24,7 @@ class BlazingHostTable {
 public:
 
     BlazingHostTable(const std::vector<ColumnTransport> &columns_offsets,
-        std::vector<ral::memory::blazing_chunked_buffer> && buffers,
+        std::vector<ral::memory::blazing_chunked_column_info> && chunked_column_infos,
         std::vector<std::unique_ptr<ral::memory::blazing_allocation_chunk>> && allocations);
 
     ~BlazingHostTable();
@@ -49,11 +49,11 @@ public:
 
     std::vector<ral::memory::blazing_allocation_chunk> get_raw_buffers() const;
 
-    const std::vector<ral::memory::blazing_chunked_buffer> &  get_blazing_chunked_buffers() const;
+    const std::vector<ral::memory::blazing_chunked_column_info> &  get_blazing_chunked_column_infos() const;
 
 private:
     std::vector<ColumnTransport> columns_offsets;
-    std::vector<ral::memory::blazing_chunked_buffer> buffers;
+    std::vector<ral::memory::blazing_chunked_column_info> chunked_column_infos;
     std::vector<std::unique_ptr<ral::memory::blazing_allocation_chunk>> allocations;
 
     

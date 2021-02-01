@@ -40,11 +40,11 @@ std::vector<T> vector_from_byte_vector(const char * input, size_t length) {
 
 std::vector<char> serialize_metadata_and_transports_and_buffer_sizes(const ral::cache::MetadataDictionary & metadata,
                                                     const std::vector<blazingdb::transport::ColumnTransport> & column_transports,
-													const std::vector<ral::memory::blazing_chunked_buffer> & chunked_buffers,
+													const std::vector<ral::memory::blazing_chunked_column_info> & chunked_column_infos,
                                                     const std::vector<size_t> buffer_sizes);
 
 std::tuple<ral::cache::MetadataDictionary, std::vector<blazingdb::transport::ColumnTransport>, 
-	std::vector<ral::memory::blazing_chunked_buffer>, std::vector<size_t> > get_metadata_and_transports_and_buffer_sizes_from_bytes(std::vector<char> data);
+	std::vector<ral::memory::blazing_chunked_column_info>, std::vector<size_t> > get_metadata_and_transports_and_buffer_sizes_from_bytes(std::vector<char> data);
 
 } // namespace detail
 
@@ -64,14 +64,14 @@ public:
    * execution, planning, or physical optimizations. E.G. num rows in table, num partitions to be processed
 	 * @param buffer_sizes A vector containing the sizes of the buffer
 	 * @param column_transports A vector of ColumnTransport representing column metadata
-	 * @param chunked_buffers A vector of blazing_chunked_buffer representing how the raw buffers are chunked
+	 * @param chunked_column_infos A vector of blazing_chunked_column_info representing how the raw buffers are chunked
 	 * @param destinations A vector of destination nodes
 	 * @param require_acknowledge A boolean stating if acknowledgement of a message is required
 	 */
 	buffer_transport(ral::cache::MetadataDictionary metadata,
 		std::vector<size_t> buffer_sizes,
 		std::vector<blazingdb::transport::ColumnTransport> column_transports,
-		std::vector<ral::memory::blazing_chunked_buffer> chunked_buffers,
+		std::vector<ral::memory::blazing_chunked_column_info> chunked_column_infos,
 		std::vector<node> destinations,
 		bool require_acknowledge);
 	virtual ~buffer_transport();
@@ -99,7 +99,7 @@ protected:
 	virtual void receive_acknowledge() = 0;
 
 	std::vector<blazingdb::transport::ColumnTransport> column_transports;
-	std::vector<ral::memory::blazing_chunked_buffer> chunked_buffers;
+	std::vector<ral::memory::blazing_chunked_column_info> chunked_column_infos;
 	ral::cache::MetadataDictionary metadata;
 	std::vector<size_t> buffer_sizes;
 	size_t buffer_sent = 0;

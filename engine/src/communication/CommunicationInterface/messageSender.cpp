@@ -109,7 +109,7 @@ void message_sender::run_polling() {
 						}
 						
 						std::vector<blazingdb::transport::ColumnTransport> column_transports = table->get_columns_offsets();
-						const std::vector<ral::memory::blazing_chunked_buffer> & chunked_buffers = table->get_blazing_chunked_buffers();
+						const std::vector<ral::memory::blazing_chunked_column_info> & chunked_column_infos = table->get_blazing_chunked_column_infos();
 					
 						// tcp / ucp
 						auto metadata_map = metadata.get_values();
@@ -126,6 +126,7 @@ void message_sender::run_polling() {
 						}
 
 						std::shared_ptr<buffer_transport> transport;
+						std::cout<<"message_sender::run_polling() making transports"<<std::endl;
 						if(blazing_protocol::ucx == protocol){
 
 							transport = std::make_shared<ucx_buffer_transport>(
@@ -135,7 +136,7 @@ void message_sender::run_polling() {
 								metadata,
 								buffer_sizes, 
 								column_transports, 
-								chunked_buffers, 
+								chunked_column_infos, 
 								ral_id,
 								require_acknowledge);
 						}else if (blazing_protocol::tcp == protocol){
@@ -145,7 +146,7 @@ void message_sender::run_polling() {
 								metadata,
 								buffer_sizes,
 								column_transports,
-								chunked_buffers,
+								chunked_column_infos,
 								ral_id,
 								&this->pool,
 								require_acknowledge);
@@ -154,12 +155,16 @@ void message_sender::run_polling() {
 							throw std::runtime_error("Unknown protocol");
 						}
 
+						std::cout<<"message_sender::run_polling() making send_begin_transmission"<<std::endl;
 						transport->send_begin_transmission();
+						std::cout<<"message_sender::run_polling() making wait_for_begin_transmission"<<std::endl;
 						transport->wait_for_begin_transmission();
 						for(size_t i = 0; i < raw_buffers.size(); i++) {
 							transport->send(raw_buffers[i], buffer_sizes[i]);
 						}
+						std::cout<<"message_sender::run_polling() sent"<<std::endl;
 						transport->wait_until_complete();  // ensures that the message has been sent before returning the thread to the pool
+						std::cout<<"message_sender::run_polling() waited done"<<std::endl;
 						if(comms_logger){
                             comms_logger->info("{unique_id}|{ral_id}|{query_id}|{kernel_id}|{dest_ral_id}|{dest_ral_count}|{dest_cache_id}|{message_id}|{phase}",
                                 "unique_id"_a=metadata.get_values()[ral::cache::UNIQUE_MESSAGE_ID],

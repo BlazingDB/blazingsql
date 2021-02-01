@@ -10,7 +10,7 @@ namespace detail {
 
 std::vector<char> serialize_metadata_and_transports_and_buffer_sizes(const ral::cache::MetadataDictionary & metadata,
                                                     const std::vector<blazingdb::transport::ColumnTransport> & column_transports,
-													const std::vector<ral::memory::blazing_chunked_buffer> & chunked_buffers,
+													const std::vector<ral::memory::blazing_chunked_column_info> & chunked_column_infos,
                                                     const std::vector<size_t> buffer_sizes) {
 	// builds the cpu host buffer that we are going to send
 	// first lets serialize and send metadata
@@ -31,33 +31,33 @@ std::vector<char> serialize_metadata_and_transports_and_buffer_sizes(const ral::
 	tmp_buffer = detail::vector_to_byte_vector(column_transports);
 	buffer.insert(buffer.end(), tmp_buffer.begin(), tmp_buffer.end());
 
-	// lets serialize now the chunked_buffers
-	tmp_buffer = detail::to_byte_vector(chunked_buffers.size());  // tells us how many chunked_buffers there are
+	// lets serialize now the chunked_column_infos
+	tmp_buffer = detail::to_byte_vector(chunked_column_infos.size());  // tells us how many chunked_column_infos there are
 	buffer.insert(buffer.end(), tmp_buffer.begin(), tmp_buffer.end());
-	for (const auto &chunked_buffer : chunked_buffers){
+	for (const auto &chunked_column_info : chunked_column_infos){
 		// first we serialize chunk_index
-		tmp_buffer = detail::to_byte_vector(chunked_buffer.chunk_index.size()); 
+		tmp_buffer = detail::to_byte_vector(chunked_column_info.chunk_index.size()); 
 		buffer.insert(buffer.end(), tmp_buffer.begin(), tmp_buffer.end());
 
-		tmp_buffer = detail::vector_to_byte_vector(chunked_buffer.chunk_index);
+		tmp_buffer = detail::vector_to_byte_vector(chunked_column_info.chunk_index);
 		buffer.insert(buffer.end(), tmp_buffer.begin(), tmp_buffer.end());
 
 		// then we serialize offset
-		tmp_buffer = detail::to_byte_vector(chunked_buffer.offset.size()); 
+		tmp_buffer = detail::to_byte_vector(chunked_column_info.offset.size()); 
 		buffer.insert(buffer.end(), tmp_buffer.begin(), tmp_buffer.end());
 
-		tmp_buffer = detail::vector_to_byte_vector(chunked_buffer.offset);
+		tmp_buffer = detail::vector_to_byte_vector(chunked_column_info.offset);
 		buffer.insert(buffer.end(), tmp_buffer.begin(), tmp_buffer.end());
 
 		// then we serialize size
-		tmp_buffer = detail::to_byte_vector(chunked_buffer.size.size()); 
+		tmp_buffer = detail::to_byte_vector(chunked_column_info.size.size()); 
 		buffer.insert(buffer.end(), tmp_buffer.begin(), tmp_buffer.end());
 
-		tmp_buffer = detail::vector_to_byte_vector(chunked_buffer.size);
+		tmp_buffer = detail::vector_to_byte_vector(chunked_column_info.size);
 		buffer.insert(buffer.end(), tmp_buffer.begin(), tmp_buffer.end());
 
 		// finally we serialize use_size
-		tmp_buffer = detail::to_byte_vector(chunked_buffer.size.size()); 
+		tmp_buffer = detail::to_byte_vector(chunked_column_info.size.size()); 
 		buffer.insert(buffer.end(), tmp_buffer.begin(), tmp_buffer.end());
 	}
 
@@ -72,8 +72,10 @@ std::vector<char> serialize_metadata_and_transports_and_buffer_sizes(const ral::
 
 
 std::tuple<ral::cache::MetadataDictionary, std::vector<blazingdb::transport::ColumnTransport>, 
-			std::vector<ral::memory::blazing_chunked_buffer>, std::vector<size_t> >
+			std::vector<ral::memory::blazing_chunked_column_info>, std::vector<size_t> >
 									get_metadata_and_transports_and_buffer_sizes_from_bytes(std::vector<char> data){
+
+	std::cout<<"get_metadata_and_transports_and_buffer_sizes_from_bytes start"<<std::endl;
     size_t ptr_offset = 0;
 
 	// first lets deserialize the metadata
@@ -107,31 +109,31 @@ std::tuple<ral::cache::MetadataDictionary, std::vector<blazingdb::transport::Col
     ptr_offset += column_transports_size * sizeof(blazingdb::transport::ColumnTransport);
 
 
-	// next we deserialize chunked_buffers
-	size_t num_chunked_buffers = from_byte_vector<size_t>(data.data() + ptr_offset);
+	// next we deserialize chunked_column_infos
+	size_t num_chunked_column_info = from_byte_vector<size_t>(data.data() + ptr_offset);
 	ptr_offset += sizeof(size_t);
-	std::vector<ral::memory::blazing_chunked_buffer> chunked_buffers(num_chunked_buffers);
-	for (auto i = 0; i < num_chunked_buffers; i++){
+	std::vector<ral::memory::blazing_chunked_column_info> chunked_column_infos(num_chunked_column_info);
+	for (auto i = 0; i < num_chunked_column_info; i++){
 		// first we deserialize chunk_index
 		size_t num_chunk_index = from_byte_vector<size_t>(data.data() + ptr_offset);
 		ptr_offset += sizeof(size_t);
-		chunked_buffers[i].chunk_index = vector_from_byte_vector<size_t>(data.data() + ptr_offset, num_chunk_index);
+		chunked_column_infos[i].chunk_index = vector_from_byte_vector<size_t>(data.data() + ptr_offset, num_chunk_index);
 		ptr_offset += num_chunk_index * sizeof(size_t);
 
 		// then we deserialize offset
 		size_t num_offset = from_byte_vector<size_t>(data.data() + ptr_offset);
 		ptr_offset += sizeof(size_t);
-		chunked_buffers[i].offset = vector_from_byte_vector<size_t>(data.data() + ptr_offset, num_offset);
+		chunked_column_infos[i].offset = vector_from_byte_vector<size_t>(data.data() + ptr_offset, num_offset);
 		ptr_offset += num_offset * sizeof(size_t);
 
 		// then we deserialize size
 		size_t num_size = from_byte_vector<size_t>(data.data() + ptr_offset);
 		ptr_offset += sizeof(size_t);
-		chunked_buffers[i].size = vector_from_byte_vector<size_t>(data.data() + ptr_offset, num_size);
+		chunked_column_infos[i].size = vector_from_byte_vector<size_t>(data.data() + ptr_offset, num_size);
 		ptr_offset += num_size * sizeof(size_t);
 
 		// finally we deserialize use_size
-		chunked_buffers[i].use_size = from_byte_vector<size_t>(data.data() + ptr_offset);
+		chunked_column_infos[i].use_size = from_byte_vector<size_t>(data.data() + ptr_offset);
 		ptr_offset += sizeof(size_t);
 	}
 
@@ -143,15 +145,18 @@ std::tuple<ral::cache::MetadataDictionary, std::vector<blazingdb::transport::Col
 	auto buffer_sizes = vector_from_byte_vector<size_t>(
 		data.data() + ptr_offset, buffer_size);
 	
-	return std::make_tuple(dictionary, column_transports, chunked_buffers, buffer_sizes);
+
+	std::cout<<"get_metadata_and_transports_and_buffer_sizes_from_bytes end"<<std::endl;
+	
+	return std::make_tuple(dictionary, column_transports, chunked_column_infos, buffer_sizes);
 }
 
 } // namespace detail
 
 buffer_transport::buffer_transport(ral::cache::MetadataDictionary metadata,
   std::vector<size_t> buffer_sizes,
-  std::vector<blazingdb::transport::ColumnTransport> column_transports, std::vector<ral::memory::blazing_chunked_buffer> chunked_buffers, std::vector<node> destinations, bool require_acknowledge)
-  : column_transports{column_transports}, chunked_buffers{chunked_buffers}, metadata{metadata}, buffer_sizes{buffer_sizes}, transmitted_begin_frames(0), transmitted_frames(0),
+  std::vector<blazingdb::transport::ColumnTransport> column_transports, std::vector<ral::memory::blazing_chunked_column_info> chunked_column_infos, std::vector<node> destinations, bool require_acknowledge)
+  : column_transports{column_transports}, chunked_column_infos{chunked_column_infos}, metadata{metadata}, buffer_sizes{buffer_sizes}, transmitted_begin_frames(0), transmitted_frames(0),
 	 destinations{destinations} , require_acknowledge{require_acknowledge}  {
   // iterate for workers this is destined for
 

@@ -128,6 +128,8 @@ std::unique_ptr<ral::frame::BlazingTable> deserialize_from_gpu_raw_buffers(
 	std::vector<std::unique_ptr<cudf::column>> received_samples(num_columns);
 	std::vector<std::string> column_names(num_columns);
 
+	std::cout<<"deserialize_from_gpu_raw_buffers start"<<std::endl;
+
 	assert(raw_buffers.size() >= 0);
 
 	for(size_t i = 0; i < num_columns; ++i) {
@@ -177,6 +179,8 @@ std::unique_ptr<ral::frame::BlazingTable> deserialize_from_gpu_raw_buffers(
 	}
 
 	auto unique_table = std::make_unique<cudf::table>(std::move(received_samples));
+	std::cout<<"deserialize_from_gpu_raw_buffers done"<<std::endl;
+
 	return std::make_unique<ral::frame::BlazingTable>(std::move(unique_table), column_names);
 }
 
