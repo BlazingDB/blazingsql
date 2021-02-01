@@ -22,7 +22,9 @@ message_receiver::message_receiver(const std::map<std::string, comm::node>& node
     _output_cache = _metadata.get_values()[ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL] == "true" ?
                         graph->get_kernel_output_cache(kernel_id, cache_id) : graph->get_input_message_cache();
   //_metadata.print();
-  _raw_buffers.resize(_buffer_sizes.size());
+
+  size_t num_allocations = 1;
+  _raw_buffers.resize(num_allocations);
     std::shared_ptr<spdlog::logger> comms_logger;
     comms_logger = spdlog::get("input_comms");
     auto destinations = _metadata.get_values()[ral::cache::WORKER_IDS_METADATA_LABEL];
@@ -58,7 +60,7 @@ void message_receiver::allocate_buffer(uint16_t index, cudaStream_t stream){
   if (index >= _raw_buffers.size()) {
     throw std::runtime_error("Invalid access to raw buffer");
   }
-  _raw_buffers[index].resize(_buffer_sizes[index]);//,stream);
+  _raw_buffers[index] = ral::memory::get_pinned_buffer_provider()->get_chunk();
 }
 
 node message_receiver::get_sender_node(){
@@ -78,10 +80,7 @@ void message_receiver::confirm_transmission(){
 }
 
 void * message_receiver::get_buffer(uint16_t index){
-    //this is ugly. We are currently doing this because
-    //the UCX apis expect a void * instead of a const void * for
-    //buffers it will fill but that it wont allocate
-    return &_raw_buffers[index][0];
+    return _raw_buffers[index]->data;
 }
 
 bool message_receiver::is_finished(){
@@ -109,10 +108,9 @@ void message_receiver::finish(cudaStream_t stream) {
     
     // TODO:FELIPE  here we need change the code to go from _raw_buffers to:
     std::vector<ral::memory::blazing_chunked_buffer> _buffers;
-    std::vector<std::unique_ptr<ral::memory::blazing_allocation_chunk>> _allocations;
 
     std::unique_ptr<ral::cache::CacheData> table = 
-        std::make_unique<ral::cache::CPUCacheData>(_column_transports,std::move(_buffers),std::move(_allocations), _metadata);
+        std::make_unique<ral::cache::CPUCacheData>(_column_transports,std::move(_buffers),std::move(_raw_buffers), _metadata);
     _output_cache->addCacheData(
                 std::move(table), _metadata.get_values()[ral::cache::MESSAGE_ID], true);  
   }
