@@ -42,6 +42,7 @@ TEST_F(MessageReceiverTest, receive_test) {
   ral::cache::MetadataDictionary metadata;
   auto output_cache = std::make_shared<ral::cache::CacheMachine>(nullptr, "");
   
+  // TODO:WSM
   auto meta_buffer = comm::detail::serialize_metadata_and_transports_and_buffer_sizes(metadata,
                     column_transports,
                     buffer_sizes);
@@ -79,6 +80,7 @@ TEST_F(MessageReceiverTest, receive_metatdata) {
   metadata.add_value(ral::cache::WORKER_IDS_METADATA_LABEL, "ucx://127.0.0.2");
   metadata.add_value(ral::cache::MESSAGE_ID, "");
 
+// TODO:WSM
   auto bytes_buffer = comm::detail::serialize_metadata_and_transports_and_buffer_sizes(metadata, column_transports,buffer_sizes);
 
   ral::cache::MetadataDictionary out_metadata;

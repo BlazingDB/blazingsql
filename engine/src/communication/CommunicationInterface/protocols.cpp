@@ -248,9 +248,10 @@ ucx_buffer_transport::ucx_buffer_transport(size_t request_size,
     ral::cache::MetadataDictionary metadata,
     std::vector<size_t> buffer_sizes,
     std::vector<blazingdb::transport::ColumnTransport> column_transports,
+    std::vector<ral::memory::blazing_chunked_buffer> chunked_buffers,
     int ral_id,
     bool require_acknowledge)
-    : buffer_transport(metadata, buffer_sizes, column_transports,destinations,require_acknowledge),
+    : buffer_transport(metadata, buffer_sizes, column_transports, chunked_buffers, destinations, require_acknowledge),
     origin_node(origin_node), ral_id{ral_id}, _request_size{request_size}{
         tag = generate_message_tag();
 
@@ -270,7 +271,7 @@ ucp_tag_t ucx_buffer_transport::generate_message_tag() {
 
 void ucx_buffer_transport::send_begin_transmission() {
     try {
-        std::shared_ptr<std::vector<char>> buffer_to_send = std::make_shared<std::vector<char>>(detail::serialize_metadata_and_transports_and_buffer_sizes(metadata, column_transports, buffer_sizes));
+        std::shared_ptr<std::vector<char>> buffer_to_send = std::make_shared<std::vector<char>>(detail::serialize_metadata_and_transports_and_buffer_sizes(metadata, column_transports, chunked_buffers, buffer_sizes));
 
         std::vector<char *> requests(destinations.size());
         int i = 0;
@@ -381,10 +382,11 @@ tcp_buffer_transport::tcp_buffer_transport(
         ral::cache::MetadataDictionary metadata,
         std::vector<size_t> buffer_sizes,
         std::vector<blazingdb::transport::ColumnTransport> column_transports,
+        std::vector<ral::memory::blazing_chunked_buffer> chunked_buffers,
         int ral_id,
         ctpl::thread_pool<BlazingThread> * allocate_copy_buffer_pool,
         bool require_acknowledge)
-        : buffer_transport(metadata, buffer_sizes, column_transports,destinations,require_acknowledge),
+        : buffer_transport(metadata, buffer_sizes, column_transports, chunked_buffers, destinations,require_acknowledge),
         ral_id{ral_id}, allocate_copy_buffer_pool{allocate_copy_buffer_pool} {
 
         //Initialize connection to get
@@ -417,7 +419,7 @@ tcp_buffer_transport::tcp_buffer_transport(
 }
 
 void tcp_buffer_transport::send_begin_transmission(){
-    std::vector<char> buffer_to_send = detail::serialize_metadata_and_transports_and_buffer_sizes(metadata, column_transports,buffer_sizes);
+    std::vector<char> buffer_to_send = detail::serialize_metadata_and_transports_and_buffer_sizes(metadata, column_transports, chunked_buffers, buffer_sizes);
 	auto size_to_send = buffer_to_send.size();
 
     for (auto socket_fd : socket_fds){

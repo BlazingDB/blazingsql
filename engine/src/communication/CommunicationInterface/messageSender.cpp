@@ -109,6 +109,7 @@ void message_sender::run_polling() {
 						}
 						
 						std::vector<blazingdb::transport::ColumnTransport> column_transports = table->get_columns_offsets();
+						const std::vector<ral::memory::blazing_chunked_buffer> & chunked_buffers = table->get_blazing_chunked_buffers();
 					
 						// tcp / ucp
 						auto metadata_map = metadata.get_values();
@@ -128,18 +129,26 @@ void message_sender::run_polling() {
 						if(blazing_protocol::ucx == protocol){
 
 							transport = std::make_shared<ucx_buffer_transport>(
-								request_size, origin, destinations, metadata,
-								buffer_sizes, column_transports,ral_id,require_acknowledge);
+								request_size, 
+								origin, 
+								destinations, 
+								metadata,
+								buffer_sizes, 
+								column_transports, 
+								chunked_buffers, 
+								ral_id,
+								require_acknowledge);
 						}else if (blazing_protocol::tcp == protocol){
 
 							transport = std::make_shared<tcp_buffer_transport>(
-							destinations,
-							metadata,
-							buffer_sizes,
-							column_transports,
-							ral_id,
-							&this->pool,
-							require_acknowledge);
+								destinations,
+								metadata,
+								buffer_sizes,
+								column_transports,
+								chunked_buffers,
+								ral_id,
+								&this->pool,
+								require_acknowledge);
 						}
 						else{
 							throw std::runtime_error("Unknown protocol");

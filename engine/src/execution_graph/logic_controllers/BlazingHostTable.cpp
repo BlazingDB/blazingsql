@@ -114,5 +114,9 @@ std::vector<ral::memory::blazing_allocation_chunk> BlazingHostTable::get_raw_buf
     return chunks;
 }
 
+const std::vector<ral::memory::blazing_chunked_buffer> & BlazingHostTable::get_blazing_chunked_buffers() const {
+    return this->buffers;
+}
+
 }  // namespace frame
 }  // namespace ral

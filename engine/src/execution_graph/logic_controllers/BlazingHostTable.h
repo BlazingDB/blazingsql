@@ -49,6 +49,8 @@ public:
 
     std::vector<ral::memory::blazing_allocation_chunk> get_raw_buffers() const;
 
+    const std::vector<ral::memory::blazing_chunked_buffer> &  get_blazing_chunked_buffers() const;
+
 private:
     std::vector<ColumnTransport> columns_offsets;
     std::vector<ral::memory::blazing_chunked_buffer> buffers;

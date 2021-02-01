@@ -38,7 +38,7 @@ struct blazing_allocation{
 struct blazing_allocation_chunk{
     std::size_t size;
     char *data;    
-    blazing_allocation * allocation; // this is to know why make it
+    blazing_allocation * allocation; // this is to know who made it
 };
 
 

@@ -96,6 +96,7 @@ public:
 		ral::cache::MetadataDictionary metadata,
 		std::vector<size_t> buffer_sizes,
 		std::vector<blazingdb::transport::ColumnTransport> column_transports,
+        std::vector<ral::memory::blazing_chunked_buffer> chunked_buffers,
         int ral_id,
         bool require_acknowledge);
     ~ucx_buffer_transport();
@@ -135,9 +136,11 @@ public:
         ral::cache::MetadataDictionary metadata,
         std::vector<size_t> buffer_sizes,
         std::vector<blazingdb::transport::ColumnTransport> column_transports,
+        std::vector<ral::memory::blazing_chunked_buffer> chunked_buffers,
         int ral_id,
         ctpl::thread_pool<BlazingThread> * allocate_copy_buffer_pool,
         bool require_acknowledge);
+        // TODO:WSM
     ~tcp_buffer_transport();
 
     void send_begin_transmission() override;
