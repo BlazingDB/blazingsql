@@ -17,8 +17,8 @@ using namespace fmt::literals;
 class PartitionSingleNodeKernel : public kernel {
 public:
 	PartitionSingleNodeKernel(std::size_t kernel_id, const std::string & queryString,
-	std::shared_ptr<Context> context,
-	std::shared_ptr<ral::cache::graph> query_graph);
+		std::shared_ptr<Context> context,
+		std::shared_ptr<ral::cache::graph> query_graph);
 
 	std::string kernel_name() { return "PartitionSingleNode";}
 
@@ -39,8 +39,8 @@ std::size_t PARTITION_PLAN_MESSAGE_TRACKER_IDX = 1;
 
 public:
 	SortAndSampleKernel(std::size_t kernel_id, const std::string & queryString,
-	std::shared_ptr<Context> context,
-	std::shared_ptr<ral::cache::graph> query_graph);
+		std::shared_ptr<Context> context,
+		std::shared_ptr<ral::cache::graph> query_graph);
 
 	std::string kernel_name() { return "SortAndSample";}
 
@@ -71,8 +71,8 @@ private:
 class PartitionKernel : public distributing_kernel {
 public:
 	PartitionKernel(std::size_t kernel_id, const std::string & queryString,
-	std::shared_ptr<Context> context,
-	std::shared_ptr<ral::cache::graph> query_graph);
+		std::shared_ptr<Context> context,
+		std::shared_ptr<ral::cache::graph> query_graph);
 
 	std::string kernel_name() { return "Partition";}
 
@@ -96,8 +96,8 @@ private:
 class MergeStreamKernel : public kernel {
 public:
 	MergeStreamKernel(std::size_t kernel_id, const std::string & queryString,
-	std::shared_ptr<Context> context,
-	std::shared_ptr<ral::cache::graph> query_graph);
+		std::shared_ptr<Context> context,
+		std::shared_ptr<ral::cache::graph> query_graph);
 
 	std::string kernel_name() { return "MergeStream";}
 
@@ -116,8 +116,8 @@ public:
 class LimitKernel : public distributing_kernel {
 public:
 	LimitKernel(std::size_t kernel_id, const std::string & queryString,
-	std::shared_ptr<Context> context,
-	std::shared_ptr<ral::cache::graph> query_graph);
+		std::shared_ptr<Context> context,
+		std::shared_ptr<ral::cache::graph> query_graph);
 
 	std::string kernel_name() { return "Limit";}
 

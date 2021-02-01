@@ -309,6 +309,7 @@ def get_codTest(test_name):
         "Union": "UNION",
         "Limit": "LIMIT",
         "Where clause": "WHERE",
+        "Window Function": "WINDOWFUNCTION",
         "Wild Card": "WILDCARD",
         "Simple String": "SSTRING",
         "String case": "STRINGCASE",

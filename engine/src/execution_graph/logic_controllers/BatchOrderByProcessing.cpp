@@ -145,7 +145,7 @@ void SortAndSampleKernel::compute_partition_plan(
     // just in case there is no data
     size_t final_avg_bytes_per_row = total_num_rows_for_sampling <= 0 ? 1 : total_bytes_for_sampling / total_num_rows_for_sampling;
 
-    if (this->context->getAllNodes().size() == 1){ // single node mode
+    if (this->context->getAllNodes().size() == 1) { // single node mode
         auto partitionPlan = ral::operators::generate_partition_plan(inputSamples,
             total_num_rows_for_sampling, final_avg_bytes_per_row, this->expression, this->context.get());
         this->add_to_output_cache(std::move(partitionPlan), "output_b");
@@ -396,7 +396,9 @@ kstatus PartitionKernel::run() {
 
     std::map<std::string, std::map<int32_t, int> > node_count;
 
-    std::tie(sortColIndices, sortOrderTypes, std::ignore) =	ral::operators::get_sort_vars(this->expression);
+    if (this->expression.find("window") != this->expression.npos) std::tie(sortColIndices, sortOrderTypes) = ral::operators::get_vars_to_partition(this->expression);
+	else std::tie(sortColIndices, sortOrderTypes, std::ignore) = ral::operators::get_sort_vars(this->expression);
+
     auto nodes = context->getAllNodes();
 
     // If we have no partitionPlan, its because we have no data, therefore its one partition per node
