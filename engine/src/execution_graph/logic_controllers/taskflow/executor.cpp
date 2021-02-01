@@ -70,16 +70,37 @@ std::size_t task::task_memory_needed() {
 
 
 void task::run(cudaStream_t stream, executor * executor){
+    std::vector< std::unique_ptr<ral::frame::BlazingTable> > input_gpu;
+
+    int last_input_decached = 0;
+    ///////////////////////////////
+    // Decaching inputs
+    ///////////////////////////////
     try{
-        kernel->process(inputs,output,stream,args);
-        complete();        
+        for(auto & input : inputs){
+                    //if its in gpu this wont fail
+                    //if its cpu and it fails the buffers arent deleted
+                    //if its disk and fails the file isnt deleted
+                    //so this should be safe
+                    last_input_decached++;
+                    input_gpu.push_back(std::move(input->decache()));
+            }
     }catch(rmm::bad_alloc e){
+        int i = 0;
+        for(auto & input : inputs){
+            if (i < last_input_decached && (input->get_type() == ral::cache::CacheDataType::GPU || input->get_type() == ral::cache::CacheDataType::GPU_METADATA)){
+                //this was a gpu cachedata so now its not valid
+                static_cast<ral::cache::GPUCacheData *>(input.get())->set_data(std::move(input_gpu[i]));
+            }
+            i++;
+        }
 
         std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
         if (logger){
             logger->error("|||{info}|||||",
                     "info"_a="ERROR of type rmm::bad_alloc in task::run. What: {}"_format(e.what()));
         }
+
         this->attempts++;
         if(this->attempts < this->attempts_limit){
             executor->add_task(std::move(inputs), output, kernel, attempts, task_id, args);
@@ -94,10 +115,46 @@ void task::run(cudaStream_t stream, executor * executor){
         }
         throw;
     }
+
+    auto task_result = kernel->process(std::move(input_gpu),output,stream, args);
+    
+    if(task_result.status == ral::execution::task_status::SUCCESS){
+        complete();
+    }else if(task_result.status == ral::execution::task_status::RETRY){
+        std::size_t i = 0;
+        for(auto & input : inputs){
+            if(input != nullptr){
+                if  (input->get_type() == ral::cache::CacheDataType::GPU || input->get_type() == ral::cache::CacheDataType::GPU_METADATA){
+                    //this was a gpu cachedata so now its not valid
+                    if(task_result.inputs.size() > 0 && i <= task_result.inputs.size()){
+                        static_cast<ral::cache::GPUCacheData *>(input.get())->set_data(std::move(task_result.inputs[i]));
+                    }else{
+                        //the input was lost and it was a gpu dataframe which is not recoverable
+                        throw rmm::bad_alloc(task_result.what.c_str());
+                    }
+                }
+            } else {
+                throw std::runtime_error("Input is null, cannot recover");
+            }
+            i++;
+        }
+        this->attempts++;
+        if(this->attempts < this->attempts_limit){
+            executor->add_task(std::move(inputs), output, kernel, attempts, task_id, args);
+        }else{
+            throw rmm::bad_alloc("Ran out of memory processing");
+        }
+    }else{
+        throw std::runtime_error(task_result.what.c_str());
+    }
 }
 
 void task::complete(){
     kernel->notify_complete(task_id);
+}
+
+void task::fail(){
+    kernel->notify_fail(task_id);
 }
 
 std::vector<std::unique_ptr<ral::cache::CacheData > > task::release_inputs(){
@@ -121,12 +178,12 @@ executor::executor(int num_threads, double processing_memory_limit_threshold) :
          streams.push_back(stream);
      }
 }
-void executor::execute(){
 
+void executor::execute(){
     while(shutdown == 0){
         //consider using get_all and calling in a loop.
         auto cur_task = this->task_queue.pop_or_wait();
-        pool.push([cur_task{std::move(cur_task)},this](int thread_id){
+        auto f = pool.push([&cur_task, this](int thread_id){
             std::size_t memory_needed = cur_task->task_memory_needed();
 
             // Here we want to wait until we make sure we have enough memory to operate, or if there are no tasks currently running, then we want to go ahead and run
@@ -151,7 +208,30 @@ void executor::execute(){
             active_tasks_counter--;
             memory_safety_cv.notify_all();
         });
+
+        try {
+            f.get();
+        } catch(...) {
+            std::unique_lock<std::mutex> lock(exception_holder_mutex);
+            exception_holder.push(std::current_exception());
+            cur_task->fail();
+        }
     }
+}
+
+std::exception_ptr executor::last_exception(){
+    std::unique_lock<std::mutex> lock(exception_holder_mutex);
+    std::exception_ptr e;
+    if (!exception_holder.empty()) {
+        e = exception_holder.front();
+        exception_holder.pop();
+    }
+    return e;
+}
+
+bool executor::has_exception(){
+    std::unique_lock<std::mutex> lock(exception_holder_mutex);
+    return !exception_holder.empty();
 }
 
 } // namespace execution

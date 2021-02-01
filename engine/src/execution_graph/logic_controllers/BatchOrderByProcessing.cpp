@@ -14,20 +14,29 @@ PartitionSingleNodeKernel::PartitionSingleNodeKernel(std::size_t kernel_id, cons
     this->input_.add_port("input_a", "input_b");
 }
 
-void PartitionSingleNodeKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+ral::execution::task_result PartitionSingleNodeKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> /*output*/,
     cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) {
-    auto & input = inputs[0];
+    
+    try{
+        auto & input = inputs[0];
 
-    auto partitions = ral::operators::partition_table(partitionPlan->toBlazingTableView(), input->toBlazingTableView(), this->expression);
+        auto partitions = ral::operators::partition_table(partitionPlan->toBlazingTableView(), input->toBlazingTableView(), this->expression);
 
-    for (std::size_t i = 0; i < partitions.size(); i++) {
-        std::string cache_id = "output_" + std::to_string(i);
-        this->add_to_output_cache(
-            std::make_unique<ral::frame::BlazingTable>(std::make_unique<cudf::table>(partitions[i]), input->names()),
-            cache_id
-            );
+        for (std::size_t i = 0; i < partitions.size(); i++) {
+            std::string cache_id = "output_" + std::to_string(i);
+            this->add_to_output_cache(
+                std::make_unique<ral::frame::BlazingTable>(std::make_unique<cudf::table>(partitions[i]), input->names()),
+                cache_id
+                );
+        }
+    }catch(rmm::bad_alloc e){
+        return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
+    }catch(std::exception e){
+        return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }
+    
+    return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
 }
 
 kstatus PartitionSingleNodeKernel::run() {
@@ -62,8 +71,12 @@ kstatus PartitionSingleNodeKernel::run() {
 
     std::unique_lock<std::mutex> lock(kernel_mutex);
     kernel_cv.wait(lock,[this]{
-        return this->tasks.empty();
+        return this->tasks.empty() || ral::execution::executor::get_instance()->has_exception();
     });
+
+    if(auto ep = ral::execution::executor::get_instance()->last_exception()){
+        std::rethrow_exception(ep);
+    }
 
     if(logger){
         logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
@@ -200,66 +213,74 @@ bool SortAndSampleKernel::all_node_samples_are_available(){
     return this->query_graph->get_input_message_cache()->has_messages_now(messged_ids_expected);
 }
 
-void SortAndSampleKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+ral::execution::task_result SortAndSampleKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
     cudaStream_t /*stream*/, const std::map<std::string, std::string>& args) {
 
-    CodeTimer eventTimer(false);
+    try{
+        CodeTimer eventTimer(false);
 
-    auto& operation_type = args.at("operation_type");
+        auto& operation_type = args.at("operation_type");
 
-    auto & input = inputs[0];
-    if (operation_type == "ordering_and_get_samples") {
-        auto sortedTable = ral::operators::sort(input->toBlazingTableView(), this->expression);
+        auto & input = inputs[0];
+        if (operation_type == "ordering_and_get_samples") {
+            auto sortedTable = ral::operators::sort(input->toBlazingTableView(), this->expression);
 
-        if (get_samples.load()) { 
-            auto sampledTable = ral::operators::sample(input->toBlazingTableView(), this->expression);
-            
-            std::lock_guard<std::mutex> samples_lock(samples_mutex);
             if (get_samples.load()) {
-                population_sampled += sampledTable->num_rows(); 
-                total_num_rows_for_sampling += input->view().num_rows();
-                total_bytes_for_sampling += input->sizeInBytes();
-                samplesTables.push_back(std::move(sampledTable));
-                if (population_sampled > max_order_by_samples) {
-                    get_samples = false;  // we got enough samples, at least as max_order_by_samples                   
+                auto sampledTable = ral::operators::sample(input->toBlazingTableView(), this->expression);
+
+                std::lock_guard<std::mutex> samples_lock(samples_mutex);
+                if (get_samples.load()) {
+                    population_sampled += sampledTable->num_rows(); 
+                    total_num_rows_for_sampling += input->view().num_rows();
+                    total_bytes_for_sampling += input->sizeInBytes();
+                    samplesTables.push_back(std::move(sampledTable));
+                    if (population_sampled > max_order_by_samples) {
+                        get_samples = false;  // we got enough samples, at least as max_order_by_samples
+                    }
                 }
             }
-        }
-        if (!get_samples.load() && !already_computed_partition_plan.load()){
-            if (context->getTotalNodes() > 1 && context->isMasterNode(ral::communication::CommunicationData::getInstance().getSelfNode())){
-                if (all_node_samples_are_available()){
+
+            if (!get_samples.load() && !already_computed_partition_plan.load()){
+                if (context->getTotalNodes() > 1 && context->isMasterNode(ral::communication::CommunicationData::getInstance().getSelfNode())){
+                    if (all_node_samples_are_available()){
+                        make_partition_plan_task();
+                    }
+                } else {
                     make_partition_plan_task();
                 }
-            } else {
-                make_partition_plan_task();
             }
-        }
 
-        if(sortedTable){
-            auto num_rows = sortedTable->num_rows();
-            auto num_bytes = sortedTable->sizeInBytes();
+            if(sortedTable){
+                auto num_rows = sortedTable->num_rows();
+                auto num_bytes = sortedTable->sizeInBytes();
 
-            if(events_logger){
-                events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-                                "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-                                "query_id"_a=context->getContextToken(),
-                                "kernel_id"_a=this->get_id(),
-                                "input_num_rows"_a=num_rows,
-                                "input_num_bytes"_a=num_bytes,
-                                "output_num_rows"_a=num_rows,
-                                "output_num_bytes"_a=num_bytes,
-                                "event_type"_a="compute",
-                                "timestamp_begin"_a=eventTimer.start_time(),
-                                "timestamp_end"_a=eventTimer.end_time());
+                if(events_logger){
+                    events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+                                    "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                                    "query_id"_a=context->getContextToken(),
+                                    "kernel_id"_a=this->get_id(),
+                                    "input_num_rows"_a=num_rows,
+                                    "input_num_bytes"_a=num_bytes,
+                                    "output_num_rows"_a=num_rows,
+                                    "output_num_bytes"_a=num_bytes,
+                                    "event_type"_a="compute",
+                                    "timestamp_begin"_a=eventTimer.start_time(),
+                                    "timestamp_end"_a=eventTimer.end_time());
+                }
             }
-        }
 
-        output->addToCache(std::move(sortedTable), "output_a");
+            output->addToCache(std::move(sortedTable), "output_a");
+        }
+        else if (operation_type == "compute_partition_plan") {
+            compute_partition_plan(std::move(inputs));
+        }
+    }catch(rmm::bad_alloc e){
+        return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
+    }catch(std::exception e){
+        return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }
-    else if (operation_type == "compute_partition_plan") {
-        compute_partition_plan(std::move(inputs));
-    }
+    return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
 }
 
 kstatus SortAndSampleKernel::run() {
@@ -287,8 +308,12 @@ kstatus SortAndSampleKernel::run() {
 
     std::unique_lock<std::mutex> lock(kernel_mutex);
     kernel_cv.wait(lock,[this]{
-        return this->tasks.empty();
+        return this->tasks.empty() || ral::execution::executor::get_instance()->has_exception();
     });
+
+    if(auto ep = ral::execution::executor::get_instance()->last_exception()){
+        std::rethrow_exception(ep);
+    }
     lock.unlock();
 
     // If during the other ordering_and_get_samples tasks the computing the partition plan was not made (max_order_by_samples was not reached), then lets do it here
@@ -297,8 +322,12 @@ kstatus SortAndSampleKernel::run() {
 
         std::unique_lock<std::mutex> lock(kernel_mutex);
         kernel_cv.wait(lock,[this]{
-            return this->tasks.empty();
+            return this->tasks.empty() || ral::execution::executor::get_instance()->has_exception();
         });
+
+        if(auto ep = ral::execution::executor::get_instance()->last_exception()){
+            std::rethrow_exception(ep);
+        }
     }
 
     this->output_cache("output_b")->wait_for_count(1); // waiting for the partition_plan to arrive before continuing
@@ -334,19 +363,26 @@ PartitionKernel::PartitionKernel(std::size_t kernel_id, const std::string & quer
     set_number_of_message_trackers(max_num_order_by_partitions_per_node);
 }
 
-void PartitionKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+ral::execution::task_result PartitionKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> /*output*/,
     cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) {
-    auto & input = inputs[0];
+    try{
+        auto & input = inputs[0];
 
-    std::vector<ral::distribution::NodeColumnView> partitions = ral::distribution::partitionData(this->context.get(), input->toBlazingTableView(), partitionPlan->toBlazingTableView(), sortColIndices, sortOrderTypes);
-    std::vector<int32_t> part_ids(partitions.size());
-    std::generate(part_ids.begin(), part_ids.end(), [count=0, num_partitions_per_node = num_partitions_per_node] () mutable { return (count++) % (num_partitions_per_node); });
+        std::vector<ral::distribution::NodeColumnView> partitions = ral::distribution::partitionData(this->context.get(), input->toBlazingTableView(), partitionPlan->toBlazingTableView(), sortColIndices, sortOrderTypes);
+        std::vector<int32_t> part_ids(partitions.size());
+        std::generate(part_ids.begin(), part_ids.end(), [count=0, num_partitions_per_node = num_partitions_per_node] () mutable { return (count++) % (num_partitions_per_node); });
 
-    scatterParts(partitions,
-        "", //message_id_prefix
-        part_ids
-    );
+        scatterParts(partitions,
+            "", //message_id_prefix
+            part_ids
+        );
+    }catch(rmm::bad_alloc e){
+        return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
+    }catch(std::exception e){
+        return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
+    }
+    return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
 }
 
 kstatus PartitionKernel::run() {
@@ -401,8 +437,12 @@ kstatus PartitionKernel::run() {
 
     std::unique_lock<std::mutex> lock(kernel_mutex);
     kernel_cv.wait(lock,[this]{
-        return this->tasks.empty();
+        return this->tasks.empty() || ral::execution::executor::get_instance()->has_exception();
     });
+
+    if(auto ep = ral::execution::executor::get_instance()->last_exception()){
+        std::rethrow_exception(ep);
+    }
 
     for (auto i = 0; i < num_partitions_per_node; i++) {
         std::string cache_id = "output_" + std::to_string(i);
@@ -442,22 +482,29 @@ MergeStreamKernel::MergeStreamKernel(std::size_t kernel_id, const std::string & 
     this->query_graph = query_graph;
 }
 
-void MergeStreamKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+ral::execution::task_result MergeStreamKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
     cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) {
 
-    if (inputs.empty()) {
-        // no op
-    } else if(inputs.size() == 1) {
-        output->addToCache(std::move(inputs[0]));
-    } else {
-        std::vector< ral::frame::BlazingTableView > tableViewsToConcat;
-        for (std::size_t i = 0; i < inputs.size(); i++){
-            tableViewsToConcat.emplace_back(inputs[i]->toBlazingTableView());
+    try{
+        if (inputs.empty()) {
+            // no op
+        } else if(inputs.size() == 1) {
+            output->addToCache(std::move(inputs[0]));
+        } else {
+            std::vector< ral::frame::BlazingTableView > tableViewsToConcat;
+            for (std::size_t i = 0; i < inputs.size(); i++){
+                tableViewsToConcat.emplace_back(inputs[i]->toBlazingTableView());
+            }
+            auto output_merge = ral::operators::merge(tableViewsToConcat, this->expression);
+            output->addToCache(std::move(output_merge));
         }
-        auto output_merge = ral::operators::merge(tableViewsToConcat, this->expression);
-        output->addToCache(std::move(output_merge));
+    }catch(rmm::bad_alloc e){
+        return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
+    }catch(std::exception e){
+        return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }
+    return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
 }
 
 kstatus MergeStreamKernel::run() {
@@ -511,8 +558,12 @@ kstatus MergeStreamKernel::run() {
 
     std::unique_lock<std::mutex> lock(kernel_mutex);
     kernel_cv.wait(lock,[this]{
-        return this->tasks.empty();
+        return this->tasks.empty() || ral::execution::executor::get_instance()->has_exception();
     });
+
+    if(auto ep = ral::execution::executor::get_instance()->last_exception()){
+        std::rethrow_exception(ep);
+    }
 
     if(logger) {
         logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
@@ -539,41 +590,53 @@ LimitKernel::LimitKernel(std::size_t kernel_id, const std::string & queryString,
     set_number_of_message_trackers(1); //default
 }
 
-void LimitKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+ral::execution::task_result LimitKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
     cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) {
-    CodeTimer eventTimer(false);
-    auto & input = inputs[0];
+    try{
+        CodeTimer eventTimer(false);
+        auto & input = inputs[0];
+        if (rows_limit<0) {
+            output->addToCache(std::move(input));
+        } else {
+            auto log_input_num_rows = input->num_rows();
+            auto log_input_num_bytes = input->sizeInBytes();
 
-    if (rows_limit<0) {
-        output->addToCache(std::move(input));
-    } else {
-        auto log_input_num_rows = input->num_rows();
-        auto log_input_num_bytes = input->sizeInBytes();
+            std::unique_ptr<ral::frame::BlazingTable> limited_input;
+            bool output_is_just_input;
 
-        eventTimer.start();
-        std::tie(input, rows_limit) = ral::operators::limit_table(std::move(input), rows_limit);
-        eventTimer.stop();
+            eventTimer.start();
+            std::tie(limited_input, output_is_just_input, rows_limit) = ral::operators::limit_table(input->toBlazingTableView(), rows_limit);
+            eventTimer.stop();
 
-        auto log_output_num_rows = input->num_rows();
-        auto log_output_num_bytes = input->sizeInBytes();
+            auto log_output_num_rows = output_is_just_input ? input->num_rows() : limited_input->num_rows();
+            auto log_output_num_bytes = output_is_just_input ? input->sizeInBytes() : limited_input->sizeInBytes();
 
-        if(events_logger){
-            events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-                            "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-                            "query_id"_a=context->getContextToken(),
-                            "kernel_id"_a=this->get_id(),
-                            "input_num_rows"_a=log_input_num_rows,
-                            "input_num_bytes"_a=log_input_num_bytes,
-                            "output_num_rows"_a=log_output_num_rows,
-                            "output_num_bytes"_a=log_output_num_bytes,
-                            "event_type"_a="compute",
-                            "timestamp_begin"_a=eventTimer.start_time(),
-                            "timestamp_end"_a=eventTimer.end_time());
+            if(events_logger) {
+                events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+                                "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                                "query_id"_a=context->getContextToken(),
+                                "kernel_id"_a=this->get_id(),
+                                "input_num_rows"_a=log_input_num_rows,
+                                "input_num_bytes"_a=log_input_num_bytes,
+                                "output_num_rows"_a=log_output_num_rows,
+                                "output_num_bytes"_a=log_output_num_bytes,
+                                "event_type"_a="compute",
+                                "timestamp_begin"_a=eventTimer.start_time(),
+                                "timestamp_end"_a=eventTimer.end_time());
+            }
+
+            if (output_is_just_input)
+                output->addToCache(std::move(input));
+            else
+                output->addToCache(std::move(limited_input));
         }
-
-        output->addToCache(std::move(input));
+    }catch(rmm::bad_alloc e){
+        return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
+    }catch(std::exception e){
+        return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }
+    return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
 }
 
 kstatus LimitKernel::run() {
@@ -629,8 +692,7 @@ kstatus LimitKernel::run() {
     }
 
     int batch_count = 0;
-    for (auto &&cache_data : cache_vector)
-    {
+    for (auto &&cache_data : cache_vector) {
         try {
             std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
             inputs.push_back(std::move(cache_data));
@@ -670,10 +732,14 @@ kstatus LimitKernel::run() {
 
     std::unique_lock<std::mutex> lock(kernel_mutex);
     kernel_cv.wait(lock,[this]{
-        return this->tasks.empty();
+        return this->tasks.empty() || ral::execution::executor::get_instance()->has_exception();
     });
 
-    if(logger){
+    if(auto ep = ral::execution::executor::get_instance()->last_exception()){
+        std::rethrow_exception(ep);
+    }
+
+    if(logger) {
         logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
                                     "query_id"_a=context->getContextToken(),
                                     "step"_a=context->getQueryStep(),

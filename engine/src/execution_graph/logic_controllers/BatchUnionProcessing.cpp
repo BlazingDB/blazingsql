@@ -14,14 +14,29 @@ UnionKernel::UnionKernel(std::size_t kernel_id, const std::string & queryString,
     this->input_.add_port("input_a", "input_b");
 }
 
-void UnionKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable>> inputs,
+ral::execution::task_result UnionKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable>> inputs,
     std::shared_ptr<ral::cache::CacheMachine> /*output*/,
     cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) {
 
     auto & input = inputs[0];
-    input->setNames(common_names);
-    ral::utilities::normalize_types(input, common_types);
-    this->add_to_output_cache(std::move(input));
+    try{
+        input->setNames(common_names);
+        ral::utilities::normalize_types(input, common_types);
+    }catch(rmm::bad_alloc e){
+        return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
+    }catch(std::exception e){
+        return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
+    }
+
+    try{
+        this->add_to_output_cache(std::move(input));
+    }catch(rmm::bad_alloc e){
+        //can still recover if the input was not a GPUCacheData
+        return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
+    }catch(std::exception e){
+        return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
+    }
+    return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
 }
 
 kstatus UnionKernel::run() {
@@ -34,6 +49,7 @@ kstatus UnionKernel::run() {
     auto cache_machine_b = this->input_.get_cache("input_b");
     std::unique_ptr<ral::cache::CacheData> cache_data_a = cache_machine_a->pullCacheData();
     std::unique_ptr<ral::cache::CacheData> cache_data_b = cache_machine_b->pullCacheData();
+    RAL_EXPECTS(cache_data_a != nullptr || cache_data_b != nullptr, "In UnionKernel: The input cache data cannot be null");
 
     common_names = cache_data_a->names();
 
@@ -94,9 +110,13 @@ kstatus UnionKernel::run() {
     }
 
     std::unique_lock<std::mutex> lock(kernel_mutex);
-    kernel_cv.wait(lock, [this]{
-        return this->tasks.empty();
+    kernel_cv.wait(lock,[this]{
+        return this->tasks.empty() || ral::execution::executor::get_instance()->has_exception();
     });
+
+    if(auto ep = ral::execution::executor::get_instance()->last_exception()){
+        std::rethrow_exception(ep);
+    }
 
     if(logger) {
         logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
