@@ -130,7 +130,7 @@ public:
 
 	std::string kernel_name() { return "TableScan";}
 
-	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+	ral::execution::task_result do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
 		cudaStream_t stream, const std::map<std::string, std::string>& args) override;
 
@@ -177,8 +177,8 @@ public:
 		ral::io::Schema & schema, std::shared_ptr<Context> context, std::shared_ptr<ral::cache::graph> query_graph);
 
 	std::string kernel_name() { return "BindableTableScan";}
-
-	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+	
+	ral::execution::task_result do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
 		cudaStream_t stream, const std::map<std::string, std::string>& args) override;
 
@@ -221,7 +221,7 @@ public:
 
 	std::string kernel_name() { return "Projection";}
 
-	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+	ral::execution::task_result do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
 		cudaStream_t stream, const std::map<std::string, std::string>& args) override;
 
@@ -250,7 +250,7 @@ public:
 
 	std::string kernel_name() { return "Filter";}
 
-	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+	ral::execution::task_result do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
 		cudaStream_t stream, const std::map<std::string, std::string>& args) override;
 
@@ -312,13 +312,14 @@ public:
 
 	std::string kernel_name() { return "Output";}
 
-	void do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > /*inputs*/,
+	ral::execution::task_result do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > /*inputs*/,
 		std::shared_ptr<ral::cache::CacheMachine> /*output*/,
-		cudaStream_t /*stream*/,
-		const std::map<std::string, std::string>& /*args*/) override {
+		cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) override {
 			//for now the output kernel is not using do_process
 			//i believe the output should be a cachemachine itself
 			//obviating this concern
+			ral::execution::task_result temp = {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> >()};
+			return std::move(temp);
 		}
 	/**
 	 * Executes the batch processing.

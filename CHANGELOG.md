@@ -13,6 +13,8 @@
 - #1285 Infer PROTOCOL when Dask client is passed
 - #1294 Add config options for logger
 - #1298 Implement progress bar for run query (using tqdm)
+- #1284 Initial support for Windows Function
+
 
 ## Improvements
 - #1236 Moving code from header files to implementation files
@@ -24,7 +26,9 @@
 - #1267 Added retrys to comms, fixed deadlocks in executor and order by. Improved logging and error management. Caches have names. Improved Joins
 - #1239 Reducing Memory pressure by moving shuffle data to cpu before transmission
 - #1278 Fix race conditions with UCX
-- #1286 Fixes to initialization and adding unique ids to comms 
+- #1279 Added cuml to powerpc build scripts
+- #1286 Fixes to initialization and adding unique ids to comms
+- #1255 Kernels are resilient to out of memory errors now and can retry tasks that fail this way
 
 ## Bug Fixes
 - #1249 Fix compilation with cuda 11

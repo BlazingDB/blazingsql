@@ -137,60 +137,35 @@ std::pair<bool, uint64_t> kernel::get_estimated_output_num_rows(){
     return this->query_graph->get_estimated_input_rows_to_kernel(this->kernel_id);
 }
 
-void kernel::process(std::vector<std::unique_ptr<ral::cache::CacheData > > & inputs,
+ral::execution::task_result kernel::process(std::vector<std::unique_ptr<ral::frame::BlazingTable > >  inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
 		cudaStream_t stream,
-        const std::map<std::string, std::string>& args){
-    std::vector< std::unique_ptr<ral::frame::BlazingTable> > input_gpu;
+    const std::map<std::string, std::string>& args){
 
-    /*if (this->has_limit_ && output->get_num_rows_added() >= this->limit_rows_) {
-  //      return;
-    }*/
+    // TODO: figure out if this can be re enabled;
+    // if (this->has_limit_ && output->get_num_rows_added() >= this->limit_rows_) {
+    //     return;
+    // }
 
+    if(inputs.size()==0){
+        return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
+    }
+
+    size_t bytes = 0;
     for(auto & input : inputs){
-        try{
-            //if its in gpu this wont fail
-            //if its cpu and it fails the buffers arent deleted
-            //if its disk and fails the file isnt deleted
-            //so this should be safe
-            input_gpu.push_back(std::move(input->decache()));
-
-        }catch(std::exception & e){
-            std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
-            if (logger){
-                logger->error("|||{info}|||||",
-                        "info"_a="ERROR in kernel::process trying to decache. What: {}"_format(e.what()));
-            }
-            throw;
-        }
+        bytes += input->sizeInBytes();
     }
-
-    try{
-       std::size_t bytes = 0;
-       for (auto & input : input_gpu) {
-           bytes += input->sizeInBytes();
-       }
-       do_process(std::move(input_gpu),output,stream, args);
-       total_input_bytes_processed += bytes; // increment this AFTER its been processed successfully
-
-    }catch(std::exception & e){
-        std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
-        if (logger){
+    auto result = do_process(std::move(inputs), output, stream, args);
+    if(result.status == ral::execution::SUCCESS){
+        total_input_bytes_processed += bytes; // increment this AFTER its been processed successfully
+    } else {
+        auto logger = spdlog::get("batch_logger");
+        if (logger) {
             logger->error("|||{info}|||||",
-                    "info"_a="ERROR in kernel::process trying to do do_process. Kernel name is: " + this->kernel_name() + " Kernel id is: " + std::to_string(this->kernel_id) + " What: {}"_format(e.what()));
+                    "info"_a="ERROR in kernel::process trying to do do_process. Kernel name is: " + this->kernel_name() + " Kernel id is: " + std::to_string(this->kernel_id));
         }
-        //remake inputs here
-        int i = 0;
-        for(auto & input : inputs){
-            if (input->get_type() == ral::cache::CacheDataType::GPU || input->get_type() == ral::cache::CacheDataType::GPU_METADATA){
-                //this was a gpu cachedata so now its not valid
-                static_cast<ral::cache::GPUCacheData *>(input.get())->set_data(std::move(input_gpu[i]));
-            }
-            i++;
-        }
-        throw;
     }
-
+    return std::move(result);
 }
 
 void kernel::add_task(size_t task_id){
@@ -199,6 +174,12 @@ void kernel::add_task(size_t task_id){
 }
 
 void kernel::notify_complete(size_t task_id){
+    std::lock_guard<std::mutex> lock(kernel_mutex);
+    this->tasks.erase(task_id);
+    kernel_cv.notify_one();
+}
+
+void kernel::notify_fail(size_t task_id){
     std::lock_guard<std::mutex> lock(kernel_mutex);
     this->tasks.erase(task_id);
     kernel_cv.notify_one();
