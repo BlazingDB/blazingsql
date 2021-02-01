@@ -300,6 +300,7 @@ std::pair< std::vector<ral::memory::blazing_chunked_column_info>, std::vector<st
       chunked_column_info.size.push_back(size);
     }
     buffer_index++;
+    chunked_column_infos.push_back(chunked_column_info);
   }  
   //add the last allocation to the list
   allocations.push_back(std::move(current_allocation));
