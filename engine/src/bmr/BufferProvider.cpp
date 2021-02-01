@@ -271,7 +271,7 @@ std::pair< std::vector<ral::memory::blazing_chunked_buffer>, std::vector<std::un
       buffer.offset.push_back(offset);
       buffer.size.push_back(size);
     }
-
+    buffer_index++;
   }  
   //add the last allocation to the list
   allocations.push_back(std::move(current_allocation));
