@@ -140,7 +140,6 @@ public:
         int ral_id,
         ctpl::thread_pool<BlazingThread> * allocate_copy_buffer_pool,
         bool require_acknowledge);
-        // TODO:WSM
     ~tcp_buffer_transport();
 
     void send_begin_transmission() override;

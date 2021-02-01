@@ -14,7 +14,8 @@ message_receiver::message_receiver(const std::map<std::string, comm::node>& node
     auto metadata_and_transports = detail::get_metadata_and_transports_and_buffer_sizes_from_bytes(buffer);
     _metadata = std::get<0>(metadata_and_transports);
     _column_transports = std::get<1>(metadata_and_transports);
-    _buffer_sizes = std::get<2>(metadata_and_transports);
+    _chunked_buffers = std::get<2>(metadata_and_transports);
+    _buffer_sizes = std::get<3>(metadata_and_transports);
     int32_t ctx_token = std::stoi(_metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL]);
     auto graph = graphs_info::getInstance().get_graph(ctx_token);
     size_t kernel_id = std::stoull(_metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL]);
@@ -106,11 +107,8 @@ void message_receiver::finish(cudaStream_t stream) {
                         "message_id"_a=_metadata.get_values()[ral::cache::MESSAGE_ID],
                         "phase"_a="end");
     
-    // TODO:FELIPE  here we need change the code to go from _raw_buffers to:
-    std::vector<ral::memory::blazing_chunked_buffer> _buffers;
-
     std::unique_ptr<ral::cache::CacheData> table = 
-        std::make_unique<ral::cache::CPUCacheData>(_column_transports,std::move(_buffers),std::move(_raw_buffers), _metadata);
+        std::make_unique<ral::cache::CPUCacheData>(_column_transports, std::move(_chunked_buffers), std::move(_raw_buffers), _metadata);
     _output_cache->addCacheData(
                 std::move(table), _metadata.get_values()[ral::cache::MESSAGE_ID], true);  
   }

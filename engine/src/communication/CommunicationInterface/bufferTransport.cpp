@@ -8,7 +8,6 @@ namespace comm {
 
 namespace detail {
 
-// TODO:WSM
 std::vector<char> serialize_metadata_and_transports_and_buffer_sizes(const ral::cache::MetadataDictionary & metadata,
                                                     const std::vector<blazingdb::transport::ColumnTransport> & column_transports,
 													const std::vector<ral::memory::blazing_chunked_buffer> & chunked_buffers,
@@ -72,8 +71,9 @@ std::vector<char> serialize_metadata_and_transports_and_buffer_sizes(const ral::
 }
 
 
-std::tuple<ral::cache::MetadataDictionary, std::vector<blazingdb::transport::ColumnTransport>, std::vector<size_t> >
-get_metadata_and_transports_and_buffer_sizes_from_bytes(std::vector<char> data){
+std::tuple<ral::cache::MetadataDictionary, std::vector<blazingdb::transport::ColumnTransport>, 
+			std::vector<ral::memory::blazing_chunked_buffer>, std::vector<size_t> >
+									get_metadata_and_transports_and_buffer_sizes_from_bytes(std::vector<char> data){
     size_t ptr_offset = 0;
 
 	// first lets deserialize the metadata
@@ -143,7 +143,7 @@ get_metadata_and_transports_and_buffer_sizes_from_bytes(std::vector<char> data){
 	auto buffer_sizes = vector_from_byte_vector<size_t>(
 		data.data() + ptr_offset, buffer_size);
 	
-	return std::make_tuple(dictionary,column_transports,buffer_sizes);
+	return std::make_tuple(dictionary, column_transports, chunked_buffers, buffer_sizes);
 }
 
 } // namespace detail
