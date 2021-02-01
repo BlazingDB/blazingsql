@@ -58,72 +58,80 @@ std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_func
     return std::move(windowed_col);
 }
 
-void ComputeWindowKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+ral::execution::task_result ComputeWindowKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
     cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) {
 
     if (inputs.size() == 0) {
-        return;
+        return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }
 
     CodeTimer eventTimer(false);
 
     std::unique_ptr<ral::frame::BlazingTable> & input = inputs[0];
 
-    cudf::table_view input_cudf_view = input->view();
+    try{
+        cudf::table_view input_cudf_view = input->view();
 
-    // saving the names of the columns and after we will add one by each new col
-    std::vector<std::string> input_names = input->names();
-    this->column_indices_wind_func = get_columns_to_apply_window_function(this->expression);
-    std::tie(this->column_indices_partitioned, std::ignore) = ral::operators::get_vars_to_partition(this->expression);
-    std::vector<std::string> aggs_wind_func_str = get_window_function_agg(this->expression); // return MIN  MAX  COUNT
+        // saving the names of the columns and after we will add one by each new col
+        std::vector<std::string> input_names = input->names();
+        this->column_indices_wind_func = get_columns_to_apply_window_function(this->expression);
+        std::tie(this->column_indices_partitioned, std::ignore) = ral::operators::get_vars_to_partition(this->expression);
+        std::vector<std::string> aggs_wind_func_str = get_window_function_agg(this->expression); // return MIN  MAX  COUNT
 
-    // fill all the Kind aggregations
-    for (std::size_t col_i = 0; col_i < aggs_wind_func_str.size(); ++col_i) {
-        AggregateKind aggr_kind_i = ral::operators::get_aggregation_operation(aggs_wind_func_str[col_i]);
-        this->aggs_wind_func.push_back(aggr_kind_i);
-    }
-
-    std::vector< std::unique_ptr<CudfColumn> > new_wind_funct_cols;
-    for (std::size_t col_i = 0; col_i < aggs_wind_func_str.size(); ++col_i) {
-        cudf::column_view input_col_view = input_cudf_view.column(column_indices_wind_func[col_i]);
-
-        // calling main window function
-        std::unique_ptr<CudfColumn> windowed_col = compute_column_from_window_function(input_cudf_view, input_col_view, col_i);
-        new_wind_funct_cols.push_back(std::move(windowed_col));
-        input_names.push_back("");
-    }
-
-    // Adding these new columns
-    std::unique_ptr<cudf::table> cudf_input = input->releaseCudfTable();
-    std::vector< std::unique_ptr<CudfColumn> > output_columns = cudf_input->release();
-    for (std::size_t col_i = 0; col_i < new_wind_funct_cols.size(); ++col_i) {
-        output_columns.push_back(std::move(new_wind_funct_cols[col_i]));
-    }
-
-    std::unique_ptr<cudf::table> cudf_table_window = std::make_unique<cudf::table>(std::move(output_columns));
-    std::unique_ptr<ral::frame::BlazingTable> windowed_table = std::make_unique<ral::frame::BlazingTable>(std::move(cudf_table_window), input_names);
-
-    if (windowed_table) {
-        cudf::size_type num_rows = windowed_table->num_rows();
-        std::size_t num_bytes = windowed_table->sizeInBytes();
-
-        if (events_logger) {
-            events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-                        "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-                        "query_id"_a=context->getContextToken(),
-                        "kernel_id"_a=this->get_id(),
-                        "input_num_rows"_a=num_rows,
-                        "input_num_bytes"_a=num_bytes,
-                        "output_num_rows"_a=num_rows,
-                        "output_num_bytes"_a=num_bytes,
-                        "event_type"_a="ComputeWindowKernel compute",
-                        "timestamp_begin"_a=eventTimer.start_time(),
-                        "timestamp_end"_a=eventTimer.end_time());
+        // fill all the Kind aggregations
+        for (std::size_t col_i = 0; col_i < aggs_wind_func_str.size(); ++col_i) {
+            AggregateKind aggr_kind_i = ral::operators::get_aggregation_operation(aggs_wind_func_str[col_i]);
+            this->aggs_wind_func.push_back(aggr_kind_i);
         }
+
+        std::vector< std::unique_ptr<CudfColumn> > new_wind_funct_cols;
+        for (std::size_t col_i = 0; col_i < aggs_wind_func_str.size(); ++col_i) {
+            cudf::column_view input_col_view = input_cudf_view.column(column_indices_wind_func[col_i]);
+
+            // calling main window function
+            std::unique_ptr<CudfColumn> windowed_col = compute_column_from_window_function(input_cudf_view, input_col_view, col_i);
+            new_wind_funct_cols.push_back(std::move(windowed_col));
+            input_names.push_back("");
+        }
+
+        // Adding these new columns
+        std::unique_ptr<cudf::table> cudf_input = input->releaseCudfTable();
+        std::vector< std::unique_ptr<CudfColumn> > output_columns = cudf_input->release();
+        for (std::size_t col_i = 0; col_i < new_wind_funct_cols.size(); ++col_i) {
+            output_columns.push_back(std::move(new_wind_funct_cols[col_i]));
+        }
+
+        std::unique_ptr<cudf::table> cudf_table_window = std::make_unique<cudf::table>(std::move(output_columns));
+        std::unique_ptr<ral::frame::BlazingTable> windowed_table = std::make_unique<ral::frame::BlazingTable>(std::move(cudf_table_window), input_names);
+
+        if (windowed_table) {
+            cudf::size_type num_rows = windowed_table->num_rows();
+            std::size_t num_bytes = windowed_table->sizeInBytes();
+
+            if (events_logger) {
+                events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+                            "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                            "query_id"_a=context->getContextToken(),
+                            "kernel_id"_a=this->get_id(),
+                            "input_num_rows"_a=num_rows,
+                            "input_num_bytes"_a=num_bytes,
+                            "output_num_rows"_a=num_rows,
+                            "output_num_bytes"_a=num_bytes,
+                            "event_type"_a="ComputeWindowKernel compute",
+                            "timestamp_begin"_a=eventTimer.start_time(),
+                            "timestamp_end"_a=eventTimer.end_time());
+            }
+        }
+
+        output->addToCache(std::move(windowed_table));
+    }catch(rmm::bad_alloc e){
+        return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
+    }catch(std::exception e){
+        return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }
 
-    output->addToCache(std::move(windowed_table));
+    return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
 }
 
 kstatus ComputeWindowKernel::run() {
