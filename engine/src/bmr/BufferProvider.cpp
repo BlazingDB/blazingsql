@@ -86,27 +86,10 @@ void pinned_allocator::do_deallocate(void * ptr){
 allocation_pool::allocation_pool(std::unique_ptr<base_allocator> allocator, std::size_t size_buffers, std::size_t num_buffers) :
 num_buffers (num_buffers), buffer_size(size_buffers), buffer_counter(num_buffers), allocator(std::move(allocator)) {
 
-  std::cout<<"allocation_pool start"<<std::endl;
-    
-    this->allocations.push_back(std::make_unique<blazing_allocation>());
-    try{
-        this->allocator->allocate((void **) &allocations[0]->data,this->num_buffers * size_buffers);
-    }catch(std::exception & e){
-        throw;
-    }
-  allocations[0]->size = this->num_buffers * size_buffers;
-  allocations[0]->pool = this;
-  for (int buffer_index = 0; buffer_index < this->num_buffers; buffer_index++) {
-    
-    auto buffer = std::make_unique<blazing_allocation_chunk>();
-    buffer->size = this->buffer_size;
-    buffer->data = allocations[0]->data + buffer_index * this->buffer_size;
-    this->allocations[0]->allocation_chunks.push(std::move(buffer));
-  }
   this->buffer_counter =  this->num_buffers;
   this->allocation_counter = 0;
-
-  std::cout<<"allocation_pool done"<<std::endl;
+  this->grow();
+  
 }
 
 allocation_pool::~allocation_pool(){
@@ -158,8 +141,9 @@ std::unique_ptr<blazing_allocation_chunk> allocation_pool::get_chunk() {
 
 void allocation_pool::grow() {
 
+  // if this is the first growth (initializaton) then we want num_buffers, else we will just grow by half that.
+  std::size_t num_new_buffers = this->buffer_counter == 0 ? this->num_buffers : this->num_buffers/2;
   allocations.push_back(std::make_unique<blazing_allocation>());
-  std::size_t num_new_buffers = this->num_buffers/2;
   auto last_index = allocations.size() -1;
   try{
     allocator->allocate((void **) &allocations[last_index]->data,num_new_buffers * buffer_size);
@@ -167,6 +151,7 @@ void allocation_pool::grow() {
        auto buffer = std::make_unique<blazing_allocation_chunk>();
       buffer->size = this->buffer_size;
       buffer->data = allocations[last_index]->data + buffer_index * this->buffer_size;
+      buffer->allocation = allocations[last_index].get();
       this->allocations[last_index]->allocation_chunks.push(std::move(buffer));
       this->buffer_counter++;
     }
@@ -187,16 +172,18 @@ void allocation_pool::free_chunk(std::unique_ptr<blazing_allocation_chunk> buffe
 
 void allocation_pool::free_all() {
   std::unique_lock<std::mutex> lock(in_use_mutex);
-  this->buffer_counter = 0;
-  for(auto & allocation : allocations){
-    while (false == allocation->allocation_chunks.empty()) {
-      auto buffer = std::move(allocation->allocation_chunks.top());
-      allocation->allocation_chunks.pop();
+  if (this->buffer_counter > 0){
+    this->buffer_counter = 0;
+    for(auto & allocation : allocations){
+      while (false == allocation->allocation_chunks.empty()) {
+        auto buffer = std::move(allocation->allocation_chunks.top());
+        allocation->allocation_chunks.pop();
+      }
+      allocator->deallocate(allocation->data);
     }
-    allocator->deallocate(allocation->data);
-  }
-  allocations.resize(0);
+    allocations.resize(0);
     this->allocation_counter = 0;
+  }
 }
 
 std::size_t allocation_pool::size_buffers() { return this->buffer_size; }
@@ -209,19 +196,25 @@ static std::shared_ptr<allocation_pool> pinned_buffer_instance{};
 void set_allocation_pools(std::size_t size_buffers_host, std::size_t num_buffers_host,
 std::size_t size_buffers_pinned, std::size_t num_buffers_pinned, bool map_ucx,
     ucp_context_h context) {
-  auto host_alloc = std::make_unique<host_allocator>(false);
 
-  host_buffer_instance = std::make_shared<allocation_pool>(
-   std::move(host_alloc) ,size_buffers_host,num_buffers_host);
+  if (host_buffer_instance == nullptr || host_buffer_instance->get_total_buffers() == 0) { // not initialized
 
-  auto pinned_alloc = std::make_unique<pinned_allocator>();
+    auto host_alloc = std::make_unique<host_allocator>(false);
 
-  if (map_ucx) {
-    pinned_alloc->setUcpContext(context);
+    host_buffer_instance = std::make_shared<allocation_pool>(
+    std::move(host_alloc) ,size_buffers_host,num_buffers_host);
   }
 
-  pinned_buffer_instance = std::make_shared<allocation_pool>(std::move(pinned_alloc),
-    size_buffers_host,num_buffers_host);
+  if (pinned_buffer_instance == nullptr || pinned_buffer_instance->get_total_buffers() == 0) { // not initialized
+    auto pinned_alloc = std::make_unique<pinned_allocator>();
+
+    if (map_ucx) {
+      pinned_alloc->setUcpContext(context);
+    }
+
+    pinned_buffer_instance = std::make_shared<allocation_pool>(std::move(pinned_alloc),
+      size_buffers_host,num_buffers_host);
+  }
 }
 
 void empty_pools(){

@@ -18,8 +18,9 @@ BlazingHostTable::BlazingHostTable(const std::vector<ColumnTransport> &columns_o
 BlazingHostTable::~BlazingHostTable() {
     auto size = sizeInBytes();
     blazing_host_memory_resource::getInstance().deallocate(size);
-    for(auto & allocation : allocations){
-        allocation->allocation->pool->free_chunk(std::move(allocation));
+    for(auto i = 0; i < allocations.size(); i++){
+        auto pool = allocations[i]->allocation->pool;
+        pool->free_chunk(std::move(allocations[i]));
     }
 }
 

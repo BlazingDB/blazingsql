@@ -626,6 +626,11 @@ std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullFromCache() {
 	}
 
 	std::unique_ptr<ral::frame::BlazingTable> output = message_data->get_data().decache();
+	if (output){
+		std::cout<<"pullFromCache got output"<<std::endl;
+	} else {
+		std::cout<<"pullFromCache got output NULL"<<std::endl;
+	}
 	return std::move(output);
 }
 

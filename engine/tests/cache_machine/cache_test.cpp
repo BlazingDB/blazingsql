@@ -20,6 +20,11 @@ struct CacheMachineTest : public BlazingUnitTest {
 
 		ral::memory::set_allocation_pools(4000000, 10,
 										4000000, 10, false,nullptr);
+
+		blazing_host_memory_resource::getInstance().initialize(0.5);
+	}
+	~CacheMachineTest(){
+		empty_pools();
 	}
 
 };
@@ -114,8 +119,11 @@ TEST_F(CacheMachineTest, CPUCacheMachineTest) {
 	}
 	auto compare_table = build_custom_table();
 
+	std::cout<<"about to start pulling and comparing"<<std::endl;
+
 	for(int i = 0; i < 10; ++i) {
 		auto cacheTable = cacheMachine.pullFromCache();
+		std::cout<<"pullFromCache done"<<std::endl;
 		cudf::test::expect_tables_equivalent(compare_table->view(), cacheTable->view());						
 	}
 
