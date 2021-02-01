@@ -137,6 +137,8 @@ private:
   std::unique_ptr<base_allocator> allocator;
 };
 
+std::pair< std::vector<ral::memory::blazing_chunked_buffer>, std::vector<std::unique_ptr<ral::memory::blazing_allocation_chunk> >> convert_gpu_buffers_to_chunks(
+    std::vector<std::size_t> buffer_sizes,bool use_pinned);
 
 std::shared_ptr<allocation_pool > get_host_buffer_provider();
 std::shared_ptr<allocation_pool > get_pinned_buffer_provider();

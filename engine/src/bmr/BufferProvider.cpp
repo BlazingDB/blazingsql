@@ -228,5 +228,55 @@ std::shared_ptr<allocation_pool > get_pinned_buffer_provider(){
   return pinned_buffer_instance;
 }
 
+
+std::pair< std::vector<ral::memory::blazing_chunked_buffer>, std::vector<std::unique_ptr<ral::memory::blazing_allocation_chunk> >> convert_gpu_buffers_to_chunks(
+  std::vector<std::size_t> buffer_sizes,bool use_pinned){
+
+
+  size_t buffer_index = 0;
+  size_t allocation_position = 0;
+
+  std::shared_ptr<allocation_pool > pool = use_pinned ? get_pinned_buffer_provider() : get_host_buffer_provider();
+  std::vector<std::unique_ptr<ral::memory::blazing_allocation_chunk> > allocations;
+  std::vector<ral::memory::blazing_chunked_buffer> buffers; 
+  std::unique_ptr<ral::memory::blazing_allocation_chunk> current_allocation = pool->get_chunk();
+  while(buffer_index < buffer_sizes.size()){
+    ral::memory::blazing_chunked_buffer buffer;
+    buffer.use_size = buffer_sizes[buffer_index];
+    size_t buffer_position = 0;
+    while(buffer_position < buffer.use_size){
+
+
+
+      if(allocation_position == current_allocation->size){
+        allocation_position = 0;
+        allocations.push_back(std::move(current_allocation));
+        current_allocation = pool->get_chunk();
+      }
+      size_t chunk_index = allocations.size();
+      size_t offset = allocation_position;
+      size_t size;
+      //if the number of bytes left to write fits in the current allocation
+      if((buffer.use_size - buffer_position) <= (current_allocation->size - allocation_position)){
+        size = buffer.use_size - buffer_position;
+        allocation_position += size;
+        buffer_position += size;
+
+      }else {
+        size = current_allocation->size - allocation_position;
+        buffer_position += size;
+        allocation_position += size;
+      }
+      buffer.chunk_index.push_back(chunk_index);
+      buffer.offset.push_back(offset);
+      buffer.size.push_back(size);
+    }
+
+  }  
+  //add the last allocation to the list
+  allocations.push_back(std::move(current_allocation));
+  return std::make_pair< std::vector<ral::memory::blazing_chunked_buffer>, std::vector<std::unique_ptr<ral::memory::blazing_allocation_chunk> >> (std::move(buffers), std::move(allocations));
+}
+
 }
 }

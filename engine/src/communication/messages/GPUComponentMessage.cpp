@@ -123,7 +123,7 @@ std::unique_ptr<ral::frame::BlazingHostTable> serialize_gpu_message_to_host_tabl
 	std::tie(buffer_sizes, raw_buffers, column_offset, temp_scope_holder) = serialize_gpu_message_to_gpu_containers(table_view);
 	
 	typedef std::pair< std::vector<ral::memory::blazing_chunked_buffer>, std::vector<std::unique_ptr<ral::memory::blazing_allocation_chunk> >> buffer_alloc_type;
-	buffer_alloc_type buffers_and_allocations; // TODO:FELIPE this function does not exist = convert_gpu_buffers_to_chunks(raw_buffers,buffer_sizes,use_pinned);
+	buffer_alloc_type buffers_and_allocations = ral::memory::convert_gpu_buffers_to_chunks(buffer_sizes,use_pinned);
 	
 	auto & allocations = buffers_and_allocations.second;
 	size_t buffer_index = 0;
