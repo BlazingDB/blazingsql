@@ -99,15 +99,21 @@ void message_receiver::finish(cudaStream_t stream) {
     comms_logger = spdlog::get("input_comms");
     auto destinations = _metadata.get_values()[ral::cache::WORKER_IDS_METADATA_LABEL];
 
-    comms_logger->info("{ral_id}|{query_id}|{kernel_id}|{dest_ral_id}|{dest_ral_count}|{dest_cache_id}|{message_id}|{phase}",
-                        "ral_id"_a=_metadata.get_values()[ral::cache::RAL_ID_METADATA_LABEL],
-                        "query_id"_a=_metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL],
-                        "kernel_id"_a=_metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL],
-                        "dest_ral_id"_a=destinations, //false
-                        "dest_ral_count"_a=std::count(destinations.begin(), destinations.end(), ',') + 1,
-                        "dest_cache_id"_a=_metadata.get_values()[ral::cache::CACHE_ID_METADATA_LABEL],
-                        "message_id"_a=_metadata.get_values()[ral::cache::MESSAGE_ID],
-                        "phase"_a="end");
+    std::cout<<"message_receiver::finish got destinations"<<std::endl;
+
+    if (comms_logger){
+      comms_logger->info("{ral_id}|{query_id}|{kernel_id}|{dest_ral_id}|{dest_ral_count}|{dest_cache_id}|{message_id}|{phase}",
+                          "ral_id"_a=_metadata.get_values()[ral::cache::RAL_ID_METADATA_LABEL],
+                          "query_id"_a=_metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL],
+                          "kernel_id"_a=_metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL],
+                          "dest_ral_id"_a=destinations, //false
+                          "dest_ral_count"_a=std::count(destinations.begin(), destinations.end(), ',') + 1,
+                          "dest_cache_id"_a=_metadata.get_values()[ral::cache::CACHE_ID_METADATA_LABEL],
+                          "message_id"_a=_metadata.get_values()[ral::cache::MESSAGE_ID],
+                          "phase"_a="end");
+
+      std::cout<<"message_receiver::finish logged"<<std::endl;
+    }
     
     std::unique_ptr<ral::cache::CacheData> table = 
         std::make_unique<ral::cache::CPUCacheData>(_column_transports, std::move(_chunked_column_infos), std::move(_raw_buffers), _metadata);
