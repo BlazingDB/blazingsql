@@ -5,6 +5,24 @@
 #include "graph.h"
 
 namespace ral {
+namespace execution{
+
+enum task_status{
+	SUCCESS,
+	RETRY,
+	FAIL
+};
+
+struct task_result{
+	task_status status;
+	std::string what;
+	std::vector<std::unique_ptr<ral::frame::BlazingTable> > inputs;
+};
+
+} 
+}
+
+namespace ral {
 namespace cache {
 class kernel;
 class graph;
@@ -164,15 +182,15 @@ public:
 	 */
 	virtual std::pair<bool, uint64_t> get_estimated_output_num_rows();
 
-	void process(std::vector<std::unique_ptr<ral::cache::CacheData > > & inputs,
+	ral::execution::task_result process(std::vector<std::unique_ptr<ral::frame::BlazingTable > >  inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
 		cudaStream_t stream, const std::map<std::string, std::string>& args);
 
-	virtual void do_process(std::vector<std::unique_ptr<ral::frame::BlazingTable> > /*inputs*/,
+	virtual ral::execution::task_result do_process(std::vector<std::unique_ptr<ral::frame::BlazingTable> > /*inputs*/,
 		std::shared_ptr<ral::cache::CacheMachine> /*output*/,
-		cudaStream_t /*stream*/,
-		const std::map<std::string, std::string>& /*args*/){
-		}
+		cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/){
+			return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
+	}
 
 	std::size_t estimate_output_bytes(const std::vector<std::unique_ptr<ral::cache::CacheData > > & inputs);
 	std::size_t estimate_operating_bytes(const std::vector<std::unique_ptr<ral::cache::CacheData > > & inputs);
@@ -180,6 +198,7 @@ public:
 	virtual std::string kernel_name() { return "base_kernel"; }
 
 	void notify_complete(size_t task_id);
+	void notify_fail(size_t task_id);
 	void add_task(size_t task_id);
 	bool finished_tasks(){
 		return tasks.empty();
