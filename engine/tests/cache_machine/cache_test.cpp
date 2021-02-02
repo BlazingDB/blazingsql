@@ -119,11 +119,8 @@ TEST_F(CacheMachineTest, CPUCacheMachineTest) {
 	}
 	auto compare_table = build_custom_table();
 
-	std::cout<<"about to start pulling and comparing"<<std::endl;
-
 	for(int i = 0; i < 10; ++i) {
 		auto cacheTable = cacheMachine.pullFromCache();
-		std::cout<<"pullFromCache done"<<std::endl;
 		cudf::test::expect_tables_equivalent(compare_table->view(), cacheTable->view());						
 	}
 

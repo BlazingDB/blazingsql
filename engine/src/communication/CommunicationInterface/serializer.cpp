@@ -175,17 +175,11 @@ std::unique_ptr<ral::frame::BlazingTable> deserialize_from_gpu_raw_buffers(
 			}
 		}
 		column_names[i] = std::string{columns_offsets[i].metadata.col_name};
-
-		if (!received_samples[i])
-			std::cout<<"column "<<i<<" is null"<<std::endl;
 	}
 
 	auto unique_table = std::make_unique<cudf::table>(std::move(received_samples));
 
-	auto bTable = std::make_unique<ral::frame::BlazingTable>(std::move(unique_table), column_names);
-	if (!bTable)
-			std::cout<<"bTable  is null"<<std::endl;
-	return bTable;
+	return std::make_unique<ral::frame::BlazingTable>(std::move(unique_table), column_names);
 }
 
 }  // namespace comm
