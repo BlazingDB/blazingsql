@@ -22,8 +22,7 @@ message_receiver::message_receiver(const std::map<std::string, comm::node>& node
     std::string cache_id = _metadata.get_values()[ral::cache::CACHE_ID_METADATA_LABEL];
     _output_cache = _metadata.get_values()[ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL] == "true" ?
                         graph->get_kernel_output_cache(kernel_id, cache_id) : input_cache;
-  std::cout<<"coming in"<<std::endl;
-  _metadata.print();
+  //_metadata.print();
 
   _raw_buffers.resize(_buffer_sizes.size());
     std::shared_ptr<spdlog::logger> comms_logger;
@@ -90,8 +89,6 @@ bool message_receiver::is_finished(){
 
 void message_receiver::finish(cudaStream_t stream) {
 
-  std::cout<<"message_receiver::finish start"<<std::endl;
-
   std::lock_guard<std::mutex> lock(_finish_mutex);
   if(!_finished_called){
     _finished_called = true;
@@ -99,7 +96,6 @@ void message_receiver::finish(cudaStream_t stream) {
     comms_logger = spdlog::get("input_comms");
     auto destinations = _metadata.get_values()[ral::cache::WORKER_IDS_METADATA_LABEL];
 
-    std::cout<<"message_receiver::finish got destinations"<<std::endl;
 
     if (comms_logger){
       comms_logger->info("{ral_id}|{query_id}|{kernel_id}|{dest_ral_id}|{dest_ral_count}|{dest_cache_id}|{message_id}|{phase}",
@@ -112,16 +108,16 @@ void message_receiver::finish(cudaStream_t stream) {
                           "message_id"_a=_metadata.get_values()[ral::cache::MESSAGE_ID],
                           "phase"_a="end");
 
-      std::cout<<"message_receiver::finish logged"<<std::endl;
+
     }
     
     std::unique_ptr<ral::cache::CacheData> table = 
         std::make_unique<ral::cache::CPUCacheData>(_column_transports, std::move(_chunked_column_infos), std::move(_raw_buffers), _metadata);
-        std::cout<<"message_receiver::finish made cacheData"<<std::endl;
+        
     _output_cache->addCacheData(
                 std::move(table), _metadata.get_values()[ral::cache::MESSAGE_ID], true);  
   }
-  std::cout<<"message_receiver::finish done"<<std::endl;
+
 
 }
 

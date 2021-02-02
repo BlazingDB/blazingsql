@@ -392,7 +392,6 @@ private:
         		std::vector<std::unique_ptr<ral::memory::blazing_allocation_chunk>> && allocations,
 				const MetadataDictionary & metadata) : metadata(metadata) {
 
-		std::cout<<"CPUCacheData start"<<std::endl;
 		
 		this->cache_type = CacheDataType::CPU;
 		for(int i = 0; i < column_transports.size(); i++){
@@ -405,7 +404,6 @@ private:
 			this->n_rows = column_transports[0].metadata.size;
 		}
 		this->host_table = std::make_unique<ral::frame::BlazingHostTable>(column_transports,std::move(chunked_column_infos), std::move(allocations));
-		std::cout<<"CPUCacheData end"<<std::endl;
 	}
 
 
@@ -424,7 +422,6 @@ private:
 	* @return A unique_ptr to a BlazingTable
  	*/
  	std::unique_ptr<ral::frame::BlazingTable> decache() override {
-		 std::cout<<"CPUCacheData decache() start"<<std::endl;
  		return std::move(host_table->get_gpu_table());
  	}
 

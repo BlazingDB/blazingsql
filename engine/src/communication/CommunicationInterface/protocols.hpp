@@ -153,7 +153,7 @@ private:
     int message_id;
     std::vector<int> socket_fds;
     ctpl::thread_pool<BlazingThread> * allocate_copy_buffer_pool;
-    cudaStream_t stream;
+
 };
 
 

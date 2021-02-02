@@ -390,9 +390,8 @@ tcp_buffer_transport::tcp_buffer_transport(
         ral_id{ral_id}, allocate_copy_buffer_pool{allocate_copy_buffer_pool} {
 
         //Initialize connection to get
-    cudaStreamCreate(&stream);
-    std::cout<<"going out meta"<<std::endl;
-    metadata.print();
+    
+    //metadata.print();
     for(auto destination : destinations){
         int socket_fd;
         struct sockaddr_in address;
@@ -464,7 +463,6 @@ tcp_buffer_transport::~tcp_buffer_transport(){
     for (auto socket_fd : socket_fds){
         close(socket_fd);
     }
-    cudaStreamDestroy(stream);
 }
 
 }  // namespace comm

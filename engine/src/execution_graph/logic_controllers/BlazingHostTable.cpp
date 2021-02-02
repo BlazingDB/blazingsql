@@ -72,7 +72,6 @@ const std::vector<ColumnTransport> &BlazingHostTable::get_columns_offsets() cons
 
 std::unique_ptr<BlazingTable> BlazingHostTable::get_gpu_table() const {
 
-    std::cout<<"BlazingHostTable::get_gpu_table() start"<<std::endl;
 
     std::vector<rmm::device_buffer> gpu_raw_buffers(chunked_column_infos.size());
 	
@@ -100,7 +99,7 @@ std::unique_ptr<BlazingTable> BlazingHostTable::get_gpu_table() const {
         }
 		throw;
 	}
-    std::cout<<"BlazingHostTable::get_gpu_table() done"<<std::endl;
+
     return std::move(comm::deserialize_from_gpu_raw_buffers(columns_offsets,
 									  gpu_raw_buffers));
 }

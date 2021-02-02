@@ -102,7 +102,6 @@ allocation_pool::~allocation_pool(){
 std::unique_ptr<blazing_allocation_chunk> allocation_pool::get_chunk() {
   std::unique_lock<std::mutex> lock(in_use_mutex);
   
-  std::cout<<"allocation_pool::get_chunk() start allocations.size() "<<allocations.size()<<std::endl;
 
   bool found_mem = false;
   for(auto & allocation : allocations){
@@ -111,10 +110,8 @@ std::unique_ptr<blazing_allocation_chunk> allocation_pool::get_chunk() {
     }
   }
   if(! found_mem){
-    std::cout<<"allocation_pool::get_chunk() about to grow"<<std::endl;
     this->grow(); //only  one thread can dispatch this at a time, the rest should wait on some
                 //condition variable
-    std::cout<<"allocation_pool::get_chunk()  grow done"<<std::endl;
 
   }
   for(auto & allocation : allocations){
@@ -122,16 +119,10 @@ std::unique_ptr<blazing_allocation_chunk> allocation_pool::get_chunk() {
         this->allocation_counter++;
         auto temp = std::move(allocation->allocation_chunks.top());
         allocation->allocation_chunks.pop();
-        if(temp){
-          std::cout<<"allocation_pool::get_chunk() done"<<std::endl;
-        } else {
-          std::cout<<"allocation_pool::get_chunk() got a null chunk"<<std::endl;
-        }
         
         return std::move(temp);
     }
   }
-  std::cout<<"allocation_pool::get_chunk() fail"<<std::endl;
   
   //TODO: make exception for this
   throw std::runtime_error("Blazing allocation pool failed to grow or allocate.");
@@ -242,32 +233,21 @@ std::shared_ptr<allocation_pool > get_pinned_buffer_provider(){
 std::pair< std::vector<ral::memory::blazing_chunked_column_info>, std::vector<std::unique_ptr<ral::memory::blazing_allocation_chunk> >> convert_gpu_buffers_to_chunks(
   std::vector<std::size_t> buffer_sizes,bool use_pinned){
 
-    std::cout<<"convert_gpu_buffers_to_chunks start use_pinned "<<use_pinned<<std::endl;
-
+  
   size_t buffer_index = 0;
   size_t allocation_position = 0;
 
   std::shared_ptr<allocation_pool > pool = use_pinned ? get_pinned_buffer_provider() : get_host_buffer_provider();
-  if (pool){
-    std::cout<<"convert_gpu_buffers_to_chunks got pool"<<std::endl;
-  } else
-  {
-    std::cout<<"convert_gpu_buffers_to_chunks got pool is NULL!!!"<<std::endl;
-  }
   
   std::vector<std::unique_ptr<ral::memory::blazing_allocation_chunk> > allocations;
   std::vector<ral::memory::blazing_chunked_column_info> chunked_column_infos; 
   std::unique_ptr<ral::memory::blazing_allocation_chunk> current_allocation = pool->get_chunk();
-  std::cout<<"convert_gpu_buffers_to_chunks got chunk"<<std::endl;
+  
   while(buffer_index < buffer_sizes.size()){
-    std::cout<<"convert_gpu_buffers_to_chunks starting first while "<<buffer_index<<std::endl;
     ral::memory::blazing_chunked_column_info chunked_column_info;
     chunked_column_info.use_size = buffer_sizes[buffer_index];
     size_t buffer_position = 0;
     while(buffer_position < chunked_column_info.use_size){
-      std::cout<<"convert_gpu_buffers_to_chunks starting second while "<<buffer_position<<std::endl;
-
-
 
       if(allocation_position == current_allocation->size){
         allocation_position = 0;
@@ -297,8 +277,6 @@ std::pair< std::vector<ral::memory::blazing_chunked_column_info>, std::vector<st
   }  
   //add the last allocation to the list
   allocations.push_back(std::move(current_allocation));
-
-  std::cout<<"convert_gpu_buffers_to_chunks done"<<std::endl;
 
   return std::make_pair< std::vector<ral::memory::blazing_chunked_column_info>, std::vector<std::unique_ptr<ral::memory::blazing_allocation_chunk> >> (std::move(chunked_column_infos), std::move(allocations));
 }

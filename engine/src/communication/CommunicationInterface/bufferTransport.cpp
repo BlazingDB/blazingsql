@@ -75,7 +75,6 @@ std::tuple<ral::cache::MetadataDictionary, std::vector<blazingdb::transport::Col
 			std::vector<ral::memory::blazing_chunked_column_info>, std::vector<size_t> >
 									get_metadata_and_transports_and_buffer_sizes_from_bytes(std::vector<char> data){
 
-	std::cout<<"get_metadata_and_transports_and_buffer_sizes_from_bytes start"<<std::endl;
     size_t ptr_offset = 0;
 
 	// first lets deserialize the metadata
@@ -146,7 +145,6 @@ std::tuple<ral::cache::MetadataDictionary, std::vector<blazingdb::transport::Col
 		data.data() + ptr_offset, buffer_size);
 	
 
-	std::cout<<"get_metadata_and_transports_and_buffer_sizes_from_bytes end"<<std::endl;
 	
 	return std::make_tuple(dictionary, column_transports, chunked_column_infos, buffer_sizes);
 }
