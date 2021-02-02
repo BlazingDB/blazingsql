@@ -294,8 +294,7 @@ set(SRC_FILES ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/Blazin
               ${PROJECT_SOURCE_DIR}/src/communication/CommunicationInterface/protocols.cpp
               ${PROJECT_SOURCE_DIR}/src/communication/CommunicationInterface/messageSender.cpp
 
-              ${PROJECT_SOURCE_DIR}/src/transport/Node.cpp
-              ${PROJECT_SOURCE_DIR}/src/transport/io/reader_writer.cpp
+              ${PROJECT_SOURCE_DIR}/src/transport/Node.cpp              
         )
 
 link_directories(${BSQL_BLD_PREFIX}/lib)

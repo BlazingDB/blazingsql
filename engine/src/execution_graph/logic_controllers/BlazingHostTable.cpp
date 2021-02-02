@@ -13,11 +13,14 @@ BlazingHostTable::BlazingHostTable(const std::vector<ColumnTransport> &columns_o
             std::vector<std::unique_ptr<ral::memory::blazing_allocation_chunk>> && allocations)
         : columns_offsets{columns_offsets}, chunked_column_infos{std::move(chunked_column_infos)}, allocations{std::move(allocations)} {
 
-        }
+    auto size = sizeInBytes();
+    blazing_host_memory_resource::getInstance().allocate(size); // this only increments the memory usage counter for the host memory. This does not actually allocate
+
+}
 
 BlazingHostTable::~BlazingHostTable() {
     auto size = sizeInBytes();
-    blazing_host_memory_resource::getInstance().deallocate(size);
+    blazing_host_memory_resource::getInstance().deallocate(size); // this only decrements the memory usage counter for the host memory. This does not actually allocate
     for(auto i = 0; i < allocations.size(); i++){
         auto pool = allocations[i]->allocation->pool;
         pool->free_chunk(std::move(allocations[i]));

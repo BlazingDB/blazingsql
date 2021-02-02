@@ -1203,7 +1203,7 @@ def load_config_options_from_env(user_config_options: dict):
         "ENABLE_CACHES_LOGS": False,
         "ENABLE_OTHER_ENGINE_LOGS": False,
         "LOGGING_MAX_SIZE_PER_FILE": 1073741824,  # 1 GB
-        "TRANSPORT_BUFFER_BYTE_SIZE": 1048576,  # 10 MB in bytes
+        "TRANSPORT_BUFFER_BYTE_SIZE": 10485760,  # 10 MB in bytes
         "TRANSPORT_POOL_NUM_BUFFERS": 100,
         "PROTOCOL": "AUTO",
     }

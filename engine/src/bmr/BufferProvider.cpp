@@ -84,9 +84,9 @@ void pinned_allocator::do_deallocate(void * ptr){
 
 
 allocation_pool::allocation_pool(std::unique_ptr<base_allocator> allocator, std::size_t size_buffers, std::size_t num_buffers) :
-num_buffers (num_buffers), buffer_size(size_buffers), buffer_counter(num_buffers), allocator(std::move(allocator)) {
+num_buffers (num_buffers), buffer_size(size_buffers), allocator(std::move(allocator)) {
 
-  this->buffer_counter =  this->num_buffers;
+  this->buffer_counter = 0; // this will get incremented by grow()
   this->allocation_counter = 0;
   this->grow();
   
