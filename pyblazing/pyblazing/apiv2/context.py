@@ -1206,6 +1206,7 @@ def load_config_options_from_env(user_config_options: dict):
         "TRANSPORT_BUFFER_BYTE_SIZE": 10485760,  # 10 MB in bytes
         "TRANSPORT_POOL_NUM_BUFFERS": 100,
         "PROTOCOL": "AUTO",
+        "REQUIRE_ACKNOWLEDGE" : False,
     }
 
     # key: option_name, value: default_value
@@ -1391,6 +1392,8 @@ class BlazingContext(object):
                     default: 10 MBs
             TRANSPORT_POOL_NUM_BUFFERS: The number of buffers in the punned buffer memory pool.
                     default: 100 buffers
+            REQUIRE_ACKNOWLEDGE : Enable this to enable message aknowledgement when using UCX
+                    default: False
             PROTOCOL: The protocol to use with the current BlazingContext.
                     It should use what the user set. If the user does not explicitly set it,
                     by default it will be set by whatever dask client is using ('tcp', 'ucx', ..).

@@ -622,7 +622,7 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 	initLogMsg = initLogMsg + "CUDA_VISIBLE_DEVICES is set to: " + env_cuda_device_str + ", ";
 
 
-	bool require_acknowledge = false;  // 10 MBs
+	bool require_acknowledge = false;  
 	auto iter = config_options.find("REQUIRE_ACKNOWLEDGE");
 	if (iter != config_options.end()){
 		require_acknowledge = (config_options["REQUIRE_ACKNOWLEDGE"] == "true" ||
