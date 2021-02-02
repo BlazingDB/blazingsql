@@ -391,6 +391,8 @@ tcp_buffer_transport::tcp_buffer_transport(
 
         //Initialize connection to get
     cudaStreamCreate(&stream);
+    std::cout<<"going out meta"<<std::endl;
+    metadata.print();
     for(auto destination : destinations){
         int socket_fd;
         struct sockaddr_in address;

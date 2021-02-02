@@ -57,7 +57,7 @@ std::vector<char> serialize_metadata_and_transports_and_buffer_sizes(const ral::
 		buffer.insert(buffer.end(), tmp_buffer.begin(), tmp_buffer.end());
 
 		// finally we serialize use_size
-		tmp_buffer = detail::to_byte_vector(chunked_column_info.size.size()); 
+		tmp_buffer = detail::to_byte_vector(chunked_column_info.use_size); 
 		buffer.insert(buffer.end(), tmp_buffer.begin(), tmp_buffer.end());
 	}
 

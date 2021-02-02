@@ -71,7 +71,7 @@ void setup_sender(){
   uint16_t ralId = 1;
   std::string worker_id = "1";
   std::string ip = "127.0.0.1";
-  std::int32_t port = 8891;
+  std::int32_t port = 8890;
   std::map<std::string, comm::node> nodes_info_map;
   nodes_info_map.emplace(worker_id, comm::node(ralId, worker_id, ip, port));
 
@@ -145,7 +145,7 @@ TEST_F(SendAndReceiveTest, SendAndReceiveTest0) {
   });
   sender_thread.join();
   receiver_thread.join();
-
+  ral::memory::empty_pools();
   
 
 
