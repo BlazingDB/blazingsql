@@ -24,8 +24,7 @@ message_receiver::message_receiver(const std::map<std::string, comm::node>& node
                         graph->get_kernel_output_cache(kernel_id, cache_id) : graph->get_input_message_cache();
   //_metadata.print();
 
-  size_t num_allocations = 1;
-  _raw_buffers.resize(num_allocations);
+  _raw_buffers.resize(_buffer_sizes.size());
     std::shared_ptr<spdlog::logger> comms_logger;
     comms_logger = spdlog::get("input_comms");
     auto destinations = _metadata.get_values()[ral::cache::WORKER_IDS_METADATA_LABEL];
