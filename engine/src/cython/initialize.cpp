@@ -914,8 +914,9 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 			}
 
 			comm::ucx_message_listener::initialize_message_listener(
-				ucp_context, self_worker,nodes_info_map,20);
+				ucp_context, self_worker,nodes_info_map,20, output_input_caches.second);
 			comm::ucx_message_listener::get_instance()->poll_begin_message_tag(true);
+			output_input_caches.second = comm::ucx_message_listener::get_instance()->get_input_cache();
 
 		}else{
 
@@ -928,17 +929,17 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 				nodes_info_map.emplace(worker_info.worker_id, comm::node(ralId, worker_info.worker_id, worker_info.ip, worker_info.port));
 			}
 
-			comm::tcp_message_listener::initialize_message_listener(nodes_info_map,ralCommunicationPort,num_comm_threads);
+			comm::tcp_message_listener::initialize_message_listener(nodes_info_map,ralCommunicationPort,num_comm_threads, output_input_caches.second);
 			comm::tcp_message_listener::get_instance()->start_polling();
 			ralCommunicationPort = comm::tcp_message_listener::get_instance()->get_port(); // if the listener was already initialized, we want to get the port that was originally set and send that back to python side
+			output_input_caches.second = comm::tcp_message_listener::get_instance()->get_input_cache();
 		}
-		comm::message_sender::initialize_instance(output_input_caches.first, output_input_caches.second,
+		comm::message_sender::initialize_instance(output_input_caches.first,
 			nodes_info_map,
 			num_comm_threads, ucp_context, self_worker, ralId,protocol,require_acknowledge);
 		comm::message_sender::get_instance()->run_polling();
 
-		output_input_caches.first = comm::message_sender::get_instance()->get_output_cache();
-		output_input_caches.second = comm::message_sender::get_instance()->get_input_cache();
+		output_input_caches.first = comm::message_sender::get_instance()->get_output_cache();		
 	}
 
 	bool map_ucx = protocol == comm::blazing_protocol::ucx;

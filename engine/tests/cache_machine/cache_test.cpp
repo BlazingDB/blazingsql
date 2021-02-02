@@ -24,7 +24,7 @@ struct CacheMachineTest : public BlazingUnitTest {
 		blazing_host_memory_resource::getInstance().initialize(0.5);
 	}
 	~CacheMachineTest(){
-		empty_pools();
+		ral::memory::empty_pools();
 	}
 
 };

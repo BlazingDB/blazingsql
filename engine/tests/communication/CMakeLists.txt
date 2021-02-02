@@ -21,3 +21,9 @@ configure_test(message_sender_test "${message_sender_tests_SRCS}")
 # configure_test(message_send_receive_test "${message_send_receive_tests_SRCS}")
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+set(send_and_receive_test_SRCS
+send_and_receive_test.cpp
+)
+
+configure_test(send_and_receive_test "${send_and_receive_test_SRCS}")

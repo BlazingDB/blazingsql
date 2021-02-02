@@ -236,7 +236,7 @@ void graphs_info::deregister_graph(int32_t ctx_token){
 }
 std::shared_ptr<ral::cache::graph> graphs_info::get_graph(int32_t ctx_token) {
 	if(_ctx_token_to_graph_map.find(ctx_token) == _ctx_token_to_graph_map.end()){
-		throw std::runtime_error("Graph not found");
+		return nullptr;
 	}
     return _ctx_token_to_graph_map.at(ctx_token);
 }

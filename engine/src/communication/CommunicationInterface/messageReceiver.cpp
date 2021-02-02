@@ -5,8 +5,8 @@
 
 namespace comm {
 using namespace fmt::literals;
-message_receiver::message_receiver(const std::map<std::string, comm::node>& nodes, const std::vector<char> & buffer) 
-: _buffer_counter{0}
+message_receiver::message_receiver(const std::map<std::string, comm::node>& nodes, const std::vector<char> & buffer, std::shared_ptr<ral::cache::CacheMachine> input_cache) 
+: _buffer_counter{0}, input_cache{input_cache}
 {
 
   try {
@@ -21,7 +21,7 @@ message_receiver::message_receiver(const std::map<std::string, comm::node>& node
     size_t kernel_id = std::stoull(_metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL]);
     std::string cache_id = _metadata.get_values()[ral::cache::CACHE_ID_METADATA_LABEL];
     _output_cache = _metadata.get_values()[ral::cache::ADD_TO_SPECIFIC_CACHE_METADATA_LABEL] == "true" ?
-                        graph->get_kernel_output_cache(kernel_id, cache_id) : graph->get_input_message_cache();
+                        graph->get_kernel_output_cache(kernel_id, cache_id) : input_cache;
   //_metadata.print();
 
   _raw_buffers.resize(_buffer_sizes.size());
