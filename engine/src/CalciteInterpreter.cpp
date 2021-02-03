@@ -9,7 +9,8 @@ std::shared_ptr<ral::cache::graph> generate_graph(std::vector<ral::io::data_load
 	std::vector<std::string> table_names,
 	std::vector<std::string> table_scans,
 	std::string logicalPlan,
-	Context & queryContext) {
+	Context & queryContext,
+    const std::string &sql) {
 
 	CodeTimer blazing_timer;
     std::shared_ptr<spdlog::logger> batchLogger = spdlog::get("batch_logger");
@@ -40,12 +41,15 @@ std::shared_ptr<ral::cache::graph> generate_graph(std::vector<ral::io::data_load
                               "info"_a="\"Query Start\n{}\""_format(tree->to_string()));
 		}
 
+        auto& communicationData = ral::communication::CommunicationData::getInstance();
+        CodeTimer eventTimer(true);
         if(queriesLogger){
-            queriesLogger->info("{query_id}|{step}|{substep}|{info}|||||",
-                              "query_id"_a=queryContext.getContextToken(),
-                              "step"_a=queryContext.getQueryStep(),
-                              "substep"_a=queryContext.getQuerySubstep(),
-                              "info"_a="\"Query Start\n{}\""_format(tree->to_string()));
+            queriesLogger->info("{ral_id}|{query_id}|{start_time}|{plan}|{sql}",
+                         "ral_id"_a=queryContext.getNodeIndex(communicationData.getSelfNode()),
+                         "query_id"_a=queryContext.getContextToken(),
+                         "start_time"_a=eventTimer.start_time(),
+                         "plan"_a=tree->to_string(),
+                         "sql"_a=sql);
         }
 
 		std::string tables_info = "";

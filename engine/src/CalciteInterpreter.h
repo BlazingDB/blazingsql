@@ -13,7 +13,8 @@ std::shared_ptr<ral::cache::graph> generate_graph(std::vector<ral::io::data_load
 																									std::vector<std::string> table_names,
 																									std::vector<std::string> table_scans,
 																									std::string logicalPlan,
-																									Context & queryContext);
+																									Context & queryContext,
+                                                                                                    const std::string &sql);
 
 void start_execute_graph(std::shared_ptr<ral::cache::graph> graph);
 std::vector<std::unique_ptr<ral::frame::BlazingTable>> get_execute_graph_results(std::shared_ptr<ral::cache::graph> graph);

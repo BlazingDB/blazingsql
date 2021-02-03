@@ -164,7 +164,7 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(uint32_t masterIndex,
                                         "sql"_a=sql);
 	}
 
-	auto graph = generate_graph(input_loaders, schemas, tableNames, tableScans, query, queryContext);
+	auto graph = generate_graph(input_loaders, schemas, tableNames, tableScans, query, queryContext, sql);
 
 	comm::graphs_info::getInstance().register_graph(ctxToken, graph);
 	return graph;
