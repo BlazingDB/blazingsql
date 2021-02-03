@@ -57,6 +57,9 @@ protected:
 	size_t attempts = 0;
 	size_t attempts_limit;
 	std::map<std::string, std::string> args;
+
+public:
+    std::shared_ptr<spdlog::logger> task_logger;
 };
 
 

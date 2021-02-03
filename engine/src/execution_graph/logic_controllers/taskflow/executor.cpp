@@ -53,6 +53,8 @@ task::task(
     output(output), task_id(task_id),
     kernel(kernel),attempts(attempts),
     attempts_limit(attempts_limit), args(args) {
+    
+    task_logger = spdlog::get("task_logger");
 }
 
 std::size_t task::task_memory_needed() {
@@ -71,6 +73,7 @@ std::size_t task::task_memory_needed() {
 
 void task::run(cudaStream_t stream, executor * executor){
     std::vector< std::unique_ptr<ral::frame::BlazingTable> > input_gpu;
+    CodeTimer decachingEventTimer(false);
 
     int last_input_decached = 0;
     ///////////////////////////////
@@ -116,8 +119,26 @@ void task::run(cudaStream_t stream, executor * executor){
         throw;
     }
 
-    auto task_result = kernel->process(std::move(input_gpu),output,stream, args);
+    std::size_t log_input_rows = 0;
+    std::size_t log_input_bytes = 0;
+    for (std::size_t i = 0; i < input_gpu.size(); ++i) {
+        log_input_rows += input_gpu.at(i)->num_rows();
+        log_input_bytes += input_gpu.at(i)->sizeInBytes();
+    }
     
+    CodeTimer executionEventTimer(false);
+    auto task_result = kernel->process(std::move(input_gpu),output,stream, args);
+
+    if(task_logger) {
+        task_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+                        "time_started"_a=decachingEventTimer.start_time(),
+                        "duration_decaching"_a=decachingEventTimer.elapsed_time(),
+                        "duration_execution"_a=executionEventTimer.elapsed_time(),
+                        "kernel_id"_a=kernel->get_id(),
+                        "input_num_rows"_a=log_input_rows,
+                        "input_num_bytes"_a=log_input_bytes);
+    }
+
     if(task_result.status == ral::execution::task_status::SUCCESS){
         complete();
     }else if(task_result.status == ral::execution::task_status::RETRY){
