@@ -104,8 +104,10 @@ graphs_info & graphs_info::getInstance() {
 	return instance;
 }
 
+std::mutex instance_mutex;
 ucp_progress_manager * instance = nullptr;
 ucp_progress_manager * ucp_progress_manager::get_instance(ucp_worker_h ucp_worker, size_t request_size) {
+    std::unique_lock<std::mutex> lock(instance_mutex);
 	if(instance == nullptr){
         instance = new ucp_progress_manager(ucp_worker,request_size);
     }
@@ -282,7 +284,6 @@ void ucx_buffer_transport::send_begin_transmission() {
             status = ucp_request_check_status(request + _request_size);
             if (!UCS_STATUS_IS_ERR(status)) {
                 ucp_progress_manager::get_instance()->add_send_request(request, [buffer_to_send, this]() mutable {
-                    buffer_to_send.reset();
                     this->increment_begin_transmission();
                 },status);
             }else {
