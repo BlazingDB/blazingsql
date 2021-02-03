@@ -14,6 +14,7 @@
 - #1294 Add config options for logger
 - #1298 Implement progress bar for run query (using tqdm)
 - #1284 Initial support for Windows Function
+- #1303 Add support for INITCAP
 
 
 ## Improvements

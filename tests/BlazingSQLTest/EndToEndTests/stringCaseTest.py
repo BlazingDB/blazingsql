@@ -201,7 +201,67 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True,
+            )
+
+            # NOTE: SUBSTRING() drill API, `start` parameter must be at least 1
+            # If 0 was provided then will return an empty string ''
+            # finally if you want to use `start` value to 0, please use `spark` engine
+            queryId = "TEST_11"
+            query = """select INITCAP(LOWER(o_clerk)) as init_a, 
+                    INITCAP(SUBSTRING(o_comment, 0, 10)) || INITCAP(o_orderstatus) as init_b
+                    from orders where MOD(o_custkey, 2) = 0 
+                    order by init_a, init_b
+                    limit 180"""
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_12"
+            query = """select o_orderkey, 
+                    INITCAP(SUBSTRING(o_comment, 1, 5)) || SUBSTRING(INITCAP(o_comment), 2, 5)
+                    from orders where o_orderkey < 10000"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_13"
+            query = """SELECT INITCAP(LOWER(c_mktsegment)) as init_mkt, 
+                    INITCAP(SUBSTRING(c_comment, 0, 7)) as init_comment,
+                    INITCAP(c_name) as init_name
+                    from customer
+                    where c_mktsegment in ('AUTOMOBILE', 'HOUSEHOLD')
+                    and 50.0 <= c_acctbal
+                    order by c_custkey, init_comment
+                    limit 200"""
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
             )
 
             if Settings.execution_mode == ExecutionMode.GENERATOR:
