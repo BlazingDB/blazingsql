@@ -40,6 +40,7 @@
 - #1275 Fixed issue in StringUtil::findAndReplaceAll when there are several matches
 - #1277 Support FileSystems (GS, S3) when extension of the files are not provided
 - #1300 Fixed issue when creating tables from a local dir relative path
+- #1312 Fix progress bar for jupyterlab
 
 
 # BlazingSQL 0.17.0 (December 10, 2020)
