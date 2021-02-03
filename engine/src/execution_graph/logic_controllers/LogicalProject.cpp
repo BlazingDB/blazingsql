@@ -1,5 +1,6 @@
 #include <spdlog/spdlog.h>
 #include <cudf/copying.hpp>
+#include <cudf/strings/capitalize.hpp>
 #include <cudf/strings/combine.hpp>
 #include <cudf/strings/contains.hpp>
 #include <cudf/strings/replace_re.hpp>
@@ -526,6 +527,17 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         RAL_EXPECTS(is_type_string(column.type().id()), "UPPER argument must be a column of type string");
 
         computed_col = cudf::strings::to_upper(column);
+        break;
+    }
+    case operator_type::BLZ_STR_INITCAP:
+    {
+        assert(arg_tokens.size() == 1);
+        RAL_EXPECTS(!is_literal(arg_tokens[0]), "INITCAP operator not supported for literals");
+
+        cudf::column_view column = table.column(get_index(arg_tokens[0]));
+        RAL_EXPECTS(is_type_string(column.type().id()), "INITCAP argument must be a column of type string");
+
+        computed_col = cudf::strings::title(column);
         break;
     }
     case operator_type::BLZ_STR_TRIM:

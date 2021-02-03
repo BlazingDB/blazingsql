@@ -54,6 +54,7 @@ bool is_unary_operator(operator_type op) {
 	case operator_type::BLZ_CHAR_LENGTH:
 	case operator_type::BLZ_STR_LOWER:
 	case operator_type::BLZ_STR_UPPER:
+	case operator_type::BLZ_STR_INITCAP:
 	case operator_type::BLZ_STR_REVERSE:
 		return true;
 	default:
@@ -136,6 +137,7 @@ cudf::type_id get_output_type(operator_type op, cudf::type_id input_left_type) {
 		return cudf::type_id::TIMESTAMP_NANOSECONDS;
 	case operator_type::BLZ_STR_LOWER:
 	case operator_type::BLZ_STR_UPPER:
+	case operator_type::BLZ_STR_INITCAP:
 	case operator_type::BLZ_STR_REVERSE:
 	case operator_type::BLZ_STR_LEFT:
 	case operator_type::BLZ_STR_RIGHT:
@@ -287,6 +289,7 @@ operator_type map_to_operator_type(const std::string & operator_token) {
 		{"CHAR_LENGTH", operator_type::BLZ_CHAR_LENGTH},
 		{"LOWER", operator_type::BLZ_STR_LOWER},
 		{"UPPER", operator_type::BLZ_STR_UPPER},
+		{"INITCAP", operator_type::BLZ_STR_INITCAP},
 		{"REVERSE", operator_type::BLZ_STR_REVERSE},
 
 		// Binary operators
