@@ -30,6 +30,7 @@
 - #1279 Added cuml to powerpc build scripts
 - #1286 Fixes to initialization and adding unique ids to comms
 - #1255 Kernels are resilient to out of memory errors now and can retry tasks that fail this way
+- #1311 Add queries logger to physical plan
 
 ## Bug Fixes
 - #1249 Fix compilation with cuda 11
