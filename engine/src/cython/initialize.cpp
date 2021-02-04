@@ -274,7 +274,7 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 								config_options["REQUIRE_ACKNOWLEDGE"] == "TRUE" );
 	}
 
-	size_t buffers_size = 10485760;  // 10 MBs
+	size_t buffers_size = 1048576;  // 1 MBs
 	iter = config_options.find("TRANSPORT_BUFFER_BYTE_SIZE");
 	if (iter != config_options.end()){
 		buffers_size = std::stoi(config_options["TRANSPORT_BUFFER_BYTE_SIZE"]);
@@ -284,7 +284,7 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 	if (iter != config_options.end()){
 		num_comm_threads = std::stoi(config_options["MAX_SEND_MESSAGE_THREADS"]);
 	}
-	int num_buffers = 100;
+	int num_buffers = 1000;
 	iter = config_options.find("TRANSPORT_POOL_NUM_BUFFERS");
 	if (iter != config_options.end()){
 		num_buffers = std::stoi(config_options["TRANSPORT_POOL_NUM_BUFFERS"]);

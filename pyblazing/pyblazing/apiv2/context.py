@@ -1203,8 +1203,8 @@ def load_config_options_from_env(user_config_options: dict):
         "ENABLE_CACHES_LOGS": False,
         "ENABLE_OTHER_ENGINE_LOGS": False,
         "LOGGING_MAX_SIZE_PER_FILE": 1073741824,  # 1 GB
-        "TRANSPORT_BUFFER_BYTE_SIZE": 10485760,  # 10 MB in bytes
-        "TRANSPORT_POOL_NUM_BUFFERS": 100,
+        "TRANSPORT_BUFFER_BYTE_SIZE": 1048576,  # 1 MB in bytes
+        "TRANSPORT_POOL_NUM_BUFFERS": 1000,
         "PROTOCOL": "AUTO",
         "REQUIRE_ACKNOWLEDGE" : False,
     }
@@ -1389,9 +1389,9 @@ class BlazingContext(object):
                     BlazingContext
                     default: 1 GB
             TRANSPORT_BUFFER_BYTE_SIZE : The size in bytes about the pinned buffer memory
-                    default: 10 MBs
+                    default: 1 MBs
             TRANSPORT_POOL_NUM_BUFFERS: The number of buffers in the punned buffer memory pool.
-                    default: 100 buffers
+                    default: 1000 buffers
             REQUIRE_ACKNOWLEDGE : Enable this to enable message aknowledgement when using UCX
                     default: False
             PROTOCOL: The protocol to use with the current BlazingContext.
