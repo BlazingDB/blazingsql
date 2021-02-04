@@ -274,7 +274,6 @@ void ucx_buffer_transport::send_begin_transmission() {
     try {
         std::shared_ptr<std::vector<char>> buffer_to_send = std::make_shared<std::vector<char>>(detail::serialize_metadata_and_transports_and_buffer_sizes(metadata, column_transports, chunked_column_infos, buffer_sizes));
 
-        std::vector<char *> requests(destinations.size());
         int i = 0;
         for(auto const & node : destinations) {
             char * request = new char[_request_size];
