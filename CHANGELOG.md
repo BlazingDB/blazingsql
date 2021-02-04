@@ -13,6 +13,7 @@
 - #1285 Infer PROTOCOL when Dask client is passed
 - #1294 Add config options for logger
 - #1284 Initial support for Windows Function
+- #1313 getting and using ORC metadata
 
 
 ## Improvements
