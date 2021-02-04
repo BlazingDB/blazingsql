@@ -178,11 +178,13 @@ void buffer_transport::send(const char * buffer, size_t buffer_size){
 
 
 void buffer_transport::increment_frame_transmission() {
+	std::unique_lock<std::mutex> lock(mutex);
 	transmitted_frames++;
 	completion_condition_variable.notify_all();
 }
 
 void buffer_transport::increment_begin_transmission() {
+	std::unique_lock<std::mutex> lock(mutex);
 	transmitted_begin_frames++;
 	completion_condition_variable.notify_all();
 }

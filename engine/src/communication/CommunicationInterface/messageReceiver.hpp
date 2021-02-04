@@ -58,7 +58,7 @@ public:
   * @param output_cache The destination for the message being received. It is either a specific cache inbetween
   *                     two kernels or it is intended for the general input cache using a mesage_id
   */
-  message_receiver(const std::map<std::string, comm::node>& nodes, const std::vector<char> & buffer, std::shared_ptr<ral::cache::CacheMachine> input_cache);
+  message_receiver(const std::map<std::string, comm::node>& nodes, const std::vector<char>& buffer, std::shared_ptr<ral::cache::CacheMachine> input_cache);
   virtual ~message_receiver(){}
 
   size_t buffer_size(u_int16_t index);

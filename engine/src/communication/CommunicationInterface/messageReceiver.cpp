@@ -2,10 +2,9 @@
 #include "protocols.hpp"
 #include <spdlog/spdlog.h>
 
-
 namespace comm {
 using namespace fmt::literals;
-message_receiver::message_receiver(const std::map<std::string, comm::node>& nodes, const std::vector<char> & buffer, std::shared_ptr<ral::cache::CacheMachine> input_cache) 
+message_receiver::message_receiver(const std::map<std::string, comm::node>& nodes, const std::vector<char>& buffer, std::shared_ptr<ral::cache::CacheMachine> input_cache) 
 : _buffer_counter{0}, input_cache{input_cache}
 {
 
@@ -17,6 +16,7 @@ message_receiver::message_receiver(const std::map<std::string, comm::node>& node
     _chunked_column_infos = std::get<2>(metadata_and_transports);
     _buffer_sizes = std::get<3>(metadata_and_transports);
     int32_t ctx_token = std::stoi(_metadata.get_values()[ral::cache::QUERY_ID_METADATA_LABEL]);
+
     auto graph = graphs_info::getInstance().get_graph(ctx_token);
     size_t kernel_id = std::stoull(_metadata.get_values()[ral::cache::KERNEL_ID_METADATA_LABEL]);
     std::string cache_id = _metadata.get_values()[ral::cache::CACHE_ID_METADATA_LABEL];
@@ -73,8 +73,7 @@ size_t message_receiver::num_buffers(){
 }
 
 void message_receiver::confirm_transmission(){
-  ++_buffer_counter;
-  if (_buffer_counter == _raw_buffers.size()) {
+  if (++_buffer_counter == _raw_buffers.size()) {
     finish();
   }
 }
@@ -84,14 +83,14 @@ void * message_receiver::get_buffer(uint16_t index){
 }
 
 bool message_receiver::is_finished(){
-  return (_buffer_counter == _raw_buffers.size());
+  std::lock_guard<std::mutex> lock(_finish_mutex);
+  return _finished_called;
 }
 
 void message_receiver::finish(cudaStream_t stream) {
 
   std::lock_guard<std::mutex> lock(_finish_mutex);
   if(!_finished_called){
-    _finished_called = true;
     std::shared_ptr<spdlog::logger> comms_logger;
     comms_logger = spdlog::get("input_comms");
     auto destinations = _metadata.get_values()[ral::cache::WORKER_IDS_METADATA_LABEL];
@@ -116,6 +115,7 @@ void message_receiver::finish(cudaStream_t stream) {
         
     _output_cache->addCacheData(
                 std::move(table), _metadata.get_values()[ral::cache::MESSAGE_ID], true);  
+    _finished_called = true;
   }
 
 
