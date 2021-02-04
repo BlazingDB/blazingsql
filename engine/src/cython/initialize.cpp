@@ -538,7 +538,7 @@ void printLoggerHeader(const std::string pathLogger, const std::string nameLogge
         {"queries_logger",      "ral_id|query_id|start_time|plan|query"},
         {"kernels_logger",      "ral_id|query_id|kernel_id|is_kernel|kernel_type"},
         {"kernels_edges_logger","ral_id|query_id|source|sink"},
-        {"events_logger",       "ral_id|query_id|kernel_id|input_num_rows|input_num_bytes|output_num_rows|output_num_bytes|event_type|timestamp_begin|timestamp_end"},
+        {"task_logger",         "time_started|duration_decaching|duration_execution|kernel_id|input_num_rows|input_num_bytes"},
         {"cache_events_logger", "ral_id|query_id|source|sink|num_rows|num_bytes|event_type|timestamp_begin|timestamp_end"},
         {"batch_logger",        "log_time|node_id|type|query_id|step|substep|info|duration|extra1|data1|extra2|data2"},
         {"input_comms",         "unique_id|ral_id|query_id|kernel_id|dest_ral_id|dest_ral_count|dest_cache_id|message_id|phase"},
@@ -735,9 +735,9 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
             create_logger(kernelsEdgesFileName, "kernels_edges_logger", ralId, flush_level, logger_level_wanted, max_size_logging);
             printLoggerHeader(kernelsEdgesFileName, "kernels_edges_logger");
 
-            std::string kernelEventsFileName = logging_dir + "/bsql_kernel_events." + std::to_string(ralId) + ".log";
-            create_logger(kernelEventsFileName, "events_logger", ralId, flush_level, logger_level_wanted, max_size_logging);
-            printLoggerHeader(kernelEventsFileName, "events_logger");
+            std::string kernelEventsFileName = logging_dir + "/bsql_kernel_tasks." + std::to_string(ralId) + ".log";
+            create_logger(kernelEventsFileName, "tasks_logger", ralId, flush_level, logger_level_wanted, max_size_logging);
+            printLoggerHeader(kernelEventsFileName, "tasks_logger");
         }
 
         if(enable_caches_logs=="True"){

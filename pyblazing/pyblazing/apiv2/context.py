@@ -1382,7 +1382,7 @@ class BlazingContext(object):
             ENABLE_CACHES_LOGS: Enables 'cache_events_logger' logger
                     default: False
             ENABLE_OTHER_ENGINE_LOGS: Enables 'queries_logger', 'kernels_logger',
-                    'kernels_edges_logger', 'events_logger' logger
+                    'kernels_edges_logger', 'task_logger' logger
                     default: False
             LOGGING_MAX_SIZE_PER_FILE: Set the max size in bytes for the log files.
                     NOTE: This parameter only works when used in the
@@ -3265,7 +3265,7 @@ class BlazingContext(object):
                         "bsql_queries",
                         "bsql_kernels",
                         "bsql_kernels_edges",
-                        "bsql_kernel_events",
+                        "bsql_kernel_tasks",
                     ],
                     "ENABLE_GENERAL_ENGINE_LOGS": ["bsql_logs"],
                     "ENABLE_COMMS_LOGS": ["input_comms", "output_comms"],

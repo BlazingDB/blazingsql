@@ -118,6 +118,7 @@ void task::run(cudaStream_t stream, executor * executor){
         }
         throw;
     }
+    auto decaching_elapsed = decachingEventTimer.elapsed_time();
 
     std::size_t log_input_rows = 0;
     std::size_t log_input_bytes = 0;
@@ -130,9 +131,9 @@ void task::run(cudaStream_t stream, executor * executor){
     auto task_result = kernel->process(std::move(input_gpu),output,stream, args);
 
     if(task_logger) {
-        task_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+        task_logger->info("{time_started}|{duration_decaching}|{duration_execution}|{kernel_id}|{input_num_rows}|{input_num_bytes}",
                         "time_started"_a=decachingEventTimer.start_time(),
-                        "duration_decaching"_a=decachingEventTimer.elapsed_time(),
+                        "duration_decaching"_a=decaching_elapsed,
                         "duration_execution"_a=executionEventTimer.elapsed_time(),
                         "kernel_id"_a=kernel->get_id(),
                         "input_num_rows"_a=log_input_rows,
