@@ -59,44 +59,44 @@ cudf::type_id to_dtype(cudf::io::statistics_type stat_type) {
 }
 
 void set_min_max_string(
-	std::vector<std::vector<std::string>> & minmax_string_metadata_table,
+	std::vector<std::string> & minmax_string_metadata_table,
 	cudf::io::column_statistics & statistic, int col_index) {
 
 	auto type_stat = statistic.type_specific_stats<cudf::io::string_statistics>();
 	std::string min = *type_stat->minimum();
 	std::string max = *type_stat->maximum();
-	minmax_string_metadata_table[col_index].push_back(min);
-	minmax_string_metadata_table[col_index + 1].push_back(max);
+	minmax_string_metadata_table[col_index] = min;
+	minmax_string_metadata_table[col_index + 1] = max;
 }
 
 void set_min_max(
-	std::vector<std::vector<int64_t>> & minmax_metadata_table,
+	std::vector<int64_t> & minmax_metadata_table,
 	cudf::io::column_statistics & statistic, int col_index) {
 	// TODO: support for more dtypes
 	if (statistic.type() == cudf::io::statistics_type::INT) {
 		auto type_stat = statistic.type_specific_stats<cudf::io::integer_statistics>();
 		auto min = type_stat->has_minimum() ? *type_stat->minimum() : std::numeric_limits<int32_t>::min();
 		auto max = type_stat->has_maximum() ? *type_stat->maximum() : std::numeric_limits<int32_t>::max();
-		minmax_metadata_table[col_index].push_back(min);
-		minmax_metadata_table[col_index + 1].push_back(max);
+		minmax_metadata_table[col_index] = min;
+		minmax_metadata_table[col_index + 1] = max;
 	} else if (statistic.type() == cudf::io::statistics_type::DOUBLE) {
 		auto type_stat = statistic.type_specific_stats<cudf::io::double_statistics>();
 		auto min = type_stat->has_minimum() ? *type_stat->minimum() : std::numeric_limits<double>::min();
 		auto max = type_stat->has_maximum() ? *type_stat->maximum() : std::numeric_limits<double>::max();
-		minmax_metadata_table[col_index].push_back(min);
-		minmax_metadata_table[col_index + 1].push_back(max);
+		minmax_metadata_table[col_index] = min;
+		minmax_metadata_table[col_index + 1] = max;
 	} else if (statistic.type() == cudf::io::statistics_type::BUCKET) {
 		auto type_stat = statistic.type_specific_stats<cudf::io::bucket_statistics>();
 		auto min = std::numeric_limits<bool>::min();
 		auto max = std::numeric_limits<bool>::max();
-		minmax_metadata_table[col_index].push_back(min);
-		minmax_metadata_table[col_index + 1].push_back(max);
+		minmax_metadata_table[col_index] = min;
+		minmax_metadata_table[col_index + 1] = max;
 	} else if (statistic.type() == cudf::io::statistics_type::TIMESTAMP) {
 		auto type_stat = statistic.type_specific_stats<cudf::io::timestamp_statistics>();
 		auto min = type_stat->has_minimum() ? *type_stat->minimum() : std::numeric_limits<int64_t>::min();
 		auto max = type_stat->has_maximum() ? *type_stat->maximum() : std::numeric_limits<int64_t>::max();
-		minmax_metadata_table[col_index].push_back(min);
-		minmax_metadata_table[col_index + 1].push_back(max);
+		minmax_metadata_table[col_index] = min;
+		minmax_metadata_table[col_index + 1] = max;
 	} else {
 		throw std::runtime_error("Invalid statistic type in set_min_max");
 	}
@@ -163,6 +163,28 @@ std::unique_ptr<cudf::column> make_cudf_column_from_orc(cudf::data_type dtype, s
 		rmm::device_buffer gpu_buffer(buffer_size);
 		return std::make_unique<cudf::column>(dtype, column_size, buffer_size);
 	}
+}
+
+std::vector<int64_t> get_all_values_in_the_same_col( 
+	std::vector<std::vector<std::int64_t>> & min_max,
+	std::size_t index) {
+	std::vector<std::int64_t> output_v;
+	for (std::size_t col_index; col_index < min_max.size(); ++col_index) {
+		output_v.push_back(min_max[col_index][index]);
+	}
+
+	return output_v;
+}
+
+std::vector<std::string> get_all_str_values_in_the_same_col(
+	std::vector<std::vector<std::string>> & minmax_string,
+	std::size_t index) {
+	std::vector<std::string> output_v;
+	for (std::size_t col_index; col_index < minmax_string.size(); ++col_index) {
+		output_v.push_back(minmax_string[col_index][index]);
+	}
+
+	return output_v;
 }
 
 std::unique_ptr<ral::frame::BlazingTable> get_minmax_orc_metadata(
@@ -233,15 +255,17 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_orc_metadata(
 
 	std::size_t total_cols_with_metadata = columns_with_string_metadata.size() + columns_with_metadata.size();
 	// now we want to get min & max values (string in a separate matrix)
-	std::vector<std::vector<int64_t>> minmax_metadata;
-	std::vector<std::vector<std::string>> minmax_string_metadata;
+	std::vector<std::vector<int64_t>> minmax_metadata(total_stripes);
+	std::vector<std::vector<std::string>> minmax_string_metadata(total_stripes);
+	std::size_t file_str_count = 0;
+	std::size_t file_not_str_count = 0;
 
 	for (std::size_t file_index = 0; file_index < orc_statistics.size(); file_index++) {
 		std::vector<std::vector<cudf::io::column_statistics>> & all_stats = orc_statistics[file_index].stripes_stats;
 		std::size_t num_stripes = all_stats.size();
 		if (num_stripes > 0) {
-			std::vector<std::vector<int64_t>> this_minmax_metadata(columns_with_metadata.size() * 2 + 2);
-			std::vector<std::vector<std::string>> this_minmax_metadata_string(columns_with_string_metadata.size() * 2);
+			std::vector<int64_t> this_minmax_metadata(columns_with_metadata.size() * 2 + 2);
+			std::vector<std::string> this_minmax_metadata_string(columns_with_string_metadata.size() * 2);
 			for (std::size_t stripe_index = 0; stripe_index < num_stripes; stripe_index++) {
 				std::vector<cudf::io::column_statistics> & statistics_per_stripe = all_stats[stripe_index];
 				// we are handling two separated minmax_metadas
@@ -266,12 +290,20 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_orc_metadata(
 					}
 				}
 
-				this_minmax_metadata[this_minmax_metadata.size() - 2].push_back(metadata_offset + file_index);
-				this_minmax_metadata[this_minmax_metadata.size() - 1].push_back(stripe_index);
+				this_minmax_metadata[this_minmax_metadata.size() - 2] = metadata_offset + file_index;
+				this_minmax_metadata[this_minmax_metadata.size() - 1] = stripe_index;
+
+				if (this_minmax_metadata.size() > 0) {
+					minmax_metadata[file_not_str_count].insert(
+						minmax_metadata[file_not_str_count].end(), this_minmax_metadata.begin(), this_minmax_metadata.end());
+					file_not_str_count++;
+				}
+				if (this_minmax_metadata_string.size() > 0) {
+					minmax_string_metadata[file_str_count].insert(
+						minmax_string_metadata[file_str_count].end(), this_minmax_metadata_string.begin(), this_minmax_metadata_string.end());
+					file_str_count++;
+				}
 			}
-			// TODO: unify minmax_metadata and minmax_string_metadata to just one ..?
-			minmax_metadata.insert(minmax_metadata.end(), this_minmax_metadata.begin(), this_minmax_metadata.end());
-			minmax_string_metadata.insert(minmax_string_metadata.end(), this_minmax_metadata_string.begin(), this_minmax_metadata_string.end());
 		}
 	}
 
@@ -280,16 +312,19 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_orc_metadata(
 	std::size_t string_count = 0;
 	std::size_t not_string_count = 0;
 	std::basic_string<char> content;
-	for (size_t index = 0; index < metadata_names.size(); index++) {
+	for (std::size_t index = 0; index < metadata_names.size(); index++) {
 		cudf::data_type dtype = metadata_dtypes[index];
 		if (dtype == cudf::data_type{cudf::type_id::STRING}) {
-			std::vector<std::string> vector = minmax_string_metadata[string_count];
+			std::vector<std::string> vector = get_all_str_values_in_the_same_col(minmax_string_metadata, string_count);
 			string_count++;
-			content = get_typed_vector_str_content_(dtype.id(), vector);
+			content = get_typed_vector_str_content_(dtype.id(), vector); // TODO review if this is handled correctecly
+			dtype = cudf::data_type{cudf::type_id::INT32}; // TODO: avoid this ? Issue when no set up to int32
 		} else {
-			std::vector<int64_t> vector = minmax_metadata[not_string_count];
+			std::vector<int64_t> vector = get_all_values_in_the_same_col(minmax_metadata, not_string_count);
 			not_string_count++;
 			content = get_typed_vector_content_(dtype.id(), vector);
+			//std::unique_ptr<cudf::column> expected_col2 = ral::utilities::vector_to_column(vector, dtype);
+			//minmax_metadata_gdf_table[index] = std::move(expected_col2);
 		}
 		minmax_metadata_gdf_table[index] = make_cudf_column_from_orc(dtype, content, total_stripes);
 	}
