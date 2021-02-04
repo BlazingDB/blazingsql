@@ -74,13 +74,14 @@ std::unique_ptr<ral::frame::BlazingTable> orc_parser::get_metadata(std::vector<d
 	std::vector<size_t> num_stripes(files.size());
 	std::vector<cudf::io::parsed_orc_statistics> statistics(handles.size());
 	for(size_t file_index = 0; file_index < handles.size(); file_index++) {
-		std::string file_path = handles[file_index].uri.toString(true);
-		statistics[file_index] = cudf::io::read_parsed_orc_statistics(cudf::io::source_info{file_path});
+		std::shared_ptr<arrow::io::RandomAccessFile> file = handles[file_index].file_handle;
+		auto arrow_source = cudf::io::arrow_io_source{file};
+		statistics[file_index] = cudf::io::read_parsed_orc_statistics(cudf::io::source_info{&arrow_source});
 		num_stripes[file_index] = statistics[file_index].stripes_stats.size();
 	}
 	size_t total_num_stripes = std::accumulate(num_stripes.begin(), num_stripes.end(), size_t(0));
 
-	std::unique_ptr<ral::frame::BlazingTable> minmax_metadata_table = get_minmax_orc_metadata(statistics, total_num_stripes, offset);
+	std::unique_ptr<ral::frame::BlazingTable> minmax_metadata_table = get_minmax_metadata(statistics, total_num_stripes, offset);
 
 	return minmax_metadata_table;
 }
