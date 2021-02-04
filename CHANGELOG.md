@@ -12,6 +12,7 @@
 - #1289 Multiple concurrent query support 
 - #1285 Infer PROTOCOL when Dask client is passed
 - #1294 Add config options for logger
+- #1301 Added usage of pinned buffers for communication and fixes various UCX related bugs
 
 ## Improvements
 - #1293 Added optional acknowledgments to message sending
