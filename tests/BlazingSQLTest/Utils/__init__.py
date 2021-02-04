@@ -123,7 +123,7 @@ def try_to_get_dask_client(n_workers, n_gpus, iface):
     raise ValueError("ERROR: Bad dask connection '%s'" % daskConnection)
 
 
-def init_context(config_options={"ENABLE_GENERAL_ENGINE_LOGS": True,
+def init_context(useProgressBar: bool = False, config_options={"ENABLE_GENERAL_ENGINE_LOGS": True,
                                  "ENABLE_COMMS_LOGS": True,
                                  "ENABLE_CACHES_LOGS": True,
                                  "ENABLE_OTHER_ENGINE_LOGS": True}):
@@ -132,7 +132,10 @@ def init_context(config_options={"ENABLE_GENERAL_ENGINE_LOGS": True,
     nRals = int(Settings.data["RunSettings"]["nRals"])
     nGpus = int(Settings.data["RunSettings"]["nGPUs"])
     if nRals == 1:
-        bc = BlazingContext(config_options=config_options)
+        bc = BlazingContext(
+            config_options=config_options,
+            enable_progress_bar=True
+        )
     else:
         os.chdir(Settings.data["TestSettings"]["logDirectory"])
         iface = Settings.data["RunSettings"]["networkInterface"]
@@ -150,8 +153,12 @@ def init_context(config_options={"ENABLE_GENERAL_ENGINE_LOGS": True,
                 # initial_pool_size=300000000,
                 allocator="default",
                 config_options=config_options,
+                enable_progress_bar=True
             )
         else:
             # Fallback: could not found a valid dask server
-            bc = BlazingContext(config_options=config_options)
+            bc = BlazingContext(
+                config_options=config_options,
+                enable_progress_bar=True)
+
     return (bc, dask_client)
