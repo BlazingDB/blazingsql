@@ -68,15 +68,16 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::get_metadata(int offset) 
 
 	std::size_t NUM_FILES_AT_A_TIME = 64;
 	std::vector<std::unique_ptr<ral::frame::BlazingTable>> metadata_batches;
-	std::vector<ral::frame::BlazingTableView> metadata_batche_views;
+	std::vector<ral::frame::BlazingTableView> metadata_batches_views;
 	while(this->provider->has_next()){
 		std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files;
 		std::vector<data_handle> handles = this->provider->get_some(NUM_FILES_AT_A_TIME);
 		for(auto handle : handles) {
 			files.push_back(handle.file_handle);
 		}
-		metadata_batches.emplace_back(this->parser->get_metadata(files,  offset));
-		metadata_batche_views.emplace_back(metadata_batches.back()->toBlazingTableView());
+		// TODO: if passing handles then, files is not necessary to pass ...
+		metadata_batches.emplace_back(this->parser->get_metadata(handles, files,  offset));
+		metadata_batches_views.emplace_back(metadata_batches.back()->toBlazingTableView());
 		offset += files.size();
 		this->provider->close_file_handles();
 	}
@@ -84,7 +85,7 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::get_metadata(int offset) 
 	if (metadata_batches.size() == 1){
 		return std::move(metadata_batches[0]);
 	} else {
-		if( ral::utilities::checkIfConcatenatingStringsWillOverflow(metadata_batche_views) ) {
+		if(ral::utilities::checkIfConcatenatingStringsWillOverflow(metadata_batches_views)) {
             std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
             if(logger){
                 logger->warn("|||{info}|||||",
@@ -92,7 +93,7 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::get_metadata(int offset) 
             }
 		}
 
-		return ral::utilities::concatTables(metadata_batche_views);
+		return ral::utilities::concatTables(metadata_batches_views);
 	}
 }
 

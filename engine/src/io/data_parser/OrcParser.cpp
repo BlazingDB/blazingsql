@@ -1,4 +1,5 @@
 #include "OrcParser.h"
+#include "metadata/orc_metadata.h"
 
 #include <arrow/io/file.h>
 
@@ -66,6 +67,22 @@ void orc_parser::parse_schema(
 		bool is_in_file = true;
 		schema.add_column(name, type, file_index, is_in_file);
 	}
+}
+
+std::unique_ptr<ral::frame::BlazingTable> orc_parser::get_metadata(std::vector<data_handle> handles,
+	std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, int offset) {
+	std::vector<size_t> num_stripes(files.size());
+	std::vector<cudf::io::parsed_orc_statistics> statistics(handles.size());
+	for(size_t file_index = 0; file_index < handles.size(); file_index++) {
+		std::string file_path = handles[file_index].uri.toString(true);
+		statistics[file_index] = cudf::io::read_parsed_orc_statistics(cudf::io::source_info{file_path});
+		num_stripes[file_index] = statistics[file_index].stripes_stats.size();
+	}
+	size_t total_num_stripes = std::accumulate(num_stripes.begin(), num_stripes.end(), size_t(0));
+
+	std::unique_ptr<ral::frame::BlazingTable> minmax_metadata_table = get_minmax_orc_metadata(statistics, total_num_stripes, offset);
+
+	return minmax_metadata_table;
 }
 
 } /* namespace io */

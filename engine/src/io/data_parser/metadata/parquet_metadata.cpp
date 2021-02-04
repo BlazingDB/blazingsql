@@ -157,8 +157,6 @@ void set_min_max(
 	}	
 }
 
-
-
 // This function is copied and adapted from cudf
 cudf::type_id to_dtype(parquet::Type::type physical, parquet::ConvertedType::type logical) {
 
@@ -205,7 +203,6 @@ cudf::type_id to_dtype(parquet::Type::type physical, parquet::ConvertedType::typ
 
 	return cudf::type_id::EMPTY;
 }
-
 
 std::basic_string<char> get_typed_vector_content(cudf::type_id dtype, std::vector<int64_t> &vector) {
   std::basic_string<char> output;
