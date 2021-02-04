@@ -8,7 +8,6 @@
 
 #include "ExceptionHandling/BlazingThread.h"
 #include "node.hpp"
-#include "serializer.hpp"
 #include "execution_graph/logic_controllers/CacheMachine.h"
 #include "utilities/ctpl_stl.h"
 #include "protocols.hpp"

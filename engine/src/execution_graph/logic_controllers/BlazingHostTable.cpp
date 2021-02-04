@@ -98,7 +98,7 @@ std::unique_ptr<BlazingTable> BlazingHostTable::get_gpu_table() const {
 		auto logger = spdlog::get("batch_logger");
         if (logger){
             logger->error("|||{info}|||||",
-                    "info"_a="ERROR in deserialize_from_cpu. What: {}"_format(e.what()));
+                    "info"_a="ERROR in BlazingHostTable::get_gpu_table(). What: {}"_format(e.what()));
         }
 		throw;
 	}
