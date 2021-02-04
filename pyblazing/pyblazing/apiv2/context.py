@@ -3349,7 +3349,7 @@ class BlazingContext(object):
             sleep(0.005)
 
     def _run_progress_bar_single_node(self, graph):
-        from tqdm import tqdm
+        from tqdm.auto import tqdm
 
         query_complete = False
 
@@ -3406,7 +3406,7 @@ class BlazingContext(object):
         return tqdm_found
 
     def _run_progress_bar_distributed(self, ctxToken):
-        from tqdm import tqdm
+        from tqdm.auto import tqdm
 
         ispbarCreated = False
         pbar = None
