@@ -46,6 +46,8 @@ std::unique_ptr<CacheData> CacheData::downgradeCacheData(std::unique_ptr<CacheDa
 		if (blazing_host_memory_resource::getInstance().get_memory_used() + table->sizeInBytes() <
 				blazing_host_memory_resource::getInstance().get_memory_limit()){
 			
+			//TODO DFR
+			// remember to replace this one too
 			if(logger) {
 				logger->trace("{query_id}|{step}|{substep}|{info}||kernel_id|{kernel_id}|rows|{rows}",
 					"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
@@ -60,6 +62,8 @@ std::unique_ptr<CacheData> CacheData::downgradeCacheData(std::unique_ptr<CacheDa
 		} else {
 			// want to get only cache directory where orc files should be saved
 			std::string orc_files_path = ral::communication::CommunicationData::getInstance().get_cache_directory();
+			//TODO DFR
+			// remember to replace this one too
 			if(logger) {
 				logger->trace("{query_id}|{step}|{substep}|{info}||kernel_id|{kernel_id}|rows|{rows}",
 					"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
@@ -486,6 +490,9 @@ bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, s
 					cacheIndex = cache_level_override;
 				}
 				if(cacheIndex == 0) {
+					// TODO DFR
+       				// replace usage of batch_logger (logger) with cache_events_logger
+					// we want to change all add and removal and downgrade from batch_logger to cache_events_logger
 					if(logger) {
 						logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
 							"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
@@ -496,6 +503,20 @@ bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, s
 							"kernel_id"_a=message_id,
 							"rows"_a=table->num_rows());
 					}
+					// TODO DFR
+					// we want to replace usages of batch_logger with cache_events_logger kind of like this
+					// note that you will have to update the variables and add the timers correctly
+					if(cache_events_logger) {
+            			cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+                        "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                        "query_id"_a=ctx->getContextToken(),
+                        "cache_id"_a=this->get_id(),
+                        "num_rows"_a=num_rows,
+                        "num_bytes"_a=num_bytes,
+                        "event_type"_a="addToCache",
+                        "timestamp_begin"_a=cacheEventTimer.start_time(),
+                        "timestamp_end"_a=cacheEventTimer.end_time());
+        			}
 
 					// before we put into a cache, we need to make sure we fully own the table
 					table->ensureOwnership();

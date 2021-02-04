@@ -42,6 +42,9 @@ std::unique_ptr<ral::frame::BlazingTable> BatchSequence::next() {
         auto num_rows = output->num_rows();
         auto num_bytes = output->sizeInBytes();
 
+        // TODO DFR
+        // we dont need cache_events_logger here any more
+        
         if(cache_events_logger) {
             cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
                         "ral_id"_a=cache->get_context()->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
@@ -96,6 +99,9 @@ std::unique_ptr<ral::cache::CacheData> BatchSequenceBypass::next() {
     if (output) {
         auto num_rows = output->num_rows();
         auto num_bytes = output->sizeInBytes();
+
+        // TODO DFR
+        // we dont need cache_events_logger here any more
 
         if(cache_events_logger){
             cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
@@ -565,6 +571,9 @@ kstatus OutputKernel::run() {
         if(temp_output){
             auto num_rows = temp_output->num_rows();
             auto num_bytes = temp_output->sizeInBytes();
+
+            // TODO DFR
+        // we dont need cache_events_logger here any more
 
             if(cache_events_logger){
                 cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",

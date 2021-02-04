@@ -13,6 +13,9 @@ kernel::kernel(std::size_t kernel_id, std::string expr, std::shared_ptr<Context>
 
     logger = spdlog::get("batch_logger");
     events_logger = spdlog::get("events_logger");
+
+    // TODO DFR
+        // we dont need cache_events_logger here any more. It does not need to be a member of kernel
     cache_events_logger = spdlog::get("cache_events_logger");
 
     std::shared_ptr<spdlog::logger> kernels_logger;
@@ -53,6 +56,8 @@ bool kernel::add_to_output_cache(std::unique_ptr<ral::frame::BlazingTable> table
 
     cacheEventTimer.stop();
 
+    // TODO DFR
+    // we dont need cache_events_logger here any more
     if(cache_events_logger) {
         cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
                     "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
@@ -84,6 +89,9 @@ bool kernel::add_to_output_cache(std::unique_ptr<ral::cache::CacheData> cache_da
 
     cacheEventTimer.stop();
 
+
+// TODO DFR
+        // we dont need cache_events_logger here any more
     if(cache_events_logger) {
         cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
                     "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
@@ -114,6 +122,9 @@ bool kernel::add_to_output_cache(std::unique_ptr<ral::frame::BlazingHostTable> h
     bool added = this->output_.get_cache(cache_id)->addHostFrameToCache(std::move(host_table), message_id);
 
     cacheEventTimer.stop();
+
+    // TODO DFR
+        // we dont need cache_events_logger here any more
 
     if(cache_events_logger) {
         cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
