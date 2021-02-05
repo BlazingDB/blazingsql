@@ -59,6 +59,7 @@ BlazingTableView BlazingTable::toBlazingTableView() const{
 }
 
 std::unique_ptr<CudfTable> BlazingTable::releaseCudfTable() {
+	valid = false; // we are taking the data out, so we want to indicate that its no longer valid
 	std::vector<std::unique_ptr<CudfColumn>> columns_out;
 	for (size_t i = 0; i < columns.size(); i++){
 		columns_out.emplace_back(std::move(columns[i]->release()));
@@ -67,6 +68,7 @@ std::unique_ptr<CudfTable> BlazingTable::releaseCudfTable() {
 }
 
 std::vector<std::unique_ptr<BlazingColumn>> BlazingTable::releaseBlazingColumns() {
+	valid = false; // we are taking the data out, so we want to indicate that its no longer valid
 	return std::move(columns);
 }
 

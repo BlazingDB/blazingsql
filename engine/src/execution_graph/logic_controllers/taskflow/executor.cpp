@@ -86,6 +86,7 @@ void task::run(cudaStream_t stream, executor * executor){
                     input_gpu.push_back(std::move(input->decache()));
             }
     }catch(rmm::bad_alloc e){
+        std::cout<<"ERROR of type rmm::bad_alloc in task::run"<<std::endl;
         int i = 0;
         for(auto & input : inputs){
             if (i < last_input_decached && (input->get_type() == ral::cache::CacheDataType::GPU || input->get_type() == ral::cache::CacheDataType::GPU_METADATA)){
@@ -98,21 +99,25 @@ void task::run(cudaStream_t stream, executor * executor){
         std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
         if (logger){
             logger->error("|||{info}|||||",
-                    "info"_a="ERROR of type rmm::bad_alloc in task::run. What: {}"_format(e.what()));
+                    "info"_a="ERROR of type rmm::bad_alloc in task::run. What: {}"_format(e.what()));            
         }
 
         this->attempts++;
         if(this->attempts < this->attempts_limit){
             executor->add_task(std::move(inputs), output, kernel, attempts, task_id, args);
+            return;
         }else{
+            std::cout<<"ERROR of type rmm::bad_alloc in task::run. Ran out of attempts. Throwing"<<std::endl;
             throw;
         }
     }catch(std::exception & e){
+        std::cout<<"ERROR of type std::exception in task::run"<<std::endl;
         std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
         if (logger){
             logger->error("|||{info}|||||",
                     "info"_a="ERROR in task::run. What: {}"_format(e.what()));
         }
+        
         throw;
     }
 
@@ -126,8 +131,8 @@ void task::run(cudaStream_t stream, executor * executor){
             if(input != nullptr){
                 if  (input->get_type() == ral::cache::CacheDataType::GPU || input->get_type() == ral::cache::CacheDataType::GPU_METADATA){
                     //this was a gpu cachedata so now its not valid
-                    if(task_result.inputs.size() > 0 && i <= task_result.inputs.size()){
-                        static_cast<ral::cache::GPUCacheData *>(input.get())->set_data(std::move(task_result.inputs[i]));
+                    if(task_result.inputs.size() > 0 && i <= task_result.inputs.size() && task_result.inputs[i] != nullptr && task_result.inputs[i]->is_valid()){ 
+                        static_cast<ral::cache::GPUCacheData *>(input.get())->set_data(std::move(task_result.inputs[i]));                        
                     }else{
                         //the input was lost and it was a gpu dataframe which is not recoverable
                         throw rmm::bad_alloc(task_result.what.c_str());
@@ -142,9 +147,11 @@ void task::run(cudaStream_t stream, executor * executor){
         if(this->attempts < this->attempts_limit){
             executor->add_task(std::move(inputs), output, kernel, attempts, task_id, args);
         }else{
+            std::cout<<"ERROR in task::run. Ran out of attempts. Throwing"<<std::endl;
             throw rmm::bad_alloc("Ran out of memory processing");
         }
     }else{
+        std::cout<<"ERROR in task::run. ELSE?"<<std::endl;
         throw std::runtime_error(task_result.what.c_str());
     }
 }
@@ -212,6 +219,7 @@ void executor::execute(){
         try {
             f.get();
         } catch(...) {
+            std::cout<<"caught in execute()"<<std::endl;
             std::unique_lock<std::mutex> lock(exception_holder_mutex);
             exception_holder.push(std::current_exception());
             cur_task->fail();

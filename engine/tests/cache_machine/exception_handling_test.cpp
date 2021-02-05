@@ -52,8 +52,8 @@ std::shared_ptr<kernel> make_project_kernel(std::string project_plan, std::share
 std::tuple<std::shared_ptr<CacheMachine>, std::shared_ptr<CacheMachine>> register_kernel_with_cache_machines(
 	std::shared_ptr<kernel> project_kernel,
 	std::shared_ptr<Context> context) {
-	std::shared_ptr<CacheMachine>  inputCacheMachine = std::make_shared<CacheMachine>(context, "");
-	std::shared_ptr<CacheMachine> outputCacheMachine = std::make_shared<CacheMachine>(context, "");
+	std::shared_ptr<CacheMachine>  inputCacheMachine = std::make_shared<CacheMachine>(context, "", true, 0);
+	std::shared_ptr<CacheMachine> outputCacheMachine = std::make_shared<CacheMachine>(context, "", true, 0);
 	project_kernel->input_.register_cache("1", inputCacheMachine);
 	project_kernel->output_.register_cache("1", outputCacheMachine);
 
@@ -113,8 +113,8 @@ TEST_F(ExceptionHandlingTest, no_catch_exception) {
 
 	std::shared_ptr<Context> context = make_context();
 
-	// Projection kernel for select A + B
-	std::shared_ptr<kernel> project_kernel = make_project_kernel("LogicalProject(EXPR$0=[+($0, $1)])", context);
+	// Projection kernel
+	std::shared_ptr<kernel> project_kernel = make_project_kernel("LogicalProject(EXPR$0=[+($0, $1)], EXPR$1=[-($0, $1)])", context);
 
 	// register cache machines with the `project_kernel`
 	std::shared_ptr<CacheMachine> inputCacheMachine, outputCacheMachine;
