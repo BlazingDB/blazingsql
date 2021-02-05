@@ -52,8 +52,8 @@ std::shared_ptr<kernel> make_project_kernel(std::string project_plan, std::share
 std::tuple<std::shared_ptr<CacheMachine>, std::shared_ptr<CacheMachine>> register_kernel_with_cache_machines(
 	std::shared_ptr<kernel> project_kernel,
 	std::shared_ptr<Context> context) {
-	std::shared_ptr<CacheMachine>  inputCacheMachine = std::make_shared<CacheMachine>(context, "");
-	std::shared_ptr<CacheMachine> outputCacheMachine = std::make_shared<CacheMachine>(context, "");
+	std::shared_ptr<CacheMachine>  inputCacheMachine = std::make_shared<CacheMachine>(context, "", true, 0);
+	std::shared_ptr<CacheMachine> outputCacheMachine = std::make_shared<CacheMachine>(context, "", true, 0);
 	project_kernel->input_.register_cache("1", inputCacheMachine);
 	project_kernel->output_.register_cache("1", outputCacheMachine);
 
@@ -104,7 +104,7 @@ TEST_F(ExceptionHandlingTest, OneBatchFullWithoutDelay) {
 	using T = int32_t;
 
 	// Batch
-	cudf::size_type size = 16*1024*1024;
+	cudf::size_type size = 16*1024*1024*8;
 
 	auto col1 = make_col<T>(size);
 	auto col2 = make_col<T>(size);

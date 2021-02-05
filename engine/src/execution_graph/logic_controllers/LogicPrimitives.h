@@ -39,13 +39,15 @@ public:
 
 	BlazingTableView toBlazingTableView() const;
 
-	operator bool() const { return columns.size() != 0; }
+	operator bool() const { return this->is_valid(); }
+
+	bool is_valid() const { return columns.size() != 0; }
 
 	std::unique_ptr<CudfTable> releaseCudfTable();
 	std::vector<std::unique_ptr<BlazingColumn>> releaseBlazingColumns();
 
 	unsigned long long sizeInBytes();
-	void ensureOwnership();
+	void ensureOwnership();	
 
 private:
 	std::vector<std::string> columnNames;
