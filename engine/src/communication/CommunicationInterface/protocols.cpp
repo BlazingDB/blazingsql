@@ -12,7 +12,6 @@
 
 
 #include "execution_graph/logic_controllers/CacheMachine.h"
-#include "transport/io/reader_writer.h"
 
 using namespace fmt::literals;
 using namespace std::chrono_literals;
@@ -105,8 +104,10 @@ graphs_info & graphs_info::getInstance() {
 	return instance;
 }
 
+std::mutex instance_mutex;
 ucp_progress_manager * instance = nullptr;
 ucp_progress_manager * ucp_progress_manager::get_instance(ucp_worker_h ucp_worker, size_t request_size) {
+    std::unique_lock<std::mutex> lock(instance_mutex);
 	if(instance == nullptr){
         instance = new ucp_progress_manager(ucp_worker,request_size);
     }
@@ -236,7 +237,7 @@ void graphs_info::deregister_graph(int32_t ctx_token){
 }
 std::shared_ptr<ral::cache::graph> graphs_info::get_graph(int32_t ctx_token) {
 	if(_ctx_token_to_graph_map.find(ctx_token) == _ctx_token_to_graph_map.end()){
-		throw std::runtime_error("Graph not found");
+		return nullptr;
 	}
     return _ctx_token_to_graph_map.at(ctx_token);
 }
@@ -248,10 +249,13 @@ ucx_buffer_transport::ucx_buffer_transport(size_t request_size,
     ral::cache::MetadataDictionary metadata,
     std::vector<size_t> buffer_sizes,
     std::vector<blazingdb::transport::ColumnTransport> column_transports,
-    int ral_id)
-    : buffer_transport(metadata, buffer_sizes, column_transports,destinations),
-    origin_node(origin_node), ral_id{ral_id}, _request_size{request_size} {
+    std::vector<ral::memory::blazing_chunked_column_info> chunked_column_infos,
+    int ral_id,
+    bool require_acknowledge)
+    : buffer_transport(metadata, buffer_sizes, column_transports, chunked_column_infos, destinations, require_acknowledge),
+    origin_node(origin_node), ral_id{ral_id}, _request_size{request_size}{
         tag = generate_message_tag();
+
 }
 
 ucx_buffer_transport::~ucx_buffer_transport() {
@@ -268,9 +272,8 @@ ucp_tag_t ucx_buffer_transport::generate_message_tag() {
 
 void ucx_buffer_transport::send_begin_transmission() {
     try {
-        std::shared_ptr<std::vector<char>> buffer_to_send = std::make_shared<std::vector<char>>(detail::serialize_metadata_and_transports_and_buffer_sizes(metadata, column_transports, buffer_sizes));
+        std::shared_ptr<std::vector<char>> buffer_to_send = std::make_shared<std::vector<char>>(detail::serialize_metadata_and_transports_and_buffer_sizes(metadata, column_transports, chunked_column_infos, buffer_sizes));
 
-        std::vector<char *> requests(destinations.size());
         int i = 0;
         for(auto const & node : destinations) {
             char * request = new char[_request_size];
@@ -280,7 +283,6 @@ void ucx_buffer_transport::send_begin_transmission() {
             status = ucp_request_check_status(request + _request_size);
             if (!UCS_STATUS_IS_ERR(status)) {
                 ucp_progress_manager::get_instance()->add_send_request(request, [buffer_to_send, this]() mutable {
-                    buffer_to_send.reset();
                     this->increment_begin_transmission();
                 },status);
             }else {
@@ -328,19 +330,67 @@ void ucx_buffer_transport::send_impl(const char * buffer, size_t buffer_size) {
         throw;
     }
 }
+#define ACK_BUFFER_SIZE 40
+void ucx_buffer_transport::receive_acknowledge(){
+    for(int i = 0; i < transmitted_acknowledgements.size(); i++){
+        char * request = new char[_request_size];
+        std::vector<char> data_buffer(sizeof(int));
+        char * data = new char[ACK_BUFFER_SIZE];
+        ucp_tag_t temp_tag = tag;
+        blazing_ucp_tag message_tag = *reinterpret_cast<blazing_ucp_tag *>(&temp_tag);
+        message_tag.frame_id = 0xFFFF;
+        auto status = ucp_tag_recv_nbr(origin_node,
+            data,
+            ACK_BUFFER_SIZE,
+            ucp_dt_make_contig(1),
+            temp_tag,
+            acknownledge_tag_mask,
+            request + _request_size);
+        status = ucp_request_check_status(request + _request_size);
+        if (!UCS_STATUS_IS_ERR(status)) {
+                ucp_progress_manager::get_instance()->add_recv_request(
+                    request, 
+                    [data,this](){ 
+                        bool found = false;
+                        std::string node_address(data);
+                        for(auto & destination : destinations){
+
+                            if(destination.id() == node_address){
+                                this->transmitted_acknowledgements[node_address] = true;
+                                found = true;
+                                this->completion_condition_variable.notify_one();
+                            }
+                        }
+                        delete data;
+                        if(!found ){
+                            throw std::runtime_error("invalid ack tag");
+                        }
+
+                    }
+                    ,status);
+        } else {
+            throw std::runtime_error("Immediate Communication error in poll_begin_message_tag.");
+        }
+    }
+}
+
+
 
 tcp_buffer_transport::tcp_buffer_transport(
         std::vector<node> destinations,
         ral::cache::MetadataDictionary metadata,
         std::vector<size_t> buffer_sizes,
         std::vector<blazingdb::transport::ColumnTransport> column_transports,
+        std::vector<ral::memory::blazing_chunked_column_info> chunked_column_infos,
         int ral_id,
-        ctpl::thread_pool<BlazingThread> * allocate_copy_buffer_pool)
-        : buffer_transport(metadata, buffer_sizes, column_transports,destinations),
+        ctpl::thread_pool<BlazingThread> * allocate_copy_buffer_pool,
+        bool require_acknowledge)
+        : buffer_transport(metadata, buffer_sizes, column_transports, chunked_column_infos, destinations,require_acknowledge),
         ral_id{ral_id}, allocate_copy_buffer_pool{allocate_copy_buffer_pool} {
 
         //Initialize connection to get
-    cudaStreamCreate(&stream);
+    
+    //metadata.print();
     for(auto destination : destinations){
         int socket_fd;
         struct sockaddr_in address;
@@ -369,7 +419,7 @@ tcp_buffer_transport::tcp_buffer_transport(
 }
 
 void tcp_buffer_transport::send_begin_transmission(){
-    std::vector<char> buffer_to_send = detail::serialize_metadata_and_transports_and_buffer_sizes(metadata, column_transports,buffer_sizes);
+    std::vector<char> buffer_to_send = detail::serialize_metadata_and_transports_and_buffer_sizes(metadata, column_transports, chunked_column_infos, buffer_sizes);
 	auto size_to_send = buffer_to_send.size();
 
     for (auto socket_fd : socket_fds){
@@ -383,6 +433,11 @@ void tcp_buffer_transport::send_begin_transmission(){
         increment_begin_transmission();
     }
 
+}
+void tcp_buffer_transport::receive_acknowledge(){
+    for(auto & elem : transmitted_acknowledgements){
+        elem.second = true;
+    }
 }
 
 void tcp_buffer_transport::send_impl(const char * buffer, size_t buffer_size){
@@ -407,7 +462,6 @@ tcp_buffer_transport::~tcp_buffer_transport(){
     for (auto socket_fd : socket_fds){
         close(socket_fd);
     }
-    cudaStreamDestroy(stream);
 }
 
 }  // namespace comm
