@@ -2,8 +2,10 @@
 #define BLAZINGDB_RAL_SRC_IO_DATA_PARSER_METADATA_ORC_METADATA_CPP_H_
 
 #include "orc_metadata.h"
-//#include "ExceptionHandling/BlazingThread.h"
 #include "utilities/CommonOperations.h"
+
+#include <cudf/column/column_factories.hpp>
+#include <numeric>
 
 std::basic_string<char> get_typed_vector_str_content(cudf::type_id dtype, std::vector<std::string> & vector) {
 	std::basic_string<char> output = std::basic_string<char>((char *)vector.data(), vector.size() * sizeof(char));
@@ -57,6 +59,21 @@ cudf::type_id statistic_to_dtype(cudf::io::statistics_type stat_type) {
 	} else {
 		return cudf::type_id::EMPTY;
 	}
+}
+
+std::pair< std::vector<char>, std::vector<cudf::size_type> > concat_strings(
+	std::vector<std::string> & vector) {
+	std::vector<char> chars;
+	std::vector<cudf::size_type> offsets(1, 0); // the first offset value must be 0
+
+	for (std::size_t i = 0; i < vector.size(); i++) {
+		offsets.push_back(vector[i].size());
+        chars.insert(chars.end(), vector[i].begin(), vector[i].end());   
+    }
+
+	offsets[offsets.size() - 1] = chars.size();
+
+	return std::make_pair(chars, offsets);
 }
 
 void set_min_max(
@@ -155,7 +172,7 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 		metadata_dtypes.push_back(cudf::data_type{cudf::type_id::INT32});
 		metadata_names.push_back("file_handle_index");
 		metadata_dtypes.push_back(cudf::data_type{cudf::type_id::INT32});
-		metadata_names.push_back("row_group_index"); // stripe_index
+		metadata_names.push_back("row_group_index");  // stripe_index in case of ORC
 	}
 
 	std::size_t total_cols_with_metadata = columns_with_string_metadata.size() + columns_with_metadata.size();
@@ -216,22 +233,21 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 	// we are handling two separated minmax_metadas
 	std::size_t string_count = 0;
 	std::size_t not_string_count = 0;
-	std::basic_string<char> content;
 	for (std::size_t index = 0; index < metadata_names.size(); index++) {
 		cudf::data_type dtype = metadata_dtypes[index];
+		// we need to handle `strings` in a different way
 		if (dtype == cudf::data_type{cudf::type_id::STRING}) {
-			std::vector<std::string> vector = get_all_str_values_in_the_same_col(minmax_string_metadata, string_count);
+			std::vector<std::string> vector_str = get_all_str_values_in_the_same_col(minmax_string_metadata, string_count);
 			string_count++;
-			content = get_typed_vector_str_content(dtype.id(), vector); // TODO review if this is handled correctecly
-			dtype = cudf::data_type{cudf::type_id::INT32}; // TODO: avoid this ? Issue when no set up to int32
+			std::pair<std::vector<char>, std::vector<cudf::size_type>> result_pair = concat_strings(vector_str);
+			std::unique_ptr<cudf::column> col = cudf::make_strings_column(result_pair.first, result_pair.second);
+			minmax_metadata_gdf_table[index] = std::move(col);
 		} else {
 			std::vector<int64_t> vector = get_all_values_in_the_same_col(minmax_metadata, not_string_count);
 			not_string_count++;
-			content = get_typed_vector_content(dtype.id(), vector);
-			//std::unique_ptr<cudf::column> expected_col2 = ral::utilities::vector_to_column(vector, dtype);
-			//minmax_metadata_gdf_table[index] = std::move(expected_col2);
+			std::basic_string<char> content = get_typed_vector_content(dtype.id(), vector);
+			minmax_metadata_gdf_table[index] = make_cudf_column_from(dtype, content, total_stripes);
 		}
-		minmax_metadata_gdf_table[index] = make_cudf_column_from(dtype, content, total_stripes);
 	}
 
 	auto table = std::make_unique<cudf::table>(std::move(minmax_metadata_gdf_table));
