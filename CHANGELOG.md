@@ -12,12 +12,14 @@
 - #1289 Multiple concurrent query support 
 - #1285 Infer PROTOCOL when Dask client is passed
 - #1294 Add config options for logger
+- #1301 Added usage of pinned buffers for communication and fixes various UCX related bugs
 - #1298 Implement progress bar for run query (using tqdm)
 - #1284 Initial support for Windows Function
 - #1303 Add support for INITCAP
 
 
 ## Improvements
+- #1293 Added optional acknowledgments to message sending
 - #1236 Moving code from header files to implementation files
 - #1257 Expose the reset max memory usage C++ API to python
 - #1256 Improve Logical project documentation
