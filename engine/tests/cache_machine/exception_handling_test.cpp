@@ -60,24 +60,15 @@ std::tuple<std::shared_ptr<CacheMachine>, std::shared_ptr<CacheMachine>> registe
 	return std::make_tuple(inputCacheMachine, outputCacheMachine);
 }
 
-// Feeds an input cache with time delays
-void add_data_to_cache_with_delay(
+// Feeds an input cache
+void add_data_to_cache(
 	std::shared_ptr<CacheMachine> cache_machine,
-	std::vector<std::unique_ptr<BlazingTable>> batches,
-	std::vector<int> delays_in_ms)
-{
+	std::vector<std::unique_ptr<BlazingTable>> batches) {
 	int total_batches = batches.size();
-	int total_delays = delays_in_ms.size();
-
-	EXPECT_EQ(total_delays, total_batches);
 
 	for (int i = 0; i < total_batches; ++i) {
-		std::this_thread::sleep_for(std::chrono::milliseconds(delays_in_ms[i]));
 		cache_machine->addToCache(std::move(batches[i]));
 	}
-
-	// default last delay
-	std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
 	cache_machine->finish();
 }
@@ -90,24 +81,10 @@ std::unique_ptr<cudf::column> make_col(cudf::size_type size) {
 	return col.release();
 }
 
-TEST_F(ExceptionHandlingTest, OneBatchFullWithoutDelay) {
-
-	MemoryConsumer memory_consumer;
-	memory_consumer.setOptionsPercentage({0.5, 0.3}, 4000ms);
-
-	//Creating a thread to execute our task
-	std::thread memory_consumer_thread([&memory_consumer]()
-	{
-		memory_consumer.run();
-	});
-
-	using T = int32_t;
-
-	// Batch
-	cudf::size_type size = 16*1024*1024;
-
-	auto col1 = make_col<T>(size);
-	auto col2 = make_col<T>(size);
+template<class TypeParam>
+std::vector<std::unique_ptr<BlazingTable>> make_table(cudf::size_type size) {
+	auto col1 = make_col<TypeParam>(size);
+	auto col2 = make_col<TypeParam>(size);
 
 	std::vector<std::unique_ptr<cudf::column>> columns;
 	columns.push_back(std::move(col1));
@@ -118,29 +95,47 @@ TEST_F(ExceptionHandlingTest, OneBatchFullWithoutDelay) {
 	std::vector<std::string> names({"A", "B"});
 	std::unique_ptr<BlazingTable> batch = std::make_unique<BlazingTable>(std::move(cudf_table), names);
 
-	// Context
+	std::vector<std::unique_ptr<BlazingTable>> batches;
+	batches.push_back(std::move(batch));
+	return batches;
+}
+
+TEST_F(ExceptionHandlingTest, no_catch_exception) {
+
+	MemoryConsumer memory_consumer;
+	memory_consumer.setOptionsPercentage({0.5, 0.3}, 4000ms);
+
+	//Creating a thread to execute our task
+	std::thread memory_consumer_thread([&memory_consumer]()
+	{
+		memory_consumer.run();
+	});
+
 	std::shared_ptr<Context> context = make_context();
 
-	// Projection kernel
+	// Projection kernel for select A + B
 	std::shared_ptr<kernel> project_kernel = make_project_kernel("LogicalProject(EXPR$0=[+($0, $1)])", context);
 
 	// register cache machines with the `project_kernel`
 	std::shared_ptr<CacheMachine> inputCacheMachine, outputCacheMachine;
 	std::tie(inputCacheMachine, outputCacheMachine) = register_kernel_with_cache_machines(project_kernel, context);
 
-	// Add data to the inputCacheMachine without delay
-	std::vector<int> delays_in_ms {0};
-	std::vector<std::unique_ptr<BlazingTable>> batches;
-	batches.push_back(std::move(batch));
-	add_data_to_cache_with_delay(inputCacheMachine, std::move(batches), delays_in_ms);
-
-	// main function
+	cudf::size_type size = 16*1024*1024;
+	add_data_to_cache(inputCacheMachine, make_table<int32_t>(size));
 
 	try{
 		kstatus process = project_kernel->run();
 		EXPECT_EQ(kstatus::proceed, process);
-	}catch(std::exception& ex){
-		std::cout<<"Caught\n";
+		SUCCEED();
+	}
+	catch(std::runtime_error e){
+		FAIL();
+	}
+	catch(std::exception & e){
+		FAIL();
+	}
+	catch(...){
+		FAIL();
 	}
 
 	outputCacheMachine->finish();
@@ -154,4 +149,94 @@ TEST_F(ExceptionHandlingTest, OneBatchFullWithoutDelay) {
 
 	memory_consumer.stop();
 	memory_consumer_thread.join();
+}
+
+TEST_F(ExceptionHandlingTest, catch_exception_sqrt_minus_one) {
+
+	std::shared_ptr<Context> context = make_context();
+
+	// Projection kernel for select sqrt(-1)
+	std::shared_ptr<kernel> project_kernel = make_project_kernel("LogicalProject(EXPR$0=[POWER(-1, 0.5:DECIMAL(2, 1))])", context);
+
+	// register cache machines with the `project_kernel`
+	std::shared_ptr<CacheMachine> inputCacheMachine, outputCacheMachine;
+	std::tie(inputCacheMachine, outputCacheMachine) = register_kernel_with_cache_machines(project_kernel, context);
+
+	cudf::size_type size = 16*1024*1024;
+	add_data_to_cache(inputCacheMachine, make_table<int32_t>(size));
+
+	try{
+		kstatus process = project_kernel->run();
+		EXPECT_EQ(kstatus::proceed, process);
+		FAIL();
+	}
+	catch(std::runtime_error e){
+		SUCCEED();
+	}
+	catch(std::exception & e){
+		FAIL();
+	}
+	catch(...){
+		FAIL();
+	}
+}
+
+TEST_F(ExceptionHandlingTest, catch_exception_div_by_zero) {
+
+	std::shared_ptr<Context> context = make_context();
+
+	// Projection kernel for select 1/0
+	std::shared_ptr<kernel> project_kernel = make_project_kernel("LogicalProject(EXPR$0=[/(1, 0)]))", context);
+
+	// register cache machines with the `project_kernel`
+	std::shared_ptr<CacheMachine> inputCacheMachine, outputCacheMachine;
+	std::tie(inputCacheMachine, outputCacheMachine) = register_kernel_with_cache_machines(project_kernel, context);
+
+	cudf::size_type size = 16*1024*1024;
+	add_data_to_cache(inputCacheMachine, make_table<int32_t>(size));
+
+	try{
+		kstatus process = project_kernel->run();
+		EXPECT_EQ(kstatus::proceed, process);
+		FAIL();
+	}
+	catch(std::runtime_error e){
+		SUCCEED();
+	}
+	catch(std::exception & e){
+		FAIL();
+	}
+	catch(...){
+		FAIL();
+	}
+}
+
+TEST_F(ExceptionHandlingTest, catch_exception_invalid_expr) {
+
+	std::shared_ptr<Context> context = make_context();
+
+	// Projection kernel for select ''*2
+	std::shared_ptr<kernel> project_kernel = make_project_kernel("LogicalProject(EXPR$0=[*(CAST(''):INTEGER NOT NULL, 2)])", context);
+
+	// register cache machines with the `project_kernel`
+	std::shared_ptr<CacheMachine> inputCacheMachine, outputCacheMachine;
+	std::tie(inputCacheMachine, outputCacheMachine) = register_kernel_with_cache_machines(project_kernel, context);
+
+	cudf::size_type size = 16*1024*1024;
+	add_data_to_cache(inputCacheMachine, make_table<int32_t>(size));
+
+	try{
+		kstatus process = project_kernel->run();
+		EXPECT_EQ(kstatus::proceed, process);
+		FAIL();
+	}
+	catch(std::runtime_error e){
+		SUCCEED();
+	}
+	catch(std::exception & e){
+		FAIL();
+	}
+	catch(...){
+		FAIL();
+	}
 }
