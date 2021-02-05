@@ -13,30 +13,37 @@ ComputeAggregateKernel::ComputeAggregateKernel(std::size_t kernel_id, const std:
     this->query_graph = query_graph;
 }
 
-void ComputeAggregateKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+ral::execution::task_result ComputeAggregateKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
     cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) {
-    auto & input = inputs[0];
 
-    std::unique_ptr<ral::frame::BlazingTable> columns;
-    if(this->aggregation_types.size() == 0) {
-        columns = ral::operators::compute_groupby_without_aggregations(
-                input->toBlazingTableView(), this->group_column_indices);
-    } else if (this->group_column_indices.size() == 0) {
-        columns = ral::operators::compute_aggregations_without_groupby(
-                input->toBlazingTableView(), aggregation_input_expressions, this->aggregation_types, aggregation_column_assigned_aliases);
-    } else {
-        columns = ral::operators::compute_aggregations_with_groupby(
-            input->toBlazingTableView(), aggregation_input_expressions, this->aggregation_types, aggregation_column_assigned_aliases, group_column_indices);
+    try{
+        auto & input = inputs[0];
+        std::unique_ptr<ral::frame::BlazingTable> columns;
+        if(this->aggregation_types.size() == 0) {
+            columns = ral::operators::compute_groupby_without_aggregations(
+                    input->toBlazingTableView(), this->group_column_indices);
+        } else if (this->group_column_indices.size() == 0) {
+            columns = ral::operators::compute_aggregations_without_groupby(
+                    input->toBlazingTableView(), aggregation_input_expressions, this->aggregation_types, aggregation_column_assigned_aliases);
+        } else {
+            columns = ral::operators::compute_aggregations_with_groupby(
+                input->toBlazingTableView(), aggregation_input_expressions, this->aggregation_types, aggregation_column_assigned_aliases, group_column_indices);
+        }
+        output->addToCache(std::move(columns));
+    }catch(rmm::bad_alloc e){
+        return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
+    }catch(std::exception e){
+        return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }
-
-    output->addToCache(std::move(columns));
+    return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
 }
 
 kstatus ComputeAggregateKernel::run() {
     CodeTimer timer;
 
     std::unique_ptr <ral::cache::CacheData> cache_data = this->input_cache()->pullCacheData();
+    RAL_EXPECTS(cache_data != nullptr, "In ComputeAggregateKernel: The input cache data cannot be null");
 
     // in case UNION exists, we want to know the num of columns
     std::tie(this->group_column_indices, aggregation_input_expressions, this->aggregation_types,
@@ -66,8 +73,12 @@ kstatus ComputeAggregateKernel::run() {
 
     std::unique_lock<std::mutex> lock(kernel_mutex);
     kernel_cv.wait(lock,[this]{
-        return this->tasks.empty();
+        return this->tasks.empty() || ral::execution::executor::get_instance()->has_exception();
     });
+
+    if(auto ep = ral::execution::executor::get_instance()->last_exception()){
+        std::rethrow_exception(ep);
+    }
 
     if(logger) {
         logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
@@ -110,7 +121,7 @@ DistributeAggregateKernel::DistributeAggregateKernel(std::size_t kernel_id, cons
     set_number_of_message_trackers(1); //default
 }
 
-void DistributeAggregateKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+ral::execution::task_result DistributeAggregateKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
     cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) {
     auto & input = inputs[0];
@@ -118,59 +129,75 @@ void DistributeAggregateKernel::do_process(std::vector< std::unique_ptr<ral::fra
     // num_partitions = context->getTotalNodes() will do for now, but may want a function to determine this in the future.
     // If we do partition into something other than the number of nodes, then we have to use part_ids and change up more of the logic
     int num_partitions = this->context->getTotalNodes();
-
+    
     // If its an aggregation without group by we want to send all the results to the master node
     auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
     if (group_column_indices.size() == 0) {
-        if(this->context->isMasterNode(self_node)) {
-            bool added = this->output_.get_cache()->addToCache(std::move(input),"",false);
-            if (added) {
-                increment_node_count(self_node.id());
-            }
-        } else {
-            if (!set_empty_part_for_non_master_node){ // we want to keep in the non-master nodes something, so that the cache is not empty
-                std::unique_ptr<ral::frame::BlazingTable> empty =
-                    ral::utilities::create_empty_table(input->toBlazingTableView());
-                bool added = this->add_to_output_cache(std::move(empty), "", true);
-                set_empty_part_for_non_master_node = true;
+        try{
+            if(this->context->isMasterNode(self_node)) {
+                bool added = this->output_.get_cache()->addToCache(std::move(input),"",false);
                 if (added) {
                     increment_node_count(self_node.id());
                 }
-            }
+            } else {
+                if (!set_empty_part_for_non_master_node){ // we want to keep in the non-master nodes something, so that the cache is not empty
+                    std::unique_ptr<ral::frame::BlazingTable> empty =
+                        ral::utilities::create_empty_table(input->toBlazingTableView());
+                    bool added = this->add_to_output_cache(std::move(empty), "", true);
+                    set_empty_part_for_non_master_node = true;
+                    if (added) {
+                        increment_node_count(self_node.id());
+                    }
+                }
 
-            send_message(std::move(input),
-                true, //specific_cache
-                "", //cache_id
-                {this->context->getMasterNode().id()}); //target_id
+                send_message(std::move(input),
+                    true, //specific_cache
+                    "", //cache_id
+                    {this->context->getMasterNode().id()}); //target_id
+            }
+        }catch(rmm::bad_alloc e){
+            return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
+        }catch(std::exception e){
+            return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
         }
+
     } else {
-        CudfTableView batch_view = input->view();
-        std::vector<CudfTableView> partitioned;
-        std::unique_ptr<CudfTable> hashed_data; // Keep table alive in this scope
-        if (batch_view.num_rows() > 0) {
-            std::vector<cudf::size_type> hased_data_offsets;
-            std::tie(hashed_data, hased_data_offsets) = cudf::hash_partition(input->view(), columns_to_hash, num_partitions);
-            // the offsets returned by hash_partition will always start at 0, which is a value we want to ignore for cudf::split
-            std::vector<cudf::size_type> split_indexes(hased_data_offsets.begin() + 1, hased_data_offsets.end());
-            partitioned = cudf::split(hashed_data->view(), split_indexes);
-        } else {
-            //  copy empty view
-            for (auto i = 0; i < num_partitions; i++) {
-                partitioned.push_back(batch_view);
+
+        try{
+            CudfTableView batch_view = input->view();
+            std::vector<CudfTableView> partitioned;
+            std::unique_ptr<CudfTable> hashed_data; // Keep table alive in this scope
+            if (batch_view.num_rows() > 0) {
+                std::vector<cudf::size_type> hased_data_offsets;
+                std::tie(hashed_data, hased_data_offsets) = cudf::hash_partition(input->view(), columns_to_hash, num_partitions);
+                // the offsets returned by hash_partition will always start at 0, which is a value we want to ignore for cudf::split
+                std::vector<cudf::size_type> split_indexes(hased_data_offsets.begin() + 1, hased_data_offsets.end());
+                partitioned = cudf::split(hashed_data->view(), split_indexes);
+            } else {
+                //  copy empty view
+                for (auto i = 0; i < num_partitions; i++) {
+                    partitioned.push_back(batch_view);
+                }
             }
-        }
 
-        std::vector<ral::frame::BlazingTableView> partitions;
-        for(auto partition : partitioned) {
-            partitions.push_back(ral::frame::BlazingTableView(partition, input->names()));
-        }
+            std::vector<ral::frame::BlazingTableView> partitions;
+            for(auto partition : partitioned) {
+                partitions.push_back(ral::frame::BlazingTableView(partition, input->names()));
+            }
 
-        scatter(partitions,
-            output.get(),
-            "", //message_id_prefix
-            "" //cache_id
-        );
+            scatter(partitions,
+                output.get(),
+                "", //message_id_prefix
+                "" //cache_id
+            );
+        }catch(rmm::bad_alloc e){
+            return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
+        }catch(std::exception e){
+            return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
+        }
+        
     }
+    return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
 }
 
 kstatus DistributeAggregateKernel::run() {
@@ -208,8 +235,12 @@ kstatus DistributeAggregateKernel::run() {
 
     std::unique_lock<std::mutex> lock(kernel_mutex);
     kernel_cv.wait(lock,[this]{
-        return this->tasks.empty();
+        return this->tasks.empty() || ral::execution::executor::get_instance()->has_exception();
     });
+
+    if(auto ep = ral::execution::executor::get_instance()->last_exception()){
+        std::rethrow_exception(ep);
+    }
 
     send_total_partition_counts(
         "", //message_prefix
@@ -241,85 +272,91 @@ MergeAggregateKernel::MergeAggregateKernel(std::size_t kernel_id, const std::str
     this->query_graph = query_graph;
 }
 
-void MergeAggregateKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+ral::execution::task_result MergeAggregateKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
     std::shared_ptr<ral::cache::CacheMachine> output,
     cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) {
-    CodeTimer eventTimer(false);
+    try{
+        CodeTimer eventTimer(false);
 
-    std::vector< ral::frame::BlazingTableView > tableViewsToConcat;
-    for (std::size_t i = 0; i < inputs.size(); i++){
-        tableViewsToConcat.emplace_back(inputs[i]->toBlazingTableView());
-    }
-
-    eventTimer.start();
-    if( ral::utilities::checkIfConcatenatingStringsWillOverflow(tableViewsToConcat)) {
-        if(logger){
-            logger->warn("{query_id}|{step}|{substep}|{info}",
-                            "query_id"_a=(context ? std::to_string(context->getContextToken()) : ""),
-                            "step"_a=(context ? std::to_string(context->getQueryStep()) : ""),
-                            "substep"_a=(context ? std::to_string(context->getQuerySubstep()) : ""),
-                            "info"_a="In MergeAggregateKernel::run Concatenating Strings will overflow strings length");
+        std::vector< ral::frame::BlazingTableView > tableViewsToConcat;
+        for (std::size_t i = 0; i < inputs.size(); i++){
+            tableViewsToConcat.emplace_back(inputs[i]->toBlazingTableView());
         }
-    }
-    auto concatenated = ral::utilities::concatTables(tableViewsToConcat);
 
-    auto log_input_num_rows = concatenated ? concatenated->num_rows() : 0;
-    auto log_input_num_bytes = concatenated ? concatenated->sizeInBytes() : 0;
+        eventTimer.start();
+        if( ral::utilities::checkIfConcatenatingStringsWillOverflow(tableViewsToConcat)) {
+            if(logger) {
+                logger->warn("{query_id}|{step}|{substep}|{info}",
+                                "query_id"_a=(context ? std::to_string(context->getContextToken()) : ""),
+                                "step"_a=(context ? std::to_string(context->getQueryStep()) : ""),
+                                "substep"_a=(context ? std::to_string(context->getQuerySubstep()) : ""),
+                                "info"_a="In MergeAggregateKernel::run Concatenating Strings will overflow strings length");
+            }
+        }
+        auto concatenated = ral::utilities::concatTables(tableViewsToConcat);
 
-    std::vector<int> group_column_indices;
-    std::vector<std::string> aggregation_input_expressions, aggregation_column_assigned_aliases;
-    std::vector<AggregateKind> aggregation_types;
+        auto log_input_num_rows = concatenated ? concatenated->num_rows() : 0;
+        auto log_input_num_bytes = concatenated ? concatenated->sizeInBytes() : 0;
 
-    // in case UNION exists, we want to know the num of columns
-    std::tie(group_column_indices, aggregation_input_expressions, aggregation_types,
-        aggregation_column_assigned_aliases) = ral::operators::parseGroupByExpression(this->expression, concatenated->num_columns());
+        std::vector<int> group_column_indices;
+        std::vector<std::string> aggregation_input_expressions, aggregation_column_assigned_aliases;
+        std::vector<AggregateKind> aggregation_types;
+        std::tie(group_column_indices, aggregation_input_expressions, aggregation_types,
+            aggregation_column_assigned_aliases) = ral::operators::parseGroupByExpression(this->expression,concatenated->num_columns());
 
-    std::vector<int> mod_group_column_indices;
-    std::vector<std::string> mod_aggregation_input_expressions, mod_aggregation_column_assigned_aliases, merging_column_names;
-    std::vector<AggregateKind> mod_aggregation_types;
-    std::tie(mod_group_column_indices, mod_aggregation_input_expressions, mod_aggregation_types,
-        mod_aggregation_column_assigned_aliases) = ral::operators::modGroupByParametersForMerge(
-        group_column_indices, aggregation_types, concatenated->names());
+        std::vector<int> mod_group_column_indices;
+        std::vector<std::string> mod_aggregation_input_expressions, mod_aggregation_column_assigned_aliases, merging_column_names;
+        std::vector<AggregateKind> mod_aggregation_types;
+        std::tie(mod_group_column_indices, mod_aggregation_input_expressions, mod_aggregation_types,
+            mod_aggregation_column_assigned_aliases) = ral::operators::modGroupByParametersForMerge(
+            group_column_indices, aggregation_types, concatenated->names());
 
-    std::unique_ptr<ral::frame::BlazingTable> columns;
-    if(aggregation_types.size() == 0) {
-        columns = ral::operators::compute_groupby_without_aggregations(
-                concatenated->toBlazingTableView(), mod_group_column_indices);
-    } else if (group_column_indices.size() == 0) {
-        // aggregations without groupby are only merged on the master node
-        if( context->isMasterNode(ral::communication::CommunicationData::getInstance().getSelfNode()) ) {
-            columns = ral::operators::compute_aggregations_without_groupby(
-                    concatenated->toBlazingTableView(), mod_aggregation_input_expressions, mod_aggregation_types,
-                    mod_aggregation_column_assigned_aliases);
+        std::unique_ptr<ral::frame::BlazingTable> columns = nullptr;
+        if(aggregation_types.size() == 0) {
+            columns = ral::operators::compute_groupby_without_aggregations(
+                    concatenated->toBlazingTableView(), mod_group_column_indices);
+        } else if (group_column_indices.size() == 0) {
+            // aggregations without groupby are only merged on the master node
+            if( context->isMasterNode(ral::communication::CommunicationData::getInstance().getSelfNode()) ) {
+                columns = ral::operators::compute_aggregations_without_groupby(
+                        concatenated->toBlazingTableView(), mod_aggregation_input_expressions, mod_aggregation_types,
+                        mod_aggregation_column_assigned_aliases);
+            } else {
+                // with aggregations without groupby the distribution phase should deposit an empty dataframe with the right schema into the cache, which is then output here
+                columns = std::move(concatenated);
+            }
         } else {
-            // with aggregations without groupby the distribution phase should deposit an empty dataframe with the right schema into the cache, which is then output here
-            columns = std::move(concatenated);
+            columns = ral::operators::compute_aggregations_with_groupby(
+                    concatenated->toBlazingTableView(), mod_aggregation_input_expressions, mod_aggregation_types,
+                    mod_aggregation_column_assigned_aliases, mod_group_column_indices);
         }
-    } else {
-        columns = ral::operators::compute_aggregations_with_groupby(
-                concatenated->toBlazingTableView(), mod_aggregation_input_expressions, mod_aggregation_types,
-                mod_aggregation_column_assigned_aliases, mod_group_column_indices);
+        eventTimer.stop();
+
+        auto log_output_num_rows = columns->num_rows();
+        auto log_output_num_bytes = columns->sizeInBytes();
+
+        if(events_logger) {
+            events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+                            "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                            "query_id"_a=context->getContextToken(),
+                            "kernel_id"_a=this->get_id(),
+                            "input_num_rows"_a=log_input_num_rows,
+                            "input_num_bytes"_a=log_input_num_bytes,
+                            "output_num_rows"_a=log_output_num_rows,
+                            "output_num_bytes"_a=log_output_num_bytes,
+                            "event_type"_a="compute",
+                            "timestamp_begin"_a=eventTimer.start_time(),
+                            "timestamp_end"_a=eventTimer.end_time());
+        }
+
+        output->addToCache(std::move(columns));
+        columns = nullptr;
+    }catch(rmm::bad_alloc e){
+        return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
+    }catch(std::exception e){
+        return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }
-    eventTimer.stop();
-
-    auto log_output_num_rows = columns->num_rows();
-    auto log_output_num_bytes = columns->sizeInBytes();
-
-    if(events_logger){
-        events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-                        "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-                        "query_id"_a=context->getContextToken(),
-                        "kernel_id"_a=this->get_id(),
-                        "input_num_rows"_a=log_input_num_rows,
-                        "input_num_bytes"_a=log_input_num_bytes,
-                        "output_num_rows"_a=log_output_num_rows,
-                        "output_num_bytes"_a=log_output_num_bytes,
-                        "event_type"_a="compute",
-                        "timestamp_begin"_a=eventTimer.start_time(),
-                        "timestamp_end"_a=eventTimer.end_time());
-    }
-
-    output->addToCache(std::move(columns));
+    return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
 }
 
 kstatus MergeAggregateKernel::run() {
@@ -358,10 +395,13 @@ kstatus MergeAggregateKernel::run() {
 
         std::unique_lock<std::mutex> lock(kernel_mutex);
         kernel_cv.wait(lock,[this]{
-            return this->tasks.empty();
+            return this->tasks.empty() || ral::execution::executor::get_instance()->has_exception();
         });
+
+        if(auto ep = ral::execution::executor::get_instance()->last_exception()){
+            std::rethrow_exception(ep);
+        }
     } catch(const std::exception& e) {
-        // TODO add retry here
         if(logger){
             logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
                         "query_id"_a=context->getContextToken(),

@@ -19,8 +19,10 @@ from EndToEndTests import columnBasisTest as columnBasisTest
 from EndToEndTests import (
     commonTableExpressionsTest,
     concatTest,
+    configOptionsTest,
     countWithoutGroupByTest,
     dateTest,
+    dayOfWeekTest,
     dirTest,
     fileSystemGSTest,
     fileSystemLocalTest,
@@ -34,7 +36,9 @@ from EndToEndTests import leftOuterJoinsTest as leftOuterJoinsTest
 from EndToEndTests import (
     likeTest,
     literalTest,
+    loggingTest,
     # loadDataTest,
+    messageValidationTest,
     nestedQueriesTest,
     nonEquiJoinsTest,
 )
@@ -58,12 +62,9 @@ from EndToEndTests import unionTest as unionTest
 from EndToEndTests import useLimitTest
 from EndToEndTests import whereClauseTest as whereClauseTest
 from EndToEndTests import wildCardTest
-from EndToEndTests import messageValidationTest
-from EndToEndTests import configOptionsTest
 from EndToEndTests import smilesTest
-from EndToEndTests import loggingTest
-from EndToEndTests import dayOfWeekTest
 from EndToEndTests import jsonTest
+from EndToEndTests import windowFunctionTest
 from pynvml import nvmlInit
 from Runner import runTest
 from Utils import Execution, init_context
@@ -109,10 +110,18 @@ def main():
             spark, Settings.data["TestSettings"]["dataDirectory"], smiles_test=True, fileSchemaType=DataType.PARQUET
         )
 
-    # Create Context For BlazingSQL
-    bc, dask_client = init_context()
-
     targetTestGroups = Settings.data["RunSettings"]["targetTestGroups"]
+
+    # only innerJoinsTest will be with progress bar
+    useProgressBar = False
+    if "innerJoinsTest" in targetTestGroups:
+        useProgressBar = True
+
+    print("Using progress bar: ", useProgressBar)
+
+    # Create Context For BlazingSQL
+    bc, dask_client = init_context(useProgressBar = useProgressBar)
+
     runAllTests = (
         len(targetTestGroups) == 0
     )  # if targetTestGroups was empty the user wants to run all the tests
@@ -275,6 +284,9 @@ def main():
 
     if runAllTests or ("jsonTest" in targetTestGroups):
         jsonTest.main(dask_client, drill, dir_data_file, bc, nRals)
+
+    if runAllTests or ("windowFunctionTest" in targetTestGroups):
+        windowFunctionTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     # WARNING!!! This Test must be the last one to test -------------------------------------------------------------------------------------------------------------------------------------------
     if runAllTests or ("configOptionsTest" in targetTestGroups):

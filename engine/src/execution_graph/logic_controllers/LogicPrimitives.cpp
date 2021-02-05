@@ -70,7 +70,6 @@ std::vector<std::unique_ptr<BlazingColumn>> BlazingTable::releaseBlazingColumns(
 	return std::move(columns);
 }
 
-
 unsigned long long BlazingTable::sizeInBytes()
 {
 	unsigned long long total_size = 0UL;

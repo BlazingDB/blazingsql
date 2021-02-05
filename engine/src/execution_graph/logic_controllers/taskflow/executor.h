@@ -8,6 +8,7 @@
 namespace ral {
 namespace execution{
 
+
 class priority {
 public:
 
@@ -35,6 +36,7 @@ public:
 	*/
 	void run(cudaStream_t stream, executor * executor);
 	void complete();
+	void fail();
 	std::size_t task_memory_needed();
 
 	/**
@@ -80,6 +82,9 @@ public:
 	}
 
 	void execute();
+	std::exception_ptr last_exception();
+	bool has_exception();
+
 	size_t add_task(std::vector<std::unique_ptr<ral::cache::CacheData > > inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
 		ral::cache::kernel * kernel, const std::map<std::string, std::string>& args = {});
@@ -107,6 +112,17 @@ private:
 	static executor * _instance;
 	std::atomic<int> task_id_counter;
 	size_t attempts_limit = 10;
+
+	/** The exception mechanism works in this way:
+	all exceptions caught inside executor::execute()
+	will be kept in the exception_holder. Whenever
+	each kernel starts to wait for the end of the
+	execution of its tasks, it will also check if
+	any task generated an exception. In such a case,
+	the exception will be re-thrown.*/
+
+	std::mutex exception_holder_mutex;
+	std::queue<std::exception_ptr> exception_holder; /**< Stores exceptions thrown on task threads. */
 
 	BlazingMemoryResource* resource;
 	std::size_t processing_memory_limit;

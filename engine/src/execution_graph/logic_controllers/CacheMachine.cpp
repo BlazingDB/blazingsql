@@ -5,6 +5,7 @@
 #include <cudf/io/orc.hpp>
 #include "CalciteExpressionParsing.h"
 #include "communication/CommunicationData.h"
+#include <Util/StringUtil.h>
 #include <stdio.h>
 
 #include "Util/StringUtil.h"

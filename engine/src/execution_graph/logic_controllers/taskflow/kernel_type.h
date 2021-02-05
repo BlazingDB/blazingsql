@@ -12,6 +12,7 @@ enum class kernel_type {
 	MergeStreamKernel,
 	PartitionKernel,
 	SortAndSampleKernel,
+	ComputeWindowKernel,
 	PartitionSingleNodeKernel,
 	LimitKernel,
 	ComputeAggregateKernel,

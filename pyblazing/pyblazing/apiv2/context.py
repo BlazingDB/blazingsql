@@ -344,9 +344,9 @@ def startExecuteGraph(ctxToken):
 
 def getQueryIsComplete(ctxToken):
     worker = get_worker()
-
     graph = worker.query_graphs[ctxToken]
-    return graph.query_is_complete()
+    ret = graph.query_is_complete()
+    return ret
 
 
 def queryProgressAsPandas(progress):
@@ -1206,7 +1206,7 @@ def load_config_options_from_env(user_config_options: dict):
         "TRANSPORT_BUFFER_BYTE_SIZE": 1048576,  # 1 MB in bytes
         "TRANSPORT_POOL_NUM_BUFFERS": 1000,
         "PROTOCOL": "AUTO",
-        "REQUIRE_ACKNOWLEDGE" : False,
+        "REQUIRE_ACKNOWLEDGE": False,
     }
 
     # key: option_name, value: default_value
@@ -1247,6 +1247,7 @@ class BlazingContext(object):
         initial_pool_size=None,
         maximum_pool_size=None,
         enable_logging=False,
+        enable_progress_bar=False,
         config_options={},
     ):
         """
@@ -1605,6 +1606,7 @@ class BlazingContext(object):
         self.generator = RelationalAlgebraGeneratorClass(self.schema)
         self.tables = {}
         self.logs_initialized = False
+        self.enable_progress_bar = enable_progress_bar
 
         # waitForPingSuccess(self.client)
         print("BlazingContext ready")
@@ -2974,12 +2976,11 @@ class BlazingContext(object):
                 )
                 cio.startExecuteGraphCaller(graph, ctxToken)
 
-                query_complete = False
-                while not query_complete:
-                    sleep(0.005)
-                    query_complete = graph.query_is_complete()
-                    # progress = graph.get_progress()
-                    # pdf = queryProgressAsPandas(progress)
+                self.do_progress_bar(
+                    graph,
+                    self._run_progress_bar_single_node,
+                    self._wait_completed_single_node,
+                )
 
                 return cio.getExecuteGraphResultCaller(
                     graph, ctxToken, is_single_node=True
@@ -3030,34 +3031,11 @@ class BlazingContext(object):
                 )
             self.dask_client.gather(dask_futures)
 
-            query_complete = False
-            while not query_complete:
-                sleep(0.005)
-                dask_futures = []
-                for node in self.nodes:
-                    worker = node["worker"]
-                    dask_futures.append(
-                        self.dask_client.submit(
-                            getQueryIsComplete, ctxToken, workers=[worker], pure=False
-                        )
-                    )
-                workers_is_complete = self.dask_client.gather(dask_futures)
-                query_complete = all(workers_is_complete)  # all workers returned true
-                # if not query_complete:
-                #     dask_futures = []
-                #     for node in self.nodes:
-                #         worker = node["worker"]
-                #         dask_futures.append(
-                #             self.dask_client.submit(
-                #                 getQueryProgress, ctxToken, workers=[worker], pure=False
-                #             )
-                #         )
-                #     workers_progress = dask.dataframe.from_delayed(dask_futures).compute()
-                #     progress = workers_progress.groupby('kernel_descriptions').agg(finished=('finished','all'),batches_completed=('batches_completed','sum'))
-                #     percent_complete = progress['finished'].sum()/len(progress)
-                #     total_batches_complete = progress['batches_completed'].sum()
-                #     print("Percent complete: " + str(percent_complete))
-                #     print("Batches complete: " + str(total_batches_complete))
+            self.do_progress_bar(
+                ctxToken,
+                self._run_progress_bar_distributed,
+                self._wait_completed_distributed,
+            )
 
             dask_futures = []
             for node in self.nodes:
@@ -3347,3 +3325,169 @@ class BlazingContext(object):
             self.logs_initialized = True
 
         return self.sql(query)
+
+    def _get_progress_bar_format(self):
+        pbfmt = "Steps Complete {n_fmt}/{total_fmt}|{bar}|{percentage:3.0f}% ({elapsed} elapsed)"
+        return pbfmt
+
+    def _wait_completed_single_node(self, graph):
+        query_complete = False
+        while not query_complete:
+            query_complete = graph.query_is_complete()
+            sleep(0.005)
+
+    def _wait_completed_distributed(self, ctxToken):
+        query_complete = False
+        while not query_complete:
+            dask_futures = []
+            for node in self.nodes:
+                worker = node["worker"]
+                dask_futures.append(
+                    self.dask_client.submit(
+                        getQueryIsComplete, ctxToken, workers=[worker], pure=False
+                    )
+                )
+            workers_is_complete = self.dask_client.gather(dask_futures)
+            query_complete = all(workers_is_complete)  # all workers returned true
+            sleep(0.005)
+
+    def _run_progress_bar_single_node(self, graph):
+        from tqdm.auto import tqdm
+
+        query_complete = False
+
+        progress = graph.get_progress()
+        thepdf = queryProgressAsPandas(progress)
+        themax = len(thepdf)
+        batches_completed = thepdf["batches_completed"].sum()
+        thepdf = thepdf.drop(thepdf[~thepdf.finished].index)
+        thesteps = len(thepdf)
+
+        pbar = tqdm(
+            total=themax,
+            miniters=1,
+            bar_format=self._get_progress_bar_format(),
+            leave=False,
+        )
+        pbar2 = tqdm(
+            miniters=1, bar_format="Total Batches Processed: {n_fmt}", leave=False
+        )
+
+        pbar.update(thesteps)
+        pbar2.update(batches_completed)
+        last = thesteps
+        last_sum_batches = batches_completed
+        while True:
+            query_complete = graph.query_is_complete()
+            progress = graph.get_progress()
+            pdf = queryProgressAsPandas(progress)
+            batches_completed = pdf["batches_completed"].sum()
+            pdf = pdf.drop(pdf[~pdf.finished].index)
+            thesteps = len(pdf)
+            if last != thesteps:
+                delta = thesteps - last
+                last = thesteps
+                pbar.update(delta)
+                if last_sum_batches != batches_completed:
+                    delt2 = batches_completed - last_sum_batches
+                    pbar2.update(delt2)
+                    last_sum_batches = batches_completed
+            sleep(0.005)
+            if query_complete:
+                break
+        pbar.close()
+        pbar2.close()
+
+    def _check_tqdm(self):
+        tqdm_found = True
+        try:
+            from tqdm import tqdm
+        except ImportError:
+            tqdm_found = False
+            err_msg = "Warning: Could not set the progress bar, please install tqdm"
+            print(err_msg)
+        return tqdm_found
+
+    def _run_progress_bar_distributed(self, ctxToken):
+        from tqdm.auto import tqdm
+
+        ispbarCreated = False
+        pbar = None
+        query_complete = False
+        last = -1
+        themax = -1
+        last_sum_batches = -1
+        while True:
+            dask_futures = []
+            for node in self.nodes:
+                worker = node["worker"]
+                dask_futures.append(
+                    self.dask_client.submit(
+                        getQueryIsComplete, ctxToken, workers=[worker], pure=False
+                    )
+                )
+            workers_is_complete = self.dask_client.gather(dask_futures)
+            query_complete = all(workers_is_complete)  # all workers returned true
+
+            dask_futures = []
+            for node in self.nodes:
+                worker = node["worker"]
+                dask_futures.append(
+                    self.dask_client.submit(
+                        getQueryProgress, ctxToken, workers=[worker], pure=False
+                    )
+                )
+            workers_progress = dask.dataframe.from_delayed(dask_futures).compute()
+            themax = len(workers_progress)
+            pdf = workers_progress
+            batches_completed = pdf["batches_completed"].sum()
+            pdf = pdf.drop(pdf[~pdf.finished].index)
+            thesteps = len(pdf)
+            if not ispbarCreated:
+                ispbarCreated = True
+                pbar = tqdm(
+                    total=themax,
+                    miniters=1,
+                    bar_format=self._get_progress_bar_format(),
+                    leave=False,
+                )
+                pbar.update(thesteps)
+                last = thesteps
+
+                pbar2 = tqdm(
+                    miniters=1,
+                    bar_format="Total Batches Processed: {n_fmt}",
+                    leave=False,
+                )
+                last_sum_batches = batches_completed
+            else:
+                if last != thesteps:
+                    delta = thesteps - last
+                    last = thesteps
+                    pbar.update(delta)
+
+                    if last_sum_batches != batches_completed:
+                        delt2 = batches_completed - last_sum_batches
+                        pbar2.update(delt2)
+                        last_sum_batches = batches_completed
+
+            sleep(0.005)
+            if query_complete:
+                break
+
+        if ispbarCreated:
+            pbar.close()
+            pbar2.close()
+
+    def do_progress_bar(self, arg, progress_bar_fn, wait_fn):
+        if not self.enable_progress_bar:
+            wait_fn(arg)
+            return
+
+        tqdm_found = self._check_tqdm()
+
+        if not tqdm_found:
+            wait_fn(arg)
+            return
+
+        progress_bar_fn(arg)

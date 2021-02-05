@@ -54,6 +54,7 @@ bool is_unary_operator(operator_type op) {
 	case operator_type::BLZ_CHAR_LENGTH:
 	case operator_type::BLZ_STR_LOWER:
 	case operator_type::BLZ_STR_UPPER:
+	case operator_type::BLZ_STR_INITCAP:
 	case operator_type::BLZ_STR_REVERSE:
 		return true;
 	default:
@@ -64,24 +65,24 @@ bool is_unary_operator(operator_type op) {
 bool is_binary_operator(operator_type op) {
 	switch (op)
 	{
-  case operator_type::BLZ_ADD:
-  case operator_type::BLZ_SUB:
-  case operator_type::BLZ_MUL:
-  case operator_type::BLZ_DIV:
-  case operator_type::BLZ_MOD:
-  case operator_type::BLZ_POW:
-  case operator_type::BLZ_ROUND:
-  case operator_type::BLZ_EQUAL:
-  case operator_type::BLZ_NOT_EQUAL:
-  case operator_type::BLZ_LESS:
-  case operator_type::BLZ_GREATER:
-  case operator_type::BLZ_LESS_EQUAL:
-  case operator_type::BLZ_GREATER_EQUAL:
-  case operator_type::BLZ_BITWISE_AND:
-  case operator_type::BLZ_BITWISE_OR:
-  case operator_type::BLZ_BITWISE_XOR:
-  case operator_type::BLZ_LOGICAL_AND:
-  case operator_type::BLZ_LOGICAL_OR:
+	case operator_type::BLZ_ADD:
+	case operator_type::BLZ_SUB:
+	case operator_type::BLZ_MUL:
+	case operator_type::BLZ_DIV:
+	case operator_type::BLZ_MOD:
+	case operator_type::BLZ_POW:
+	case operator_type::BLZ_ROUND:
+	case operator_type::BLZ_EQUAL:
+	case operator_type::BLZ_NOT_EQUAL:
+	case operator_type::BLZ_LESS:
+	case operator_type::BLZ_GREATER:
+	case operator_type::BLZ_LESS_EQUAL:
+	case operator_type::BLZ_GREATER_EQUAL:
+	case operator_type::BLZ_BITWISE_AND:
+	case operator_type::BLZ_BITWISE_OR:
+	case operator_type::BLZ_BITWISE_XOR:
+	case operator_type::BLZ_LOGICAL_AND:
+	case operator_type::BLZ_LOGICAL_OR:
 	case operator_type::BLZ_FIRST_NON_MAGIC:
 	case operator_type::BLZ_MAGIC_IF_NOT:
 	case operator_type::BLZ_STR_LIKE:
@@ -136,6 +137,7 @@ cudf::type_id get_output_type(operator_type op, cudf::type_id input_left_type) {
 		return cudf::type_id::TIMESTAMP_NANOSECONDS;
 	case operator_type::BLZ_STR_LOWER:
 	case operator_type::BLZ_STR_UPPER:
+	case operator_type::BLZ_STR_INITCAP:
 	case operator_type::BLZ_STR_REVERSE:
 	case operator_type::BLZ_STR_LEFT:
 	case operator_type::BLZ_STR_RIGHT:
@@ -208,12 +210,12 @@ cudf::type_id get_output_type(operator_type op, cudf::type_id input_left_type, c
 							? input_left_type
 							: input_right_type;
 		}
-  case operator_type::BLZ_EQUAL:
-  case operator_type::BLZ_NOT_EQUAL:
-  case operator_type::BLZ_LESS:
-  case operator_type::BLZ_GREATER:
-  case operator_type::BLZ_LESS_EQUAL:
-  case operator_type::BLZ_GREATER_EQUAL:
+	case operator_type::BLZ_EQUAL:
+	case operator_type::BLZ_NOT_EQUAL:
+	case operator_type::BLZ_LESS:
+	case operator_type::BLZ_GREATER:
+	case operator_type::BLZ_LESS_EQUAL:
+	case operator_type::BLZ_GREATER_EQUAL:
 	case operator_type::BLZ_LOGICAL_AND:
 	case operator_type::BLZ_LOGICAL_OR:
 		return cudf::type_id::BOOL8;
@@ -287,6 +289,7 @@ operator_type map_to_operator_type(const std::string & operator_token) {
 		{"CHAR_LENGTH", operator_type::BLZ_CHAR_LENGTH},
 		{"LOWER", operator_type::BLZ_STR_LOWER},
 		{"UPPER", operator_type::BLZ_STR_UPPER},
+		{"INITCAP", operator_type::BLZ_STR_INITCAP},
 		{"REVERSE", operator_type::BLZ_STR_REVERSE},
 
 		// Binary operators
@@ -400,6 +403,68 @@ std::vector<std::string> fix_column_aliases(const std::vector<std::string> & col
 	return col_names;
 }
 
+// input: LogicalWindow(window#0=[window(partition {2} aggs [COUNT($0), $SUM0($0)])])
+// output: a vector [0, 0]
+std::vector<int> get_columns_to_apply_window_function(const std::string & query_part) {
+	std::vector<int> column_index;
+	std::string expression_name = "aggs ";
+
+	if (query_part.find(expression_name) == query_part.npos) {
+		return column_index;
+	}
+
+	std::size_t start_position = query_part.find(expression_name) + expression_name.size();
+    std::size_t end_position = query_part.find("]", start_position);
+
+	// COUNT($0), $SUM0($0)
+	std::string reduced_query_part = query_part.substr(start_position + 1, end_position - start_position - 1);
+	std::vector<std::string> column_agg_string = StringUtil::split(reduced_query_part, ",");
+
+	if (column_agg_string.size() == 1) {
+		// ROW_NUMER()  does not have indice, so we add the first indice
+		if (reduced_query_part.find("(") + 1 == reduced_query_part.find(")")) {
+			column_index.push_back(0);
+			return column_index;
+		}
+	}
+
+	for (std::size_t agg_i; agg_i < column_agg_string.size(); ++agg_i) {
+		std::size_t dolar_pos = reduced_query_part.find("$");
+		std::size_t closed_parenth_pos = reduced_query_part.find(")");
+
+		std::string indice = reduced_query_part.substr(dolar_pos + 1, closed_parenth_pos - dolar_pos - 1);
+		column_index.push_back(std::stoi(indice));
+	}
+
+	return column_index;
+}
+
+// input: LogicalWindow(window#0=[window(partition {2} aggs [COUNT($0), $SUM0($0)])])
+// output: a vector ["COUNT", "$SUM0"]
+std::vector<std::string> get_window_function_agg(const std::string & query_part) {
+	std::vector<std::string> aggregations;
+	std::string expression_name = "aggs ";
+
+	if (query_part.find(expression_name) == query_part.npos) {
+		return aggregations;
+	}
+
+	std::size_t start_position = query_part.find(expression_name) + expression_name.size();
+    std::size_t end_position = query_part.find("]", start_position);
+
+	// COUNT($0), $SUM0($0)
+	std::string reduced_query_part = query_part.substr(start_position + 1, end_position - start_position - 1);
+	aggregations = StringUtil::split(reduced_query_part, ",");
+
+	for (std::size_t agg_i; agg_i < aggregations.size(); ++agg_i) {
+		std::size_t open_parenthesis = aggregations[agg_i].find('(');
+		aggregations[agg_i] = aggregations[agg_i].substr(0, open_parenthesis);
+		aggregations[agg_i] = StringUtil::trim(aggregations[agg_i]);
+	}
+	return aggregations;
+}
+
+
 std::string get_named_expression(const std::string & query_part, const std::string & expression_name) {
 	if(query_part.find(expression_name + "=[") == query_part.npos) {
 		return "";  // expression not found
@@ -483,6 +548,16 @@ bool is_compute_aggregate(std::string query_part) { return (query_part.find(LOGI
 bool is_distribute_aggregate(std::string query_part) { return (query_part.find(LOGICAL_DISTRIBUTE_AGGREGATE_TEXT) != std::string::npos); }
 
 bool is_merge_aggregate(std::string query_part) { return (query_part.find(LOGICAL_MERGE_AGGREGATE_TEXT) != std::string::npos); }
+
+bool is_window(std::string query_part) { return (query_part.find(LOGICAL_WINDOW_TEXT) != std::string::npos); }
+
+bool is_window_compute(std::string query_part) { return (query_part.find(LOGICAL_COMPUTE_WINDOW_TEXT) != std::string::npos); }
+
+bool contains_window_expression(std::string query_part) { return (query_part.find("window") != std::string::npos); }
+
+bool window_expression_contains_partition(std::string query_part) { return (query_part.find("partition") != std::string::npos); }
+
+bool window_expression_contains_multiple_windows(std::string query_part) { return (query_part.find("window#1") != std::string::npos); }
 
 // Returns the index from table_scan if exists
 size_t get_table_index(std::vector<std::string> table_scans, std::string table_scan) {

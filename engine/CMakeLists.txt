@@ -248,6 +248,7 @@ set(SRC_FILES ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/Blazin
               ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/BatchJoinProcessing.cpp
               ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/BatchOrderByProcessing.cpp
               ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/BatchUnionProcessing.cpp
+              ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/BatchWindowFunctionProcessing.cpp
               ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/BatchProcessing.cpp
               ${PROJECT_SOURCE_DIR}/src/config/GPUManager.cu
               ${PROJECT_SOURCE_DIR}/src/operators/OrderBy.cpp
