@@ -75,8 +75,7 @@ std::unique_ptr<ral::frame::BlazingTable> data_loader::get_metadata(int offset) 
 		for(auto handle : handles) {
 			files.push_back(handle.file_handle);
 		}
-		// TODO: if passing handles then, files is not necessary to pass ...
-		metadata_batches.emplace_back(this->parser->get_metadata(handles, files,  offset));
+		metadata_batches.emplace_back(this->parser->get_metadata(files, offset));
 		metadata_batches_views.emplace_back(metadata_batches.back()->toBlazingTableView());
 		offset += files.size();
 		this->provider->close_file_handles();

@@ -27,7 +27,7 @@ public:
 
 	void parse_schema(std::shared_ptr<arrow::io::RandomAccessFile> file, Schema & schema);
 
-	std::unique_ptr<ral::frame::BlazingTable> get_metadata(std::vector<data_handle> handles,
+	std::unique_ptr<ral::frame::BlazingTable> get_metadata(
 		std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files,
 		int offset);
 

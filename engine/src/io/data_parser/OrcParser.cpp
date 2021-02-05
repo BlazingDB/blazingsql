@@ -69,13 +69,12 @@ void orc_parser::parse_schema(
 	}
 }
 
-std::unique_ptr<ral::frame::BlazingTable> orc_parser::get_metadata(std::vector<data_handle> handles,
+std::unique_ptr<ral::frame::BlazingTable> orc_parser::get_metadata(
 	std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, int offset) {
 	std::vector<size_t> num_stripes(files.size());
-	std::vector<cudf::io::parsed_orc_statistics> statistics(handles.size());
-	for(size_t file_index = 0; file_index < handles.size(); file_index++) {
-		std::shared_ptr<arrow::io::RandomAccessFile> file = handles[file_index].file_handle;
-		auto arrow_source = cudf::io::arrow_io_source{file};
+	std::vector<cudf::io::parsed_orc_statistics> statistics(files.size());
+	for(size_t file_index = 0; file_index < files.size(); file_index++) {
+		auto arrow_source = cudf::io::arrow_io_source{files[file_index]};
 		statistics[file_index] = cudf::io::read_parsed_orc_statistics(cudf::io::source_info{&arrow_source});
 		num_stripes[file_index] = statistics[file_index].stripes_stats.size();
 	}
