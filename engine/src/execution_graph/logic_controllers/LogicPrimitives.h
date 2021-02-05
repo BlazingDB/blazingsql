@@ -41,7 +41,7 @@ public:
 
 	operator bool() const { return this->is_valid(); }
 
-	bool is_valid() const { return columns.size() != 0; }
+	bool is_valid() const { return valid; }
 
 	std::unique_ptr<CudfTable> releaseCudfTable();
 	std::vector<std::unique_ptr<BlazingColumn>> releaseBlazingColumns();
@@ -52,6 +52,7 @@ public:
 private:
 	std::vector<std::string> columnNames;
 	std::vector<std::unique_ptr<BlazingColumn>> columns;
+	bool valid=true;
 };
 
 class BlazingTableView {

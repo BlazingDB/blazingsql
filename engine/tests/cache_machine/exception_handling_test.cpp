@@ -122,7 +122,7 @@ TEST_F(ExceptionHandlingTest, OneBatchFullWithoutDelay) {
 	std::shared_ptr<Context> context = make_context();
 
 	// Projection kernel
-	std::shared_ptr<kernel> project_kernel = make_project_kernel("LogicalProject(EXPR$0=[+($0, $1)])", context);
+	std::shared_ptr<kernel> project_kernel = make_project_kernel("LogicalProject(EXPR$0=[+($0, $1)], EXPR$1=[-($0, $1)])", context);
 
 	// register cache machines with the `project_kernel`
 	std::shared_ptr<CacheMachine> inputCacheMachine, outputCacheMachine;
