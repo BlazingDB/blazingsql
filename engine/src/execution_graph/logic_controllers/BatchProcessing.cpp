@@ -296,6 +296,7 @@ kstatus BindableTableScan::run() {
     }
 
     //if its empty we can just add it to the cache without scheduling
+    // TODO something happend with the provider when ORC (with metadata)
     if (!provider->has_next()) {
         auto empty = schema.makeEmptyBlazingTable(projections);
         empty->setNames(fix_column_aliases(empty->names(), expression));

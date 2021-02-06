@@ -342,7 +342,7 @@ std::pair<std::unique_ptr<ral::frame::BlazingTable>, bool> process_skipdata_for_
     CudfTableView metadata_ids = metadata_view.view().select({metadata_view.num_columns()-2,metadata_view.num_columns()-1});
     std::vector<std::string> metadata_id_names{metadata_view.names()[metadata_view.num_columns()-2], metadata_view.names()[metadata_view.num_columns()-1]};
     ral::frame::BlazingTableView metadata_ids_view(metadata_ids, metadata_id_names);
-
+    // TODO issue on applyBooleanFilter ?, It could be related only with strings ... `evaluated_table[0]`
     std::unique_ptr<ral::frame::BlazingTable> filtered_metadata_ids = ral::processor::applyBooleanFilter(metadata_ids_view, evaluated_table[0]->view());
 
     return std::make_pair(std::move(filtered_metadata_ids), false);
