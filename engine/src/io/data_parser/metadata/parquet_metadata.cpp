@@ -203,7 +203,7 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 		for (int i =0; i < ncols; ++i) {
 			col_names[i] = parquet_readers[0]->metadata()->schema()->Column(i)->name();
 		}
-		return makeMetadataFromCols(col_names);
+		return make_dummy_metadata_table_from_col_names(col_names);
 	}
 
 	std::shared_ptr<parquet::FileMetaData> file_metadata = parquet_readers[valid_parquet_reader]->metadata();
@@ -302,7 +302,7 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 		auto vector = minmax_metadata_table[index];
 		auto dtype = metadata_dtypes[index];
 		auto content =  get_typed_vector_content(dtype.id(), vector);
-		minmax_metadata_gdf_table[index] = make_cudf_column_from(dtype, content, total_num_row_groups);
+		minmax_metadata_gdf_table[index] = make_cudf_column_from_vector(dtype, content, total_num_row_groups);
 	}
 
 	auto table = std::make_unique<cudf::table>(std::move(minmax_metadata_gdf_table));

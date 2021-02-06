@@ -55,7 +55,9 @@ cudf::type_id statistic_to_dtype(cudf::io::statistics_type stat_type) {
 	} else if (stat_type == cudf::io::statistics_type::BUCKET) {
 		return cudf::type_id::BOOL8;
 	} else if (stat_type == cudf::io::statistics_type::TIMESTAMP) {
-		return cudf::type_id::TIMESTAMP_SECONDS;
+		return cudf::type_id::TIMESTAMP_NANOSECONDS;
+	} else if (stat_type == cudf::io::statistics_type::DATE) {
+		return cudf::type_id::TIMESTAMP_DAYS;
 	} else {
 		return cudf::type_id::EMPTY;
 	}
@@ -140,7 +142,7 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 		std::vector<std::string> col_names = orc_statistics[0].column_names;
 		col_names.erase(col_names.begin());
 
-		return makeMetadataFromCols(col_names);
+		return make_dummy_metadata_table_from_col_names(col_names);
 	}
 
 	// Getting metadata and stats from the whole orc file
@@ -154,10 +156,11 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 		for (std::size_t colIndex = 0; colIndex < file_metadata.size(); colIndex++) {
 			cudf::data_type dtype = cudf::data_type(statistic_to_dtype(file_metadata[colIndex].type())) ;
 			if (file_metadata[colIndex].type() != cudf::io::statistics_type::NONE) {
-				std::string col_name_min = "min_" + std::to_string(colIndex) + "_" + col_names[colIndex];
+				// -1: to match with the project columns when calling skipdata
+				std::string col_name_min = "min_" + std::to_string(colIndex - 1) + "_" + col_names[colIndex];
 				metadata_names.push_back(col_name_min);
 				metadata_dtypes.push_back(dtype);
-				std::string col_name_max = "max_" + std::to_string(colIndex)  + "_" + col_names[colIndex];
+				std::string col_name_max = "max_" + std::to_string(colIndex - 1) + "_" + col_names[colIndex];
 				metadata_names.push_back(col_name_max);
 				metadata_dtypes.push_back(dtype);
 
@@ -246,7 +249,7 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 			std::vector<int64_t> vector = get_all_values_in_the_same_col(minmax_metadata, not_string_count);
 			not_string_count++;
 			std::basic_string<char> content = get_typed_vector_content(dtype.id(), vector);
-			minmax_metadata_gdf_table[index] = make_cudf_column_from(dtype, content, total_stripes);
+			minmax_metadata_gdf_table[index] = make_cudf_column_from_vector(dtype, content, total_stripes);
 		}
 	}
 
