@@ -3182,7 +3182,7 @@ class BlazingContext(object):
                         "int64",
                         "int64",
                         "int64",
-                        "int64",                        
+                        "int64",
                     ],
                 ),
                 "bsql_cache_events": (
@@ -3207,7 +3207,7 @@ class BlazingContext(object):
                         "str",
                         "int64",
                         "int64",
-                     ],
+                    ],
                 ),
                 "input_comms": (
                     [
@@ -3266,7 +3266,7 @@ class BlazingContext(object):
                     "ENABLE_OTHER_ENGINE_LOGS": [
                         "bsql_queries",
                         "bsql_kernels",
-                        "bsql_kernels_edges",  
+                        "bsql_kernels_edges",
                         "bsql_cache_events",
                     ],
                     "ENABLE_GENERAL_ENGINE_LOGS": ["bsql_logs"],
