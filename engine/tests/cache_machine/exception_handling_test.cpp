@@ -19,11 +19,14 @@ struct ExceptionHandlingTest : public ::testing::Test {
 		BlazingRMMInitialize("pool_memory_resource", 32*1024*1024, 256*1024*1024);
 		float host_memory_quota=0.75; //default value
 		blazing_host_memory_resource::getInstance().initialize(host_memory_quota);
+		ral::memory::set_allocation_pools(4000000, 10,
+										4000000, 10, false,nullptr);
 		int executor_threads = 10;
 		ral::execution::executor::init_executor(executor_threads, 0.8);
 	}
 
 	virtual void TearDown() override {
+		ral::memory::empty_pools();
 		BlazingRMMFinalize();
 	}
 };
@@ -113,8 +116,9 @@ TEST_F(ExceptionHandlingTest, cpu_data_fail_on_decache) {
 	std::tie(inputCacheMachine, outputCacheMachine) = register_kernel_with_cache_machines(project_kernel, context, 1); //CPU cache
 
 	cudf::size_type size = 16*1024*1024; //this input does not fit on the pool
-	add_data_to_cache(inputCacheMachine, make_table<int32_t>(size));
-
+	auto input = make_table<int32_t>(size);
+	add_data_to_cache(inputCacheMachine, std::move(input));
+	
 	EXPECT_THROW(project_kernel->run(), rmm::bad_alloc);
 }
 
