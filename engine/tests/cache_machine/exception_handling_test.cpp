@@ -5,6 +5,7 @@
 #include "tests/utilities/MemoryConsumer.cuh"
 #include "tests/utilities/BlazingUnitTest.h"
 #include "execution_graph/logic_controllers/BatchProcessing.h"
+#include "execution_graph/logic_controllers/BatchUnionProcessing.h"
 #include "execution_graph/logic_controllers/taskflow/executor.h"
 
 using blazingdb::transport::Node;
@@ -51,17 +52,41 @@ std::shared_ptr<kernel> make_project_kernel(std::string project_plan, std::share
 	return project_kernel;
 }
 
+// Creates a UnionKernel using a valid `project_plan`
+std::shared_ptr<kernel> make_union_kernel(std::string project_plan, std::shared_ptr<Context> context) {
+	std::size_t kernel_id = 1;
+	std::shared_ptr<ral::cache::graph> graph = std::make_shared<ral::cache::graph>();
+	std::shared_ptr<kernel> union_kernel = std::make_shared<ral::batch::UnionKernel>(kernel_id, project_plan, context, graph);
+
+	return union_kernel;
+}
+
 // Creates two CacheMachines and register them with the `project_kernel`
-std::tuple<std::shared_ptr<CacheMachine>, std::shared_ptr<CacheMachine>> register_kernel_with_cache_machines(
+std::tuple<std::shared_ptr<CacheMachine>, std::shared_ptr<CacheMachine>> register_project_kernel_with_cache_machines(
 	std::shared_ptr<kernel> project_kernel,
 	std::shared_ptr<Context> context,
 	int cache_level_override) {
 	std::shared_ptr<CacheMachine>  inputCacheMachine = std::make_shared<CacheMachine>(context, "", true, cache_level_override);
-	std::shared_ptr<CacheMachine> outputCacheMachine = std::make_shared<CacheMachine>(context, "", true, cache_level_override);
+	std::shared_ptr<CacheMachine> outputCacheMachine = std::make_shared<CacheMachine>(context, "", true, 0);
 	project_kernel->input_.register_cache("1", inputCacheMachine);
 	project_kernel->output_.register_cache("1", outputCacheMachine);
 
 	return std::make_tuple(inputCacheMachine, outputCacheMachine);
+}
+
+// Creates two CacheMachines and register them with the `union_kernel`
+std::tuple<std::shared_ptr<CacheMachine>, std::shared_ptr<CacheMachine>, std::shared_ptr<CacheMachine>> register_union_kernel_with_cache_machines(
+	std::shared_ptr<kernel> union_kernel,
+	std::shared_ptr<Context> context,
+	int cache_level_override) {
+	std::shared_ptr<CacheMachine>  inputCacheMachineA = std::make_shared<CacheMachine>(context, "", true, cache_level_override);
+	std::shared_ptr<CacheMachine>  inputCacheMachineB = std::make_shared<CacheMachine>(context, "", true, cache_level_override);
+	std::shared_ptr<CacheMachine> outputCacheMachine = std::make_shared<CacheMachine>(context, "", true, 0);
+	union_kernel->input_.register_cache("input_a", inputCacheMachineA);
+	union_kernel->input_.register_cache("input_b", inputCacheMachineB);
+	union_kernel->output_.register_cache("1", outputCacheMachine);
+
+	return std::make_tuple(inputCacheMachineA, inputCacheMachineB, outputCacheMachine);
 }
 
 // Feeds an input cache
@@ -113,7 +138,7 @@ TEST_F(ExceptionHandlingTest, cpu_data_fail_on_decache) {
 
 	// register cache machines with the `project_kernel`
 	std::shared_ptr<CacheMachine> inputCacheMachine, outputCacheMachine;
-	std::tie(inputCacheMachine, outputCacheMachine) = register_kernel_with_cache_machines(project_kernel, context, 1); //CPU cache
+	std::tie(inputCacheMachine, outputCacheMachine) = register_project_kernel_with_cache_machines(project_kernel, context, 1); //CPU cache
 
 	cudf::size_type size = 16*1024*1024; //this input does not fit on the pool
 	auto input = make_table<int32_t>(size);
@@ -131,10 +156,49 @@ TEST_F(ExceptionHandlingTest, cpu_data_fail_on_process) {
 
 	// register cache machines with the `project_kernel`
 	std::shared_ptr<CacheMachine> inputCacheMachine, outputCacheMachine;
-	std::tie(inputCacheMachine, outputCacheMachine) = register_kernel_with_cache_machines(project_kernel, context, 1); //CPU cache
+	std::tie(inputCacheMachine, outputCacheMachine) = register_project_kernel_with_cache_machines(project_kernel, context, 1); //CPU cache
 
 	cudf::size_type size = 1*1024*1024; //this input fits on the pool
-	add_data_to_cache(inputCacheMachine, make_table<int32_t>(size));
+	auto input = make_table<int32_t>(size);
+	add_data_to_cache(inputCacheMachine, std::move(input));
 
 	EXPECT_THROW(project_kernel->run(), std::runtime_error);
+}
+
+TEST_F(ExceptionHandlingTest, gpu_data_fail_on_project) {
+
+	std::shared_ptr<Context> context = make_context();
+
+	// Projection kernel for select sqrt(-1)
+	std::shared_ptr<kernel> project_kernel = make_project_kernel("LogicalProject(EXPR$0=[POWER(-1, 0.5:DECIMAL(2, 1))])", context);
+
+	// register cache machines with the `project_kernel`
+	std::shared_ptr<CacheMachine> inputCacheMachine, outputCacheMachine;
+	std::tie(inputCacheMachine, outputCacheMachine) = register_project_kernel_with_cache_machines(project_kernel, context, 0); //GPU cache
+
+	cudf::size_type size = 1*1024*1024; //this input fits on the pool
+	auto input = make_table<int32_t>(size);
+	add_data_to_cache(inputCacheMachine, std::move(input));
+
+	EXPECT_THROW(project_kernel->run(), std::runtime_error);
+}
+
+TEST_F(ExceptionHandlingTest, gpu_data_fail_on_union) {
+
+	std::shared_ptr<Context> context = make_context();
+
+	// Union kernel for (select * from df1) union (select * from df2)
+	std::shared_ptr<kernel> union_kernel = make_union_kernel("LogicalUnion(all=[false])", context);
+
+	// register cache machines with the `union_kernel`
+	std::shared_ptr<CacheMachine> inputCacheMachineA, inputCacheMachineB, outputCacheMachine;
+	std::tie(inputCacheMachineA, inputCacheMachineB, outputCacheMachine) = register_union_kernel_with_cache_machines(union_kernel, context, 0); //GPU cache
+
+	cudf::size_type size = 1*1024*1024; //this input fits on the pool
+	auto inputA = make_table<int32_t>(size);
+	auto inputB = make_table<int32_t>(size);
+	add_data_to_cache(inputCacheMachineA, std::move(inputA));
+	add_data_to_cache(inputCacheMachineB, std::move(inputB));
+
+	EXPECT_THROW(union_kernel->run(), std::exception);
 }
