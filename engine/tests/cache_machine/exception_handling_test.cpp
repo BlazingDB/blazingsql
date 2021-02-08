@@ -6,6 +6,7 @@
 #include "tests/utilities/BlazingUnitTest.h"
 #include "execution_graph/logic_controllers/BatchProcessing.h"
 #include "execution_graph/logic_controllers/BatchUnionProcessing.h"
+#include "execution_graph/logic_controllers/BatchOrderByProcessing.h"
 #include "execution_graph/logic_controllers/taskflow/executor.h"
 
 using blazingdb::transport::Node;
@@ -61,6 +62,15 @@ std::shared_ptr<kernel> make_union_kernel(std::string project_plan, std::shared_
 	return union_kernel;
 }
 
+// Creates a SortKernel using a valid `project_plan`
+std::shared_ptr<kernel> make_sort_kernel(std::string project_plan, std::shared_ptr<Context> context) {
+	std::size_t kernel_id = 1;
+	std::shared_ptr<ral::cache::graph> graph = std::make_shared<ral::cache::graph>();
+	std::shared_ptr<kernel> sort_kernel = std::make_shared<ral::batch::SortAndSampleKernel>(kernel_id, project_plan, context, graph);
+
+	return sort_kernel;
+}
+
 // Creates two CacheMachines and register them with the `project_kernel`
 std::tuple<std::shared_ptr<CacheMachine>, std::shared_ptr<CacheMachine>> register_project_kernel_with_cache_machines(
 	std::shared_ptr<kernel> project_kernel,
@@ -74,7 +84,7 @@ std::tuple<std::shared_ptr<CacheMachine>, std::shared_ptr<CacheMachine>> registe
 	return std::make_tuple(inputCacheMachine, outputCacheMachine);
 }
 
-// Creates two CacheMachines and register them with the `union_kernel`
+// Creates three CacheMachines and register them with the `union_kernel`
 std::tuple<std::shared_ptr<CacheMachine>, std::shared_ptr<CacheMachine>, std::shared_ptr<CacheMachine>> register_union_kernel_with_cache_machines(
 	std::shared_ptr<kernel> union_kernel,
 	std::shared_ptr<Context> context,
@@ -87,6 +97,19 @@ std::tuple<std::shared_ptr<CacheMachine>, std::shared_ptr<CacheMachine>, std::sh
 	union_kernel->output_.register_cache("1", outputCacheMachine);
 
 	return std::make_tuple(inputCacheMachineA, inputCacheMachineB, outputCacheMachine);
+}
+
+// Creates two CacheMachines and register them with the `sort_kernel`
+std::tuple<std::shared_ptr<CacheMachine>, std::shared_ptr<CacheMachine>> register_sort_kernel_with_cache_machines(
+	std::shared_ptr<kernel> sort_kernel,
+	std::shared_ptr<Context> context,
+	int cache_level_override) {
+	std::shared_ptr<CacheMachine>  inputCacheMachine = std::make_shared<CacheMachine>(context, "", true, cache_level_override);
+	std::shared_ptr<CacheMachine> outputCacheMachine = std::make_shared<CacheMachine>(context, "", true, 0);
+	sort_kernel->input_.register_cache("1", inputCacheMachine);
+	sort_kernel->output_.register_cache("1", outputCacheMachine);
+
+	return std::make_tuple(inputCacheMachine, outputCacheMachine);
 }
 
 // Feeds an input cache
@@ -201,4 +224,22 @@ TEST_F(ExceptionHandlingTest, gpu_data_fail_on_union) {
 	add_data_to_cache(inputCacheMachineB, std::move(inputB));
 
 	EXPECT_THROW(union_kernel->run(), std::exception);
+}
+
+TEST_F(ExceptionHandlingTest, gpu_data_fail_on_sort) {
+
+	std::shared_ptr<Context> context = make_context();
+
+	// Sort kernel for select * from df1 order by A
+	std::shared_ptr<kernel> sort_kernel = make_sort_kernel("Logical_SortAndSample(sort0=[$0], dir0=[ASC])", context);
+
+	// register cache machines with the `sort_kernel`
+	std::shared_ptr<CacheMachine> inputCacheMachine, outputCacheMachine;
+	std::tie(inputCacheMachine, outputCacheMachine) = register_sort_kernel_with_cache_machines(sort_kernel, context, 0); //GPU cache
+
+	cudf::size_type size = 16*1024*1024; //this input fits on the pool, but not the result
+	auto input = make_table<int32_t>(size);
+	add_data_to_cache(inputCacheMachine, std::move(input));
+
+	EXPECT_THROW(sort_kernel->run(), rmm::bad_alloc);
 }
