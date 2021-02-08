@@ -16,7 +16,7 @@ using Context = blazingdb::manager::Context;
 
 struct ExceptionHandlingTest : public ::testing::Test {
 	virtual void SetUp() override {
-		BlazingRMMInitialize("cuda_memory_resource");
+		BlazingRMMInitialize("pool_memory_resource", 32*1024*1024, 256*1024*1024);
 		float host_memory_quota=0.75; //default value
 		blazing_host_memory_resource::getInstance().initialize(host_memory_quota);
 		int executor_threads = 10;
@@ -51,9 +51,10 @@ std::shared_ptr<kernel> make_project_kernel(std::string project_plan, std::share
 // Creates two CacheMachines and register them with the `project_kernel`
 std::tuple<std::shared_ptr<CacheMachine>, std::shared_ptr<CacheMachine>> register_kernel_with_cache_machines(
 	std::shared_ptr<kernel> project_kernel,
-	std::shared_ptr<Context> context) {
-	std::shared_ptr<CacheMachine>  inputCacheMachine = std::make_shared<CacheMachine>(context, "", true, 0);
-	std::shared_ptr<CacheMachine> outputCacheMachine = std::make_shared<CacheMachine>(context, "", true, 0);
+	std::shared_ptr<Context> context,
+	int cache_level_override) {
+	std::shared_ptr<CacheMachine>  inputCacheMachine = std::make_shared<CacheMachine>(context, "", true, cache_level_override);
+	std::shared_ptr<CacheMachine> outputCacheMachine = std::make_shared<CacheMachine>(context, "", true, cache_level_override);
 	project_kernel->input_.register_cache("1", inputCacheMachine);
 	project_kernel->output_.register_cache("1", outputCacheMachine);
 
@@ -100,143 +101,36 @@ std::vector<std::unique_ptr<BlazingTable>> make_table(cudf::size_type size) {
 	return batches;
 }
 
-TEST_F(ExceptionHandlingTest, no_catch_exception) {
-
-	MemoryConsumer memory_consumer;
-	memory_consumer.setOptionsPercentage({0.5, 0.3}, 4000ms);
-
-	//Creating a thread to execute our task
-	std::thread memory_consumer_thread([&memory_consumer]()
-	{
-		memory_consumer.run();
-	});
+TEST_F(ExceptionHandlingTest, cpu_data_fail_on_decache) {
 
 	std::shared_ptr<Context> context = make_context();
 
-	// Projection kernel
-	std::shared_ptr<kernel> project_kernel = make_project_kernel("LogicalProject(EXPR$0=[+($0, $1)], EXPR$1=[-($0, $1)])", context);
+	// Projection kernel with a valid expression
+	std::shared_ptr<kernel> project_kernel = make_project_kernel("LogicalProject(EXPR$0=[+($0, $1)])", context);
 
 	// register cache machines with the `project_kernel`
 	std::shared_ptr<CacheMachine> inputCacheMachine, outputCacheMachine;
-	std::tie(inputCacheMachine, outputCacheMachine) = register_kernel_with_cache_machines(project_kernel, context);
+	std::tie(inputCacheMachine, outputCacheMachine) = register_kernel_with_cache_machines(project_kernel, context, 1); //CPU cache
 
-	cudf::size_type size = 16*1024*1024;
+	cudf::size_type size = 16*1024*1024; //this input does not fit on the pool
 	add_data_to_cache(inputCacheMachine, make_table<int32_t>(size));
 
-	try{
-		kstatus process = project_kernel->run();
-		EXPECT_EQ(kstatus::proceed, process);
-		SUCCEED();
-	}
-	catch(std::runtime_error e){
-		FAIL();
-	}
-	catch(std::exception & e){
-		FAIL();
-	}
-	catch(...){
-		FAIL();
-	}
-
-	outputCacheMachine->finish();
-
-	// Assert output
-	auto batches_pulled = outputCacheMachine->pull_all_cache_data();
-
-	ASSERT_EQ(batches_pulled.size(), 1);
-	EXPECT_EQ(batches_pulled[0]->num_rows(), size);
-	ASSERT_EQ(batches_pulled[0]->num_columns(), 1);
-
-	memory_consumer.stop();
-	memory_consumer_thread.join();
+	EXPECT_THROW(project_kernel->run(), rmm::bad_alloc);
 }
 
-TEST_F(ExceptionHandlingTest, catch_exception_sqrt_minus_one) {
+TEST_F(ExceptionHandlingTest, cpu_data_fail_on_process) {
 
 	std::shared_ptr<Context> context = make_context();
 
-	// Projection kernel for select sqrt(-1)
-	std::shared_ptr<kernel> project_kernel = make_project_kernel("LogicalProject(EXPR$0=[POWER(-1, 0.5:DECIMAL(2, 1))])", context);
+	// Projection kernel with invalid column index
+	std::shared_ptr<kernel> project_kernel = make_project_kernel("LogicalProject(EXPR$0=[+($0, $2)])", context);
 
 	// register cache machines with the `project_kernel`
 	std::shared_ptr<CacheMachine> inputCacheMachine, outputCacheMachine;
-	std::tie(inputCacheMachine, outputCacheMachine) = register_kernel_with_cache_machines(project_kernel, context);
+	std::tie(inputCacheMachine, outputCacheMachine) = register_kernel_with_cache_machines(project_kernel, context, 1); //CPU cache
 
-	cudf::size_type size = 16*1024*1024;
+	cudf::size_type size = 1*1024*1024; //this input fits on the pool
 	add_data_to_cache(inputCacheMachine, make_table<int32_t>(size));
 
-	try{
-		kstatus process = project_kernel->run();
-		EXPECT_EQ(kstatus::proceed, process);
-		FAIL();
-	}
-	catch(std::runtime_error e){
-		SUCCEED();
-	}
-	catch(std::exception & e){
-		FAIL();
-	}
-	catch(...){
-		FAIL();
-	}
-}
-
-TEST_F(ExceptionHandlingTest, catch_exception_div_by_zero) {
-
-	std::shared_ptr<Context> context = make_context();
-
-	// Projection kernel for select 1/0
-	std::shared_ptr<kernel> project_kernel = make_project_kernel("LogicalProject(EXPR$0=[/(1, 0)]))", context);
-
-	// register cache machines with the `project_kernel`
-	std::shared_ptr<CacheMachine> inputCacheMachine, outputCacheMachine;
-	std::tie(inputCacheMachine, outputCacheMachine) = register_kernel_with_cache_machines(project_kernel, context);
-
-	cudf::size_type size = 16*1024*1024;
-	add_data_to_cache(inputCacheMachine, make_table<int32_t>(size));
-
-	try{
-		kstatus process = project_kernel->run();
-		EXPECT_EQ(kstatus::proceed, process);
-		FAIL();
-	}
-	catch(std::runtime_error e){
-		SUCCEED();
-	}
-	catch(std::exception & e){
-		FAIL();
-	}
-	catch(...){
-		FAIL();
-	}
-}
-
-TEST_F(ExceptionHandlingTest, catch_exception_invalid_expr) {
-
-	std::shared_ptr<Context> context = make_context();
-
-	// Projection kernel for select ''*2
-	std::shared_ptr<kernel> project_kernel = make_project_kernel("LogicalProject(EXPR$0=[*(CAST(''):INTEGER NOT NULL, 2)])", context);
-
-	// register cache machines with the `project_kernel`
-	std::shared_ptr<CacheMachine> inputCacheMachine, outputCacheMachine;
-	std::tie(inputCacheMachine, outputCacheMachine) = register_kernel_with_cache_machines(project_kernel, context);
-
-	cudf::size_type size = 16*1024*1024;
-	add_data_to_cache(inputCacheMachine, make_table<int32_t>(size));
-
-	try{
-		kstatus process = project_kernel->run();
-		EXPECT_EQ(kstatus::proceed, process);
-		FAIL();
-	}
-	catch(std::runtime_error e){
-		SUCCEED();
-	}
-	catch(std::exception & e){
-		FAIL();
-	}
-	catch(...){
-		FAIL();
-	}
+	EXPECT_THROW(project_kernel->run(), std::runtime_error);
 }
