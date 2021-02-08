@@ -49,7 +49,7 @@ std::shared_ptr<ral::cache::graph> generate_graph(std::vector<ral::io::data_load
                          "query_id"_a=queryContext.getContextToken(),
                          "start_time"_a=eventTimer.start_time(),
                          "plan"_a=tree->to_string(),
-                         "sql"_a=sql);
+                         "sql"_a="'" + sql + "'");
         }
 
 		std::string tables_info = "";
