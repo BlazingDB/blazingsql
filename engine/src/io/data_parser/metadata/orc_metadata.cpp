@@ -34,6 +34,22 @@ std::vector<std::string> get_all_str_values_in_the_same_col(
 	return output_v;
 }
 
+bool type_statistic_valid(cudf::io::statistics_type stat_type) {
+
+	switch (stat_type)
+	{
+	case cudf::io::statistics_type::INT:
+	case cudf::io::statistics_type::STRING:
+	case cudf::io::statistics_type::DOUBLE:
+	case cudf::io::statistics_type::BUCKET:
+	case cudf::io::statistics_type::TIMESTAMP:
+	case cudf::io::statistics_type::DATE:
+		return true;
+	default:
+		return false;
+	}
+}
+
 cudf::type_id statistic_to_dtype(cudf::io::statistics_type stat_type) {
 	if (stat_type == cudf::io::statistics_type::INT) {
 		return cudf::type_id::INT32;
@@ -162,7 +178,7 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 	if (num_stripes > 0) {
 		for (std::size_t colIndex = 0; colIndex < file_metadata.size(); colIndex++) {
 			cudf::data_type dtype = cudf::data_type(statistic_to_dtype(file_metadata[colIndex].type())) ;
-			if (file_metadata[colIndex].type() != cudf::io::statistics_type::NONE) {
+			if ( type_statistic_valid(file_metadata[colIndex].type()) ) {
 				// -1: to match with the project columns when calling skipdata
 				std::string col_name_min = "min_" + std::to_string(colIndex - 1) + "_" + col_names[colIndex];
 				metadata_names.push_back(col_name_min);
