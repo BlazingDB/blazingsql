@@ -15,29 +15,29 @@ message_sender * message_sender::get_instance() {
 }
 
 void message_sender::initialize_instance(std::shared_ptr<ral::cache::CacheMachine> output_cache,
-		std::shared_ptr<ral::cache::CacheMachine> input_cache,
 		std::map<std::string, node> node_address_map,
 		int num_threads,
 		ucp_context_h context,
 		ucp_worker_h origin_node,
 		int ral_id,
-		comm::blazing_protocol protocol){
+		comm::blazing_protocol protocol,
+		bool require_acknowledge){
 	
 	if(instance == NULL) {
 		message_sender::instance = new message_sender(
-				output_cache,input_cache,node_address_map,num_threads,context,origin_node,ral_id,protocol);
+				output_cache,node_address_map,num_threads,context,origin_node,ral_id,protocol,require_acknowledge);
 	}
 }
 
 message_sender::message_sender(std::shared_ptr<ral::cache::CacheMachine> output_cache,
-		std::shared_ptr<ral::cache::CacheMachine> input_cache,
 		const std::map<std::string, node> & node_address_map,
 		int num_threads,
 		ucp_context_h context,
 		ucp_worker_h origin,
 		int ral_id,
-		comm::blazing_protocol protocol)
-		: pool{num_threads}, output_cache{output_cache}, input_cache{input_cache}, node_address_map{node_address_map}, protocol{protocol}, origin{origin}, ral_id{ral_id}
+		comm::blazing_protocol protocol,
+		bool require_acknowledge)
+		: require_acknowledge{require_acknowledge}, pool{num_threads}, output_cache{output_cache}, node_address_map{node_address_map}, protocol{protocol}, origin{origin}, ral_id{ral_id}
 {
 
 	request_size = 0;
@@ -102,11 +102,12 @@ void message_sender::run_polling() {
 						std::vector<std::size_t> buffer_sizes;
 						std::vector<const char *> raw_buffers;
 						for(auto & buffer : table->get_raw_buffers()){
-							raw_buffers.push_back(buffer.data());
-							buffer_sizes.push_back(buffer.size());
+							raw_buffers.push_back(buffer.data);
+							buffer_sizes.push_back(buffer.size);
 						}
 						
 						std::vector<blazingdb::transport::ColumnTransport> column_transports = table->get_columns_offsets();
+						const std::vector<ral::memory::blazing_chunked_column_info> & chunked_column_infos = table->get_blazing_chunked_column_infos();
 					
 						// tcp / ucp
 						auto metadata_map = metadata.get_values();
@@ -126,18 +127,26 @@ void message_sender::run_polling() {
 						if(blazing_protocol::ucx == protocol){
 
 							transport = std::make_shared<ucx_buffer_transport>(
-								request_size, origin, destinations, metadata,
-								buffer_sizes, column_transports,ral_id);
+								request_size, 
+								origin, 
+								destinations, 
+								metadata,
+								buffer_sizes, 
+								column_transports, 
+								chunked_column_infos, 
+								ral_id,
+								require_acknowledge);
 						}else if (blazing_protocol::tcp == protocol){
 
 							transport = std::make_shared<tcp_buffer_transport>(
-							destinations,
-							metadata,
-							buffer_sizes,
-							column_transports,
-							ral_id,
-							&this->pool
-							);
+								destinations,
+								metadata,
+								buffer_sizes,
+								column_transports,
+								chunked_column_infos,
+								ral_id,
+								&this->pool,
+								require_acknowledge);
 						}
 						else{
 							throw std::runtime_error("Unknown protocol");
