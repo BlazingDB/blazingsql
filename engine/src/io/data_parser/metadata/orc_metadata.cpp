@@ -34,17 +34,6 @@ std::vector<std::string> get_all_str_values_in_the_same_col(
 	return output_v;
 }
 
-void set_min_max_string(
-	std::vector<std::string> & minmax_string_metadata_table,
-	cudf::io::column_statistics & statistic, int col_index) {
-
-	auto type_stat = statistic.type_specific_stats<cudf::io::string_statistics>();
-	std::string min = *type_stat->minimum();
-	std::string max = *type_stat->maximum();
-	minmax_string_metadata_table[col_index] = min;
-	minmax_string_metadata_table[col_index + 1] = max;
-}
-
 cudf::type_id statistic_to_dtype(cudf::io::statistics_type stat_type) {
 	if (stat_type == cudf::io::statistics_type::INT) {
 		return cudf::type_id::INT32;
@@ -78,6 +67,17 @@ std::pair< std::vector<char>, std::vector<cudf::size_type> > concat_strings(
 	return std::make_pair(chars, offsets);
 }
 
+void set_min_max_string(
+	std::vector<std::string> & minmax_string_metadata_table,
+	cudf::io::column_statistics & statistic, int col_index) {
+
+	auto type_stat = statistic.type_specific_stats<cudf::io::string_statistics>();
+	std::string min = *type_stat->minimum();
+	std::string max = *type_stat->maximum();
+	minmax_string_metadata_table[col_index] = min;
+	minmax_string_metadata_table[col_index + 1] = max;
+}
+
 void set_min_max(
 	std::vector<int64_t> & minmax_metadata_table,
 	cudf::io::column_statistics & statistic, int col_index) {
@@ -89,11 +89,18 @@ void set_min_max(
 		minmax_metadata_table[col_index] = min;
 		minmax_metadata_table[col_index + 1] = max;
 	} else if (statistic.type() == cudf::io::statistics_type::DOUBLE) {
+		int64_t dummy = 0;
+		minmax_metadata_table[col_index] = dummy;
+		minmax_metadata_table[col_index + 1] = dummy;
 		auto type_stat = statistic.type_specific_stats<cudf::io::double_statistics>();
-		auto min = type_stat->has_minimum() ? *type_stat->minimum() : std::numeric_limits<double>::min();
-		auto max = type_stat->has_maximum() ? *type_stat->maximum() : std::numeric_limits<double>::max();
-		minmax_metadata_table[col_index] = min;
-		minmax_metadata_table[col_index + 1] = max;
+		double min = type_stat->has_minimum() ? *type_stat->minimum() : std::numeric_limits<double>::min();
+		double max = type_stat->has_maximum() ? *type_stat->maximum() : std::numeric_limits<double>::max();
+		// here we want to reinterpret cast minmax_metadata_table to be double so that we can just use this same vector as if they were double
+		size_t current_row_index = minmax_metadata_table.size() - 1;
+		double* casted_metadata_min = reinterpret_cast<double*>(&(minmax_metadata_table[col_index]));
+		double* casted_metadata_max = reinterpret_cast<double*>(&(minmax_metadata_table[col_index + 1]));
+		casted_metadata_min[0] = min;
+		casted_metadata_max[0] = max;
 	} else if (statistic.type() == cudf::io::statistics_type::BUCKET) {
 		auto type_stat = statistic.type_specific_stats<cudf::io::bucket_statistics>();
 		auto min = std::numeric_limits<bool>::min();
@@ -243,7 +250,7 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 			std::vector<std::string> vector_str = get_all_str_values_in_the_same_col(minmax_string_metadata, string_count);
 			string_count++;
 			std::pair<std::vector<char>, std::vector<cudf::size_type>> result_pair = concat_strings(vector_str);
-			std::unique_ptr<cudf::column> col = cudf::make_strings_column(result_pair.first, result_pair.second);
+			std::unique_ptr<cudf::column> col = cudf::make_strings_column(result_pair.first, result_pair.second, {}, 0);
 			minmax_metadata_gdf_table[index] = std::move(col);
 		} else {
 			std::vector<int64_t> vector = get_all_values_in_the_same_col(minmax_metadata, not_string_count);
