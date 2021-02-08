@@ -104,6 +104,7 @@ void task::run(cudaStream_t stream, executor * executor){
         this->attempts++;
         if(this->attempts < this->attempts_limit){
             executor->add_task(std::move(inputs), output, kernel, attempts, task_id, args);
+            return;
         }else{
             throw;
         }
@@ -113,6 +114,7 @@ void task::run(cudaStream_t stream, executor * executor){
             logger->error("|||{info}|||||",
                     "info"_a="ERROR in task::run. What: {}"_format(e.what()));
         }
+        
         throw;
     }
 
@@ -126,7 +128,7 @@ void task::run(cudaStream_t stream, executor * executor){
             if(input != nullptr){
                 if  (input->get_type() == ral::cache::CacheDataType::GPU || input->get_type() == ral::cache::CacheDataType::GPU_METADATA){
                     //this was a gpu cachedata so now its not valid
-                    if(task_result.inputs.size() > 0 && i <= task_result.inputs.size()){
+                    if(task_result.inputs.size() > 0 && i <= task_result.inputs.size() && task_result.inputs[i] != nullptr && task_result.inputs[i]->is_valid()){ 
                         static_cast<ral::cache::GPUCacheData *>(input.get())->set_data(std::move(task_result.inputs[i]));
                     }else{
                         //the input was lost and it was a gpu dataframe which is not recoverable
