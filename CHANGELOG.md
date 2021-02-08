@@ -34,6 +34,7 @@
 - #1286 Fixes to initialization and adding unique ids to comms
 - #1255 Kernels are resilient to out of memory errors now and can retry tasks that fail this way
 - #1308 Improve the engine loggers
+- #1314 Added unit tests to verify that OOM error handling works well
 
 
 ## Bug Fixes
