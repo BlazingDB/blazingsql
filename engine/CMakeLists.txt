@@ -264,6 +264,8 @@ set(SRC_FILES ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/Blazin
               ${PROJECT_SOURCE_DIR}/src/io/data_parser/ArrowParser.cpp
               ${PROJECT_SOURCE_DIR}/src/io/data_parser/ArgsUtil.cpp
               ${PROJECT_SOURCE_DIR}/src/io/data_parser/metadata/parquet_metadata.cpp
+              ${PROJECT_SOURCE_DIR}/src/io/data_parser/metadata/orc_metadata.cpp
+              ${PROJECT_SOURCE_DIR}/src/io/data_parser/metadata/common_metadata.cpp
               ${PROJECT_SOURCE_DIR}/src/utilities/CommonOperations.cpp
               ${PROJECT_SOURCE_DIR}/src/utilities/scalar_timestamp_parser.cpp
               ${PROJECT_SOURCE_DIR}/src/utilities/DebuggingUtils.cpp

@@ -16,6 +16,7 @@
 - #1298 Implement progress bar for run query (using tqdm)
 - #1284 Initial support for Windows Function
 - #1303 Add support for INITCAP
+- #1313 getting and using ORC metadata
 
 
 ## Improvements
