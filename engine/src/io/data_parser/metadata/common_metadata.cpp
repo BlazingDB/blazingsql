@@ -4,7 +4,7 @@
 #include "orc_metadata.h"
 #include "utilities/CommonOperations.h"
 
-std::unique_ptr<ral::frame::BlazingTable> makeMetadataFromCols(std::vector<std::string> col_names) {
+std::unique_ptr<ral::frame::BlazingTable> make_dummy_metadata_table_from_col_names(std::vector<std::string> col_names) {
 	const int ncols = col_names.size();
 	std::vector<std::string> metadata_col_names;
 	// + 2: due to `file_handle_index` and `stripe_index` columns
@@ -37,7 +37,7 @@ std::unique_ptr<ral::frame::BlazingTable> makeMetadataFromCols(std::vector<std::
 	return metadata_table;
 }
 
-std::unique_ptr<cudf::column> make_cudf_column_from(cudf::data_type dtype, std::basic_string<char> &vector, unsigned long column_size) {
+std::unique_ptr<cudf::column> make_cudf_column_from_vector(cudf::data_type dtype, std::basic_string<char> &vector, unsigned long column_size) {
 	size_t width_per_value = cudf::size_of(dtype);
 	if (vector.size() != 0) {
 		auto buffer_size = width_per_value * column_size;
@@ -48,10 +48,6 @@ std::unique_ptr<cudf::column> make_cudf_column_from(cudf::data_type dtype, std::
 		rmm::device_buffer gpu_buffer(buffer_size);
 		return std::make_unique<cudf::column>(dtype, column_size, buffer_size);
 	}
-}
-
-std::unique_ptr<cudf::column> make_empty_column(cudf::data_type type) {
-	return std::make_unique<cudf::column>(type, 0, rmm::device_buffer{});
 }
 
 std::basic_string<char> get_typed_vector_content(cudf::type_id dtype, std::vector<int64_t> &vector) {

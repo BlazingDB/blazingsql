@@ -7,8 +7,7 @@
 #include <memory>
 #include <rmm/device_buffer.hpp>
 #include <transport/ColumnTransport.h>
-
-#include "serializer.hpp"
+#include "bmr/BufferProvider.h"
 #include "execution_graph/logic_controllers/CacheMachine.h"
 
 
@@ -59,7 +58,7 @@ public:
   * @param output_cache The destination for the message being received. It is either a specific cache inbetween
   *                     two kernels or it is intended for the general input cache using a mesage_id
   */
-  message_receiver(const std::map<std::string, comm::node>& nodes, const std::vector<char> & buffer);
+  message_receiver(const std::map<std::string, comm::node>& nodes, const std::vector<char>& buffer, std::shared_ptr<ral::cache::CacheMachine> input_cache);
   virtual ~message_receiver(){}
 
   size_t buffer_size(u_int16_t index);
@@ -74,14 +73,16 @@ private:
 
 
   std::vector<ColumnTransport> _column_transports;
+  std::vector<ral::memory::blazing_chunked_column_info> _chunked_column_infos;
   std::shared_ptr<ral::cache::CacheMachine> _output_cache;
   ral::cache::MetadataDictionary _metadata;
   std::vector<size_t> _buffer_sizes;
-  std::vector<std::basic_string<char>> _raw_buffers;
+  std::vector<std::unique_ptr<ral::memory::blazing_allocation_chunk> > _raw_buffers;
   std::map<std::string, comm::node> _nodes_info_map;
   std::atomic<int> _buffer_counter;
   std::mutex _finish_mutex;
   bool _finished_called = false;
+  std::shared_ptr<ral::cache::CacheMachine> input_cache;
 };
 
 } // namespace comm
