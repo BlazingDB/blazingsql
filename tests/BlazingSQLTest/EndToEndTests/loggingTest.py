@@ -78,20 +78,20 @@ def main(dask_client, dir_data_file, bc, nRals):
 
         queryId = "TEST_06"
         query = """SELECT 
-                    ral_id, query_id, kernel_id, input_num_rows, input_num_bytes, output_num_rows, output_num_bytes, 
-                    event_type, timestamp_begin, timestamp_end 
+                    time_started, ral_id, query_id, kernel_id, 
+                    duration_decaching, duration_execution, input_num_rows, input_num_bytes 
                 FROM 
-                    bsql_kernel_events 
+                    bsql_kernel_tasks
                 WHERE 
-                    event_type = 'compute' 
-                ORDER BY timestamp_begin DESC"""
+                    kernel_id < 3
+                ORDER BY 
+                    time_started DESC"""
         runTest.run_query_log(
             bc,
             query,
             queryId,
             queryType,
         )
-
         queryId = "TEST_07"
         query = """SELECT 
                     ral_id, query_id, source, sink, num_rows, num_bytes, 

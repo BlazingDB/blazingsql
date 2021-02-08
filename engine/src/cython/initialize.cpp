@@ -538,7 +538,7 @@ void printLoggerHeader(const std::string pathLogger, const std::string nameLogge
         {"queries_logger",      "ral_id|query_id|start_time|plan|query"},
         {"kernels_logger",      "ral_id|query_id|kernel_id|is_kernel|kernel_type"},
         {"kernels_edges_logger","ral_id|query_id|source|sink"},
-        {"task_logger",         "time_started|duration_decaching|duration_execution|kernel_id|input_num_rows|input_num_bytes"},
+        {"task_logger",         "time_started|ral_id|query_id|kernel_id|duration_decaching|duration_execution|input_num_rows|input_num_bytes"},
         {"cache_events_logger", "ral_id|query_id|source|sink|num_rows|num_bytes|event_type|timestamp_begin|timestamp_end"},
         {"batch_logger",        "log_time|node_id|type|query_id|step|substep|info|duration|extra1|data1|extra2|data2"},
         {"input_comms",         "unique_id|ral_id|query_id|kernel_id|dest_ral_id|dest_ral_count|dest_cache_id|message_id|phase"},
@@ -646,7 +646,7 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 
 	blazing_host_memory_resource::getInstance().initialize(host_memory_quota);
 
-
+	
 	// Init AWS S3 ... TODO see if we need to call shutdown and avoid leaks from s3 percy
 	BlazingContext::getInstance()->initExternalSystems();
 
@@ -675,10 +675,10 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
         enable_comms_logs = config_options["ENABLE_COMMS_LOGS"];
     }
 
-    std::string enable_caches_logs;
-    log_it = config_options.find("ENABLE_CACHES_LOGS");
+    std::string enable_task_logs;
+    log_it = config_options.find("ENABLE_TASK_LOGS");
     if (log_it != config_options.end()){
-        enable_caches_logs = config_options["ENABLE_CACHES_LOGS"];
+        enable_task_logs = config_options["ENABLE_TASK_LOGS"];
     }
 
     std::string enable_other_engine_logs;
@@ -700,7 +700,7 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 	}
 
 	if (!initialized){
-
+		
 		// spdlog batch logger
 		spdlog::shutdown();
 
@@ -735,15 +735,16 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
             create_logger(kernelsEdgesFileName, "kernels_edges_logger", ralId, flush_level, logger_level_wanted, max_size_logging);
             printLoggerHeader(kernelsEdgesFileName, "kernels_edges_logger");
 
-            std::string kernelEventsFileName = logging_dir + "/bsql_kernel_tasks." + std::to_string(ralId) + ".log";
-            create_logger(kernelEventsFileName, "tasks_logger", ralId, flush_level, logger_level_wanted, max_size_logging);
-            printLoggerHeader(kernelEventsFileName, "tasks_logger");
-        }
-
-        if(enable_caches_logs=="True"){
-            std::string cacheEventsFileName = logging_dir + "/bsql_cache_events." + std::to_string(ralId) + ".log";
+			std::string cacheEventsFileName = logging_dir + "/bsql_cache_events." + std::to_string(ralId) + ".log";
             create_logger(cacheEventsFileName, "cache_events_logger", ralId, flush_level, logger_level_wanted, max_size_logging);
             printLoggerHeader(cacheEventsFileName, "cache_events_logger");
+            
+        }
+
+        if(enable_task_logs=="True"){
+            std::string tasksFileName = logging_dir + "/bsql_kernel_tasks." + std::to_string(ralId) + ".log";
+            create_logger(tasksFileName, "task_logger", ralId, flush_level, logger_level_wanted, max_size_logging);
+            printLoggerHeader(tasksFileName, "task_logger");
         }
 	} 
 

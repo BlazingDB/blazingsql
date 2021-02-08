@@ -276,14 +276,13 @@ ral::execution::task_result MergeAggregateKernel::do_process(std::vector< std::u
     std::shared_ptr<ral::cache::CacheMachine> output,
     cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) {
     try{
-        CodeTimer eventTimer(false);
-
+        
         std::vector< ral::frame::BlazingTableView > tableViewsToConcat;
         for (std::size_t i = 0; i < inputs.size(); i++){
             tableViewsToConcat.emplace_back(inputs[i]->toBlazingTableView());
         }
 
-        eventTimer.start();
+        CodeTimer eventTimer;
         if( ral::utilities::checkIfConcatenatingStringsWillOverflow(tableViewsToConcat)) {
             if(logger) {
                 logger->warn("{query_id}|{step}|{substep}|{info}",

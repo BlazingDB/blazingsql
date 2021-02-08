@@ -27,9 +27,8 @@ std::unique_ptr<ral::frame::BlazingTable> BatchSequence::next() {
     std::shared_ptr<spdlog::logger> cache_events_logger;
     cache_events_logger = spdlog::get("cache_events_logger");
 
-    CodeTimer cacheEventTimer(false);
+    CodeTimer cacheEventTimer;
 
-    cacheEventTimer.start();
     std::unique_ptr<ral::frame::BlazingTable> output;
     if (ordered) {
         output = cache->pullFromCache();
@@ -87,9 +86,7 @@ std::unique_ptr<ral::cache::CacheData> BatchSequenceBypass::next() {
     std::shared_ptr<spdlog::logger> cache_events_logger;
     cache_events_logger = spdlog::get("cache_events_logger");
 
-    CodeTimer cacheEventTimer(false);
-
-    cacheEventTimer.start();
+    CodeTimer cacheEventTimer;
     auto output = cache->pullCacheData();
     cacheEventTimer.stop();
 
@@ -474,8 +471,7 @@ ral::execution::task_result Filter::do_process(std::vector< std::unique_ptr<ral:
 
 kstatus Filter::run() {
     CodeTimer timer;
-    CodeTimer eventTimer(false);
-
+    
     std::unique_ptr <ral::cache::CacheData> cache_data = this->input_cache()->pullCacheData();
     while(cache_data != nullptr){
         std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;

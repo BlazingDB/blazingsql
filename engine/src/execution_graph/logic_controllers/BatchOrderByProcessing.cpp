@@ -218,8 +218,6 @@ ral::execution::task_result SortAndSampleKernel::do_process(std::vector< std::un
     cudaStream_t /*stream*/, const std::map<std::string, std::string>& args) {
 
     try{
-        CodeTimer eventTimer(false);
-
         auto& operation_type = args.at("operation_type");
 
         auto & input = inputs[0];
