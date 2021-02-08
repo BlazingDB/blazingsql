@@ -51,6 +51,7 @@ requirements:
         - ucx-proc=*=gpu
         - {{ pin_compatible('cudatoolkit', max_pin='x.x') }}
         - tqdm
+        - ipywidgets
 
 test:
     requires:

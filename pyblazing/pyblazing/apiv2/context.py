@@ -1203,9 +1203,10 @@ def load_config_options_from_env(user_config_options: dict):
         "ENABLE_TASK_LOGS": False,
         "ENABLE_OTHER_ENGINE_LOGS": False,
         "LOGGING_MAX_SIZE_PER_FILE": 1073741824,  # 1 GB
-        "TRANSPORT_BUFFER_BYTE_SIZE": 1048576,  # 10 MB in bytes
-        "TRANSPORT_POOL_NUM_BUFFERS": 100,
+        "TRANSPORT_BUFFER_BYTE_SIZE": 1048576,  # 1 MB in bytes
+        "TRANSPORT_POOL_NUM_BUFFERS": 1000,
         "PROTOCOL": "AUTO",
+        "REQUIRE_ACKNOWLEDGE": False,
     }
 
     # key: option_name, value: default_value
@@ -1389,9 +1390,11 @@ class BlazingContext(object):
                     BlazingContext
                     default: 1 GB
             TRANSPORT_BUFFER_BYTE_SIZE : The size in bytes about the pinned buffer memory
-                    default: 10 MBs
+                    default: 1 MBs
             TRANSPORT_POOL_NUM_BUFFERS: The number of buffers in the punned buffer memory pool.
-                    default: 100 buffers
+                    default: 1000 buffers
+            REQUIRE_ACKNOWLEDGE : Enable this to enable message aknowledgement when using UCX
+                    default: False
             PROTOCOL: The protocol to use with the current BlazingContext.
                     It should use what the user set. If the user does not explicitly set it,
                     by default it will be set by whatever dask client is using ('tcp', 'ucx', ..).
@@ -2348,7 +2351,10 @@ class BlazingContext(object):
                 parsedMetadata = parseHiveMetadata(table, uri_values)
                 table.metadata = parsedMetadata
 
-            if parsedSchema["file_type"] == DataType.PARQUET:
+            if (
+                parsedSchema["file_type"] == DataType.PARQUET
+                or parsedSchema["file_type"] == DataType.ORC
+            ):
                 parsedMetadata = self._parseMetadata(
                     file_format_hint, table.slices, parsedSchema, kwargs
                 )
@@ -3345,7 +3351,7 @@ class BlazingContext(object):
             sleep(0.005)
 
     def _run_progress_bar_single_node(self, graph):
-        from tqdm import tqdm
+        from tqdm.auto import tqdm
 
         query_complete = False
 
@@ -3402,7 +3408,7 @@ class BlazingContext(object):
         return tqdm_found
 
     def _run_progress_bar_distributed(self, ctxToken):
-        from tqdm import tqdm
+        from tqdm.auto import tqdm
 
         ispbarCreated = False
         pbar = None
