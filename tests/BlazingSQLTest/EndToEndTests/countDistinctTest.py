@@ -149,8 +149,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             )
 
             queryId = "TEST_07"
-            # count(distinct(o_orderdate)),
-            query = """select count(distinct(o_custkey)),
+            query = """select count(distinct(o_orderdate)), count(distinct(o_custkey)),
                     count(distinct(o_totalprice)), sum(o_orderkey)
                     from orders group by o_custkey"""
             runTest.run_query(
@@ -166,12 +165,22 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
-            # queryId = 'TEST_08'
-            # query = "select COUNT(DISTINCT(n.n_nationkey)),
-            #  AVG(r.r_regionkey) from nation as n left outer join region as r
-            #  on n.n_nationkey = r.r_regionkey"
-            # runTest.run_query(bc, drill, query, queryId, queryType, worder,
-            #  '', 0.01, use_percentage, fileSchemaType)
+            queryId = 'TEST_08'
+            query = """select COUNT(DISTINCT(n.n_nationkey)),
+                    AVG(r.r_regionkey) from nation as n left outer join region as r
+                    on n.n_nationkey = r.r_regionkey"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
 
             queryId = "TEST_09"
             query = """select MIN(n.n_nationkey), MAX(r.r_regionkey),
@@ -191,22 +200,45 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
-            # queryId = 'TEST_10'
-            # query = "select COUNT(DISTINCT(n1.n_nationkey)) as n1key,
-            #  COUNT(DISTINCT(n2.n_nationkey)) as n2key from nation as n1
-            #  full outer join nation as n2
-            #  on n1.n_nationkey = n2.n_regionkey"
-            # runTest.run_query(bc, drill, query, queryId, queryType, worder,
-            #   '', acceptable_difference, use_percentage, fileSchemaType)
+            queryId = 'TEST_10'
+            query = """select COUNT(DISTINCT(n1.n_nationkey)) as n1key,
+                    COUNT(DISTINCT(n2.n_nationkey)) as n2key from nation as n1
+                    full outer join nation as n2
+                    on n1.n_nationkey = n2.n_regionkey"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
 
+            # Different number of rows blzSQLresult: 5 PyDrill result: 25
+            # Different number of rows blzSQLresult: 5 PySpark result: 25
             # queryId = 'TEST_11'
-            # query = "select r.r_regionkey, n.n_nationkey,
-            #  COUNT(n.n_nationkey), COUNT(DISTINCT(r.r_regionkey)),
-            #  SUM(DISTINCT(n.n_nationkey + r.r_regionkey)) from nation as n
-            #  left outer join region as r on n.n_nationkey = r.r_regionkey
-            #  GROUP BY r.r_regionkey, n.n_nationkey"
-            # runTest.run_query(bc, drill, query, queryId, queryType, worder,
-            #   '', acceptable_difference, use_percentage, fileSchemaType)
+            # query = """select r.r_regionkey, n.n_nationkey,
+            #         COUNT(n.n_nationkey), COUNT(DISTINCT(r.r_regionkey)),
+            #         SUM(DISTINCT(n.n_nationkey + r.r_regionkey)) from nation as n
+            #         left outer join region as r on n.n_nationkey = r.r_regionkey
+            #         GROUP BY r.r_regionkey, n.n_nationkey"""
+            # runTest.run_query(
+            #     bc,
+            #     drill,
+            #     query,
+            #     queryId,
+            #     queryType,
+            #     worder,
+            #     "",
+            #     acceptable_difference,
+            #     use_percentage,
+            #     fileSchemaType,
+            #     print_result=True,
+            # )
 
             queryId = "TEST_12"
             query = """select n1.n_regionkey, n2.n_nationkey,
