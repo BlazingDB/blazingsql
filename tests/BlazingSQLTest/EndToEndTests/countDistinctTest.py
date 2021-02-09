@@ -11,7 +11,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
 
     start_mem = gpuMemory.capture_gpu_memory_usage()
 
-    queryType = "Count Distinc"
+    queryType = "Count Distinct"
 
     def executionTest():
         tables = [
@@ -41,7 +41,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
 
             worder = 1
             use_percentage = False
-            acceptable_difference = 0
+            acceptable_difference = 0.1
 
             print("==============================")
             print(queryType)
@@ -97,12 +97,22 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
-            # queryId = 'TEST_04'
-            # query = "select count(distinct(o_custkey)), avg(o_totalprice),
-            # (o_orderkey + o_custkey) as num from orders
-            #  where o_custkey < 100 group by o_custkey, o_orderkey"
-            # runTest.run_query(bc, drill, query, queryId, queryType, worder,
-            #  '', 0.01, use_percentage, fileSchemaType)
+            queryId = 'TEST_04'
+            query = """select count(distinct(o_custkey)), avg(o_totalprice),
+                (o_orderkey + o_custkey) as num from orders
+                where o_custkey < 100 group by o_custkey, o_orderkey"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
 
             queryId = "TEST_05"
             query = """select count(distinct(o_custkey)), max(o_totalprice),

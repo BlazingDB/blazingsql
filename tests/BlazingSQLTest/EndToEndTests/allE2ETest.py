@@ -5,7 +5,6 @@ from Configuration import Settings as Settings
 # from dask.distributed import Client
 from DataBase import createSchema as createSchema
 
-# from EndToEndTests import countDistincTest
 from EndToEndTests import (
     GroupByWitoutAggregations,
     aggregationsWithoutGroupByTest,
@@ -13,6 +12,7 @@ from EndToEndTests import (
     booleanTest,
     caseTest,
     castTest,
+    countDistinctTest,
 )
 from EndToEndTests import coalesceTest as coalesceTest
 from EndToEndTests import columnBasisTest as columnBasisTest
@@ -142,8 +142,8 @@ def main():
     if runAllTests or ("commonTableExpressionsTest" in targetTestGroups):
         commonTableExpressionsTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
-    # we are not supporting count distinct yet
-    # countDistincTest.main(dask_client, drill, dir_data_file, bc)
+    if runAllTests or ("countDistinctTest" in targetTestGroups):
+        countDistinctTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     if runAllTests or ("countWithoutGroupByTest" in targetTestGroups):
         countWithoutGroupByTest.main(dask_client, drill, dir_data_file, bc, nRals)
