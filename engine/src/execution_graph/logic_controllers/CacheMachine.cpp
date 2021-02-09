@@ -269,7 +269,7 @@ std::unique_ptr<GPUCacheDataMetaData> cast_cache_data_to_gpu_with_meta(std::uniq
 CacheMachine::CacheMachine(std::shared_ptr<Context> context, std::string cache_machine_name, bool log_timeout, int cache_level_override):
         ctx(context), cache_id(CacheMachine::cache_count), cache_machine_name(cache_machine_name),
         cache_level_override(cache_level_override),
-        cache_events_logger(spdlog::get("cache_events_logger")), logger(spdlog::get("batch_logger"))
+        cache_events_logger(spdlog::get("cache_events_logger"))
 {
 	CacheMachine::cache_count++;
 

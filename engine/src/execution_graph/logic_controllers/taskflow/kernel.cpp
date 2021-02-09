@@ -14,8 +14,7 @@ kernel::kernel(std::size_t kernel_id, std::string expr, std::shared_ptr<Context>
           context{context},
           has_limit_(false),
           limit_rows_(-1),
-          logger(spdlog::get("batch_logger")),
-          events_logger(spdlog::get("events_logger")) {
+          logger(spdlog::get("batch_logger")) {
 
     std::shared_ptr<spdlog::logger> kernels_logger = spdlog::get("kernels_logger");
     if(kernels_logger) {

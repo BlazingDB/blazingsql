@@ -1168,7 +1168,6 @@ protected:
 	const std::size_t cache_id;
 	int cache_level_override;
 	std::string cache_machine_name;
-    std::shared_ptr<spdlog::logger> logger;
 	std::shared_ptr<spdlog::logger> cache_events_logger;
 };
 
