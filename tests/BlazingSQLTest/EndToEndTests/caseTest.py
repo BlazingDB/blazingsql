@@ -64,7 +64,6 @@ def main(dask_client, drill, spark, dir_data_lc, bc, nRals):
                 fileSchemaType,
             )
 
-            # TODO: error: parallel_for failed
             queryId = "TEST_02"
             query = """SELECT l.l_shipmode, sum(case
                         when o.o_orderpriority = '1-URGENT'
@@ -77,14 +76,32 @@ def main(dask_client, drill, spark, dir_data_lc, bc, nRals):
                     AND l.l_receiptdate >= date '1994-01-01'
                     GROUP BY l.l_shipmode
                     ORDER BY l.l_shipmode"""
-            # if fileSchemaType == DataType.ORC:
-            # runTest.run_query(bc, spark, query, queryId, queryType,
-            #           worder, '', acceptable_difference, use_percentage,
-            #           fileSchemaType)
-            # else:
-            # runTest.run_query(bc, drill, query, queryId, queryType,
-            #           worder, '', acceptable_difference, use_percentage,
-            #           fileSchemaType)
+            if fileSchemaType == DataType.ORC:
+                runTest.run_query(
+                    bc,
+                    spark,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
+            else:
+                runTest.run_query(
+                    bc,
+                    drill,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
 
             queryId = "TEST_04"
             query = """select r_name, (case when r_name = 'AFRICA' then
