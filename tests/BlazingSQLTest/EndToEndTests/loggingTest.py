@@ -94,7 +94,7 @@ def main(dask_client, dir_data_file, bc, nRals):
         )
         queryId = "TEST_07"
         query = """SELECT 
-                    ral_id, query_id, source, cache_id, num_rows, num_bytes, 
+                    ral_id, query_id, message_id, cache_id, num_rows, num_bytes, 
                     event_type, timestamp_begin, timestamp_end 
                 FROM 
                     bsql_cache_events 

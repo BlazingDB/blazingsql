@@ -3187,7 +3187,7 @@ class BlazingContext(object):
                     [
                         "ral_id",
                         "query_id",
-                        "source",
+                        "message_id",
                         "cache_id",
                         "num_rows",
                         "num_bytes",
@@ -3198,7 +3198,7 @@ class BlazingContext(object):
                     [
                         "int32",
                         "int32",
-                        "int64",
+                        "str",
                         "int64",
                         "int64",
                         "int64",
