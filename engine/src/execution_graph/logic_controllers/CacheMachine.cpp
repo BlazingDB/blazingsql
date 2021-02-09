@@ -140,7 +140,7 @@ size_t CacheDataIO::sizeInBytes() const{
 std::unique_ptr<ral::frame::BlazingTable> CacheDataIO::decache(){
 	if (schema.all_in_file()){
 		std::unique_ptr<ral::frame::BlazingTable> loaded_table = parser->parse_batch(handle, file_schema, projections, row_group_ids);
-		return std::move(loaded_table);
+		return loaded_table;
 	} else {
 		std::vector<int> column_indices_in_file;  // column indices that are from files
 		for (auto projection_idx : projections){
@@ -182,7 +182,7 @@ std::unique_ptr<ral::frame::BlazingTable> CacheDataIO::decache(){
 			}
 		}
 		auto unique_table = std::make_unique<cudf::table>(std::move(all_columns));
-		return std::move(std::make_unique<ral::frame::BlazingTable>(std::move(unique_table), names));
+		return std::make_unique<ral::frame::BlazingTable>(std::move(unique_table), names);
 	}
 }
 
@@ -437,7 +437,7 @@ std::vector<std::unique_ptr<ral::cache::CacheData> > CacheMachine::pull_all_cach
                                   "description"_a="Pull all cache data";
     }
 
-	return std::move(new_messages);
+	return new_messages;
 }
 
 std::vector<size_t> CacheMachine::get_all_indexes() {
@@ -696,7 +696,7 @@ std::unique_ptr<ral::frame::BlazingTable> CacheMachine::get_or_wait(size_t index
                                   "description"_a="CacheMachine::get_or_wait pulling from cache ";
     }
 
-	return std::move(output);
+	return output;
 }
 
 std::unique_ptr<ral::cache::CacheData>  CacheMachine::get_or_wait_CacheData(size_t index) {
@@ -727,7 +727,7 @@ std::unique_ptr<ral::cache::CacheData>  CacheMachine::get_or_wait_CacheData(size
                                   "description"_a="CacheMachine::get_or_wait pulling CacheData from cache";
     }
 
-	return std::move(output);
+	return output;
 }
 
 std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullFromCache() {
@@ -788,7 +788,7 @@ std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData(std::string m
                                   "timestamp_end"_a=cacheEventTimer.end_time()),
                                   "description"_a="Pull from CacheMachine CacheData object type {}"_format(static_cast<int>(message_data->get_data().get_type()));
     }
-	return std::move(output);
+	return output;
 }
 
 std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullUnorderedFromCache() {
@@ -864,7 +864,7 @@ std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData() {
                                   "description"_a="Pull from CacheMachine CacheData object type {}"_format(static_cast<int>(message_data->get_data().get_type()));
     }
 
-	return std::move(output);
+	return output;
 }
 
 
@@ -954,7 +954,7 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 		output = nullptr;
 	} else if (collected_messages.size() == 1) {
 		auto data = collected_messages[0]->release_data();
-		output = std::move(data->decache());
+		output = data->decache();
 		num_rows = output->num_rows();
 	}	else {
 		std::vector<std::unique_ptr<ral::frame::BlazingTable>> tables_holder;
@@ -964,7 +964,7 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 		    cacheEventTimer.start();
 
 			auto data = collected_messages[i]->release_data();
-			tables_holder.push_back(std::move(data->decache()));
+			tables_holder.push_back(data->decache());
 			table_views.push_back(tables_holder[i]->toBlazingTableView());
 
 			// if we dont have to concatenate all, lets make sure we are not overflowing, and if we are, lets put one back
@@ -1033,7 +1033,7 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
                                   "description"_a="Pull from ConcatenatingCacheMachine";
     }
 
-	return std::move(output);
+	return output;
 }
 
 std::unique_ptr<ral::cache::CacheData> ConcatenatingCacheMachine::pullCacheData() {
@@ -1049,7 +1049,7 @@ std::unique_ptr<ral::cache::CacheData> ConcatenatingCacheMachine::pullCacheData(
 	size_t total_bytes = 0;
 	std::vector<std::unique_ptr<message>> collected_messages;
 	std::unique_ptr<message> message_data;
-	std::string message_id = "";
+	std::string message_id;
 
 	do {
 		message_data = waitingCache->pop_or_wait();
@@ -1094,7 +1094,7 @@ std::unique_ptr<ral::cache::CacheData> ConcatenatingCacheMachine::pullCacheData(
                                    "description"_a="Pull cache data from ConcatenatingCacheMachine";
     }
 
-	return std::move(output);
+	return output;
 }
 
 }  // namespace cache
