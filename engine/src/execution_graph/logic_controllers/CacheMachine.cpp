@@ -62,8 +62,8 @@ std::unique_ptr<CacheData> CacheData::downgradeCacheData(std::unique_ptr<CacheDa
                         "num_bytes"_a=(CPUCache ? CPUCache->sizeInBytes() : -1),
                         "event_type"_a="DowngradeCacheData",
                         "timestamp_begin"_a=cacheEventTimer.start_time(),
-                        "timestamp_end"_a=cacheEventTimer.end_time()),
-                        "description"_a="Downgraded CacheData to CPU cache";
+                        "timestamp_end"_a=cacheEventTimer.end_time(),
+                        "description"_a="Downgraded CacheData to CPU cache");
         			}
 
 			return CPUCache;
@@ -87,8 +87,8 @@ std::unique_ptr<CacheData> CacheData::downgradeCacheData(std::unique_ptr<CacheDa
                                           "num_bytes"_a=(localCache ? localCache->sizeInBytes() : -1),
                                           "event_type"_a="DowngradeCacheData",
                                           "timestamp_begin"_a=cacheEventTimer.start_time(),
-                                          "timestamp_end"_a=cacheEventTimer.end_time()),
-                                          "description"_a="Downgraded CacheData to Disk cache to path: " + orc_files_path;
+                                          "timestamp_end"_a=cacheEventTimer.end_time(),
+                                          "description"_a="Downgraded CacheData to Disk cache to path: " + orc_files_path);
             }
 
 			return localCache;
@@ -321,8 +321,8 @@ void CacheMachine::finish() {
                                   "num_bytes"_a=num_bytes_added,
                                   "event_type"_a="Finish",
                                   "timestamp_begin"_a=cacheEventTimer.start_time(),
-                                  "timestamp_end"_a=cacheEventTimer.end_time()),
-                                  "description"_a="CacheMachine finish()";
+                                  "timestamp_end"_a=cacheEventTimer.end_time(),
+                                  "description"_a="CacheMachine finish()");
     }
 }
 
@@ -372,8 +372,8 @@ bool CacheMachine::addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTa
                                       "num_bytes"_a=num_bytes_added,
                                       "event_type"_a="AddHostFrameToCache",
                                       "timestamp_begin"_a=cacheEventTimer.start_time(),
-                                      "timestamp_end"_a=cacheEventTimer.end_time()),
-                                      "description"_a="Add to CacheMachine";
+                                      "timestamp_end"_a=cacheEventTimer.end_time(),
+                                      "description"_a="Add to CacheMachine");
         }
 
 		return true;
@@ -404,8 +404,8 @@ void CacheMachine::clear() {
                                   "num_bytes"_a=num_bytes_added,
                                   "event_type"_a="Clear",
                                   "timestamp_begin"_a=cacheEventTimer.start_time(),
-                                  "timestamp_end"_a=cacheEventTimer.end_time()),
-                                  "description"_a="Clear CacheMachine";
+                                  "timestamp_end"_a=cacheEventTimer.end_time(),
+                                  "description"_a="Clear CacheMachine");
     }
 }
 
@@ -433,8 +433,8 @@ std::vector<std::unique_ptr<ral::cache::CacheData> > CacheMachine::pull_all_cach
                                   "num_bytes"_a=num_bytes_added,
                                   "event_type"_a="PullAllCacheData",
                                   "timestamp_begin"_a=cacheEventTimer.start_time(),
-                                  "timestamp_end"_a=cacheEventTimer.end_time()),
-                                  "description"_a="Pull all cache data";
+                                  "timestamp_end"_a=cacheEventTimer.end_time(),
+                                  "description"_a="Pull all cache data");
     }
 
 	return new_messages;
@@ -489,8 +489,8 @@ bool CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_dat
                                           "num_bytes"_a=num_bytes_added,
                                           "event_type"_a="AddCacheData",
                                           "timestamp_begin"_a=cacheEventTimer.start_time(),
-                                          "timestamp_end"_a=cacheEventTimer.end_time()),
-                                          "description"_a="Add to CacheMachine general CacheData object into GPU cache";
+                                          "timestamp_end"_a=cacheEventTimer.end_time(),
+                                          "description"_a="Add to CacheMachine general CacheData object into GPU cache");
             }
 		} else if(cacheIndex == 1) {
 			auto item = std::make_unique<message>(std::move(cache_data), message_id);
@@ -507,8 +507,8 @@ bool CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_dat
                                           "num_bytes"_a=num_bytes_added,
                                           "event_type"_a="AddCacheData",
                                           "timestamp_begin"_a=cacheEventTimer.start_time(),
-                                          "timestamp_end"_a=cacheEventTimer.end_time()),
-                                          "description"_a="Add to CacheMachine general CacheData object into CPU cache";
+                                          "timestamp_end"_a=cacheEventTimer.end_time(),
+                                          "description"_a="Add to CacheMachine general CacheData object into CPU cache");
             }
 		} else if(cacheIndex == 2) {
 			// BlazingMutableThread t([cache_data = std::move(cache_data), this, cacheIndex, message_id]() mutable {
@@ -528,8 +528,8 @@ bool CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_dat
                                           "num_bytes"_a=num_bytes_added,
                                           "event_type"_a="AddCacheData",
                                           "timestamp_begin"_a=cacheEventTimer.start_time(),
-                                          "timestamp_end"_a=cacheEventTimer.end_time()),
-                                          "description"_a="Add to CacheMachine general CacheData object into Disk cache";
+                                          "timestamp_end"_a=cacheEventTimer.end_time(),
+                                          "description"_a="Add to CacheMachine general CacheData object into Disk cache");
             }
 		}
 		this->something_added = true;
@@ -594,8 +594,8 @@ bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, s
                                                   "num_bytes"_a=num_bytes_added,
                                                   "event_type"_a="AddToCache",
                                                   "timestamp_begin"_a=cacheEventTimer.start_time(),
-                                                  "timestamp_end"_a=cacheEventTimer.end_time()),
-                                                  "description"_a="Add to CacheMachine into GPU cache";
+                                                  "timestamp_end"_a=cacheEventTimer.end_time(),
+                                                  "description"_a="Add to CacheMachine into GPU cache");
                     }
 
 				} else {
@@ -621,8 +621,8 @@ bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, s
                                                       "num_bytes"_a=num_bytes_added,
                                                       "event_type"_a="AddToCache",
                                                       "timestamp_begin"_a=cacheEventTimer.start_time(),
-                                                      "timestamp_end"_a=cacheEventTimer.end_time()),
-                                                      "description"_a="Add to CacheMachine into CPU cache";
+                                                      "timestamp_end"_a=cacheEventTimer.end_time(),
+                                                      "description"_a="Add to CacheMachine into CPU cache");
                         }
 
 					} else if(cacheIndex == 2) {
@@ -646,8 +646,8 @@ bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, s
                                                       "num_bytes"_a=num_bytes_added,
                                                       "event_type"_a="AddToCache",
                                                       "timestamp_begin"_a=cacheEventTimer.start_time(),
-                                                      "timestamp_end"_a=cacheEventTimer.end_time()),
-                                                      "description"_a="Add to CacheMachine into Disk cache";
+                                                      "timestamp_end"_a=cacheEventTimer.end_time(),
+                                                      "description"_a="Add to CacheMachine into Disk cache");
                         }
 					}
 				}
@@ -692,8 +692,8 @@ std::unique_ptr<ral::frame::BlazingTable> CacheMachine::get_or_wait(size_t index
                                   "num_bytes"_a=num_bytes,
                                   "event_type"_a="GetOrWait",
                                   "timestamp_begin"_a=cacheEventTimer.start_time(),
-                                  "timestamp_end"_a=cacheEventTimer.end_time()),
-                                  "description"_a="CacheMachine::get_or_wait pulling from cache ";
+                                  "timestamp_end"_a=cacheEventTimer.end_time(),
+                                  "description"_a="CacheMachine::get_or_wait pulling from cache ");
     }
 
 	return output;
@@ -723,8 +723,8 @@ std::unique_ptr<ral::cache::CacheData>  CacheMachine::get_or_wait_CacheData(size
                                   "num_bytes"_a=num_bytes,
                                   "event_type"_a="GetOrWaitCacheData",
                                   "timestamp_begin"_a=cacheEventTimer.start_time(),
-                                  "timestamp_end"_a=cacheEventTimer.end_time()),
-                                  "description"_a="CacheMachine::get_or_wait pulling CacheData from cache";
+                                  "timestamp_end"_a=cacheEventTimer.end_time(),
+                                  "description"_a="CacheMachine::get_or_wait pulling CacheData from cache");
     }
 
 	return output;
@@ -741,6 +741,7 @@ std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullFromCache() {
     std::string message_id = message_data->get_message_id();
     size_t num_rows = message_data->get_data().num_rows();
     size_t num_bytes = message_data->get_data().sizeInBytes();
+    int dataType = static_cast<int>(message_data->get_data().get_type());
 	std::unique_ptr<ral::frame::BlazingTable> output = message_data->get_data().decache();
 
     cacheEventTimer.stop();
@@ -754,8 +755,8 @@ std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullFromCache() {
                                   "num_bytes"_a=num_bytes,
                                   "event_type"_a="PullFromCache",
                                   "timestamp_begin"_a=cacheEventTimer.start_time(),
-                                  "timestamp_end"_a=cacheEventTimer.end_time()),
-                                  "description"_a="Pull from CacheMachine type {}"_format(static_cast<int>(message_data->get_data().get_type()));
+                                  "timestamp_end"_a=cacheEventTimer.end_time(),
+                                  "description"_a="Pull from CacheMachine type {}"_format(dataType));
     }
 
 	return output;
@@ -772,6 +773,7 @@ std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData(std::string m
 	}
     size_t num_rows = message_data->get_data().num_rows();
     size_t num_bytes = message_data->get_data().sizeInBytes();
+    int dataType = static_cast<int>(message_data->get_data().get_type());
 	std::unique_ptr<ral::cache::CacheData> output = message_data->release_data();
 
     cacheEventTimer.stop();
@@ -785,8 +787,8 @@ std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData(std::string m
                                   "num_bytes"_a=num_bytes,
                                   "event_type"_a="PullCacheData",
                                   "timestamp_begin"_a=cacheEventTimer.start_time(),
-                                  "timestamp_end"_a=cacheEventTimer.end_time()),
-                                  "description"_a="Pull from CacheMachine CacheData object type {}"_format(static_cast<int>(message_data->get_data().get_type()));
+                                  "timestamp_end"_a=cacheEventTimer.end_time(),
+                                  "description"_a="Pull from CacheMachine CacheData object type {}"_format(dataType));
     }
 	return output;
 }
@@ -813,6 +815,7 @@ std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullUnorderedFromCache()
         std::string message_id = message_data->get_message_id();
         size_t num_rows = message_data->get_data().num_rows();
         size_t num_bytes = message_data->get_data().sizeInBytes();
+        int dataType = static_cast<int>(message_data->get_data().get_type());
         std::unique_ptr<ral::frame::BlazingTable> output = message_data->get_data().decache();
 
         cacheEventTimer.stop();
@@ -826,8 +829,8 @@ std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullUnorderedFromCache()
                                       "num_bytes"_a=num_bytes,
                                       "event_type"_a="PullUnorderedFromCache",
                                       "timestamp_begin"_a=cacheEventTimer.start_time(),
-                                      "timestamp_end"_a=cacheEventTimer.end_time()),
-                                      "description"_a="Pull Unordered from CacheMachine type {}"_format(static_cast<int>(message_data->get_data().get_type()));
+                                      "timestamp_end"_a=cacheEventTimer.end_time(),
+                                      "description"_a="Pull Unordered from CacheMachine type {}"_format(dataType));
         }
 
 		return output;
@@ -847,6 +850,7 @@ std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData() {
     std::string message_id = message_data->get_message_id();
     size_t num_rows = message_data->get_data().num_rows();
     size_t num_bytes = message_data->get_data().sizeInBytes();
+    int dataType = static_cast<int>(message_data->get_data().get_type());
     std::unique_ptr<ral::cache::CacheData> output = message_data->release_data();
 
     cacheEventTimer.stop();
@@ -860,8 +864,8 @@ std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData() {
                                   "num_bytes"_a=num_bytes,
                                   "event_type"_a="PullCacheData",
                                   "timestamp_begin"_a=cacheEventTimer.start_time(),
-                                  "timestamp_end"_a=cacheEventTimer.end_time()),
-                                  "description"_a="Pull from CacheMachine CacheData object type {}"_format(static_cast<int>(message_data->get_data().get_type()));
+                                  "timestamp_end"_a=cacheEventTimer.end_time(),
+                                  "description"_a="Pull from CacheMachine CacheData object type {}"_format(dataType));
     }
 
 	return output;
@@ -988,8 +992,8 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
                                               "num_bytes"_a=total_bytes,
                                               "event_type"_a="PullFromCache",
                                               "timestamp_begin"_a=cacheEventTimer.start_time(),
-                                              "timestamp_end"_a=cacheEventTimer.end_time()),
-                                              "description"_a="In ConcatenatingCacheMachine::pullFromCache Concatenating could have caused overflow strings length. Adding cache data back";
+                                              "timestamp_end"_a=cacheEventTimer.end_time(),
+                                              "description"_a="In ConcatenatingCacheMachine::pullFromCache Concatenating could have caused overflow strings length. Adding cache data back");
                 }
 
 				break;
@@ -1010,8 +1014,8 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
                                           "num_bytes"_a=total_bytes,
                                           "event_type"_a="PullFromCache",
                                           "timestamp_begin"_a=cacheEventTimer.start_time(),
-                                          "timestamp_end"_a=cacheEventTimer.end_time()),
-                                          "description"_a="In ConcatenatingCacheMachine::pullFromCache Concatenating will overflow strings length";
+                                          "timestamp_end"_a=cacheEventTimer.end_time(),
+                                          "description"_a="In ConcatenatingCacheMachine::pullFromCache Concatenating will overflow strings length");
             }
 		}
 		output = ral::utilities::concatTables(table_views);
@@ -1029,8 +1033,8 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
                                   "num_bytes"_a=total_bytes,
                                   "event_type"_a="PullFromCache",
                                   "timestamp_begin"_a=cacheEventTimerGeneral.start_time(),
-                                  "timestamp_end"_a=cacheEventTimerGeneral.end_time()),
-                                  "description"_a="Pull from ConcatenatingCacheMachine";
+                                  "timestamp_end"_a=cacheEventTimerGeneral.end_time(),
+                                  "description"_a="Pull from ConcatenatingCacheMachine");
     }
 
 	return output;
@@ -1090,8 +1094,8 @@ std::unique_ptr<ral::cache::CacheData> ConcatenatingCacheMachine::pullCacheData(
                                    "num_bytes"_a=total_bytes,
                                    "event_type"_a="PullCacheData",
                                    "timestamp_begin"_a=cacheEventTimer.start_time(),
-                                   "timestamp_end"_a=cacheEventTimer.end_time()),
-                                   "description"_a="Pull cache data from ConcatenatingCacheMachine";
+                                   "timestamp_end"_a=cacheEventTimer.end_time(),
+                                   "description"_a="Pull cache data from ConcatenatingCacheMachine");
     }
 
 	return output;
