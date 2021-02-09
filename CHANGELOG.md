@@ -36,6 +36,7 @@
 - #1311 Add queries logger to physical plan
 - #1308 Improve the engine loggers
 - #1314 Added unit tests to verify that OOM error handling works well
+- #1320 Revamping cache logger
 
 
 ## Bug Fixes
