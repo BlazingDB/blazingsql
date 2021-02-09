@@ -58,3 +58,4 @@ if [ "$UPLOAD_BLAZING" == "1" ]; then
         anaconda -t ${RAPIDS_CONDA_KEY} upload -u ${RAPIDS_CONDA_USERNAME} ${LABEL_OPTION} --force ${BLAZINGSQL_FILE}
     fi
 fi
+
