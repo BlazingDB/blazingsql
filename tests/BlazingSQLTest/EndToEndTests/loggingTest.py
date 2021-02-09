@@ -98,6 +98,8 @@ def main(dask_client, dir_data_file, bc, nRals):
                     event_type, timestamp_begin, timestamp_end, description 
                 FROM 
                     bsql_cache_events 
+                WHERE
+                    event_type = 'AddToCache'
                 ORDER BY 
                     timestamp_begin DESC"""
         runTest.run_query_log(
