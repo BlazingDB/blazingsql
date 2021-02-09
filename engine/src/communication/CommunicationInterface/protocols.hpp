@@ -96,14 +96,17 @@ public:
 		ral::cache::MetadataDictionary metadata,
 		std::vector<size_t> buffer_sizes,
 		std::vector<blazingdb::transport::ColumnTransport> column_transports,
-        int ral_id);
+        std::vector<ral::memory::blazing_chunked_column_info> chunked_column_infos,
+        int ral_id,
+        bool require_acknowledge);
     ~ucx_buffer_transport();
 
     void send_begin_transmission() override;
 
 protected:
     void send_impl(const char * buffer, size_t buffer_size) override;
-
+    void receive_acknowledge();
+	
 private:
 
     ucp_worker_h origin_node;
@@ -133,21 +136,24 @@ public:
         ral::cache::MetadataDictionary metadata,
         std::vector<size_t> buffer_sizes,
         std::vector<blazingdb::transport::ColumnTransport> column_transports,
+        std::vector<ral::memory::blazing_chunked_column_info> chunked_column_infos,
         int ral_id,
-        ctpl::thread_pool<BlazingThread> * allocate_copy_buffer_pool);
+        ctpl::thread_pool<BlazingThread> * allocate_copy_buffer_pool,
+        bool require_acknowledge);
     ~tcp_buffer_transport();
 
     void send_begin_transmission() override;
 
 protected:
     void send_impl(const char * buffer, size_t buffer_size) override;
-
+    void receive_acknowledge();
+	
 private:
     int ral_id;
     int message_id;
     std::vector<int> socket_fds;
     ctpl::thread_pool<BlazingThread> * allocate_copy_buffer_pool;
-    cudaStream_t stream;
+
 };
 
 

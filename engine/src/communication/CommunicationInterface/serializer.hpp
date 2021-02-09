@@ -10,25 +10,6 @@
 
 namespace comm {
 
-using gpu_raw_buffer_container = std::tuple<
-  std::vector<std::size_t>,
-  std::vector<const char *>,
-  std::vector<blazingdb::transport::ColumnTransport>,
-  std::vector<std::unique_ptr<rmm::device_buffer>>
-  >;
-
-/**
- * @brief Serializes a BlazingTableView
- *
- * @param table_view The table to be serialized
- *
- * @returns A tuple containing a vector of buffer sizes, a vector of raw pointers
- * to device column data or intemediate data, a vector of ColumnTransport,
- * a vector of unique_ptr's to device_buffer holding intemediate data not owned
- * by the top level cudf::table.
- */
-gpu_raw_buffer_container serialize_gpu_message_to_gpu_containers(ral::frame::BlazingTableView table_view);
-
 
 /**
  * @brief Deserializes column data and metadata into a BlazingTable

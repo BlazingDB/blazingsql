@@ -97,8 +97,8 @@ void parquet_parser::parse_schema(
 	}
 }
 
-
-std::unique_ptr<ral::frame::BlazingTable> parquet_parser::get_metadata(std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, int offset){
+std::unique_ptr<ral::frame::BlazingTable> parquet_parser::get_metadata(
+	std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, int offset){
 	std::vector<size_t> num_row_groups(files.size());
 	BlazingThread threads[files.size()];
 	std::vector<std::unique_ptr<parquet::ParquetFileReader>> parquet_readers(files.size());

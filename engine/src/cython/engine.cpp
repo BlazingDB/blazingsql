@@ -19,7 +19,6 @@
 #include "CodeTimer.h"
 #include "communication/CommunicationInterface/protocols.hpp"
 #include "error.hpp"
-#include "transport/io/reader_writer.h"
 
 
 using namespace fmt::literals;
@@ -151,9 +150,8 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(uint32_t masterIndex,
         contextNodes.emplace_back(worker_id);
     }
 	Context queryContext{static_cast<uint32_t>(ctxToken), contextNodes, contextNodes[masterIndex], "", config_options};
-	CodeTimer eventTimer(true);
-	
-	auto graph = generate_graph(input_loaders, schemas, tableNames, tableScans, query, queryContext, sql);
+
+  auto graph = generate_graph(input_loaders, schemas, tableNames, tableScans, query, queryContext, sql);
 
 	comm::graphs_info::getInstance().register_graph(ctxToken, graph);
 	return graph;

@@ -25,14 +25,13 @@
 #include <utility>
 #include <memory>
 
-#include <transport/io/reader_writer.h>
-
 #include <blazingdb/io/Config/BlazingContext.h>
 #include <blazingdb/io/Library/Logging/CoutOutput.h>
 #include <blazingdb/io/Library/Logging/Logger.h>
 #include "blazingdb/io/Library/Logging/ServiceLogging.h"
 #include <blazingdb/io/Util/StringUtil.h>
 
+#include "communication/ucx_init.h"
 #include "communication/CommunicationData.h"
 
 #include <bmr/initializer.h>
@@ -60,7 +59,7 @@ using namespace fmt::literals;
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netinet/in.h>
-#include <netdb.h>
+
 
 using namespace fmt::literals;
 using namespace ral::cache;
@@ -164,367 +163,6 @@ void create_logger(std::string fileName,
 	spdlog::flush_every(std::chrono::seconds(1));
 }
 
-//=============================================================================
-
-template <class Callable>
-static inline void CheckError(const bool condition,
-                              const std::string &message,
-                              Callable &&callable) {
-  if (condition) {
-    std::forward<Callable>(callable)();
-    std::cerr << message << std::endl;
-    throw std::runtime_error(message);
-  }
-}
-
-static inline void CheckError(const bool condition,
-                              const std::string &message) {
-  CheckError(condition, message, []() {});
-}
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-class UcpWorkerAddress {
-public:
-  ucp_address_t *address;
-  std::size_t length;
-};
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-class AddressExchanger {
-public:
-  const UcpWorkerAddress Exchange(const UcpWorkerAddress &ucpWorkerAddress) {
-
-    std::uint8_t *data = new std::uint8_t[ucpWorkerAddress.length];
-
-    UcpWorkerAddress peerUcpWorkerAddress{
-        reinterpret_cast<ucp_address_t *>(data),
-        std::numeric_limits<decltype(ucpWorkerAddress.length)>::max()};
-
-    try {
-      Exchange(&peerUcpWorkerAddress.length,
-               fd(),
-               &ucpWorkerAddress.length,
-               sizeof(ucpWorkerAddress.length));
-
-      Exchange(peerUcpWorkerAddress.address,
-               fd(),
-               ucpWorkerAddress.address,
-               ucpWorkerAddress.length);
-    } catch (...) {
-      delete[] data;
-      throw;
-    }
-
-    return peerUcpWorkerAddress;
-  }
-
-  static std::unique_ptr<AddressExchanger>
-  MakeForSender(const std::uint16_t port);
-
-  static std::unique_ptr<AddressExchanger>
-  MakeForReceiver(const std::uint16_t port, const char *hostname);
-
-  virtual int fd() = 0;
-
-private:
-  static inline void Exchange(void *peerData,
-                              const int fd,
-                              const void *localData,
-                              const std::size_t length) {
-    int ret = send(fd, localData, length, 0);
-    CheckError(ret != static_cast<int>(length), "send");
-    ret = recv(fd, peerData, length, MSG_WAITALL);
-    CheckError(ret != static_cast<int>(length), "recv");
-  }
-};
-
-class AddressExchangerForSender : public AddressExchanger {
-public:
-  ~AddressExchangerForSender() {
-		closeCurrentConnection();
-		CheckError(close(lsock_), "close sender");
-	}
-
-  AddressExchangerForSender(const std::uint16_t port) {
-    struct sockaddr_in inaddr;
-
-    lsock_ = -1;
-    dsock_ = -1;
-    int optval = 1;
-    int ret;
-
-    lsock_ = socket(AF_INET, SOCK_STREAM, 0);
-    if (lsock_ < 0) {
-      std::cerr << "open server socket" << std::endl;
-      throw std::runtime_error("open server socket");
-    }
-
-    optval = 1;
-    ret = setsockopt(lsock_, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
-    if (ret < 0) {
-      std::cerr << "server setsockopt()" << std::endl;
-      close(lsock_);
-      throw std::runtime_error("server setsockopt()");
-    }
-
-    inaddr.sin_family = AF_INET;
-    inaddr.sin_port = htons(port);
-    inaddr.sin_addr.s_addr = INADDR_ANY;
-    std::memset(inaddr.sin_zero, 0, sizeof(inaddr.sin_zero));
-    ret = bind(lsock_, (struct sockaddr *) &inaddr, sizeof(inaddr));
-    if (ret < 0) {
-      close(lsock_);
-      throw std::runtime_error("bind server");
-    }
-
-    ret = listen(lsock_, SOMAXCONN);
-    if (ret < 0) {
-      close(lsock_);
-      throw std::runtime_error("listen server");
-    }
-
-
-    // dsock_ = accept(lsock_, NULL, NULL);
-    // if (dsock_ < 0) {
-    //   std::cout << "accept server" << std::endl;
-    //   close(lsock_);
-    //   throw std::runtime_error("accept server");
-    // }
-
-    // close(lsock_);
-
-    // CheckError(dsock_ < 0, "server_connect");
-  }
-
-	char *get_ip_str(const struct sockaddr *sa, char *s, size_t maxlen)
-	{
-			switch(sa->sa_family) {
-					case AF_INET:
-							inet_ntop(AF_INET, &(((struct sockaddr_in *)sa)->sin_addr),
-											s, maxlen);
-							break;
-
-					case AF_INET6:
-							inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)sa)->sin6_addr),
-											s, maxlen);
-							break;
-
-					default:
-							strncpy(s, "Unknown AF", maxlen);
-							return NULL;
-			}
-
-			return s;
-	}
-
-	bool acceptConnection() {
-		struct sockaddr address;
-    unsigned int addrlen = sizeof(address);
-    dsock_ = accept(lsock_, &address, (socklen_t*)&addrlen);
-    if (dsock_ < 0) {
-      close(lsock_);
-      throw std::runtime_error("accept server");
-    }
-
-    CheckError(dsock_ < 0, "server_connect");
-
-		char str_buffer[INET6_ADDRSTRLEN];
-		get_ip_str(&address, str_buffer, INET6_ADDRSTRLEN);
-
-		return true;
-	}
-
-	void closeCurrentConnection(){
-		if (dsock_ != -1) {
-			CheckError(close(dsock_), "close sender fd");
-			dsock_ = -1;
-		}
-	}
-
-  int fd() final { return dsock_; }
-
-private:
-  int dsock_;
-	int lsock_;
-};
-
-class AddressExchangerForReceiver : public AddressExchanger {
-public:
-  ~AddressExchangerForReceiver() {
-		CheckError(close(fd()), "close receiver");
-	}
-
-  AddressExchangerForReceiver(const std::uint16_t port, const char *hostname) {
-    struct sockaddr_in conn_addr;
-    struct hostent *he;
-    int connfd;
-    int ret;
-
-    connfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (connfd < 0) {
-      const std::string message = "open client socket";
-      throw std::runtime_error(message);
-    }
-
-    he = gethostbyname(hostname);
-    if (he == NULL || he->h_addr_list == NULL) {
-      const std::string message = "found a host";
-      close(connfd);
-      throw std::runtime_error(message);
-    }
-
-    conn_addr.sin_family = he->h_addrtype;
-    conn_addr.sin_port = htons(port);
-
-    std::memcpy(&conn_addr.sin_addr, he->h_addr_list[0], he->h_length);
-    std::memset(conn_addr.sin_zero, 0, sizeof(conn_addr.sin_zero));
-
-
-    int num_attempts = 50;
-    int attempt = 0;
-    while (attempt < num_attempts){
-        ret = connect(connfd, (struct sockaddr *) &conn_addr, sizeof(conn_addr));
-        if (ret < 0) {
-            attempt++;
-		std::this_thread::sleep_for (std::chrono::seconds(1));
-        } else {
-		break;
-	}
-	if (attempt == num_attempts){
-	      const std::string message = "could not connect to client";
-	      close(connfd);
-	      throw std::runtime_error(message);
-	}
-    }
-
-    CheckError(connfd < 0, "server_connect");
-    connfd_ = connfd;
-  }
-
-  int fd() final { return connfd_; }
-
-private:
-  int connfd_;
-};
-
-std::unique_ptr<AddressExchanger>
-AddressExchanger::MakeForSender(const std::uint16_t port) {
-  return std::make_unique<AddressExchangerForSender>(port);
-}
-
-std::unique_ptr<AddressExchanger>
-AddressExchanger::MakeForReceiver(const std::uint16_t port,
-                                  const char *hostname) {
-  return std::make_unique<AddressExchangerForReceiver>(port, hostname);
-}
-
-static void request_init(void *request)
-{
-  struct comm::ucx_request *req = (comm::ucx_request *)request;
-  req->completed = 0;
-  req->uid = -1;
-}
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-ucp_context_h CreateUcpContext() {
-  ucp_config_t *config;
-  ucs_status_t status = ucp_config_read(NULL, NULL, &config);
-  CheckError(status != UCS_OK, "ucp_config_read");
-
-  ucp_params_t ucp_params;
-  std::memset(&ucp_params, 0, sizeof(ucp_params));
-  ucp_params.field_mask = UCP_PARAM_FIELD_FEATURES |
-                          UCP_PARAM_FIELD_REQUEST_SIZE |
-                          UCP_PARAM_FIELD_REQUEST_INIT;
-  ucp_params.features = UCP_FEATURE_TAG | UCP_FEATURE_WAKEUP;
-  ucp_params.request_size = sizeof(comm::ucx_request);
-  ucp_params.request_init = request_init;
-
-  ucp_context_h ucp_context;
-  status = ucp_init(&ucp_params, config, &ucp_context);
-
-  const bool hasPrintUcpConfig = false;
-  if (hasPrintUcpConfig) {
-    ucp_config_print(config, stdout, NULL, UCS_CONFIG_PRINT_CONFIG);
-  }
-
-  ucp_config_release(config);
-  CheckError(status != UCS_OK, "ucp_init");
-
-  return ucp_context;
-}
-
-ucp_worker_h CreatetUcpWorker(ucp_context_h ucp_context) {
-  ucp_worker_params_t worker_params;
-  std::memset(&worker_params, 0, sizeof(worker_params));
-  worker_params.field_mask = UCP_WORKER_PARAM_FIELD_THREAD_MODE;
-  worker_params.thread_mode = UCS_THREAD_MODE_MULTI;  // UCS_THREAD_MODE_SINGLE;
-
-  ucp_worker_h ucp_worker;
-  ucs_status_t status =
-      ucp_worker_create(ucp_context, &worker_params, &ucp_worker);
-  CheckError(status != UCS_OK, "ucp_worker_create", [&ucp_context]() {
-    ucp_cleanup(ucp_context);
-  });
-
-  return ucp_worker;
-}
-
-UcpWorkerAddress GetUcpWorkerAddress(ucp_worker_h ucp_worker) {
-  UcpWorkerAddress ucpWorkerAddress;
-
-  ucs_status_t status = ucp_worker_get_address(
-      ucp_worker, &ucpWorkerAddress.address, &ucpWorkerAddress.length);
-  CheckError(status != UCS_OK,
-             "ucp_worker_get_address",
-             [&ucp_worker /*, &ucp_context*/]() {
-               ucp_worker_destroy(ucp_worker);
-               // ucp_cleanup(ucp_context);
-             });
-
-  return ucpWorkerAddress;
-}
-
-static class ErrorHandling {
-public:
-  ucp_err_handling_mode_t ucp_err_mode;
-  int failure;
-} err_handling_opt;
-
-static void failure_handler(void *arg, ucp_ep_h, ucs_status_t status) {
-  ucs_status_t *arg_status = static_cast<ucs_status_t *>(arg);
-  std::cout << '[' << std::hex << std::this_thread::get_id()
-            << "] failure handler called with status " << status << std::endl;
-  *arg_status = status;
-}
-
-ucp_ep_h CreateUcpEp(ucp_worker_h ucp_worker,
-                     const UcpWorkerAddress &ucpWorkerAddress) {
-  static ucs_status_t current_status = UCS_OK;
-  ucp_ep_params_t ep_params;
-  ep_params.field_mask =
-      UCP_EP_PARAM_FIELD_REMOTE_ADDRESS | UCP_EP_PARAM_FIELD_ERR_HANDLING_MODE |
-      UCP_EP_PARAM_FIELD_ERR_HANDLER | UCP_EP_PARAM_FIELD_USER_DATA;
-  ep_params.address = ucpWorkerAddress.address;
-  ep_params.err_mode = err_handling_opt.ucp_err_mode;
-  ep_params.err_handler.cb = failure_handler;
-  ep_params.err_handler.arg = NULL;
-  ep_params.user_data = &current_status;
-
-  ucp_ep_h ucp_ep;
-  ucs_status_t status = ucp_ep_create(ucp_worker, &ep_params, &ucp_ep);
-  CheckError(status != UCS_OK, "ucp_ep_create");
-
-  return ucp_ep;
-}
-
-
-
-std::mutex initialize_lock;
-bool initialized = false;
 
 //=============================================================================
 
@@ -538,7 +176,7 @@ void printLoggerHeader(const std::string pathLogger, const std::string nameLogge
         {"queries_logger",      "ral_id|query_id|start_time|plan|query"},
         {"kernels_logger",      "ral_id|query_id|kernel_id|is_kernel|kernel_type"},
         {"kernels_edges_logger","ral_id|query_id|source|sink"},
-        {"events_logger",       "ral_id|query_id|kernel_id|input_num_rows|input_num_bytes|output_num_rows|output_num_bytes|event_type|timestamp_begin|timestamp_end"},
+        {"task_logger",         "time_started|ral_id|query_id|kernel_id|duration_decaching|duration_execution|input_num_rows|input_num_bytes"},
         {"cache_events_logger", "ral_id|query_id|source|sink|num_rows|num_bytes|event_type|timestamp_begin|timestamp_end"},
         {"batch_logger",        "log_time|node_id|type|query_id|step|substep|info|duration|extra1|data1|extra2|data2"},
         {"input_comms",         "unique_id|ral_id|query_id|kernel_id|dest_ral_id|dest_ral_count|dest_cache_id|message_id|phase"},
@@ -558,6 +196,9 @@ void printLoggerHeader(const std::string pathLogger, const std::string nameLogge
     }
 }
 
+
+std::mutex initialize_lock;
+bool initialized = false;
 
 /**
 * Initializes the engine and gives us shared pointers to both our transport out cache
@@ -623,8 +264,18 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 	std::string env_cuda_device_str = env_cuda_device == nullptr ? "" : std::string(env_cuda_device);
 	initLogMsg = initLogMsg + "CUDA_VISIBLE_DEVICES is set to: " + env_cuda_device_str + ", ";
 
-	size_t buffers_size = 1048576;  // 10 MBs
-	auto iter = config_options.find("TRANSPORT_BUFFER_BYTE_SIZE");
+
+	bool require_acknowledge = false;  
+	auto iter = config_options.find("REQUIRE_ACKNOWLEDGE");
+	if (iter != config_options.end()){
+		require_acknowledge = (config_options["REQUIRE_ACKNOWLEDGE"] == "true" ||
+								config_options["REQUIRE_ACKNOWLEDGE"] == "True" ||
+								config_options["REQUIRE_ACKNOWLEDGE"] == "1" ||
+								config_options["REQUIRE_ACKNOWLEDGE"] == "TRUE" );
+	}
+
+	size_t buffers_size = 1048576;  // 1 MBs
+	iter = config_options.find("TRANSPORT_BUFFER_BYTE_SIZE");
 	if (iter != config_options.end()){
 		buffers_size = std::stoi(config_options["TRANSPORT_BUFFER_BYTE_SIZE"]);
 	}
@@ -633,20 +284,19 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 	if (iter != config_options.end()){
 		num_comm_threads = std::stoi(config_options["MAX_SEND_MESSAGE_THREADS"]);
 	}
-	int num_buffers = 100;
+	int num_buffers = 1000;
 	iter = config_options.find("TRANSPORT_POOL_NUM_BUFFERS");
 	if (iter != config_options.end()){
 		num_buffers = std::stoi(config_options["TRANSPORT_POOL_NUM_BUFFERS"]);
 	}
-	blazingdb::transport::io::setPinnedBufferProvider(buffers_size, num_buffers);
-
+	
 	//to avoid redundancy the default value or user defined value for this parameter is placed on the pyblazing side
 	assert( config_options.find("BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD") != config_options.end() );
 	float host_memory_quota = std::stof(config_options["BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD"]);
 
 	blazing_host_memory_resource::getInstance().initialize(host_memory_quota);
 
-
+	
 	// Init AWS S3 ... TODO see if we need to call shutdown and avoid leaks from s3 percy
 	BlazingContext::getInstance()->initExternalSystems();
 
@@ -675,10 +325,10 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
         enable_comms_logs = config_options["ENABLE_COMMS_LOGS"];
     }
 
-    std::string enable_caches_logs;
-    log_it = config_options.find("ENABLE_CACHES_LOGS");
+    std::string enable_task_logs;
+    log_it = config_options.find("ENABLE_TASK_LOGS");
     if (log_it != config_options.end()){
-        enable_caches_logs = config_options["ENABLE_CACHES_LOGS"];
+        enable_task_logs = config_options["ENABLE_TASK_LOGS"];
     }
 
     std::string enable_other_engine_logs;
@@ -699,8 +349,14 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 		max_size_logging = std::stoi(config_options["LOGGING_MAX_SIZE_PER_FILE"]);
 	}
 
-	if (!initialized){
+	comm::blazing_protocol protocol = comm::blazing_protocol::tcp;
+	std::string protocol_value = StringUtil::toLower(config_options["PROTOCOL"]);
+	if (protocol_value == "ucx"){
+		protocol = comm::blazing_protocol::ucx;
+	}
 
+	if (!initialized){
+		
 		// spdlog batch logger
 		spdlog::shutdown();
 
@@ -735,15 +391,16 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
             create_logger(kernelsEdgesFileName, "kernels_edges_logger", ralId, flush_level, logger_level_wanted, max_size_logging);
             printLoggerHeader(kernelsEdgesFileName, "kernels_edges_logger");
 
-            std::string kernelEventsFileName = logging_dir + "/bsql_kernel_events." + std::to_string(ralId) + ".log";
-            create_logger(kernelEventsFileName, "events_logger", ralId, flush_level, logger_level_wanted, max_size_logging);
-            printLoggerHeader(kernelEventsFileName, "events_logger");
-        }
-
-        if(enable_caches_logs=="True"){
-            std::string cacheEventsFileName = logging_dir + "/bsql_cache_events." + std::to_string(ralId) + ".log";
+			std::string cacheEventsFileName = logging_dir + "/bsql_cache_events." + std::to_string(ralId) + ".log";
             create_logger(cacheEventsFileName, "cache_events_logger", ralId, flush_level, logger_level_wanted, max_size_logging);
             printLoggerHeader(cacheEventsFileName, "cache_events_logger");
+            
+        }
+
+        if(enable_task_logs=="True"){
+            std::string tasksFileName = logging_dir + "/bsql_kernel_tasks." + std::to_string(ralId) + ".log";
+            create_logger(tasksFileName, "task_logger", ralId, flush_level, logger_level_wanted, max_size_logging);
+            printLoggerHeader(tasksFileName, "task_logger");
         }
 	} 
 
@@ -796,27 +453,22 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 
 	auto output_input_caches = std::make_pair(std::make_shared<CacheMachine>(nullptr, "messages_out", false,CACHE_LEVEL_CPU ),std::make_shared<CacheMachine>(nullptr, "messages_in", false));
 
+	ucp_context_h ucp_context = nullptr;
 	// start ucp servers
 	if(!singleNode){
 		std::map<std::string, comm::node> nodes_info_map;
 
-		comm::blazing_protocol protocol = comm::blazing_protocol::tcp;
-		std::string protocol_value = StringUtil::toLower(config_options["PROTOCOL"]);
-		if (protocol_value == "ucx"){
-			protocol = comm::blazing_protocol::ucx;
-		}
-		ucp_context_h ucp_context = nullptr;
 		ucp_worker_h self_worker = nullptr;
 		if(protocol == comm::blazing_protocol::ucx){
 			ucp_context = reinterpret_cast<ucp_context_h>(workers_ucp_info[0].context_handle);
 
-			self_worker = CreatetUcpWorker(ucp_context);
+			self_worker = ral::communication::CreatetUcpWorker(ucp_context);
 
-			UcpWorkerAddress ucpWorkerAddress = GetUcpWorkerAddress(self_worker);
+			ral::communication::UcpWorkerAddress ucpWorkerAddress = ral::communication::GetUcpWorkerAddress(self_worker);
 
-			std::map<std::string, UcpWorkerAddress> peer_addresses_map;
+			std::map<std::string, ral::communication::UcpWorkerAddress> peer_addresses_map;
 			auto th = std::thread([ralCommunicationPort, total_peers=workers_ucp_info.size(), &peer_addresses_map, worker_id, workers_ucp_info](){
-				AddressExchangerForSender exchanger(ralCommunicationPort);
+				ral::communication::AddressExchangerForSender exchanger(ralCommunicationPort);
 				for (size_t i = 0; i < total_peers; i++){
 					if(workers_ucp_info[i].worker_id == worker_id){
 						continue;
@@ -827,26 +479,26 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 						// Receive worker_id size
 						size_t worker_id_buff_size;
 						ret = recv(exchanger.fd(), &worker_id_buff_size, sizeof(size_t), MSG_WAITALL);
-						CheckError(static_cast<size_t>(ret) != sizeof(size_t), "recv worker_id_buff_size");
+						ral::communication::CheckError(static_cast<size_t>(ret) != sizeof(size_t), "recv worker_id_buff_size");
 
 						// Receive worker_id
 						std::string worker_id(worker_id_buff_size, '\0');
 						ret = recv(exchanger.fd(), &worker_id[0], worker_id.size(), MSG_WAITALL);
-						CheckError(static_cast<size_t>(ret) != worker_id.size(), "recv worker_id");
+						ral::communication::CheckError(static_cast<size_t>(ret) != worker_id.size(), "recv worker_id");
 
 						// Receive ucp_worker_address size
 						size_t ucp_worker_address_size;
 						ret = recv(exchanger.fd(), &ucp_worker_address_size, sizeof(size_t), MSG_WAITALL);
-						CheckError(static_cast<size_t>(ret) != sizeof(size_t), "recv ucp_worker_address_size");
+						ral::communication::CheckError(static_cast<size_t>(ret) != sizeof(size_t), "recv ucp_worker_address_size");
 
 						// Receive ucp_worker_address
 						std::uint8_t *data = new std::uint8_t[ucp_worker_address_size];
-						UcpWorkerAddress peerUcpWorkerAddress{
+						ral::communication::UcpWorkerAddress peerUcpWorkerAddress{
 								reinterpret_cast<ucp_address_t *>(data),
 								ucp_worker_address_size};
 
 						ret = recv(exchanger.fd(), peerUcpWorkerAddress.address, ucp_worker_address_size, MSG_WAITALL);
-						CheckError(static_cast<size_t>(ret) != ucp_worker_address_size, "recv ucp_worker_address");
+						ral::communication::CheckError(static_cast<size_t>(ret) != ucp_worker_address_size, "recv ucp_worker_address");
 
 						peer_addresses_map.emplace(worker_id, peerUcpWorkerAddress);
 
@@ -860,25 +512,25 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 				if(worker_info.worker_id == worker_id){
 					continue;
 				}
-				AddressExchangerForReceiver exchanger(worker_info.port, worker_info.ip.c_str());
+				ral::communication::AddressExchangerForReceiver exchanger(worker_info.port, worker_info.ip.c_str());
 				int ret;
 
 				// Send worker_id size
 				size_t worker_id_buff_size = worker_id.size();
 				ret = send(exchanger.fd(), &worker_id_buff_size, sizeof(size_t), 0);
-				CheckError(static_cast<size_t>(ret) != sizeof(size_t), "send worker_id_buff_size");
+				ral::communication::CheckError(static_cast<size_t>(ret) != sizeof(size_t), "send worker_id_buff_size");
 
 				// Send worker_id
 				ret = send(exchanger.fd(), worker_id.data(), worker_id.size(), 0);
-				CheckError(static_cast<size_t>(ret) != worker_id.size(), "send worker_id");
+				ral::communication::CheckError(static_cast<size_t>(ret) != worker_id.size(), "send worker_id");
 
 				// Send ucp_worker_address size
 				ret = send(exchanger.fd(), &ucpWorkerAddress.length, sizeof(size_t), 0);
-				CheckError(static_cast<size_t>(ret) != sizeof(size_t), "send ucp_worker_address_size");
+				ral::communication::CheckError(static_cast<size_t>(ret) != sizeof(size_t), "send ucp_worker_address_size");
 
 				// Send ucp_worker_address
 				ret = send(exchanger.fd(), ucpWorkerAddress.address, ucpWorkerAddress.length, 0);
-				CheckError(static_cast<size_t>(ret) != ucpWorkerAddress.length, "send ucp_worker_address");
+				ral::communication::CheckError(static_cast<size_t>(ret) != ucpWorkerAddress.length, "send ucp_worker_address");
 			}
 
 			th.join();
@@ -887,8 +539,8 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 				if(worker_info.worker_id == worker_id){
 					continue;
 				}
-				UcpWorkerAddress peerUcpWorkerAddress = peer_addresses_map[worker_info.worker_id];
-				ucp_ep_h ucp_ep = CreateUcpEp(self_worker, peerUcpWorkerAddress);
+				ral::communication::UcpWorkerAddress peerUcpWorkerAddress = peer_addresses_map[worker_info.worker_id];
+				ucp_ep_h ucp_ep = ral::communication::CreateUcpEp(self_worker, peerUcpWorkerAddress);
 
 				// std::cout << '[' << std::hex << std::this_thread::get_id()
 				// 					<< "] local: " << std::hex
@@ -904,8 +556,9 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 			}
 
 			comm::ucx_message_listener::initialize_message_listener(
-				ucp_context, self_worker,nodes_info_map,20);
+				ucp_context, self_worker,nodes_info_map,20, output_input_caches.second);
 			comm::ucx_message_listener::get_instance()->poll_begin_message_tag(true);
+			output_input_caches.second = comm::ucx_message_listener::get_instance()->get_input_cache();
 
 		}else{
 
@@ -918,18 +571,22 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 				nodes_info_map.emplace(worker_info.worker_id, comm::node(ralId, worker_info.worker_id, worker_info.ip, worker_info.port));
 			}
 
-			comm::tcp_message_listener::initialize_message_listener(nodes_info_map,ralCommunicationPort,num_comm_threads);
+			comm::tcp_message_listener::initialize_message_listener(nodes_info_map,ralCommunicationPort,num_comm_threads, output_input_caches.second);
 			comm::tcp_message_listener::get_instance()->start_polling();
 			ralCommunicationPort = comm::tcp_message_listener::get_instance()->get_port(); // if the listener was already initialized, we want to get the port that was originally set and send that back to python side
+			output_input_caches.second = comm::tcp_message_listener::get_instance()->get_input_cache();
 		}
-		comm::message_sender::initialize_instance(output_input_caches.first, output_input_caches.second,
+		comm::message_sender::initialize_instance(output_input_caches.first,
 			nodes_info_map,
-			num_comm_threads, ucp_context, self_worker, ralId,protocol);
+			num_comm_threads, ucp_context, self_worker, ralId,protocol,require_acknowledge);
 		comm::message_sender::get_instance()->run_polling();
 
-		output_input_caches.first = comm::message_sender::get_instance()->get_output_cache();
-		output_input_caches.second = comm::message_sender::get_instance()->get_input_cache();
+		output_input_caches.first = comm::message_sender::get_instance()->get_output_cache();		
 	}
+
+	bool map_ucx = protocol == comm::blazing_protocol::ucx;
+	ral::memory::set_allocation_pools(buffers_size, num_buffers,
+										buffers_size, num_buffers, map_ucx, ucp_context);
 
 	double processing_memory_limit_threshold = 0.9;
 	config_it = config_options.find("BLAZING_PROCESSING_DEVICE_MEM_CONSUMPTION_THRESHOLD");

@@ -12,12 +12,15 @@
 - #1289 Multiple concurrent query support 
 - #1285 Infer PROTOCOL when Dask client is passed
 - #1294 Add config options for logger
+- #1301 Added usage of pinned buffers for communication and fixes various UCX related bugs
 - #1298 Implement progress bar for run query (using tqdm)
 - #1284 Initial support for Windows Function
 - #1303 Add support for INITCAP
+- #1313 getting and using ORC metadata
 
 
 ## Improvements
+- #1293 Added optional acknowledgments to message sending
 - #1236 Moving code from header files to implementation files
 - #1257 Expose the reset max memory usage C++ API to python
 - #1256 Improve Logical project documentation
@@ -31,6 +34,9 @@
 - #1286 Fixes to initialization and adding unique ids to comms
 - #1255 Kernels are resilient to out of memory errors now and can retry tasks that fail this way
 - #1311 Add queries logger to physical plan
+- #1308 Improve the engine loggers
+- #1314 Added unit tests to verify that OOM error handling works well
+
 
 ## Bug Fixes
 - #1249 Fix compilation with cuda 11
@@ -41,6 +47,7 @@
 - #1275 Fixed issue in StringUtil::findAndReplaceAll when there are several matches
 - #1277 Support FileSystems (GS, S3) when extension of the files are not provided
 - #1300 Fixed issue when creating tables from a local dir relative path
+- #1312 Fix progress bar for jupyterlab
 
 
 # BlazingSQL 0.17.0 (December 10, 2020)

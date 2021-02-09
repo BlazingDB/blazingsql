@@ -7,11 +7,27 @@
 #include <src/utilities/DebuggingUtils.h>
 
 #include <cudf_test/column_wrapper.hpp>
+#include <cudf_test/table_utilities.hpp>
+#include <cudf_test/column_utilities.hpp>
+#include "bmr/BufferProvider.h"
 
 using blazingdb::manager::Context;
 using blazingdb::transport::Node;
 
-struct CacheMachineTest : public BlazingUnitTest {};
+struct CacheMachineTest : public BlazingUnitTest {
+
+	CacheMachineTest(){
+
+		ral::memory::set_allocation_pools(4000000, 10,
+										4000000, 10, false,nullptr);
+
+		blazing_host_memory_resource::getInstance().initialize(0.5);
+	}
+	~CacheMachineTest(){
+		ral::memory::empty_pools();
+	}
+
+};
 
 template<class TypeParam>
 std::unique_ptr<cudf::column> make_col(cudf::size_type size) {
@@ -79,5 +95,35 @@ TEST_F(CacheMachineTest, CacheMachineTest) {
 			auto cacheTable = cacheMachine.pullFromCache();
 		}
 	}
+	std::this_thread::sleep_for(std::chrono::seconds(1));
+}
+
+
+TEST_F(CacheMachineTest, CPUCacheMachineTest) {
+	std::vector<Node> nodes;
+	Node master_node;
+	std::string logicalPlan;
+	std::map<std::string, std::string> config_options;
+	int cache_level_override = 1;
+	std::shared_ptr<Context> context = std::make_shared<Context>(0, nodes, master_node, logicalPlan, config_options);
+
+
+	
+	ral::cache::CacheMachine cacheMachine(context,"",true,cache_level_override);
+
+	//add tables
+	for(int i = 0; i < 10; ++i) {
+		auto table = build_custom_table();
+
+		cacheMachine.addToCache(std::move(table));
+	}
+	auto compare_table = build_custom_table();
+
+	for(int i = 0; i < 10; ++i) {
+		auto cacheTable = cacheMachine.pullFromCache();
+		cudf::test::expect_tables_equivalent(compare_table->view(), cacheTable->view());						
+	}
+
+
 	std::this_thread::sleep_for(std::chrono::seconds(1));
 }

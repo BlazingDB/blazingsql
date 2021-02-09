@@ -55,8 +55,13 @@ std::shared_ptr<ral::cache::graph> generate_graph(std::vector<ral::io::data_load
 		std::string tables_info = "";
 		for (size_t i = 0; i < table_names.size(); i++){
 			int num_files = schemas[i].get_files().size();
+			int num_rowgroups = schemas[i].get_total_num_rowgroups();
 			if (num_files > 0){
-				tables_info += "Table " + table_names[i] + ": num files = " + std::to_string(num_files) + "; ";
+				if (num_rowgroups > 0){
+					tables_info += "Table " + table_names[i] + ": num files = " + std::to_string(num_files) + "; " + ": num rowgroups = " + std::to_string(num_rowgroups);
+				} else {
+					tables_info += "Table " + table_names[i] + ": num files = " + std::to_string(num_files) + "; ";
+				}				
 			} else {
 				int num_partitions = input_loaders[i].get_provider()->get_num_handles();
 				if (num_partitions > 0){

@@ -75,7 +75,7 @@ void process_minmax_metadata(){
     for (size_t index = 0; index < 	minmax_metadata_table.size(); index++) {
         auto vector = minmax_metadata_table[index];
         std::basic_string<char> content = get_typed_vector_content(dtype.id(), vector);
-        auto column = make_cudf_column_from(dtype, content, total_num_row_groups);
+        auto column = make_cudf_column_from_vector(dtype, content, total_num_row_groups);
         cudf::test::expect_columns_equal(column->view(), in_table_view.column(index));
     }
 }
