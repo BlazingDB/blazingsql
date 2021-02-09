@@ -1162,11 +1162,11 @@ protected:
 	/// This variable is to keep track of if anything has been added to the cache. Its useful to keep from adding empty tables to the cache, where we might want an empty table at least to know the schema
 	bool something_added;
 	std::shared_ptr<Context> ctx;
-	std::shared_ptr<spdlog::logger> logger;
-	std::shared_ptr<spdlog::logger> cache_events_logger;
 	const std::size_t cache_id;
 	int cache_level_override;
 	std::string cache_machine_name;
+    std::shared_ptr<spdlog::logger> logger;
+	std::shared_ptr<spdlog::logger> cache_events_logger;
 };
 
 /**

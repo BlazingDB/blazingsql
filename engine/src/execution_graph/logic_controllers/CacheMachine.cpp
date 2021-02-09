@@ -38,43 +38,58 @@ std::unique_ptr<CacheData> CacheData::downgradeCacheData(std::unique_ptr<CacheDa
 	if (cacheData->get_type() != ral::cache::CacheDataType::GPU){
 		return cacheData;
 	} else {
+        CodeTimer cacheEventTimer(false);
+        cacheEventTimer.start();
+
 		std::unique_ptr<ral::frame::BlazingTable> table = cacheData->decache();
 
-        std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
+        std::shared_ptr<spdlog::logger> cache_events_logger = spdlog::get("cache_events_logger");
 
 		// lets first try to put it into CPU
 		if (blazing_host_memory_resource::getInstance().get_memory_used() + table->sizeInBytes() <
 				blazing_host_memory_resource::getInstance().get_memory_limit()){
-			
-			//TODO DFR
-			// remember to replace this one too
-			if(logger) {
-				logger->trace("{query_id}|{step}|{substep}|{info}||kernel_id|{kernel_id}|rows|{rows}",
-					"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
-					"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
-					"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-					"info"_a="Downgraded CacheData to CPU cache",
-					"kernel_id"_a=id,
-					"rows"_a=table->num_rows());
-			}
-			return std::make_unique<CPUCacheData>(std::move(table));
+
+            auto CPUCache = std::make_unique<CPUCacheData>(std::move(table));
+
+		    cacheEventTimer.stop();
+            if(cache_events_logger) {
+            			cache_events_logger->info("{ral_id}|{query_id}|{source}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+                        "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                        "query_id"_a=ctx->getContextToken(),
+                        "source"_a=cacheData->get_type(),
+                        "cache_id"_a=id,
+                        "num_rows"_a=table->num_rows(),
+                        "num_bytes"_a=CPUCache->sizeInBytes(),
+                        "event_type"_a="Downgraded CacheData to CPU cache",
+                        "timestamp_begin"_a=cacheEventTimer.start_time(),
+                        "timestamp_end"_a=cacheEventTimer.end_time());
+        			}
+
+			return CPUCache;
 		
 		} else {
 			// want to get only cache directory where orc files should be saved
 			std::string orc_files_path = ral::communication::CommunicationData::getInstance().get_cache_directory();
-			//TODO DFR
-			// remember to replace this one too
-			if(logger) {
-				logger->trace("{query_id}|{step}|{substep}|{info}||kernel_id|{kernel_id}|rows|{rows}",
-					"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
-					"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
-					"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-					"info"_a="Downgraded CacheData to Disk cache to path: " + orc_files_path,
-					"kernel_id"_a=id,
-					"rows"_a=table->num_rows());
-			}
 
-			return std::make_unique<CacheDataLocalFile>(std::move(table), orc_files_path, (ctx ? std::to_string(ctx->getContextToken()) : "none"));
+            auto localCache = std::make_unique<CacheDataLocalFile>(std::move(table), orc_files_path,
+                                                                   (ctx ? std::to_string(ctx->getContextToken())
+                                                                        : "none"));
+
+            cacheEventTimer.stop();
+            if(cache_events_logger) {
+                cache_events_logger->info("{ral_id}|{query_id}|{source}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+                                          "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                                          "query_id"_a=ctx->getContextToken(),
+                                          "source"_a=cacheData->get_type(),
+                                          "cache_id"_a=id,
+                                          "num_rows"_a=table->num_rows(),
+                                          "num_bytes"_a=localCache->sizeInBytes(),
+                                          "event_type"_a="Downgraded CacheData to Disk cache to path: " + orc_files_path,
+                                          "timestamp_begin"_a=cacheEventTimer.start_time(),
+                                          "timestamp_end"_a=cacheEventTimer.end_time());
+            }
+
+			return localCache;
 		}
 	}	
 }
@@ -251,8 +266,10 @@ std::unique_ptr<GPUCacheDataMetaData> cast_cache_data_to_gpu_with_meta(std::uniq
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CacheMachine::CacheMachine(std::shared_ptr<Context> context, std::string cache_machine_name, bool log_timeout, int cache_level_override): 
-	ctx(context), cache_id(CacheMachine::cache_count), cache_machine_name(cache_machine_name), cache_level_override(cache_level_override)
+CacheMachine::CacheMachine(std::shared_ptr<Context> context, std::string cache_machine_name, bool log_timeout, int cache_level_override):
+        ctx(context), cache_id(CacheMachine::cache_count), cache_machine_name(cache_machine_name),
+        cache_level_override(cache_level_override),
+        cache_events_logger(spdlog::get("cache_events_logger")), logger(spdlog::get("batch_logger"))
 {
 	CacheMachine::cache_count++;
 
@@ -263,14 +280,9 @@ CacheMachine::CacheMachine(std::shared_ptr<Context> context, std::string cache_m
 	this->num_bytes_added = 0;
 	this->num_rows_added = 0;
 
-	logger = spdlog::get("batch_logger");
-	cache_events_logger = spdlog::get("cache_events_logger");
-
 	something_added = false;
 
-	std::shared_ptr<spdlog::logger> kernels_logger;
-	kernels_logger = spdlog::get("kernels_logger");
-
+	std::shared_ptr<spdlog::logger> kernels_logger = spdlog::get("kernels_logger");
 	if(kernels_logger) {
 		kernels_logger->info("{ral_id}|{query_id}|{kernel_id}|{is_kernel}|{kernel_type}",
 							"ral_id"_a=(context ? context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()) : -1 ),
@@ -290,17 +302,24 @@ Context * CacheMachine::get_context() const {
 std::int32_t CacheMachine::get_id() const { return (cache_id); }
 
 void CacheMachine::finish() {
+    CodeTimer cacheEventTimer;
+    cacheEventTimer.start();
+
 	this->waitingCache->finish();
-	if(logger) {
-		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|cache_id|{cache_id}|cache_name|{cache_name}",
-									"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
-									"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
-									"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-									"info"_a="CacheMachine finish()",
-									"duration"_a="",
-									"cache_id"_a=cache_id,
-									"cache_name"_a=cache_machine_name);
-	}
+
+	cacheEventTimer.stop();
+    if(cache_events_logger) {
+        cache_events_logger->info("{ral_id}|{query_id}|{source}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+                                  "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                                  "query_id"_a=ctx->getContextToken(),
+                                  "source"_a=cache_machine_name,
+                                  "cache_id"_a=cache_id,
+                                  "num_rows"_a=num_rows_added,
+                                  "num_bytes"_a=num_bytes_added,
+                                  "event_type"_a="CacheMachine finish()",
+                                  "timestamp_begin"_a=cacheEventTimer.start_time(),
+                                  "timestamp_end"_a=cacheEventTimer.end_time());
+    }
 }
 
 bool CacheMachine::is_finished() {
@@ -323,16 +342,8 @@ bool CacheMachine::addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTa
 
 	// we dont want to add empty tables to a cache, unless we have never added anything
 	if (!this->something_added || host_table->num_rows() > 0){
-		if(logger) {
-			logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
-									"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
-									"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
-									"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-									"info"_a="Add to CacheMachine",
-									"duration"_a="",
-									"kernel_id"_a=message_id,
-									"rows"_a=host_table->num_rows());
-		}
+        CodeTimer cacheEventTimer;
+        cacheEventTimer.start();
 
 		num_rows_added += host_table->num_rows();
 		num_bytes_added += host_table->sizeInBytes();
@@ -346,6 +357,20 @@ bool CacheMachine::addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTa
 		this->waitingCache->put(std::move(item));
 		this->something_added = true;
 
+        cacheEventTimer.stop();
+        if(cache_events_logger) {
+            cache_events_logger->info("{ral_id}|{query_id}|{source}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+                                      "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                                      "query_id"_a=ctx->getContextToken(),
+                                      "source"_a=cache_machine_name,
+                                      "cache_id"_a=cache_id,
+                                      "num_rows"_a=num_rows_added,
+                                      "num_bytes"_a=num_bytes_added,
+                                      "event_type"_a="Add to CacheMachine",
+                                      "timestamp_begin"_a=cacheEventTimer.start_time(),
+                                      "timestamp_end"_a=cacheEventTimer.end_time());
+        }
+
 		return true;
 	}
 
@@ -357,12 +382,31 @@ void CacheMachine::put(size_t index, std::unique_ptr<ral::frame::BlazingTable> t
 }
 
 void CacheMachine::clear() {
+	CodeTimer cacheEventTimer;
+    cacheEventTimer.start();
+
 	auto messages = this->waitingCache->get_all();
 	this->waitingCache->finish();
+
+    cacheEventTimer.stop();
+    if(cache_events_logger) {
+        cache_events_logger->info("{ral_id}|{query_id}|{source}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+                                  "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                                  "query_id"_a=ctx->getContextToken(),
+                                  "source"_a=cache_machine_name,
+                                  "cache_id"_a=cache_id,
+                                  "num_rows"_a=num_rows_added,
+                                  "num_bytes"_a=num_bytes_added,
+                                  "event_type"_a="clear CacheMachine",
+                                  "timestamp_begin"_a=cacheEventTimer.start_time(),
+                                  "timestamp_end"_a=cacheEventTimer.end_time());
+    }
 }
 
 
 std::vector<std::unique_ptr<ral::cache::CacheData> > CacheMachine::pull_all_cache_data(){
+    CodeTimer cacheEventTimer;
+    cacheEventTimer.start();
 
 	auto messages = this->waitingCache->get_all();
 	std::vector<std::unique_ptr<ral::cache::CacheData> > new_messages(messages.size());
@@ -371,6 +415,21 @@ std::vector<std::unique_ptr<ral::cache::CacheData> > CacheMachine::pull_all_cach
 		new_messages[i] = message_data->release_data();
 		i++;
 	}
+
+    cacheEventTimer.stop();
+    if(cache_events_logger) {
+        cache_events_logger->info("{ral_id}|{query_id}|{source}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+                                  "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                                  "query_id"_a=ctx->getContextToken(),
+                                  "source"_a=cache_machine_name,
+                                  "cache_id"_a=cache_id,
+                                  "num_rows"_a=num_rows_added,
+                                  "num_bytes"_a=num_bytes_added,
+                                  "event_type"_a="Pull all cache data",
+                                  "timestamp_begin"_a=cacheEventTimer.start_time(),
+                                  "timestamp_end"_a=cacheEventTimer.end_time());
+    }
+
 	return std::move(new_messages);
 }
 
@@ -387,6 +446,8 @@ std::vector<size_t> CacheMachine::get_all_indexes() {
 }
 
 bool CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, std::string message_id, bool always_add){
+    CodeTimer cacheEventTimer;
+    cacheEventTimer.start();
 
 	// we dont want to add empty tables to a cache, unless we have never added anything
 	if ((!this->something_added || cache_data->num_rows() > 0) || always_add){
@@ -407,51 +468,59 @@ bool CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_dat
 		}
 
 		if(cacheIndex == 0) {
-			if(logger){
-				logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
-					"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
-					"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
-					"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-					"info"_a="Add to CacheMachine general CacheData object into GPU cache ",
-					"duration"_a="",
-					"kernel_id"_a=message_id,
-					"rows"_a=cache_data->num_rows());
-
-			}
-
 			auto item = std::make_unique<message>(std::move(cache_data), message_id);
 			this->waitingCache->put(std::move(item));
+
+            cacheEventTimer.stop();
+            if(cache_events_logger) {
+                cache_events_logger->info("{ral_id}|{query_id}|{source}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+                                          "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                                          "query_id"_a=ctx->getContextToken(),
+                                          "source"_a=message_id,
+                                          "cache_id"_a=cache_id,
+                                          "num_rows"_a=cache_data->num_rows(),
+                                          "num_bytes"_a=cache_data->sizeInBytes(),
+                                          "event_type"_a="Add to CacheMachine general CacheData object into GPU cache",
+                                          "timestamp_begin"_a=cacheEventTimer.start_time(),
+                                          "timestamp_end"_a=cacheEventTimer.end_time());
+            }
 		} else if(cacheIndex == 1) {
-			if(logger){
-
-				logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
-					"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
-					"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
-					"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-					"info"_a="Add to CacheMachine general CacheData object into CPU cache ",
-					"duration"_a="",
-					"kernel_id"_a=message_id,
-					"rows"_a=cache_data->num_rows());
-			}
 			auto item = std::make_unique<message>(std::move(cache_data), message_id);
 			this->waitingCache->put(std::move(item));
-		} else if(cacheIndex == 2) {
-			if(logger){
 
-				logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
-					"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
-					"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
-					"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-					"info"_a="Add to CacheMachine general CacheData object into Disk cache ",
-					"duration"_a="",
-					"kernel_id"_a=message_id,
-					"rows"_a=cache_data->num_rows());
-			}
+            cacheEventTimer.stop();
+            if(cache_events_logger) {
+                cache_events_logger->info("{ral_id}|{query_id}|{source}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+                                          "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                                          "query_id"_a=ctx->getContextToken(),
+                                          "source"_a=message_id,
+                                          "cache_id"_a=cache_id,
+                                          "num_rows"_a=cache_data->num_rows(),
+                                          "num_bytes"_a=cache_data->sizeInBytes(),
+                                          "event_type"_a="Add to CacheMachine general CacheData object into CPU cache",
+                                          "timestamp_begin"_a=cacheEventTimer.start_time(),
+                                          "timestamp_end"_a=cacheEventTimer.end_time());
+            }
+		} else if(cacheIndex == 2) {
 			// BlazingMutableThread t([cache_data = std::move(cache_data), this, cacheIndex, message_id]() mutable {
 			auto item = std::make_unique<message>(std::move(cache_data), message_id);
 			this->waitingCache->put(std::move(item));
 			// NOTE: Wait don't kill the main process until the last thread is finished!
 			// }); t.detach();
+
+            cacheEventTimer.stop();
+            if(cache_events_logger) {
+                cache_events_logger->info("{ral_id}|{query_id}|{source}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+                                          "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                                          "query_id"_a=ctx->getContextToken(),
+                                          "source"_a=message_id,
+                                          "cache_id"_a=cache_id,
+                                          "num_rows"_a=cache_data->num_rows(),
+                                          "num_bytes"_a=cache_data->sizeInBytes(),
+                                          "event_type"_a="Add to CacheMachine general CacheData object into Disk cache",
+                                          "timestamp_begin"_a=cacheEventTimer.start_time(),
+                                          "timestamp_end"_a=cacheEventTimer.end_time());
+            }
 		}
 		this->something_added = true;
 
@@ -462,6 +531,9 @@ bool CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_dat
 }
 
 bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, std::string message_id, bool always_add,const MetadataDictionary & metadata , bool include_meta) {
+    CodeTimer cacheEventTimer;
+    cacheEventTimer.start();
+
 	// we dont want to add empty tables to a cache, unless we have never added anything
 	if (!this->something_added || table->num_rows() > 0 || always_add){
 		for (auto col_ind = 0; col_ind < table->num_columns(); col_ind++){
@@ -490,34 +562,6 @@ bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, s
 					cacheIndex = cache_level_override;
 				}
 				if(cacheIndex == 0) {
-					// TODO DFR
-       				// replace usage of batch_logger (logger) with cache_events_logger
-					// we want to change all add and removal and downgrade from batch_logger to cache_events_logger
-					if(logger) {
-						logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
-							"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
-							"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
-							"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-							"info"_a="Add to CacheMachine into GPU cache",
-							"duration"_a="",
-							"kernel_id"_a=message_id,
-							"rows"_a=table->num_rows());
-					}
-					// TODO DFR
-					// we want to replace usages of batch_logger with cache_events_logger kind of like this
-					// note that you will have to update the variables and add the timers correctly
-					if(cache_events_logger) {
-            			cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-                        "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-                        "query_id"_a=ctx->getContextToken(),
-                        "cache_id"_a=this->get_id(),
-                        "num_rows"_a=num_rows,
-                        "num_bytes"_a=num_bytes,
-                        "event_type"_a="addToCache",
-                        "timestamp_begin"_a=cacheEventTimer.start_time(),
-                        "timestamp_end"_a=cacheEventTimer.end_time());
-        			}
-
 					// before we put into a cache, we need to make sure we fully own the table
 					table->ensureOwnership();
 					std::unique_ptr<CacheData> cache_data;
@@ -529,19 +573,22 @@ bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, s
 					auto item =	std::make_unique<message>(std::move(cache_data), message_id);
 					this->waitingCache->put(std::move(item));
 
+                    cacheEventTimer.stop();
+                    if(cache_events_logger) {
+                        cache_events_logger->info("{ral_id}|{query_id}|{source}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+                                                  "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                                                  "query_id"_a=ctx->getContextToken(),
+                                                  "source"_a=message_id,
+                                                  "cache_id"_a=cache_id,
+                                                  "num_rows"_a=num_rows_added,
+                                                  "num_bytes"_a=num_bytes_added,
+                                                  "event_type"_a="Add to CacheMachine into GPU cache",
+                                                  "timestamp_begin"_a=cacheEventTimer.start_time(),
+                                                  "timestamp_end"_a=cacheEventTimer.end_time());
+                    }
+
 				} else {
 					if(cacheIndex == 1) {
-						if(logger) {
-							logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
-								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
-								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
-								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-								"info"_a="Add to CacheMachine into CPU cache",
-								"duration"_a="",
-								"kernel_id"_a=message_id,
-								"rows"_a=table->num_rows());
-						}
-
 						std::unique_ptr<CacheData> cache_data;
 						if(include_meta){
 							cache_data = std::make_unique<CPUCacheData>(std::move(table),metadata);
@@ -551,18 +598,22 @@ bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, s
 							
 						auto item =	std::make_unique<message>(std::move(cache_data), message_id);
 						this->waitingCache->put(std::move(item));
-					} else if(cacheIndex == 2) {
-						if(logger) {
-							logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
-								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
-								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
-								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-								"info"_a="Add to CacheMachine into Disk cache",
-								"duration"_a="",
-								"kernel_id"_a=message_id,
-								"rows"_a=table->num_rows());
-						}
 
+                        cacheEventTimer.stop();
+                        if(cache_events_logger) {
+                            cache_events_logger->info("{ral_id}|{query_id}|{source}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+                                                      "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                                                      "query_id"_a=ctx->getContextToken(),
+                                                      "source"_a=message_id,
+                                                      "cache_id"_a=cache_id,
+                                                      "num_rows"_a=num_rows_added,
+                                                      "num_bytes"_a=num_bytes_added,
+                                                      "event_type"_a="Add to CacheMachine into CPU cache",
+                                                      "timestamp_begin"_a=cacheEventTimer.start_time(),
+                                                      "timestamp_end"_a=cacheEventTimer.end_time());
+                        }
+
+					} else if(cacheIndex == 2) {
 						// BlazingMutableThread t([table = std::move(table), this, cacheIndex, message_id]() mutable {
 						// want to get only cache directory where orc files should be saved
 						std::string orc_files_path = ral::communication::CommunicationData::getInstance().get_cache_directory();
@@ -571,6 +622,20 @@ bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, s
 						this->waitingCache->put(std::move(item));
 						// NOTE: Wait don't kill the main process until the last thread is finished!
 						// });t.detach();
+
+                        cacheEventTimer.stop();
+                        if(cache_events_logger) {
+                            cache_events_logger->info("{ral_id}|{query_id}|{source}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+                                                      "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                                                      "query_id"_a=ctx->getContextToken(),
+                                                      "source"_a=message_id,
+                                                      "cache_id"_a=cache_id,
+                                                      "num_rows"_a=num_rows_added,
+                                                      "num_bytes"_a=num_bytes_added,
+                                                      "event_type"_a="Add to CacheMachine into Disk cache",
+                                                      "timestamp_begin"_a=cacheEventTimer.start_time(),
+                                                      "timestamp_end"_a=cacheEventTimer.end_time());
+                        }
 					}
 				}
 				break;
@@ -591,88 +656,116 @@ void CacheMachine::wait_until_finished() {
 
 
 std::unique_ptr<ral::frame::BlazingTable> CacheMachine::get_or_wait(size_t index) {
+    CodeTimer cacheEventTimer;
+    cacheEventTimer.start();
+
 	std::unique_ptr<message> message_data = waitingCache->get_or_wait(this->cache_machine_name + "_" + std::to_string(index));
 	if (message_data == nullptr) {
 		return nullptr;
 	}
-	if (logger){
-		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
-								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
-								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
-								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-								"info"_a="CacheMachine::get_or_wait pulling from cache ",
-								"duration"_a="",
-								"kernel_id"_a=message_data->get_message_id(),
-								"rows"_a=message_data->get_data().num_rows());
-	}		
+    std::unique_ptr<ral::frame::BlazingTable> output = message_data->get_data().decache();
 
-	std::unique_ptr<ral::frame::BlazingTable> output = message_data->get_data().decache();
+    cacheEventTimer.stop();
+    if(cache_events_logger) {
+        cache_events_logger->info("{ral_id}|{query_id}|{source}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+                                  "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                                  "query_id"_a=ctx->getContextToken(),
+                                  "source"_a=message_data->get_message_id(),
+                                  "cache_id"_a=cache_id,
+                                  "num_rows"_a=message_data->get_data().num_rows(),
+                                  "num_bytes"_a=message_data->get_data().sizeInBytes(),
+                                  "event_type"_a="CacheMachine::get_or_wait pulling from cache ",
+                                  "timestamp_begin"_a=cacheEventTimer.start_time(),
+                                  "timestamp_end"_a=cacheEventTimer.end_time());
+    }
+
 	return std::move(output);
 }
 
 std::unique_ptr<ral::cache::CacheData>  CacheMachine::get_or_wait_CacheData(size_t index) {
+    CodeTimer cacheEventTimer;
+    cacheEventTimer.start();
+
 	std::unique_ptr<message> message_data = waitingCache->get_or_wait(this->cache_machine_name + "_" + std::to_string(index));
 	if (message_data == nullptr) {
 		return nullptr;
 	}
-	if (logger){
-		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
-								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
-								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
-								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-								"info"_a="CacheMachine::get_or_wait pulling CacheData from cache ",
-								"duration"_a="",
-								"kernel_id"_a=message_data->get_message_id(),
-								"rows"_a=message_data->get_data().num_rows());
-	}		
-
 	std::unique_ptr<ral::cache::CacheData> output = message_data->release_data();
+
+    cacheEventTimer.stop();
+    if(cache_events_logger) {
+        cache_events_logger->info("{ral_id}|{query_id}|{source}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+                                  "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                                  "query_id"_a=ctx->getContextToken(),
+                                  "source"_a=message_data->get_message_id(),
+                                  "cache_id"_a=cache_id,
+                                  "num_rows"_a=message_data->get_data().num_rows(),
+                                  "num_bytes"_a=message_data->get_data().sizeInBytes(),
+                                  "event_type"_a="CacheMachine::get_or_wait pulling CacheData from cache",
+                                  "timestamp_begin"_a=cacheEventTimer.start_time(),
+                                  "timestamp_end"_a=cacheEventTimer.end_time());
+    }
+
 	return std::move(output);
 }
 
 std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullFromCache() {
+    CodeTimer cacheEventTimer;
+    cacheEventTimer.start();
+
 	std::unique_ptr<message> message_data = waitingCache->pop_or_wait();
 	if (message_data == nullptr) {
 		return nullptr;
 	}
-
-	if(logger) {
-		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
-								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
-								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
-								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-								"info"_a="Pull from CacheMachine type {}"_format(static_cast<int>(message_data->get_data().get_type())),
-								"duration"_a="",
-								"kernel_id"_a=message_data->get_message_id(),
-								"rows"_a=message_data->get_data().num_rows());
-	}
-
 	std::unique_ptr<ral::frame::BlazingTable> output = message_data->get_data().decache();
-	return std::move(output);
+
+    cacheEventTimer.stop();
+    if(cache_events_logger) {
+        cache_events_logger->info("{ral_id}|{query_id}|{source}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+                                  "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                                  "query_id"_a=ctx->getContextToken(),
+                                  "source"_a=message_data->get_message_id(),
+                                  "cache_id"_a=cache_id,
+                                  "num_rows"_a=message_data->get_data().num_rows(),
+                                  "num_bytes"_a=message_data->get_data().sizeInBytes(),
+                                  "event_type"_a="Pull from CacheMachine type {}"_format(static_cast<int>(message_data->get_data().get_type())),
+                                  "timestamp_begin"_a=cacheEventTimer.start_time(),
+                                  "timestamp_end"_a=cacheEventTimer.end_time());
+    }
+
+	return output;
 }
 
 
 std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData(std::string message_id) {
+    CodeTimer cacheEventTimer;
+    cacheEventTimer.start();
+
 	std::unique_ptr<message> message_data = waitingCache->get_or_wait(message_id);
 	if (message_data == nullptr) {
 		return nullptr;
 	}
-
-	if(logger) {
-		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
-								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
-								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
-								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-								"info"_a="Pull from CacheMachine CacheData object type {}"_format(static_cast<int>(message_data->get_data().get_type())),
-								"duration"_a="",
-								"kernel_id"_a=message_data->get_message_id(),
-								"rows"_a=message_data->get_data().num_rows());
-	}
 	std::unique_ptr<ral::cache::CacheData> output = message_data->release_data();
+
+    cacheEventTimer.stop();
+    if(cache_events_logger) {
+        cache_events_logger->info("{ral_id}|{query_id}|{source}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+                                  "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                                  "query_id"_a=ctx->getContextToken(),
+                                  "source"_a=message_data->get_message_id(),
+                                  "cache_id"_a=cache_id,
+                                  "num_rows"_a=message_data->get_data().num_rows(),
+                                  "num_bytes"_a=message_data->get_data().sizeInBytes(),
+                                  "event_type"_a="Pull from CacheMachine CacheData object type {}"_format(static_cast<int>(message_data->get_data().get_type())),
+                                  "timestamp_begin"_a=cacheEventTimer.start_time(),
+                                  "timestamp_end"_a=cacheEventTimer.end_time());
+    }
 	return std::move(output);
 }
 
 std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullUnorderedFromCache() {
+    CodeTimer cacheEventTimer;
+    cacheEventTimer.start();
 
 	std::unique_ptr<message> message_data = nullptr;
 	{ // scope for lock
@@ -689,43 +782,52 @@ std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullUnorderedFromCache()
 		this->waitingCache->put_all_unsafe(std::move(remaining_messages));
 	}
 	if (message_data){
-		if(logger) {
-			logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
-								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
-								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
-								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-								"info"_a="Pull Unordered from CacheMachine type {}"_format(static_cast<int>(message_data->get_data().get_type())),
+        std::unique_ptr<ral::frame::BlazingTable> output = message_data->get_data().decache();
 
-								"duration"_a="",
-								"kernel_id"_a=message_data->get_message_id(),
-								"rows"_a=message_data->get_data().num_rows());
-		}
+        cacheEventTimer.stop();
+        if(cache_events_logger) {
+            cache_events_logger->info("{ral_id}|{query_id}|{source}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+                                      "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                                      "query_id"_a=ctx->getContextToken(),
+                                      "source"_a=message_data->get_message_id(),
+                                      "cache_id"_a=cache_id,
+                                      "num_rows"_a=message_data->get_data().num_rows(),
+                                      "num_bytes"_a=message_data->get_data().sizeInBytes(),
+                                      "event_type"_a="Pull Unordered from CacheMachine type {}"_format(static_cast<int>(message_data->get_data().get_type())),
+                                      "timestamp_begin"_a=cacheEventTimer.start_time(),
+                                      "timestamp_end"_a=cacheEventTimer.end_time());
+        }
 
-		std::unique_ptr<ral::frame::BlazingTable> output = message_data->get_data().decache();
-		return std::move(output);
+		return output;
 	} else {
 		return pullFromCache();
 	}
 }
 
 std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData() {
+    CodeTimer cacheEventTimer;
+    cacheEventTimer.start();
+
 	std::unique_ptr<message> message_data = waitingCache->pop_or_wait();
 	if (message_data == nullptr) {
 		return nullptr;
 	}
+    std::unique_ptr<ral::cache::CacheData> output = message_data->release_data();
 
-	if(logger) {
-		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
-								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
-								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
-								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-								"info"_a="Pull from CacheMachine CacheData object type {}"_format(static_cast<int>(message_data->get_data().get_type())),
-								"duration"_a="",
-								"kernel_id"_a=message_data->get_message_id(),
-								"rows"_a=message_data->get_data().num_rows());
-	}
+    cacheEventTimer.stop();
+    if(cache_events_logger) {
+        cache_events_logger->info("{ral_id}|{query_id}|{source}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+                                  "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                                  "query_id"_a=ctx->getContextToken(),
+                                  "source"_a=message_data->get_message_id(),
+                                  "cache_id"_a=cache_id,
+                                  "num_rows"_a=message_data->get_data().num_rows(),
+                                  "num_bytes"_a=message_data->get_data().sizeInBytes(),
+                                  "event_type"_a="Pull from CacheMachine CacheData object type {}"_format(static_cast<int>(message_data->get_data().get_type())),
+                                  "timestamp_begin"_a=cacheEventTimer.start_time(),
+                                  "timestamp_end"_a=cacheEventTimer.end_time());
+    }
 
-	std::unique_ptr<ral::cache::CacheData> output = message_data->release_data();
 	return std::move(output);
 }
 
@@ -784,6 +886,8 @@ ConcatenatingCacheMachine::ConcatenatingCacheMachine(std::shared_ptr<Context> co
 
 // This method does not guarantee the relative order of the messages to be preserved
 std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCache() {
+    CodeTimer cacheEventTimerGeneral;
+    cacheEventTimerGeneral.start();
 
 	if (concat_all){
 		waitingCache->wait_until_finished();
@@ -820,20 +924,15 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 		std::vector<std::unique_ptr<ral::frame::BlazingTable>> tables_holder;
 		std::vector<ral::frame::BlazingTableView> table_views;
 		for (size_t i = 0; i < collected_messages.size(); i++){
+            CodeTimer cacheEventTimer;
+		    cacheEventTimer.start();
+
 			auto data = collected_messages[i]->release_data();
 			tables_holder.push_back(std::move(data->decache()));
 			table_views.push_back(tables_holder[i]->toBlazingTableView());
 
 			// if we dont have to concatenate all, lets make sure we are not overflowing, and if we are, lets put one back
 			if (!concat_all && ral::utilities::checkIfConcatenatingStringsWillOverflow(table_views)){
-				if(logger) {
-					logger->warn("{query_id}|{step}|{substep}|{info}|||||",
-								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
-								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
-								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-								"info"_a="In ConcatenatingCacheMachine::pullFromCache Concatenating could have caused overflow strings length. Adding cache data back");
-				}
-
 				auto cache_data = std::make_unique<GPUCacheData>(std::move(tables_holder.back()));
 				tables_holder.pop_back();
 				table_views.pop_back();
@@ -841,38 +940,67 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
 				for (; i < collected_messages.size(); i++){
 					this->waitingCache->put(std::move(collected_messages[i]));
 				}
+
+                cacheEventTimer.stop();
+                if(cache_events_logger) {
+                    cache_events_logger->warn("{ral_id}|{query_id}|{source}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+                                              "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                                              "query_id"_a=ctx->getContextToken(),
+                                              "source"_a=message_id,
+                                              "cache_id"_a=cache_id,
+                                              "num_rows"_a=num_rows,
+                                              "num_bytes"_a=total_bytes,
+                                              "event_type"_a="In ConcatenatingCacheMachine::pullFromCache Concatenating could have caused overflow strings length. Adding cache data back",
+                                              "timestamp_begin"_a=cacheEventTimer.start_time(),
+                                              "timestamp_end"_a=cacheEventTimer.end_time());
+                }
+
 				break;
 			}
 		}
 
 		if( concat_all && ral::utilities::checkIfConcatenatingStringsWillOverflow(table_views) ) { // if we have to concatenate all, then lets throw a warning if it will overflow strings
-			if(logger) {
-				logger->warn("{query_id}|{step}|{substep}|{info}|||||",
-								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
-								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
-								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-								"info"_a="In ConcatenatingCacheMachine::pullFromCache Concatenating will overflow strings length");
-			}
+            CodeTimer cacheEventTimer;
+            cacheEventTimer.start();
+            cacheEventTimer.stop();
+		    if(cache_events_logger) {
+                cache_events_logger->warn("{ral_id}|{query_id}|{source}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+                                          "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                                          "query_id"_a=ctx->getContextToken(),
+                                          "source"_a=message_id,
+                                          "cache_id"_a=cache_id,
+                                          "num_rows"_a=num_rows,
+                                          "num_bytes"_a=total_bytes,
+                                          "event_type"_a="In ConcatenatingCacheMachine::pullFromCache Concatenating will overflow strings length",
+                                          "timestamp_begin"_a=cacheEventTimer.start_time(),
+                                          "timestamp_end"_a=cacheEventTimer.end_time());
+            }
 		}
 		output = ral::utilities::concatTables(table_views);
 		num_rows = output->num_rows();
 	}
 
-	if(logger) {
-		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
-								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
-								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
-								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-								"info"_a="Pull from ConcatenatingCacheMachine",
-								"duration"_a="",
-								"kernel_id"_a=message_id,
-								"rows"_a=num_rows);
-	}
+    cacheEventTimerGeneral.stop();
+    if(cache_events_logger) {
+        cache_events_logger->trace("{ral_id}|{query_id}|{source}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+                                  "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                                  "query_id"_a=ctx->getContextToken(),
+                                  "source"_a=message_id,
+                                  "cache_id"_a=cache_id,
+                                  "num_rows"_a=num_rows,
+                                  "num_bytes"_a=total_bytes,
+                                  "event_type"_a="Pull from ConcatenatingCacheMachine",
+                                  "timestamp_begin"_a=cacheEventTimerGeneral.start_time(),
+                                  "timestamp_end"_a=cacheEventTimerGeneral.end_time());
+    }
 
 	return std::move(output);
 }
 
 std::unique_ptr<ral::cache::CacheData> ConcatenatingCacheMachine::pullCacheData() {
+    CodeTimer cacheEventTimer;
+    cacheEventTimer.start();
+
 	if (concat_all){
 		waitingCache->wait_until_finished();
 	} else {
@@ -912,16 +1040,19 @@ std::unique_ptr<ral::cache::CacheData> ConcatenatingCacheMachine::pullCacheData(
 		num_rows = output->num_rows();
 	}
 
-	if(logger) {
-		logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
-								"query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
-								"step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
-								"substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-								"info"_a="Pull cache data from ConcatenatingCacheMachine",
-								"duration"_a="",
-								"kernel_id"_a=message_id,
-								"rows"_a=num_rows);
-	}
+    cacheEventTimer.stop();
+    if(cache_events_logger) {
+        cache_events_logger->trace("{ral_id}|{query_id}|{source}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
+                                   "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                                   "query_id"_a=ctx->getContextToken(),
+                                   "source"_a=message_id,
+                                   "cache_id"_a=cache_id,
+                                   "num_rows"_a=num_rows,
+                                   "num_bytes"_a=total_bytes,
+                                   "event_type"_a="Pull cache data from ConcatenatingCacheMachine",
+                                   "timestamp_begin"_a=cacheEventTimer.start_time(),
+                                   "timestamp_end"_a=cacheEventTimer.end_time());
+    }
 
 	return std::move(output);
 }
