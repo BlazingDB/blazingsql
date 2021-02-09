@@ -174,10 +174,10 @@ bool isEmptyFile(std::ifstream& pFile)
 void printLoggerHeader(const std::string pathLogger, const std::string nameLogger){
     const std::map<std::string, std::string> headers = {
         {"queries_logger",      "ral_id|query_id|start_time|plan|query"},
-        {"kernels_logger",      "ral_id|query_id|kernel_id|is_kernel|kernel_type"},
+        {"kernels_logger",      "ral_id|query_id|kernel_id|is_kernel|kernel_type|description"},
         {"kernels_edges_logger","ral_id|query_id|source|sink"},
         {"task_logger",         "time_started|ral_id|query_id|kernel_id|duration_decaching|duration_execution|input_num_rows|input_num_bytes"},
-        {"cache_events_logger", "ral_id|query_id|source|sink|num_rows|num_bytes|event_type|timestamp_begin|timestamp_end"},
+        {"cache_events_logger", "ral_id|query_id|message_id|cache_id|num_rows|num_bytes|event_type|timestamp_begin|timestamp_end|description"},
         {"batch_logger",        "log_time|node_id|type|query_id|step|substep|info|duration|extra1|data1|extra2|data2"},
         {"input_comms",         "unique_id|ral_id|query_id|kernel_id|dest_ral_id|dest_ral_count|dest_cache_id|message_id|phase"},
         {"output_comms",        "unique_id|ral_id|query_id|kernel_id|dest_ral_id|dest_ral_count|dest_cache_id|message_id|phase"}
@@ -265,7 +265,7 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 	initLogMsg = initLogMsg + "CUDA_VISIBLE_DEVICES is set to: " + env_cuda_device_str + ", ";
 
 
-	bool require_acknowledge = false;  
+	bool require_acknowledge = false;
 	// TODO: the require acknowledge feature is currently not working, for now it is permanently disabled
 	// auto iter = config_options.find("REQUIRE_ACKNOWLEDGE");
 	// if (iter != config_options.end()){
@@ -290,14 +290,14 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 	if (iter != config_options.end()){
 		num_buffers = std::stoi(config_options["TRANSPORT_POOL_NUM_BUFFERS"]);
 	}
-	
+
 	//to avoid redundancy the default value or user defined value for this parameter is placed on the pyblazing side
 	assert( config_options.find("BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD") != config_options.end() );
 	float host_memory_quota = std::stof(config_options["BLAZ_HOST_MEM_CONSUMPTION_THRESHOLD"]);
 
 	blazing_host_memory_resource::getInstance().initialize(host_memory_quota);
 
-	
+
 	// Init AWS S3 ... TODO see if we need to call shutdown and avoid leaks from s3 percy
 	BlazingContext::getInstance()->initExternalSystems();
 
@@ -357,7 +357,7 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 	}
 
 	if (!initialized){
-		
+
 		// spdlog batch logger
 		spdlog::shutdown();
 
@@ -395,7 +395,7 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 			std::string cacheEventsFileName = logging_dir + "/bsql_cache_events." + std::to_string(ralId) + ".log";
             create_logger(cacheEventsFileName, "cache_events_logger", ralId, flush_level, logger_level_wanted, max_size_logging);
             printLoggerHeader(cacheEventsFileName, "cache_events_logger");
-            
+
         }
 
         if(enable_task_logs=="True"){
@@ -582,7 +582,7 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 			num_comm_threads, ucp_context, self_worker, ralId,protocol,require_acknowledge);
 		comm::message_sender::get_instance()->run_polling();
 
-		output_input_caches.first = comm::message_sender::get_instance()->get_output_cache();		
+		output_input_caches.first = comm::message_sender::get_instance()->get_output_cache();
 	}
 
 	bool map_ucx = protocol == comm::blazing_protocol::ucx;

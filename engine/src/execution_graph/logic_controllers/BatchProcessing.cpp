@@ -24,38 +24,11 @@ void BatchSequence::set_source(std::shared_ptr<ral::cache::CacheMachine> cache) 
 }
 
 std::unique_ptr<ral::frame::BlazingTable> BatchSequence::next() {
-    std::shared_ptr<spdlog::logger> cache_events_logger;
-    cache_events_logger = spdlog::get("cache_events_logger");
-
-    CodeTimer cacheEventTimer;
-
-    std::unique_ptr<ral::frame::BlazingTable> output;
     if (ordered) {
-        output = cache->pullFromCache();
+        return cache->pullFromCache();
     } else {
-        output = cache->pullUnorderedFromCache();
+        return cache->pullUnorderedFromCache();
     }
-    cacheEventTimer.stop();
-
-    if(output){
-        auto num_rows = output->num_rows();
-        auto num_bytes = output->sizeInBytes();
-
-        if(cache_events_logger) {
-            cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-                        "ral_id"_a=cache->get_context()->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-                        "query_id"_a=cache->get_context()->getContextToken(),
-                        "source"_a=cache->get_id(),
-                        "sink"_a=kernel->get_id(),
-                        "num_rows"_a=num_rows,
-                        "num_bytes"_a=num_bytes,
-                        "event_type"_a="removeCache",
-                        "timestamp_begin"_a=cacheEventTimer.start_time(),
-                        "timestamp_end"_a=cacheEventTimer.end_time());
-        }
-    }
-
-    return output;
 }
 
 bool BatchSequence::wait_for_next() {
@@ -83,32 +56,7 @@ void BatchSequenceBypass::set_source(std::shared_ptr<ral::cache::CacheMachine> c
 }
 
 std::unique_ptr<ral::cache::CacheData> BatchSequenceBypass::next() {
-    std::shared_ptr<spdlog::logger> cache_events_logger;
-    cache_events_logger = spdlog::get("cache_events_logger");
-
-    CodeTimer cacheEventTimer;
-    auto output = cache->pullCacheData();
-    cacheEventTimer.stop();
-
-    if (output) {
-        auto num_rows = output->num_rows();
-        auto num_bytes = output->sizeInBytes();
-
-        if(cache_events_logger){
-            cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-                            "ral_id"_a=cache->get_context()->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-                            "query_id"_a=cache->get_context()->getContextToken(),
-                            "source"_a=cache->get_id(),
-                            "sink"_a=kernel->get_id(),
-                            "num_rows"_a=num_rows,
-                            "num_bytes"_a=num_bytes,
-                            "event_type"_a="removeCache",
-                            "timestamp_begin"_a=cacheEventTimer.start_time(),
-                            "timestamp_end"_a=cacheEventTimer.end_time());
-        }
-    }
-
-    return output;
+    return cache->pullCacheData();
 }
 
 bool BatchSequenceBypass::wait_for_next() {
@@ -471,7 +419,7 @@ ral::execution::task_result Filter::do_process(std::vector< std::unique_ptr<ral:
 
 kstatus Filter::run() {
     CodeTimer timer;
-    
+
     std::unique_ptr <ral::cache::CacheData> cache_data = this->input_cache()->pullCacheData();
     while(cache_data != nullptr){
         std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
@@ -552,29 +500,9 @@ kstatus Print::run() {
 
 kstatus OutputKernel::run() {
     while (this->input_.get_cache()->wait_for_next()) {
-        CodeTimer cacheEventTimer(false);
-
-        cacheEventTimer.start();
-        auto temp_output = std::move(this->input_.get_cache()->pullFromCache());
-        cacheEventTimer.stop();
+        std::unique_ptr<frame::BlazingTable> temp_output = this->input_.get_cache()->pullFromCache();
 
         if(temp_output){
-            auto num_rows = temp_output->num_rows();
-            auto num_bytes = temp_output->sizeInBytes();
-
-            if(cache_events_logger){
-                cache_events_logger->info("{ral_id}|{query_id}|{source}|{sink}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-                                "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-                                "query_id"_a=context->getContextToken(),
-                                "source"_a=this->input_.get_cache()->get_id(),
-                                "sink"_a=this->get_id(),
-                                "num_rows"_a=num_rows,
-                                "num_bytes"_a=num_bytes,
-                                "event_type"_a="removeCache",
-                                "timestamp_begin"_a=cacheEventTimer.start_time(),
-                                "timestamp_end"_a=cacheEventTimer.end_time());
-            }
-
             output.emplace_back(std::move(temp_output));
         }
     }

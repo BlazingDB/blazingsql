@@ -1165,11 +1165,10 @@ protected:
 	/// This variable is to keep track of if anything has been added to the cache. Its useful to keep from adding empty tables to the cache, where we might want an empty table at least to know the schema
 	bool something_added;
 	std::shared_ptr<Context> ctx;
-	std::shared_ptr<spdlog::logger> logger;
-	std::shared_ptr<spdlog::logger> cache_events_logger;
 	const std::size_t cache_id;
 	int cache_level_override;
 	std::string cache_machine_name;
+	std::shared_ptr<spdlog::logger> cache_events_logger;
 };
 
 /**
@@ -1179,44 +1178,52 @@ protected:
 */
 class HostCacheMachine {
 public:
-	HostCacheMachine(std::shared_ptr<Context> context, const std::size_t id) : ctx(context), cache_id(id) {
+	HostCacheMachine(std::shared_ptr<Context> context, const std::size_t id)
+	: ctx(context), cache_id(id), cache_events_logger(spdlog::get("cache_events_logger")) {
 		waitingCache = std::make_unique<WaitingQueue <std::unique_ptr< message> > >("");
-		logger = spdlog::get("batch_logger");
 		something_added = false;
 
 		std::shared_ptr<spdlog::logger> kernels_logger;
 		kernels_logger = spdlog::get("kernels_logger");
 
 		if(kernels_logger){
-            kernels_logger->info("{ral_id}|{query_id}|{kernel_id}|{is_kernel}|{kernel_type}",
+            kernels_logger->info("{ral_id}|{query_id}|{kernel_id}|{is_kernel}|{kernel_type}|{description}",
                                     "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
                                     "query_id"_a=(context ? std::to_string(context->getContextToken()) : "null"),
                                     "kernel_id"_a=id,
                                     "is_kernel"_a=0, //false
-                                    "kernel_type"_a="host_cache");
+                                    "kernel_type"_a="host_cache",
+									"description"_a="");
 		}
 	}
 
 	~HostCacheMachine() {}
 
 	virtual void addToCache(std::unique_ptr<ral::frame::BlazingHostTable> host_table, const std::string & message_id = "") {
+        CodeTimer cacheEventTimer;
+	    cacheEventTimer.start();
+
 		// we dont want to add empty tables to a cache, unless we have never added anything
 		if (!this->something_added || host_table->num_rows() > 0){
-		    if(logger){
-                logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
-                                            "query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
-                                            "step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
-                                            "substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-                                            "info"_a="Add to HostCacheMachine",
-                                            "duration"_a="",
-                                            "kernel_id"_a=message_id,
-                                            "rows"_a=host_table->num_rows());
-		    }
-
 			auto cache_data = std::make_unique<CPUCacheData>(std::move(host_table));
 			auto item = std::make_unique<message>(std::move(cache_data), message_id);
 			this->waitingCache->put(std::move(item));
 			this->something_added = true;
+
+            cacheEventTimer.stop();
+            if(cache_events_logger) {
+                cache_events_logger->trace("{ral_id}|{query_id}|{message_id}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}|{description}",
+                                           "ral_id"_a=(ctx ? ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()) : -1),
+                                           "query_id"_a=(ctx ? ctx->getContextToken() : -1),
+                                           "message_id"_a=message_id,
+                                           "cache_id"_a=cache_id,
+                                           "num_rows"_a=host_table->num_rows(),
+                                           "num_bytes"_a=host_table->sizeInBytes(),
+                                           "event_type"_a="AddToCache",
+                                           "timestamp_begin"_a=cacheEventTimer.start_time(),
+                                           "timestamp_end"_a=cacheEventTimer.end_time()),
+                                           "description"_a="Add to HostCacheMachine";
+            }
 		}
 	}
 
@@ -1239,23 +1246,30 @@ public:
 	}
 
 	virtual std::unique_ptr<ral::frame::BlazingHostTable> pullFromCache(Context * ctx = nullptr) {
-		std::unique_ptr<message> message_data = waitingCache->pop_or_wait();
+        CodeTimer cacheEventTimer;
+        cacheEventTimer.start();
+
+	    std::unique_ptr<message> message_data = waitingCache->pop_or_wait();
 		if (message_data == nullptr) {
 			return nullptr;
 		}
 
 		assert(message_data->get_data().get_type() == CacheDataType::CPU);
 
-		if(logger){
-            logger->trace("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}|rows|{rows}",
-                                        "query_id"_a=(ctx ? std::to_string(ctx->getContextToken()) : ""),
-                                        "step"_a=(ctx ? std::to_string(ctx->getQueryStep()) : ""),
-                                        "substep"_a=(ctx ? std::to_string(ctx->getQuerySubstep()) : ""),
-                                        "info"_a="Pull from HostCacheMachine",
-                                        "duration"_a="",
-                                        "kernel_id"_a=message_data->get_message_id(),
-                                        "rows"_a=message_data->get_data().num_rows());
-		}
+        cacheEventTimer.stop();
+        if(cache_events_logger) {
+            cache_events_logger->trace("{ral_id}|{query_id}|{message_id}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}|{description}",
+                                       "ral_id"_a=(ctx ? ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()) : -1),
+                                       "query_id"_a=(ctx ? ctx->getContextToken() : -1),
+                                       "message_id"_a=message_data->get_message_id(),
+                                       "cache_id"_a=cache_id,
+                                       "num_rows"_a=message_data->get_data().num_rows(),
+                                       "num_bytes"_a=message_data->get_data().sizeInBytes(),
+                                       "event_type"_a="PullFromCache",
+                                       "timestamp_begin"_a=cacheEventTimer.start_time(),
+                                       "timestamp_end"_a=cacheEventTimer.end_time()),
+                                       "description"_a="Pull from HostCacheMachine";
+        }
 
 		return static_cast<CPUCacheData&>(message_data->get_data()).releaseHostTable();
 	}
@@ -1263,7 +1277,7 @@ public:
 protected:
 	std::unique_ptr<WaitingQueue <std::unique_ptr<message> > > waitingCache;
 	std::shared_ptr<Context> ctx;
-	std::shared_ptr<spdlog::logger> logger;
+	std::shared_ptr<spdlog::logger> cache_events_logger;
 	bool something_added;
 	const std::size_t cache_id;
 };
