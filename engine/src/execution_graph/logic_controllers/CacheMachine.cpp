@@ -54,8 +54,8 @@ std::unique_ptr<CacheData> CacheData::downgradeCacheData(std::unique_ptr<CacheDa
 		    cacheEventTimer.stop();
             if(cache_events_logger) {
             			cache_events_logger->info("{ral_id}|{query_id}|{message_id}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}|{description}",
-                        "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-                        "query_id"_a=ctx->getContextToken(),
+                        "ral_id"_a=(ctx ? ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()) : -1),
+                        "query_id"_a=(ctx ? ctx->getContextToken() : -1),
                         "message_id"_a="",
                         "cache_id"_a=id,
                         "num_rows"_a=table->num_rows(),
@@ -79,8 +79,8 @@ std::unique_ptr<CacheData> CacheData::downgradeCacheData(std::unique_ptr<CacheDa
             cacheEventTimer.stop();
             if(cache_events_logger) {
                 cache_events_logger->info("{ral_id}|{query_id}|{message_id}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}|{description}",
-                                          "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-                                          "query_id"_a=ctx->getContextToken(),
+                                          "ral_id"_a=(ctx ? ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()) : -1),
+                                          "query_id"_a=(ctx ? ctx->getContextToken() : -1),
                                           "message_id"_a="",
                                           "cache_id"_a=id,
                                           "num_rows"_a=table->num_rows(),
@@ -313,8 +313,8 @@ void CacheMachine::finish() {
 	cacheEventTimer.stop();
     if(cache_events_logger) {
         cache_events_logger->info("{ral_id}|{query_id}|{message_id}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}|{description}",
-                                  "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-                                  "query_id"_a=ctx->getContextToken(),
+                                  "ral_id"_a=(ctx ? ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()) : -1),
+                                  "query_id"_a=(ctx ? ctx->getContextToken() : -1),
                                   "message_id"_a=cache_machine_name,
                                   "cache_id"_a=cache_id,
                                   "num_rows"_a=num_rows_added,
@@ -364,8 +364,8 @@ bool CacheMachine::addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTa
         cacheEventTimer.stop();
         if(cache_events_logger) {
             cache_events_logger->info("{ral_id}|{query_id}|{message_id}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}|{description}",
-                                      "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-                                      "query_id"_a=ctx->getContextToken(),
+                                      "ral_id"_a=(ctx ? ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()) : -1),
+                                      "query_id"_a=(ctx ? ctx->getContextToken() : -1),
                                       "message_id"_a=cache_machine_name,
                                       "cache_id"_a=cache_id,
                                       "num_rows"_a=num_rows_added,
@@ -396,8 +396,8 @@ void CacheMachine::clear() {
     cacheEventTimer.stop();
     if(cache_events_logger) {
         cache_events_logger->info("{ral_id}|{query_id}|{message_id}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}|{description}",
-                                  "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-                                  "query_id"_a=ctx->getContextToken(),
+                                  "ral_id"_a=(ctx ? ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()) : -1),
+                                  "query_id"_a=(ctx ? ctx->getContextToken() : -1),
                                   "message_id"_a=cache_machine_name,
                                   "cache_id"_a=cache_id,
                                   "num_rows"_a=num_rows_added,
@@ -425,8 +425,8 @@ std::vector<std::unique_ptr<ral::cache::CacheData> > CacheMachine::pull_all_cach
     cacheEventTimer.stop();
     if(cache_events_logger) {
         cache_events_logger->info("{ral_id}|{query_id}|{message_id}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}|{description}",
-                                  "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-                                  "query_id"_a=ctx->getContextToken(),
+                                  "ral_id"_a=(ctx ? ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()) : -1),
+                                  "query_id"_a=(ctx ? ctx->getContextToken() : -1),
                                   "message_id"_a=cache_machine_name,
                                   "cache_id"_a=cache_id,
                                   "num_rows"_a=num_rows_added,
@@ -481,8 +481,8 @@ bool CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_dat
             cacheEventTimer.stop();
             if(cache_events_logger) {
                 cache_events_logger->info("{ral_id}|{query_id}|{message_id}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}|{description}",
-                                          "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-                                          "query_id"_a=ctx->getContextToken(),
+                                          "ral_id"_a=(ctx ? ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()) : -1),
+                                          "query_id"_a=(ctx ? ctx->getContextToken() : -1),
                                           "message_id"_a=message_id,
                                           "cache_id"_a=cache_id,
                                           "num_rows"_a=cache_data->num_rows(),
@@ -499,8 +499,8 @@ bool CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_dat
             cacheEventTimer.stop();
             if(cache_events_logger) {
                 cache_events_logger->info("{ral_id}|{query_id}|{message_id}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}|{description}",
-                                          "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-                                          "query_id"_a=ctx->getContextToken(),
+                                          "ral_id"_a=(ctx ? ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()) : -1),
+                                          "query_id"_a=(ctx ? ctx->getContextToken() : -1),
                                           "message_id"_a=message_id,
                                           "cache_id"_a=cache_id,
                                           "num_rows"_a=cache_data->num_rows(),
@@ -520,8 +520,8 @@ bool CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_dat
             cacheEventTimer.stop();
             if(cache_events_logger) {
                 cache_events_logger->info("{ral_id}|{query_id}|{message_id}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}|{description}",
-                                          "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-                                          "query_id"_a=ctx->getContextToken(),
+                                          "ral_id"_a=(ctx ? ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()) : -1),
+                                          "query_id"_a=(ctx ? ctx->getContextToken() : -1),
                                           "message_id"_a=message_id,
                                           "cache_id"_a=cache_id,
                                           "num_rows"_a=cache_data->num_rows(),
@@ -586,8 +586,8 @@ bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, s
                     cacheEventTimer.stop();
                     if(cache_events_logger) {
                         cache_events_logger->info("{ral_id}|{query_id}|{message_id}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}|{description}",
-                                                  "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-                                                  "query_id"_a=ctx->getContextToken(),
+                                                  "ral_id"_a=(ctx ? ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()) : -1),
+                                                  "query_id"_a=(ctx ? ctx->getContextToken() : -1),
                                                   "message_id"_a=message_id,
                                                   "cache_id"_a=cache_id,
                                                   "num_rows"_a=num_rows_added,
@@ -613,8 +613,8 @@ bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, s
                         cacheEventTimer.stop();
                         if(cache_events_logger) {
                             cache_events_logger->info("{ral_id}|{query_id}|{message_id}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}|{description}",
-                                                      "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-                                                      "query_id"_a=ctx->getContextToken(),
+                                                      "ral_id"_a=(ctx ? ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()) : -1),
+                                                      "query_id"_a=(ctx ? ctx->getContextToken() : -1),
                                                       "message_id"_a=message_id,
                                                       "cache_id"_a=cache_id,
                                                       "num_rows"_a=num_rows_added,
@@ -638,8 +638,8 @@ bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, s
                         cacheEventTimer.stop();
                         if(cache_events_logger) {
                             cache_events_logger->info("{ral_id}|{query_id}|{message_id}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}|{description}",
-                                                      "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-                                                      "query_id"_a=ctx->getContextToken(),
+                                                      "ral_id"_a=(ctx ? ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()) : -1),
+                                                      "query_id"_a=(ctx ? ctx->getContextToken() : -1),
                                                       "message_id"_a=message_id,
                                                       "cache_id"_a=cache_id,
                                                       "num_rows"_a=num_rows_added,
@@ -681,8 +681,8 @@ std::unique_ptr<ral::frame::BlazingTable> CacheMachine::get_or_wait(size_t index
     cacheEventTimer.stop();
     if(cache_events_logger) {
         cache_events_logger->info("{ral_id}|{query_id}|{message_id}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}|{description}",
-                                  "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-                                  "query_id"_a=ctx->getContextToken(),
+                                  "ral_id"_a=(ctx ? ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()) : -1),
+                                  "query_id"_a=(ctx ? ctx->getContextToken() : -1),
                                   "message_id"_a=message_data->get_message_id(),
                                   "cache_id"_a=cache_id,
                                   "num_rows"_a=message_data->get_data().num_rows(),
@@ -709,8 +709,8 @@ std::unique_ptr<ral::cache::CacheData>  CacheMachine::get_or_wait_CacheData(size
     cacheEventTimer.stop();
     if(cache_events_logger) {
         cache_events_logger->info("{ral_id}|{query_id}|{message_id}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}|{description}",
-                                  "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-                                  "query_id"_a=ctx->getContextToken(),
+                                  "ral_id"_a=(ctx ? ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()) : -1),
+                                  "query_id"_a=(ctx ? ctx->getContextToken() : -1),
                                   "message_id"_a=message_data->get_message_id(),
                                   "cache_id"_a=cache_id,
                                   "num_rows"_a=message_data->get_data().num_rows(),
@@ -737,8 +737,8 @@ std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullFromCache() {
     cacheEventTimer.stop();
     if(cache_events_logger) {
         cache_events_logger->info("{ral_id}|{query_id}|{message_id}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}|{description}",
-                                  "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-                                  "query_id"_a=ctx->getContextToken(),
+                                  "ral_id"_a=(ctx ? ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()) : -1),
+                                  "query_id"_a=(ctx ? ctx->getContextToken() : -1),
                                   "message_id"_a=message_data->get_message_id(),
                                   "cache_id"_a=cache_id,
                                   "num_rows"_a=message_data->get_data().num_rows(),
@@ -766,8 +766,8 @@ std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData(std::string m
     cacheEventTimer.stop();
     if(cache_events_logger) {
         cache_events_logger->info("{ral_id}|{query_id}|{message_id}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}|{description}",
-                                  "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-                                  "query_id"_a=ctx->getContextToken(),
+                                  "ral_id"_a=(ctx ? ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()) : -1),
+                                  "query_id"_a=(ctx ? ctx->getContextToken() : -1),
                                   "message_id"_a=message_data->get_message_id(),
                                   "cache_id"_a=cache_id,
                                   "num_rows"_a=message_data->get_data().num_rows(),
@@ -804,8 +804,8 @@ std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullUnorderedFromCache()
         cacheEventTimer.stop();
         if(cache_events_logger) {
             cache_events_logger->info("{ral_id}|{query_id}|{message_id}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}|{description}",
-                                      "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-                                      "query_id"_a=ctx->getContextToken(),
+                                      "ral_id"_a=(ctx ? ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()) : -1),
+                                      "query_id"_a=(ctx ? ctx->getContextToken() : -1),
                                       "message_id"_a=message_data->get_message_id(),
                                       "cache_id"_a=cache_id,
                                       "num_rows"_a=message_data->get_data().num_rows(),
@@ -835,8 +835,8 @@ std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData() {
     cacheEventTimer.stop();
     if(cache_events_logger) {
         cache_events_logger->info("{ral_id}|{query_id}|{message_id}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}|{description}",
-                                  "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-                                  "query_id"_a=ctx->getContextToken(),
+                                  "ral_id"_a=(ctx ? ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()) : -1),
+                                  "query_id"_a=(ctx ? ctx->getContextToken() : -1),
                                   "message_id"_a=message_data->get_message_id(),
                                   "cache_id"_a=cache_id,
                                   "num_rows"_a=message_data->get_data().num_rows(),
@@ -963,8 +963,8 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
                 cacheEventTimer.stop();
                 if(cache_events_logger) {
                     cache_events_logger->warn("{ral_id}|{query_id}|{message_id}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}|{description}",
-                                              "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-                                              "query_id"_a=ctx->getContextToken(),
+                                              "ral_id"_a=(ctx ? ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()) : -1),
+                                              "query_id"_a=(ctx ? ctx->getContextToken() : -1),
                                               "message_id"_a=message_id,
                                               "cache_id"_a=cache_id,
                                               "num_rows"_a=num_rows,
@@ -985,8 +985,8 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
             cacheEventTimer.stop();
 		    if(cache_events_logger) {
                 cache_events_logger->warn("{ral_id}|{query_id}|{message_id}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}|{description}",
-                                          "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-                                          "query_id"_a=ctx->getContextToken(),
+                                          "ral_id"_a=(ctx ? ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()) : -1),
+                                          "query_id"_a=(ctx ? ctx->getContextToken() : -1),
                                           "message_id"_a=message_id,
                                           "cache_id"_a=cache_id,
                                           "num_rows"_a=num_rows,
@@ -1004,8 +1004,8 @@ std::unique_ptr<ral::frame::BlazingTable> ConcatenatingCacheMachine::pullFromCac
     cacheEventTimerGeneral.stop();
     if(cache_events_logger) {
         cache_events_logger->trace("{ral_id}|{query_id}|{message_id}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}|{description}",
-                                  "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-                                  "query_id"_a=ctx->getContextToken(),
+                                  "ral_id"_a=(ctx ? ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()) : -1),
+                                  "query_id"_a=(ctx ? ctx->getContextToken() : -1),
                                   "message_id"_a=message_id,
                                   "cache_id"_a=cache_id,
                                   "num_rows"_a=num_rows,
@@ -1065,8 +1065,8 @@ std::unique_ptr<ral::cache::CacheData> ConcatenatingCacheMachine::pullCacheData(
     cacheEventTimer.stop();
     if(cache_events_logger) {
         cache_events_logger->trace("{ral_id}|{query_id}|{message_id}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}|{description}",
-                                   "ral_id"_a=ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-                                   "query_id"_a=ctx->getContextToken(),
+                                   "ral_id"_a=(ctx ? ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()) : -1),
+                                   "query_id"_a=(ctx ? ctx->getContextToken() : -1),
                                    "message_id"_a=message_id,
                                    "cache_id"_a=cache_id,
                                    "num_rows"_a=num_rows,
