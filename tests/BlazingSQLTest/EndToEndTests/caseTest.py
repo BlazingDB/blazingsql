@@ -126,18 +126,6 @@ def main(dask_client, drill, spark, dir_data_lc, bc, nRals):
                 fileSchemaType,
             )
 
-            # LIKE IS NOT SUPPORTED YET
-            queryId = "TEST_05"
-            query = """SELECT 100.00* SUM(CASE WHEN p.p_type LIKE 'PROMO%%'
-                    THEN l.l_extendedprice*(1-l.l_discount) ELSE 0 END)
-                    / SUM(l.l_extendedprice*(1-l.l_discount)) AS promo_revenue
-                    FROM lineitem l
-                    INNER JOIN part p ON l.l_partkey = p.p_partkey
-                    WHERE l.l_shipdate >= '1995-09-01'
-                    AND l.l_shipdate < '1995-09-01'"""
-            # runTest.run_query(bc, drill, query, queryId, queryType, worder,
-            #       '', acceptable_difference, use_percentage, fileSchemaType)
-
             queryId = "TEST_06"
             query = """select case when o_custkey > 20 then o_orderkey
                     when o_custkey > 10 then o_custkey - 20 else
