@@ -828,12 +828,6 @@ TEST_F(MessageSendReceiveTest, send_receive_test) {
 }
 
 // int main(int argc, char *argv[]){
-// 	create_test_logger("batch_logger");
-// 	create_test_logger("queries_logger");
-// 	create_test_logger("kernels_logger");
-// 	create_test_logger("kernels_edges_logger");
-// 	create_test_logger("events_logger");
-// 	create_test_logger("cache_events_logger");
 
 //   if (argc < 2) {
 //     ::Run(SenderCall, AddressExchanger::MakeForSender(exchangingPort));

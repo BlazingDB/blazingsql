@@ -125,7 +125,7 @@ def try_to_get_dask_client(n_workers, n_gpus, iface):
 
 def init_context(useProgressBar: bool = False, config_options={"ENABLE_GENERAL_ENGINE_LOGS": True,
                                  "ENABLE_COMMS_LOGS": True,
-                                 "ENABLE_CACHES_LOGS": True,
+                                 "ENABLE_TASK_LOGS": True,
                                  "ENABLE_OTHER_ENGINE_LOGS": True}):
     bc = None
     dask_client = None

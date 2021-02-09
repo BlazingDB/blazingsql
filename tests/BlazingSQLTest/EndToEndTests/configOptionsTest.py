@@ -32,7 +32,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
     conf_opt_2["MAX_KERNEL_RUN_THREADS"] = 1
     conf_opt_2["ENABLE_GENERAL_ENGINE_LOGS"] = False
     conf_opt_2["ENABLE_COMMS_LOGS"] = True
-    conf_opt_2["ENABLE_CACHES_LOGS"] = False
+    conf_opt_2["ENABLE_TASK_LOGS"] = False
     conf_opt_2["ENABLE_OTHER_ENGINE_LOGS"] = True
 
     # conf_opt_3
@@ -48,7 +48,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
     conf_opt_4["TRANSPORT_POOL_NUM_BUFFERS"] = 10000
     conf_opt_4["ENABLE_GENERAL_ENGINE_LOGS"] = False
     conf_opt_4["ENABLE_COMMS_LOGS"] = False
-    conf_opt_4["ENABLE_CACHES_LOGS"] = True
+    conf_opt_4["ENABLE_TASK_LOGS"] = True
     conf_opt_4["ENABLE_OTHER_ENGINE_LOGS"] = True
 
     # conf_opt_5
@@ -66,7 +66,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
     conf_opt_6["TRANSPORT_POOL_NUM_BUFFERS"] = 10
     conf_opt_6["ENABLE_GENERAL_ENGINE_LOGS"] = True
     conf_opt_6["ENABLE_COMMS_LOGS"] = True
-    conf_opt_6["ENABLE_CACHES_LOGS"] = False
+    conf_opt_6["ENABLE_TASK_LOGS"] = False
     conf_opt_6["ENABLE_OTHER_ENGINE_LOGS"] = False
 
     # conf_opt_7
@@ -82,7 +82,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
     conf_opt_8["MEMORY_MONITOR_PERIOD"] = 5000000
     conf_opt_8["ENABLE_GENERAL_ENGINE_LOGS"] = True
     conf_opt_8["ENABLE_COMMS_LOGS"] = False
-    conf_opt_8["ENABLE_CACHES_LOGS"] = True
+    conf_opt_8["ENABLE_TASK_LOGS"] = True
     conf_opt_8["ENABLE_OTHER_ENGINE_LOGS"] = False
 
     # all sets

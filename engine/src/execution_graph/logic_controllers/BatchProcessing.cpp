@@ -419,7 +419,6 @@ ral::execution::task_result Filter::do_process(std::vector< std::unique_ptr<ral:
 
 kstatus Filter::run() {
     CodeTimer timer;
-    CodeTimer eventTimer(false);
 
     std::unique_ptr <ral::cache::CacheData> cache_data = this->input_cache()->pullCacheData();
     while(cache_data != nullptr){

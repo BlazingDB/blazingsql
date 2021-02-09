@@ -55,6 +55,7 @@ public:
 
 	std::vector<int> get_rowgroup_ids(size_t file_index) const;
 	std::vector<std::vector<int>> get_rowgroups();
+	int get_total_num_rowgroups();
 
 	bool get_has_header_csv() const;
 	void set_has_header_csv(bool has_header);

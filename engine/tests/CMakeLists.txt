@@ -92,7 +92,7 @@ enable_testing()
 # Configure unit tests with Google Test
 # -------------------
 message(STATUS "******** Configuring tests ********")
-
+add_subdirectory(allocation_pool)
 add_subdirectory(cache_machine)
 add_subdirectory(logical-groupby)
 add_subdirectory(new-tests)

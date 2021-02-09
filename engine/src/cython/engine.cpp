@@ -19,7 +19,6 @@
 #include "CodeTimer.h"
 #include "communication/CommunicationInterface/protocols.hpp"
 #include "error.hpp"
-#include "transport/io/reader_writer.h"
 
 
 using namespace fmt::literals;
@@ -141,9 +140,7 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(uint32_t masterIndex,
 	std::tie(input_loaders, schemas) = get_loaders_and_schemas(tableSchemas, tableSchemaCppArgKeys,
 		tableSchemaCppArgValues, filesAll, fileTypes, uri_values);
 
-    std::shared_ptr<spdlog::logger> logger = spdlog::get("queries_logger");
-
-	using blazingdb::manager::Context;
+    using blazingdb::manager::Context;
 	using blazingdb::transport::Node;
 
 	auto& communicationData = ral::communication::CommunicationData::getInstance();
@@ -153,18 +150,8 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(uint32_t masterIndex,
         contextNodes.emplace_back(worker_id);
     }
 	Context queryContext{static_cast<uint32_t>(ctxToken), contextNodes, contextNodes[masterIndex], "", config_options};
-	CodeTimer eventTimer(true);
-	sql = "'" + sql + "'";
-	if(logger){
-        logger->info("{ral_id}|{query_id}|{start_time}|{plan}|{sql}",
-                                        "ral_id"_a=queryContext.getNodeIndex(communicationData.getSelfNode()),
-                                        "query_id"_a=queryContext.getContextToken(),
-                                        "start_time"_a=eventTimer.start_time(),
-                                        "plan"_a=query,
-                                        "sql"_a=sql);
-	}
 
-	auto graph = generate_graph(input_loaders, schemas, tableNames, tableScans, query, queryContext);
+  auto graph = generate_graph(input_loaders, schemas, tableNames, tableScans, query, queryContext, sql);
 
 	comm::graphs_info::getInstance().register_graph(ctxToken, graph);
 	return graph;

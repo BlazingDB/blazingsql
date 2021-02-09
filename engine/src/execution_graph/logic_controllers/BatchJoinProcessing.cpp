@@ -407,20 +407,6 @@ ral::execution::task_result PartwiseJoin::do_process(std::vector<std::unique_ptr
 			this->add_to_output_cache(std::move(joined));
 		}
 
-		if(events_logger){
-			events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-						"ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-						"query_id"_a=context->getContextToken(),
-						"kernel_id"_a=this->get_id(),
-						"input_num_rows"_a=log_input_num_rows,
-						"input_num_bytes"_a=log_input_num_bytes,
-						"output_num_rows"_a=log_output_num_rows,
-						"output_num_bytes"_a=log_output_num_bytes,
-						"event_type"_a="computed join",
-						"timestamp_begin"_a=eventTimer.start_time(),
-						"timestamp_end"_a=eventTimer.end_time());
-		}
-
 	}catch(rmm::bad_alloc e){
 		return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
 	}catch(std::exception e){

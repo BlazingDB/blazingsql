@@ -530,11 +530,11 @@ bool CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_dat
 	return false;
 }
 
-bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, std::string message_id, bool always_add,const MetadataDictionary & metadata , bool include_meta) {
+bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, std::string message_id, bool always_add,const MetadataDictionary & metadata , bool include_meta, bool use_pinned) {
     CodeTimer cacheEventTimer;
     cacheEventTimer.start();
 
-	// we dont want to add empty tables to a cache, unless we have never added anything
+    // we dont want to add empty tables to a cache, unless we have never added anything
 	if (!this->something_added || table->num_rows() > 0 || always_add){
 		for (auto col_ind = 0; col_ind < table->num_columns(); col_ind++){
 			if (table->view().column(col_ind).offset() > 0){
@@ -591,9 +591,9 @@ bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, s
 					if(cacheIndex == 1) {
 						std::unique_ptr<CacheData> cache_data;
 						if(include_meta){
-							cache_data = std::make_unique<CPUCacheData>(std::move(table),metadata);
+							cache_data = std::make_unique<CPUCacheData>(std::move(table), metadata, use_pinned);
 						}else{
-							cache_data = std::make_unique<CPUCacheData>(std::move(table));
+							cache_data = std::make_unique<CPUCacheData>(std::move(table), use_pinned);
 						}
 							
 						auto item =	std::make_unique<message>(std::move(cache_data), message_id);

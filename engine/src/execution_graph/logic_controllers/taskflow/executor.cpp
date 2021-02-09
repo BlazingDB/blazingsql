@@ -53,6 +53,8 @@ task::task(
     output(output), task_id(task_id),
     kernel(kernel),attempts(attempts),
     attempts_limit(attempts_limit), args(args) {
+    
+    task_logger = spdlog::get("task_logger");
 }
 
 std::size_t task::task_memory_needed() {
@@ -71,6 +73,7 @@ std::size_t task::task_memory_needed() {
 
 void task::run(cudaStream_t stream, executor * executor){
     std::vector< std::unique_ptr<ral::frame::BlazingTable> > input_gpu;
+    CodeTimer decachingEventTimer;
 
     int last_input_decached = 0;
     ///////////////////////////////
@@ -104,6 +107,7 @@ void task::run(cudaStream_t stream, executor * executor){
         this->attempts++;
         if(this->attempts < this->attempts_limit){
             executor->add_task(std::move(inputs), output, kernel, attempts, task_id, args);
+            return;
         }else{
             throw;
         }
@@ -113,11 +117,33 @@ void task::run(cudaStream_t stream, executor * executor){
             logger->error("|||{info}|||||",
                     "info"_a="ERROR in task::run. What: {}"_format(e.what()));
         }
+        
         throw;
     }
+    auto decaching_elapsed = decachingEventTimer.elapsed_time();
 
-    auto task_result = kernel->process(std::move(input_gpu),output,stream, args);
+    std::size_t log_input_rows = 0;
+    std::size_t log_input_bytes = 0;
+    for (std::size_t i = 0; i < input_gpu.size(); ++i) {
+        log_input_rows += input_gpu.at(i)->num_rows();
+        log_input_bytes += input_gpu.at(i)->sizeInBytes();
+    }
     
+    CodeTimer executionEventTimer;
+    auto task_result = kernel->process(std::move(input_gpu),output,stream, args);
+
+    if(task_logger) {
+        task_logger->info("{time_started}|{ral_id}|{query_id}|{kernel_id}|{duration_decaching}|{duration_execution}|{input_num_rows}|{input_num_bytes}",
+                        "time_started"_a=decachingEventTimer.start_time(),
+                        "ral_id"_a=kernel->get_context()->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
+                        "query_id"_a=kernel->get_context()->getContextToken(),
+                        "kernel_id"_a=kernel->get_id(),
+                        "duration_decaching"_a=decaching_elapsed,
+                        "duration_execution"_a=executionEventTimer.elapsed_time(),
+                        "input_num_rows"_a=log_input_rows,
+                        "input_num_bytes"_a=log_input_bytes);
+    }
+
     if(task_result.status == ral::execution::task_status::SUCCESS){
         complete();
     }else if(task_result.status == ral::execution::task_status::RETRY){
@@ -126,7 +152,7 @@ void task::run(cudaStream_t stream, executor * executor){
             if(input != nullptr){
                 if  (input->get_type() == ral::cache::CacheDataType::GPU || input->get_type() == ral::cache::CacheDataType::GPU_METADATA){
                     //this was a gpu cachedata so now its not valid
-                    if(task_result.inputs.size() > 0 && i <= task_result.inputs.size()){
+                    if(task_result.inputs.size() > 0 && i <= task_result.inputs.size() && task_result.inputs[i] != nullptr && task_result.inputs[i]->is_valid()){ 
                         static_cast<ral::cache::GPUCacheData *>(input.get())->set_data(std::move(task_result.inputs[i]));
                     }else{
                         //the input was lost and it was a gpu dataframe which is not recoverable

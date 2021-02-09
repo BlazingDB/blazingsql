@@ -1,7 +1,6 @@
 #include "messageListener.hpp"
 #include <sys/socket.h>
 
-#include "transport/io/reader_writer.h"
 #include "CodeTimer.h"
 #include <mutex>
 
@@ -26,6 +25,7 @@ void poll_for_frames(std::shared_ptr<message_receiver> receiver,
 		blazing_ucp_tag message_tag = *reinterpret_cast<blazing_ucp_tag *>(&tag);
 
 		if (receiver->num_buffers() == 0) {
+            ucx_message_listener::get_instance()->remove_receiver(tag);
 			receiver->finish();
 			return;
 		}
@@ -59,6 +59,7 @@ void poll_for_frames(std::shared_ptr<message_receiver> receiver,
 						receiver->confirm_transmission();
 						if (receiver->is_finished()) {
 							ucx_message_listener::get_instance()->remove_receiver(tag & message_tag_mask);
+								
 						}
 					},status);
 					}
@@ -80,13 +81,13 @@ void poll_for_frames(std::shared_ptr<message_receiver> receiver,
 }
 
 
-void recv_begin_callback_c(std::shared_ptr<ucp_tag_recv_info_t> info, std::vector<char> data_buffer, size_t request_size) {
+void recv_begin_callback_c(std::shared_ptr<ucp_tag_recv_info_t> info, std::shared_ptr<std::vector<char> > data_buffer, size_t request_size, std::shared_ptr<ral::cache::CacheMachine> input_cache) {
 
 	auto message_listener = ucx_message_listener::get_instance();
 
-	auto fwd = message_listener->get_pool().push([&message_listener, info, data_buffer{std::move(data_buffer)}, request_size](int /*thread_id*/) {
-		
-		auto receiver = std::make_shared<message_receiver>(message_listener->get_node_map(), data_buffer);
+   auto fwd = message_listener->get_pool().push([&message_listener, info, data_buffer, request_size, input_cache](int /*thread_id*/) {
+
+   auto receiver = std::make_shared<message_receiver>(message_listener->get_node_map(), *data_buffer, input_cache);
 
 		message_listener->add_receiver(info->sender_tag, receiver);
 
@@ -150,17 +151,16 @@ void tcp_message_listener::start_polling() {
 					try{
 						CodeTimer timer;
 						cudaStream_t stream = 0;
-						//          cudaStreamCreate(&stream);
+				
 						size_t message_size;
 						io::read_from_socket(connection_fd, &message_size, sizeof(message_size));
-
 						std::vector<char> data(message_size);
 						io::read_from_socket(connection_fd, data.data(), message_size);
 						// auto meta_read_time = timer.elapsed_time();
 						// status_code success = status_code::OK;
 						// io::write_to_socket(connection_fd, &success, sizeof(success));
 						{
-							auto receiver = std::make_shared<message_receiver>(_nodes_info_map, data);
+							auto receiver = std::make_shared<message_receiver>(_nodes_info_map, data, input_cache);
 
 							//   auto receiver_time = timer.elapsed_time() - meta_read_time;
 					
@@ -174,7 +174,6 @@ void tcp_message_listener::start_polling() {
 								void * buffer = receiver->get_buffer(buffer_position);
 								size_t buffer_size = receiver->buffer_size(buffer_position);
 								io::read_from_socket(connection_fd, buffer, buffer_size);
-
 
 								buffer_position++;
 							}
@@ -223,10 +222,10 @@ void ucx_message_listener::poll_begin_message_tag(bool running_from_unit_test){
 					}while(message_tag == nullptr);
 
 						char * request = new char[_request_size];
-						std::vector<char> data_buffer(info_tag->length);
+						auto data_buffer = std::make_shared<std::vector<char>>(std::vector<char>(info_tag->length));
 						
 						auto status = ucp_tag_recv_nbr(ucp_worker,
-							data_buffer.data(),
+							data_buffer->data(),
 							info_tag->length,
 							ucp_dt_make_contig(1),
 							info_tag->sender_tag,
@@ -235,13 +234,13 @@ void ucx_message_listener::poll_begin_message_tag(bool running_from_unit_test){
 						status = ucp_request_check_status(request + _request_size);
 						if (!UCS_STATUS_IS_ERR(status)) {
 							if(status == UCS_OK){
-								recv_begin_callback_c(info_tag, std::move(data_buffer), _request_size);
+								recv_begin_callback_c(info_tag, data_buffer, _request_size, input_cache);
 								delete request;
 							}else{
 								ucp_progress_manager::get_instance()->add_recv_request(
 									request, 
-									[info_tag, data_buffer{std::move(data_buffer)}, request_size=_request_size](){ 
-										recv_begin_callback_c(info_tag, std::move(data_buffer), request_size); }
+									[info_tag, data_buffer=data_buffer, request_size=_request_size, input_message_cache=input_cache]() { 
+										recv_begin_callback_c(info_tag, data_buffer, request_size, input_message_cache); }
 									,status);
 							}
 						} else {
@@ -277,10 +276,38 @@ std::shared_ptr<message_receiver> ucx_message_listener::get_receiver(ucp_tag_t t
 void ucx_message_listener::remove_receiver(ucp_tag_t tag){
 	std::lock_guard<std::mutex> lock(this->receiver_mutex);
 	if(tag_to_receiver.find(tag) != tag_to_receiver.end()){
+
+        #if 0
+        // send acknowledgment, currently not used
+		auto receiver = tag_to_receiver[tag];
+		reinterpret_cast<blazing_ucp_tag *>(&tag)->frame_id = 0xFFFF;
+		char * buffer = new char[40];
+		auto node_id = ral::communication::CommunicationData::getInstance().getSelfNode().id();
+		memcpy(buffer, node_id.data(),node_id.length());
+		buffer[node_id.length()] = 0;
+
+		char *request = new char[_request_size];
+        auto status = ucp_tag_send_nbr(receiver->get_sender_node().get_ucp_endpoint(),
+                                            buffer,
+                                            40,
+                                            ucp_dt_make_contig(1),
+                                            tag,
+                                            request + _request_size);
+		
+		if ((status >= UCS_OK)) {
+			//no callback needed for this
+			ucp_progress_manager::get_instance()->add_send_request(request, [buffer](){delete buffer; },status);
+		} else {
+			throw std::runtime_error("Immediate Communication error in send_impl.");
+		}
+        #endif
 		tag_to_receiver.erase(tag);
-	}
+    }
+        
 
 }
+
+
 
 ucp_worker_h ucx_message_listener::get_worker(){
 	return ucp_worker;
@@ -289,8 +316,8 @@ ucp_worker_h ucx_message_listener::get_worker(){
 ucx_message_listener * ucx_message_listener::instance = nullptr;
 tcp_message_listener * tcp_message_listener::instance = nullptr;
 
-ucx_message_listener::ucx_message_listener(ucp_context_h context, ucp_worker_h worker, const std::map<std::string, comm::node>& nodes, int num_threads) :
-	message_listener(nodes, num_threads), ucp_worker{worker}
+ucx_message_listener::ucx_message_listener(ucp_context_h context, ucp_worker_h worker, const std::map<std::string, comm::node>& nodes, int num_threads, std::shared_ptr<ral::cache::CacheMachine> input_cache) :
+	message_listener(nodes, num_threads,input_cache), ucp_worker{worker}
 {
 	try {
 		ucp_context_attr_t attr;
@@ -311,19 +338,19 @@ ucx_message_listener::ucx_message_listener(ucp_context_h context, ucp_worker_h w
     }
 }
 
-tcp_message_listener::tcp_message_listener(const std::map<std::string, comm::node>& nodes,int port, int num_threads) : message_listener{nodes,num_threads}, _port{port} {
+tcp_message_listener::tcp_message_listener(const std::map<std::string, comm::node>& nodes,int port, int num_threads, std::shared_ptr<ral::cache::CacheMachine> input_cache) : message_listener{nodes,num_threads,input_cache}, _port{port} {
 
 }
 
-void ucx_message_listener::initialize_message_listener(ucp_context_h context, ucp_worker_h worker, const std::map<std::string, comm::node>& nodes, int num_threads){
+void ucx_message_listener::initialize_message_listener(ucp_context_h context, ucp_worker_h worker, const std::map<std::string, comm::node>& nodes, int num_threads, std::shared_ptr<ral::cache::CacheMachine> input_cache){
 	if(instance == NULL) {
-		instance = new ucx_message_listener(context, worker, nodes, num_threads);
+		instance = new ucx_message_listener(context, worker, nodes, num_threads, input_cache);
 	}
 }
 
-void tcp_message_listener::initialize_message_listener(const std::map<std::string, comm::node>& nodes, int port, int num_threads){
+void tcp_message_listener::initialize_message_listener(const std::map<std::string, comm::node>& nodes, int port, int num_threads, std::shared_ptr<ral::cache::CacheMachine> input_cache){
 	if(instance == NULL){
-		instance = new tcp_message_listener(nodes,port,num_threads);
+		instance = new tcp_message_listener(nodes,port,num_threads,input_cache);
 	}
 }
 

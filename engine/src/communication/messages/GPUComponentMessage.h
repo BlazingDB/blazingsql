@@ -39,9 +39,8 @@ using gpu_raw_buffer_container = std::tuple<std::vector<std::size_t>, std::vecto
 gpu_raw_buffer_container serialize_gpu_message_to_gpu_containers(ral::frame::BlazingTableView table_view);
 
 
-std::unique_ptr<ral::frame::BlazingHostTable> serialize_gpu_message_to_host_table(ral::frame::BlazingTableView table_view);
+std::unique_ptr<ral::frame::BlazingHostTable> serialize_gpu_message_to_host_table(ral::frame::BlazingTableView table_view, bool use_pinned = false);
 
-std::unique_ptr<ral::frame::BlazingTable> deserialize_from_cpu(const ral::frame::BlazingHostTable* host_table);
 
 
 

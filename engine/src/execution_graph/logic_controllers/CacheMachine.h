@@ -38,7 +38,7 @@ using namespace fmt::literals;
 * CPU, or a file. We can also have GPU messages that contain metadata
 * which are used for sending CacheData from node to node
 */
-enum class CacheDataType { GPU, CPU, LOCAL_FILE, GPU_METADATA, IO_FILE, CONCATENATING };
+enum class CacheDataType { GPU, CPU, LOCAL_FILE, GPU_METADATA, IO_FILE, CONCATENATING, PINNED };
 
 const std::string KERNEL_ID_METADATA_LABEL = "kernel_id"; /**< A message metadata field that indicates which kernel owns this message. */
 const std::string RAL_ID_METADATA_LABEL = "ral_id"; /**< A message metadata field that indicates RAL ran this. */
@@ -374,23 +374,25 @@ private:
 	* @param table The BlazingTable that is converted to a BlazingHostTable and
 	* stored.
  	*/
- 	CPUCacheData(std::unique_ptr<ral::frame::BlazingTable> gpu_table)
+ 	CPUCacheData(std::unique_ptr<ral::frame::BlazingTable> gpu_table, bool use_pinned = false)
 		: CacheData(CacheDataType::CPU, gpu_table->names(), gpu_table->get_schema(), gpu_table->num_rows())
 	{
-		this->host_table = ral::communication::messages::serialize_gpu_message_to_host_table(gpu_table->toBlazingTableView());
+		this->host_table = ral::communication::messages::serialize_gpu_message_to_host_table(gpu_table->toBlazingTableView(), use_pinned);
  	}
 
- 	CPUCacheData(std::unique_ptr<ral::frame::BlazingTable> gpu_table,const MetadataDictionary & metadata)
+ 	CPUCacheData(std::unique_ptr<ral::frame::BlazingTable> gpu_table,const MetadataDictionary & metadata, bool use_pinned = false)
 		: CacheData(CacheDataType::CPU, gpu_table->names(), gpu_table->get_schema(), gpu_table->num_rows()),
 		metadata(metadata)
 	{
-		this->host_table = ral::communication::messages::serialize_gpu_message_to_host_table(gpu_table->toBlazingTableView());
+		this->host_table = ral::communication::messages::serialize_gpu_message_to_host_table(gpu_table->toBlazingTableView(), use_pinned);
  	}
 
-	CPUCacheData(const std::vector<blazingdb::transport::ColumnTransport> & column_transports,std::vector<std::basic_string<char>> && raw_buffers ,const MetadataDictionary & metadata)
-		: metadata(metadata)
-	{
+	CPUCacheData(const std::vector<blazingdb::transport::ColumnTransport> & column_transports,
+    		    std::vector<ral::memory::blazing_chunked_column_info> && chunked_column_infos,
+        		std::vector<std::unique_ptr<ral::memory::blazing_allocation_chunk>> && allocations,
+				const MetadataDictionary & metadata) : metadata(metadata) {
 
+		
 		this->cache_type = CacheDataType::CPU;
 		for(int i = 0; i < column_transports.size(); i++){
 			this->col_names.push_back(std::string(column_transports[i].metadata.col_name));
@@ -401,8 +403,8 @@ private:
 		}else{
 			this->n_rows = column_transports[0].metadata.size;
 		}
-		this->host_table = std::make_unique<ral::frame::BlazingHostTable>(column_transports,std::move(raw_buffers));
- 	}
+		this->host_table = std::make_unique<ral::frame::BlazingHostTable>(column_transports,std::move(chunked_column_infos), std::move(allocations));
+	}
 
 
 	/**
@@ -420,7 +422,7 @@ private:
 	* @return A unique_ptr to a BlazingTable
  	*/
  	std::unique_ptr<ral::frame::BlazingTable> decache() override {
- 		return ral::communication::messages::deserialize_from_cpu(host_table.get());
+ 		return std::move(host_table->get_gpu_table());
  	}
 
 	/**
@@ -459,6 +461,7 @@ protected:
 	 std::unique_ptr<ral::frame::BlazingHostTable> host_table; /**< The CPU representation of a DataFrame  */
  	MetadataDictionary metadata; /**< The metadata used for routing and planning. */
  };
+
 
 /**
 * A CacheData that stores is data in an ORC file.
@@ -1094,7 +1097,7 @@ public:
 
 	virtual void clear();
 
-	virtual bool addToCache(std::unique_ptr<ral::frame::BlazingTable> table, std::string message_id = "", bool always_add = false, const MetadataDictionary & metadata = {}, bool include_meta = false );
+	virtual bool addToCache(std::unique_ptr<ral::frame::BlazingTable> table, std::string message_id = "", bool always_add = false, const MetadataDictionary & metadata = {}, bool include_meta = false, bool use_pinned = false );
 
 	virtual bool addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, std::string message_id = "", bool always_add = false);
 

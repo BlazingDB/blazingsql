@@ -133,5 +133,13 @@ std::vector<std::vector<int>> Schema::get_rowgroups(){
 	return this->row_groups_ids;
 }
 
+int Schema::get_total_num_rowgroups() {
+	int num_rowgroups = 0;
+	for (auto row_group_set : this->row_groups_ids){
+		num_rowgroups += row_group_set.size();
+	}
+	return num_rowgroups;
+}
+
 } /* namespace io */
 } /* namespace ral */

@@ -9,10 +9,12 @@ std::shared_ptr<ral::cache::graph> generate_graph(std::vector<ral::io::data_load
 	std::vector<std::string> table_names,
 	std::vector<std::string> table_scans,
 	std::string logicalPlan,
-	Context & queryContext) {
+	Context & queryContext,
+    const std::string &sql) {
 
 	CodeTimer blazing_timer;
-    std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
+    std::shared_ptr<spdlog::logger> batchLogger = spdlog::get("batch_logger");
+    std::shared_ptr<spdlog::logger> queriesLogger = spdlog::get("queries_logger");
 
 	try {
 		assert(input_loaders.size() == table_names.size());
@@ -31,19 +33,35 @@ std::shared_ptr<ral::cache::graph> generate_graph(std::vector<ral::io::data_load
 		auto max_kernel_id = std::get<1>(query_graph_and_max_kernel_id);
 		auto output = std::shared_ptr<ral::cache::kernel>(new ral::batch::OutputKernel(max_kernel_id, queryContext.clone()));
 
-		if(logger){
-            logger->info("{query_id}|{step}|{substep}|{info}|||||",
-                                        "query_id"_a=queryContext.getContextToken(),
-                                        "step"_a=queryContext.getQueryStep(),
-                                        "substep"_a=queryContext.getQuerySubstep(),
-                                        "info"_a="\"Query Start\n{}\""_format(tree->to_string()));
+		if(batchLogger){
+            batchLogger->info("{query_id}|{step}|{substep}|{info}|||||",
+                              "query_id"_a=queryContext.getContextToken(),
+                              "step"_a=queryContext.getQueryStep(),
+                              "substep"_a=queryContext.getQuerySubstep(),
+                              "info"_a="\"Query Start\n{}\""_format(tree->to_string()));
 		}
+
+        auto& communicationData = ral::communication::CommunicationData::getInstance();
+        CodeTimer eventTimer(true);
+        if(queriesLogger){
+            queriesLogger->info("{ral_id}|{query_id}|{start_time}|{plan}|{sql}",
+                         "ral_id"_a=queryContext.getNodeIndex(communicationData.getSelfNode()),
+                         "query_id"_a=queryContext.getContextToken(),
+                         "start_time"_a=eventTimer.start_time(),
+                         "plan"_a=tree->to_string(),
+                         "sql"_a="'" + sql + "'");
+        }
 
 		std::string tables_info = "";
 		for (size_t i = 0; i < table_names.size(); i++){
 			int num_files = schemas[i].get_files().size();
+			int num_rowgroups = schemas[i].get_total_num_rowgroups();
 			if (num_files > 0){
-				tables_info += "Table " + table_names[i] + ": num files = " + std::to_string(num_files) + "; ";
+				if (num_rowgroups > 0){
+					tables_info += "Table " + table_names[i] + ": num files = " + std::to_string(num_files) + "; " + ": num rowgroups = " + std::to_string(num_rowgroups);
+				} else {
+					tables_info += "Table " + table_names[i] + ": num files = " + std::to_string(num_files) + "; ";
+				}				
 			} else {
 				int num_partitions = input_loaders[i].get_provider()->get_num_handles();
 				if (num_partitions > 0){
@@ -53,12 +71,12 @@ std::shared_ptr<ral::cache::graph> generate_graph(std::vector<ral::io::data_load
 				}
 			}
 		}
-		if(logger){
-            logger->info("{query_id}|{step}|{substep}|{info}|||||",
-                                        "query_id"_a=queryContext.getContextToken(),
-                                        "step"_a=queryContext.getQueryStep(),
-                                        "substep"_a=queryContext.getQuerySubstep(),
-                                        "info"_a="\"" + tables_info + "\"");
+		if(batchLogger){
+            batchLogger->info("{query_id}|{step}|{substep}|{info}|||||",
+                              "query_id"_a=queryContext.getContextToken(),
+                              "step"_a=queryContext.getQueryStep(),
+                              "substep"_a=queryContext.getQuerySubstep(),
+                              "info"_a="\"" + tables_info + "\"");
 		}
 
 		std::map<std::string, std::string> config_options = queryContext.getConfigOptions();
@@ -70,13 +88,13 @@ std::shared_ptr<ral::cache::graph> generate_graph(std::vector<ral::io::data_load
 			config_info += it->first + ": " + it->second + "; ";
 			it++;
 		}
-		if(logger){
-            logger->info("{query_id}|{step}|{substep}|{info}|{duration}||||",
-                                        "query_id"_a=queryContext.getContextToken(),
-                                        "step"_a=queryContext.getQueryStep(),
-                                        "substep"_a=queryContext.getQuerySubstep(),
-                                        "info"_a="\"Config Options: {}\""_format(config_info),
-                                        "duration"_a="");
+		if(batchLogger){
+            batchLogger->info("{query_id}|{step}|{substep}|{info}|{duration}||||",
+                              "query_id"_a=queryContext.getContextToken(),
+                              "step"_a=queryContext.getQueryStep(),
+                              "substep"_a=queryContext.getQuerySubstep(),
+                              "info"_a="\"Config Options: {}\""_format(config_info),
+                              "duration"_a="");
 		}
 
 		if (query_graph->num_nodes() > 0) {
@@ -98,13 +116,13 @@ std::shared_ptr<ral::cache::graph> generate_graph(std::vector<ral::io::data_load
 		query_graph->set_memory_monitor(mem_monitor);
 		return query_graph;
 	} catch(const std::exception& e) {
-		if(logger){
-            logger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
-                                        "query_id"_a=queryContext.getContextToken(),
-                                        "step"_a=queryContext.getQueryStep(),
-                                        "substep"_a=queryContext.getQuerySubstep(),
-                                        "info"_a="In generate_graph. What: {}"_format(e.what()),
-                                        "duration"_a="");
+		if(batchLogger){
+            batchLogger->error("{query_id}|{step}|{substep}|{info}|{duration}||||",
+                               "query_id"_a=queryContext.getContextToken(),
+                               "step"_a=queryContext.getQueryStep(),
+                               "substep"_a=queryContext.getQuerySubstep(),
+                               "info"_a="In generate_graph. What: {}"_format(e.what()),
+                               "duration"_a="");
 		}
 		throw;
 	}

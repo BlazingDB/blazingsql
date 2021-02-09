@@ -109,19 +109,6 @@ ral::execution::task_result ComputeWindowKernel::do_process(std::vector< std::un
             cudf::size_type num_rows = windowed_table->num_rows();
             std::size_t num_bytes = windowed_table->sizeInBytes();
 
-            if (events_logger) {
-                events_logger->info("{ral_id}|{query_id}|{kernel_id}|{input_num_rows}|{input_num_bytes}|{output_num_rows}|{output_num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}",
-                            "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
-                            "query_id"_a=context->getContextToken(),
-                            "kernel_id"_a=this->get_id(),
-                            "input_num_rows"_a=num_rows,
-                            "input_num_bytes"_a=num_bytes,
-                            "output_num_rows"_a=num_rows,
-                            "output_num_bytes"_a=num_bytes,
-                            "event_type"_a="ComputeWindowKernel compute",
-                            "timestamp_begin"_a=eventTimer.start_time(),
-                            "timestamp_end"_a=eventTimer.end_time());
-            }
         }
 
         output->addToCache(std::move(windowed_table));

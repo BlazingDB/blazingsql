@@ -79,7 +79,7 @@ void distributing_kernel::send_message(std::unique_ptr<ral::frame::BlazingTable>
         table = ral::utilities::create_empty_table({}, {});
     } 
     
-    added = output_cache->addToCache(std::move(table),"",always_add,metadata,true);
+    added = output_cache->addToCache(std::move(table),"",always_add,metadata,true, true);
     
 
     if(wait_for) {
