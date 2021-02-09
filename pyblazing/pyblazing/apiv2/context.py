@@ -1200,7 +1200,7 @@ def load_config_options_from_env(user_config_options: dict):
         "LOGGING_FLUSH_LEVEL": "warn",
         "ENABLE_GENERAL_ENGINE_LOGS": True,
         "ENABLE_COMMS_LOGS": False,
-        "ENABLE_CACHES_LOGS": False,
+        "ENABLE_TASK_LOGS": False,
         "ENABLE_OTHER_ENGINE_LOGS": False,
         "LOGGING_MAX_SIZE_PER_FILE": 1073741824,  # 1 GB
         "TRANSPORT_BUFFER_BYTE_SIZE": 1048576,  # 1 MB in bytes
@@ -1380,10 +1380,10 @@ class BlazingContext(object):
                     default: True
             ENABLE_COMMS_LOGS: Enables 'output_comms' and 'input_comms' logger
                     default: False
-            ENABLE_CACHES_LOGS: Enables 'cache_events_logger' logger
+            ENABLE_TASK_LOGS: Enables 'task_logger' logger
                     default: False
             ENABLE_OTHER_ENGINE_LOGS: Enables 'queries_logger', 'kernels_logger',
-                    'kernels_edges_logger', 'events_logger' logger
+                    'kernels_edges_logger', 'cache_events_logger' loggers
                     default: False
             LOGGING_MAX_SIZE_PER_FILE: Set the max size in bytes for the log files.
                     NOTE: This parameter only works when used in the
@@ -3163,28 +3163,24 @@ class BlazingContext(object):
                     ["ral_id", "query_id", "source", "sink"],
                     ["int32", "int32", "int64", "int64"],
                 ),
-                "bsql_kernel_events": (
+                "bsql_kernel_tasks": (
                     [
+                        "time_started",
                         "ral_id",
                         "query_id",
                         "kernel_id",
+                        "duration_decaching",
+                        "duration_execution",
                         "input_num_rows",
                         "input_num_bytes",
-                        "output_num_rows",
-                        "output_num_bytes",
-                        "event_type",
-                        "timestamp_begin",
-                        "timestamp_end",
                     ],
                     [
+                        "date64",
                         "int32",
                         "int32",
+                        "int32",
                         "int64",
                         "int64",
-                        "int64",
-                        "int64",
-                        "int64",
-                        "str",
                         "int64",
                         "int64",
                     ],
@@ -3266,20 +3262,20 @@ class BlazingContext(object):
             for log_table_name in log_schemas:
 
                 options = {
-                    "ENABLE_CACHES_LOGS": ["bsql_cache_events"],
+                    "ENABLE_TASK_LOGS": ["bsql_kernel_tasks"],
                     "ENABLE_OTHER_ENGINE_LOGS": [
                         "bsql_queries",
                         "bsql_kernels",
                         "bsql_kernels_edges",
-                        "bsql_kernel_events",
+                        "bsql_cache_events",
                     ],
                     "ENABLE_GENERAL_ENGINE_LOGS": ["bsql_logs"],
                     "ENABLE_COMMS_LOGS": ["input_comms", "output_comms"],
                 }
 
-                if log_table_name in options["ENABLE_CACHES_LOGS"]:
+                if log_table_name in options["ENABLE_TASK_LOGS"]:
                     if (
-                        self.config_options["ENABLE_CACHES_LOGS".encode()].decode()
+                        self.config_options["ENABLE_TASK_LOGS".encode()].decode()
                         == "False"
                     ):
                         continue

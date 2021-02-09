@@ -224,7 +224,6 @@ public:
 	int64_t limit_rows_; /**< Specifies the maximum number of rows to return. */
 
 	std::shared_ptr<spdlog::logger> logger;
-	std::shared_ptr<spdlog::logger> events_logger;
 	std::shared_ptr<spdlog::logger> cache_events_logger;
 };
 
