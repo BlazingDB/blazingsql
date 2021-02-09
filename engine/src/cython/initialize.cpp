@@ -266,16 +266,17 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 
 
 	bool require_acknowledge = false;  
-	auto iter = config_options.find("REQUIRE_ACKNOWLEDGE");
-	if (iter != config_options.end()){
-		require_acknowledge = (config_options["REQUIRE_ACKNOWLEDGE"] == "true" ||
-								config_options["REQUIRE_ACKNOWLEDGE"] == "True" ||
-								config_options["REQUIRE_ACKNOWLEDGE"] == "1" ||
-								config_options["REQUIRE_ACKNOWLEDGE"] == "TRUE" );
-	}
+	// TODO: the require acknowledge feature is currently not working, for now it is permanently disabled
+	// auto iter = config_options.find("REQUIRE_ACKNOWLEDGE");
+	// if (iter != config_options.end()){
+	// 	require_acknowledge = (config_options["REQUIRE_ACKNOWLEDGE"] == "true" ||
+	// 							config_options["REQUIRE_ACKNOWLEDGE"] == "True" ||
+	// 							config_options["REQUIRE_ACKNOWLEDGE"] == "1" ||
+	// 							config_options["REQUIRE_ACKNOWLEDGE"] == "TRUE" );
+	// }
 
 	size_t buffers_size = 1048576;  // 1 MBs
-	iter = config_options.find("TRANSPORT_BUFFER_BYTE_SIZE");
+	auto iter = config_options.find("TRANSPORT_BUFFER_BYTE_SIZE");
 	if (iter != config_options.end()){
 		buffers_size = std::stoi(config_options["TRANSPORT_BUFFER_BYTE_SIZE"]);
 	}
