@@ -225,9 +225,6 @@ public:
 
 	std::shared_ptr<spdlog::logger> logger;
 	std::shared_ptr<spdlog::logger> events_logger;
-	// TODO DFR
-        // we dont need cache_events_logger here any more
-	std::shared_ptr<spdlog::logger> cache_events_logger;
 };
 
 
