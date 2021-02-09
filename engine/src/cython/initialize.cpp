@@ -177,7 +177,7 @@ void printLoggerHeader(const std::string pathLogger, const std::string nameLogge
         {"kernels_logger",      "ral_id|query_id|kernel_id|is_kernel|kernel_type|description"},
         {"kernels_edges_logger","ral_id|query_id|source|sink"},
         {"task_logger",         "time_started|ral_id|query_id|kernel_id|duration_decaching|duration_execution|input_num_rows|input_num_bytes"},
-        {"cache_events_logger", "ral_id|query_id|message_id|cache_id|num_rows|num_bytes|event_type|timestamp_begin|timestamp_end"},
+        {"cache_events_logger", "ral_id|query_id|message_id|cache_id|num_rows|num_bytes|event_type|timestamp_begin|timestamp_end|description"},
         {"batch_logger",        "log_time|node_id|type|query_id|step|substep|info|duration|extra1|data1|extra2|data2"},
         {"input_comms",         "unique_id|ral_id|query_id|kernel_id|dest_ral_id|dest_ral_count|dest_cache_id|message_id|phase"},
         {"output_comms",        "unique_id|ral_id|query_id|kernel_id|dest_ral_id|dest_ral_count|dest_cache_id|message_id|phase"}

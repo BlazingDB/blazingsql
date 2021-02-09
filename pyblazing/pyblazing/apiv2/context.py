@@ -3194,6 +3194,7 @@ class BlazingContext(object):
                         "event_type",
                         "timestamp_begin",
                         "timestamp_end",
+                        "description",
                     ],
                     [
                         "int32",
@@ -3205,6 +3206,7 @@ class BlazingContext(object):
                         "str",
                         "int64",
                         "int64",
+                        "str",
                     ],
                 ),
                 "input_comms": (
