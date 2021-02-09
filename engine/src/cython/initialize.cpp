@@ -539,8 +539,7 @@ void printLoggerHeader(const std::string pathLogger, const std::string nameLogge
         {"kernels_logger",      "ral_id|query_id|kernel_id|is_kernel|kernel_type"},
         {"kernels_edges_logger","ral_id|query_id|source|sink"},
         {"events_logger",       "ral_id|query_id|kernel_id|input_num_rows|input_num_bytes|output_num_rows|output_num_bytes|event_type|timestamp_begin|timestamp_end"},
-		// TODO DFR  we will no longer have the sink column. Lets rename the source column to cache_id
-        {"cache_events_logger", "ral_id|query_id|source|sink|num_rows|num_bytes|event_type|timestamp_begin|timestamp_end"},
+        {"cache_events_logger", "ral_id|query_id|source|cache_id|num_rows|num_bytes|event_type|timestamp_begin|timestamp_end"},
         {"batch_logger",        "log_time|node_id|type|query_id|step|substep|info|duration|extra1|data1|extra2|data2"},
         {"input_comms",         "unique_id|ral_id|query_id|kernel_id|dest_ral_id|dest_ral_count|dest_cache_id|message_id|phase"},
         {"output_comms",        "unique_id|ral_id|query_id|kernel_id|dest_ral_id|dest_ral_count|dest_cache_id|message_id|phase"}
