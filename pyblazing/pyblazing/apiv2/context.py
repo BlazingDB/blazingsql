@@ -3154,8 +3154,8 @@ class BlazingContext(object):
                     ["int32", "int32", "int64", "str", "str"],
                 ),
                 "bsql_kernels": (
-                    ["ral_id", "query_id", "kernel_id", "is_kernel", "kernel_type"],
-                    ["int32", "int32", "int64", "int16", "str"],
+                    ["ral_id", "query_id", "kernel_id", "is_kernel", "kernel_type", "description"],
+                    ["int32", "int32", "int64", "int16", "str", "str"],
                 ),
                 "bsql_kernels_edges": (
                     ["ral_id", "query_id", "source", "sink"],

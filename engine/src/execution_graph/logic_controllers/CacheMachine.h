@@ -1188,12 +1188,13 @@ public:
 		kernels_logger = spdlog::get("kernels_logger");
 
 		if(kernels_logger){
-            kernels_logger->info("{ral_id}|{query_id}|{kernel_id}|{is_kernel}|{kernel_type}",
+            kernels_logger->info("{ral_id}|{query_id}|{kernel_id}|{is_kernel}|{kernel_type}|{description}",
                                     "ral_id"_a=context->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()),
                                     "query_id"_a=(context ? std::to_string(context->getContextToken()) : "null"),
                                     "kernel_id"_a=id,
                                     "is_kernel"_a=0, //false
-                                    "kernel_type"_a="host_cache");
+                                    "kernel_type"_a="host_cache",
+									"description"_a="");
 		}
 	}
 

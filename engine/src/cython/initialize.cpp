@@ -174,7 +174,7 @@ bool isEmptyFile(std::ifstream& pFile)
 void printLoggerHeader(const std::string pathLogger, const std::string nameLogger){
     const std::map<std::string, std::string> headers = {
         {"queries_logger",      "ral_id|query_id|start_time|plan|query"},
-        {"kernels_logger",      "ral_id|query_id|kernel_id|is_kernel|kernel_type"},
+        {"kernels_logger",      "ral_id|query_id|kernel_id|is_kernel|kernel_type|description"},
         {"kernels_edges_logger","ral_id|query_id|source|sink"},
         {"task_logger",         "time_started|ral_id|query_id|kernel_id|duration_decaching|duration_execution|input_num_rows|input_num_bytes"},
         {"cache_events_logger", "ral_id|query_id|source|cache_id|num_rows|num_bytes|event_type|timestamp_begin|timestamp_end"},
