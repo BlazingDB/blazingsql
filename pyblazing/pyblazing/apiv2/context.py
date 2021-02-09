@@ -1393,8 +1393,6 @@ class BlazingContext(object):
                     default: 1 MBs
             TRANSPORT_POOL_NUM_BUFFERS: The number of buffers in the punned buffer memory pool.
                     default: 1000 buffers
-            REQUIRE_ACKNOWLEDGE : Enable this to enable message aknowledgement when using UCX
-                    default: False
             PROTOCOL: The protocol to use with the current BlazingContext.
                     It should use what the user set. If the user does not explicitly set it,
                     by default it will be set by whatever dask client is using ('tcp', 'ucx', ..).
