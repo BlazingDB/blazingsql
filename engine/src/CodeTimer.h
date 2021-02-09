@@ -8,7 +8,7 @@ class CodeTimer {
 
 public:
 	CodeTimer(bool start = true)
-		: started_{false}, paused_{false}, start_point_{Clock::now()}, accumulated_{Clock::duration(0)}, end_point_{0} {
+		: started_{false}, paused_{false}, start_point_{Clock::now()}, accumulated_{Clock::duration(0)}, end_point_{} {
 		if(start) {
 			this->start();
 		}
@@ -53,7 +53,7 @@ public:
 	template <typename Units = std::chrono::milliseconds>
 	typename Units::rep end_time() {
 		// if we are getting the end_time() but its still where it was initialized, then we want to get the time now.
-		if (end_point_ == 0){
+		if (end_point_ == Clock::time_point{}){
 			end_point_ = Clock::now();
 		}
 		return std::chrono::duration_cast<Units>(end_point_.time_since_epoch()).count();
