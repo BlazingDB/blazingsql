@@ -3188,7 +3188,7 @@ class BlazingContext(object):
                         "ral_id",
                         "query_id",
                         "source",
-                        "sink",
+                        "cache_id",
                         "num_rows",
                         "num_bytes",
                         "event_type",
