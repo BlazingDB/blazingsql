@@ -3373,10 +3373,10 @@ class BlazingContext(object):
             total=themax,
             miniters=1,
             bar_format=self._get_progress_bar_format(),
-            leave=False,
+            leave=True,
         )
         pbar2 = tqdm(
-            miniters=1, bar_format="Total Batches Processed: {n_fmt}", leave=False
+            miniters=1, bar_format="Total Batches Processed: {n_fmt}", leave=True
         )
 
         pbar.update(thesteps)
@@ -3390,14 +3390,10 @@ class BlazingContext(object):
             batches_completed = pdf["batches_completed"].sum()
             pdf = pdf.drop(pdf[~pdf.finished].index)
             thesteps = len(pdf)
-            if last != thesteps:
-                delta = thesteps - last
-                last = thesteps
-                pbar.update(delta)
-                if last_sum_batches != batches_completed:
-                    delt2 = batches_completed - last_sum_batches
-                    pbar2.update(delt2)
-                    last_sum_batches = batches_completed
+            pbar.update(thesteps - last)
+            last = thesteps
+            pbar2.update(batches_completed - last_sum_batches)
+            last_sum_batches = batches_completed
             sleep(0.005)
             if query_complete:
                 break
@@ -3455,7 +3451,7 @@ class BlazingContext(object):
                     total=themax,
                     miniters=1,
                     bar_format=self._get_progress_bar_format(),
-                    leave=False,
+                    leave=True,
                 )
                 pbar.update(thesteps)
                 last = thesteps
@@ -3463,19 +3459,15 @@ class BlazingContext(object):
                 pbar2 = tqdm(
                     miniters=1,
                     bar_format="Total Batches Processed: {n_fmt}",
-                    leave=False,
+                    leave=True,
                 )
                 last_sum_batches = batches_completed
             else:
-                if last != thesteps:
-                    delta = thesteps - last
-                    last = thesteps
-                    pbar.update(delta)
+                pbar.update(thesteps - last)
+                last = thesteps
 
-                    if last_sum_batches != batches_completed:
-                        delt2 = batches_completed - last_sum_batches
-                        pbar2.update(delt2)
-                        last_sum_batches = batches_completed
+                pbar2.update(batches_completed - last_sum_batches)
+                last_sum_batches = batches_completed
 
             sleep(0.005)
             if query_complete:
