@@ -290,18 +290,10 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
                 fileSchemaType,
             )
 
-            # TODO: Change sum/count for avg KC
-            # such change generates an issue: Different values
-            # #BLZ:
-            # EXPR$0    EXPR$1  EXPR$2
-            # 0  99868558.0  0.002641    61.0
-            # #DRILL:
-            #        EXPR$0    EXPR$1     EXPR$2
-            # 0  99868557.5  0.002641  49.662056
             queryId = "TEST_14"
-            query = """select 100168549 - sum(o_orderkey)/count(o_orderkey),
+            query = """select 100168549 - avg(o_orderkey),
                     56410984 / sum(o_totalprice), (123 - 945/max(o_orderkey)) /
-                    (sum(81619/o_orderkey)/count(81619/o_orderkey))
+                    (avg(81619.0/o_orderkey))
                     from orders"""
             runTest.run_query(
                 bc,
