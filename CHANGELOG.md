@@ -37,6 +37,7 @@
 - #1308 Improve the engine loggers
 - #1314 Added unit tests to verify that OOM error handling works well
 - #1320 Revamping cache logger
+- #1323 Made progress bar update continuously and stay after query is done 
 
 
 ## Bug Fixes
