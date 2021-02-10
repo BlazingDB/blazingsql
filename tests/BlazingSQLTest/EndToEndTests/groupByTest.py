@@ -56,7 +56,6 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True,
             )
 
             queryId = "TEST_02"
@@ -76,7 +75,6 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True,
             )
 
             queryId = "TEST_03"

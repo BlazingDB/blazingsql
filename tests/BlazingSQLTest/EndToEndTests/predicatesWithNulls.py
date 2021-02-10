@@ -59,7 +59,6 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True,
             )
 
             queryId = "TEST_02"
@@ -137,17 +136,27 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True,
             )
 
+            # ERROR:
+            # Different number of columns blzSQLresult: 2 PyDrill result: 0
             # queryId = 'TEST_06'
             # query = """select COUNT(n.n_nationkey), AVG(r.r_regionkey)
             # from nation as n left outer join region as r
             # on n.n_nationkey = r.r_regionkey
             # WHERE n.n_regionkey IS NULL"""
-            # runTest.run_query(bc, drill, query, queryId, queryType,
-            #  worder, '', acceptable_difference, use_percentage,
-            # fileSchemaType, print_result = True)
+            # runTest.run_query(
+            #     bc,
+            #     drill,
+            #     query,
+            #     queryId,
+            #     queryType,
+            #     worder,
+            #     "",
+            #     acceptable_difference,
+            #     use_percentage,
+            #     fileSchemaType,
+            # )
 
             queryId = "TEST_07"
             query = """select n.n_nationkey, n.n_name, r.r_regionkey,
