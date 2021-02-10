@@ -4,6 +4,7 @@
 
 
 ## Improvements
+- #1322 Updated and enabled several E2E tests
 
 
 ## Bug Fixes
