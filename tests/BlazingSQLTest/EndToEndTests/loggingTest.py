@@ -59,7 +59,7 @@ def main(dask_client, dir_data_file, bc, nRals):
         )
 
         queryId = "TEST_04"
-        query = """SELECT ral_id, query_id, kernel_id, is_kernel, kernel_type FROM bsql_kernels WHERE kernel_type = 'ProjectKernel'"""
+        query = """SELECT ral_id, query_id, kernel_id, is_kernel, kernel_type, description FROM bsql_kernels WHERE kernel_type = 'ProjectKernel'"""
         runTest.run_query_log(
             bc,
             query,
@@ -94,12 +94,12 @@ def main(dask_client, dir_data_file, bc, nRals):
         )
         queryId = "TEST_07"
         query = """SELECT 
-                    ral_id, query_id, source, sink, num_rows, num_bytes, 
-                    event_type, timestamp_begin, timestamp_end 
+                    ral_id, query_id, message_id, cache_id, num_rows, num_bytes, 
+                    event_type, timestamp_begin, timestamp_end, description 
                 FROM 
                     bsql_cache_events 
-                WHERE 
-                    event_type = 'addCache' 
+                WHERE
+                    event_type = 'AddToCache'
                 ORDER BY 
                     timestamp_begin DESC"""
         runTest.run_query_log(
