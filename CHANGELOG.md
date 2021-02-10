@@ -4,7 +4,7 @@
 
 
 ## Improvements
-
+- #1325 Refactored CacheMachine.h and CacheMachine.cpp 
 
 ## Bug Fixes
 
