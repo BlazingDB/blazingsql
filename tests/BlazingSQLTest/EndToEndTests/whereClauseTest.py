@@ -141,20 +141,6 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
-            #     print("TEST_10") #- Hace crushear a BlzSQL
-            #     query = "select c_custkey, c_nationkey as nkey from customer
-            #        where -c_nationkey + c_acctbal > 750.3"
-            #     runTest2.run_query(bc, drill, query, queryId, queryType,
-            #    worder, "c_custkey", acceptable_difference,
-            #   use_percentage, fileSchemaType)
-            #
-            #     print("TEST_11") #- Hace crushear a BlzSQL
-            #     query = "select c_custkey, c_nationkey as nkey from customer
-            #    where -c_nationkey + c_acctbal > 750"
-            #     runTest2.run_query(bc, drill, query, queryId, queryType,
-            #        worder, "c_custkey", acceptable_difference,
-            #        use_percentage, fileSchemaType)
-
             queryId = "TEST_07"
             query = """select c_custkey, c_nationkey, c_acctbal
                     from customer
@@ -242,6 +228,40 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 use_percentage,
                 fileSchemaType,
             )
+
+            # Gives [RunExecuteGraph Error] std::exception and crashes with ORC
+            # queryId = "TEST_12"
+            # query = """select c_custkey, c_nationkey as nkey from customer
+            #         where -c_nationkey + c_acctbal > 750.3"""
+            # runTest.run_query(
+            #     bc,
+            #     drill,
+            #     query,
+            #     queryId,
+            #     queryType,
+            #     worder,
+            #     "c_custkey",
+            #     acceptable_difference,
+            #     use_percentage,
+            #     fileSchemaType,
+            # )
+
+            # Gives [RunExecuteGraph Error] std::exception and crashes with ORC
+            # queryId = "TEST_13"
+            # query = """select c_custkey, c_nationkey as nkey from customer
+            #    where -c_nationkey + c_acctbal > 750"""
+            # runTest.run_query(
+            #     bc,
+            #     drill,
+            #     query,
+            #     queryId,
+            #     queryType,
+            #     worder,
+            #     "c_custkey",
+            #     acceptable_difference,
+            #     use_percentage,
+            #     fileSchemaType,
+            # )
 
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")
