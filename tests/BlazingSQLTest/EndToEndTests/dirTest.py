@@ -433,8 +433,7 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
             )
 
             queryId = "TEST_22"
-            # TODO: Change sum/count for avg KC
-            # such change generates an issue: Different values
+            # such change without casting generates an issue: Different values
             # #BLZ:
             #    partKey  avgSize
             # 0      1.0     25.0
@@ -451,7 +450,7 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
             query = """select partSuppTemp.partKey, partAnalysis.avgSize
                     from (
                         select min(p_partkey) as partKey,
-                        sum(p_size)/count(p_size) as avgSize,
+                        avg(cast(p_size as float)) as avgSize,
                         max(p_retailprice) as maxPrice,
                         min(p_retailprice) as minPrice from part
                     ) as partAnalysis
