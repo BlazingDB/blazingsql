@@ -4,8 +4,8 @@
 
 
 ## Improvements
+- #1325 Refactored CacheMachine.h and CacheMachine.cpp 
 - #1322 Updated and enabled several E2E tests
-
 
 ## Bug Fixes
 
