@@ -9,7 +9,7 @@ from Utils import Execution,  gpuMemory, init_context, skip_test
 queryType = "Predicates With Nulls"
 
 
-def main(dask_client, drill, dir_data_file, bc, nRals):
+def main(dask_client, drill, spark, dir_data_file, bc, nRals):
 
     start_mem = gpuMemory.capture_gpu_memory_usage()
 
@@ -138,25 +138,23 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
-            # ERROR:
-            # Different number of columns blzSQLresult: 2 PyDrill result: 0
-            # queryId = 'TEST_06'
-            # query = """select COUNT(n.n_nationkey), AVG(r.r_regionkey)
-            # from nation as n left outer join region as r
-            # on n.n_nationkey = r.r_regionkey
-            # WHERE n.n_regionkey IS NULL"""
-            # runTest.run_query(
-            #     bc,
-            #     drill,
-            #     query,
-            #     queryId,
-            #     queryType,
-            #     worder,
-            #     "",
-            #     acceptable_difference,
-            #     use_percentage,
-            #     fileSchemaType,
-            # )
+            queryId = 'TEST_06'
+            query = """select COUNT(n.n_nationkey), AVG(r.r_regionkey)
+            from nation as n left outer join region as r
+            on n.n_nationkey = r.r_regionkey
+            WHERE n.n_regionkey IS NULL"""
+            runTest.run_query(
+                bc,
+                spark, # Drill shows: Different number of columns blzSQLresult: 2 PyDrill result: 0
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
 
             queryId = "TEST_07"
             query = """select n.n_nationkey, n.n_name, r.r_regionkey,
@@ -214,6 +212,7 @@ if __name__ == "__main__":
     nvmlInit()
 
     drill = "drill"  # None
+    spark = "spark"
 
     compareResults = True
     if "compare_results" in Settings.data["RunSettings"]:
@@ -230,13 +229,19 @@ if __name__ == "__main__":
         cs.init_drill_schema(drill,
                              Settings.data["TestSettings"]["dataDirectory"])
 
+        # Create Table Spark ------------------------------------------------
+        from pyspark.sql import SparkSession
+
+        spark = SparkSession.builder.appName("timestampTest").getOrCreate()
+        cs.init_spark_schema(spark, Settings.data["TestSettings"]["dataDirectory"])
+
     # Create Context For BlazingSQL
 
     bc, dask_client = init_context()
 
     nRals = Settings.data["RunSettings"]["nRals"]
 
-    main(dask_client, drill, Settings.data["TestSettings"]["dataDirectory"],
+    main(dask_client, drill, spark, Settings.data["TestSettings"]["dataDirectory"],
          bc, nRals)
 
     if Settings.execution_mode != ExecutionMode.GENERATOR:

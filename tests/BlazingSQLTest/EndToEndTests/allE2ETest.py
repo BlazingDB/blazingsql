@@ -188,7 +188,7 @@ def main():
         orderbyTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     if runAllTests or ("predicatesWithNulls" in targetTestGroups):
-        predicatesWithNulls.main(dask_client, drill, dir_data_file, bc, nRals)
+        predicatesWithNulls.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     if runAllTests or ("stringTests" in targetTestGroups):
         stringTests.main(dask_client, drill, spark, dir_data_file, bc, nRals)
