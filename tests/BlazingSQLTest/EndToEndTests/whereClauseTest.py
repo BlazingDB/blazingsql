@@ -230,7 +230,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             )
 
             # Gives [RunExecuteGraph Error] std::exception and crashes with ORC
-            # Related PR: https://github.com/BlazingDB/blazingsql/issues/1324
+            # Related Issue: https://github.com/BlazingDB/blazingsql/issues/1324
             # queryId = "TEST_12"
             # query = """select c_custkey, c_nationkey as nkey from customer
             #         where -c_nationkey + c_acctbal > 750.3"""
