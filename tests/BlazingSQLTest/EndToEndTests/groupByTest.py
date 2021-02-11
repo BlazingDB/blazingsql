@@ -229,10 +229,10 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                     use_percentage,
                     fileSchemaType,
                 )
-                
-            if Settings.execution_mode == ExecutionMode.GENERATOR:
-                print("==============================")
-                break
+
+            # if Settings.execution_mode == ExecutionMode.GENERATOR:
+            #     print("==============================")
+            #     break
 
     executionTest()
 
