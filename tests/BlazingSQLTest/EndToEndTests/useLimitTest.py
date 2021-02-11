@@ -269,6 +269,38 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
+            queryId = "TEST_12"
+            query = """select o_orderdate, o_orderkey, o_clerk
+                    from orders
+                    order by o_orderdate, o_orderkey, o_custkey
+                    limit 1000"""
+            if fileSchemaType == DataType.ORC:
+                runTest.run_query(
+                    bc,
+                    spark,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
+            else:
+                runTest.run_query(
+                    bc,
+                    drill,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
+
             # if Settings.execution_mode == ExecutionMode.GENERATOR:
             #     print("==============================")
             #     break

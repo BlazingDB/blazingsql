@@ -46,7 +46,6 @@ from EndToEndTests import orderbyTest as orderbyTest
 from EndToEndTests import (
     predicatesWithNulls,
     roundTest,
-    simpleDistributionTest,
     stringTests,
     substringTest,
     stringCaseTest,
@@ -240,9 +239,6 @@ def main():
 
     if runAllTests or ("likeTest" in targetTestGroups):
         likeTest.main(dask_client, drill, dir_data_file, bc, nRals)
-
-    if runAllTests or ("simpleDistributionTest" in targetTestGroups):
-        simpleDistributionTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     if runAllTests or ("substringTest" in targetTestGroups):
         substringTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
