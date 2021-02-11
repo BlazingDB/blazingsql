@@ -132,9 +132,7 @@ def main():
         )
 
     if runAllTests or ("coalesceTest" in targetTestGroups):
-        coalesceTest.main(
-            dask_client, drill, dir_data_file, bc, nRals
-        )  # we are not supporting coalesce yet
+        coalesceTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     if runAllTests or ("columnBasisTest" in targetTestGroups):
         columnBasisTest.main(dask_client, drill, dir_data_file, bc, nRals)
