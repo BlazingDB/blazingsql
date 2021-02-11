@@ -220,6 +220,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
 
             # Different number of rows blzSQLresult: 5 PyDrill result: 25
             # Different number of rows blzSQLresult: 5 PySpark result: 25
+            # Related Issue: https://github.com/BlazingDB/blazingsql/issues/1326
             # queryId = 'TEST_11'
             # query = """select r.r_regionkey, n.n_nationkey,
             #         COUNT(n.n_nationkey), COUNT(DISTINCT(r.r_regionkey)),
