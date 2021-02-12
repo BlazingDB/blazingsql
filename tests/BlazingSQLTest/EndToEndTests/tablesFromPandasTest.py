@@ -228,12 +228,10 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
         queryId = "TEST_12"
         query = """select count(n1.n_nationkey) as n1key,
                     count(n2.n_nationkey) as n2key,
-                    count(n2.n_nationkey) as cstar
+                    count(*) as cstar
                 from nation as n1
                 full outer join nation as n2
                 on n1.n_nationkey = n2.n_nationkey + 6"""
-        # TODO: Change count(n2.n_nationkey) as cstar as count(*) as cstar
-        # when it will be supported KC
         runTest.run_query(
             bc,
             drill,

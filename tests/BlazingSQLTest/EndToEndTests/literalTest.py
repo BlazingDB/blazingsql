@@ -108,7 +108,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 True,
                 fileSchemaType,
-            )  # TODO: Change sum/count for avg KC
+            )
 
             queryId = "TEST_05"
             query = """select 80000 as constant, c_custkey

@@ -323,6 +323,117 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                fileSchemaType,
             )
 
+            queryId = "TEST_12"
+            query = """select l_returnflag, l_shipdate, l_linestatus
+                        from lineitem
+                        where l_orderkey < 100 and l_linenumber < 2
+                    union all
+                        select l_returnflag, l_shipdate, l_linestatus
+                        from lineitem where l_partkey < 1
+                        and l_orderkey < 2 and l_linenumber < 2"""
+            if fileSchemaType == DataType.ORC:
+                runTest.run_query(
+                    bc,
+                    spark,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
+            else:
+                runTest.run_query(
+                    bc,
+                    drill,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
+
+            queryId = "TEST_13"
+            query = """select o_orderpriority as l_returnflag,
+                        o_orderdate as l_shipdate, o_orderstatus as l_linestatus
+                    from orders where o_orderkey < 100
+                    union all
+                    select l_returnflag, l_shipdate, l_linestatus
+                    from lineitem where l_orderkey = 3"""
+            if fileSchemaType == DataType.ORC:
+                runTest.run_query(
+                    bc,
+                    spark,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
+            else:
+                runTest.run_query(
+                    bc,
+                    drill,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
+
+            queryId = "TEST_14"
+            query = """select o_orderdate as d1, o_orderpriority as s1,
+                        o_orderstatus as s2, o_orderkey as l1
+                    from orders where o_orderkey < 100
+                    union all
+                    select o_orderdate as d1, o_orderpriority as s1,
+                        o_orderstatus as s2, o_orderkey as l1
+                    from orders where o_custkey < 100
+                    union all
+                    select o_orderdate as d1, o_orderpriority as s1,
+                        o_orderstatus as s2, o_orderkey as l1
+                    from orders where o_orderstatus = 'O'
+                    union all
+                    select o_orderdate as d1, o_orderpriority as s1,
+                        o_orderstatus as s2, o_orderkey as l1
+                    from orders where o_totalprice < 350"""
+            if fileSchemaType == DataType.ORC:
+                runTest.run_query(
+                    bc,
+                    spark,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
+            else:
+                runTest.run_query(
+                    bc,
+                    drill,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
 
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")

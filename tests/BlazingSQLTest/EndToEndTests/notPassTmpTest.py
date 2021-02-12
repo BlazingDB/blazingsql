@@ -252,7 +252,6 @@ def main(dask_client, drill, dir_data_file, nRals):
                 "",
                 acceptable_difference,
                 use_percentage,
-                print_result=True,
             )
 
             queryId = "TEST_07"
@@ -317,7 +316,6 @@ def main(dask_client, drill, dir_data_file, nRals):
                 "",
                 acceptable_difference,
                 use_percentage,
-                print_result=True,
             )
 
             queryId = "TEST_07"
@@ -489,7 +487,6 @@ def main(dask_client, drill, dir_data_file, nRals):
                 "",
                 acceptable_difference,
                 use_percentage,
-                print_result=True,
             )
 
             queryType = "New Queries"

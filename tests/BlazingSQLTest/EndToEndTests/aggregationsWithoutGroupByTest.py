@@ -144,14 +144,23 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
-            #      queryId = 'TEST_07'
-            #      query = "select COUNT(n1.n_nationkey) as n1key,
-            #              COUNT(DISTINCT(n2.n_nationkey +  n1.n_nationkey))
-            #              as n2key from nation as n1 full outer join nation
-            #              as n2 on n1.n_nationkey = n2.n_nationkey + 10"
-            #      runTest.run_query(bc, drill, query, queryId, queryType,
-            #                worder, '', acceptable_difference, use_percentage,
-            #                fileSchemaType)
+            queryId = 'TEST_07'
+            query = """select COUNT(n1.n_nationkey) as n1key,
+                        COUNT(DISTINCT(n2.n_nationkey +  n1.n_nationkey))
+                        as n2key from nation as n1 full outer join nation
+                        as n2 on n1.n_nationkey = n2.n_nationkey + 10"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
 
             if fileSchemaType != DataType.ORC:
                 queryId = "TEST_08"

@@ -231,6 +231,85 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
+            queryId = "TEST_11"
+            query = """select c.c_custkey, c.c_nationkey, n.o_orderkey
+                    from customer as c
+                    inner join orders as n on c.c_custkey = n.o_custkey
+                    where n.o_orderkey < 100"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_12"
+            query = """select c.c_custkey, c.c_nationkey, o.o_orderkey
+                    from customer as c
+                    inner join orders as o on c.c_custkey = o.o_custkey
+                    inner join nation as n on c.c_nationkey = n.n_nationkey
+                    order by c_custkey, o.o_orderkey"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                0,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            #ERROR: Different values GDF and PSV
+            # queryId = "TEST_13"
+            # query = """select c.c_name, o.o_orderkey, o.o_totalprice,
+            #             l.l_partkey, l.l_returnflag
+            #         from lineitem as l
+            #         inner join orders as o on o.o_orderkey = l.l_orderkey
+            #         inner join customer as c on c.c_custkey = o.o_custkey
+            #         and l.l_linenumber < 3 and c.c_custkey < 30"""
+            # runTest.run_query(
+            #     bc,
+            #     drill,
+            #     query,
+            #     queryId,
+            #     queryType,
+            #     worder,
+            #     "",
+            #     acceptable_difference,
+            #     use_percentage,
+            #     fileSchemaType,
+            #     print_result=True,
+            # )
+
+            #ERROR: Different values GDF and PSV
+            # queryId = "TEST_14"
+            # query = """select o.o_orderkey, o.o_totalprice, l.l_partkey
+            #         from lineitem as l
+            #         inner join orders as o on o.o_orderkey = l.l_orderkey * 2
+            #         inner join customer as c on c.c_nationkey = o.o_custkey"""
+            # runTest.run_query(
+            #     bc,
+            #     drill,
+            #     query,
+            #     queryId,
+            #     queryType,
+            #     worder,
+            #     "",
+            #     acceptable_difference,
+            #     use_percentage,
+            #     fileSchemaType,
+            #     print_result=True,
+            # )
+
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")
                 break
