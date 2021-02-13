@@ -68,11 +68,16 @@ def get_spark_schema(table, nullable):
 def init_spark_schema(spark, dir_data_lc, **kwargs):
 
     smiles_test = kwargs.get("smiles_test", False)
+    testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
+
     if smiles_test:
         dir_data_lc = dir_data_lc + "smiles/"
         table_names=smilesTables
     else:
-        dir_data_lc = dir_data_lc + "tpch/"
+        if testsWithNulls == "true":
+            dir_data_lc = dir_data_lc + "tpch-with-nulls/"
+        else:
+            dir_data_lc = dir_data_lc + "tpch/"
         table_names=tpchTables
 
     for name in table_names:
@@ -93,7 +98,7 @@ def init_spark_schema(spark, dir_data_lc, **kwargs):
     nullable = True
 
     bool_test = kwargs.get("bool_test", None)
-    if bool_test:
+    if bool_test and testsWithNulls != "true":
         bool_orders_df = spark.read.orc(dir_data_lc + "/bool_orders_*.psv")
         bool_orders_df.createOrReplaceTempView("bool_orders")
 
@@ -263,11 +268,16 @@ def init_drill_schema(drill, dir_data_lc, **kwargs):
     timeout = 300
 
     smiles_test = kwargs.get("smiles_test", False)
+    testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
+
     if smiles_test:
         dir_data_lc = dir_data_lc + "smiles/"
         table_names=smilesTables
     else:
-        dir_data_lc = dir_data_lc + "tpch/"
+        if testsWithNulls == "true":
+            dir_data_lc = dir_data_lc + "tpch-with-nulls/"
+        else:
+            dir_data_lc = dir_data_lc + "tpch/"
         table_names=tpchTables
 
     for name in table_names:
@@ -281,7 +291,7 @@ def init_drill_schema(drill, dir_data_lc, **kwargs):
         dir_data_lc = getFiles_to_tmp(dir_data_lc, num_files, 'psv')
 
     bool_test = kwargs.get("bool_test", None)
-    if bool_test:
+    if bool_test and testsWithNulls != "true":
         drill.query(
             "DROP TABLE IF EXISTS " + "dfs.tmp.`%(table)s`"
             % {"table": "bool_orders"}, timeout
@@ -1254,11 +1264,15 @@ def create_tables(bc, dir_data_lc, fileSchemaType, **kwargs):
 
     tables = kwargs.get("tables", tpchTables)
     bool_orders_index = kwargs.get("bool_orders_index", -1)
+    testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
 
     if tables[0] in smilesTables:
         dir_data_lc = dir_data_lc + "smiles/"
     else:
-        dir_data_lc = dir_data_lc + "tpch/"
+        if testsWithNulls == "true":
+            dir_data_lc = dir_data_lc + "tpch-with-nulls/"
+        else:
+            dir_data_lc = dir_data_lc + "tpch/"
 
     for i, table in enumerate(tables):
         # using wildcard, note the _ after the table name

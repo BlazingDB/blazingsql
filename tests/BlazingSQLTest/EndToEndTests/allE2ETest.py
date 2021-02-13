@@ -60,6 +60,7 @@ from EndToEndTests import unifyTablesTest
 from EndToEndTests import unionTest as unionTest
 from EndToEndTests import useLimitTest
 from EndToEndTests import whereClauseTest as whereClauseTest
+from EndToEndTests import nullsTest as nullsTest
 from EndToEndTests import wildCardTest
 from EndToEndTests import smilesTest
 from EndToEndTests import jsonTest
@@ -213,8 +214,10 @@ def main():
     if runAllTests or ("bindableAliasTest" in targetTestGroups):
         bindableAliasTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
-    if runAllTests or ("booleanTest" in targetTestGroups):
-        booleanTest.main(dask_client, drill, dir_data_file, bc, nRals)
+    testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
+    if testsWithNulls != "true":
+        if runAllTests or ("booleanTest" in targetTestGroups):
+            booleanTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     if runAllTests or ("caseTest" in targetTestGroups):
         caseTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
@@ -261,12 +264,13 @@ def main():
     if runAllTests or ("messageValidationTest" in targetTestGroups):
         messageValidationTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
-    if Settings.execution_mode != ExecutionMode.GPUCI:
-        if runAllTests or ("fileSystemS3Test" in targetTestGroups):
-            fileSystemS3Test.main(dask_client, drill, dir_data_file, bc, nRals)
+    if testsWithNulls != "true":
+        if Settings.execution_mode != ExecutionMode.GPUCI:
+            if runAllTests or ("fileSystemS3Test" in targetTestGroups):
+                fileSystemS3Test.main(dask_client, drill, dir_data_file, bc, nRals)
 
-        if runAllTests or ("fileSystemGSTest" in targetTestGroups):
-            fileSystemGSTest.main(dask_client, drill, dir_data_file, bc, nRals)
+            if runAllTests or ("fileSystemGSTest" in targetTestGroups):
+                fileSystemGSTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     if runAllTests or ("loggingTest" in targetTestGroups):
         loggingTest.main(dask_client, dir_data_file, bc, nRals)
@@ -276,11 +280,15 @@ def main():
     if runAllTests or ("smilesTest" in targetTestGroups):
         smilesTest.main(dask_client, spark, dir_data_file, bc, nRals)
 
-    if runAllTests or ("jsonTest" in targetTestGroups):
-        jsonTest.main(dask_client, drill, dir_data_file, bc, nRals)
+    if testsWithNulls != "true":
+        if runAllTests or ("jsonTest" in targetTestGroups):
+            jsonTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     if runAllTests or ("windowFunctionTest" in targetTestGroups):
         windowFunctionTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
+
+    if runAllTests or ("nullsTest" in targetTestGroups):
+        nullsTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     # WARNING!!! This Test must be the last one to test -------------------------------------------------------------------------------------------------------------------------------------------
     if runAllTests or ("configOptionsTest" in targetTestGroups):
