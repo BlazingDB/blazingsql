@@ -14,6 +14,19 @@ using namespace std::chrono_literals;
 namespace ral {
 namespace cache {
 
+std::string MetadataDictionary::get_value(std::string key) {
+    if (!this->has_value(key)) {
+        std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
+        logger->warn("|||{info}|||||",
+                            "info"_a="Could not found the metadata " + key);
+    }
+    return this->values.at(key);
+}
+
+void MetadataDictionary::set_value(std::string key, std::string value) {
+    this->values[key] = value;
+}
+
 std::size_t CacheMachine::cache_count(900000000);
 
 std::string randomString(std::size_t length) {
@@ -268,10 +281,11 @@ std::unique_ptr<GPUCacheDataMetaData> cast_cache_data_to_gpu_with_meta(std::uniq
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CacheMachine::CacheMachine(std::shared_ptr<Context> context, std::string cache_machine_name, bool log_timeout, int cache_level_override):
+CacheMachine::CacheMachine(std::shared_ptr<Context> context, std::string cache_machine_name, bool log_timeout, int cache_level_override, bool is_array_access):
         ctx(context), cache_id(CacheMachine::cache_count), cache_machine_name(cache_machine_name),
         cache_level_override(cache_level_override),
-        cache_events_logger(spdlog::get("cache_events_logger"))
+        cache_events_logger(spdlog::get("cache_events_logger")),
+        is_array_access(is_array_access)
 {
 	CacheMachine::cache_count++;
 
@@ -450,6 +464,11 @@ std::vector<size_t> CacheMachine::get_all_indexes() {
 		indexes.push_back(std::stoi(message_id.substr(prefix.size())));
 	}
 	return indexes;
+}
+
+bool CacheMachine::has_data_in_index_now(size_t index){
+    // TODO percy21
+    return false;
 }
 
 bool CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, std::string message_id, bool always_add){
