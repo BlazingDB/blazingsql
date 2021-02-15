@@ -30,7 +30,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             cs.create_tables(bc, dir_data_file, fileSchemaType, tables=tables)
 
             # Run Query ------------------------------------------------------
-            worder = 0
+            worder = 1
             use_percentage = False
             acceptable_difference = 0.01
 
