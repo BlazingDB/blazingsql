@@ -131,6 +131,7 @@ protected:
 	std::string cache_machine_name;
 	std::shared_ptr<spdlog::logger> cache_events_logger;
     bool is_array_access;
+    int global_index;
 };
 
 /**

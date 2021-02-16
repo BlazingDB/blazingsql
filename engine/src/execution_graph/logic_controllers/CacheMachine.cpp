@@ -20,7 +20,8 @@ CacheMachine::CacheMachine(std::shared_ptr<Context> context, std::string cache_m
         ctx(context), cache_id(CacheMachine::cache_count), cache_machine_name(cache_machine_name),
         cache_level_override(cache_level_override),
         cache_events_logger(spdlog::get("cache_events_logger")),
-        is_array_access(is_array_access)
+        is_array_access(is_array_access),
+        global_index(-1)
 {
 	CacheMachine::cache_count++;
 
@@ -480,7 +481,6 @@ std::unique_ptr<ral::cache::CacheData>  CacheMachine::get_or_wait_CacheData(size
 }
 
 std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullFromCache() {
-    static int global_index = -1;
     CodeTimer cacheEventTimer;
     cacheEventTimer.start();
 
@@ -554,6 +554,10 @@ std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData(std::string m
 }
 
 std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullUnorderedFromCache() {
+    if (is_array_access) {
+        return this->pullFromCache();
+    }
+
     CodeTimer cacheEventTimer;
     cacheEventTimer.start();
 
@@ -603,11 +607,20 @@ std::unique_ptr<ral::cache::CacheData> CacheMachine::pullCacheData() {
     CodeTimer cacheEventTimer;
     cacheEventTimer.start();
 
-	std::unique_ptr<message> message_data = waitingCache->pop_or_wait();
-	if (message_data == nullptr) {
-		return nullptr;
-	}
-    std::string message_id = message_data->get_message_id();
+    std::unique_ptr<message> message_data = nullptr;
+    std::string message_id;
+
+    if (is_array_access) {
+        message_id = this->cache_machine_name + "_" + std::to_string(++global_index);
+        message_data = waitingCache->get_or_wait(message_id);
+    } else {
+        message_data = waitingCache->pop_or_wait();
+        if (message_data == nullptr) {
+            return nullptr;
+        }
+        message_id = message_data->get_message_id();
+    }
+
     size_t num_rows = message_data->get_data().num_rows();
     size_t num_bytes = message_data->get_data().sizeInBytes();
     int dataType = static_cast<int>(message_data->get_data().get_type());

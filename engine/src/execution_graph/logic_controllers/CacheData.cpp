@@ -32,10 +32,7 @@ std::string randomString(std::size_t length) {
 
 std::string MetadataDictionary::get_value(std::string key) {
     if (!this->has_value(key)) {
-        std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
-        logger->warn("|||{info}|||||",
-                            "info"_a="Could not found the metadata " + key);
-        return "";
+        return std::string();
     }
     return this->values.at(key);
 }
