@@ -724,7 +724,7 @@ std::unique_ptr<ral::frame::BlazingTable> generate_table_data(){
   cudf::size_type inputRows = 10'000'000;
 
   using T = int32_t;
-  auto sequence1 = cudf::test::make_counting_transform_iterator(0, [](auto row) {
+  auto sequence1 = cudf::detail::make_counting_transform_iterator(0, [](auto row) {
       return static_cast<T>(row);
     });
   cudf::test::fixed_width_column_wrapper<T> col1(sequence1, sequence1 + inputRows);

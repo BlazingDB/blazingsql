@@ -46,17 +46,17 @@ TEST_F(OperatorTest, rand_num_1) {
     using T = double;
     cudf::size_type inputRows = 10;
 
-    auto sequence1 = cudf::test::make_counting_transform_iterator(0, [](auto row) {
+    auto sequence1 = cudf::detail::make_counting_transform_iterator(0, [](auto row) {
         return static_cast<T>(row * 2);
     });
     cudf::test::fixed_width_column_wrapper<T> col1(sequence1, sequence1 + inputRows);
 
-    auto sequence2 = cudf::test::make_counting_transform_iterator(0, [](auto row) {
+    auto sequence2 = cudf::detail::make_counting_transform_iterator(0, [](auto row) {
         return static_cast<T>(row * 10);
     });
     cudf::test::fixed_width_column_wrapper<T> col2(sequence2, sequence2 + inputRows);
 
-    auto sequence3 = cudf::test::make_counting_transform_iterator(0, [](auto row) {
+    auto sequence3 = cudf::detail::make_counting_transform_iterator(0, [](auto row) {
         return static_cast<T>(row * 20);
     });
     cudf::test::fixed_width_column_wrapper<T> col3(sequence3, sequence3 + inputRows);
@@ -90,7 +90,7 @@ TEST_F(OperatorTest, rand_num_1) {
     static_cast<cudf::scalar_type_t<T> *>(right_scalars[3].get())->set_value((T) 2);
 
     // using OUT_T = typename output_type<T>::type;
-    auto sequenceOut = cudf::test::make_counting_transform_iterator(0, [](auto /*row*/) {
+    auto sequenceOut = cudf::detail::make_counting_transform_iterator(0, [](auto /*row*/) {
         return T{};
     });
     cudf::test::fixed_width_column_wrapper<T> out_col1(sequenceOut, sequenceOut + inputRows);
@@ -161,7 +161,7 @@ TEST_F(OperatorTest, rand_num_2) {
     cudf::size_type input_rows = 100;
 
     // using OUT_T = typename output_type<T>::type;
-    auto sequenceOut = cudf::test::make_counting_transform_iterator(0, [](auto /*row*/) {
+    auto sequenceOut = cudf::detail::make_counting_transform_iterator(0, [](auto /*row*/) {
         return T{};
     });
     cudf::test::fixed_width_column_wrapper<T> out_col1(sequenceOut, sequenceOut + input_rows);
@@ -202,17 +202,17 @@ TYPED_TEST(InteropsTestNumeric, test_numeric_types) {
     using T = TypeParam;
     cudf::size_type inputRows = 10;
 
-    auto sequence1 = cudf::test::make_counting_transform_iterator(0, [](auto row) {
+    auto sequence1 = cudf::detail::make_counting_transform_iterator(0, [](auto row) {
         return static_cast<T>(row * 2);
     });
     cudf::test::fixed_width_column_wrapper<T> col1(sequence1, sequence1 + inputRows);
 
-    auto sequence2 = cudf::test::make_counting_transform_iterator(0, [](auto row) {
+    auto sequence2 = cudf::detail::make_counting_transform_iterator(0, [](auto row) {
         return static_cast<T>(row * 10);
     });
     cudf::test::fixed_width_column_wrapper<T> col2(sequence2, sequence2 + inputRows);
 
-    auto sequence3 = cudf::test::make_counting_transform_iterator(0, [](auto row) {
+    auto sequence3 = cudf::detail::make_counting_transform_iterator(0, [](auto row) {
         return static_cast<T>(row * 20);
     });
     cudf::test::fixed_width_column_wrapper<T> col3(sequence3, sequence3 + inputRows);
@@ -246,7 +246,7 @@ TYPED_TEST(InteropsTestNumeric, test_numeric_types) {
     static_cast<cudf::scalar_type_t<T> *>(right_scalars[3].get())->set_value((T) 2);
 
     // using OUT_T = typename output_type<T>::type;
-    auto sequenceOut = cudf::test::make_counting_transform_iterator(0, [](auto /*row*/) {
+    auto sequenceOut = cudf::detail::make_counting_transform_iterator(0, [](auto /*row*/) {
         return T{};
     });
     cudf::test::fixed_width_column_wrapper<T> out_col1(sequenceOut, sequenceOut + inputRows);
@@ -309,7 +309,7 @@ TYPED_TEST(InteropsTestTimestamp, test_day_of_week) {
             .time_since_epoch()
             .count();
     auto range = static_cast<Rep>(stop - start);
-    auto timestamp_iter = cudf::test::make_counting_transform_iterator(
+    auto timestamp_iter = cudf::detail::make_counting_transform_iterator(
             0, [=](auto i) { return start + (range / inputRows) * i; });
     cudf::test::fixed_width_column_wrapper<T> col1(timestamp_iter, timestamp_iter + inputRows);
 
@@ -331,7 +331,7 @@ TYPED_TEST(InteropsTestTimestamp, test_day_of_week) {
     std::vector<std::unique_ptr<cudf::scalar>> right_scalars(std::make_move_iterator(std::begin(arr_s2)),
                                                              std::make_move_iterator(std::end(arr_s2)));
 
-    auto sequenceOut = cudf::test::make_counting_transform_iterator(0, [](auto /*row*/) {
+    auto sequenceOut = cudf::detail::make_counting_transform_iterator(0, [](auto /*row*/) {
         return 0;
     });
     cudf::test::fixed_width_column_wrapper<int32_t> out_col1(sequenceOut, sequenceOut + inputRows);
@@ -380,7 +380,7 @@ TYPED_TEST(InteropsTestTimestamp, test_day_of_week_evaluate_expression) {
             .time_since_epoch()
             .count();
     auto range = static_cast<Rep>(stop - start);
-    auto timestamp_iter = cudf::test::make_counting_transform_iterator(
+    auto timestamp_iter = cudf::detail::make_counting_transform_iterator(
             0, [=](auto i) { return start + (range / inputRows) * i; });
     cudf::test::fixed_width_column_wrapper<T> col1(timestamp_iter, timestamp_iter + inputRows);
 
@@ -426,7 +426,7 @@ TYPED_TEST(InteropsTestTimestamp, test_day_of_week_project) {
             .time_since_epoch()
             .count();
     auto range = static_cast<Rep>(stop - start);
-    auto timestamp_iter = cudf::test::make_counting_transform_iterator(
+    auto timestamp_iter = cudf::detail::make_counting_transform_iterator(
             0, [=](auto i) { return start + (range / inputRows) * i; });
     cudf::test::fixed_width_column_wrapper<T> col1(timestamp_iter, timestamp_iter + inputRows);
 
@@ -472,7 +472,7 @@ TYPED_TEST(InteropsTestTimestamp, test_timestamp_types) {
             .time_since_epoch()
             .count();
     auto range = static_cast<Rep>(stop - start);
-    auto timestamp_iter = cudf::test::make_counting_transform_iterator(
+    auto timestamp_iter = cudf::detail::make_counting_transform_iterator(
             0, [=](auto i) { return start + (range / inputRows) * i; });
     cudf::test::fixed_width_column_wrapper<T> col1(timestamp_iter, timestamp_iter + inputRows);
 
@@ -503,7 +503,7 @@ TYPED_TEST(InteropsTestTimestamp, test_timestamp_types) {
     std::vector<std::unique_ptr<cudf::scalar>> right_scalars(std::make_move_iterator(std::begin(arr_s2)),
                                                              std::make_move_iterator(std::end(arr_s2)));
 
-    auto sequenceOut = cudf::test::make_counting_transform_iterator(0, [](auto /*row*/) {
+    auto sequenceOut = cudf::detail::make_counting_transform_iterator(0, [](auto /*row*/) {
         return 0;
     });
     cudf::test::fixed_width_column_wrapper<int32_t> out_col1(sequenceOut, sequenceOut + inputRows);
@@ -576,7 +576,7 @@ TYPED_TEST(InteropsTestNumericDivZero, test_numeric_types_divzero)
   using T = TypeParam;
   cudf::size_type inputRows = 5;
 
-  auto sequence1 = cudf::test::make_counting_transform_iterator(0, [](auto row) {
+  auto sequence1 = cudf::detail::make_counting_transform_iterator(0, [](auto row) {
       return static_cast<T>(row * 2);
     });
   cudf::test::fixed_width_column_wrapper<T> col1(sequence1, sequence1 + inputRows);
@@ -600,11 +600,11 @@ TYPED_TEST(InteropsTestNumericDivZero, test_numeric_types_divzero)
   std::vector<std::unique_ptr<cudf::scalar>> right_scalars(std::make_move_iterator(std::begin(arr_s2)), std::make_move_iterator(std::end(arr_s2)));
   static_cast<cudf::scalar_type_t<T>*>(right_scalars[0].get())->set_value((T)0);
 
-  auto sequenceOut = cudf::test::make_counting_transform_iterator(0, [](auto row) {
+  auto sequenceOut = cudf::detail::make_counting_transform_iterator(0, [](auto row) {
       return T{};
     });
 
-  auto validity_iter = cudf::test::make_counting_transform_iterator(0,
+  auto validity_iter = cudf::detail::make_counting_transform_iterator(0,
     [](auto row) { return false; });
 
   cudf::test::fixed_width_column_wrapper<T> out_col1(sequenceOut, sequenceOut + inputRows, validity_iter);
@@ -645,7 +645,7 @@ TYPED_TEST(InteropsTestTimestamp, test_timestamp_comparison)
                 .time_since_epoch()
                 .count();
   auto range = static_cast<Rep>(stop - start);
-  auto timestamp_iter = cudf::test::make_counting_transform_iterator(
+  auto timestamp_iter = cudf::detail::make_counting_transform_iterator(
     0, [=](auto i) { return start + (range / inputRows) * i; });
   cudf::test::fixed_width_column_wrapper<T> col1(timestamp_iter, timestamp_iter + inputRows);
   
@@ -668,7 +668,7 @@ TYPED_TEST(InteropsTestTimestamp, test_timestamp_comparison)
   static_cast<cudf::scalar_type_t<T>*>(right_scalars[1].get())->set_value(T{cudf::timestamp_ms{1000000000000}});
   static_cast<cudf::scalar_type_t<T>*>(right_scalars[2].get())->set_value(T{cudf::timestamp_ms{1000000000000}});
   
-  auto sequenceOut = cudf::test::make_counting_transform_iterator(0, [](auto row) {
+  auto sequenceOut = cudf::detail::make_counting_transform_iterator(0, [](auto row) {
       return 0;
     });
   cudf::test::fixed_width_column_wrapper<bool> out_col1(sequenceOut, sequenceOut + inputRows);
@@ -725,7 +725,7 @@ TEST_F(InteropsTestString, test_string)
   std::vector<std::unique_ptr<cudf::scalar>> right_scalars(std::make_move_iterator(std::begin(arr_s2)), std::make_move_iterator(std::end(arr_s2)));
   
   // using OUT_T = typename output_type<T>::type;
-  auto sequenceOut = cudf::test::make_counting_transform_iterator(0, [](auto row) {
+  auto sequenceOut = cudf::detail::make_counting_transform_iterator(0, [](auto row) {
       return bool{};
     });
   cudf::test::fixed_width_column_wrapper<bool> out_col1(sequenceOut, sequenceOut + 10);

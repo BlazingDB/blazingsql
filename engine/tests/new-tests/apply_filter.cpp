@@ -183,17 +183,17 @@ TYPED_TEST(ApplyFilterDates, interatorWithNull)
                  .count();
     int32_t size = 10;
     auto range = static_cast<Rep>(stop - start);
-    auto timestamp_iter = cudf::test::make_counting_transform_iterator(
+    auto timestamp_iter = cudf::detail::make_counting_transform_iterator(
       0, [=](auto i) { return start + (range / size) * i; });
     
     // this is the iterator for the valids
-    auto valids_iter = cudf::test::make_counting_transform_iterator(0, [](auto i) { return i%2==0? true:false; });
+    auto valids_iter = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return i%2==0? true:false; });
 
     // now we can create the column wrapper using the iterators
     cudf::test::fixed_width_column_wrapper<T, typename T:: rep> timestamp_col(timestamp_iter, timestamp_iter + size, valids_iter);    
     
     // this is an iterator for creating another column, but made from int32
-    auto int32_iter = cudf::test::make_counting_transform_iterator(100, [](auto i) { return int32_t(i * 2);});
+    auto int32_iter = cudf::detail::make_counting_transform_iterator(100, [](auto i) { return int32_t(i * 2);});
     // this now is my column of int32 but generated using iterators
     cudf::test::fixed_width_column_wrapper<int32_t> int32_col(int32_iter, int32_iter + size, valids_iter);
     CudfTableView cudf_table_in_view ({timestamp_col, int32_col});
@@ -210,14 +210,14 @@ TYPED_TEST(ApplyFilterDates, interatorWithNull)
     // Here we are going to create our expected output by using a vector of specific values in ms
     // Then we will create an iterator that takes in that vector and converts it into the acutal timestamp datatypes
     std::vector<int64_t> expect_timestamp_ms{-2500000000000,-2000000000000, -1500000000000, -500000000000, 1000000000000};
-    auto expect_timestamp_iter = cudf::test::make_counting_transform_iterator(0, [expect_timestamp_ms](auto i){ 
+    auto expect_timestamp_iter = cudf::detail::make_counting_transform_iterator(0, [expect_timestamp_ms](auto i){ 
                 return cuda::std::chrono::time_point_cast<ToDuration>(time_point_ms(milliseconds(expect_timestamp_ms[i])))
                  .time_since_epoch()
                  .count();});
     // Since we cant create a column wrapper using an iterator and a set of literal values, i will also create an iterator for the valids, 
     // but an iterator that uses a vector of valids
     std::vector<bool> expect_valids_vect{1, 0, 1, 1, 0};
-    auto expect_valids_iter = cudf::test::make_counting_transform_iterator(0, [expect_valids_vect](auto i){ return expect_valids_vect[i];});
+    auto expect_valids_iter = cudf::detail::make_counting_transform_iterator(0, [expect_valids_vect](auto i){ return expect_valids_vect[i];});
     cudf::test::fixed_width_column_wrapper<T, typename T::rep> expect_col1(expect_timestamp_iter, expect_timestamp_iter + expect_timestamp_ms.size(), expect_valids_iter);
     // this other column i can just create from vectors
     cudf::test::fixed_width_column_wrapper<int32_t> expect_col2({200, 202, 204, 208, 214}, {1, 0, 1, 1, 0});
