@@ -180,7 +180,7 @@ OverlapAccumulatorKernel::OverlapAccumulatorKernel(std::size_t kernel_id, const 
 }
 
 void OverlapAccumulatorKernel::update_num_batches(){
-    std::lock_guard(completion_mutex);
+    std::lock_guard(kernel_mutex);
     std::vector<size_t> batch_indexes = batches_cache->get_all_indexes();
     size_t max_index = std::max_element(batch_indexes.begin(), batch_indexes.end());
     num_batches = max_index + 1;
@@ -211,7 +211,7 @@ const std::string FOLLOWING_FULFILLMENT="following_fulfillment";
 
 
 void OverlapAccumulatorKernel::set_overlap_status(bool presceding, int index, std::string status){
-    std::lock_guard(completion_mutex);
+    std::lock_guard(kernel_mutex);
     if (presceding){
         presceding_overlap_statuses[index] = status;
     } else {
@@ -220,7 +220,7 @@ void OverlapAccumulatorKernel::set_overlap_status(bool presceding, int index, st
 }
 
 std::string OverlapAccumulatorKernel::get_overlap_status(bool presceding, int index){
-    std::lock_guard(completion_mutex);
+    std::lock_guard(kernel_mutex);
     if (presceding){
         return presceding_overlap_statuses[index];
     } else {
@@ -354,9 +354,9 @@ void OverlapAccumulatorKernel::request_receiver(){
         auto message_cache_data = this->query_graph->get_input_message_cache()->pullCacheData(message_id);
         auto metadata = message_cache_data->getMetadata();
         if (metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE) == NODE_COMPLETED_REQUEST){
-            std::lock_guard lock(completion_mutex);
+            std::lock_guard lock(kernel_mutex);
             node_completions_received++;
-            completion_cv.notify_all();
+            kernel_cv.notify_all();
         } else if (metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE) == PRESCEDING_REQUEST
             || metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE) == FOLLOWING_REQUEST){
 
@@ -430,10 +430,9 @@ void OverlapAccumulatorKernel::request_receiver(){
 
 
         {
-            std::lock_guard lock(completion_mutex);
-            all_completions_received = node_completions_received <  node_completions_required;            
-        }
-                
+            std::lock_guard lock(kernel_mutex);
+            all_completions_received = node_completions_received < node_completions_required;            
+        }               
 
     }
 }
@@ -442,9 +441,12 @@ void OverlapAccumulatorKernel::prepare_overlap_task(bool presceding, int source_
     size_t overlap_size, std::unique_ptr<ral::cache::CacheData> starting_overlap){
      
     std::vector<std::unique_ptr<ral::cache::CacheData>> cache_datas_for_task;
+    size_t overlap_rows_needed = overlap_size;
     while(overlap_rows_needed > 0){
         // Lets first try to fulfill the overlap needed from this node
         if (source_batch_ind >= 0 && source_batch_ind < this->num_batches){  // WSM TODO, is num_batches finalized?
+            
+            // WSM TODO, this is a big problem, we need to be able to put this back!!
             std::unique_ptr<ral::frame::CacheData> batch = batches_cache->get_or_wait_CacheData(source_batch_ind);
             overlap_rows_needed = batch->num_rows() > overlap_rows_needed ? 0 : overlap_rows_needed - batch->num_rows();
             if (presceding){
@@ -456,16 +458,16 @@ void OverlapAccumulatorKernel::prepare_overlap_task(bool presceding, int source_
             }
         } else {
             // prepare request
-            std::vector<std::string> determination_messages_to_wait_for;
+            int total_nodes = context->getTotalNodes();
             std::vector<std::string> target_ids;
             if (presceding && this->self_node_index > 0){
                 target_ids.push_back(std::to_string(this->self_node_index - 1));
-            } else if (!presceding && ((this->self_node_index + 1) < this->num_batches )){
+            } else if (!presceding && ((this->self_node_index + 1) < this->total_nodes )){
                 target_ids.push_back(std::to_string(this->self_node_index + 1));
             }
             if (target_ids.size() > 0){
                 ral::cache::MetadataDictionary extra_metadata;
-                extra_metadata.add_value(ral::cache::OVERLAP_MESSAGE_TYPE, presceding ? PRESCEDING_OVERLAP_TYPE : FOLLOWING_OVERLAP_TYPE);
+                extra_metadata.add_value(ral::cache::OVERLAP_MESSAGE_TYPE, presceding ? PRESCEDING_REQUEST : FOLLOWING_REQUEST);
             	extra_metadata.add_value(ral::cache::OVERLAP_SIZE, std::to_string(overlap_rows_needed));
                 extra_metadata.add_value(ral::cache::OVERLAP_TARGET_NODE_INDEX, std::to_string(target_node_index));
                 extra_metadata.add_value(ral::cache::OVERLAP_TARGET_BATCH_INDEX, std::to_string(target_batch_index));
@@ -479,7 +481,27 @@ void OverlapAccumulatorKernel::prepare_overlap_task(bool presceding, int source_
                     false, //wait_for
                     0, //message_tracker_idx
                     extra_metadata);
+            } else { // if there are no nodes to request from, then we just want to fill with an empty batch
+                std::unique_ptr<ral::frame::CacheData> batch = batches_cache->get_or_wait_CacheData(0);
+
+                std::unique_ptr<ral::frame::BlazingTable> empty_table = ral::utilities::create_empty_table(batch->names(), batch->get_schema());
+                batches_cache->put(0, batch); // lets put it back
+                std::unique_ptr<ral::cache::GPUCacheData> empty_cache_data = std::make_unique<ral::cache::GPUCacheData>(std::move(empty_table));
+
+                 if (target_node_index == this->self_node_index){
+                     if (presceding){
+                        presceding_overlap_cache->put(target_batch_index, std::move(empty_cache_data));
+                        set_overlap_status(true, target_batch_index, DONE_OVERLAP_STATUS);
+                    else { 
+                        following_overlap_cache->put(target_batch_index, std::move(empty_cache_data));
+                        set_overlap_status(false, target_batch_index, DONE_OVERLAP_STATUS);
+                    }
+                 } else {
+                     // WSM TODO ERROR
+                 }
+
             }
+            break; // we are not getting more from this node, so we want to break the while loop
         }
 
     }
@@ -511,7 +533,8 @@ void OverlapAccumulatorKernel::prepare_overlap_task(bool presceding, int source_
 kstatus OverlapAccumulatorKernel::run() {
 
     bool all_done = false;
-
+    bool neighbors_notified_of_complete = false;
+    int total_nodes = context->getTotalNodes();
     
     while (!all_done){
 
@@ -520,30 +543,54 @@ kstatus OverlapAccumulatorKernel::run() {
         if (!have_all_batches){
             this->update_num_batches();
         }
+
+        // if we haven't already, lets send requests for the edges
+        if (get_overlap_status(true, 0) == UNKNOWN_OVERLAP_STATUS){            
+            set_overlap_status(true, 0, REQUESTED_OVERLAP_STATUS);
+            // send request
+            int source_batch_ind = -1;
+            int target_batch_ind = 0;
+            prepare_overlap_task(true, source_batch_ind, this->self_node_index, target_batch_ind, 
+                            this->presceding_overlap_amount,nullptr);                
+        }
+        if (have_all_batches && get_overlap_status(false, num_batches) == UNKNOWN_OVERLAP_STATUS){
+            set_overlap_status(false, 0, REQUESTED_OVERLAP_STATUS);
+            // send request
+            int source_batch_ind = num_batches;
+            int target_batch_ind = num_batches - 1;
+            prepare_overlap_task(false, source_batch_ind, this->self_node_index, target_batch_ind, 
+                            this->presceding_overlap_amount,nullptr);                            
+        }
+
         
+        bool all_overlaps_done = true;
         for (size_t batch_ind = 0; batch_ind < num_batches; batch_ind++){
             
             // check and update overlap statuses
             if (get_overlap_status(true, batch_ind) == UNKNOWN_OVERLAP_STATUS){
                 if (presceding_overlap_cache->has_data_in_index_now(batch_ind)){
                     auto overlap_cache_data = presceding_overlap_cache->get_or_wait_CacheData(batch_ind);
-                    auto metadata = overlap_cache_data->getMetadata();
-                    assert(metadata.has_value(ral::cache::OVERLAP_STATUS),"ERROR: Overlap Data did not have OVERLAP_STATUS");
-                    set_overlap_status(true, batch_ind, metadata.get_value(ral::cache::OVERLAP_STATUS));
+                    if (overlap_cache_data) { // should always be true, unless crazy race condition
+                        auto metadata = overlap_cache_data->getMetadata();
+                        assert(metadata.has_value(ral::cache::OVERLAP_STATUS),"ERROR: Overlap Data did not have OVERLAP_STATUS");
+                        set_overlap_status(true, batch_ind, metadata.get_value(ral::cache::OVERLAP_STATUS));
 
-                    // if overlap status INCOMPLETE try to complete it or file request
-                    if (get_overlap_status(true, batch_ind) == INCOMPLETE_OVERLAP_STATUS){ 
-                        // presceding overlap is originally populated from the end of the previous batch
-                        size_t cur_overlap_size = overlap_cache_data->num_rows();
-                        int overlap_rows_needed = this->presceding_overlap_amount - cur_overlap_size;
-                        if (overlap_rows_needed <= 0){
-                            // TODO log WARNING
-                            std::cout<<"WARNING: Overlap said INCOMPLETE_OVERLAP_STATUS when it was actually ok")<<std::endl;
+                        // if overlap status INCOMPLETE try to complete it or file request
+                        if (get_overlap_status(true, batch_ind) == INCOMPLETE_OVERLAP_STATUS){ 
+                            // presceding overlap is originally populated from the end of the previous batch
+                            size_t cur_overlap_size = overlap_cache_data->num_rows();
+                            int overlap_rows_needed = this->presceding_overlap_amount - cur_overlap_size;
+                            if (overlap_rows_needed <= 0){
+                                // TODO log WARNING
+                                std::cout<<"WARNING: Overlap said INCOMPLETE_OVERLAP_STATUS when it was actually ok")<<std::endl;
+                            } else {
+                                int source_batch_ind = batch_ind - 1;
+
+                                prepare_overlap_task(true, source_batch_ind, this->self_node_index, batch_ind, 
+                                    this->presceding_overlap_amount, std::move(overlap_cache_data));                           
+                            }
                         } else {
-                            int source_batch_ind = batch_ind - 1;
-
-                            prepare_overlap_task(true, source_batch_ind, this->self_node_index, batch_ind, 
-                                this->presceding_overlap_amount, std::move(overlap_cache_data));                           
+                            presceding_overlap_cache->put(batch_ind, std::move(overlap_cache_data));
                         }
                     }
                 }                
@@ -551,41 +598,109 @@ kstatus OverlapAccumulatorKernel::run() {
             if (get_overlap_status(false, batch_ind) == UNKNOWN_OVERLAP_STATUS){
                 if (following_overlap_cache->has_data_in_index_now(batch_ind)){
                     auto overlap_cache_data = following_overlap_cache->get_or_wait_CacheData(batch_ind);
-                    auto metadata = overlap_cache_data->getMetadata();
-                    assert(metadata.has_value(ral::cache::OVERLAP_STATUS),"ERROR: Overlap Data did not have OVERLAP_STATUS");
-                    set_overlap_status(false, batch_ind, metadata.get_value(ral::cache::OVERLAP_STATUS));
+                    if (overlap_cache_data) { // should always be true, unless crazy race condition
+                        auto metadata = overlap_cache_data->getMetadata();
+                        assert(metadata.has_value(ral::cache::OVERLAP_STATUS),"ERROR: Overlap Data did not have OVERLAP_STATUS");
+                        set_overlap_status(false, batch_ind, metadata.get_value(ral::cache::OVERLAP_STATUS));
 
-                    // if overlap status INCOMPLETE try to complete it or file request
-                    if (get_overlap_status(false, batch_ind) == INCOMPLETE_OVERLAP_STATUS){ 
-                        // following overlap is originally populated from the beginning of the next batch
-                        size_t cur_overlap_size = overlap_cache_data->num_rows();
-                        int overlap_rows_needed = this->following_overlap_amount - cur_overlap_size;
-                        if (overlap_rows_needed <= 0){
-                            // TODO log WARNING
-                            std::cout<<"WARNING: Overlap said INCOMPLETE_OVERLAP_STATUS when it was actually ok")<<std::endl;
+                        // if overlap status INCOMPLETE try to complete it or file request
+                        if (get_overlap_status(false, batch_ind) == INCOMPLETE_OVERLAP_STATUS){ 
+                            // following overlap is originally populated from the beginning of the next batch
+                            size_t cur_overlap_size = overlap_cache_data->num_rows();
+                            int overlap_rows_needed = this->following_overlap_amount - cur_overlap_size;
+                            if (overlap_rows_needed <= 0){
+                                // TODO log WARNING
+                                std::cout<<"WARNING: Overlap said INCOMPLETE_OVERLAP_STATUS when it was actually ok")<<std::endl;
+                            } else {
+                                int source_batch_ind = batch_ind +1;
+
+                                prepare_overlap_task(false, source_batch_ind, this->self_node_index, batch_ind, 
+                                    this->following_overlap_amount, std::move(overlap_cache_data));                           
+                            }
                         } else {
-                            int source_batch_ind = batch_ind +1 1;
-
-                            prepare_overlap_task(false, source_batch_ind, this->self_node_index, batch_ind, 
-                                this->following_overlap_amount, std::move(overlap_cache_data));                           
+                            following_overlap_cache->put(batch_ind, std::move(overlap_cache_data));
                         }
                     }
                 }                             
             }
 
-            
-
             // if overlap is DONE and first or last, file the ALL OK request response
-
-            // if overlaps are done and presceding and following overlaps are done, then package up and push to the output
-            
-
-
+            if (get_overlap_status(true, batch_ind) != DONE_OVERLAP_STATUS || get_overlap_status(false, batch_ind) != DONE_OVERLAP_STATUS){
+                all_overlaps_done = false;
+            }
         }
-        // check if all_done
-    }
+        if (all_overlaps_done && ~neighbors_notified_of_complete) { // all overlaps are done, send notification to neighbors
+            ral::cache::MetadataDictionary extra_metadata;
+            extra_metadata.add_value(ral::cache::OVERLAP_MESSAGE_TYPE, NODE_COMPLETED_REQUEST);
+            
+            std::vector<std::string> target_ids;
+            if (this->self_node_index > 0){
+                target_ids.push_back(std::string(this->self_node_index - 1));
+            }
+            if (this->self_node_index + 1 < total_nodes){
+                target_ids.push_back(std::string(this->self_node_index + 1));
+            }
+            send_message(nullptr,
+                false, //specific_cache
+                "", //cache_id
+                target_ids, //target_ids
+                "", //message_id_prefix
+                true, //always_add
+                false, //wait_for
+                0, //message_tracker_idx
+                extra_metadata);
+            neighbors_notified_of_complete = true;
 
+            // lets wait to make sure that all tasks are done
+            std::unique_lock<std::mutex> lock(kernel_mutex);
+            kernel_cv.wait(lock,[this]{
+                return this->tasks.empty() || ral::execution::executor::get_instance()->has_exception();
+            });
+            if(auto ep = ral::execution::executor::get_instance()->last_exception()){
+                std::rethrow_exception(ep);
+            }
+
+            // wait until it receives all notifications form its neighbors
+            kernel_cv.wait(lock,[this]{
+                return this->node_completions_received == this->node_completions_required;
+            });
+
+            // Now that we are all done, lets concatenate the overlaps with the data and push to the output
+            for (size_t batch_ind = 0; batch_ind < num_batches; batch_ind++){
+                std::vector<std::unique_ptr<ral::frame::CacheData>> batch_with_overlaps;
+                batch_with_overlaps.push_back(presceding_overlap_cache->get_or_wait_CacheData(batch_ind));
+                batch_with_overlaps.push_back(batches_cache->get_or_wait_CacheData(source_batch_ind));
+
+                std::vector<std::string> col_names = batch_with_overlaps.back()->names();
+                std::vector<cudf::data_type> schema = batch_with_overlaps.back()->get_schema();
+
+                batch_with_overlaps.push_back(following_overlap_cache->get_or_wait_CacheData(batch_ind));
+
+                std::unique_ptr<ral::cache::ConcatCacheData> new_cache_data = std::make_unique<ral::cache::ConcatCacheData>(std::move(batch_with_overlaps), col_names, schema);
+                this->add_to_output_cache(new_cache_data);
+            }
+
+            if(logger) {
+                logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+                            "query_id"_a=context->getContextToken(),
+                            "step"_a=context->getQueryStep(),
+                            "substep"_a=context->getQuerySubstep(),
+                            "info"_a="OverlapAccumulatorKernel Kernel Completed",
+                            "duration"_a=timer.elapsed_time(),
+                            "kernel_id"_a=this->get_id());
+            }
+
+            return kstatus::proceed;
+        }        
+    }
 }
+
+// WSM TODO: what happens with the edge overlaps that are going to be empty?  (DONE)
+// WSM TODO: can we not wait until all batches are done?
+// WSM TODO: are we at any point checking the done status and seeing if we just need to pull from the overlap to do a fulfillment? 
+// WSM TODO: need to add null checks to all pull from cache data.
+// WSM TODO: need to add back completed overlaps. Right now they are not being added back!! (DONE)
+
 
 
 

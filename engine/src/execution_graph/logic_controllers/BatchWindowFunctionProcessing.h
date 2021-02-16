@@ -41,6 +41,7 @@ private:
 
 
 const UNKNOWN_OVERLAP_STATUS="UNKNOWN";
+const REQUESTED_OVERLAP_STATUS="REQUESTED";
 const INCOMPLETE_OVERLAP_STATUS="INCOMPLETE";
 const PROCESSING_OVERLAP_STATUS="PROCESSING"; // WSM TODO, do we need this?
 const DONE_OVERLAP_STATUS="DONE";
@@ -81,9 +82,7 @@ private:
 	int self_node_index;
 
 	int node_completions_received = 0;
-	int node_completions_required = 0;
-	std::mutex completion_mutex;
-	std::condition_variable completion_cv;
+	int node_completions_required = 0;	
 };
 
 
