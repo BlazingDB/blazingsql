@@ -27,7 +27,7 @@ std::vector<std::string> get_all_str_values_in_the_same_col(
 	std::vector<std::vector<std::string>> & minmax_string,
 	std::size_t index) {
 	std::vector<std::string> output_v;
-	for (std::size_t col_index; col_index < minmax_string.size(); ++col_index) {
+	for (std::size_t col_index=0; col_index < minmax_string.size(); ++col_index) {
 		output_v.push_back(minmax_string[col_index][index]);
 	}
 
