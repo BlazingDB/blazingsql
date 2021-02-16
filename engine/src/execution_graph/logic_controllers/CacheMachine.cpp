@@ -16,10 +16,11 @@ namespace cache {
 
 std::size_t CacheMachine::cache_count(900000000);
 
-CacheMachine::CacheMachine(std::shared_ptr<Context> context, std::string cache_machine_name, bool log_timeout, int cache_level_override):
+CacheMachine::CacheMachine(std::shared_ptr<Context> context, std::string cache_machine_name, bool log_timeout, int cache_level_override, bool is_array_access):
         ctx(context), cache_id(CacheMachine::cache_count), cache_machine_name(cache_machine_name),
         cache_level_override(cache_level_override),
-        cache_events_logger(spdlog::get("cache_events_logger"))
+        cache_events_logger(spdlog::get("cache_events_logger")),
+        is_array_access(is_array_access)
 {
 	CacheMachine::cache_count++;
 
@@ -479,14 +480,25 @@ std::unique_ptr<ral::cache::CacheData>  CacheMachine::get_or_wait_CacheData(size
 }
 
 std::unique_ptr<ral::frame::BlazingTable> CacheMachine::pullFromCache() {
+    static int global_index = -1;
     CodeTimer cacheEventTimer;
     cacheEventTimer.start();
 
-	std::unique_ptr<message> message_data = waitingCache->pop_or_wait();
+    std::string message_id;
+
+	std::unique_ptr<message> message_data = nullptr;
+    if (is_array_access) {
+        message_id = this->cache_machine_name + "_" + std::to_string(++global_index);
+        message_data = waitingCache->get_or_wait(message_id);
+    } else {
+        message_data = waitingCache->pop_or_wait();
+        message_id = message_data->get_message_id();
+    }
+
 	if (message_data == nullptr) {
 		return nullptr;
 	}
-    std::string message_id = message_data->get_message_id();
+    
     size_t num_rows = message_data->get_data().num_rows();
     size_t num_bytes = message_data->get_data().sizeInBytes();
     int dataType = static_cast<int>(message_data->get_data().get_type());
@@ -659,6 +671,19 @@ bool CacheMachine::has_messages_now(std::vector<std::string> messages){
 		}
 	}
 	return true;
+}
+
+bool CacheMachine::has_data_in_index_now(size_t index){
+    std::string message = this->cache_machine_name + "_" + std::to_string(index);
+    std::vector<std::string> current_messages = this->waitingCache->get_all_message_ids();
+    bool found = false;
+    for (auto & cur_message : current_messages){
+        if (message == cur_message)	{
+            found = true;
+            break;
+        }
+    }
+    return found;
 }
 
 HostCacheMachine::HostCacheMachine(std::shared_ptr<Context> context, const std::size_t id)
