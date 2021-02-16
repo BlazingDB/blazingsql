@@ -8,7 +8,7 @@
 - #1322 Updated and enabled several E2E tests
 
 ## Bug Fixes
-- #1334 Fixing uninitialized var in orc metadata and handling the parseMetadata exceptions properly
+- #1335 Fixing uninitialized var in orc metadata and handling the parseMetadata exceptions properly
 
 
 # BlazingSQL 0.18.0 (Date TBS)
