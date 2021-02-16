@@ -56,6 +56,14 @@ const std::string MESSAGE_ID = "message_id"; /**< A message metadata field that 
 const std::string PARTITION_COUNT = "partition_count"; /**< A message metadata field that indicates the number of partitions a kernel processed.  */
 const std::string UNIQUE_MESSAGE_ID = "unique_message_id"; /**< A message metadata field that indicates the unique id of a message. */
 
+// fields for window functions
+const std::string OVERLAP_STATUS = "overlap_status"; /**< A message metadata field that indicates the status of this overlap data. */
+const std::string OVERLAP_MESSAGE_TYPE = "overlap_message_type"; /**< A message metadata field that indicates the type of overlap request (node_completed, presceding_request, following_request, presceding_fulfillment, following_fulfillment)*/
+const std::string OVERLAP_SIZE = "overlap_size"; /**< A message metadata field that contains an integer indicating the amount of overlap*/
+const std::string OVERLAP_SOURCE_NODE_INDEX = "overlap_source_node_index"; /**< A message metadata field that contains an integer indicating the node to from where it came*/
+const std::string OVERLAP_TARGET_NODE_INDEX = "overlap_target_node_index"; /**< A message metadata field that contains an integer indicating the node to whom it will be sent*/
+const std::string OVERLAP_TARGET_BATCH_INDEX = "overlap_target_batch_index"; /**< A message metadata field that contains an integer indicating the batch index for the node to whom it will be sent*/
+
 
 /**
 * Base Class for all CacheData

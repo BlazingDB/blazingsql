@@ -54,19 +54,6 @@ std::unique_ptr<ral::frame::BlazingTable> logicalSort(
 	return std::make_unique<ral::frame::BlazingTable>( std::move(gathered), table.names() );
 }
 
-std::unique_ptr<cudf::table> logicalLimit(const cudf::table_view& table, cudf::size_type limitRows) {
-	assert(limitRows < table.num_rows());
-
-	if (limitRows == 0) {
-		return cudf::empty_like(table);
-	} else if (limitRows < table.num_rows()) {
-		std::vector<cudf::size_type> splits = {limitRows};
-		std::vector<cudf::table_view> split_table = cudf::split(table, splits);
-		return std::make_unique<cudf::table>(split_table[0]);
-	} else {
-		return std::make_unique<cudf::table>(table);
-	}
-}
 
 /**---------------------------------------------------------------------------*
  * @brief In a distributed context, this function determines what the limit would be
@@ -227,7 +214,7 @@ limit_table(const ral::frame::BlazingTableView & table, int64_t num_rows_limit) 
 	} else if (num_rows_limit >= table_rows) {
 		return std::make_tuple(std::make_unique<ral::frame::BlazingTable>(table.view(), table.names()), true, num_rows_limit - table_rows);
 	} else {
-		return std::make_tuple(std::make_unique<ral::frame::BlazingTable>(logicalLimit(table.view(), num_rows_limit), table.names()), false, 0);
+		return std::make_tuple(ral::utilities::getLimitedRows(table, num_rows_limit), false, 0);
 	}
 }
 

@@ -15,6 +15,8 @@ bool checkIfConcatenatingStringsWillOverflow(const std::vector<std::unique_ptr<B
 
 std::unique_ptr<BlazingTable> concatTables(const std::vector<BlazingTableView> & tables);
 
+std::unique_ptr<BlazingTable> getLimitedRows(const BlazingTableView& table, cudf::size_type num_rows, bool front=true);
+
 std::unique_ptr<ral::frame::BlazingTable> create_empty_table(const std::vector<std::string> &column_names,
 	const std::vector<cudf::data_type> &dtypes, std::vector<size_t> column_indices = std::vector<size_t>());
 

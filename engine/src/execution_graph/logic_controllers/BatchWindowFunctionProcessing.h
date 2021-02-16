@@ -39,5 +39,53 @@ private:
 	std::vector<AggregateKind> aggs_wind_func; 
 };
 
+
+const UNKNOWN_OVERLAP_STATUS="UNKNOWN";
+const INCOMPLETE_OVERLAP_STATUS="INCOMPLETE";
+const PROCESSING_OVERLAP_STATUS="PROCESSING"; // WSM TODO, do we need this?
+const DONE_OVERLAP_STATUS="DONE";
+
+class OverlapAccumulatorKernel : public kernel {
+public:
+	OverlapAccumulatorKernel(std::size_t kernel_id, const std::string & queryString,
+		std::shared_ptr<Context> context,
+		std::shared_ptr<ral::cache::graph> query_graph);
+
+	std::string kernel_name() { return "OverlapAccumulator";}
+
+	ral::execution::task_result do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+		std::shared_ptr<ral::cache::CacheMachine> output,
+		cudaStream_t stream, const std::map<std::string, std::string>& args) override;
+
+	kstatus run() override;
+
+	void set_overlap_status(bool presceding, int index, std::string status);
+	std::string get_overlap_status(bool presceding, int index);
+
+private:
+	void update_num_batches();
+
+	size_t num_batches;
+	bool have_all_batches = false;
+	std::vector<std::string> presceding_overlap_statuses;
+	std::vector<size_t> presceding_overlap_counters;
+	size_t presceding_overlap_amount;
+	std::vector<std::string> following_overlap_status;
+	std::vector<size_t> following_overlap_counters;
+	size_t following_overlap_amount;
+
+	std::shared_ptr<ral::cache::CacheMachine> batches_cache;
+	std::shared_ptr<ral::cache::CacheMachine> presceding_overlap_cache;
+	std::shared_ptr<ral::cache::CacheMachine> following_overlap_cache;
+	
+	int self_node_index;
+
+	int node_completions_received = 0;
+	int node_completions_required = 0;
+	std::mutex completion_mutex;
+	std::condition_variable completion_cv;
+};
+
+
 } // namespace batch
 } // namespace ral
