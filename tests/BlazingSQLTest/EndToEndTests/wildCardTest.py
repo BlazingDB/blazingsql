@@ -9,7 +9,7 @@ from Utils import Execution, gpuMemory, init_context, skip_test
 queryType = "Wild Card"
 
 
-def main(dask_client, drill, dir_data_lc, bc, nRals):
+def main(dask_client, drill, spark, dir_data_lc, bc, nRals):
 
     start_mem = gpuMemory.capture_gpu_memory_usage()
 
@@ -189,6 +189,7 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
+                print_result=True,
             )
 
             queryId = "TEST_09"
@@ -308,7 +309,7 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
                     group by o_orderstatus, o_orderkey"""
             runTest.run_query(
                 bc,
-                drill,
+                spark, #because Drill outputs some inf's instead of NaN
                 query,
                 queryId,
                 queryType,
@@ -448,6 +449,7 @@ if __name__ == "__main__":
     nvmlInit()
 
     drill = "drill"  # None
+    spark = "spark"
 
     compareResults = True
     if "compare_results" in Settings.data["RunSettings"]:
@@ -464,13 +466,19 @@ if __name__ == "__main__":
         cs.init_drill_schema(drill,
                              Settings.data["TestSettings"]["dataDirectory"])
 
+        # Create Table Spark ------------------------------------------------
+        from pyspark.sql import SparkSession
+
+        spark = SparkSession.builder.appName("timestampTest").getOrCreate()
+        cs.init_spark_schema(spark, Settings.data["TestSettings"]["dataDirectory"])
+
     # Create Context For BlazingSQL
 
     bc, dask_client = init_context()
 
     nRals = Settings.data["RunSettings"]["nRals"]
 
-    main(dask_client, drill,
+    main(dask_client, drill, spark,
          Settings.data["TestSettings"]["dataDirectory"], bc, nRals)
 
     if Settings.execution_mode != ExecutionMode.GENERATOR:
