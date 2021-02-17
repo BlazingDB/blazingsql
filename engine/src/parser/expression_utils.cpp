@@ -428,7 +428,7 @@ std::vector<int> get_columns_to_apply_window_function(const std::string & query_
 		}
 	}
 
-	for (std::size_t agg_i; agg_i < column_agg_string.size(); ++agg_i) {
+	for (std::size_t agg_i=0; agg_i < column_agg_string.size(); ++agg_i) {
 		std::size_t dolar_pos = reduced_query_part.find("$");
 		std::size_t closed_parenth_pos = reduced_query_part.find(")");
 
@@ -456,7 +456,7 @@ std::vector<std::string> get_window_function_agg(const std::string & query_part)
 	std::string reduced_query_part = query_part.substr(start_position + 1, end_position - start_position - 1);
 	aggregations = StringUtil::split(reduced_query_part, ",");
 
-	for (std::size_t agg_i; agg_i < aggregations.size(); ++agg_i) {
+	for (std::size_t agg_i=0; agg_i < aggregations.size(); ++agg_i) {
 		std::size_t open_parenthesis = aggregations[agg_i].find('(');
 		aggregations[agg_i] = aggregations[agg_i].substr(0, open_parenthesis);
 		aggregations[agg_i] = StringUtil::trim(aggregations[agg_i]);

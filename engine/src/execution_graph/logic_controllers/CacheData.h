@@ -56,6 +56,87 @@ const std::string MESSAGE_ID = "message_id"; /**< A message metadata field that 
 const std::string PARTITION_COUNT = "partition_count"; /**< A message metadata field that indicates the number of partitions a kernel processed.  */
 const std::string UNIQUE_MESSAGE_ID = "unique_message_id"; /**< A message metadata field that indicates the unique id of a message. */
 
+/**
+* Lightweight wrapper for a map that will one day be used for compile time checks.
+* Currently it is just a wrapper for map but in the future the intention is for
+* us to manage the Metadata in a struct as opposed to a map of string to string.
+*/
+class MetadataDictionary{
+public:
+
+	/**
+	* Gets the type of CacheData that was used to construct this CacheData
+	* @param key The key in the map that we will be modifying.
+	* @param value The value that we will set the key to.
+	*/
+	void add_value(std::string key, std::string value){
+		this->values[key] = value;
+	}
+
+	/**
+	* Gets the type of CacheData that was used to construct this CacheData
+	* @param key The key in the map that we will be modifying.
+	* @param value The value that we will set the key to.
+	*/
+	void add_value(std::string key, int value){
+		this->values[key] = std::to_string(value);
+	}
+
+	/**
+	* Gets id of creating kernel.
+	* @return Get the id of the kernel that created this message.
+	*/
+	int get_kernel_id(){
+		if( this->values.find(KERNEL_ID_METADATA_LABEL) == this->values.end()){
+			throw BlazingMissingMetadataException(KERNEL_ID_METADATA_LABEL);
+		}
+		return std::stoi(values[KERNEL_ID_METADATA_LABEL]);
+	}
+
+	/**
+	* Print every key => value pair in the map.
+	* Only used for debugging purposes.
+	*/
+	void print(){
+		for(auto elem : this->values)
+		{
+		   std::cout << elem.first << " " << elem.second<< "\n";
+		}
+	}
+	/**
+	* Gets the map storing the metadata.
+	* @return the map storing all of the metadata.
+	*/
+
+	std::map<std::string,std::string> get_values() const {
+		return this->values;
+	}
+
+	/**
+	* Erases all current metadata and sets new values.
+	* @param new_values A map to copy into this->values .
+	*/
+	void set_values(std::map<std::string,std::string> new_values){
+		this->values= new_values;
+	}
+
+	/**
+	* Checks if metadata has a specific key
+	* @param key The key to check if is in the metadata
+	* @return true if the key is in the metadata, otherwise return false
+	*/
+	bool has_value(std::string key){
+		auto it = this->values.find(key);
+		return it != this->values.end();
+	}
+
+    std::string get_value(std::string key);
+
+    void set_value(std::string key, std::string value);
+
+private:
+	std::map<std::string,std::string> values; /**< Stores the mapping of metdata label to metadata value */
+};
 
 /**
 * Base Class for all CacheData
@@ -153,83 +234,7 @@ protected:
 	std::vector<std::string> col_names; /**< A vector storing the names of the columns in the dataframe representation. */
 	std::vector<cudf::data_type> schema; /**< A vector storing the cudf::data_type of the columns in the dataframe representation. */
 	size_t n_rows; /**< Stores the number of rows in the dataframe representation. */
-};
-
-/**
-* Lightweight wrapper for a map that will one day be used for compile time checks.
-* Currently it is just a wrapper for map but in the future the intention is for
-* us to manage the Metadata in a struct as opposed to a map of string to string.
-*/
-class MetadataDictionary{
-public:
-
-	/**
-	* Gets the type of CacheData that was used to construct this CacheData
-	* @param key The key in the map that we will be modifying.
-	* @param value The value that we will set the key to.
-	*/
-	void add_value(std::string key, std::string value){
-		this->values[key] = value;
-	}
-
-	/**
-	* Gets the type of CacheData that was used to construct this CacheData
-	* @param key The key in the map that we will be modifying.
-	* @param value The value that we will set the key to.
-	*/
-	void add_value(std::string key, int value){
-		this->values[key] = std::to_string(value);
-	}
-
-	/**
-	* Gets id of creating kernel.
-	* @return Get the id of the kernel that created this message.
-	*/
-	int get_kernel_id(){
-		if( this->values.find(KERNEL_ID_METADATA_LABEL) == this->values.end()){
-			throw BlazingMissingMetadataException(KERNEL_ID_METADATA_LABEL);
-		}
-		return std::stoi(values[KERNEL_ID_METADATA_LABEL]);
-	}
-
-	/**
-	* Print every key => value pair in the map.
-	* Only used for debugging purposes.
-	*/
-	void print(){
-		for(auto elem : this->values)
-		{
-		   std::cout << elem.first << " " << elem.second<< "\n";
-		}
-	}
-	/**
-	* Gets the map storing the metadata.
-	* @return the map storing all of the metadata.
-	*/
-
-	std::map<std::string,std::string> get_values() const {
-		return this->values;
-	}
-
-	/**
-	* Erases all current metadata and sets new values.
-	* @param new_values A map to copy into this->values .
-	*/
-	void set_values(std::map<std::string,std::string> new_values){
-		this->values= new_values;
-	}
-
-	/**
-	* Checks if metadata has a specific key
-	* @param key The key to check if is in the metadata
-	* @return true if the key is in the metadata, otherwise return false
-	*/
-	bool has_value(std::string key){
-		auto it = this->values.find(key);
-		return it != this->values.end();
-	}
-private:
-	std::map<std::string,std::string> values; /**< Stores the mapping of metdata label to metadata value */
+    MetadataDictionary metadata; /**< The metadata used for routing and planning. */
 };
 
 /**
@@ -307,9 +312,10 @@ public:
 	* @param metadata The metadata that will be used in transport and planning.
 	*/
 	GPUCacheDataMetaData(std::unique_ptr<ral::frame::BlazingTable> table, const MetadataDictionary & metadata)
-		: GPUCacheData(std::move(table), CacheDataType::GPU_METADATA),
-		metadata(metadata)
-		 { }
+		: GPUCacheData(std::move(table), CacheDataType::GPU_METADATA)
+    {
+        this->metadata = metadata;
+    }
 
 	 /**
  	* Move the BlazingTable out of this Cache
@@ -337,20 +343,9 @@ public:
 	size_t sizeInBytes() const override { return data->sizeInBytes(); }
 
 	/**
-	* Get the MetadataDictionary
-	* @return The MetadataDictionary which is used in routing and planning.
-	*/
-	MetadataDictionary getMetadata(){
-		return this->metadata;
-	}
-
-	/**
 	* Destructor
 	*/
 	virtual ~GPUCacheDataMetaData() {}
-
-private:
-	MetadataDictionary metadata; /**< The metadata used for routing and planning. */
 };
 
 
