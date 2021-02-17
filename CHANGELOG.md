@@ -9,6 +9,7 @@
 - #1333 Fixing build due to cudf update
 
 ## Bug Fixes
+- #1335 Fixing uninitialized var in orc metadata and handling the parseMetadata exceptions properly
 
 
 # BlazingSQL 0.18.0 (Date TBS)

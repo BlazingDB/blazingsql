@@ -154,7 +154,7 @@ std::tuple< std::vector<int>, std::vector<cudf::order> > get_vars_to_orders(cons
 	std::string values = query_part.substr(start_position + 1, end_position - start_position - 1);
 	std::vector<std::string> column_order_string = StringUtil::split(values, ", ");   // ["1 DESC", "3"]
 
-	for (std::size_t i; i < column_order_string.size(); ++i) {
+	for (std::size_t i=0; i < column_order_string.size(); ++i) {
 		std::vector<std::string> split_parts = StringUtil::split(column_order_string[i], " ");
 		if (split_parts.size() == 1) order_types.push_back(cudf::order::ASCENDING);
 		else order_types.push_back(cudf::order::DESCENDING);
