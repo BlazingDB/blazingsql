@@ -252,7 +252,6 @@ ral::execution::task_result SortAndSampleKernel::do_process(std::vector< std::un
             if(sortedTable){
                 auto num_rows = sortedTable->num_rows();
                 auto num_bytes = sortedTable->sizeInBytes();
-
             }
 
             output->addToCache(std::move(sortedTable), "output_a");

@@ -21,13 +21,16 @@ enum AggregateKind{
 	COUNT_VALID,
 	COUNT_ALL,
 	COUNT_DISTINCT,
-	ROW_NUMBER
+	ROW_NUMBER,
+	LAG,
+	LEAD
 };
 
 namespace ral {
 namespace operators {
 
-	std::unique_ptr<cudf::aggregation> makeCudfAggregation(AggregateKind input);
+	// offset param is needed for `LAG` and `LEAD` aggs
+	std::unique_ptr<cudf::aggregation> makeCudfAggregation(AggregateKind input, int offset = 0);
 
 	AggregateKind get_aggregation_operation(std::string expression_in);
 

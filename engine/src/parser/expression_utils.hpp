@@ -129,7 +129,6 @@ const std::string LOGICAL_PARTITION_TEXT = "LogicalPartition";
 const std::string LOGICAL_SORT_AND_SAMPLE_TEXT = "Logical_SortAndSample";
 const std::string LOGICAL_SINGLE_NODE_PARTITION_TEXT = "LogicalSingleNodePartition";
 const std::string LOGICAL_FILTER_TEXT = "LogicalFilter";
-const std::string LOGICAL_WINDOW_TEXT = "LogicalWindow";
 const std::string LOGICAL_COMPUTE_WINDOW_TEXT = "LogicalComputeWindow";
 const std::string ASCENDING_ORDER_SORT_TEXT = "ASC";
 const std::string DESCENDING_ORDER_SORT_TEXT = "DESC";
@@ -158,21 +157,31 @@ bool is_merge_aggregate(std::string query_part);
 bool is_aggregate_merge(std::string query_part); // to be deprecated
 bool is_aggregate_partition(std::string query_part); // to be deprecated
 bool is_aggregate_and_sample(std::string query_part); // to be deprecated
-bool is_window(std::string query_part);
+bool is_window_function(std::string query_part);
 bool is_window_compute(std::string query_part);
-bool contains_window_expression(std::string query_part);
+
 bool window_expression_contains_partition(std::string query_part);
-bool window_expression_contains_multiple_windows(std::string query_part);
 
-std::unique_ptr<cudf::aggregation> get_window_aggregate(const std::string & input);
+bool window_expression_contains_order(std::string query_part);
 
-// input: window#0=[window(partition {0, 2} aggs [MIN($7)])]
-// output: a vector, [7]
-std::vector<int> get_columns_to_apply_window_function(const std::string & query_part);
+bool window_expression_contains_multiple_diff_over_clauses(std::string query_part);
 
-// input: window#0=[window(partition {0, 2} aggs [MIN($7)])]
-// output: a vector, ["MIN"]
-std::vector<std::string> get_window_function_agg(const std::string & query_part);
+std::string remove_partition_expr(std::string expression);
+
+std::string remove_count_expr(std::string expression, size_t rigt_index);
+
+std::string remove_sum0_expr(std::string expression, size_t rigt_index);
+
+std::string get_query_part(std::string logical_plan);
+
+// input: min_keys=[MIN($0) OVER (PARTITION BY $2 ORDER BY $1)]
+// output: PARTITION BY $2 ORDER BY $1
+std::string get_over_expression(std::string query_part);
+
+std::string get_first_over_expression_from_logical_plan(const std::string & logical_plan, const std::string & expr);
+
+std::tuple< std::vector<int>, std::vector<std::string>, std::vector<int> > 
+get_cols_to_apply_window_and_cols_to_apply_agg(const std::string & query_part);
 
 // input: window#0=[window(partition {2} order by [1] rows between 4 PRECEDING and 3 FOLLOWING aggs [FIRST_VALUE($0)])]
 // output: <4, 3>

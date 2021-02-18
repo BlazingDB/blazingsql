@@ -15,6 +15,7 @@
 #include <cudf/partitioning.hpp>
 #include <cudf/types.hpp>
 #include <cudf/copying.hpp>
+#include <cudf/aggregation.hpp>
 
 namespace ral {
 namespace batch {
@@ -28,11 +29,23 @@ ComputeWindowKernel::ComputeWindowKernel(std::size_t kernel_id, const std::strin
     this->query_graph = query_graph;
 }
 
-// TODO: support for LAG(), LEAD(), currently looks like Calcite has an issue obtaining the optimized plan
-// TODO: Support for RANK() and DENSE_RANK() file an cudf feature/request
-// TODO: Support for first_value() and last_value() file an cudf feature/request
-std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_function(cudf::table_view input_cudf_view, cudf::column_view input_col_view, std::size_t pos) {
-    std::unique_ptr<cudf::aggregation> window_function = ral::operators::makeCudfAggregation(this->aggs_wind_func[pos]);
+// TODO: Support for RANK() and DENSE_RANK()
+// TODO: Support for first_value() and last_value()
+std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_function(
+    cudf::table_view input_cudf_view,
+    cudf::column_view input_col_view,
+    std::size_t pos, int & constant_count ) {
+
+    std::unique_ptr<cudf::aggregation> window_aggregation;
+    
+    // it contains `LEAD` or `LAG` aggs
+    if (this->constant_values.size() > constant_count && (this->type_aggs_as_str[pos] == "LAG" || this->type_aggs_as_str[pos] == "LEAD") ) {
+        window_aggregation = ral::operators::makeCudfAggregation(this->aggs_wind_func[pos], this->constant_values[constant_count]);
+        constant_count++;
+    } else {
+        window_aggregation = ral::operators::makeCudfAggregation(this->aggs_wind_func[pos]); 
+    }
+
     std::unique_ptr<CudfColumn> windowed_col;
     std::vector<cudf::column_view> table_to_rolling;
 
@@ -43,16 +56,17 @@ std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_func
 
     cudf::table_view table_view_with_single_col(table_to_rolling);
 
-    if (this->expression.find("order by") != std::string::npos) {
+    if (this->expression.find("ORDER BY") != std::string::npos) {
         // default ROWS/RANGE statement
-        if (this->expression.find("UNBOUNDED PRECEDING and CURRENT ROW") != std::string::npos || this->expression.find("between") == std::string::npos) {
-            windowed_col = cudf::grouped_rolling_window(table_view_with_single_col , input_col_view, input_col_view.size(), 0, 1, window_function);
-        } else {
+        if (this->expression.find("UNBOUNDED PRECEDING and CURRENT ROW") != std::string::npos || this->expression.find("BETWEEN") != std::string::npos) {
             throw std::runtime_error("In Window Function: RANGE or ROWS bound is not currently supported");
+        } else if (this->type_aggs_as_str[pos] == "LEAD") {
+            windowed_col = cudf::grouped_rolling_window(table_view_with_single_col , input_col_view, 0, input_col_view.size(), 1, window_aggregation);
+        } else {
+            windowed_col = cudf::grouped_rolling_window(table_view_with_single_col , input_col_view, input_col_view.size(), 0, 1, window_aggregation);
         }
-        
     } else {
-        windowed_col = cudf::grouped_rolling_window(table_view_with_single_col , input_col_view, input_col_view.size(), input_col_view.size(), 1, window_function);
+        windowed_col = cudf::grouped_rolling_window(table_view_with_single_col , input_col_view, input_col_view.size(), input_col_view.size(), 1, window_aggregation);
     }
 
     return std::move(windowed_col);
@@ -73,42 +87,52 @@ ral::execution::task_result ComputeWindowKernel::do_process(std::vector< std::un
     try{
         cudf::table_view input_cudf_view = input->view();
 
-        // saving the names of the columns and after we will add one by each new col
         std::vector<std::string> input_names = input->names();
-        this->column_indices_wind_func = get_columns_to_apply_window_function(this->expression);
+        std::tie(this->column_indices_to_agg, this->type_aggs_as_str, this->constant_values) = 
+                                        get_cols_to_apply_window_and_cols_to_apply_agg(this->expression);
         std::tie(this->column_indices_partitioned, std::ignore) = ral::operators::get_vars_to_partition(this->expression);
-        std::vector<std::string> aggs_wind_func_str = get_window_function_agg(this->expression); // return MIN  MAX  COUNT
 
         // fill all the Kind aggregations
-        for (std::size_t col_i = 0; col_i < aggs_wind_func_str.size(); ++col_i) {
-            AggregateKind aggr_kind_i = ral::operators::get_aggregation_operation(aggs_wind_func_str[col_i]);
+        for (std::size_t col_i = 0; col_i < this->type_aggs_as_str.size(); ++col_i) {
+            AggregateKind aggr_kind_i = ral::operators::get_aggregation_operation(this->type_aggs_as_str[col_i]);
             this->aggs_wind_func.push_back(aggr_kind_i);
         }
 
-        std::vector< std::unique_ptr<CudfColumn> > new_wind_funct_cols;
-        for (std::size_t col_i = 0; col_i < aggs_wind_func_str.size(); ++col_i) {
-            cudf::column_view input_col_view = input_cudf_view.column(column_indices_wind_func[col_i]);
+        std::vector< std::unique_ptr<CudfColumn> > new_wf_cols;
+        int constant_count = 0;
+        for (std::size_t col_i = 0; col_i < this->type_aggs_as_str.size(); ++col_i) {
+            cudf::column_view input_col_view = input_cudf_view.column(column_indices_to_agg[col_i]);
 
             // calling main window function
-            std::unique_ptr<CudfColumn> windowed_col = compute_column_from_window_function(input_cudf_view, input_col_view, col_i);
-            new_wind_funct_cols.push_back(std::move(windowed_col));
-            input_names.push_back("");
+            std::unique_ptr<CudfColumn> windowed_col = compute_column_from_window_function(input_cudf_view, input_col_view, col_i, constant_count);
+            new_wf_cols.push_back(std::move(windowed_col));
         }
 
-        // Adding these new columns
-        std::unique_ptr<cudf::table> cudf_input = input->releaseCudfTable();
-        std::vector< std::unique_ptr<CudfColumn> > output_columns = cudf_input->release();
-        for (std::size_t col_i = 0; col_i < new_wind_funct_cols.size(); ++col_i) {
-            output_columns.push_back(std::move(new_wind_funct_cols[col_i]));
+        std::unique_ptr<cudf::table> cudf_table_input = input->releaseCudfTable();
+        std::vector< std::unique_ptr<CudfColumn> > input_cudf_columns = cudf_table_input->release();
+        
+        size_t total_output_columns = input_cudf_columns.size() + new_wf_cols.size();
+        size_t num_input_cols = input_cudf_columns.size();
+        std::vector<std::string> output_names;
+        std::vector< std::unique_ptr<CudfColumn> > output_columns;
+        
+        for (size_t col_i = 0; col_i < total_output_columns; ++col_i) {
+            // appending wf columns
+            if (col_i >= num_input_cols) {
+                output_columns.push_back(std::move(new_wf_cols[col_i - num_input_cols]));
+                output_names.push_back("");
+            } else {
+                output_columns.push_back(std::move(input_cudf_columns[col_i]));
+                output_names.push_back(input_names[col_i]);
+            }
         }
 
         std::unique_ptr<cudf::table> cudf_table_window = std::make_unique<cudf::table>(std::move(output_columns));
-        std::unique_ptr<ral::frame::BlazingTable> windowed_table = std::make_unique<ral::frame::BlazingTable>(std::move(cudf_table_window), input_names);
+        std::unique_ptr<ral::frame::BlazingTable> windowed_table = std::make_unique<ral::frame::BlazingTable>(std::move(cudf_table_window), output_names);
 
         if (windowed_table) {
             cudf::size_type num_rows = windowed_table->num_rows();
             std::size_t num_bytes = windowed_table->sizeInBytes();
-
         }
 
         output->addToCache(std::move(windowed_table));

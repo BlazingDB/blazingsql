@@ -39,8 +39,6 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
 
             print("==============================")
 
-            # TODO: LAG() and LEAD(): Calcite issue when get optimized plan
-
             # TODO: RANK() and DENSE_RANK(): cudf aggs no supported currently
 
             # TODO: FIRST_VALUE() and LAST_VALUE(): cudf aggs no supported currently
@@ -601,6 +599,56 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
+            queryId = "TEST_28"
+            query = """select lag(l_partkey, 2) over 
+                            (
+                                partition by l_linestatus
+                                order by l_quantity desc
+                            ) lag_keys, 
+                            l_linestatus, l_partkey
+                        from lineitem
+                        where l_partkey < 750
+                        and l_linenumber >= 6
+                        order by l_partkey, lag_keys
+                        limit 30"""
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_29"
+            query = """select lead(l_partkey, 3) over 
+                            (
+                                partition by l_linestatus
+                                order by l_quantity desc
+                            ) lead_keys, 
+                            l_linestatus, l_partkey
+                        from lineitem
+                        where l_partkey < 950
+                        and l_linenumber >= 7
+                        order by l_partkey, lead_keys
+                        limit 40"""
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
             # ---------- multiple WF with the same OVER clause ------------
 
             queryId = "TEST_31"
@@ -679,6 +727,127 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             runTest.run_query(
                 bc,
                 drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            # NOTE: order by in the over clause is mandatory for spark
+            queryId = "TEST_34"
+            query = """select min(n_nationkey) over
+                            (
+                                partition by n_regionkey order by n_name
+                            ) min_keys,
+                            lag(n_nationkey, 2) over
+                            (
+                                partition by n_regionkey order by n_name
+                            ) lag_col,
+                            max(n_nationkey) over
+                            (
+                                partition by n_regionkey order by n_name
+                            ) max_keys,
+                            n_nationkey, n_name, n_regionkey
+                            from nation order by n_nationkey"""
+            runTest.run_query(
+               bc,
+               spark,
+               query,
+               queryId,
+               queryType,
+               worder,
+               "",
+               acceptable_difference,
+               use_percentage,
+               fileSchemaType,
+            )
+
+            queryId = "TEST_35"
+            query = """select sum(o_custkey) over 
+                            (
+                                partition by o_orderstatus, o_orderpriority
+                                order by o_orderkey
+                            ) sum_keys,
+                            lag(o_custkey, 2) over 
+                            (
+                                partition by o_orderstatus, o_orderpriority
+                                order by o_orderkey
+                            ) lag_keys,
+                            cast(o_shippriority as double) as o_ship_double,
+                            o_orderpriority
+                        from orders
+                        where o_orderstatus <> 'O'
+                        and o_totalprice <= 6000
+                        and o_orderpriority in ('2-HIGH', '1-URGENT')
+                        order by o_orderpriority"""
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_36"
+            query = """select sum(o_custkey) over 
+                            (
+                                partition by o_orderstatus, o_orderpriority
+                                order by o_orderkey
+                            ) sum_keys,
+                            lead(o_custkey, 3) over 
+                            (
+                                partition by o_orderstatus, o_orderpriority
+                                order by o_orderkey
+                            ) lead_keys,
+                            cast(o_shippriority as double) as o_ship_double,
+                            o_orderpriority
+                        from orders
+                        where o_orderstatus <> 'O'
+                        and o_totalprice <= 6000
+                        and o_orderpriority in ('2-HIGH', '1-URGENT')
+                        order by o_orderpriority"""
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_37"
+            query = """select max(n.n_nationkey) over 
+                            (
+                                partition by n.n_regionkey
+                                order by n.n_name desc
+                            ) max_keys,
+                            lead(n.n_nationkey, 2) over 
+                            (
+                                partition by n.n_regionkey
+                                order by n.n_name desc
+                            ) lead_keys,
+                            l.l_extendedprice, l.l_comment
+                        from nation as n
+                        inner join lineitem as l
+                        on n.n_nationkey = l.l_partkey 
+                        order by max_keys, l.l_extendedprice
+                        limit 10"""
+            runTest.run_query(
+                bc,
+                spark,
                 query,
                 queryId,
                 queryType,
