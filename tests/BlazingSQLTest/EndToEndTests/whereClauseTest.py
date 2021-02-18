@@ -15,7 +15,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
 
     def executionTest():
 
-        tables = ["customer", "orders", "nation"]
+        tables = ["customer", "orders", "nation", "lineitem"]
         data_types = [
             DataType.DASK_CUDF,
             DataType.CUDF,
@@ -141,20 +141,6 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
-            #     print("TEST_10") #- Hace crushear a BlzSQL
-            #     query = "select c_custkey, c_nationkey as nkey from customer
-            #        where -c_nationkey + c_acctbal > 750.3"
-            #     runTest2.run_query(bc, drill, query, queryId, queryType,
-            #    worder, "c_custkey", acceptable_difference,
-            #   use_percentage, fileSchemaType)
-            #
-            #     print("TEST_11") #- Hace crushear a BlzSQL
-            #     query = "select c_custkey, c_nationkey as nkey from customer
-            #    where -c_nationkey + c_acctbal > 750"
-            #     runTest2.run_query(bc, drill, query, queryId, queryType,
-            #        worder, "c_custkey", acceptable_difference,
-            #        use_percentage, fileSchemaType)
-
             queryId = "TEST_07"
             query = """select c_custkey, c_nationkey, c_acctbal
                     from customer
@@ -230,6 +216,115 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             queryId = "TEST_11"
             query = """select * from nation
                     where n_regionkey > 2 and n_regionkey < 5"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            # Gives [RunExecuteGraph Error] std::exception and crashes with ORC
+            # Related Issue: https://github.com/BlazingDB/blazingsql/issues/1324
+            # queryId = "TEST_12"
+            # query = """select c_custkey, c_nationkey as nkey from customer
+            #         where -c_nationkey + c_acctbal > 750.3"""
+            # runTest.run_query(
+            #     bc,
+            #     drill,
+            #     query,
+            #     queryId,
+            #     queryType,
+            #     worder,
+            #     "c_custkey",
+            #     acceptable_difference,
+            #     use_percentage,
+            #     fileSchemaType,
+            # )
+
+            # Gives [RunExecuteGraph Error] std::exception and crashes with ORC
+            # Related Issue: https://github.com/BlazingDB/blazingsql/issues/1324
+            # queryId = "TEST_13"
+            # query = """select c_custkey, c_nationkey as nkey from customer
+            #    where -c_nationkey + c_acctbal > 750"""
+            # runTest.run_query(
+            #     bc,
+            #     drill,
+            #     query,
+            #     queryId,
+            #     queryType,
+            #     worder,
+            #     "c_custkey",
+            #     acceptable_difference,
+            #     use_percentage,
+            #     fileSchemaType,
+            # )
+
+            queryId = "TEST_14"
+            query = """select c_custkey, c_name, c_acctbal
+                    from customer
+                    where c_custkey <> 10 and c_custkey <> 11
+                    and c_custkey <> 100 and c_custkey <> 1000
+                    and c_custkey < 1001"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = 'TEST_15'
+            query = """select l_orderkey, l_partkey, l_suppkey,
+                    l_returnflag from lineitem 
+                    where l_returnflag <> 'g packages.'"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_16"
+            query = """select l_orderkey, l_partkey, l_suppkey, l_returnflag
+                    from lineitem
+                    where l_returnflag='N' and l_linenumber < 3
+                    and l_orderkey < 50"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_17"
+            query = """select c_custkey, c_nationkey, c_acctbal
+                    from customer
+                    where c_custkey < 15000
+                    and c_nationkey = 5 or c_custkey = c_nationkey * c_nationkey
+                    or c_nationkey >= 10 or c_acctbal <= 500"""
             runTest.run_query(
                 bc,
                 drill,

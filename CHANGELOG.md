@@ -4,9 +4,12 @@
 
 
 ## Improvements
-
+- #1325 Refactored CacheMachine.h and CacheMachine.cpp 
+- #1322 Updated and enabled several E2E tests
+- #1333 Fixing build due to cudf update
 
 ## Bug Fixes
+- #1335 Fixing uninitialized var in orc metadata and handling the parseMetadata exceptions properly
 
 
 # BlazingSQL 0.18.0 (Date TBS)
@@ -28,6 +31,7 @@
 - #1284 Initial support for Windows Function
 - #1303 Add support for INITCAP
 - #1313 getting and using ORC metadata
+- #1338 Window Function support for LEAD and LAG statements 
 
 
 ## Improvements
@@ -48,7 +52,8 @@
 - #1308 Improve the engine loggers
 - #1314 Added unit tests to verify that OOM error handling works well
 - #1320 Revamping cache logger
-
+- #1323 Made progress bar update continuously and stay after query is done 
+- #1336 Improvements for the cache API
 
 ## Bug Fixes
 - #1249 Fix compilation with cuda 11

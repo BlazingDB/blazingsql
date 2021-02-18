@@ -5,7 +5,6 @@ from Configuration import Settings as Settings
 # from dask.distributed import Client
 from DataBase import createSchema as createSchema
 
-# from EndToEndTests import countDistincTest
 from EndToEndTests import (
     GroupByWitoutAggregations,
     aggregationsWithoutGroupByTest,
@@ -13,6 +12,7 @@ from EndToEndTests import (
     booleanTest,
     caseTest,
     castTest,
+    countDistinctTest,
 )
 from EndToEndTests import coalesceTest as coalesceTest
 from EndToEndTests import columnBasisTest as columnBasisTest
@@ -46,7 +46,6 @@ from EndToEndTests import orderbyTest as orderbyTest
 from EndToEndTests import (
     predicatesWithNulls,
     roundTest,
-    simpleDistributionTest,
     stringTests,
     substringTest,
     stringCaseTest,
@@ -132,9 +131,7 @@ def main():
         )
 
     if runAllTests or ("coalesceTest" in targetTestGroups):
-        coalesceTest.main(
-            dask_client, drill, dir_data_file, bc, nRals
-        )  # we are not supporting coalesce yet
+        coalesceTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     if runAllTests or ("columnBasisTest" in targetTestGroups):
         columnBasisTest.main(dask_client, drill, dir_data_file, bc, nRals)
@@ -142,8 +139,8 @@ def main():
     if runAllTests or ("commonTableExpressionsTest" in targetTestGroups):
         commonTableExpressionsTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
-    # we are not supporting count distinct yet
-    # countDistincTest.main(dask_client, drill, dir_data_file, bc)
+    if runAllTests or ("countDistinctTest" in targetTestGroups):
+        countDistinctTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     if runAllTests or ("countWithoutGroupByTest" in targetTestGroups):
         countWithoutGroupByTest.main(dask_client, drill, dir_data_file, bc, nRals)
@@ -190,7 +187,7 @@ def main():
         orderbyTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     if runAllTests or ("predicatesWithNulls" in targetTestGroups):
-        predicatesWithNulls.main(dask_client, drill, dir_data_file, bc, nRals)
+        predicatesWithNulls.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     if runAllTests or ("stringTests" in targetTestGroups):
         stringTests.main(dask_client, drill, spark, dir_data_file, bc, nRals)
@@ -242,9 +239,6 @@ def main():
 
     if runAllTests or ("likeTest" in targetTestGroups):
         likeTest.main(dask_client, drill, dir_data_file, bc, nRals)
-
-    if runAllTests or ("simpleDistributionTest" in targetTestGroups):
-        simpleDistributionTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     if runAllTests or ("substringTest" in targetTestGroups):
         substringTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)

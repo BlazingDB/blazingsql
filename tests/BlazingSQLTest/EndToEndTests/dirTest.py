@@ -255,11 +255,9 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
             )
 
             queryId = "TEST_12"
-            # TODO: Change count(n2.n_nationkey) as cstar as count(*) as cstar
-            # when it will be supported KC
             query = """select count(n1.n_nationkey) as n1key,
                     count(n2.n_nationkey) as n2key,
-                    count(n2.n_nationkey) as cstar
+                    count(*) as cstar
                     from nation as n1
                     full outer join nation as n2
                     on n1.n_nationkey = n2.n_nationkey + 6"""
@@ -293,9 +291,9 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
             )
 
             queryId = "TEST_14"
-            query = """select 100168549 - sum(o_orderkey)/count(o_orderkey),
+            query = """select 100168549 - avg(o_orderkey),
                     56410984 / sum(o_totalprice), (123 - 945/max(o_orderkey)) /
-                    (sum(81619/o_orderkey)/count(81619/o_orderkey))
+                    (avg(81619.0/o_orderkey))
                     from orders"""
             runTest.run_query(
                 bc,
@@ -308,7 +306,7 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
                 acceptable_difference,
                 True,
                 fileSchemaType,
-            )  # TODO: Change sum/count for avg KC
+            )
 
             queryId = "TEST_15"
             query = """select o_orderkey, sum(o_totalprice) /
@@ -435,11 +433,24 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
             )
 
             queryId = "TEST_22"
-            # TODO: Change sum/count for avg KC
+            # such change without casting generates an issue: Different values
+            # #BLZ:
+            #    partKey  avgSize
+            # 0      1.0     25.0
+            # 1      1.0     25.0
+            # 2      1.0     25.0
+            # 3      1.0     25.0
+            # #DRILL:
+            #    partKey   avgSize
+            # 0      1.0  25.36675
+            # 1      1.0  25.36675
+            # 2      1.0  25.36675
+            # 3      1.0  25.36675
+
             query = """select partSuppTemp.partKey, partAnalysis.avgSize
                     from (
                         select min(p_partkey) as partKey,
-                        sum(p_size)/count(p_size) as avgSize,
+                        avg(cast(p_size as float)) as avgSize,
                         max(p_retailprice) as maxPrice,
                         min(p_retailprice) as minPrice from part
                     ) as partAnalysis
@@ -453,8 +464,18 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
                         select s_suppkey as suppKey from supplier
                     ) as supplierTemp on
                     supplierTemp.suppKey = partSuppTemp.suppKey"""
-            # runTest.run_query(bc, drill, query, queryId, queryType, worder,
-            #  '', acceptable_difference, use_percentage, fileSchemaType)
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
 
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")

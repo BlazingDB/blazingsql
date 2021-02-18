@@ -198,8 +198,18 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                      (c.c_custkey + 1), o.o_orderstatus from orders o
                     inner join customer c on o.o_custkey = c.c_custkey
                     where c.c_custkey < 20"""
-            # runTest.run_query(bc, drill, query, queryId, queryType, worder,
-            # '', acceptable_difference, use_percentage, fileSchemaType)
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
 
             queryId = "TEST_10"
             query = """select * from (
