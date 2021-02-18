@@ -69,12 +69,17 @@ private:
 	size_t num_batches;
 	bool have_all_batches = false;
 	std::vector<std::string> presceding_overlap_statuses;
-	std::vector<size_t> presceding_overlap_counters;
 	size_t presceding_overlap_amount;
 	std::vector<std::string> following_overlap_status;
-	std::vector<size_t> following_overlap_counters;
 	size_t following_overlap_amount;
 
+	// these are the three input caches
+	std::shared_ptr<ral::cache::CacheMachine> input_batches_cache;
+	std::shared_ptr<ral::cache::CacheMachine> input_presceding_overlap_cache;
+	std::shared_ptr<ral::cache::CacheMachine> input_following_overlap_cache;
+
+	// these are the internal ones we want to work with. 
+	// We need to use internal ones, because the input ones will get a status of finish applied externally, which make the array access work differently
 	std::shared_ptr<ral::cache::CacheMachine> batches_cache;
 	std::shared_ptr<ral::cache::CacheMachine> presceding_overlap_cache;
 	std::shared_ptr<ral::cache::CacheMachine> following_overlap_cache;
@@ -82,9 +87,15 @@ private:
 	int self_node_index;
 
 	int node_completions_received = 0;
-	int node_completions_required = 0;	
+	int node_completions_required = 0;
+	bool completion_sent_for_presceding = false;
+	bool completion_sent_for_following = false;
+
+	std::vector<std::string> col_names;
+	std::vector<cudf::data_type> schema;
 };
 
 
 } // namespace batch
 } // namespace ral
+
