@@ -207,7 +207,7 @@ std::tuple<std::vector<int>, std::vector<cudf::order> > get_right_sorts_vars(con
 		else if (!window_expression_contains_order(query_part)) {
 			std::tie(sortColIndices, sortOrderTypes) = get_vars_to_partition(query_part);
 		}
-		// TODO: cordova for now only `order by` not supported 
+		// TODO: for now over clauses without `partition by` are not supported
 		else {
 			throw std::runtime_error("Error, not support for WINDOW FUNCTION without PARTITION BY clause");
 			//std::tie(sortColIndices, sortOrderTypes) = get_vars_to_orders(query_part);	

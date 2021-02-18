@@ -3,7 +3,6 @@ package com.blazingdb.calcite.application;
 import com.blazingdb.calcite.rules.FilterTableScanRule;
 import com.blazingdb.calcite.rules.ProjectFilterTransposeRule;
 import com.blazingdb.calcite.rules.ProjectTableScanRule;
-import com.blazingdb.calcite.rules.ReduceExpressionsRule;
 import com.blazingdb.calcite.schema.BlazingSchema;
 import com.blazingdb.calcite.schema.BlazingTable;
 
@@ -29,7 +28,7 @@ import org.apache.calcite.rel.rules.ProjectJoinTransposeRule;
 import org.apache.calcite.rel.rules.ProjectMergeRule;
 import org.apache.calcite.rel.rules.ProjectRemoveRule;
 import org.apache.calcite.rel.rules.AggregateReduceFunctionsRule;
-//import org.apache.calcite.rel.rules.ReduceExpressionsRule;
+import org.apache.calcite.rel.rules.ReduceExpressionsRule;
 import org.apache.calcite.rel.rules.ProjectToWindowRule;
 import org.apache.calcite.rex.RexExecutorImpl;
 import org.apache.calcite.rel.type.RelDataTypeSystem;
@@ -198,7 +197,7 @@ public class RelationalAlgebraGenerator {
 						  .addRuleInstance(ProjectRemoveRule.INSTANCE)
 
 						  //The following three rules evaluate expressions in Projects and Filters
-						  .addRuleInstance(ReduceExpressionsRule.PROJECT_INSTANCE)
+						  //.addRuleInstance(ReduceExpressionsRule.PROJECT_INSTANCE)
 						  .addRuleInstance(ReduceExpressionsRule.FILTER_INSTANCE)
 
 						  .addRuleInstance(ProjectTableScanRule.INSTANCE)
@@ -208,7 +207,7 @@ public class RelationalAlgebraGenerator {
 						  .build();
 			} else {
 				program = new HepProgramBuilder()
-						   //.addRuleInstance(ProjectToWindowRule.PROJECT)
+						  //.addRuleInstance(ProjectToWindowRule.PROJECT)
 						  .addRuleInstance(AggregateExpandDistinctAggregatesRule.JOIN)
 						  .addRuleInstance(FilterAggregateTransposeRule.INSTANCE)
 						  .addRuleInstance(FilterJoinRule.JoinConditionPushRule.FILTER_ON_JOIN)
