@@ -224,6 +224,14 @@ public:
 	}
 
 	/**
+	* Get the MetadataDictionary
+	* @return The MetadataDictionary which is used in routing and planning.
+	*/
+	MetadataDictionary getMetadata(){
+		return this->metadata;
+	}
+
+	/**
 	 * Utility function which can take a CacheData and if its a standard GPU cache data, it will downgrade it to CPU or Disk
 	 * @return If the input CacheData is not of a type that can be downgraded, it will just return the original input, otherwise it will return the downgraded CacheData.
 	 */
@@ -253,14 +261,15 @@ public:
 		: CacheData(CacheDataType::GPU,table->names(), table->get_schema(), table->num_rows()),  data{std::move(table)} {}
 
 	/**
-	* Constructor with CacheDataType override.
-	* This constructor is called by GPUCacheDataMetaData constructor.
+	* Constructor
 	* @param table The BlazingTable that is moved into the CacheData.
-	* @param cache_type_override The type we want to set for this CacheData.
+	* @param metadata The metadata that will be used in transport and planning.
 	*/
-	GPUCacheData(std::unique_ptr<ral::frame::BlazingTable> table, CacheDataType cache_type_override)
-		: CacheData(cache_type_override,table->names(), table->get_schema(), table->num_rows()),  data{std::move(table)} {}
-
+	GPUCacheData(std::unique_ptr<ral::frame::BlazingTable> table, const MetadataDictionary & metadata)
+		: GPUCacheData(std::move(table)) {
+			this->metadata = metadata;
+		}
+    
 	/**
 	* Move the BlazingTable out of this Cache
 	* This function only exists so that we can interact with all cache data by
@@ -295,57 +304,6 @@ public:
 	}
 protected:
 	std::unique_ptr<ral::frame::BlazingTable> data; /**< Stores the data to be returned in decache */
-};
-
-/**
-* A GPUCacheData that also has a MetadataDictionary
-* These are messages that have metadata attached to them which is used
-* in planning and routing.
-*/
-class GPUCacheDataMetaData : public GPUCacheData {
-public:
-	/**
-	* Constructor
-	* These are messages that have metadata attached to them which is used
-	* in planning and routing.
-	* @param table The BlazingTable that is moved into the CacheData.
-	* @param metadata The metadata that will be used in transport and planning.
-	*/
-	GPUCacheDataMetaData(std::unique_ptr<ral::frame::BlazingTable> table, const MetadataDictionary & metadata)
-		: GPUCacheData(std::move(table), CacheDataType::GPU_METADATA)
-    {
-        this->metadata = metadata;
-    }
-
-	 /**
- 	* Move the BlazingTable out of this Cache
- 	* This function only exists so that we can interact with all cache data by
- 	* calling decache on them.
- 	* @return The BlazingTable that was used to construct this CacheData.
- 	*/
-	std::unique_ptr<ral::frame::BlazingTable> decache() override { return std::move(data); }
-	/**
-	* Move the BlazingTable and MetadataDictionary out of this Cache
-	* This function only exists so that we can interact with all cache data by
-	* calling decache on them.
-	* @return A pair with the BlazingTable and MetadataDictionary that was used to
-	* construct this CacheData.
-	*/
-	std::pair<std::unique_ptr<ral::frame::BlazingTable>,MetadataDictionary > decacheWithMetaData(){
-		 return std::make_pair(std::move(data),this->metadata); }
-
-	/**
- 	* Get the amount of GPU memory consumed by this CacheData
- 	* Having this function allows us to have one api for seeing the consumption
- 	* of all the CacheData objects that are currently in Caches.
- 	* @return The number of bytes the BlazingTable consumes.
- 	*/
-	size_t sizeInBytes() const override { return data->sizeInBytes(); }
-
-	/**
-	* Destructor
-	*/
-	virtual ~GPUCacheDataMetaData() {}
 };
 
 
@@ -412,14 +370,6 @@ public:
 	* Destructor
 	*/
  	virtual ~CPUCacheData() {}
-
-	/**
-	* Get the MetadataDictionary
-	* @return The MetadataDictionary which is used in routing and planning.
-	*/
-	MetadataDictionary getMetadata(){
-		return this->metadata;
-	}
 
 protected:
 	std::unique_ptr<ral::frame::BlazingHostTable> host_table; /**< The CPU representation of a DataFrame  */
@@ -564,6 +514,8 @@ public:
 	*/
 	size_t sizeInBytes() const override;
 
+	std::vector<std::unique_ptr<CacheData>> releaseCacheDatas();
+
 	virtual ~ConcatCacheData() {}
 
 protected:
@@ -596,19 +548,6 @@ protected:
 	std::unique_ptr<CacheData> data;
 	const std::string message_id;
 };
-
-
-/**
-* Helper function to convert a std::unique_ptr<CacheData>  to a std::unique_ptr<GPUCacheDataMetaData>.
-* @param base_pointer The unique_ptr we will convert.
-* @return The converted pointer.
-*/
-std::unique_ptr<GPUCacheDataMetaData> cast_cache_data_to_gpu_with_meta(std::unique_ptr<CacheData>  base_pointer);
-/**
-	@brief A class that represents a Cache Machine on a
-	multi-tier (GPU memory, CPU memory, Disk memory) cache system.
-*/
-
 
 }  // namespace cache
 
