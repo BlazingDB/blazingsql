@@ -30,6 +30,17 @@ std::string randomString(std::size_t length) {
 	return random_string;
 }
 
+std::string MetadataDictionary::get_value(std::string key) {
+    if (!this->has_value(key)) {
+        return std::string();
+    }
+    return this->values.at(key);
+}
+
+void MetadataDictionary::set_value(std::string key, std::string value) {
+    this->values[key] = value;
+}
+
 std::unique_ptr<CacheData> CacheData::downgradeCacheData(std::unique_ptr<CacheData> cacheData, std::string id, std::shared_ptr<Context> ctx) {
 	
 	// if its not a GPU cacheData, then we can't downgrade it, so we can just return it

@@ -124,12 +124,22 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
-            #  queryId = 'TEST_05'
-            #  query = """select o_orderkey, o_orderstatus from orders
-            #    where o_custkey < 10 and o_orderstatus = 'O'
-            #    order by o_orderkey, o_orderstatus limit 50"""
-            #  runTest.run_query(bc, drill, query, queryId, queryType, worder,
-            #  '', acceptable_difference, use_percentage, fileSchemaType)
+            queryId = 'TEST_05'
+            query = """select o_orderkey, o_orderstatus from orders
+                    where o_custkey < 10 and o_orderstatus = 'O'
+                    order by o_orderkey, o_orderstatus limit 50"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
 
             queryId = "TEST_06"
             query = """select orders.o_totalprice, customer.c_name from orders
@@ -258,6 +268,38 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 use_percentage,
                 fileSchemaType,
             )
+
+            queryId = "TEST_12"
+            query = """select o_orderdate, o_orderkey, o_clerk
+                    from orders
+                    order by o_orderdate, o_orderkey, o_custkey
+                    limit 1000"""
+            if fileSchemaType == DataType.ORC:
+                runTest.run_query(
+                    bc,
+                    spark,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
+            else:
+                runTest.run_query(
+                    bc,
+                    drill,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
 
             # if Settings.execution_mode == ExecutionMode.GENERATOR:
             #     print("==============================")

@@ -56,7 +56,6 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True,
             )
 
             queryId = "TEST_02"
@@ -76,7 +75,6 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True,
             )
 
             queryId = "TEST_03"
@@ -200,9 +198,41 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
-            if Settings.execution_mode == ExecutionMode.GENERATOR:
-                print("==============================")
-                break
+            queryId = "TEST_09"
+            query = """select l_orderkey, l_extendedprice, l_shipdate
+                    from lineitem where l_orderkey < 100
+                    group by l_orderkey, l_extendedprice,
+                    l_shipdate, l_linestatus"""
+            if fileSchemaType == DataType.ORC:
+                runTest.run_query(
+                    bc,
+                    spark,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
+            else:
+                runTest.run_query(
+                    bc,
+                    drill,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
+
+            # if Settings.execution_mode == ExecutionMode.GENERATOR:
+            #     print("==============================")
+            #     break
 
     executionTest()
 

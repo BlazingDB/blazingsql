@@ -295,7 +295,6 @@ def get_codTest(test_name):
         "Predicates With Nulls": "PREDWNULLS",
         "Round": "ROUND",
         "Replace": "REPLACE",
-        "Simple Distribution From Local": "SIMPLEDIST",
         "Smiles Test": "SMILES",
         "Substring": "SUBSTRING",
         "Tables from Pandas": "TBLPANDAS",

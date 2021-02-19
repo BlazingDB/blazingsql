@@ -57,7 +57,6 @@ def main(dask_client, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 query_spark=query_spark,
-                print_result=True,
             )
 
             queryId = "TEST_02"
@@ -78,7 +77,6 @@ def main(dask_client, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 query_spark=query_spark,
-                print_result=True,
             )
 
             queryId = "TEST_03"
@@ -98,7 +96,6 @@ def main(dask_client, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 query_spark=query_spark,
-                print_result=True,
             )
 
             if Settings.execution_mode == ExecutionMode.GENERATOR:

@@ -14,7 +14,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
     start_mem = gpuMemory.capture_gpu_memory_usage()
 
     def executionTest():
-        tables = ["customer"]
+        tables = ["customer", "lineitem", "orders"]
         data_types = [
             DataType.DASK_CUDF,
             DataType.CUDF,
@@ -104,6 +104,42 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
+            queryId = "TEST_05"
+            query = """select l_linenumber, l_orderkey
+                    from lineitem where l_orderkey < 50000
+                    order by l_linenumber desc, l_suppkey asc,
+                        l_partkey desc, l_orderkey"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_06"
+            query = """select o_orderkey, o_custkey, o_totalprice, o_orderstatus
+                    from orders where o_orderkey < 100
+                    order by o_custkey, o_orderstatus,
+                    o_shippriority, o_comment"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+            
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")
                 break

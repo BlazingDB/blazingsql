@@ -590,7 +590,7 @@ std::unique_ptr<cudf::column> evaluate_string_case_when_else(const cudf::table_v
                                                             const std::string & expr1,
                                                             const std::string & expr2)
 {
-    if ((!is_string(expr1) && !is_var_column(expr1)) || (!is_string(expr2) && !is_var_column(expr2))) {
+    if ((!is_string(expr1) && !is_var_column(expr1) && !is_null(expr1)) || (!is_string(expr2) && !is_var_column(expr2) && !is_null(expr2))) {
         return nullptr;
     }
 
@@ -613,15 +613,15 @@ std::unique_ptr<cudf::column> evaluate_string_case_when_else(const cudf::table_v
     }
 
     std::unique_ptr<cudf::column> computed_col;
-    if (is_string(expr1) && is_string(expr2)) {
+    if ((is_string(expr1) || is_null(expr1)) && (is_string(expr2) || is_null(expr2))) {
         std::unique_ptr<cudf::scalar> lhs = get_scalar_from_string(expr1, cudf::data_type{cudf::type_id::STRING});
         std::unique_ptr<cudf::scalar> rhs = get_scalar_from_string(expr2, cudf::data_type{cudf::type_id::STRING});
         computed_col = cudf::copy_if_else(*lhs, *rhs, boolean_mask_view);
-    } else if (is_string(expr1)) {
+    } else if (is_string(expr1) || is_null(expr1)) {
         std::unique_ptr<cudf::scalar> lhs = get_scalar_from_string(expr1, cudf::data_type{cudf::type_id::STRING});
         cudf::column_view rhs = table.column(get_index(expr2));
         computed_col = cudf::copy_if_else(*lhs, rhs, boolean_mask_view);
-    } else if (is_string(expr2)) {
+    } else if (is_string(expr2) || is_null(expr2)) {
         cudf::column_view lhs = table.column(get_index(expr1));
         std::unique_ptr<cudf::scalar> rhs = get_scalar_from_string(expr2, cudf::data_type{cudf::type_id::STRING});
         computed_col = cudf::copy_if_else(lhs, *rhs, boolean_mask_view);

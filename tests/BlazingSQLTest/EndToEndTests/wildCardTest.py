@@ -91,7 +91,7 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
 
             queryId = "TEST_04"
             query = """select count(c_custkey), sum(c_acctbal),
-                        sum(c_acctbal)/count(c_acctbal), min(c_custkey),
+                        avg(c_acctbal), min(c_custkey),
                         max(c_nationkey),
                         (max(c_nationkey) + min(c_nationkey)) / 2 c_nationkey
                         from customer
@@ -108,7 +108,7 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
                 acceptable_difference,
                 True,
                 fileSchemaType,
-            )  # TODO: Change sum/count for avg KC
+            )
 
             queryId = "TEST_05"
             query = """select c.c_custkey, c.c_nationkey, n.n_regionkey
@@ -250,12 +250,10 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
             queryId = "TEST_12"
             query = """select count(n1.n_nationkey) as n1key,
                     count(n2.n_nationkey) as n2key,
-                    count(n2.n_nationkey) as cstar
+                    count(*) as cstar
                     from nation as n1
                     full outer join nation as n2
                     on n1.n_nationkey = n2.n_nationkey + 6"""
-            # TODO: Change count(n2.n_nationkey) as cstar as count(*) as cstar
-            # when it will be supported KC
             runTest.run_query(
                 bc,
                 drill,
@@ -286,10 +284,10 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
             )
 
             queryId = "TEST_14"
-            query = """select 100168549 - sum(o_orderkey)/count(o_orderkey),
+            query = """select 100168549 - avg(o_orderkey),
                     56410984/sum(o_totalprice),
                     (123 - 945/max(o_orderkey)) /
-                    (sum(81619/o_orderkey) / count(81619/o_orderkey))
+                    (avg(81619.0/o_orderkey))
                     from orders"""
             runTest.run_query(
                 bc,
@@ -302,7 +300,7 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
                 acceptable_difference,
                 True,
                 fileSchemaType,
-            )  # TODO: Change sum/count for avg KC
+            )
 
             queryId = "TEST_15"
             query = """select o_orderkey, sum(o_totalprice)/count(o_orderstatus)
@@ -319,7 +317,7 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
                 acceptable_difference,
                 True,
                 fileSchemaType,
-            )  # TODO: Change sum/count for avg KC
+            )
 
             queryId = "TEST_16"
             query = """select o_orderkey, o_orderstatus from orders
@@ -372,7 +370,7 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
             )
 
             queryId = "TEST_19"
-            query = """select sum(o_orderkey)/count(o_orderkey)
+            query = """select avg(o_orderkey)
                 from orders group by o_orderstatus"""
             runTest.run_query(
                 bc,
@@ -385,7 +383,7 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
                 acceptable_difference,
                 True,
                 fileSchemaType,
-            )  # TODO: Change sum/count for avg KC
+            )
 
             queryId = "TEST_20"
             query = """select count(o_shippriority), sum(o_totalprice)

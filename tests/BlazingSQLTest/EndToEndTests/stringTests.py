@@ -372,6 +372,23 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 query_spark=query_spark,
             )
 
+            queryId = "TEST_18"
+            query = """select c_custkey, c_nationkey, c_name
+                    from customer where c_custkey > 300 and c_custkey < 600
+                    order by c_nationkey, c_custkey"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                0,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")
                 break

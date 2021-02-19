@@ -22,6 +22,7 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             "part",
             "partsupp",
             "supplier",
+            "lineitem",
         ]
         data_types = [
             DataType.DASK_CUDF,
@@ -143,6 +144,51 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                         tempOrders.o_custkey = customer.c_custkey
                         where customer.c_nationkey > 6
                     ) as joinedTables"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_05"
+            query = """select cust.custkey, cust.cname 
+                    from customer inner join
+                    (
+                        select c_custkey as custkey, c_name as cname 
+                        from customer
+                        where c_custkey <= 50 group by c_custkey, c_name
+                    ) as cust on cust.cname = customer.c_name"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_06"
+            query = """select count(mo.o_totalprice), c.c_name
+                    from (
+                        select o.o_orderkey, o.o_custkey,
+                        o.o_totalprice, o.o_orderstatus
+                        from orders as o
+                        inner join lineitem as l on o.o_orderkey = l.l_orderkey
+                        where l.l_linenumber = 5
+                    ) as mo
+                    inner join customer as c on c.c_custkey = mo.o_custkey
+                    where mo.o_orderstatus = 'O' group by c.c_name"""
             runTest.run_query(
                 bc,
                 drill,

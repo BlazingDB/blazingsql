@@ -193,8 +193,18 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                     INNER JOIN region AS r
                     ON n.n_regionkey = r.r_regionkey
                     and n.n_nationkey = 5"""
-            # runTest.run_query(bc, drill, query, queryId, queryType, worder,
-            # '', acceptable_difference, use_percentage, fileSchemaType)
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
 
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")
