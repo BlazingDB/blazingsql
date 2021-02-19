@@ -86,9 +86,6 @@ private:
 	
 	int self_node_index;
 
-	bool request_for_presceding_completed = false;
-	bool request_for_following_completed = false;
-
 	std::vector<std::string> col_names;
 	std::vector<cudf::data_type> schema;
 };
