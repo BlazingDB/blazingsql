@@ -468,6 +468,30 @@ std::string get_query_part(std::string logical_plan) {
 	return query_part;
 }
 
+std::vector<int> get_bounds_from_window_expression(const std::string & logical_plan) {
+	std::vector<int> bounds;
+
+	std::string over_clause = get_first_over_expression_from_logical_plan(logical_plan, "PARTITION BY");
+
+	// getting the first limit value
+	std::string between_expr = "BETWEEN ";
+	std::string preceding_expr = " PRECEDING";
+	size_t start_pos = over_clause.find(between_expr) + between_expr.size();
+	size_t end_pos = over_clause.find(preceding_expr);
+	std::string first_limit = over_clause.substr(start_pos, end_pos - start_pos);
+	bounds.push_back(std::stoi(first_limit));
+
+	// getting the second limit value
+	std::string and_expr = "AND ";
+	std::string following_expr = " FOLLOWING";
+	start_pos = over_clause.find(and_expr) + and_expr.size();
+	end_pos = over_clause.find(following_expr);
+	std::string second_limit = over_clause.substr(start_pos, end_pos - start_pos);
+	bounds.push_back(std::stoi(second_limit));
+
+	return bounds;
+}
+
 // input: min_keys=[MIN($0) OVER (PARTITION BY $1, $2 ORDER BY $0)]
 // output:  PARTITION BY $1, $2 ORDER BY $0
 std::string get_over_expression(std::string query_part) {

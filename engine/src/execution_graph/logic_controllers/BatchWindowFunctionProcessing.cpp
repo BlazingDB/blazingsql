@@ -46,7 +46,6 @@ std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_func
         window_aggregation = ral::operators::makeCudfAggregation(this->aggs_wind_func[pos]); 
     }
 
-    std::unique_ptr<CudfColumn> windowed_col;
     std::vector<cudf::column_view> table_to_rolling;
 
     // want all columns to be partitioned
@@ -56,14 +55,21 @@ std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_func
 
     cudf::table_view table_view_with_single_col(table_to_rolling);
 
+    std::unique_ptr<CudfColumn> windowed_col;
     if (this->expression.find("ORDER BY") != std::string::npos) {
-        // default ROWS/RANGE statement
-        if (this->expression.find("UNBOUNDED PRECEDING and CURRENT ROW") != std::string::npos || this->expression.find("BETWEEN") != std::string::npos) {
-            throw std::runtime_error("In Window Function: RANGE or ROWS bound is not currently supported");
-        } else if (this->type_aggs_as_str[pos] == "LEAD") {
-            windowed_col = cudf::grouped_rolling_window(table_view_with_single_col , input_col_view, 0, input_col_view.size(), 1, window_aggregation);
+        if (this->expression.find("BETWEEN") != std::string::npos) {
+            if (this->expression.find("RANGE") != std::string::npos) {
+                throw std::runtime_error("In Window Function: RANGE is not currently supported");
+            }
+            this->bounding_values = get_bounds_from_window_expression(this->expression);
+            windowed_col = cudf::grouped_rolling_window(table_view_with_single_col , input_col_view, this->bounding_values[0] + 1, this->bounding_values[1], 1, window_aggregation);
         } else {
-            windowed_col = cudf::grouped_rolling_window(table_view_with_single_col , input_col_view, input_col_view.size(), 0, 1, window_aggregation);
+            // we want to use all the size of each partition
+            if (this->type_aggs_as_str[pos] == "LEAD") {
+                windowed_col = cudf::grouped_rolling_window(table_view_with_single_col , input_col_view, 0, input_col_view.size(), 1, window_aggregation);
+            } else {
+                windowed_col = cudf::grouped_rolling_window(table_view_with_single_col , input_col_view, input_col_view.size(), 0, 1, window_aggregation);
+            }
         }
     } else {
         windowed_col = cudf::grouped_rolling_window(table_view_with_single_col , input_col_view, input_col_view.size(), input_col_view.size(), 1, window_aggregation);

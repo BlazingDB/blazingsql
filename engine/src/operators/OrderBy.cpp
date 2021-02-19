@@ -161,7 +161,12 @@ std::tuple< std::vector<int>, std::vector<cudf::order> > get_vars_to_orders(cons
 	}
 
 	size_t start_position = over_expression.find(order_expr) + order_expr.size();
-	size_t end_position = over_expression.size();
+	size_t end_position = over_expression.find("ROWS");
+	if (end_position != over_expression.npos) {
+		end_position = end_position - 1;
+	} else {
+		end_position = over_expression.size();
+	}
 
 	// $3, $1 DESC
 	std::string values = over_expression.substr(start_position, end_position - start_position);

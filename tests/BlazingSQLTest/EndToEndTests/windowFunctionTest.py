@@ -858,6 +858,123 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
+            # ------------ ROWS bounding ----------------
+
+            queryId = "TEST_50"
+            query = """select min(n_nationkey) over
+                            (
+                                partition by n_regionkey
+                                order by n_name
+                                ROWS BETWEEN 1 PRECEDING
+                                AND 1 FOLLOWING
+                            ) min_val,
+ 							n_nationkey, n_regionkey, n_name
+                        from nation order by n_nationkey"""
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_51"
+            query = """select min(o_orderkey) over
+                            (
+                                partition by o_orderstatus, o_clerk
+                                order by o_orderdate
+                                ROWS BETWEEN 2 PRECEDING
+                                AND 1 FOLLOWING
+                            ) min_keys, 
+                            max(o_orderkey) over
+                            (
+                                partition by o_orderstatus, o_clerk
+                                order by o_orderdate
+                                ROWS BETWEEN 2 PRECEDING
+                                AND 1 FOLLOWING
+                            ) max_keys, o_orderkey, o_orderpriority
+                        from orders
+                        where o_orderpriority <> '2-HIGH'
+                        and o_clerk = 'Clerk#000000880'
+                        order by o_orderkey
+                        limit 50"""
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_52"
+            query = """with new_nation as (
+                    select n.n_nationkey as n_natio1,
+                        n.n_name as n_nam1,
+                        n.n_regionkey as n_region1
+                    from nation as n
+                    inner join region as r
+                    on n.n_nationkey = r.r_regionkey
+                )
+                select avg(cast(nn.n_natio1 as double)) over 
+                    (
+                        partition by nn.n_region1
+                        order by nn.n_nam1
+                        ROWS BETWEEN 3 PRECEDING
+                        AND 2 FOLLOWING
+                    ) avg_keys,
+                    nn.n_natio1, nn.n_nam1, nn.n_region1
+                from new_nation nn
+                order by nn.n_natio1, avg_keys"""
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_53"
+            query = """select max(l_partkey) over
+                            (
+                                partition by l_linestatus
+                                order by l_quantity desc, l_orderkey
+                                ROWS BETWEEN 6 PRECEDING
+                                AND 2 FOLLOWING
+                            ) max_keys,
+                            l_linestatus, l_extendedprice
+                        from lineitem
+                        where l_shipmode not in ('MAIL', 'SHIP', 'AIR')
+                        and l_linestatus = 'F'
+                        order by l_orderkey, max_keys
+                        limit 50"""
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")
                 break

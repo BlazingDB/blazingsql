@@ -183,9 +183,9 @@ std::string get_first_over_expression_from_logical_plan(const std::string & logi
 std::tuple< std::vector<int>, std::vector<std::string>, std::vector<int> > 
 get_cols_to_apply_window_and_cols_to_apply_agg(const std::string & query_part);
 
-// input: window#0=[window(partition {2} order by [1] rows between 4 PRECEDING and 3 FOLLOWING aggs [FIRST_VALUE($0)])]
-// output: <4, 3>
-std::pair<int, int> get_bounds_from_window_expression(const std::string & query_part);
+// input: min_val=[MIN($0) OVER (PARTITION BY $2 ORDER BY $1 ROWS BETWEEN 4 PRECEDING AND 3 FOLLOWING)]
+// output: [4, 3]
+std::vector<int> get_bounds_from_window_expression(const std::string & logical_plan);
 
 // Returns the index from table_scan if exists
 size_t get_table_index(std::vector<std::string> table_scans, std::string table_scan);
