@@ -603,13 +603,13 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             query = """select lag(l_partkey, 2) over 
                             (
                                 partition by l_linestatus
-                                order by l_quantity desc
+                                order by l_orderkey, l_quantity desc
                             ) lag_keys, 
-                            l_linestatus, l_partkey
+                            l_linestatus, l_partkey, l_extendedprice
                         from lineitem
                         where l_partkey < 750
                         and l_linenumber >= 6
-                        order by l_partkey, lag_keys
+                        order by l_extendedprice, l_partkey, lag_keys
                         limit 30"""
             runTest.run_query(
                 bc,
@@ -628,13 +628,13 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             query = """select lead(l_partkey, 3) over 
                             (
                                 partition by l_linestatus
-                                order by l_quantity desc
+                                order by l_extendedprice
                             ) lead_keys, 
-                            l_linestatus, l_partkey
+                            l_linestatus, l_partkey, l_extendedprice
                         from lineitem
                         where l_partkey < 950
                         and l_linenumber >= 7
-                        order by l_partkey, lead_keys
+                        order by l_extendedprice, l_partkey
                         limit 40"""
             runTest.run_query(
                 bc,
@@ -829,21 +829,22 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             )
 
             queryId = "TEST_37"
-            query = """select max(n.n_nationkey) over 
+            query = """select 
+                            max(n.n_nationkey) over 
                             (
-                                partition by n.n_regionkey
-                                order by n.n_name desc
+                                partition by l.l_partkey
+                                order by l.l_extendedprice
                             ) max_keys,
                             lead(n.n_nationkey, 2) over 
                             (
-                                partition by n.n_regionkey
-                                order by n.n_name desc
+                                partition by l.l_partkey
+                                order by l.l_extendedprice
                             ) lead_keys,
-                            l.l_extendedprice, l.l_comment
+                            n.n_nationkey, l.l_extendedprice, l.l_comment
                         from nation as n
                         inner join lineitem as l
                         on n.n_nationkey = l.l_partkey 
-                        order by max_keys, l.l_extendedprice
+                        order by l.l_extendedprice, l_comment
                         limit 10"""
             runTest.run_query(
                 bc,
