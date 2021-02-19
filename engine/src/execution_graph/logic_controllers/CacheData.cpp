@@ -316,9 +316,5 @@ std::vector<std::unique_ptr<CacheData>> ConcatCacheData::releaseCacheDatas(){
 	return std::move(_cache_datas);
 }
 
-std::unique_ptr<GPUCacheDataMetaData> cast_cache_data_to_gpu_with_meta(std::unique_ptr<CacheData> base_pointer){
-	return std::unique_ptr<GPUCacheDataMetaData>(static_cast<GPUCacheDataMetaData *>(base_pointer.release()));
-}
-
 }  // namespace cache
 } // namespace ral

@@ -763,7 +763,7 @@ void SenderCall(const UcpWorkerAddress &peerUcpWorkerAddress,
   for (size_t i = 0; i < 30; i++)
   {
     output_cache->addCacheData(
-            std::make_unique<ral::cache::GPUCacheDataMetaData>(generate_table_data(), generate_metadata()), "", true);
+            std::make_unique<ral::cache::GPUCacheData>(generate_table_data(), generate_metadata()), "", true);
   }
 
   comm::message_sender::initialize_instance(output_cache, nullptr, nodes_info_map, 1, ucp_context, ucp_worker, 0,comm::blazing_protocol::ucx);
@@ -797,7 +797,7 @@ void ReceiverCall(const UcpWorkerAddress &peerUcpWorkerAddress,
   for (size_t i = 0; i < 30; i++)
   {
     auto cache_data = input_cache->pullCacheData();
-    auto gpu_cache_data = static_cast<ral::cache::GPUCacheDataMetaData *>(cache_data.get());
+    auto gpu_cache_data = static_cast<ral::cache::GPUCacheData *>(cache_data.get());
     auto table_metadata_pair = gpu_cache_data->decacheWithMetaData();
 
     auto expected_metadata = generate_metadata();

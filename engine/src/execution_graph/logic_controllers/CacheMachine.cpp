@@ -330,7 +330,7 @@ bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, s
 					table->ensureOwnership();
 					std::unique_ptr<CacheData> cache_data;
 					if(include_meta){
-						cache_data = std::make_unique<GPUCacheDataMetaData>(std::move(table),metadata);
+						cache_data = std::make_unique<GPUCacheData>(std::move(table),metadata);
 					}else{
 						cache_data = std::make_unique<GPUCacheData>(std::move(table));
 					}
