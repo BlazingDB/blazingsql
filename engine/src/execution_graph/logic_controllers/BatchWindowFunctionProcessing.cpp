@@ -67,8 +67,6 @@ ral::execution::task_result ComputeWindowKernel::do_process(std::vector< std::un
         return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }
 
-    CodeTimer eventTimer(false);
-
     std::unique_ptr<ral::frame::BlazingTable> & input = inputs[0];
 
     try{
@@ -270,7 +268,7 @@ std::string OverlapAccumulatorKernel::get_overlap_status(bool presceding, int in
 void OverlapAccumulatorKernel::combine_overlaps(bool presceding, int target_batch_index, std::unique_ptr<ral::frame::BlazingTable> new_overlap, std::string overlap_status) {
     
     // WSM TODO should make a function that can create a cache data and automatically cache it if the resouce consumption demands it
-    std::unique_ptr<ral::cache::CacheData> new_overlap_cache_data = std::make_unique<ral::cache::GPUCacheData>(new_overlap);
+    std::unique_ptr<ral::cache::CacheData> new_overlap_cache_data = std::make_unique<ral::cache::GPUCacheData>(std::move(new_overlap));
     return combine_overlaps(presceding, target_batch_index, std::move(new_overlap_cache_data), overlap_status);
 }
 
@@ -288,12 +286,12 @@ void OverlapAccumulatorKernel::combine_overlaps(bool presceding, int target_batc
         ral::cache::ConcatCacheData * concat_cache_ptr = static_cast<ral::cache::ConcatCacheData *> (existing_overlap.get());
         overlap_parts = concat_cache_ptr->releaseCacheDatas();       
     } else {
-        overlap_parts.push_back(existing_overlap);
+        overlap_parts.push_back(std::move(existing_overlap));
     }
     if (presceding){
-        overlap_parts.insert(overlap_parts.begin(), 1, new_overlap_cache_data);
+        overlap_parts.insert(overlap_parts.begin(), 1, std::move(new_overlap_cache_data));
     } else {
-        overlap_parts.push_back(new_overlap_cache_data);
+        overlap_parts.push_back(std::move(new_overlap_cache_data));
     }
     
     std::unique_ptr<ral::cache::ConcatCacheData> new_cache_data = std::make_unique<ral::cache::ConcatCacheData>(std::move(overlap_parts), this->col_names, this->schema);
@@ -472,7 +470,7 @@ void OverlapAccumulatorKernel::prepare_overlap_task(bool presceding, int source_
         // Lets first try to fulfill the overlap needed from this node
         if (source_batch_index >= 0 && source_batch_index < this->num_batches){  // num_batches should be finalized for when its used here
                         
-            std::unique_ptr<ral::frame::CacheData> batch = batches_cache->get_or_wait_CacheData(source_batch_index);
+            std::unique_ptr<ral::cache::CacheData> batch = batches_cache->get_or_wait_CacheData(source_batch_index);
             overlap_rows_needed = batch->num_rows() > overlap_rows_needed ? 0 : overlap_rows_needed - batch->num_rows();
             if (presceding){
                 starting_index_of_datas_for_task = source_batch_index;
@@ -487,14 +485,14 @@ void OverlapAccumulatorKernel::prepare_overlap_task(bool presceding, int source_
             if (presceding){
                 // the 0th index of the presceding node will come from the neighbor. Its assumed that its complete.
                 // and if its not complete its because there is not enough data to fill the window
-                std::unique_ptr<ral::frame::CacheData> batch = presceding_overlap_cache->get_or_wait_CacheData(0);
+                std::unique_ptr<ral::cache::CacheData> batch = presceding_overlap_cache->get_or_wait_CacheData(0);
                 overlap_rows_needed = 0;
                 cache_datas_for_task.insert(cache_datas_for_task.begin(), 1, std::move(batch));
                 starting_index_of_datas_for_task = -1;                                
             } else {
                 // the last index of the following node will come from the neighbor. Its assumed that its complete.
                 // and if its not complete its because there is not enough data to fill the window
-                std::unique_ptr<ral::frame::CacheData> batch = following_overlap_cache->get_or_wait_CacheData(this->num_batches - 1);
+                std::unique_ptr<ral::cache::CacheData> batch = following_overlap_cache->get_or_wait_CacheData(this->num_batches - 1);
                 overlap_rows_needed = 0;
                 cache_datas_for_task.push_back(std::move(batch));                 
             }             
@@ -510,7 +508,7 @@ void OverlapAccumulatorKernel::prepare_overlap_task(bool presceding, int source_
         task_args[TASK_ARG_TARGET_BATCH_INDEX] = std::to_string(target_batch_index);
         task_args[TASK_ARG_TARGET_NODE_INDEX] = std::to_string(target_node_index);
         task_args[TASK_ARG_SOURCE_BATCH_INDEX] = std::to_string(starting_index_of_datas_for_task);
-        task_args[OVERLAP_STATUS] = overlap_status;
+        task_args[ral::cache::OVERLAP_STATUS] = overlap_status;
         ral::execution::executor::get_instance()->add_task(
             std::move(cache_datas_for_task),
             presceding ? presceding_overlap_cache : following_overlap_cache,
@@ -541,6 +539,7 @@ void OverlapAccumulatorKernel::send_request(bool presceding, int source_node_ind
 
 kstatus OverlapAccumulatorKernel::run() {
 
+    CodeTimer timer;
     bool all_done = false;
     bool neighbors_notified_of_complete = false;
     int total_nodes = context->getTotalNodes();
@@ -569,7 +568,7 @@ kstatus OverlapAccumulatorKernel::run() {
     send_request(true, self_node_index - 1, self_node_index, 0, this->presceding_overlap_amount);
     send_request(false, self_node_index + 1, self_node_index, num_batches-1, this->following_overlap_amount);
 
-    BlazingThread receiver_thread = BlazingThread(&request_receiver);
+    BlazingThread receiver_thread = BlazingThread(&OverlapAccumulatorKernel::request_receiver, this);
     
     for (int cur_batch_ind = 0; cur_batch_ind < num_batches; cur_batch_ind++){      
         if (cur_batch_ind == 0){
@@ -589,7 +588,7 @@ kstatus OverlapAccumulatorKernel::run() {
                 set_overlap_status(true, cur_batch_ind, metadata.get_value(ral::cache::OVERLAP_STATUS));
                 presceding_overlap_cache->put(cur_batch_ind, std::move(overlap_cache_data));
                 
-                if (metadata.get_value(ral::cache::OVERLAP_STATUS == INCOMPLETE_OVERLAP_STATUS){
+                if (metadata.get_value(ral::cache::OVERLAP_STATUS) == INCOMPLETE_OVERLAP_STATUS){
                     prepare_overlap_task(true, cur_batch_ind - 1, this->self_node_index, cur_batch_ind, 
                                     this->presceding_overlap_amount - cur_overlap_rows);                    
                 }
@@ -609,7 +608,7 @@ kstatus OverlapAccumulatorKernel::run() {
                 set_overlap_status(false, cur_batch_ind, metadata.get_value(ral::cache::OVERLAP_STATUS));
                 following_overlap_cache->put(cur_batch_ind, std::move(overlap_cache_data));
                 
-                if (metadata.get_value(ral::cache::OVERLAP_STATUS == INCOMPLETE_OVERLAP_STATUS){
+                if (metadata.get_value(ral::cache::OVERLAP_STATUS) == INCOMPLETE_OVERLAP_STATUS){
                     prepare_overlap_task(false, cur_batch_ind + 1, this->self_node_index, cur_batch_ind, 
                                     this->following_overlap_amount - cur_overlap_rows);                    
                 }
@@ -640,13 +639,13 @@ kstatus OverlapAccumulatorKernel::run() {
 
     // Now that we are all done, lets concatenate the overlaps with the data and push to the output
     for (size_t batch_ind = 0; batch_ind < num_batches; batch_ind++){
-        std::vector<std::unique_ptr<ral::frame::CacheData>> batch_with_overlaps;
+        std::vector<std::unique_ptr<ral::cache::CacheData>> batch_with_overlaps;
         batch_with_overlaps.push_back(presceding_overlap_cache->get_or_wait_CacheData(batch_ind));
-        batch_with_overlaps.push_back(batches_cache->get_or_wait_CacheData(source_batch_index));
+        batch_with_overlaps.push_back(batches_cache->get_or_wait_CacheData(batch_ind));
         batch_with_overlaps.push_back(following_overlap_cache->get_or_wait_CacheData(batch_ind));
 
         std::unique_ptr<ral::cache::ConcatCacheData> new_cache_data = std::make_unique<ral::cache::ConcatCacheData>(std::move(batch_with_overlaps), col_names, schema);
-        this->add_to_output_cache(new_cache_data);
+        this->add_to_output_cache(std::move(new_cache_data));
     }
 
     if(logger) {

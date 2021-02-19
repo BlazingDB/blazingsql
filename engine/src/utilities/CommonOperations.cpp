@@ -113,7 +113,7 @@ std::unique_ptr<BlazingTable> concatTables(const std::vector<BlazingTableView> &
 std::unique_ptr<BlazingTable> getLimitedRows(const BlazingTableView& table, cudf::size_type num_rows, bool front){
 	
 	if (num_rows == 0) {
-		return std::unique_ptr<ral::frame::BlazingTable> create_empty_table(table);;
+		return std::unique_ptr<ral::frame::BlazingTable> create_empty_table(table);
 	} else if (num_rows < table.num_rows()) {
 		std::vector<cudf::size_type> splits = {num_rows};
 		std::vector<cudf::table_view> split_table = cudf::split(table.view(), splits);

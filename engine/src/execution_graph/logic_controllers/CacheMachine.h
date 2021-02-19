@@ -51,6 +51,8 @@ public:
 
 	virtual void put(size_t index, std::unique_ptr<ral::frame::BlazingTable> table);
 
+	virtual void put(size_t index, std::unique_ptr<ral::cache::CacheData> cacheData);
+
 	virtual std::unique_ptr<ral::frame::BlazingTable> get_or_wait(size_t index);
 
 	virtual std::unique_ptr<ral::cache::CacheData> get_or_wait_CacheData(size_t index);
