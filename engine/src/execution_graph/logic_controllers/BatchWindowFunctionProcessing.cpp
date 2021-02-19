@@ -1,5 +1,6 @@
 #include "BatchWindowFunctionProcessing.h"
 #include "execution_graph/logic_controllers/BlazingColumn.h"
+#include "execution_graph/logic_controllers/CacheData.h"
 #include "taskflow/executor.h"
 #include "CodeTimer.h"
 
@@ -163,7 +164,7 @@ kstatus ComputeWindowKernel::run() {
 OverlapAccumulatorKernel::OverlapAccumulatorKernel(std::size_t kernel_id, const std::string & queryString,
     std::shared_ptr<Context> context,
     std::shared_ptr<ral::cache::graph> query_graph)
-    : kernel{kernel_id, queryString, context, kernel_type::OverlapAccumulatorKernel} {
+    : distributing_kernel{kernel_id, queryString, context, kernel_type::OverlapAccumulatorKernel} {
     this->query_graph = query_graph;
     this->input_.add_port("batches", "presceding_overlaps", "following_overlaps");
 
@@ -191,6 +192,12 @@ OverlapAccumulatorKernel::OverlapAccumulatorKernel(std::size_t kernel_id, const 
     
 }
 
+const std::string UNKNOWN_OVERLAP_STATUS="UNKNOWN";
+const std::string REQUESTED_OVERLAP_STATUS="REQUESTED";
+const std::string INCOMPLETE_OVERLAP_STATUS="INCOMPLETE";
+const std::string PROCESSING_OVERLAP_STATUS="PROCESSING"; // WSM TODO, do we need this?
+const std::string DONE_OVERLAP_STATUS="DONE";
+
 const std::string TASK_ARG_OP_TYPE="operation_type";
 const std::string TASK_ARG_OVERLAP_TYPE="overlap_type";
 const std::string TASK_ARG_OVERLAP_SIZE="overlap_size";
@@ -209,7 +216,7 @@ const std::string FOLLOWING_FULFILLMENT="following_fulfillment";
 
 
 void OverlapAccumulatorKernel::set_overlap_status(bool presceding, int index, std::string status){
-    std::lock_guard(kernel_mutex);
+    std::lock_guard<std::mutex> lock(kernel_mutex);
     if (presceding){
         presceding_overlap_statuses[index] = status;
     } else {
@@ -230,10 +237,10 @@ void OverlapAccumulatorKernel::set_overlap_status(bool presceding, int index, st
             
             std::vector<std::string> target_ids;
             if (presceding && this->self_node_index > 0){
-                target_ids.push_back(std::string(this->self_node_index - 1));
+                target_ids.push_back(std::to_string(this->self_node_index - 1));
             }
             if (!presceding && this->self_node_index + 1 < context->getTotalNodes()){
-                target_ids.push_back(std::string(this->self_node_index + 1));
+                target_ids.push_back(std::to_string(this->self_node_index + 1));
             }
             if (target_ids.size() > 0){
                 send_message(nullptr,
@@ -252,7 +259,7 @@ void OverlapAccumulatorKernel::set_overlap_status(bool presceding, int index, st
 }
 
 std::string OverlapAccumulatorKernel::get_overlap_status(bool presceding, int index){
-    std::lock_guard(kernel_mutex);
+    std::lock_guard<std::mutex> lock(kernel_mutex);
     if (presceding){
         return presceding_overlap_statuses[index];
     } else {
@@ -277,14 +284,14 @@ void OverlapAccumulatorKernel::combine_overlaps(bool presceding, int target_batc
         existing_overlap = following_overlap_cache->get_or_wait_CacheData(target_batch_index);
     }
     
-    if (existing_overlap->get_type() == CacheDataType::CONCATENATING){
+    if (existing_overlap->get_type() == ral::cache::CacheDataType::CONCATENATING){
         ral::cache::ConcatCacheData * concat_cache_ptr = static_cast<ral::cache::ConcatCacheData *> (existing_overlap.get());
         overlap_parts = concat_cache_ptr->releaseCacheDatas();       
     } else {
         overlap_parts.push_back(existing_overlap);
     }
     if (presceding){
-        overlap_parts.push_front(new_overlap_cache_data);
+        overlap_parts.insert(overlap_parts.begin(), 1, new_overlap_cache_data);
     } else {
         overlap_parts.push_back(new_overlap_cache_data);
     }
@@ -323,24 +330,24 @@ ral::execution::task_result OverlapAccumulatorKernel::do_process(std::vector< st
             if (presceding) {
                 
                 for (int i = inputs.size() -1; i >= 0; i--){
-                    size_t cur_table_size = inputs[i]->rum_rows();
+                    size_t cur_table_size = inputs[i]->num_rows();
                     if (cur_table_size > rows_remaining){
                         bool front = false;
                         auto limited = ral::utilities::getLimitedRows(inputs[i]->toBlazingTableView(), rows_remaining, front);
-                        tables_to_concat.push_front(limited->toBlazingTableView());
+                        tables_to_concat.insert(tables_to_concat.begin(), 1, limited->toBlazingTableView());
                         scope_holder.push_back(std::move(limited));
                         rows_remaining = 0;
                         break;
                     } else {
                         rows_remaining -= cur_table_size;
-                        tables_to_concat.push_front(inputs[i]->toBlazingTableView());
+                        tables_to_concat.insert(tables_to_concat.begin(), 1, inputs[i]->toBlazingTableView());
                     }
                 }
 
             } else { // if (overlap_type == FOLLOWING_OVERLAP_TYPE) {
 
                 for (int i = 0; i < inputs.size(); i++){
-                    size_t cur_table_size = inputs[i]->rum_rows();
+                    size_t cur_table_size = inputs[i]->num_rows();
                     if (cur_table_size > rows_remaining){
                         bool front = true;
                         auto limited = ral::utilities::getLimitedRows(inputs[i]->toBlazingTableView(), rows_remaining, front);
@@ -376,7 +383,7 @@ ral::execution::task_result OverlapAccumulatorKernel::do_process(std::vector< st
                 extra_metadata.add_value(ral::cache::OVERLAP_STATUS, overlap_status);
                 
                 std::vector<std::string> target_ids = {std::to_string(target_node_index)};
-                send_message(std::move(concated),
+                send_message(std::move(output_table),
                     false, //specific_cache
                     "", //cache_id
                     target_ids, //target_ids
@@ -385,7 +392,6 @@ ral::execution::task_result OverlapAccumulatorKernel::do_process(std::vector< st
                     false, //wait_for
                     0, //message_tracker_idx
                     extra_metadata);
-                }
             }
 
             // now lets put the input data back where it belongs
@@ -446,7 +452,9 @@ void OverlapAccumulatorKernel::request_receiver(){
             bool presceding = metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE) == PRESCEDING_FULFILLMENT;
             std::string overlap_status = metadata.get_value(ral::cache::OVERLAP_STATUS);
 
-            assert(target_node_index == self_node_index, "ERROR: FULFILLMENT message arrived at the wrong destination");
+            if (target_node_index != self_node_index){
+                // WSM TODO "ERROR: FULFILLMENT message arrived at the wrong destination"
+            } 
             combine_overlaps(presceding, target_batch_index, std::move(message_cache_data), overlap_status);
                         
         } else {
@@ -469,7 +477,7 @@ void OverlapAccumulatorKernel::prepare_overlap_task(bool presceding, int source_
             if (presceding){
                 starting_index_of_datas_for_task = source_batch_index;
                 source_batch_index--;
-                cache_datas_for_task.push_front(std::move(batch));
+                cache_datas_for_task.insert(cache_datas_for_task.begin(), 1, std::move(batch));
             } else {
                 source_batch_index++;
                 cache_datas_for_task.push_back(std::move(batch));
@@ -481,7 +489,7 @@ void OverlapAccumulatorKernel::prepare_overlap_task(bool presceding, int source_
                 // and if its not complete its because there is not enough data to fill the window
                 std::unique_ptr<ral::frame::CacheData> batch = presceding_overlap_cache->get_or_wait_CacheData(0);
                 overlap_rows_needed = 0;
-                cache_datas_for_task.push_front(std::move(batch));
+                cache_datas_for_task.insert(cache_datas_for_task.begin(), 1, std::move(batch));
                 starting_index_of_datas_for_task = -1;                                
             } else {
                 // the last index of the following node will come from the neighbor. Its assumed that its complete.
@@ -575,7 +583,9 @@ kstatus OverlapAccumulatorKernel::run() {
             if (overlap_cache_data != nullptr){
                 auto metadata = overlap_cache_data->getMetadata();
                 size_t cur_overlap_rows = overlap_cache_data->num_rows();
-                assert(metadata.has_value(ral::cache::OVERLAP_STATUS),"ERROR: Overlap Data did not have OVERLAP_STATUS");
+                if (!metadata.has_value(ral::cache::OVERLAP_STATUS)){
+                    // WSM TODO "ERROR: Overlap Data did not have OVERLAP_STATUS"
+                }
                 set_overlap_status(true, cur_batch_ind, metadata.get_value(ral::cache::OVERLAP_STATUS));
                 presceding_overlap_cache->put(cur_batch_ind, std::move(overlap_cache_data));
                 
@@ -593,7 +603,9 @@ kstatus OverlapAccumulatorKernel::run() {
             if (overlap_cache_data != nullptr){
                 auto metadata = overlap_cache_data->getMetadata();
                 size_t cur_overlap_rows = overlap_cache_data->num_rows();
-                assert(metadata.has_value(ral::cache::OVERLAP_STATUS),"ERROR: Overlap Data did not have OVERLAP_STATUS");
+                if (!metadata.has_value(ral::cache::OVERLAP_STATUS)){
+                    // WSM TODO "ERROR: Overlap Data did not have OVERLAP_STATUS"
+                }
                 set_overlap_status(false, cur_batch_ind, metadata.get_value(ral::cache::OVERLAP_STATUS));
                 following_overlap_cache->put(cur_batch_ind, std::move(overlap_cache_data));
                 

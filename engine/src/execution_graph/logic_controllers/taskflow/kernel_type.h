@@ -13,6 +13,7 @@ enum class kernel_type {
 	PartitionKernel,
 	SortAndSampleKernel,
 	ComputeWindowKernel,
+	OverlapAccumulatorKernel,
 	PartitionSingleNodeKernel,
 	LimitKernel,
 	ComputeAggregateKernel,

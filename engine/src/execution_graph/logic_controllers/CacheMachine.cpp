@@ -136,6 +136,10 @@ void CacheMachine::put(size_t index, std::unique_ptr<ral::frame::BlazingTable> t
 	this->addToCache(std::move(table), this->cache_machine_name + "_" + std::to_string(index), true);
 }
 
+void CacheMachine::put(size_t index, std::unique_ptr<ral::cache::CacheData> cacheData) {
+	this->addCacheData(std::move(cacheData), this->cache_machine_name + "_" + std::to_string(index), true);
+}
+
 void CacheMachine::clear() {
 	CodeTimer cacheEventTimer;
     cacheEventTimer.start();

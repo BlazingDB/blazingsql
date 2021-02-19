@@ -3,11 +3,12 @@
 #include "BatchProcessing.h"
 #include "operators/OrderBy.h"
 #include "operators/GroupBy.h"
+#include "taskflow/distributing_kernel.h"
 
 namespace ral {
 namespace batch {
 
-//using ral::cache::distributing_kernel;
+using ral::cache::distributing_kernel;
 using ral::cache::kstatus;
 using ral::cache::kernel;
 using ral::cache::kernel_type;
@@ -39,14 +40,7 @@ private:
 	std::vector<AggregateKind> aggs_wind_func; 
 };
 
-
-const UNKNOWN_OVERLAP_STATUS="UNKNOWN";
-const REQUESTED_OVERLAP_STATUS="REQUESTED";
-const INCOMPLETE_OVERLAP_STATUS="INCOMPLETE";
-const PROCESSING_OVERLAP_STATUS="PROCESSING"; // WSM TODO, do we need this?
-const DONE_OVERLAP_STATUS="DONE";
-
-class OverlapAccumulatorKernel : public kernel {
+class OverlapAccumulatorKernel : public distributing_kernel {
 public:
 	OverlapAccumulatorKernel(std::size_t kernel_id, const std::string & queryString,
 		std::shared_ptr<Context> context,
@@ -62,6 +56,12 @@ public:
 
 	void set_overlap_status(bool presceding, int index, std::string status);
 	std::string get_overlap_status(bool presceding, int index);
+	void combine_overlaps(bool presceding, int target_batch_index, std::unique_ptr<ral::frame::BlazingTable> new_overlap, std::string overlap_status);
+	void combine_overlaps(bool presceding, int target_batch_index, std::unique_ptr<ral::cache::CacheData> new_overlap_cache_data, std::string overlap_status);
+	void request_receiver();
+	void prepare_overlap_task(bool presceding, int source_batch_index, int target_node_index, int target_batch_index, size_t overlap_size);
+	void send_request(bool presceding, int source_node_index, int target_node_index, int target_batch_index, size_t overlap_size);
+
 
 private:
 	void update_num_batches();

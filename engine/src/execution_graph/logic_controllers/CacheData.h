@@ -574,6 +574,8 @@ public:
 
 	virtual ~ConcatCacheData() {}
 
+	std::vector<std::unique_ptr<CacheData>> releaseCacheDatas();
+
 protected:
 	std::vector<std::unique_ptr<CacheData>> _cache_datas;
 };
