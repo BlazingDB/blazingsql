@@ -652,8 +652,11 @@ std::vector<std::string> get_expressions_from_expression_list(std::string & comb
 std::string replace_calcite_regex(const std::string & expression) {
 	std::string ret = expression;
 
-	static const std::regex count_re{R""(COUNT\(DISTINCT (\W\(.+?\)|.+)\))"", std::regex_constants::icase};
+	static const std::regex count_re{R""(COUNT\(DISTINCT ([^\(]+)\))"", std::regex_constants::icase};
 	ret = std::regex_replace(ret, count_re, "COUNT_DISTINCT($1)");
+
+	static const std::regex sum0_re{R""(\$SUM0\(DISTINCT ([^\(]+)\))"", std::regex_constants::icase};
+	ret = std::regex_replace(ret, sum0_re, "$SUM0_DISTINCT($1)");
 
 	static const std::regex char_collate_re{
 		R""((?:\(\d+\))? CHARACTER SET ".+?" COLLATE ".+?")"", std::regex_constants::icase};

@@ -11,6 +11,7 @@
 #include "utilities/CommonOperations.h"
 #include <blazingdb/io/Util/StringUtil.h>
 #include "execution_graph/logic_controllers/LogicalProject.h"
+#include "execution_graph/logic_controllers/BlazingColumnOwner.h"
 #include <regex>
 
 #include <cudf/aggregation.hpp>
@@ -30,7 +31,7 @@ namespace operators {
 cudf::type_id get_aggregation_output_type(cudf::type_id input_type, AggregateKind aggregation, bool have_groupby) {
 	if(aggregation == AggregateKind::COUNT_VALID || aggregation == AggregateKind::COUNT_ALL) {
 		return cudf::type_id::INT64;
-	} else if(aggregation == AggregateKind::SUM || aggregation == AggregateKind::SUM0) {
+	} else if(aggregation == AggregateKind::SUM || aggregation == AggregateKind::SUM0 || aggregation == AggregateKind::SUM0_DISTINCT) {
 		if(have_groupby)
 			return input_type;  // current group by function can only handle this
 		else {
@@ -45,10 +46,6 @@ cudf::type_id get_aggregation_output_type(cudf::type_id input_type, AggregateKin
 	} else if(aggregation == AggregateKind::MEAN) {
 		return cudf::type_id::FLOAT64;
 	} else if(aggregation == AggregateKind::COUNT_DISTINCT) {
-		/* Currently this conditional is unreachable.
-		   Calcite transforms count distincts through the
-		   AggregateExpandDistinctAggregates rule, so in fact,
-		   each count distinct is replaced by some group by clauses. */
 		return cudf::type_id::INT64;
 	} else {
 		throw std::runtime_error(
@@ -71,11 +68,9 @@ std::string aggregator_to_string(AggregateKind aggregation) {
 	} else if(aggregation == AggregateKind::MEAN) {
 		return "avg";
 	} else if(aggregation == AggregateKind::COUNT_DISTINCT) {
-		/* Currently this conditional is unreachable.
-		   Calcite transforms count distincts through the
-		   AggregateExpandDistinctAggregates rule, so in fact,
-		   each count distinct is replaced by some group by clauses. */
 		return "count_distinct";
+	} else if(aggregation == AggregateKind::SUM0_DISTINCT) {
+		return "sum0_distinct";
 	} else {
 		return "";  // FIXME: is really necessary?
 	}
@@ -102,11 +97,9 @@ AggregateKind get_aggregation_operation(std::string expression_in) {
 	} else if(operator_string == "COUNT") {
 		return AggregateKind::COUNT_VALID;
 	} else if(operator_string == "COUNT_DISTINCT") {
-		/* Currently this conditional is unreachable.
-		   Calcite transforms count distincts through the
-		   AggregateExpandDistinctAggregates rule, so in fact,
-		   each count distinct is replaced by some group by clauses. */
 		return AggregateKind::COUNT_DISTINCT;
+	} else if(operator_string == "$SUM0_DISTINCT") {
+		return AggregateKind::SUM0;
 	}
 
 	throw std::runtime_error(
@@ -131,11 +124,9 @@ std::unique_ptr<cudf::aggregation> makeCudfAggregation(AggregateKind input){
 	}else if(input == AggregateKind::SUM0){
 		return cudf::make_sum_aggregation();
 	}else if(input == AggregateKind::COUNT_DISTINCT){
-		/* Currently this conditional is unreachable.
-		   Calcite transforms count distincts through the
-		   AggregateExpandDistinctAggregates rule, so in fact,
-		   each count distinct is replaced by some group by clauses. */
-		return cudf::make_nunique_aggregation();
+		return cudf::make_nunique_aggregation(cudf::null_policy::EXCLUDE);
+	}else if(input == AggregateKind::SUM0_DISTINCT){
+		return cudf::make_sum_aggregation();
 	}
 	throw std::runtime_error(
 		"In makeCudfAggregation function: AggregateKind type not supported");
@@ -211,7 +202,9 @@ std::tuple<std::vector<int>, std::vector<std::string>, std::vector<AggregateKind
 	std::vector<int> mod_group_column_indices(group_column_indices.size());
 	std::iota(mod_group_column_indices.begin(), mod_group_column_indices.end(), 0);
 	for (size_t i = 0; i < mod_aggregation_types.size(); i++){
-		if (mod_aggregation_types[i] == AggregateKind::COUNT_ALL || mod_aggregation_types[i] == AggregateKind::COUNT_VALID){
+		if (mod_aggregation_types[i] == AggregateKind::COUNT_ALL
+			|| mod_aggregation_types[i] == AggregateKind::COUNT_VALID
+			|| mod_aggregation_types[i] == AggregateKind::COUNT_DISTINCT){
 			mod_aggregation_types[i] = AggregateKind::SUM; // if we have a COUNT, we want to SUM the output of the counts from other nodes
 		}
 		mod_aggregation_input_expressions[i] = std::to_string(i + mod_group_column_indices.size()); // we just want to aggregate the input columns, so we are setting the indices here
@@ -250,8 +243,23 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_without_groupby(
 			CudfColumnView aggregation_input;
 			if(is_var_column(aggregation_input_expressions[i]) || is_number(aggregation_input_expressions[i])) {
 				aggregation_input = table.view().column(get_index(aggregation_input_expressions[i]));
-			} else {
+			} else if( aggregation_types[i] != AggregateKind::SUM0_DISTINCT ) {
 				aggregation_input_scope_holder = ral::processor::evaluate_expressions(table.view(), {aggregation_input_expressions[i]});
+				aggregation_input = aggregation_input_scope_holder[0]->view();
+			}
+
+			if( aggregation_types[i] == AggregateKind::SUM0_DISTINCT ) {
+				std::vector<int> sum0_column_indices;
+				sum0_column_indices.push_back(get_index(aggregation_input_expressions[i]));
+
+				std::unique_ptr<cudf::table> sum0_output = cudf::drop_duplicates(table.view(),
+					sum0_column_indices,
+					cudf::duplicate_keep_option::KEEP_FIRST);
+
+				std::vector<std::unique_ptr<ral::frame::BlazingColumn>> sum0_out_columns(1/*expressions.size()*/);
+				sum0_out_columns[0] = std::move(std::make_unique<ral::frame::BlazingColumnOwner>(std::make_unique<cudf::column>(sum0_output->get_column(0))));
+
+				aggregation_input_scope_holder = std::move(sum0_out_columns);
 				aggregation_input = aggregation_input_scope_holder[0]->view();
 			}
 

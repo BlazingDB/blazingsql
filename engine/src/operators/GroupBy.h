@@ -21,7 +21,8 @@ enum AggregateKind{
 	COUNT_VALID,
 	COUNT_ALL,
 	COUNT_DISTINCT,
-	ROW_NUMBER
+	ROW_NUMBER,
+	SUM0_DISTINCT
 };
 
 namespace ral {
