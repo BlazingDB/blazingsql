@@ -2349,9 +2349,11 @@ class BlazingContext(object):
                 parsedMetadata = parseHiveMetadata(table, uri_values)
                 table.metadata = parsedMetadata
 
+            # TODO: currently having issue with some dtypes for ORC
             if (
-                parsedSchema["file_type"] == DataType.PARQUET
-                or parsedSchema["file_type"] == DataType.ORC
+                parsedSchema["file_type"]
+                == DataType.PARQUET
+                # or parsedSchema["file_type"] == DataType.ORC
             ):
                 parsedMetadata = self._parseMetadata(
                     file_format_hint, table.slices, parsedSchema, kwargs
