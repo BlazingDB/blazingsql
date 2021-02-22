@@ -1,4 +1,7 @@
 #include "BatchWindowFunctionProcessing.h"
+
+#include <iterator>
+
 #include "execution_graph/logic_controllers/BlazingColumn.h"
 #include "execution_graph/logic_controllers/CacheData.h"
 #include "taskflow/executor.h"
@@ -289,7 +292,13 @@ void OverlapAccumulatorKernel::combine_overlaps(bool presceding, int target_batc
         overlap_parts.push_back(std::move(existing_overlap));
     }
     if (presceding){
-        overlap_parts.insert(overlap_parts.begin(), 1, std::move(new_overlap_cache_data));
+        // put new_overlap_cache_data at the beginning of overlap_parts
+        std::vector<std::unique_ptr<ral::cache::CacheData>> new_overlap_parts(overlap_parts.size() + 1);
+        overlap_parts[0] = std::move(new_overlap_cache_data);
+        for (int i = 0; i < overlap_parts.size(); i++){
+            new_overlap_parts[i+1] = std::move(overlap_parts[i]);
+        }
+        overlap_parts = std::move(new_overlap_parts);
     } else {
         overlap_parts.push_back(std::move(new_overlap_cache_data));
     }
@@ -463,7 +472,7 @@ void OverlapAccumulatorKernel::request_receiver(){
 
 void OverlapAccumulatorKernel::prepare_overlap_task(bool presceding, int source_batch_index, int target_node_index, int target_batch_index, size_t overlap_size){
      
-    std::vector<std::unique_ptr<ral::cache::CacheData>> cache_datas_for_task;
+    std::deque<std::unique_ptr<ral::cache::CacheData>> cache_datas_for_task;
     size_t overlap_rows_needed = overlap_size;
     int starting_index_of_datas_for_task = source_batch_index;
     while(overlap_rows_needed > 0){
@@ -475,7 +484,7 @@ void OverlapAccumulatorKernel::prepare_overlap_task(bool presceding, int source_
             if (presceding){
                 starting_index_of_datas_for_task = source_batch_index;
                 source_batch_index--;
-                cache_datas_for_task.insert(cache_datas_for_task.begin(), 1, std::move(batch));
+                cache_datas_for_task.push_front(std::move(batch));
             } else {
                 source_batch_index++;
                 cache_datas_for_task.push_back(std::move(batch));
@@ -487,7 +496,7 @@ void OverlapAccumulatorKernel::prepare_overlap_task(bool presceding, int source_
                 // and if its not complete its because there is not enough data to fill the window
                 std::unique_ptr<ral::cache::CacheData> batch = presceding_overlap_cache->get_or_wait_CacheData(0);
                 overlap_rows_needed = 0;
-                cache_datas_for_task.insert(cache_datas_for_task.begin(), 1, std::move(batch));
+                cache_datas_for_task.push_front(std::move(batch));
                 starting_index_of_datas_for_task = -1;                                
             } else {
                 // the last index of the following node will come from the neighbor. Its assumed that its complete.
@@ -498,6 +507,7 @@ void OverlapAccumulatorKernel::prepare_overlap_task(bool presceding, int source_
             }             
         }
     }
+    std::vector<std::unique_ptr<ral::cache::CacheData>> cache_datas_for_task_vect(std::make_move_iterator(cache_datas_for_task.begin()), std::make_move_iterator(cache_datas_for_task.end()));
     std::string overlap_status = overlap_rows_needed > 0 ? INCOMPLETE_OVERLAP_STATUS : DONE_OVERLAP_STATUS;
     if (cache_datas_for_task.size() > 0){ // we have data, so lets make a task
         
@@ -510,7 +520,7 @@ void OverlapAccumulatorKernel::prepare_overlap_task(bool presceding, int source_
         task_args[TASK_ARG_SOURCE_BATCH_INDEX] = std::to_string(starting_index_of_datas_for_task);
         task_args[ral::cache::OVERLAP_STATUS] = overlap_status;
         ral::execution::executor::get_instance()->add_task(
-            std::move(cache_datas_for_task),
+            std::move(cache_datas_for_task_vect),
             presceding ? presceding_overlap_cache : following_overlap_cache,
             this,
             task_args);

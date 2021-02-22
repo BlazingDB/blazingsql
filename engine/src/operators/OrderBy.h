@@ -19,6 +19,9 @@ namespace {
   using blazingdb::manager::Context;
 }
 
+std::unique_ptr<ral::frame::BlazingTable> logicalSort(const ral::frame::BlazingTableView & table,
+      const std::vector<int> & sortColIndices,	const std::vector<cudf::order> & sortOrderTypes);
+
 std::tuple<std::vector<int>, std::vector<cudf::order>, cudf::size_type> get_sort_vars(const std::string & query_part);
 
 std::tuple< std::vector<int>, std::vector<cudf::order> > get_vars_to_partition(const std::string & query_part);
