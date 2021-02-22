@@ -906,7 +906,7 @@ def kwargs_validation(kwargs, bc_api_str):
             "use_index",
             "max_bytes_chunk_read",  # Used for reading CSV files in chunks
             "local_files",
-            "get_metadata",  # TODO: temporal parameter
+            "get_metadata",
         ]
         params_info = "https://docs.blazingdb.com/docs/create_table"
 
@@ -2352,7 +2352,7 @@ class BlazingContext(object):
                 table.metadata = parsedMetadata
 
             # TODO: if still reading ORC metadata has issues then we can skip
-            # using get_metadata argument
+            # using get_metadata argument equals to False
             if (parsedSchema["file_type"] == DataType.PARQUET) or (
                 parsedSchema["file_type"] == DataType.ORC and get_metadata
             ):

@@ -32,7 +32,7 @@
 - #1284 Initial support for Windows Function
 - #1303 Add support for INITCAP
 - #1313 getting and using ORC metadata
-- #1347 Freezing code flow for orc metadata
+- #1347 Fixing issue when reading orc metadata from DATE dtype
 
 
 ## Improvements
