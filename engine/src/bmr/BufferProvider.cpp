@@ -172,10 +172,10 @@ void allocation_pool::free_chunk(std::unique_ptr<blazing_allocation_chunk> buffe
     //std::size_t total_chunks = buffer->allocation->allocation_chunks.size();
     auto it = buffer->allocation->allocation_chunks.begin();
     std::advance(it, buffer->index);
-    auto data_it = buffer->allocation->allocation_chunks.erase(it);
-    delete((*data_it)->data);
+    delete((*it)->data);
+    buffer->allocation->allocation_chunks.erase(it);
   }
-  
+
   this->allocation_counter--;
 }
 
