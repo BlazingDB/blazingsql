@@ -139,7 +139,6 @@ void allocation_pool::grow() {
   auto last_index = allocations.size() -1;
   try{
     allocator->allocate((void **) &allocations[last_index]->data,num_new_buffers * buffer_size);
-    std::size_t chunk_index = 0;
     this->allocations[last_index]->total_number_of_chunks = num_new_buffers;
     for (int buffer_index = 0; buffer_index < num_new_buffers; buffer_index++) {
        auto buffer = std::make_unique<blazing_allocation_chunk>();
@@ -148,7 +147,6 @@ void allocation_pool::grow() {
       buffer->allocation = allocations[last_index].get();
       this->allocations[last_index]->allocation_chunks.push(std::move(buffer));
       this->buffer_counter++;
-      ++chunk_index;
     }
     allocations[last_index]->size = num_new_buffers * buffer_size;
     allocations[last_index]->pool = this;
