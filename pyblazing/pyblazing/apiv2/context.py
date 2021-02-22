@@ -2023,7 +2023,7 @@ class BlazingContext(object):
         is_hive_input = False
         extra_columns = []
         local_files = kwargs.get("local_files", False)
-        get_metadata = kwargs.get("get_metadata", False)
+        get_metadata = kwargs.get("get_metadata", True)
 
         # See datasource.file_format
         file_format_hint = kwargs.get("file_format", "undefined")
@@ -2351,8 +2351,8 @@ class BlazingContext(object):
                 parsedMetadata = parseHiveMetadata(table, uri_values)
                 table.metadata = parsedMetadata
 
-            # TODO: currently having issue with some ORC dtypes
-            # it should be fixed in a short while
+            # TODO: if still reading ORC metadata has issues then we can skip
+            # using get_metadata argument
             if (parsedSchema["file_type"] == DataType.PARQUET) or (
                 parsedSchema["file_type"] == DataType.ORC and get_metadata
             ):
