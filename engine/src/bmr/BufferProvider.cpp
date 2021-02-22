@@ -131,7 +131,6 @@ std::unique_ptr<blazing_allocation_chunk> allocation_pool::get_chunk() {
 
 
 void allocation_pool::grow() {
-  const bool is_parent = (this->buffer_counter == 0);
   // if this is the first growth (initializaton) then we want num_buffers, else we will just grow by half that.
   std::size_t num_new_buffers = this->buffer_counter == 0 ? this->num_buffers : this->num_buffers/2;
   allocations.push_back(std::make_unique<blazing_allocation>());
