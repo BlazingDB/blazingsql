@@ -906,6 +906,7 @@ def kwargs_validation(kwargs, bc_api_str):
             "use_index",
             "max_bytes_chunk_read",  # Used for reading CSV files in chunks
             "local_files",
+            "get_metadata",  # TODO: temporal parameter
         ]
         params_info = "https://docs.blazingdb.com/docs/create_table"
 
@@ -2022,6 +2023,7 @@ class BlazingContext(object):
         is_hive_input = False
         extra_columns = []
         local_files = kwargs.get("local_files", False)
+        get_metadata = kwargs.get("get_metadata", False)
 
         # See datasource.file_format
         file_format_hint = kwargs.get("file_format", "undefined")
@@ -2349,11 +2351,10 @@ class BlazingContext(object):
                 parsedMetadata = parseHiveMetadata(table, uri_values)
                 table.metadata = parsedMetadata
 
-            # TODO: currently having issue with some dtypes for ORC
-            if (
-                parsedSchema["file_type"]
-                == DataType.PARQUET
-                # or parsedSchema["file_type"] == DataType.ORC
+            # TODO: currently having issue with some ORC dtypes
+            # it should be fixed in a short while
+            if (parsedSchema["file_type"] == DataType.PARQUET) or (
+                parsedSchema["file_type"] == DataType.ORC and get_metadata
             ):
                 parsedMetadata = self._parseMetadata(
                     file_format_hint, table.slices, parsedSchema, kwargs
