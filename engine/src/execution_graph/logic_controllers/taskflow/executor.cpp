@@ -88,7 +88,7 @@ void task::run(cudaStream_t stream, executor * executor){
                     last_input_decached++;
                     input_gpu.push_back(std::move(input->decache()));
             }
-    }catch(rmm::bad_alloc e){
+    }catch(const rmm::bad_alloc& e){
         int i = 0;
         for(auto & input : inputs){
             if (i < last_input_decached && (input->get_type() == ral::cache::CacheDataType::GPU || input->get_type() == ral::cache::CacheDataType::GPU_METADATA)){
@@ -111,7 +111,7 @@ void task::run(cudaStream_t stream, executor * executor){
         }else{
             throw;
         }
-    }catch(std::exception & e){
+    }catch(const std::exception& e){
         std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
         if (logger){
             logger->error("|||{info}|||||",
