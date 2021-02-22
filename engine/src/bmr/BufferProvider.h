@@ -29,11 +29,11 @@ class allocation_pool;
 
 
 struct blazing_allocation{
-    bool is_parent;
+    std::size_t index; // index inside the pool
     std::size_t size; // the size in bytes of the allocation
-    std::size_t total_number_of_chunks; // TODO PERCY21 (add this variable during the contruction of this struct) number of chunks when originally created
+    std::size_t total_number_of_chunks; // number of chunks when originally created
     char *data;    // the pointer to the allocated memory
-    std::list< std::unique_ptr<blazing_allocation_chunk> > allocation_chunks; // These are the available chunks that are part of the allocation. 
+    std::stack< std::unique_ptr<blazing_allocation_chunk> > allocation_chunks; // These are the available chunks that are part of the allocation. 
     allocation_pool * pool;  // this is the pool that was used to make this allocation, and therefore this is what we would use to free it
 };
 
@@ -41,7 +41,6 @@ struct blazing_allocation_chunk{
     std::size_t size;
     char *data;    
     blazing_allocation * allocation; // this is to know who made it
-    std::size_t index; // index inside the allocation.stack
 };
 
 

@@ -117,8 +117,8 @@ std::unique_ptr<blazing_allocation_chunk> allocation_pool::get_chunk() {
   for(auto & allocation : allocations){
     if(!allocation->allocation_chunks.empty()){
         this->allocation_counter++;
-        auto temp = std::move(allocation->allocation_chunks.front());
-        allocation->allocation_chunks.pop_front();
+        auto temp = std::move(allocation->allocation_chunks.top());
+        allocation->allocation_chunks.pop();
         
         return std::move(temp);
     }
@@ -135,19 +135,19 @@ void allocation_pool::grow() {
   // if this is the first growth (initializaton) then we want num_buffers, else we will just grow by half that.
   std::size_t num_new_buffers = this->buffer_counter == 0 ? this->num_buffers : this->num_buffers/2;
   allocations.push_back(std::make_unique<blazing_allocation>());
-  allocations.back()->is_parent = is_parent;
+  allocations.back()->index = this->allocations.size() - 1;
   allocations.back()->total_number_of_chunks = num_new_buffers;
   auto last_index = allocations.size() -1;
   try{
     allocator->allocate((void **) &allocations[last_index]->data,num_new_buffers * buffer_size);
     std::size_t chunk_index = 0;
+    this->allocations[last_index]->total_number_of_chunks = num_new_buffers;
     for (int buffer_index = 0; buffer_index < num_new_buffers; buffer_index++) {
        auto buffer = std::make_unique<blazing_allocation_chunk>();
       buffer->size = this->buffer_size;
       buffer->data = allocations[last_index]->data + buffer_index * this->buffer_size;
       buffer->allocation = allocations[last_index].get();
-      buffer->index = chunk_index;
-      this->allocations[last_index]->allocation_chunks.push_front(std::move(buffer));
+      this->allocations[last_index]->allocation_chunks.push(std::move(buffer));
       this->buffer_counter++;
       ++chunk_index;
     }
@@ -161,19 +161,20 @@ void allocation_pool::grow() {
 
 void allocation_pool::free_chunk(std::unique_ptr<blazing_allocation_chunk> buffer) {
   std::unique_lock<std::mutex> lock(in_use_mutex);
-  //buffer->allocation->allocation_chunks.push(std::move(buffer));
+  buffer->allocation->allocation_chunks.push(std::move(buffer));
   
-  // TODO PERCY21 if when we add the chunk back to the allocation, it now has all the allocations it needs, they free the allocation
+  // if when we add the chunk back to the allocation, it now has all the allocations it needs, they free the allocation
   // BUT only free the allocation if its not the very first allocation
   // freeing the allocation means freeing the memory and deleting it from the allocation pool
   // make sure things are "locked" when doing that to make sure its thread safe
-
-  if (!buffer->allocation->is_parent) {
-    //std::size_t total_chunks = buffer->allocation->allocation_chunks.size();
-    auto it = buffer->allocation->allocation_chunks.begin();
-    std::advance(it, buffer->index);
-    delete((*it)->data);
-    buffer->allocation->allocation_chunks.erase(it);
+  const std::size_t idx = buffer->allocation->index;
+  if (idx > 0) {
+    if (buffer->allocation->total_number_of_chunks == buffer->allocation->allocation_chunks.size()) {
+        free(buffer->allocation->data);
+        auto it = this->allocations.begin();
+        std::advance(it, idx);
+        this->allocations.erase(it);
+    }
   }
 
   this->allocation_counter--;
@@ -186,8 +187,8 @@ void allocation_pool::free_all() {
     this->buffer_counter = 0;
     for(auto & allocation : allocations){
       while (false == allocation->allocation_chunks.empty()) {
-        auto buffer = std::move(allocation->allocation_chunks.front());
-        allocation->allocation_chunks.pop_front();
+        auto buffer = std::move(allocation->allocation_chunks.top());
+        allocation->allocation_chunks.pop();
       }
       allocator->deallocate(allocation->data);
     }
