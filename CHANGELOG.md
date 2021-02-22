@@ -11,7 +11,7 @@
 ## Bug Fixes
 - #1335 Fixing uninitialized var in orc metadata and handling the parseMetadata exceptions properly
 - #1339 Handling properly the nulls in case conditions with strings
-
+- #1346 Delete allocated host chunks
 
 # BlazingSQL 0.18.0 (Date TBS)
 
