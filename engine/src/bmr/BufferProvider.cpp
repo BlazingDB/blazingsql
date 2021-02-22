@@ -158,17 +158,17 @@ void allocation_pool::grow() {
 
 void allocation_pool::free_chunk(std::unique_ptr<blazing_allocation_chunk> buffer) {
   std::unique_lock<std::mutex> lock(in_use_mutex);
+  const std::size_t idx = buffer->allocation->index;
   buffer->allocation->allocation_chunks.push(std::move(buffer));
-  
+
   // if when we add the chunk back to the allocation, it now has all the allocations it needs, they free the allocation
   // BUT only free the allocation if its not the very first allocation
   // freeing the allocation means freeing the memory and deleting it from the allocation pool
   // make sure things are "locked" when doing that to make sure its thread safe
-  const std::size_t idx = buffer->allocation->index;
   if (idx > 0) {
-    if (buffer->allocation->total_number_of_chunks == buffer->allocation->allocation_chunks.size()) {
-        free(buffer->allocation->data);
+    if (this->allocations.at(idx)->total_number_of_chunks == this->allocations.at(idx)->allocation_chunks.size()) {
         auto it = this->allocations.begin();
+        free((*it)->data);
         std::advance(it, idx);
         this->allocations.erase(it);
     }
