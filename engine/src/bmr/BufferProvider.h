@@ -28,11 +28,12 @@ class allocation_pool;
 
 
 struct blazing_allocation{
-
-    std::size_t size;
-    char *data;    
-    std::stack< std::unique_ptr<blazing_allocation_chunk> > allocation_chunks;
-    allocation_pool * pool;  // this is to know how to free
+    std::size_t index; // index inside the pool
+    std::size_t size; // the size in bytes of the allocation
+    std::size_t total_number_of_chunks; // number of chunks when originally created
+    char *data;    // the pointer to the allocated memory
+    std::stack< std::unique_ptr<blazing_allocation_chunk> > allocation_chunks; // These are the available chunks that are part of the allocation. 
+    allocation_pool * pool;  // this is the pool that was used to make this allocation, and therefore this is what we would use to free it
 };
 
 struct blazing_allocation_chunk{
@@ -143,6 +144,7 @@ std::pair< std::vector<ral::memory::blazing_chunked_column_info>, std::vector<st
 std::shared_ptr<allocation_pool > get_host_buffer_provider();
 std::shared_ptr<allocation_pool > get_pinned_buffer_provider();
 
+// this function is what originally initialized the pinned memory and host memory allocation pools
 void set_allocation_pools(std::size_t size_buffers_host, std::size_t num_buffers_host,
     std::size_t size_buffers_pinned, std::size_t num_buffers_pinned, bool map_ucx,
     ucp_context_h context);
