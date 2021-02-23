@@ -156,7 +156,8 @@ def test_hive_partition_data(input, table_name, partitions, partitions_schema, o
 
 
 def main():
-	dir_data = '/input_path'
+	condaPath = os.environ['CONDA_PREFIX']
+	dir_data = condaPath + '/blazingsql-testing-files/data/tpch'
 	ext = "parquet"
 
 	test_hive_partition_data(input=("%s/%s_[0-9]*.%s") % (dir_data, "orders", ext),
@@ -168,7 +169,7 @@ def main():
 							 partitions_schema=[('o_orderpriority', 'str'),
 												('o_orderstatus', 'str'),
 												('o_shippriority', 'int')],
-							 output='/output_path',
+							 output='/tmp/BlazingSQL/partitions/utilityHive',
 							 num_files=4)
 
 if __name__ == "__main__":
