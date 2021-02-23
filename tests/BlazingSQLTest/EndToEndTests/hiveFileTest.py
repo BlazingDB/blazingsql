@@ -20,12 +20,6 @@ def main(dask_client, spark, dir_data_file, bc, nRals):
         for fileSchemaType in data_types:
             if skip_test(dask_client, nRals, fileSchemaType, queryType):
                 continue
-            cs.init_spark_schema(
-                spark,
-                Settings.data["TestSettings"]["dataDirectory"],
-                fileSchemaType=fileSchemaType,
-            )
-            cs.create_tables(bc, dir_data_file, fileSchemaType, tables=tables)
 
             # Run Query ------------------------------------------------------
             # Parameter to indicate if its necessary to order
