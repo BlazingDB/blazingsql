@@ -1316,3 +1316,21 @@ def create_hive_tables(bc, dir_data_lc, fileSchemaType, **kwargs):
 class HiveCreateTableType(IntEnum):
     AUTO = 0,
     WITH_PARTITIONS = 1
+
+def create_hive_partitions_tables(bc, dir_partitions, fileSchemaType, createTableType, partitions,
+                                  partitions_schema, **kwargs):
+    ext = get_extension(fileSchemaType)
+
+    tables = kwargs.get("tables", tpchTables)
+
+    if createTableType == HiveCreateTableType.AUTO:
+        for i, table in enumerate(tables):
+            bc.create_table(table, dir_partitions, file_format=ext)
+
+    elif createTableType == HiveCreateTableType.WITH_PARTITIONS:
+        for i, table in enumerate(tables):
+            bc.create_table(table,
+                            dir_partitions,
+                            file_format=ext,
+                            partitions=partitions,
+                            partitions_schema=partitions_schema)
