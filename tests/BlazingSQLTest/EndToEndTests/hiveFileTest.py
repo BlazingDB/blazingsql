@@ -8,6 +8,208 @@ from Utils import Execution, gpuMemory, init_context, skip_test, utilityHive
 
 queryType = "Hive File"
 
+
+def executionTestAuto():
+    tables = ["orders", "customer"]
+    # data_types = [DataType.CSV, DataType.PARQUET, DataType.ORC]
+    data_types = [DataType.PARQUET]
+
+    # Create Tables -----------------------------------------------------
+    for fileSchemaType in data_types:
+        if skip_test(dask_client, nRals, fileSchemaType, queryType):
+            continue
+
+        # Create hive partitions
+        createPartitions(fileSchemaType, dir_data_file)
+        return
+        location = "/tmp/BlazingSQL/partitions/utilityHive"
+        # cs.create_hive_partitions_tables(bc=bc,
+        #                                  dir_partitions=location,
+        #                                  fileSchemaType=fileSchemaType,
+        #                                  createTableType=cs.HiveCreateTableType.AUTO,
+        #                                  partitions={},
+        #                                  partitions_schema=[],
+        #                                  tables=tables)
+
+        # cs.create_hive_partitions_tables(bc=bc,
+        #                                  dir_partitions=location,
+        #                                  fileSchemaType=fileSchemaType,
+        #                                  createTableType=cs.HiveCreateTableType.WITH_PARTITIONS,
+        #                                  partitions={
+        #                                          'o_orderpriority': ['1-URGENT', '2-HIGH', '3-MEDIUM', '4-NOT SPECIFIED', '5-LOW'],
+        #                                          'o_orderstatus': ['F', 'O', 'P'],
+        #                                          'o_shippriority': [0]},
+        #                                  partitions_schema=[('o_orderpriority', 'str'),
+        #                                                     ('o_orderstatus', 'str'),
+        #                                                     ('o_shippriority', 'int')],
+        #                                  tables=tables)
+
+        # Run Query ------------------------------------------------------
+        # Parameter to indicate if its necessary to order
+        # the resulsets before compare them
+        worder = 1
+        use_percentage = False
+        acceptable_difference = 0.01
+
+        print("==============================")
+        print(queryType)
+        print("==============================")
+
+        queryId = "TEST_01"
+        query = "select min(o_orderdate), max(o_orderdate) from orders where o_custkey between 10 and 20"
+        query_spark = "select min(o_orderdate), max(o_orderdate) from orders where o_custkey between 10 and 20"
+        runTest.run_query(
+            bc,
+            spark,
+            query,
+            queryId,
+            queryType,
+            worder,
+            "",
+            acceptable_difference,
+            use_percentage,
+            fileSchemaType,
+            query_spark=query_spark,
+        )
+
+        if Settings.execution_mode == ExecutionMode.GENERATOR:
+            print("==============================")
+            break
+
+def executionTestWithPartitions():
+    tables = ["orders", "customer"]
+    # data_types = [DataType.CSV, DataType.PARQUET, DataType.ORC]
+    data_types = [DataType.PARQUET]
+
+    # Create Tables -----------------------------------------------------
+    for fileSchemaType in data_types:
+        if skip_test(dask_client, nRals, fileSchemaType, queryType):
+            continue
+
+        # Create hive partitions
+        createPartitions(fileSchemaType, dir_data_file)
+        return
+        location = "/tmp/BlazingSQL/partitions/utilityHive"
+        # cs.create_hive_partitions_tables(bc=bc,
+        #                                  dir_partitions=location,
+        #                                  fileSchemaType=fileSchemaType,
+        #                                  createTableType=cs.HiveCreateTableType.AUTO,
+        #                                  partitions={},
+        #                                  partitions_schema=[],
+        #                                  tables=tables)
+
+        # cs.create_hive_partitions_tables(bc=bc,
+        #                                  dir_partitions=location,
+        #                                  fileSchemaType=fileSchemaType,
+        #                                  createTableType=cs.HiveCreateTableType.WITH_PARTITIONS,
+        #                                  partitions={
+        #                                          'o_orderpriority': ['1-URGENT', '2-HIGH', '3-MEDIUM', '4-NOT SPECIFIED', '5-LOW'],
+        #                                          'o_orderstatus': ['F', 'O', 'P'],
+        #                                          'o_shippriority': [0]},
+        #                                  partitions_schema=[('o_orderpriority', 'str'),
+        #                                                     ('o_orderstatus', 'str'),
+        #                                                     ('o_shippriority', 'int')],
+        #                                  tables=tables)
+
+        # Run Query ------------------------------------------------------
+        # Parameter to indicate if its necessary to order
+        # the resulsets before compare them
+        worder = 1
+        use_percentage = False
+        acceptable_difference = 0.01
+
+        print("==============================")
+        print(queryType)
+        print("==============================")
+
+        queryId = "TEST_01"
+        query = "select min(o_orderdate), max(o_orderdate) from orders where o_custkey between 10 and 20"
+        query_spark = "select min(o_orderdate), max(o_orderdate) from orders where o_custkey between 10 and 20"
+        runTest.run_query(
+            bc,
+            spark,
+            query,
+            queryId,
+            queryType,
+            worder,
+            "",
+            acceptable_difference,
+            use_percentage,
+            fileSchemaType,
+            query_spark=query_spark,
+        )
+
+        if Settings.execution_mode == ExecutionMode.GENERATOR:
+            print("==============================")
+            break
+
+def executionTestWithSomePartitions():
+    tables = ["orders", "customer"]
+    # data_types = [DataType.CSV, DataType.PARQUET, DataType.ORC]
+    data_types = [DataType.PARQUET]
+
+    # Create Tables -----------------------------------------------------
+    for fileSchemaType in data_types:
+        if skip_test(dask_client, nRals, fileSchemaType, queryType):
+            continue
+
+        # Create hive partitions
+        createPartitions(fileSchemaType, dir_data_file)
+        return
+        location = "/tmp/BlazingSQL/partitions/utilityHive"
+        # cs.create_hive_partitions_tables(bc=bc,
+        #                                  dir_partitions=location,
+        #                                  fileSchemaType=fileSchemaType,
+        #                                  createTableType=cs.HiveCreateTableType.AUTO,
+        #                                  partitions={},
+        #                                  partitions_schema=[],
+        #                                  tables=tables)
+
+        # cs.create_hive_partitions_tables(bc=bc,
+        #                                  dir_partitions=location,
+        #                                  fileSchemaType=fileSchemaType,
+        #                                  createTableType=cs.HiveCreateTableType.WITH_PARTITIONS,
+        #                                  partitions={
+        #                                          'o_orderpriority': ['1-URGENT', '2-HIGH', '3-MEDIUM', '4-NOT SPECIFIED', '5-LOW'],
+        #                                          'o_orderstatus': ['F', 'O', 'P'],
+        #                                          'o_shippriority': [0]},
+        #                                  partitions_schema=[('o_orderpriority', 'str'),
+        #                                                     ('o_orderstatus', 'str'),
+        #                                                     ('o_shippriority', 'int')],
+        #                                  tables=tables)
+
+        # Run Query ------------------------------------------------------
+        # Parameter to indicate if its necessary to order
+        # the resulsets before compare them
+        worder = 1
+        use_percentage = False
+        acceptable_difference = 0.01
+
+        print("==============================")
+        print(queryType)
+        print("==============================")
+
+        queryId = "TEST_01"
+        query = "select min(o_orderdate), max(o_orderdate) from orders where o_custkey between 10 and 20"
+        query_spark = "select min(o_orderdate), max(o_orderdate) from orders where o_custkey between 10 and 20"
+        runTest.run_query(
+            bc,
+            spark,
+            query,
+            queryId,
+            queryType,
+            worder,
+            "",
+            acceptable_difference,
+            use_percentage,
+            fileSchemaType,
+            query_spark=query_spark,
+        )
+
+        if Settings.execution_mode == ExecutionMode.GENERATOR:
+            print("==============================")
+            break
+
 def main(dask_client, spark, dir_data_file, bc, nRals):
     start_mem = gpuMemory.capture_gpu_memory_usage()
 
@@ -31,32 +233,16 @@ def main(dask_client, spark, dir_data_file, bc, nRals):
             print(queryType)
             print("==============================")
 
-            queryId = "TEST_01"
-            query = "select min(o_orderdate), max(o_orderdate) from orders where o_custkey between 10 and 20"
-            query_spark = "select min(o_orderdate), max(o_orderdate) from orders where o_custkey between 10 and 20"
-            runTest.run_query(
-                bc,
-                spark,
-                query,
-                queryId,
-                queryType,
-                worder,
-                "",
-                acceptable_difference,
-                use_percentage,
-                fileSchemaType,
-                query_spark=query_spark,
-            )
-
-            if Settings.execution_mode == ExecutionMode.GENERATOR:
-                print("==============================")
-                break
-
-    executionTest()
+    executionTestAuto()
+    executionTestWithPartitions()
+    executionTestWithSomePartitions()
 
     end_mem = gpuMemory.capture_gpu_memory_usage()
 
     gpuMemory.log_memory_usage(queryType, start_mem, end_mem)
+
+    #remove paths
+
 
 def createPartitions(fileSchemaType, dir_data_file):
     dir_data = dir_data_file + "/tpch"
