@@ -1979,6 +1979,9 @@ class BlazingContext(object):
                       only have access to a subset of the files
                       belonging to the same table. In such a case,
                       each worker will load their corresponding partitions.
+        get_metadata (optional) : boolean, to use parquet and orc metadata,
+                      defaults to True. When set to False it will skip
+                      the process of getting metadata.
 
         Examples
         --------
@@ -2353,8 +2356,9 @@ class BlazingContext(object):
 
             # TODO: if still reading ORC metadata has issues then we can skip
             # using get_metadata argument equals to False
-            if (parsedSchema["file_type"] == DataType.PARQUET) or (
-                parsedSchema["file_type"] == DataType.ORC and get_metadata
+            if get_metadata and (
+                parsedSchema["file_type"] == DataType.PARQUET
+                or parsedSchema["file_type"] == DataType.ORC
             ):
                 parsedMetadata = self._parseMetadata(
                     file_format_hint, table.slices, parsedSchema, kwargs
