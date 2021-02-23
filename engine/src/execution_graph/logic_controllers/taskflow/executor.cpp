@@ -91,7 +91,7 @@ void task::run(cudaStream_t stream, executor * executor){
     }catch(rmm::bad_alloc e){
         int i = 0;
         for(auto & input : inputs){
-            if (i < last_input_decached && (input->get_type() == ral::cache::CacheDataType::GPU || input->get_type() == ral::cache::CacheDataType::GPU_METADATA)){
+            if (i < last_input_decached && input->get_type() == ral::cache::CacheDataType::GPU ){
                 //this was a gpu cachedata so now its not valid
                 static_cast<ral::cache::GPUCacheData *>(input.get())->set_data(std::move(input_gpu[i]));
             }
@@ -150,7 +150,7 @@ void task::run(cudaStream_t stream, executor * executor){
         std::size_t i = 0;
         for(auto & input : inputs){
             if(input != nullptr){
-                if  (input->get_type() == ral::cache::CacheDataType::GPU || input->get_type() == ral::cache::CacheDataType::GPU_METADATA){
+                if  (input->get_type() == ral::cache::CacheDataType::GPU){
                     //this was a gpu cachedata so now its not valid
                     if(task_result.inputs.size() > 0 && i <= task_result.inputs.size() && task_result.inputs[i] != nullptr && task_result.inputs[i]->is_valid()){ 
                         static_cast<ral::cache::GPUCacheData *>(input.get())->set_data(std::move(task_result.inputs[i]));
