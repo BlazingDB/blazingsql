@@ -1325,12 +1325,28 @@ def create_hive_partitions_tables(bc, dir_partitions, fileSchemaType, createTabl
 
     if createTableType == HiveCreateTableType.AUTO:
         for i, table in enumerate(tables):
-            bc.create_table(table, dir_partitions, file_format=ext)
+            if fileSchemaType == DataType.CSV:
+                dtypes = get_dtypes(table)
+                col_names = get_column_names(table)
+                bc.create_table(table, dir_partitions, file_format=ext)
+
+            else:
+                bc.create_table(table, dir_partitions, file_format=ext)
 
     elif createTableType == HiveCreateTableType.WITH_PARTITIONS:
         for i, table in enumerate(tables):
-            bc.create_table(table,
-                            dir_partitions,
-                            file_format=ext,
-                            partitions=partitions,
-                            partitions_schema=partitions_schema)
+            if fileSchemaType == DataType.CSV:
+                dtypes = get_dtypes(table)
+                col_names = get_column_names(table)
+                bc.create_table(table,
+                                dir_partitions,
+                                file_format=ext,
+                                partitions=partitions,
+                                partitions_schema=partitions_schema)
+
+            else:
+                bc.create_table(table,
+                                dir_partitions,
+                                file_format=ext,
+                                partitions=partitions,
+                                partitions_schema=partitions_schema)
