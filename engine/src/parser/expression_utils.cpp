@@ -322,9 +322,6 @@ operator_type map_to_operator_type(const std::string & operator_token) {
 		{"RIGHT", operator_type::BLZ_STR_RIGHT},
 	};
 
-	if(OPERATOR_MAP.find(operator_token) == OPERATOR_MAP.end()){
-		std::cout<<operator_token<<" is not a valid operator."<<std::endl;
-	}
 	RAL_EXPECTS(OPERATOR_MAP.find(operator_token) != OPERATOR_MAP.end(), "Unsupported operator: " + operator_token);
 
 	return OPERATOR_MAP[operator_token];
