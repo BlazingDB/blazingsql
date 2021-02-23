@@ -212,7 +212,7 @@ bool CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_dat
 		num_bytes_added += cache_data->sizeInBytes();
 		int cacheIndex = 0;
 		ral::cache::CacheDataType type = cache_data->get_type();
-		if (type == ral::cache::CacheDataType::GPU || type == ral::cache::CacheDataType::GPU_METADATA){
+		if (type == ral::cache::CacheDataType::GPU){
 			cacheIndex = 0;
 		} else if (type == ral::cache::CacheDataType::CPU){
 			cacheIndex = 1;
@@ -326,7 +326,7 @@ bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, s
 					table->ensureOwnership();
 					std::unique_ptr<CacheData> cache_data;
 					if(include_meta){
-						cache_data = std::make_unique<GPUCacheDataMetaData>(std::move(table),metadata);
+						cache_data = std::make_unique<GPUCacheData>(std::move(table),metadata);
 					}else{
 						cache_data = std::make_unique<GPUCacheData>(std::move(table));
 					}

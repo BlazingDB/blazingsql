@@ -129,6 +129,12 @@ void set_min_max(
 		auto max = type_stat->has_maximum() ? *type_stat->maximum() : std::numeric_limits<int64_t>::max();
 		minmax_metadata_table[col_index] = min;
 		minmax_metadata_table[col_index + 1] = max;
+	} else if (statistic.type() == cudf::io::statistics_type::DATE) {
+		auto type_stat = statistic.type_specific_stats<cudf::io::date_statistics>();
+		auto min = type_stat->has_minimum() ? *type_stat->minimum() : std::numeric_limits<int32_t>::min();
+		auto max = type_stat->has_maximum() ? *type_stat->maximum() : std::numeric_limits<int32_t>::max();
+		minmax_metadata_table[col_index] = min;
+		minmax_metadata_table[col_index + 1] = max;
 	} else {
 		throw std::runtime_error("Invalid statistic type in set_min_max");
 	}

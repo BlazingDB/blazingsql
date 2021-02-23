@@ -142,9 +142,9 @@ ral::execution::task_result ComputeWindowKernel::do_process(std::vector< std::un
         }
 
         output->addToCache(std::move(windowed_table));
-    }catch(rmm::bad_alloc e){
+    }catch(const rmm::bad_alloc& e){
         return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
-    }catch(std::exception e){
+    }catch(const std::exception& e){
         return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }
 
