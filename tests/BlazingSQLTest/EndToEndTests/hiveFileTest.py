@@ -9,12 +9,11 @@ from Utils import Execution, gpuMemory, init_context, skip_test
 queryType = "Hive File"
 
 def main(dask_client, spark, dir_data_file, bc, nRals):
-
     start_mem = gpuMemory.capture_gpu_memory_usage()
 
     def executionTest():
-        tables = ["lineitem", "orders"]
-        data_types = [DataType.CSV, DataType.PARQUET]  # TODO json
+        tables = ["orders", "customer"]
+        data_types = [DataType.CSV, DataType.PARQUET, DataType.ORC]
 
         # Create Tables -----------------------------------------------------
         for fileSchemaType in data_types:
