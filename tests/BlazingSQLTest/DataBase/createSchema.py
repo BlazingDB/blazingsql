@@ -1321,6 +1321,9 @@ def create_hive_partitions_tables(bc, dir_partitions, fileSchemaType, createTabl
                                   partitions_schema, **kwargs):
     ext = get_extension(fileSchemaType)
 
+    if fileSchemaType not in [DataType.CSV, DataType.PARQUET, DataType.ORC]:
+        raise RuntimeError("It is not a valid file format for create table hive")
+
     tables = kwargs.get("tables", tpchTables)
 
     if createTableType == HiveCreateTableType.AUTO:
