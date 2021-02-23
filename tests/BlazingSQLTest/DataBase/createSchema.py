@@ -1328,7 +1328,8 @@ def create_hive_partitions_tables(bc, dir_partitions, fileSchemaType, createTabl
             if fileSchemaType == DataType.CSV:
                 dtypes = get_dtypes(table)
                 col_names = get_column_names(table)
-                bc.create_table(table, dir_partitions, file_format=ext)
+                bc.create_table(table, dir_partitions, file_format=ext, delimiter="|", dtype=dtypes,
+                                names=col_names)
 
             else:
                 bc.create_table(table, dir_partitions, file_format=ext)
@@ -1342,7 +1343,10 @@ def create_hive_partitions_tables(bc, dir_partitions, fileSchemaType, createTabl
                                 dir_partitions,
                                 file_format=ext,
                                 partitions=partitions,
-                                partitions_schema=partitions_schema)
+                                partitions_schema=partitions_schema,
+                                delimiter="|",
+                                dtype=dtypes,
+                                names=col_names)
 
             else:
                 bc.create_table(table,
