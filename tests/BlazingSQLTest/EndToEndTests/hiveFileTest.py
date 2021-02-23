@@ -9,8 +9,8 @@ from Utils import Execution, gpuMemory, init_context, skip_test, utilityHive
 queryType = "Hive File"
 
 
-def executionTestAuto():
-    tables = ["orders", "customer"]
+def executionTestAuto(dask_client, spark, dir_data_file, bc, nRals):
+    tables = ["orders", "customer", "lineitem", "nation", "part", "supplier"]
     # data_types = [DataType.CSV, DataType.PARQUET, DataType.ORC]
     data_types = [DataType.PARQUET]
 
@@ -20,29 +20,16 @@ def executionTestAuto():
             continue
 
         # Create hive partitions
-        createPartitions(fileSchemaType, dir_data_file)
-        return
-        location = "/tmp/BlazingSQL/partitions/utilityHive"
-        # cs.create_hive_partitions_tables(bc=bc,
-        #                                  dir_partitions=location,
-        #                                  fileSchemaType=fileSchemaType,
-        #                                  createTableType=cs.HiveCreateTableType.AUTO,
-        #                                  partitions={},
-        #                                  partitions_schema=[],
-        #                                  tables=tables)
+        location = createPartitions(fileSchemaType, dir_data_file)
 
-        # cs.create_hive_partitions_tables(bc=bc,
-        #                                  dir_partitions=location,
-        #                                  fileSchemaType=fileSchemaType,
-        #                                  createTableType=cs.HiveCreateTableType.WITH_PARTITIONS,
-        #                                  partitions={
-        #                                          'o_orderpriority': ['1-URGENT', '2-HIGH', '3-MEDIUM', '4-NOT SPECIFIED', '5-LOW'],
-        #                                          'o_orderstatus': ['F', 'O', 'P'],
-        #                                          'o_shippriority': [0]},
-        #                                  partitions_schema=[('o_orderpriority', 'str'),
-        #                                                     ('o_orderstatus', 'str'),
-        #                                                     ('o_shippriority', 'int')],
-        #                                  tables=tables)
+        # Create tables for hive
+        cs.create_hive_partitions_tables(bc=bc,
+                                         dir_partitions=location,
+                                         fileSchemaType=fileSchemaType,
+                                         createTableType=cs.HiveCreateTableType.AUTO,
+                                         partitions={},
+                                         partitions_schema=[],
+                                         tables=tables)
 
         # Run Query ------------------------------------------------------
         # Parameter to indicate if its necessary to order
@@ -56,8 +43,7 @@ def executionTestAuto():
         print("==============================")
 
         queryId = "TEST_01"
-        query = "select min(o_orderdate), max(o_orderdate) from orders where o_custkey between 10 and 20"
-        query_spark = "select min(o_orderdate), max(o_orderdate) from orders where o_custkey between 10 and 20"
+        query = "select o_totalprice from orders where o_orderstatus = 'F' order by o_orderkey"
         runTest.run_query(
             bc,
             spark,
@@ -69,7 +55,7 @@ def executionTestAuto():
             acceptable_difference,
             use_percentage,
             fileSchemaType,
-            query_spark=query_spark,
+            query_spark=query,
         )
 
         if Settings.execution_mode == ExecutionMode.GENERATOR:
