@@ -75,31 +75,30 @@ if __name__ == "__main__":
 
     nvmlInit()
 
-    drill = "drill"  # None
+    spark = "spark"
 
     compareResults = True
     if "compare_results" in Settings.data["RunSettings"]:
         compareResults = Settings.data["RunSettings"]["compare_results"]
 
-    if ((Settings.execution_mode == ExecutionMode.FULL and
-         compareResults == "true") or
-            Settings.execution_mode == ExecutionMode.GENERATOR):
-        # Create Table Drill ------------------------------------------------
-        print("starting drill")
-        from pydrill.client import PyDrill
+    if (
+        Settings.execution_mode == ExecutionMode.FULL and compareResults == "true"
+    ) or Settings.execution_mode == ExecutionMode.GENERATOR:
 
-        drill = PyDrill(host="localhost", port=8047)
-        cs.init_drill_schema(drill,
-                             Settings.data["TestSettings"]["dataDirectory"])
+        # Create Table Spark -------------------------------------------------
+        from pyspark.sql import SparkSession
+
+        spark = SparkSession.builder.appName("timestampTest").getOrCreate()
+        cs.init_spark_schema(spark, Settings.data["TestSettings"]["dataDirectory"])
 
     # Create Context For BlazingSQL
-
     bc, dask_client = init_context()
 
     nRals = Settings.data["RunSettings"]["nRals"]
 
-    main(dask_client, drill, Settings.data["TestSettings"]["dataDirectory"],
-         bc, nRals)
+    main(
+        dask_client, spark, Settings.data["TestSettings"]["dataDirectory"], bc, nRals,
+    )
 
     if Settings.execution_mode != ExecutionMode.GENERATOR:
         runTest.save_log()
