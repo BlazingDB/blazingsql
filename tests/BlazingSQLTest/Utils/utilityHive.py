@@ -126,8 +126,11 @@ def create_hive_partition_data(input, table_name, partitions, output, num_files)
 	data_partition_array_dict = []
 	for partition in partitions:
 		if partition in columns:
-			values = bc.sql(f'select distinct({partition}) from {table_name}')
-			data_partition_array_dict.append(values.to_pandas().to_dict())
+			valuesPartition = bc.sql(f'select distinct({partition}) from {table_name}').to_pandas().to_dict()
+			finalValues = list(set(valuesPartition[partition].values()) & set(partitions[partition]))
+			dictOfvalues = {i: finalValues[i] for i in range(0, len(finalValues))}
+			valuesPartition[partition] = dictOfvalues
+			data_partition_array_dict.append(valuesPartition)
 		else:
 			print('Column "' + partition + '" not exist')
 
