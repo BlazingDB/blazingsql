@@ -8,6 +8,11 @@
 
 #include <ucs/type/status.h>
 
+#include <spdlog/spdlog.h>
+#include <spdlog/async.h>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+
 namespace ral{
 namespace memory{
 
@@ -156,6 +161,15 @@ void allocation_pool::grow() {
 void allocation_pool::free_chunk(std::unique_ptr<blazing_allocation_chunk> buffer) {
   std::unique_lock<std::mutex> lock(in_use_mutex);
   const std::size_t idx = buffer->allocation->index;
+
+  if (idx+1 > this->allocations.size()) {
+    std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
+    if(logger){
+      logger->error("|||{0}|||||","free_chunk cannot delete an invalid allocation.");
+    }
+    assert(("free_chunk cannot delete an invalid allocation.", idx < this->allocations.size()));
+  }
+
   buffer->allocation->allocation_chunks.push(std::move(buffer));
 
   if (idx > 0) {
