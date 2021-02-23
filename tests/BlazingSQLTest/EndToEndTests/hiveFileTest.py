@@ -58,6 +58,179 @@ def executionTestAuto(dask_client, spark, dir_data_file, bc, nRals):
             query_spark=query,
         )
 
+        queryId = "TEST_02"
+        query = """select c_nationkey, c_acctbal + 3 as c_acctbal_new
+                    from customer where c_acctbal > 1000 and c_mktsegment = 'AUTOMOBILE' """
+        runTest.run_query(
+            bc,
+            spark,
+            query,
+            queryId,
+            queryType,
+            worder,
+            "",
+            acceptable_difference,
+            use_percentage,
+            fileSchemaType,
+            query_spark=query,
+        )
+
+        queryId = "TEST_03"
+        query = """ select l.l_orderkey, l.l_linenumber from lineitem as l
+                    inner join orders as o on l.l_orderkey = o.o_orderkey
+                    and l.l_commitdate < o.o_orderdate
+                    and l.l_receiptdate > o.o_orderdate"""
+        runTest.run_query(
+            bc,
+            spark,
+            query,
+            queryId,
+            queryType,
+            worder,
+            "",
+            acceptable_difference,
+            use_percentage,
+            fileSchemaType,
+            query_spark=query,
+        )
+
+        queryId = "TEST_04"
+        query = """ select l_linenumber, l_shipmode, l_returnflag 
+                    from lineitem 
+                    where l_shipmode in ('AIR','FOB','MAIL','RAIL') and l_returnflag in ('A', 'N')
+                    order by l_orderkey"""
+        runTest.run_query(
+            bc,
+            spark,
+            query,
+            queryId,
+            queryType,
+            worder,
+            "",
+            acceptable_difference,
+            use_percentage,
+            fileSchemaType,
+            query_spark=query,
+        )
+
+        # "nation", "part", "supplier"]
+
+        queryId = "TEST_05"
+        query = """select n_regionkey as rkey, n_nationkey from nation
+                    where n_regionkey < 3 and n_nationkey > 5"""
+        runTest.run_query(
+            bc,
+            spark,
+            query,
+            queryId,
+            queryType,
+            worder,
+            "",
+            acceptable_difference,
+            use_percentage,
+            fileSchemaType,
+            query_spark=query,
+        )
+
+        queryId = "TEST_06"
+        query = """select p.p_partkey, p.p_mfgr
+                    from part p
+                    where p.p_type like '%STEEL'"""
+        runTest.run_query(
+            bc,
+            spark,
+            query,
+            queryId,
+            queryType,
+            worder,
+            "",
+            acceptable_difference,
+            use_percentage,
+            fileSchemaType,
+            query_spark=query,
+        )
+
+        queryId = "TEST_07"
+        query = """select p_partkey, p_mfgr, p_container
+                    from part
+                    where p_size = 35 and p_container like 'WRAP%'"""
+        runTest.run_query(
+            bc,
+            spark,
+            query,
+            queryId,
+            queryType,
+            worder,
+            "",
+            acceptable_difference,
+            use_percentage,
+            fileSchemaType,
+            query_spark=query,
+        )
+
+        queryId = "TEST_08"
+        query = """select count(s_suppkey), count(s_nationkey)
+                    from supplier"""
+        runTest.run_query(
+            bc,
+            spark,
+            query,
+            queryId,
+            queryType,
+            worder,
+            "",
+            acceptable_difference,
+            use_percentage,
+            fileSchemaType,
+            query_spark=query,
+        )
+
+        queryId = "TEST_09"
+        query = """select n1.n_nationkey as supp_nation,
+                    n2.n_nationkey as cust_nation,
+                    l.l_extendedprice * l.l_discount
+                    from supplier as s
+                    inner join lineitem as l on s.s_suppkey = l.l_suppkey
+                    inner join orders as o on o.o_orderkey = l.l_orderkey
+                    inner join customer as c on c.c_custkey = o.o_custkey
+                    inner join nation as n1 on s.s_nationkey = n1.n_nationkey
+                    inner join nation as n2 on c.c_nationkey = n2.n_nationkey
+                    where n1.n_nationkey = 1
+                    and n2.n_nationkey = 2
+                    and o.o_orderkey < 20"""
+        runTest.run_query(
+            bc,
+            spark,
+            query,
+            queryId,
+            queryType,
+            worder,
+            "",
+            acceptable_difference,
+            use_percentage,
+            fileSchemaType,
+            query_spark=query,
+        )
+
+        queryId = "TEST_10"
+        query = """ select s_name, s_address, s_nationkey
+                    from supplier
+                    where s_nationkey < 10
+                    order by s_suppkey"""
+        runTest.run_query(
+            bc,
+            spark,
+            query,
+            queryId,
+            queryType,
+            worder,
+            "",
+            acceptable_difference,
+            use_percentage,
+            fileSchemaType,
+            query_spark=query,
+        )
+
         if Settings.execution_mode == ExecutionMode.GENERATOR:
             print("==============================")
             break
