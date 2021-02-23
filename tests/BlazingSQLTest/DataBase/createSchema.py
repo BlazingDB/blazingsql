@@ -4,6 +4,7 @@ import tempfile
 from collections import OrderedDict
 from os import listdir
 from os.path import isdir
+from enum import IntEnum, unique
 
 import cudf
 import dask_cudf
@@ -1310,3 +1311,8 @@ def create_hive_tables(bc, dir_data_lc, fileSchemaType, **kwargs):
         table = bc.create_table(table, cursor)
         # table = bc.create_table(table, cursor, file_format=fileSchemaType)
         print(table)
+
+@unique
+class HiveCreateTableType(IntEnum):
+    AUTO = 0,
+    WITH_PARTITIONS = 1
