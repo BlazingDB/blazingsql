@@ -77,14 +77,14 @@ def _combine_partitions(data_partition_array_dict):
 
 	return copy_comb
 
-def _save_partition_files(bc, table_name, data_partition_array_dict, output, num_files_per_parquet):
+def _save_partition_files(bc, table_name, data_partition_array_dict, output, num_files):
 	values_partitions = _get_partition_values(data_partition_array_dict)
 	columns = _get_columns_names(bc, table_name)
 	view_columns = _select_columns(columns, values_partitions)
 
 	combination_partition = _combine_partitions(data_partition_array_dict)
 
-	if num_files_per_parquet == 1:
+	if num_files == 1:
 
 		for partition in combination_partition:
 			where_clause = ' and '.join(partition)
@@ -92,7 +92,7 @@ def _save_partition_files(bc, table_name, data_partition_array_dict, output, num
 			query = 'select {} from {} where {}'.format(view_columns, table_name, where_clause)
 			_save_parquet_from_blazing(bc, query, output, partition, table_name)
 
-	elif num_files_per_parquet >= 1:
+	elif num_files >= 1:
 
 		for partition in combination_partition:
 			where_clause = ' and '.join(partition)
@@ -100,7 +100,8 @@ def _save_partition_files(bc, table_name, data_partition_array_dict, output, num
 			query = 'select count(*) from {} where {}'.format(table_name, where_clause)
 			result = bc.sql(query)
 			total_registers = result.values.tolist()[0][0]
-			registers_per_parquet = math.ceil(total_registers / num_files_per_parquet)
+
+			registers_per_parquet = math.ceil(total_registers / num_files)
 
 			index = 0
 			df = bc.sql('select {} from {} where {}'.format(view_columns, table_name, where_clause))
@@ -111,10 +112,10 @@ def _save_partition_files(bc, table_name, data_partition_array_dict, output, num
 				index += 1
 
 	else:
-		print('num_files_per_parquet must be greater than 1.')
+		print('num_files must be greater than 1.')
 
 
-def create_hive_partition_data(input, table_name, partitions, output, num_files_per_parquet):
+def create_hive_partition_data(input, table_name, partitions, output, num_files):
 	if not os.path.exists(output):
 		os.makedirs(output)
 
@@ -130,7 +131,7 @@ def create_hive_partition_data(input, table_name, partitions, output, num_files_
 		else:
 			print('Column "' + partition + '" not exist')
 
-	_save_partition_files(bc, table_name, data_partition_array_dict, output, num_files_per_parquet)
+	_save_partition_files(bc, table_name, data_partition_array_dict, output, num_files)
 
 def testing_load_hive_table(table_name, location, partitions, partitions_schema):
 	bc = BlazingContext()
@@ -143,8 +144,8 @@ def testing_load_hive_table(table_name, location, partitions, partitions_schema)
 
 	# bc.create_table(table_name, location, file_format='parquet')
 
-def test_hive_partition_data(input, table_name, partitions, partitions_schema, output, num_files_per_parquet=1):
-	create_hive_partition_data(input, table_name, partitions, output, num_files_per_parquet)
+def test_hive_partition_data(input, table_name, partitions, partitions_schema, output, num_files=1):
+	create_hive_partition_data(input, table_name, partitions, output, num_files)
 	testing_load_hive_table(table_name, output, partitions, partitions_schema)
 
 
@@ -162,7 +163,7 @@ def main():
 												('o_orderstatus', 'str'),
 												('o_shippriority', 'int')],
 							 output='/output_path',
-							 num_files_per_parquet=4)
+							 num_files=4)
 
 if __name__ == "__main__":
 	main()
