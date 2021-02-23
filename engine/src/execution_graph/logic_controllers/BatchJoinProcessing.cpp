@@ -407,19 +407,19 @@ ral::execution::task_result PartwiseJoin::do_process(std::vector<std::unique_ptr
 			this->add_to_output_cache(std::move(joined));
 		}
 
-	}catch(rmm::bad_alloc e){
+	}catch(const rmm::bad_alloc& e){
 		return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
-	}catch(std::exception e){
+	}catch(const std::exception& e){
 		return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
 	}
 
 	try{
 		this->leftArrayCache->put(std::stoi(args.at("left_idx")), std::move(left_batch));
 		this->rightArrayCache->put(std::stoi(args.at("right_idx")), std::move(right_batch));
-	}catch(rmm::bad_alloc e){
+	}catch(const rmm::bad_alloc& e){
 		//can still recover if the input was not a GPUCacheData
 		return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
-	}catch(std::exception e){
+	}catch(const std::exception& e){
 		return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
 	}
 
@@ -1051,9 +1051,9 @@ ral::execution::task_result JoinPartitionKernel::do_process(std::vector<std::uni
 
 			return {ral::execution::task_status::FAIL, std::string("In JoinPartitionKernel::do_process Invalid operation_type"), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
 		}
-	}catch(rmm::bad_alloc e){
+	}catch(const rmm::bad_alloc& e){
 		return {ral::execution::task_status::RETRY, std::string(e.what()), input_consumed ? std::vector< std::unique_ptr<ral::frame::BlazingTable> > () : std::move(inputs)};
-	}catch(std::exception e){
+	}catch(const std::exception& e){
 		return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
 	}
 	return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};

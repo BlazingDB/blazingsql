@@ -31,9 +31,9 @@ ral::execution::task_result ComputeAggregateKernel::do_process(std::vector< std:
                 input->toBlazingTableView(), aggregation_input_expressions, this->aggregation_types, aggregation_column_assigned_aliases, group_column_indices);
         }
         output->addToCache(std::move(columns));
-    }catch(rmm::bad_alloc e){
+    }catch(const rmm::bad_alloc& e){
         return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
-    }catch(std::exception e){
+    }catch(const std::exception& e){
         return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }
     return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
@@ -155,9 +155,9 @@ ral::execution::task_result DistributeAggregateKernel::do_process(std::vector< s
                     "", //cache_id
                     {this->context->getMasterNode().id()}); //target_id
             }
-        }catch(rmm::bad_alloc e){
+        }catch(const rmm::bad_alloc& e){
             return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
-        }catch(std::exception e){
+        }catch(const std::exception& e){
             return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
         }
 
@@ -190,9 +190,9 @@ ral::execution::task_result DistributeAggregateKernel::do_process(std::vector< s
                 "", //message_id_prefix
                 "" //cache_id
             );
-        }catch(rmm::bad_alloc e){
+        }catch(const rmm::bad_alloc& e){
             return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
-        }catch(std::exception e){
+        }catch(const std::exception& e){
             return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
         }
         
@@ -336,9 +336,9 @@ ral::execution::task_result MergeAggregateKernel::do_process(std::vector< std::u
 
         output->addToCache(std::move(columns));
         columns = nullptr;
-    }catch(rmm::bad_alloc e){
+    }catch(const rmm::bad_alloc& e){
         return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
-    }catch(std::exception e){
+    }catch(const std::exception& e){
         return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }
     return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};

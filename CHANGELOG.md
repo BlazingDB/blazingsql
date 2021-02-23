@@ -7,11 +7,14 @@
 - #1325 Refactored CacheMachine.h and CacheMachine.cpp 
 - #1322 Updated and enabled several E2E tests
 - #1333 Fixing build due to cudf update
+- #1344 Removed GPUCacheDataMetadata class 
 
 ## Bug Fixes
 - #1335 Fixing uninitialized var in orc metadata and handling the parseMetadata exceptions properly
 - #1339 Handling properly the nulls in case conditions with strings
 - #1346 Delete allocated host chunks
+- #1348 Capturing error messages due to exceptions properly
+
 
 # BlazingSQL 0.18.0 (Date TBS)
 
@@ -32,6 +35,7 @@
 - #1284 Initial support for Windows Function
 - #1303 Add support for INITCAP
 - #1313 getting and using ORC metadata
+- #1347 Fixing issue when reading orc metadata from DATE dtype
 
 
 ## Improvements
