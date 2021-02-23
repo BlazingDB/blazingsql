@@ -1,7 +1,7 @@
 # BlazingSQL 0.19.0 (Date TBS)
 
 ## New Features
-
+- #1349 Add e2e test for Hive Partitioned Data
 
 ## Improvements
 - #1325 Refactored CacheMachine.h and CacheMachine.cpp 
