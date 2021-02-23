@@ -8,11 +8,11 @@ from Utils import Execution, gpuMemory, init_context, skip_test, utilityHive
 
 queryType = "Hive File"
 
+tables = ["orders", "customer", "lineitem", "nation", "part", "supplier"]
+# data_types = [DataType.CSV, DataType.PARQUET, DataType.ORC]
+data_types = [DataType.PARQUET]
 
 def executionTestAuto(dask_client, spark, dir_data_file, bc, nRals):
-    tables = ["orders", "customer", "lineitem", "nation", "part", "supplier"]
-    # data_types = [DataType.CSV, DataType.PARQUET, DataType.ORC]
-    data_types = [DataType.PARQUET]
 
     # Create Tables -----------------------------------------------------
     for fileSchemaType in data_types:
@@ -62,11 +62,7 @@ def executionTestAuto(dask_client, spark, dir_data_file, bc, nRals):
             print("==============================")
             break
 
-def executionTestWithPartitions():
-    tables = ["orders", "customer"]
-    # data_types = [DataType.CSV, DataType.PARQUET, DataType.ORC]
-    data_types = [DataType.PARQUET]
-
+def executionTestWithPartitions(dask_client, spark, dir_data_file, bc, nRals):
     # Create Tables -----------------------------------------------------
     for fileSchemaType in data_types:
         if skip_test(dask_client, nRals, fileSchemaType, queryType):
@@ -74,7 +70,7 @@ def executionTestWithPartitions():
 
         # Create hive partitions
         createPartitions(fileSchemaType, dir_data_file)
-        return
+
         location = "/tmp/BlazingSQL/partitions/utilityHive"
         # cs.create_hive_partitions_tables(bc=bc,
         #                                  dir_partitions=location,
@@ -129,11 +125,7 @@ def executionTestWithPartitions():
             print("==============================")
             break
 
-def executionTestWithSomePartitions():
-    tables = ["orders", "customer"]
-    # data_types = [DataType.CSV, DataType.PARQUET, DataType.ORC]
-    data_types = [DataType.PARQUET]
-
+def executionTestWithSomePartitions(dask_client, spark, dir_data_file, bc, nRals):
     # Create Tables -----------------------------------------------------
     for fileSchemaType in data_types:
         if skip_test(dask_client, nRals, fileSchemaType, queryType):
@@ -141,7 +133,7 @@ def executionTestWithSomePartitions():
 
         # Create hive partitions
         createPartitions(fileSchemaType, dir_data_file)
-        return
+
         location = "/tmp/BlazingSQL/partitions/utilityHive"
         # cs.create_hive_partitions_tables(bc=bc,
         #                                  dir_partitions=location,
@@ -199,29 +191,9 @@ def executionTestWithSomePartitions():
 def main(dask_client, spark, dir_data_file, bc, nRals):
     start_mem = gpuMemory.capture_gpu_memory_usage()
 
-    def executionTest():
-        tables = ["orders", "customer"]
-        data_types = [DataType.CSV, DataType.PARQUET, DataType.ORC]
-
-        # Create Tables -----------------------------------------------------
-        for fileSchemaType in data_types:
-            if skip_test(dask_client, nRals, fileSchemaType, queryType):
-                continue
-
-            # Run Query ------------------------------------------------------
-            # Parameter to indicate if its necessary to order
-            # the resulsets before compare them
-            worder = 1
-            use_percentage = False
-            acceptable_difference = 0.01
-
-            print("==============================")
-            print(queryType)
-            print("==============================")
-
-    executionTestAuto()
-    executionTestWithPartitions()
-    executionTestWithSomePartitions()
+    executionTestAuto(dask_client, spark, dir_data_file, bc, nRals)
+    # executionTestWithPartitions(dask_client, spark, dir_data_file, bc, nRals)
+    # executionTestWithSomePartitions(dask_client, spark, dir_data_file, bc, nRals)
 
     end_mem = gpuMemory.capture_gpu_memory_usage()
 
