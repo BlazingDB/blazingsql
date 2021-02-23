@@ -27,6 +27,8 @@ ComputeWindowKernel::ComputeWindowKernel(std::size_t kernel_id, const std::strin
     std::shared_ptr<ral::cache::graph> query_graph)
     : kernel{kernel_id, queryString, context, kernel_type::ComputeWindowKernel} {
     this->query_graph = query_graph;
+    std::tie(this->presceding_values, this->following_values) = get_bounds_from_window_expression(this->expression);
+    this->frame_type = get_frame_type_from_over_clause(this->expression);
 }
 
 // TODO: Support for RANK() and DENSE_RANK()
@@ -34,14 +36,14 @@ ComputeWindowKernel::ComputeWindowKernel(std::size_t kernel_id, const std::strin
 std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_function(
     cudf::table_view input_cudf_view,
     cudf::column_view input_col_view,
-    std::size_t pos, int & constant_count ) {
+    std::size_t pos, int & agg_param_count ) {
 
     std::unique_ptr<cudf::aggregation> window_aggregation;
     
     // it contains `LEAD` or `LAG` aggs
-    if (this->constant_values.size() > constant_count && (this->type_aggs_as_str[pos] == "LAG" || this->type_aggs_as_str[pos] == "LEAD") ) {
-        window_aggregation = ral::operators::makeCudfAggregation(this->aggs_wind_func[pos], this->constant_values[constant_count]);
-        constant_count++;
+    if (this->agg_param_values.size() > agg_param_count && (this->type_aggs_as_str[pos] == "LAG" || this->type_aggs_as_str[pos] == "LEAD") ) {
+        window_aggregation = ral::operators::makeCudfAggregation(this->aggs_wind_func[pos], this->agg_param_values[agg_param_count]);
+        agg_param_count++;
     } else {
         window_aggregation = ral::operators::makeCudfAggregation(this->aggs_wind_func[pos]); 
     }
@@ -61,18 +63,17 @@ std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_func
             if (this->expression.find("RANGE") != std::string::npos) {
                 throw std::runtime_error("In Window Function: RANGE is not currently supported");
             }
-            this->bounding_values = get_bounds_from_window_expression(this->expression);
-            windowed_col = cudf::grouped_rolling_window(table_view_with_single_col , input_col_view, this->bounding_values[0] + 1, this->bounding_values[1], 1, window_aggregation);
+            windowed_col = cudf::grouped_rolling_window(table_view_with_single_col, input_col_view, this->presceding_values[0] + 1, this->following_values[0], 1, window_aggregation);
         } else {
             // we want to use all the size of each partition
             if (this->type_aggs_as_str[pos] == "LEAD") {
-                windowed_col = cudf::grouped_rolling_window(table_view_with_single_col , input_col_view, 0, input_col_view.size(), 1, window_aggregation);
+                windowed_col = cudf::grouped_rolling_window(table_view_with_single_col, input_col_view, 0, input_col_view.size(), 1, window_aggregation);
             } else {
-                windowed_col = cudf::grouped_rolling_window(table_view_with_single_col , input_col_view, input_col_view.size(), 0, 1, window_aggregation);
+                windowed_col = cudf::grouped_rolling_window(table_view_with_single_col, input_col_view, input_col_view.size(), 0, 1, window_aggregation);
             }
         }
     } else {
-        windowed_col = cudf::grouped_rolling_window(table_view_with_single_col , input_col_view, input_col_view.size(), input_col_view.size(), 1, window_aggregation);
+        windowed_col = cudf::grouped_rolling_window(table_view_with_single_col, input_col_view, input_col_view.size(), input_col_view.size(), 1, window_aggregation);
     }
 
     return std::move(windowed_col);
@@ -94,7 +95,7 @@ ral::execution::task_result ComputeWindowKernel::do_process(std::vector< std::un
         cudf::table_view input_cudf_view = input->view();
 
         std::vector<std::string> input_names = input->names();
-        std::tie(this->column_indices_to_agg, this->type_aggs_as_str, this->constant_values) = 
+        std::tie(this->column_indices_to_agg, this->type_aggs_as_str, this->agg_param_values) = 
                                         get_cols_to_apply_window_and_cols_to_apply_agg(this->expression);
         std::tie(this->column_indices_partitioned, std::ignore) = ral::operators::get_vars_to_partition(this->expression);
 
@@ -105,12 +106,12 @@ ral::execution::task_result ComputeWindowKernel::do_process(std::vector< std::un
         }
 
         std::vector< std::unique_ptr<CudfColumn> > new_wf_cols;
-        int constant_count = 0;
+        int agg_param_count = 0;
         for (std::size_t col_i = 0; col_i < this->type_aggs_as_str.size(); ++col_i) {
             cudf::column_view input_col_view = input_cudf_view.column(column_indices_to_agg[col_i]);
 
             // calling main window function
-            std::unique_ptr<CudfColumn> windowed_col = compute_column_from_window_function(input_cudf_view, input_col_view, col_i, constant_count);
+            std::unique_ptr<CudfColumn> windowed_col = compute_column_from_window_function(input_cudf_view, input_col_view, col_i, agg_param_count);
             new_wf_cols.push_back(std::move(windowed_col));
         }
 

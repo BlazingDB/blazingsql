@@ -424,6 +424,86 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
+            queryId = "TEST_19"
+            query = """with first_window_order as (
+                            select max(o_totalprice) over
+                                (
+                                    partition by o_orderpriority
+                                    order by o_totalprice, o_custkey
+                                ) o_max_prices,
+                                min(o_totalprice) over
+                                (
+                                    partition by o_orderpriority
+                                    order by o_totalprice, o_custkey
+                                ) o_min_prices,
+                                o_orderkey, o_orderpriority, o_custkey,
+                                o_totalprice, o_clerk
+                            from orders
+                        ), order_operated as (
+                            select * from first_window_order
+                            where o_max_prices < 19750.0
+                            and o_clerk <> 'Clerk#000000880'
+                            and o_orderpriority in ('2-HIGH', '5-LOW')
+                            order by o_orderkey, o_custkey, o_totalprice
+                            limit 1250
+                        )
+                        select sum(o_max_prices) over
+                                (
+                                    partition by o_orderpriority
+                                    order by o_totalprice, o_custkey
+                                ) sum_max_prices,
+                               o_orderkey, o_min_prices, o_orderpriority from order_operated
+                        order by o_orderkey, o_min_prices, o_totalprice
+                        limit 450"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_20"
+            query = """with reduced_order as (
+                            select o_orderkey, o_custkey, o_orderpriority,
+                                o_orderstatus, o_totalprice, o_clerk
+                            from orders
+                            where o_totalprice < 1750.0
+                            and o_clerk <> 'Clerk#000000880'
+                            order by o_orderkey, o_custkey, o_totalprice
+                            limit 3500
+                        ), window_orders as (
+                            select min(o_totalprice) over
+                                (
+                                    partition by o_orderpriority
+                                    order by o_totalprice
+                                ) o_min_prices,
+                                o_orderkey, o_orderpriority, o_orderstatus
+                            from reduced_order
+                        )
+                        select o_orderkey, o_min_prices, o_orderpriority
+                        from window_orders
+                        where o_orderstatus in ('O', 'F')
+                        and o_orderpriority = '2-HIGH'
+                        order by o_orderkey, o_min_prices"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
             # ------------ PARTITION BY + ORDER BY ----------------
 
             queryId = "TEST_21"

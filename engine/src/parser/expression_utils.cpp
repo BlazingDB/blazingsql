@@ -465,10 +465,18 @@ std::string get_query_part(std::string logical_plan) {
 	return query_part;
 }
 
-std::vector<int> get_bounds_from_window_expression(const std::string & logical_plan) {
-	std::vector<int> bounds;
+std::tuple< std::vector<int>, std::vector<int> > get_bounds_from_window_expression(const std::string & logical_plan) {
+	std::vector<int> presceding_values, following_values; 
 
 	std::string over_clause = get_first_over_expression_from_logical_plan(logical_plan, "PARTITION BY");
+
+	// the default behavior when not boundins are passed is
+	// RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW. 
+	if (over_clause.find("BETWEEN") == std::string::npos) {
+		presceding_values.push_back(-1);
+		following_values.push_back(0);
+		return std::make_tuple(presceding_values, following_values);
+	}
 
 	// getting the first limit value
 	std::string between_expr = "BETWEEN ";
@@ -476,7 +484,7 @@ std::vector<int> get_bounds_from_window_expression(const std::string & logical_p
 	size_t start_pos = over_clause.find(between_expr) + between_expr.size();
 	size_t end_pos = over_clause.find(preceding_expr);
 	std::string first_limit = over_clause.substr(start_pos, end_pos - start_pos);
-	bounds.push_back(std::stoi(first_limit));
+	presceding_values.push_back(std::stoi(first_limit));
 
 	// getting the second limit value
 	std::string and_expr = "AND ";
@@ -484,9 +492,19 @@ std::vector<int> get_bounds_from_window_expression(const std::string & logical_p
 	start_pos = over_clause.find(and_expr) + and_expr.size();
 	end_pos = over_clause.find(following_expr);
 	std::string second_limit = over_clause.substr(start_pos, end_pos - start_pos);
-	bounds.push_back(std::stoi(second_limit));
+	following_values.push_back(std::stoi(second_limit));
 
-	return bounds;
+	return std::make_tuple(presceding_values, following_values);
+}
+
+// returns "ROWS" or "RANGE"
+std::string get_frame_type_from_over_clause(const std::string & logical_plan) {
+	std::string query_part = get_query_part(logical_plan);
+	if (is_window_function(query_part) && query_part.find("ROWS") != query_part.npos) {
+		return "ROWS";
+	}
+
+	return "RANGE";
 }
 
 // input: min_keys=[MIN($0) OVER (PARTITION BY $1, $2 ORDER BY $0)]
@@ -538,7 +556,7 @@ std::tuple< std::vector<int>, std::vector<std::string>, std::vector<int> >
 get_cols_to_apply_window_and_cols_to_apply_agg(const std::string & logical_plan) {
 	std::vector<int> column_index;
 	std::vector<std::string> aggregations;
-	std::vector<int> constant_values;
+	std::vector<int> agg_param_values;
 
 	std::string query_part = get_query_part(logical_plan);
 	std::vector<std::string> project_expressions = get_expressions_from_expression_list(query_part);
@@ -562,7 +580,7 @@ get_cols_to_apply_window_and_cols_to_apply_agg(const std::string & logical_plan)
 				std::vector<std::string> inside_parts = StringUtil::split(right_express, ", ");
 				aggregations.push_back(split_parts[0]);
 				column_index.push_back(std::stoi(inside_parts[0]));
-				constant_values.push_back(std::stoi(inside_parts[1]));
+				agg_param_values.push_back(std::stoi(inside_parts[1]));
 			} else if (num_over_clauses > 1) {
 				// SUM or AVG case
 				aggregations.push_back("COUNT");
@@ -578,7 +596,7 @@ get_cols_to_apply_window_and_cols_to_apply_agg(const std::string & logical_plan)
 		}
 	}
 
-	return std::make_tuple(column_index, aggregations, constant_values);
+	return std::make_tuple(column_index, aggregations, agg_param_values);
 }
 
 std::string get_named_expression(const std::string & query_part, const std::string & expression_name) {
