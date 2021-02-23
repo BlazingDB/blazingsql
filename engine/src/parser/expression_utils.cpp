@@ -470,7 +470,7 @@ std::tuple< std::vector<int>, std::vector<int> > get_bounds_from_window_expressi
 
 	std::string over_clause = get_first_over_expression_from_logical_plan(logical_plan, "PARTITION BY");
 
-	// the default behavior when not boundins are passed is
+	// the default behavior when not bounds are passed is
 	// RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW. 
 	if (over_clause.find("BETWEEN") == std::string::npos) {
 		presceding_values.push_back(-1);
@@ -497,7 +497,6 @@ std::tuple< std::vector<int>, std::vector<int> > get_bounds_from_window_expressi
 	return std::make_tuple(presceding_values, following_values);
 }
 
-// returns "ROWS" or "RANGE"
 std::string get_frame_type_from_over_clause(const std::string & logical_plan) {
 	std::string query_part = get_query_part(logical_plan);
 	if (is_window_function(query_part) && query_part.find("ROWS") != query_part.npos) {
