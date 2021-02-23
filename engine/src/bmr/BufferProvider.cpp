@@ -85,7 +85,6 @@ void pinned_allocator::do_deallocate(void * ptr){
 
 allocation_pool::allocation_pool(std::unique_ptr<base_allocator> allocator, std::size_t size_buffers, std::size_t num_buffers) :
 num_buffers (num_buffers), buffer_size(size_buffers), allocator(std::move(allocator)) {
-
   this->buffer_counter = 0; // this will get incremented by grow()
   this->allocation_counter = 0;
   this->grow();
@@ -135,7 +134,6 @@ void allocation_pool::grow() {
   std::size_t num_new_buffers = this->buffer_counter == 0 ? this->num_buffers : this->num_buffers/2;
   allocations.push_back(std::make_unique<blazing_allocation>());
   allocations.back()->index = this->allocations.size() - 1;
-  allocations.back()->total_number_of_chunks = num_new_buffers;
   auto last_index = allocations.size() -1;
   try{
     allocator->allocate((void **) &allocations[last_index]->data,num_new_buffers * buffer_size);
@@ -155,22 +153,25 @@ void allocation_pool::grow() {
   }
 }
 
-
 void allocation_pool::free_chunk(std::unique_ptr<blazing_allocation_chunk> buffer) {
   std::unique_lock<std::mutex> lock(in_use_mutex);
   const std::size_t idx = buffer->allocation->index;
   buffer->allocation->allocation_chunks.push(std::move(buffer));
 
-  // if when we add the chunk back to the allocation, it now has all the allocations it needs, they free the allocation
-  // BUT only free the allocation if its not the very first allocation
-  // freeing the allocation means freeing the memory and deleting it from the allocation pool
-  // make sure things are "locked" when doing that to make sure its thread safe
   if (idx > 0) {
     if (this->allocations.at(idx)->total_number_of_chunks == this->allocations.at(idx)->allocation_chunks.size()) {
-        auto it = this->allocations.begin();
-        free((*it)->data);
-        std::advance(it, idx);
+      auto it = this->allocations.begin();
+      std::advance(it, idx);
+      if ((*it)->data != nullptr) {
+        this->allocator->deallocate((*it)->data);
         this->allocations.erase(it);
+
+        // for all allocations after the pos at idx
+        // we need to update the allocation.index after we deleted one
+        for (std::size_t i = idx; i < this->allocations.size(); ++i) {
+          this->allocations[i]->index = this->allocations[i]->index - 1;
+        }
+      }
     }
   }
 
