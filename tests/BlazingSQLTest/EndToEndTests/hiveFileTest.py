@@ -534,29 +534,86 @@ def executionTestWithSomePartitions(dask_client, spark, dir_data_file, bc, nRals
             continue
 
         # Create hive partitions
-        createPartitions(fileSchemaType, dir_data_file)
+        location = createPartitions(fileSchemaType, dir_data_file)
 
-        location = "/tmp/BlazingSQL/partitions/utilityHive"
-        # cs.create_hive_partitions_tables(bc=bc,
-        #                                  dir_partitions=location,
-        #                                  fileSchemaType=fileSchemaType,
-        #                                  createTableType=cs.HiveCreateTableType.AUTO,
-        #                                  partitions={},
-        #                                  partitions_schema=[],
-        #                                  tables=tables)
+        # Create tables with partitions
+        cs.create_hive_partitions_tables(bc=bc,
+                                         dir_partitions=location,
+                                         fileSchemaType=fileSchemaType,
+                                         createTableType=cs.HiveCreateTableType.WITH_PARTITIONS,
+                                         partitions={
+                                             'o_orderpriority': ['1-URGENT', '2-HIGH', '3-MEDIUM',
+                                                                 '4-NOT SPECIFIED',
+                                                                 '5-LOW'],
+                                             'o_orderstatus': ['F', 'O', 'P']},
+                                         partitions_schema=[('o_orderpriority', 'str'),
+                                                            ('o_orderstatus', 'str')],
+                                         tables=['orders'])
 
-        # cs.create_hive_partitions_tables(bc=bc,
-        #                                  dir_partitions=location,
-        #                                  fileSchemaType=fileSchemaType,
-        #                                  createTableType=cs.HiveCreateTableType.WITH_PARTITIONS,
-        #                                  partitions={
-        #                                          'o_orderpriority': ['1-URGENT', '2-HIGH', '3-MEDIUM', '4-NOT SPECIFIED', '5-LOW'],
-        #                                          'o_orderstatus': ['F', 'O', 'P'],
-        #                                          'o_shippriority': [0]},
-        #                                  partitions_schema=[('o_orderpriority', 'str'),
-        #                                                     ('o_orderstatus', 'str'),
-        #                                                     ('o_shippriority', 'int')],
-        #                                  tables=tables)
+        cs.create_hive_partitions_tables(bc=bc,
+                                         dir_partitions=location,
+                                         fileSchemaType=fileSchemaType,
+                                         createTableType=cs.HiveCreateTableType.WITH_PARTITIONS,
+                                         partitions={
+                                             'c_nationkey': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+                                                             16, 17, 18, 19, 20, 21, 22, 23, 24],
+                                             'c_mktsegment': ['AUTOMOBILE', 'BUILDING', 'FURNITURE', 'HOUSEHOLD',
+                                                              'MACHINERY']},
+                                         partitions_schema=[('c_nationkey', 'int32'),
+                                                            ('c_mktsegment', 'str')],
+                                         tables=['customer'])
+
+        cs.create_hive_partitions_tables(bc=bc,
+                                         dir_partitions=location,
+                                         fileSchemaType=fileSchemaType,
+                                         createTableType=cs.HiveCreateTableType.WITH_PARTITIONS,
+                                         partitions={
+                                             'l_shipmode': ['AIR', 'FOB', 'MAIL', 'RAIL', 'REG', 'AIR', 'SHIP',
+                                                            'TRUCK'],
+                                             'l_linestatus': ['F', 'O'],
+                                             'l_returnflag': ['A', 'N', 'R']
+                                         },
+                                         partitions_schema=[('l_shipmode', 'str'),
+                                                            ('l_linestatus', 'str'),
+                                                            ('l_returnflag', 'str')],
+                                         tables=['lineitem'])
+
+        cs.create_hive_partitions_tables(bc=bc,
+                                         dir_partitions=location,
+                                         fileSchemaType=fileSchemaType,
+                                         createTableType=cs.HiveCreateTableType.WITH_PARTITIONS,
+                                         partitions={
+                                             'n_regionkey': [0, 1, 2, 3, 4]},
+                                         partitions_schema=[('n_regionkey', 'int32')],
+                                         tables=['nation'])
+
+        cs.create_hive_partitions_tables(bc=bc,
+                                         dir_partitions=location,
+                                         fileSchemaType=fileSchemaType,
+                                         createTableType=cs.HiveCreateTableType.WITH_PARTITIONS,
+                                         partitions={
+                                             'p_container': ['JUMBO BAG', 'JUMBO BOX', 'JUMBO CAN', 'JUMBO CASE',
+                                                             'JUMBO DRUM', 'JUMBO JAR', 'JUMBO PACK', 'JUMBO PKG',
+                                                             'LG BAG', 'LG BOX', 'LG CAN', 'LG CASE', 'LG DRUM',
+                                                             'LG JAR', 'LG PACK', 'LG PKG', 'MED BAG', 'MED BOX',
+                                                             'MED CAN', 'MED CASE', 'MED DRUM', 'MED JAR',
+                                                             'MED PACK',
+                                                             'MED PKG', 'SM BAG', 'SM BOX', 'SM CAN', 'SM CASE',
+                                                             'SM DRUM', 'SM JAR', 'SM PACK', 'SM PKG', 'WRAP BAG',
+                                                             'WRAP BOX', 'WRAP CAN', 'WRAP CASE', 'WRAP DRUM',
+                                                             'WRAP JAR', 'WRAP PACK', 'WRAP PKG']},
+                                         partitions_schema=[('p_container', 'str')],
+                                         tables=['part'])
+
+        cs.create_hive_partitions_tables(bc=bc,
+                                         dir_partitions=location,
+                                         fileSchemaType=fileSchemaType,
+                                         createTableType=cs.HiveCreateTableType.WITH_PARTITIONS,
+                                         partitions={
+                                             's_nationkey': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+                                                             16, 17, 18, 19, 20, 21, 22, 23, 24]},
+                                         partitions_schema=[('s_nationkey', 'int32')],
+                                         tables=['supplier'])
 
         # Run Query ------------------------------------------------------
         # Parameter to indicate if its necessary to order
@@ -570,8 +627,7 @@ def executionTestWithSomePartitions(dask_client, spark, dir_data_file, bc, nRals
         print("==============================")
 
         queryId = "TEST_01"
-        query = "select min(o_orderdate), max(o_orderdate) from orders where o_custkey between 10 and 20"
-        query_spark = "select min(o_orderdate), max(o_orderdate) from orders where o_custkey between 10 and 20"
+        query = "select o_totalprice from orders where o_orderstatus = 'F' order by o_orderkey"
         runTest.run_query(
             bc,
             spark,
@@ -583,7 +639,180 @@ def executionTestWithSomePartitions(dask_client, spark, dir_data_file, bc, nRals
             acceptable_difference,
             use_percentage,
             fileSchemaType,
-            query_spark=query_spark,
+            query_spark=query,
+        )
+
+        queryId = "TEST_02"
+        query = """select c_nationkey, c_acctbal + 3 as c_acctbal_new
+                            from customer where c_acctbal > 1000 and c_mktsegment = 'AUTOMOBILE' """
+        runTest.run_query(
+            bc,
+            spark,
+            query,
+            queryId,
+            queryType,
+            worder,
+            "",
+            acceptable_difference,
+            use_percentage,
+            fileSchemaType,
+            query_spark=query,
+        )
+
+        queryId = "TEST_03"
+        query = """ select l.l_orderkey, l.l_linenumber from lineitem as l
+                            inner join orders as o on l.l_orderkey = o.o_orderkey
+                            and l.l_commitdate < o.o_orderdate
+                            and l.l_receiptdate > o.o_orderdate"""
+        runTest.run_query(
+            bc,
+            spark,
+            query,
+            queryId,
+            queryType,
+            worder,
+            "",
+            acceptable_difference,
+            use_percentage,
+            fileSchemaType,
+            query_spark=query,
+        )
+
+        queryId = "TEST_04"
+        query = """ select l_linenumber, l_shipmode, l_returnflag 
+                            from lineitem 
+                            where l_shipmode in ('AIR','FOB','MAIL','RAIL') and l_returnflag in ('A', 'N')
+                            order by l_orderkey"""
+        runTest.run_query(
+            bc,
+            spark,
+            query,
+            queryId,
+            queryType,
+            worder,
+            "",
+            acceptable_difference,
+            use_percentage,
+            fileSchemaType,
+            query_spark=query,
+        )
+
+        # "nation", "part", "supplier"]
+
+        queryId = "TEST_05"
+        query = """select n_regionkey as rkey, n_nationkey from nation
+                            where n_regionkey < 3 and n_nationkey > 5"""
+        runTest.run_query(
+            bc,
+            spark,
+            query,
+            queryId,
+            queryType,
+            worder,
+            "",
+            acceptable_difference,
+            use_percentage,
+            fileSchemaType,
+            query_spark=query,
+        )
+
+        queryId = "TEST_06"
+        query = """select p.p_partkey, p.p_mfgr
+                            from part p
+                            where p.p_type like '%STEEL'"""
+        runTest.run_query(
+            bc,
+            spark,
+            query,
+            queryId,
+            queryType,
+            worder,
+            "",
+            acceptable_difference,
+            use_percentage,
+            fileSchemaType,
+            query_spark=query,
+        )
+
+        queryId = "TEST_07"
+        query = """select p_partkey, p_mfgr, p_container
+                            from part
+                            where p_size = 35 and p_container like 'WRAP%'"""
+        runTest.run_query(
+            bc,
+            spark,
+            query,
+            queryId,
+            queryType,
+            worder,
+            "",
+            acceptable_difference,
+            use_percentage,
+            fileSchemaType,
+            query_spark=query,
+        )
+
+        queryId = "TEST_08"
+        query = """select count(s_suppkey), count(s_nationkey)
+                            from supplier"""
+        runTest.run_query(
+            bc,
+            spark,
+            query,
+            queryId,
+            queryType,
+            worder,
+            "",
+            acceptable_difference,
+            use_percentage,
+            fileSchemaType,
+            query_spark=query,
+        )
+
+        queryId = "TEST_09"
+        query = """select n1.n_nationkey as supp_nation,
+                            n2.n_nationkey as cust_nation,
+                            l.l_extendedprice * l.l_discount
+                            from supplier as s
+                            inner join lineitem as l on s.s_suppkey = l.l_suppkey
+                            inner join orders as o on o.o_orderkey = l.l_orderkey
+                            inner join customer as c on c.c_custkey = o.o_custkey
+                            inner join nation as n1 on s.s_nationkey = n1.n_nationkey
+                            inner join nation as n2 on c.c_nationkey = n2.n_nationkey
+                            where n1.n_nationkey = 1
+                            and n2.n_nationkey = 2
+                            and o.o_orderkey < 20"""
+        runTest.run_query(
+            bc,
+            spark,
+            query,
+            queryId,
+            queryType,
+            worder,
+            "",
+            acceptable_difference,
+            use_percentage,
+            fileSchemaType,
+            query_spark=query,
+        )
+
+        queryId = "TEST_10"
+        query = """ select s_name, s_address, s_nationkey
+                            from supplier
+                            where s_nationkey < 10
+                            order by s_suppkey"""
+        runTest.run_query(
+            bc,
+            spark,
+            query,
+            queryId,
+            queryType,
+            worder,
+            "",
+            acceptable_difference,
+            use_percentage,
+            fileSchemaType,
+            query_spark=query,
         )
 
         if Settings.execution_mode == ExecutionMode.GENERATOR:
