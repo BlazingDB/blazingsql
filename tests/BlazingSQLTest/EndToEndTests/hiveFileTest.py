@@ -32,12 +32,8 @@ def main(dask_client, spark, dir_data_file, bc, nRals):
             print("==============================")
 
             queryId = "TEST_01"
-            query = """select l_shipdate, l_commitdate,
-                        timestampdiff(DAY, l_commitdate, l_shipdate) as diff
-                    from lineitem  limit 20"""
-            query_spark = """select l_shipdate, l_commitdate,
-                    datediff(l_shipdate, l_commitdate) as diff
-                    from lineitem  limit 20"""
+            query = "select min(o_orderdate), max(o_orderdate) from orders where o_custkey between 10 and 20"
+            query_spark = "select min(o_orderdate), max(o_orderdate) from orders where o_custkey between 10 and 20"
             runTest.run_query(
                 bc,
                 spark,
@@ -48,6 +44,7 @@ def main(dask_client, spark, dir_data_file, bc, nRals):
                 "",
                 acceptable_difference,
                 use_percentage,
+                fileSchemaType,
                 query_spark=query_spark,
             )
 
