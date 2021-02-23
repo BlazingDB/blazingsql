@@ -542,10 +542,10 @@ def executionTestWithSomePartitions(dask_client, spark, dir_data_file, bc, nRals
                                          fileSchemaType=fileSchemaType,
                                          createTableType=cs.HiveCreateTableType.WITH_PARTITIONS,
                                          partitions={
-                                             'o_orderpriority': ['1-URGENT', '2-HIGH', '3-MEDIUM',
+                                             'o_orderpriority': ['1-URGENT', '3-MEDIUM',
                                                                  '4-NOT SPECIFIED',
                                                                  '5-LOW'],
-                                             'o_orderstatus': ['F', 'O', 'P']},
+                                             'o_orderstatus': ['F', 'O']},
                                          partitions_schema=[('o_orderpriority', 'str'),
                                                             ('o_orderstatus', 'str')],
                                          tables=['orders'])
@@ -555,9 +555,8 @@ def executionTestWithSomePartitions(dask_client, spark, dir_data_file, bc, nRals
                                          fileSchemaType=fileSchemaType,
                                          createTableType=cs.HiveCreateTableType.WITH_PARTITIONS,
                                          partitions={
-                                             'c_nationkey': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-                                                             16, 17, 18, 19, 20, 21, 22, 23, 24],
-                                             'c_mktsegment': ['AUTOMOBILE', 'BUILDING', 'FURNITURE', 'HOUSEHOLD',
+                                             'c_nationkey': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                                             'c_mktsegment': ['AUTOMOBILE', 'BUILDING', 'HOUSEHOLD',
                                                               'MACHINERY']},
                                          partitions_schema=[('c_nationkey', 'int32'),
                                                             ('c_mktsegment', 'str')],
@@ -568,9 +567,8 @@ def executionTestWithSomePartitions(dask_client, spark, dir_data_file, bc, nRals
                                          fileSchemaType=fileSchemaType,
                                          createTableType=cs.HiveCreateTableType.WITH_PARTITIONS,
                                          partitions={
-                                             'l_shipmode': ['AIR', 'FOB', 'MAIL', 'RAIL', 'REG', 'AIR', 'SHIP',
-                                                            'TRUCK'],
-                                             'l_linestatus': ['F', 'O'],
+                                             'l_shipmode': ['AIR', 'FOB', 'REG', 'AIR', 'SHIP', 'TRUCK'],
+                                             'l_linestatus': ['F'],
                                              'l_returnflag': ['A', 'N', 'R']
                                          },
                                          partitions_schema=[('l_shipmode', 'str'),
@@ -583,7 +581,7 @@ def executionTestWithSomePartitions(dask_client, spark, dir_data_file, bc, nRals
                                          fileSchemaType=fileSchemaType,
                                          createTableType=cs.HiveCreateTableType.WITH_PARTITIONS,
                                          partitions={
-                                             'n_regionkey': [0, 1, 2, 3, 4]},
+                                             'n_regionkey': [2, 3, 4]},
                                          partitions_schema=[('n_regionkey', 'int32')],
                                          tables=['nation'])
 
@@ -592,9 +590,7 @@ def executionTestWithSomePartitions(dask_client, spark, dir_data_file, bc, nRals
                                          fileSchemaType=fileSchemaType,
                                          createTableType=cs.HiveCreateTableType.WITH_PARTITIONS,
                                          partitions={
-                                             'p_container': ['JUMBO BAG', 'JUMBO BOX', 'JUMBO CAN', 'JUMBO CASE',
-                                                             'JUMBO DRUM', 'JUMBO JAR', 'JUMBO PACK', 'JUMBO PKG',
-                                                             'LG BAG', 'LG BOX', 'LG CAN', 'LG CASE', 'LG DRUM',
+                                             'p_container': ['LG BAG', 'LG BOX', 'LG CAN', 'LG CASE', 'LG DRUM',
                                                              'LG JAR', 'LG PACK', 'LG PKG', 'MED BAG', 'MED BOX',
                                                              'MED CAN', 'MED CASE', 'MED DRUM', 'MED JAR',
                                                              'MED PACK',
@@ -610,8 +606,8 @@ def executionTestWithSomePartitions(dask_client, spark, dir_data_file, bc, nRals
                                          fileSchemaType=fileSchemaType,
                                          createTableType=cs.HiveCreateTableType.WITH_PARTITIONS,
                                          partitions={
-                                             's_nationkey': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-                                                             16, 17, 18, 19, 20, 21, 22, 23, 24]},
+                                             's_nationkey': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 16, 17, 18, 19, 20, 21, 22,
+                                                             23, 24]},
                                          partitions_schema=[('s_nationkey', 'int32')],
                                          tables=['supplier'])
 
@@ -626,8 +622,12 @@ def executionTestWithSomePartitions(dask_client, spark, dir_data_file, bc, nRals
         print(queryType)
         print("==============================")
 
-        queryId = "TEST_01"
+        queryId = "TEST_001"
         query = "select o_totalprice from orders where o_orderstatus = 'F' order by o_orderkey"
+        query_spark = """   select o_totalprice 
+                            from orders 
+                            where o_orderstatus = 'F' and o_orderpriority <> '2-HIGH' and o_orderstatus <> 'P' 
+                            order by o_orderkey"""
         runTest.run_query(
             bc,
             spark,
@@ -639,31 +639,22 @@ def executionTestWithSomePartitions(dask_client, spark, dir_data_file, bc, nRals
             acceptable_difference,
             use_percentage,
             fileSchemaType,
-            query_spark=query,
+            query_spark=query_spark,
         )
 
-        queryId = "TEST_02"
-        query = """select c_nationkey, c_acctbal + 3 as c_acctbal_new
-                            from customer where c_acctbal > 1000 and c_mktsegment = 'AUTOMOBILE' """
-        runTest.run_query(
-            bc,
-            spark,
-            query,
-            queryId,
-            queryType,
-            worder,
-            "",
-            acceptable_difference,
-            use_percentage,
-            fileSchemaType,
-            query_spark=query,
-        )
-
-        queryId = "TEST_03"
+        queryId = "TEST_002"
         query = """ select l.l_orderkey, l.l_linenumber from lineitem as l
                             inner join orders as o on l.l_orderkey = o.o_orderkey
                             and l.l_commitdate < o.o_orderdate
                             and l.l_receiptdate > o.o_orderdate"""
+        query_spark = """   select l.l_orderkey, l.l_linenumber from lineitem as l
+                            inner join orders as o on l.l_orderkey = o.o_orderkey
+                            and l.l_commitdate < o.o_orderdate
+                            and l.l_receiptdate > o.o_orderdate
+                            where l.l_linestatus not in ('O')
+                            and l.l_shipmode not in ('MAIL', 'RAIL')
+                            and o.o_orderpriority <> '2-HIGH'
+                            and o.o_orderstatus <> 'P'"""
         runTest.run_query(
             bc,
             spark,
@@ -675,13 +666,18 @@ def executionTestWithSomePartitions(dask_client, spark, dir_data_file, bc, nRals
             acceptable_difference,
             use_percentage,
             fileSchemaType,
-            query_spark=query,
+            query_spark=query_spark,
         )
 
-        queryId = "TEST_04"
-        query = """ select l_linenumber, l_shipmode, l_returnflag 
-                            from lineitem 
+        queryId = "TEST_003"
+        query = """ select l_linenumber, l_shipmode, l_returnflag
+                            from lineitem
                             where l_shipmode in ('AIR','FOB','MAIL','RAIL') and l_returnflag in ('A', 'N')
+                            order by l_orderkey"""
+        query_spark = """   select l_linenumber, l_shipmode, l_returnflag
+                            from lineitem
+                            where l_shipmode in ('AIR','FOB') and l_returnflag in ('A', 'N')
+                            and l_linestatus not in ('O')
                             order by l_orderkey"""
         runTest.run_query(
             bc,
@@ -694,14 +690,15 @@ def executionTestWithSomePartitions(dask_client, spark, dir_data_file, bc, nRals
             acceptable_difference,
             use_percentage,
             fileSchemaType,
-            query_spark=query,
+            query_spark=query_spark,
         )
 
-        # "nation", "part", "supplier"]
-
-        queryId = "TEST_05"
+        queryId = "TEST_004"
         query = """select n_regionkey as rkey, n_nationkey from nation
                             where n_regionkey < 3 and n_nationkey > 5"""
+        query_spark = """select n_regionkey as rkey, n_nationkey from nation
+                            where n_regionkey < 3 and n_nationkey > 5
+                            and n_regionkey not in (0, 1)"""
         runTest.run_query(
             bc,
             spark,
@@ -713,13 +710,19 @@ def executionTestWithSomePartitions(dask_client, spark, dir_data_file, bc, nRals
             acceptable_difference,
             use_percentage,
             fileSchemaType,
-            query_spark=query,
+            query_spark=query_spark,
         )
 
-        queryId = "TEST_06"
+        queryId = "TEST_005"
         query = """select p.p_partkey, p.p_mfgr
                             from part p
                             where p.p_type like '%STEEL'"""
+        query_spark = """select p.p_partkey, p.p_mfgr
+                            from part p
+                            where p.p_type like '%STEEL'
+                            and p_container not in ('JUMBO BAG', 'JUMBO BOX', 'JUMBO CAN', 'JUMBO CASE',
+                                                    'JUMBO DRUM', 'JUMBO JAR', 'JUMBO PACK', 'JUMBO PKG')"""
+
         runTest.run_query(
             bc,
             spark,
@@ -731,11 +734,14 @@ def executionTestWithSomePartitions(dask_client, spark, dir_data_file, bc, nRals
             acceptable_difference,
             use_percentage,
             fileSchemaType,
-            query_spark=query,
+            query_spark=query_spark,
         )
 
-        queryId = "TEST_07"
+        queryId = "TEST_006"
         query = """select p_partkey, p_mfgr, p_container
+                            from part
+                            where p_size = 35 and p_container like 'WRAP%'"""
+        query_spark = """select p_partkey, p_mfgr, p_container
                             from part
                             where p_size = 35 and p_container like 'WRAP%'"""
         runTest.run_query(
@@ -749,12 +755,15 @@ def executionTestWithSomePartitions(dask_client, spark, dir_data_file, bc, nRals
             acceptable_difference,
             use_percentage,
             fileSchemaType,
-            query_spark=query,
+            query_spark=query_spark,
         )
 
-        queryId = "TEST_08"
-        query = """select count(s_suppkey), count(s_nationkey)
-                            from supplier"""
+        queryId = "TEST_007"
+        query = """ select count(s_suppkey), count(s_nationkey)
+                    from supplier"""
+        query_spark = """   select count(s_suppkey), count(s_nationkey)
+                            from supplier
+                            where s_nationkey not in (10, 11, 12, 13, 14, 15)"""
         runTest.run_query(
             bc,
             spark,
@@ -766,10 +775,10 @@ def executionTestWithSomePartitions(dask_client, spark, dir_data_file, bc, nRals
             acceptable_difference,
             use_percentage,
             fileSchemaType,
-            query_spark=query,
+            query_spark=query_spark,
         )
 
-        queryId = "TEST_09"
+        queryId = "TEST_008"
         query = """select n1.n_nationkey as supp_nation,
                             n2.n_nationkey as cust_nation,
                             l.l_extendedprice * l.l_discount
@@ -782,6 +791,26 @@ def executionTestWithSomePartitions(dask_client, spark, dir_data_file, bc, nRals
                             where n1.n_nationkey = 1
                             and n2.n_nationkey = 2
                             and o.o_orderkey < 20"""
+        query_spark = """select n1.n_nationkey as supp_nation,
+                            n2.n_nationkey as cust_nation,
+                            l.l_extendedprice * l.l_discount
+                            from supplier as s
+                            inner join lineitem as l on s.s_suppkey = l.l_suppkey
+                            inner join orders as o on o.o_orderkey = l.l_orderkey
+                            inner join customer as c on c.c_custkey = o.o_custkey
+                            inner join nation as n1 on s.s_nationkey = n1.n_nationkey
+                            inner join nation as n2 on c.c_nationkey = n2.n_nationkey
+                            where n1.n_nationkey = 1
+                            and n2.n_nationkey = 2
+                            and o.o_orderkey < 20
+                            and o.o_orderstatus = 'F' and o.o_orderpriority <> '2-HIGH' and o.o_orderstatus <> 'P'
+                            and c.c_nationkey > 10 and c.c_mktsegment <> 'FURNITURE'
+                            and l.l_linestatus not in ('O') and l.l_shipmode not in ('MAIL', 'RAIL')
+                            and n1.n_regionkey not in (0, 1) and n2.n_regionkey not in (0, 1)
+                            and s_nationkey not in (10, 11, 12, 13, 14, 15)
+
+
+                            """
         runTest.run_query(
             bc,
             spark,
@@ -793,11 +822,15 @@ def executionTestWithSomePartitions(dask_client, spark, dir_data_file, bc, nRals
             acceptable_difference,
             use_percentage,
             fileSchemaType,
-            query_spark=query,
+            query_spark=query_spark,
         )
 
-        queryId = "TEST_10"
+        queryId = "TEST_009"
         query = """ select s_name, s_address, s_nationkey
+                            from supplier
+                            where s_nationkey < 10
+                            order by s_suppkey"""
+        query_spark = """ select s_name, s_address, s_nationkey
                             from supplier
                             where s_nationkey < 10
                             order by s_suppkey"""
@@ -812,7 +845,7 @@ def executionTestWithSomePartitions(dask_client, spark, dir_data_file, bc, nRals
             acceptable_difference,
             use_percentage,
             fileSchemaType,
-            query_spark=query,
+            query_spark=query_spark,
         )
 
         if Settings.execution_mode == ExecutionMode.GENERATOR:
@@ -824,7 +857,7 @@ def main(dask_client, spark, dir_data_file, bc, nRals):
 
     executionTestAuto(dask_client, spark, dir_data_file, bc, nRals)
     executionTestWithPartitions(dask_client, spark, dir_data_file, bc, nRals)
-    # executionTestWithSomePartitions(dask_client, spark, dir_data_file, bc, nRals)
+    executionTestWithSomePartitions(dask_client, spark, dir_data_file, bc, nRals)
 
     end_mem = gpuMemory.capture_gpu_memory_usage()
 
