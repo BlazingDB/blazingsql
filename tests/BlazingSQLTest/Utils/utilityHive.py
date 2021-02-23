@@ -101,6 +101,9 @@ def _save_partition_files(bc, table_name, data_partition_array_dict, output, num
 			result = bc.sql(query)
 			total_registers = result.values.tolist()[0][0]
 
+			if total_registers == 0:
+				continue
+
 			registers_per_parquet = math.ceil(total_registers / num_files)
 
 			index = 0
