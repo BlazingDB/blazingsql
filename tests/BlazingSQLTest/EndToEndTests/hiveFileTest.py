@@ -594,7 +594,7 @@ def main(dask_client, spark, dir_data_file, bc, nRals):
     start_mem = gpuMemory.capture_gpu_memory_usage()
 
     executionTestAuto(dask_client, spark, dir_data_file, bc, nRals)
-    # executionTestWithPartitions(dask_client, spark, dir_data_file, bc, nRals)
+    executionTestWithPartitions(dask_client, spark, dir_data_file, bc, nRals)
     # executionTestWithSomePartitions(dask_client, spark, dir_data_file, bc, nRals)
 
     end_mem = gpuMemory.capture_gpu_memory_usage()
