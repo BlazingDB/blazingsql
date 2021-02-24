@@ -1,4 +1,4 @@
-# BlazingSQL 0.18.0 (Date TBS)
+# BlazingSQL 0.18.0 (February 24, 2021)
 
 ## New Features
 - #1139 Adding centralized task executor for kernels
