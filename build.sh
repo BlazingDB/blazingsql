@@ -18,7 +18,7 @@ ARGS=$*
 # script, and that this script resides in the repo dir!
 REPODIR=$(cd $(dirname $0); pwd)
 
-VALIDARGS="clean update thirdparty io comms libengine engine pyblazing algebra disable-aws-s3 disable-google-gs -t -v -g -n -h"
+VALIDARGS="clean update thirdparty io libengine engine pyblazing algebra disable-aws-s3 disable-google-gs -t -v -g -n -h"
 HELP="$0 [-v] [-g] [-n] [-h] [-t]
    clean                - remove all existing build artifacts and configuration (start
                           over) Use 'clean thirdparty' to delete thirdparty folder
@@ -58,7 +58,7 @@ TESTS="ON"
 #  FIXME: if INSTALL_PREFIX is not set, check PREFIX, then check
 #         CONDA_PREFIX, but there is no fallback from there!
 INSTALL_PREFIX=${INSTALL_PREFIX:=${PREFIX:=${CONDA_PREFIX}}}
-PARALLEL_LEVEL=${PARALLEL_LEVEL:=""}
+PARALLEL_LEVEL=${PARALLEL_LEVEL:="4"}
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$INSTALL_PREFIX/lib:$INSTALL_PREFIX/lib64
 export CXXFLAGS="-L$INSTALL_PREFIX/lib"
 export CFLAGS=$CXXFLAGS
@@ -160,7 +160,7 @@ fi
 ################################################################################
 
 if hasArg update; then
-    conda install --yes -c rapidsai-nightly -c nvidia -c conda-forge -c defaults librmm=$MINOR_VERSION rmm=$MINOR_VERSION libcudf=$MINOR_VERSION cudf=$MINOR_VERSION dask-cudf=$MINOR_VERSION dask-cuda=$MINOR_VERSION
+    conda install --yes -c rapidsai-nightly -c nvidia -c conda-forge -c defaults librmm=$MINOR_VERSION rmm=$MINOR_VERSION libcudf=$MINOR_VERSION cudf=$MINOR_VERSION dask-cudf=$MINOR_VERSION dask-cuda=$MINOR_VERSION ucx-py=$MINOR_VERSION ucx-proc=*=gpu
 fi
 
 ################################################################################
@@ -223,16 +223,16 @@ if buildAll || hasArg libengine; then
 
     echo "Building libengine: make step"
     if [[ ${TESTS} == "ON" ]]; then
-        echo "make -j4 all"
-        make -j4 all
+        echo "make -j${PARALLEL_LEVEL} all"
+        make -j${PARALLEL_LEVEL} all
     else
-        echo "make -j4 blazingsql-engine VERBOSE=${VERBOSE}"
-        make -j4 blazingsql-engine VERBOSE=${VERBOSE}
+        echo "make -j${PARALLEL_LEVEL} blazingsql-engine VERBOSE=${VERBOSE}"
+        make -j${PARALLEL_LEVEL} blazingsql-engine VERBOSE=${VERBOSE}
     fi
 
     if [[ ${INSTALL_TARGET} != "" ]]; then
-        echo "make -j4 install VERBOSE=${VERBOSE}"
-        make -j4 install VERBOSE=${VERBOSE}
+        echo "make -j${PARALLEL_LEVEL} install VERBOSE=${VERBOSE}"
+        make -j${PARALLEL_LEVEL} install VERBOSE=${VERBOSE}
         cp libblazingsql-engine.so ${INSTALL_PREFIX}/lib/libblazingsql-engine.so
     fi
 fi

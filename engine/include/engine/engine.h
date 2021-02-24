@@ -9,7 +9,7 @@
 #include <execution_graph/logic_controllers/taskflow/graph.h>
 #include "../../src/error.hpp"
 
-std::shared_ptr<ral::cache::graph> runGenerateGraph(int32_t masterIndex,
+std::shared_ptr<ral::cache::graph> runGenerateGraph(uint32_t masterIndex,
 	std::vector<std::string> worker_ids,
 	std::vector<std::string> tableNames,
 	std::vector<std::string> tableScans,
@@ -20,12 +20,12 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(int32_t masterIndex,
 	std::vector<int> fileTypes,
 	int32_t ctxToken,
 	std::string query,
-	uint64_t accessToken,
 	std::vector<std::vector<std::map<std::string, std::string>>> uri_values,
 	std::map<std::string, std::string> config_options,
 	std::string sql);
 
-std::unique_ptr<PartitionedResultSet> runExecuteGraph(std::shared_ptr<ral::cache::graph> graph, int ctx_token);
+void startExecuteGraph(std::shared_ptr<ral::cache::graph> graph, int ctx_token);
+std::unique_ptr<PartitionedResultSet> getExecuteGraphResult(std::shared_ptr<ral::cache::graph> graph, int ctx_token);
 
 TableScanInfo getTableScanInfo(std::string logicalPlan);
 
@@ -46,7 +46,6 @@ std::pair<std::unique_ptr<PartitionedResultSet>, error_code_t> runQuery_C(int32_
 	std::vector<int> fileTypes,
 	int32_t ctxToken,
 	std::string query,
-	uint64_t accessToken,
 	std::vector<std::vector<std::map<std::string, std::string>>> uri_values,
 	std::map<std::string, std::string> config_options);
 

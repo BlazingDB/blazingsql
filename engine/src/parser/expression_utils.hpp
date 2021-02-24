@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <cudf/types.hpp>
+#include <cudf/aggregation.hpp>
 
 enum class operator_type {
 	BLZ_INVALID_OP,
@@ -46,31 +47,33 @@ enum class operator_type {
 	BLZ_CHAR_LENGTH,
 	BLZ_STR_LOWER,
 	BLZ_STR_UPPER,
+	BLZ_STR_INITCAP,
 	BLZ_STR_REVERSE,
 
 	// Binary operators
-  BLZ_ADD,            ///< operator +
-  BLZ_SUB,            ///< operator -
-  BLZ_MUL,            ///< operator *
-  BLZ_DIV,            ///< operator / using common type of lhs and rhs
-  BLZ_MOD,            ///< operator %
-  BLZ_POW,            ///< lhs ^ rhs
-  BLZ_ROUND,
-  BLZ_EQUAL,          ///< operator ==
-  BLZ_NOT_EQUAL,      ///< operator !=
-  BLZ_LESS,           ///< operator <
-  BLZ_GREATER,        ///< operator >
-  BLZ_LESS_EQUAL,     ///< operator <=
-  BLZ_GREATER_EQUAL,  ///< operator >=
-  BLZ_BITWISE_AND,    ///< operator &
-  BLZ_BITWISE_OR,     ///< operator |
-  BLZ_BITWISE_XOR,    ///< operator ^
-  BLZ_LOGICAL_AND,    ///< operator &&
-  BLZ_LOGICAL_OR,     ///< operator ||
+	BLZ_ADD,            ///< operator +
+	BLZ_SUB,            ///< operator -
+	BLZ_MUL,            ///< operator *
+	BLZ_DIV,            ///< operator / using common type of lhs and rhs
+	BLZ_MOD,            ///< operator %
+	BLZ_POW,            ///< lhs ^ rhs
+	BLZ_ROUND,
+	BLZ_EQUAL,          ///< operator ==
+	BLZ_NOT_EQUAL,      ///< operator !=
+	BLZ_LESS,           ///< operator <
+	BLZ_GREATER,        ///< operator >
+	BLZ_LESS_EQUAL,     ///< operator <=
+	BLZ_GREATER_EQUAL,  ///< operator >=
+	BLZ_BITWISE_AND,    ///< operator &
+	BLZ_BITWISE_OR,     ///< operator |
+	BLZ_BITWISE_XOR,    ///< operator ^
+	BLZ_LOGICAL_AND,    ///< operator &&
+	BLZ_LOGICAL_OR,     ///< operator ||
 	BLZ_FIRST_NON_MAGIC,
 	BLZ_MAGIC_IF_NOT,
 	BLZ_STR_LIKE,
 	BLZ_STR_SUBSTRING,
+	BLZ_STR_REGEXP_REPLACE,
 	BLZ_STR_CONCAT,
 	BLZ_STR_REPLACE,
 	BLZ_STR_LEFT,
@@ -126,6 +129,8 @@ const std::string LOGICAL_PARTITION_TEXT = "LogicalPartition";
 const std::string LOGICAL_SORT_AND_SAMPLE_TEXT = "Logical_SortAndSample";
 const std::string LOGICAL_SINGLE_NODE_PARTITION_TEXT = "LogicalSingleNodePartition";
 const std::string LOGICAL_FILTER_TEXT = "LogicalFilter";
+const std::string LOGICAL_WINDOW_TEXT = "LogicalWindow";
+const std::string LOGICAL_COMPUTE_WINDOW_TEXT = "LogicalComputeWindow";
 const std::string ASCENDING_ORDER_SORT_TEXT = "ASC";
 const std::string DESCENDING_ORDER_SORT_TEXT = "DESC";
 
@@ -153,6 +158,25 @@ bool is_merge_aggregate(std::string query_part);
 bool is_aggregate_merge(std::string query_part); // to be deprecated
 bool is_aggregate_partition(std::string query_part); // to be deprecated
 bool is_aggregate_and_sample(std::string query_part); // to be deprecated
+bool is_window(std::string query_part);
+bool is_window_compute(std::string query_part);
+bool contains_window_expression(std::string query_part);
+bool window_expression_contains_partition(std::string query_part);
+bool window_expression_contains_multiple_windows(std::string query_part);
+
+std::unique_ptr<cudf::aggregation> get_window_aggregate(const std::string & input);
+
+// input: window#0=[window(partition {0, 2} aggs [MIN($7)])]
+// output: a vector, [7]
+std::vector<int> get_columns_to_apply_window_function(const std::string & query_part);
+
+// input: window#0=[window(partition {0, 2} aggs [MIN($7)])]
+// output: a vector, ["MIN"]
+std::vector<std::string> get_window_function_agg(const std::string & query_part);
+
+// input: window#0=[window(partition {2} order by [1] rows between 4 PRECEDING and 3 FOLLOWING aggs [FIRST_VALUE($0)])]
+// output: <4, 3>
+std::pair<int, int> get_bounds_from_window_expression(const std::string & query_part);
 
 // Returns the index from table_scan if exists
 size_t get_table_index(std::vector<std::string> table_scans, std::string table_scan);

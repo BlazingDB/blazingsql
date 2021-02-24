@@ -22,13 +22,14 @@ def checkSocket(socketNum):
     try:
         s.bind(("127.0.0.1", socketNum))
         socket_free = True
+        s.close()
     except socket.error as e:
         if e.errno == errno.EADDRINUSE:
             socket_free = False
         else:
             # something else raised the socket.error exception
             print("ERROR: Something happened when checking socket " + str(socketNum))
-    s.close()
+
     return socket_free
 
 

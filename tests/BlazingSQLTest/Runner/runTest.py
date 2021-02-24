@@ -309,10 +309,12 @@ def get_codTest(test_name):
         "Union": "UNION",
         "Limit": "LIMIT",
         "Where clause": "WHERE",
+        "Window Function": "WINDOWFUNCTION",
         "Wild Card": "WILDCARD",
         "Simple String": "SSTRING",
         "String case": "STRINGCASE",
-        "Message Validation": "MESSAGEVAL"
+        "Message Validation": "MESSAGEVAL",
+        "Json tests": "JSON",
     }
 
     return switcher.get(test_name)
@@ -1410,7 +1412,7 @@ def run_query(
     total_time = 0
 
     nested_query = kwargs.get("nested_query", False)
-    
+
     error_message = ""
 
     if not nested_query:

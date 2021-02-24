@@ -54,6 +54,7 @@ bool is_unary_operator(operator_type op) {
 	case operator_type::BLZ_CHAR_LENGTH:
 	case operator_type::BLZ_STR_LOWER:
 	case operator_type::BLZ_STR_UPPER:
+	case operator_type::BLZ_STR_INITCAP:
 	case operator_type::BLZ_STR_REVERSE:
 		return true;
 	default:
@@ -64,24 +65,24 @@ bool is_unary_operator(operator_type op) {
 bool is_binary_operator(operator_type op) {
 	switch (op)
 	{
-  case operator_type::BLZ_ADD:
-  case operator_type::BLZ_SUB:
-  case operator_type::BLZ_MUL:
-  case operator_type::BLZ_DIV:
-  case operator_type::BLZ_MOD:
-  case operator_type::BLZ_POW:
-  case operator_type::BLZ_ROUND:
-  case operator_type::BLZ_EQUAL:
-  case operator_type::BLZ_NOT_EQUAL:
-  case operator_type::BLZ_LESS:
-  case operator_type::BLZ_GREATER:
-  case operator_type::BLZ_LESS_EQUAL:
-  case operator_type::BLZ_GREATER_EQUAL:
-  case operator_type::BLZ_BITWISE_AND:
-  case operator_type::BLZ_BITWISE_OR:
-  case operator_type::BLZ_BITWISE_XOR:
-  case operator_type::BLZ_LOGICAL_AND:
-  case operator_type::BLZ_LOGICAL_OR:
+	case operator_type::BLZ_ADD:
+	case operator_type::BLZ_SUB:
+	case operator_type::BLZ_MUL:
+	case operator_type::BLZ_DIV:
+	case operator_type::BLZ_MOD:
+	case operator_type::BLZ_POW:
+	case operator_type::BLZ_ROUND:
+	case operator_type::BLZ_EQUAL:
+	case operator_type::BLZ_NOT_EQUAL:
+	case operator_type::BLZ_LESS:
+	case operator_type::BLZ_GREATER:
+	case operator_type::BLZ_LESS_EQUAL:
+	case operator_type::BLZ_GREATER_EQUAL:
+	case operator_type::BLZ_BITWISE_AND:
+	case operator_type::BLZ_BITWISE_OR:
+	case operator_type::BLZ_BITWISE_XOR:
+	case operator_type::BLZ_LOGICAL_AND:
+	case operator_type::BLZ_LOGICAL_OR:
 	case operator_type::BLZ_FIRST_NON_MAGIC:
 	case operator_type::BLZ_MAGIC_IF_NOT:
 	case operator_type::BLZ_STR_LIKE:
@@ -94,6 +95,7 @@ bool is_binary_operator(operator_type op) {
 	case operator_type::BLZ_TO_DATE:
 	case operator_type::BLZ_TO_TIMESTAMP:
 	case operator_type::BLZ_STR_TRIM:
+	case operator_type::BLZ_STR_REGEXP_REPLACE:
 		assert(false);
 		// Ternary operator. Should not reach here
 		// Should be evaluated in place (inside function_evaluator_transformer) and removed from the tree
@@ -135,6 +137,7 @@ cudf::type_id get_output_type(operator_type op, cudf::type_id input_left_type) {
 		return cudf::type_id::TIMESTAMP_NANOSECONDS;
 	case operator_type::BLZ_STR_LOWER:
 	case operator_type::BLZ_STR_UPPER:
+	case operator_type::BLZ_STR_INITCAP:
 	case operator_type::BLZ_STR_REVERSE:
 	case operator_type::BLZ_STR_LEFT:
 	case operator_type::BLZ_STR_RIGHT:
@@ -207,12 +210,12 @@ cudf::type_id get_output_type(operator_type op, cudf::type_id input_left_type, c
 							? input_left_type
 							: input_right_type;
 		}
-  case operator_type::BLZ_EQUAL:
-  case operator_type::BLZ_NOT_EQUAL:
-  case operator_type::BLZ_LESS:
-  case operator_type::BLZ_GREATER:
-  case operator_type::BLZ_LESS_EQUAL:
-  case operator_type::BLZ_GREATER_EQUAL:
+	case operator_type::BLZ_EQUAL:
+	case operator_type::BLZ_NOT_EQUAL:
+	case operator_type::BLZ_LESS:
+	case operator_type::BLZ_GREATER:
+	case operator_type::BLZ_LESS_EQUAL:
+	case operator_type::BLZ_GREATER_EQUAL:
 	case operator_type::BLZ_LOGICAL_AND:
 	case operator_type::BLZ_LOGICAL_OR:
 		return cudf::type_id::BOOL8;
@@ -231,6 +234,7 @@ cudf::type_id get_output_type(operator_type op, cudf::type_id input_left_type, c
 		return cudf::type_id::BOOL8;
 	case operator_type::BLZ_STR_SUBSTRING:
 	case operator_type::BLZ_STR_REPLACE:
+	case operator_type::BLZ_STR_REGEXP_REPLACE:
 	case operator_type::BLZ_STR_CONCAT:
 	case operator_type::BLZ_STR_TRIM:
 		return cudf::type_id::STRING;
@@ -285,6 +289,7 @@ operator_type map_to_operator_type(const std::string & operator_token) {
 		{"CHAR_LENGTH", operator_type::BLZ_CHAR_LENGTH},
 		{"LOWER", operator_type::BLZ_STR_LOWER},
 		{"UPPER", operator_type::BLZ_STR_UPPER},
+		{"INITCAP", operator_type::BLZ_STR_INITCAP},
 		{"REVERSE", operator_type::BLZ_STR_REVERSE},
 
 		// Binary operators
@@ -307,6 +312,7 @@ operator_type map_to_operator_type(const std::string & operator_token) {
 		{"MAGIC_IF_NOT", operator_type::BLZ_MAGIC_IF_NOT},
 		{"LIKE", operator_type::BLZ_STR_LIKE},
 		{"SUBSTRING", operator_type::BLZ_STR_SUBSTRING},
+		{"REGEXP_REPLACE", operator_type::BLZ_STR_REGEXP_REPLACE},
 		{"REPLACE", operator_type::BLZ_STR_REPLACE},
 		{"TO_DATE", operator_type::BLZ_TO_DATE},
 		{"TO_TIMESTAMP", operator_type::BLZ_TO_TIMESTAMP},
@@ -397,6 +403,68 @@ std::vector<std::string> fix_column_aliases(const std::vector<std::string> & col
 	return col_names;
 }
 
+// input: LogicalWindow(window#0=[window(partition {2} aggs [COUNT($0), $SUM0($0)])])
+// output: a vector [0, 0]
+std::vector<int> get_columns_to_apply_window_function(const std::string & query_part) {
+	std::vector<int> column_index;
+	std::string expression_name = "aggs ";
+
+	if (query_part.find(expression_name) == query_part.npos) {
+		return column_index;
+	}
+
+	std::size_t start_position = query_part.find(expression_name) + expression_name.size();
+    std::size_t end_position = query_part.find("]", start_position);
+
+	// COUNT($0), $SUM0($0)
+	std::string reduced_query_part = query_part.substr(start_position + 1, end_position - start_position - 1);
+	std::vector<std::string> column_agg_string = StringUtil::split(reduced_query_part, ",");
+
+	if (column_agg_string.size() == 1) {
+		// ROW_NUMER()  does not have indice, so we add the first indice
+		if (reduced_query_part.find("(") + 1 == reduced_query_part.find(")")) {
+			column_index.push_back(0);
+			return column_index;
+		}
+	}
+
+	for (std::size_t agg_i; agg_i < column_agg_string.size(); ++agg_i) {
+		std::size_t dolar_pos = reduced_query_part.find("$");
+		std::size_t closed_parenth_pos = reduced_query_part.find(")");
+
+		std::string indice = reduced_query_part.substr(dolar_pos + 1, closed_parenth_pos - dolar_pos - 1);
+		column_index.push_back(std::stoi(indice));
+	}
+
+	return column_index;
+}
+
+// input: LogicalWindow(window#0=[window(partition {2} aggs [COUNT($0), $SUM0($0)])])
+// output: a vector ["COUNT", "$SUM0"]
+std::vector<std::string> get_window_function_agg(const std::string & query_part) {
+	std::vector<std::string> aggregations;
+	std::string expression_name = "aggs ";
+
+	if (query_part.find(expression_name) == query_part.npos) {
+		return aggregations;
+	}
+
+	std::size_t start_position = query_part.find(expression_name) + expression_name.size();
+    std::size_t end_position = query_part.find("]", start_position);
+
+	// COUNT($0), $SUM0($0)
+	std::string reduced_query_part = query_part.substr(start_position + 1, end_position - start_position - 1);
+	aggregations = StringUtil::split(reduced_query_part, ",");
+
+	for (std::size_t agg_i; agg_i < aggregations.size(); ++agg_i) {
+		std::size_t open_parenthesis = aggregations[agg_i].find('(');
+		aggregations[agg_i] = aggregations[agg_i].substr(0, open_parenthesis);
+		aggregations[agg_i] = StringUtil::trim(aggregations[agg_i]);
+	}
+	return aggregations;
+}
+
+
 std::string get_named_expression(const std::string & query_part, const std::string & expression_name) {
 	if(query_part.find(expression_name + "=[") == query_part.npos) {
 		return "";  // expression not found
@@ -415,7 +483,7 @@ std::vector<int> get_projections(const std::string & query_part) {
 		get_expressions_from_expression_list(project_string, true);
 
 	std::vector<int> projections;
-	for(int i = 0; i < project_string_split.size(); i++) {
+	for(size_t i = 0; i < project_string_split.size(); i++) {
 		projections.push_back(std::stoi(project_string_split[i]));
 	}
 
@@ -481,6 +549,16 @@ bool is_distribute_aggregate(std::string query_part) { return (query_part.find(L
 
 bool is_merge_aggregate(std::string query_part) { return (query_part.find(LOGICAL_MERGE_AGGREGATE_TEXT) != std::string::npos); }
 
+bool is_window(std::string query_part) { return (query_part.find(LOGICAL_WINDOW_TEXT) != std::string::npos); }
+
+bool is_window_compute(std::string query_part) { return (query_part.find(LOGICAL_COMPUTE_WINDOW_TEXT) != std::string::npos); }
+
+bool contains_window_expression(std::string query_part) { return (query_part.find("window") != std::string::npos); }
+
+bool window_expression_contains_partition(std::string query_part) { return (query_part.find("partition") != std::string::npos); }
+
+bool window_expression_contains_multiple_windows(std::string query_part) { return (query_part.find("window#1") != std::string::npos); }
+
 // Returns the index from table_scan if exists
 size_t get_table_index(std::vector<std::string> table_scans, std::string table_scan) {
 
@@ -499,7 +577,7 @@ std::string extract_table_name(std::string query_part) {
 	std::string table_name_text = query_part.substr(start, end - start);
 	std::vector<std::string> table_parts = StringUtil::split(table_name_text, ',');
 	std::string table_name = "";
-	for(int i = 0; i < table_parts.size(); i++) {
+	for(size_t i = 0; i < table_parts.size(); i++) {
 		if(table_parts[i][0] == ' ') {
 			table_parts[i] = table_parts[i].substr(1, table_parts[i].size() - 1);
 		}
@@ -519,8 +597,8 @@ std::vector<std::string> get_expressions_from_expression_list(std::string & comb
 
 	std::vector<std::string> expressions;
 
-	int curInd = 0;
-	int curStart = 0;
+    size_t curInd = 0;
+    size_t curStart = 0;
 	bool inQuotes = false;
 	int parenthesisDepth = 0;
 	int sqBraketsDepth = 0;
@@ -589,7 +667,7 @@ std::string replace_calcite_regex(const std::string & expression) {
 	ret = std::regex_replace(ret, decimal_re, "DOUBLE");
 
 	static const std::regex char_re{
-		R""(CHAR\(\d+\))"", std::regex_constants::icase};
+		R""(:CHAR\(\d+\))"", std::regex_constants::icase};
 	ret = std::regex_replace(ret, char_re, "VARCHAR");
 
 

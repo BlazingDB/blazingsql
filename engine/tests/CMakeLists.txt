@@ -7,16 +7,16 @@
 #NOTE the order of libraries matter, so try to link first with the most high level lib
 function(configure_test TEST_NAME Tests_SRCS)
     include_directories(
-        ${CMAKE_SOURCE_DIR}/src
-        ${CMAKE_SOURCE_DIR}/tests/utilities
-        ${CMAKE_SOURCE_DIR}/thirdparty/jitify
+        ${PROJECT_SOURCE_DIR}/src
+        ${PROJECT_SOURCE_DIR}/tests/utilities
+        ${PROJECT_SOURCE_DIR}/thirdparty/jitify
         $ENV{PREFIX}/include
     )
 
     add_executable(${TEST_NAME}
                    ${Tests_SRCS}
-                   ${CMAKE_SOURCE_DIR}/tests/cython_errors_dummy.cpp
-                   ${CMAKE_SOURCE_DIR}/tests/utilities/BlazingUnitTest.cpp)
+                   ${PROJECT_SOURCE_DIR}/tests/cython_errors_dummy.cpp
+                   ${PROJECT_SOURCE_DIR}/tests/utilities/BlazingUnitTest.cpp)
     link_directories($ENV{PREFIX}/lib)
     
     target_link_libraries(${TEST_NAME}
@@ -92,7 +92,7 @@ enable_testing()
 # Configure unit tests with Google Test
 # -------------------
 message(STATUS "******** Configuring tests ********")
-
+add_subdirectory(allocation_pool)
 add_subdirectory(cache_machine)
 add_subdirectory(logical-groupby)
 add_subdirectory(new-tests)

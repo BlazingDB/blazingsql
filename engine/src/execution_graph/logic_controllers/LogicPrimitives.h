@@ -1,24 +1,19 @@
 
 #pragma once
 
-#include "cudf/column/column_view.hpp"
 #include "cudf/table/table.hpp"
 #include "cudf/table/table_view.hpp"
 #include <memory>
 #include <string>
 #include <vector>
-#include <string>
-#include <bmr/BlazingMemoryResource.h>
 #include "execution_graph/logic_controllers/BlazingColumn.h"
-
 #include "BlazingHostTable.h"
 
 typedef cudf::table CudfTable;
 typedef cudf::table_view CudfTableView;
-typedef cudf::column CudfColumn;
-typedef cudf::column_view CudfColumnView;
 
 namespace ral {
+
 namespace frame {
 
 class BlazingTable;
@@ -44,17 +39,20 @@ public:
 
 	BlazingTableView toBlazingTableView() const;
 
-	operator bool() const { return columns.size() != 0; }
+	operator bool() const { return this->is_valid(); }
+
+	bool is_valid() const { return valid; }
 
 	std::unique_ptr<CudfTable> releaseCudfTable();
 	std::vector<std::unique_ptr<BlazingColumn>> releaseBlazingColumns();
 
 	unsigned long long sizeInBytes();
-	void ensureOwnership();
+	void ensureOwnership();	
 
 private:
 	std::vector<std::string> columnNames;
 	std::vector<std::unique_ptr<BlazingColumn>> columns;
+	bool valid=true;
 };
 
 class BlazingTableView {

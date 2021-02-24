@@ -14,13 +14,15 @@ std::shared_ptr<CacheMachine> & port::get_cache(const std::string & port_name) {
 	}
 	auto it = cache_machines_.find(port_name);
 	if (it == cache_machines_.end()){
-		auto logger = spdlog::get("batch_logger");
+        std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
 		std::string all_cache_names = "";
 		for(auto it2 = cache_machines_.begin(); it2 != cache_machines_.end(); ++it2) {
 			all_cache_names += it2->first + ", ";
 		}
 		std::string log_detail = "ERROR get_cache did not find cache " + port_name + " the caches available are: " + all_cache_names;
-		logger->error("|||{info}|||||","info"_a=log_detail);
+		if(logger){
+		    logger->error("|||{info}|||||","info"_a=log_detail);
+		}
 	}
 	return it->second;
 }
@@ -65,6 +67,14 @@ uint64_t port::total_rows_added(){
 	uint64_t total = 0;
 	for (auto cache : cache_machines_){
 		total += cache.second->get_num_rows_added();
+	}
+	return total;
+}
+
+uint64_t port::total_batches_added(){
+	uint64_t total = 0;
+	for (auto cache : cache_machines_){
+		total += cache.second->get_num_batches_added();
 	}
 	return total;
 }

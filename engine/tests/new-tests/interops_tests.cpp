@@ -90,7 +90,7 @@ TEST_F(OperatorTest, rand_num_1) {
     static_cast<cudf::scalar_type_t<T> *>(right_scalars[3].get())->set_value((T) 2);
 
     // using OUT_T = typename output_type<T>::type;
-    auto sequenceOut = cudf::test::make_counting_transform_iterator(0, [](auto row) {
+    auto sequenceOut = cudf::test::make_counting_transform_iterator(0, [](auto /*row*/) {
         return T{};
     });
     cudf::test::fixed_width_column_wrapper<T> out_col1(sequenceOut, sequenceOut + inputRows);
@@ -120,7 +120,7 @@ TEST_F(OperatorTest, rand_num_1) {
 
     std::pair<thrust::host_vector<T>, std::vector<cudf::bitmask_type>> data_mask = cudf::test::to_host<T>(out_col2);
 
-    for (int i = 0; i < data_mask.first.size(); i++) {
+    for (std::size_t i = 0; i < data_mask.first.size(); i++) {
         ASSERT_TRUE(data_mask.first[i] >= 0.0d && data_mask.first[i] <= 1.0d);
     }
     //cudf::test::expect_colum_equal(expected_table_view, out_table_view);
@@ -161,12 +161,12 @@ TEST_F(OperatorTest, rand_num_2) {
     cudf::size_type input_rows = 100;
 
     // using OUT_T = typename output_type<T>::type;
-    auto sequenceOut = cudf::test::make_counting_transform_iterator(0, [](auto row) {
+    auto sequenceOut = cudf::test::make_counting_transform_iterator(0, [](auto /*row*/) {
         return T{};
     });
     cudf::test::fixed_width_column_wrapper<T> out_col1(sequenceOut, sequenceOut + input_rows);
 
-    cudf::mutable_table_view out_table_view({out_col1});
+    cudf::mutable_table_view out_table_view ({out_col1});
 
     perform_interpreter_operation(out_table_view,
                                   in_table_view,
@@ -179,15 +179,9 @@ TEST_F(OperatorTest, rand_num_2) {
                                   right_scalars,
                                   input_rows);
 
-    //for (auto &&c : out_table_view) {
-    //    cudf::test::print(c);
-    //    std::cout << std::endl;
-    //}
-
-
     std::pair<thrust::host_vector<T>, std::vector<cudf::bitmask_type>> data_mask = cudf::test::to_host<T>(out_col1);
 
-    for (int i = 0; i < data_mask.first.size(); i++) {
+    for (size_t i = 0; i < data_mask.first.size(); i++) {
         ASSERT_TRUE(data_mask.first[i] >= 0.0d && data_mask.first[i] <= 1.0d);
     }
     ASSERT_TRUE(out_table_view.num_rows() == input_rows);
@@ -252,7 +246,7 @@ TYPED_TEST(InteropsTestNumeric, test_numeric_types) {
     static_cast<cudf::scalar_type_t<T> *>(right_scalars[3].get())->set_value((T) 2);
 
     // using OUT_T = typename output_type<T>::type;
-    auto sequenceOut = cudf::test::make_counting_transform_iterator(0, [](auto row) {
+    auto sequenceOut = cudf::test::make_counting_transform_iterator(0, [](auto /*row*/) {
         return T{};
     });
     cudf::test::fixed_width_column_wrapper<T> out_col1(sequenceOut, sequenceOut + inputRows);
@@ -307,11 +301,11 @@ TYPED_TEST(InteropsTestTimestamp, test_day_of_week) {
     using ToDuration = typename T::duration;
 
     auto start_ms = cudf::timestamp_ms::duration(-2203891200000);  // Sat, 1 Mar 1900 00:00:00 GMT
-    auto start = simt::std::chrono::time_point_cast < ToDuration > (cudf::timestamp_ms(start_ms))
+    auto start = cuda::std::chrono::time_point_cast < ToDuration > (cudf::timestamp_ms(start_ms))
             .time_since_epoch()
             .count();
     auto stop_ms = cudf::timestamp_ms::duration(2214086400000);   // Mon, 29 Feb 2040 00:00:00 GMT
-    auto stop = simt::std::chrono::time_point_cast < ToDuration > (cudf::timestamp_ms(stop_ms))
+    auto stop = cuda::std::chrono::time_point_cast < ToDuration > (cudf::timestamp_ms(stop_ms))
             .time_since_epoch()
             .count();
     auto range = static_cast<Rep>(stop - start);
@@ -337,7 +331,7 @@ TYPED_TEST(InteropsTestTimestamp, test_day_of_week) {
     std::vector<std::unique_ptr<cudf::scalar>> right_scalars(std::make_move_iterator(std::begin(arr_s2)),
                                                              std::make_move_iterator(std::end(arr_s2)));
 
-    auto sequenceOut = cudf::test::make_counting_transform_iterator(0, [](auto row) {
+    auto sequenceOut = cudf::test::make_counting_transform_iterator(0, [](auto /*row*/) {
         return 0;
     });
     cudf::test::fixed_width_column_wrapper<int32_t> out_col1(sequenceOut, sequenceOut + inputRows);
@@ -352,8 +346,6 @@ TYPED_TEST(InteropsTestTimestamp, test_day_of_week) {
                                   operators,
                                   left_scalars,
                                   right_scalars);
-
-    auto sad = cudf::type_to_id<T>();
 
     if (cudf::type_to_id<T>() == cudf::type_id::TIMESTAMP_DAYS) {
         cudf::test::fixed_width_column_wrapper<int32_t> expected_col1(
@@ -380,11 +372,11 @@ TYPED_TEST(InteropsTestTimestamp, test_day_of_week_evaluate_expression) {
     using ToDuration = typename T::duration;
 
     auto start_ms = cudf::timestamp_ms::duration(-2203891200000);  // Sat, 1 Mar 1900 00:00:00 GMT
-    auto start = simt::std::chrono::time_point_cast < ToDuration > (cudf::timestamp_ms(start_ms))
+    auto start = cuda::std::chrono::time_point_cast < ToDuration > (cudf::timestamp_ms(start_ms))
             .time_since_epoch()
             .count();
     auto stop_ms = cudf::timestamp_ms::duration(2214086400000);   // Mon, 29 Feb 2040 00:00:00 GMT
-    auto stop = simt::std::chrono::time_point_cast < ToDuration > (cudf::timestamp_ms(stop_ms))
+    auto stop = cuda::std::chrono::time_point_cast < ToDuration > (cudf::timestamp_ms(stop_ms))
             .time_since_epoch()
             .count();
     auto range = static_cast<Rep>(stop - start);
@@ -426,11 +418,11 @@ TYPED_TEST(InteropsTestTimestamp, test_day_of_week_project) {
     using ToDuration = typename T::duration;
 
     auto start_ms = cudf::timestamp_ms::duration(-2203891200000);  // Sat, 1 Mar 1900 00:00:00 GMT
-    auto start = simt::std::chrono::time_point_cast < ToDuration > (cudf::timestamp_ms(start_ms))
+    auto start = cuda::std::chrono::time_point_cast < ToDuration > (cudf::timestamp_ms(start_ms))
             .time_since_epoch()
             .count();
     auto stop_ms = cudf::timestamp_ms::duration(2214086400000);   // Mon, 29 Feb 2040 00:00:00 GMT
-    auto stop = simt::std::chrono::time_point_cast < ToDuration > (cudf::timestamp_ms(stop_ms))
+    auto stop = cuda::std::chrono::time_point_cast < ToDuration > (cudf::timestamp_ms(stop_ms))
             .time_since_epoch()
             .count();
     auto range = static_cast<Rep>(stop - start);
@@ -472,11 +464,11 @@ TYPED_TEST(InteropsTestTimestamp, test_timestamp_types) {
     using ToDuration = typename T::duration;
 
     auto start_ms = cudf::timestamp_ms::duration(-2500000000000);  // Sat, 11 Oct 1890 19:33:20 GMT
-    auto start = simt::std::chrono::time_point_cast < ToDuration > (cudf::timestamp_ms(start_ms))
+    auto start = cuda::std::chrono::time_point_cast < ToDuration > (cudf::timestamp_ms(start_ms))
             .time_since_epoch()
             .count();
     auto stop_ms = cudf::timestamp_ms::duration(2500000000000);   // Mon, 22 Mar 2049 04:26:40 GMT
-    auto stop = simt::std::chrono::time_point_cast < ToDuration > (cudf::timestamp_ms(stop_ms))
+    auto stop = cuda::std::chrono::time_point_cast < ToDuration > (cudf::timestamp_ms(stop_ms))
             .time_since_epoch()
             .count();
     auto range = static_cast<Rep>(stop - start);
@@ -511,7 +503,7 @@ TYPED_TEST(InteropsTestTimestamp, test_timestamp_types) {
     std::vector<std::unique_ptr<cudf::scalar>> right_scalars(std::make_move_iterator(std::begin(arr_s2)),
                                                              std::make_move_iterator(std::end(arr_s2)));
 
-    auto sequenceOut = cudf::test::make_counting_transform_iterator(0, [](auto row) {
+    auto sequenceOut = cudf::test::make_counting_transform_iterator(0, [](auto /*row*/) {
         return 0;
     });
     cudf::test::fixed_width_column_wrapper<int32_t> out_col1(sequenceOut, sequenceOut + inputRows);
@@ -645,11 +637,11 @@ TYPED_TEST(InteropsTestTimestamp, test_timestamp_comparison)
   using ToDuration = typename T::duration;
 
   auto start_ms = cudf::timestamp_ms::duration(-2500000000000);  // Sat, 11 Oct 1890 19:33:20 GMT
-  auto start = simt::std::chrono::time_point_cast<ToDuration>(cudf::timestamp_ms(start_ms))
+  auto start = cuda::std::chrono::time_point_cast<ToDuration>(cudf::timestamp_ms(start_ms))
                 .time_since_epoch()
                 .count();
   auto stop_ms = cudf::timestamp_ms::duration(2500000000000);   // Mon, 22 Mar 2049 04:26:40 GMT
-  auto stop = simt::std::chrono::time_point_cast<ToDuration>(cudf::timestamp_ms(stop_ms))
+  auto stop = cuda::std::chrono::time_point_cast<ToDuration>(cudf::timestamp_ms(stop_ms))
                 .time_since_epoch()
                 .count();
   auto range = static_cast<Rep>(stop - start);

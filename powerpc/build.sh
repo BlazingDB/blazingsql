@@ -426,18 +426,19 @@ echo "---->>> install fsspec"
 pip install --no-binary fsspec fsspec
 
 
-cudf_version=0.17
+cudf_version=0.18
 
 # BEGIN RMM
 echo "BEGIN RMM"
 cd $build_dir
 if [ ! -d rmm ]; then
-    # once 0.17 is stable, we can checkout just depth 1
+    # once 0.18 is stable, we can checkout just depth 1
     # git clone --depth 1 https://github.com/rapidsai/rmm.git --branch "branch-$cudf_version" --single-branch
     git clone https://github.com/rapidsai/rmm.git --branch "branch-$cudf_version" --single-branch
     cd rmm
     # need to pin to a specific commit to keep this build script stable
-    git checkout 14e144696b1074a8f2bf0b064bcd61d850d48e79
+    git checkout efd4c08b4bd45e9f70c99c26ee47c02b6d3cbb1d
+
     INSTALL_PREFIX=$tmp_dir CUDACXX=$CUDA_HOME/bin/nvcc ./build.sh  -v clean librmm rmm
 fi
 echo "END RMM"
@@ -457,13 +458,13 @@ echo "BEGIN cudf"
 if [ ! -d cudf ]; then
     cd $build_dir
     echo "### Cudf ###"
-    # once 0.17 is stable, we can checkout just depth 1
+    # once 0.18 is stable, we can checkout just depth 1
     # git clone --depth 1 https://github.com/rapidsai/cudf.git --branch "branch-$cudf_version" --single-branch
-    git clone https://github.com/rapidsai/cudf.git --branch "branch-$cudf_version" --single-branch
+    git clone https://github.com/rapidsai/cudf.git --branch "branch-$cudf_version" 
     cd cudf
     # need to pin to a specific commit to keep this build script stable
-    git checkout v0.17.0
-
+    git checkout 88821fb7fd4b81a98b8efa2f2ab8c7871d02bdef
+    
     #git submodule update --init --remote --recursive
     #export CUDA_HOME=/usr/local/cuda/
     #export PARALLEL_LEVEL=$build_mode
@@ -497,7 +498,7 @@ echo "END cudf"
 echo "BEGIN CUPY"
 cd $build_dir
 if [ ! -d cupy ]; then
-    cupy_version=v7.7.0
+    cupy_version=v7.8.0
     git clone --recurse-submodules --depth 1 https://github.com/cupy/cupy.git --branch $cupy_version --single-branch
     cd cupy
     pip install .
@@ -549,12 +550,12 @@ echo "END dask"
 echo "BEGIN dask-cuda"
 cd $build_dir
 if [ ! -d dask-cuda ]; then
-  # once 0.17 is stable, we can checkout just depth 1
+  # once 0.18 is stable, we can checkout just depth 1
   # git clone --depth 1 https://github.com/rapidsai/dask-cuda.git --branch "branch-$cudf_version" --single-branch
   git clone https://github.com/rapidsai/dask-cuda.git --branch "branch-$cudf_version" --single-branch
   cd dask-cuda
   # need to pin to a specific commit to keep this build script stable
-  git checkout e9aee6c3f91054d8589affd8e3ec0041f1731a4e
+  git checkout b170b2973a992652a57437937f95b87e6713a6e7
   pip install .
 fi
 echo "END dask-cuda"
@@ -692,8 +693,8 @@ if [ ! -f ibm-java-sdk-8.0-6.11-ppc64le-archive.bin ]; then
 fi
 export PATH=$PWD/ibm-java-ppc64le-80/bin:$PATH
 export JAVA_HOME=$PWD/ibm-java-ppc64le-80/jre
-echo "ENV JAVA"
-# ENV JAVA
+echo "END JAVA"
+# END JAVA
 
 echo "BEGIN mvn"
 cd $build_dir
@@ -703,9 +704,112 @@ if [ ! -d $VIRTUAL_ENV/apache-maven-3.6.3 ]; then
     mv apache-maven-3.6.3 $VIRTUAL_ENV/
 fi
 export PATH=$VIRTUAL_ENV/apache-maven-3.6.3/bin:$PATH
-echo "ENV mvn"
+echo "END mvn"
+
+#Begin requirements for cuML
+
+# download local installer from https://developer.nvidia.com/nccl
+# (have to register and answer questionnaire)
+# Power  "O/S agnostic local installer"
+# tar xvfk nccl_2.7.6-1+cuda10.1_ppc64le.txz
+# cp -r nccl_2.7.6-1+cuda10.1_ppc64le/lib/* $VIRTUAL_ENV/lib/
+# cp -r nccl_2.7.6-1+cuda10.1_ppc64le/include/* $VIRTUAL_ENV/include/
+
+echo "BEGIN rapidjson"
+cd $build_dir
+if [ ! -d rapidjson ]; then
+  git clone https://github.com/Tencent/rapidjson
+  cp -r rapidjson/include/rapidjson/ $VIRTUAL_ENV/include  
+fi
+echo "END rapidjson"
 
 
+echo "BEGIN treelite"
+cd $build_dir
+if [ ! -d treelite ]; then
+  git clone https://github.com/dmlc/treelite
+  cd treelite
+  export TREELITE_SRC=$PWD
+  mkdir build
+  cd build
+  CXXFLAGS="-I$VIRTUAL_ENV/include -L$VIRTUAL_ENV/lib"  cmake -D CMAKE_INSTALL_PREFIX=$VIRTUAL_ENV $TREELITE_SRC
+  make -j$MAKEJ install
+  cd ../python
+  python setup.py install --single-version-externally-managed --record=record.txt
+  cd ../runtime/python
+  python setup.py install --single-version-externally-managed --record=record.txt
+fi
+echo "END treelite"
+
+echo "BEGIN swig"
+cd $build_dir
+if [ ! -d swig ]; then
+  git clone https://github.com/swig/swig.git
+  cd swig
+  ./autogen.sh
+  ./configure --without-python --with-python3 --prefix=$VIRTUAL_ENV 
+  make -j$MAKEJ
+  make -j$MAKEJ install
+fi
+echo "END swig"
+
+echo "BEGIN faiss"
+cd $build_dir
+if [ ! -d faiss ]; then
+  git clone https://github.com/facebookresearch/faiss.git
+  cd faiss
+  # this is v1.6.3 which is what cuml is expecting, but with some fixes
+  git checkout a93a4b39571db0ab6ad0b4ef42a6b8734ca05135
+  ./configure --with-cuda=$OLCF_CUDA_ROOT --prefix=$VIRTUAL_ENV --with-cuda-arch=-gencode="arch=compute_70,code=sm_70"
+  CXXFLAGS=-fPIC make -j $MAKEJ 
+  make -j $MAKEJ install
+fi
+echo "END faiss" 
+
+
+echo "BEGIN doxygen"
+cd $build_dir
+if [ ! -d doxygen ]; then
+  git clone https://github.com/doxygen/doxygen
+  cd doxygen
+  mkdir build
+  cd build
+  cmake -G "Unix Makefiles" -D CMAKE_INSTALL_PREFIX=$VIRTUAL_ENV ..
+  make -j$MAKEJ install
+fi
+echo "END doxygen" 
+
+
+echo "BEGIN cuml"
+cd $build_dir
+if [ ! -d cuml ]; then
+  git clone https://github.com/rapidsai/cuml.git
+  cd cuml
+  git checkout "branch-$cudf_version" 
+  mkdir build
+  cd build
+  
+  CMAKE_PREFIX_PATH=$VIRTUAL_ENV cmake -DCMAKE_INSTALL_PREFIX=$VIRTUAL_ENV \
+        -DBLAS_LIBRARIES=$OLCF_OPENBLAS_ROOT/lib/libopenblas.so.0 \
+        -D GPU_ARCHS=70 \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DBUILD_CUML_C_LIBRARY=ON \
+        -DSINGLEGPU=ON \
+        -DWITH_UCX=ON \
+        -DBUILD_CUML_MPI_COMMS=OFF \
+        -DBUILD_CUML_MG_TESTS=OFF \
+        -DBUILD_STATIC_FAISS=OFF \
+        -DNVTX=OFF \
+        -DBUILD_CUML_TESTS=OFF \
+        -DBUILD_PRIMS_TESTS=OFF \
+        ../cpp
+  make -j$MAKEJ install
+  cd ../python
+  PARALLEL_LEVEL=$MAKEJ LDFLAGS="-L$CUDA_HOME/lib64 -L$VIRTUAL_ENV/lib" python setup.py build_ext --inplace --singlegpu install
+  # LDFLAGS="-L$CUDA_HOME/lib64 -L$VIRTUAL_ENV/lib" python setup.py clean --all build --singlegpu install --record=record.txt
+  
+fi
+echo "END cuml" 
 
 
 # BEGIN blazingsql

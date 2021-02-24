@@ -23,8 +23,6 @@ struct ParquetMetadataTest : public ::testing::Test {
 */
 template<typename T, parquet::Type::type FType>
 void process_minmax_metadata(){
-    using DType = parquet::PhysicalType<FType>;
-
     cudf::test::fixed_width_column_wrapper<T> col1{{std::numeric_limits<T>::min(), std::numeric_limits<T>::min()}};
     cudf::test::fixed_width_column_wrapper<T> col2{{std::numeric_limits<T>::max(), std::numeric_limits<T>::max()}};
 
@@ -57,7 +55,7 @@ void process_minmax_metadata(){
             parquet::Type::type physical = FType;
             parquet::ConvertedType::type logical = parquet::ConvertedType::type::INT_64;
 
-            for (int col_count = 0; col_count < columns_with_metadata; col_count++) {
+            for (size_t col_count = 0; col_count < columns_with_metadata; col_count++) {
                 set_min_max(this_minmax_metadata_table, col_count*2, physical, logical, statistics);
             }
         }
@@ -77,7 +75,7 @@ void process_minmax_metadata(){
     for (size_t index = 0; index < 	minmax_metadata_table.size(); index++) {
         auto vector = minmax_metadata_table[index];
         std::basic_string<char> content = get_typed_vector_content(dtype.id(), vector);
-        auto column = make_cudf_column_from(dtype, content, total_num_row_groups);
+        auto column = make_cudf_column_from_vector(dtype, content, total_num_row_groups);
         cudf::test::expect_columns_equal(column->view(), in_table_view.column(index));
     }
 }

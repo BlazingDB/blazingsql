@@ -3,6 +3,7 @@
 ###########################################
 # BlazingDB CPU conda build script for CI #
 ###########################################
+
 set -e
 
 export PARALLEL_LEVEL=${PARALLEL_LEVEL:-4}

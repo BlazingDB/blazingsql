@@ -17,7 +17,7 @@ Try our 5-min [Welcome Notebook](https://app.blazingsql.com/jupyter/user-redirec
 
 Here's two copy + paste reproducable BlazingSQL snippets, keep scrolling to find [example Notebooks](#examples) below.
 
-Create and query a table from a `cudf.DataFrame`:
+Create and query a table from a `cudf.DataFrame` with progress bar:
 
 ```python
 import cudf
@@ -28,11 +28,11 @@ df['key'] = ['a', 'b', 'c', 'd', 'e']
 df['val'] = [7.6, 2.9, 7.1, 1.6, 2.2]
 
 from blazingsql import BlazingContext
-bc = BlazingContext()
+bc = BlazingContext(enable_progress_bar=True)
 
 bc.create_table('game_1', df)
 
-bc.sql('SELECT * FROM game_1 WHERE val > 4')
+bc.sql('SELECT * FROM game_1 WHERE val > 4') # the query progress will be shown
 ```
 
 | | Key | Value |
@@ -90,7 +90,7 @@ BlazingSQL can be installed with conda ([miniconda](https://conda.io/miniconda.h
 
 ## Stable Version
 ```bash
-conda install -c blazingsql/label/cuda$CUDA_VERSION -c rapidsai -c nvidia -c conda-forge -c defaults blazingsql python=$PYTHON_VERSION cudatoolkit=$CUDA_VERSION
+conda install -c blazingsql -c rapidsai -c nvidia -c conda-forge -c defaults blazingsql python=$PYTHON_VERSION cudatoolkit=$CUDA_VERSION
 ```
 Where $CUDA_VERSION is 10.1, 10.2 or 11.0  and $PYTHON_VERSION is 3.7 or 3.8
 *For example for CUDA 10.1 and Python 3.7:*
@@ -118,8 +118,13 @@ This is the recommended way of building all of the BlazingSQL components and dep
 conda create -n bsql python=$PYTHON_VERSION
 conda activate bsql
 conda install --yes -c conda-forge spdlog=1.7.0 google-cloud-cpp=1.16 ninja
+<<<<<<< HEAD
+conda install --yes -c rapidsai -c nvidia -c conda-forge -c defaults dask-cuda=0.18 dask-cudf=0.18 cudf=0.18 ucx-py=0.18 ucx-proc=*=gpu python=3.7 cudatoolkit=$CUDA_VERSION
+conda install --yes -c conda-forge cmake=3.18 gtest gmock cppzmq cython=0.29 openjdk=8.0 maven jpype1 netifaces pyhive tqdm ipywidgets
+=======
 conda install --yes -c rapidsai -c nvidia -c conda-forge -c defaults dask-cuda=0.17 dask-cudf=0.17 cudf=0.17 ucx-py=0.17 ucx-proc=*=gpu python=3.7 cudatoolkit=$CUDA_VERSION
 conda install --yes -c conda-forge cmake=3.18 gtest gmock cppzmq cython=0.29 openjdk=8.0 maven jpype1 netifaces pyhive
+>>>>>>> main
 ```
 Where $CUDA_VERSION is is 10.1, 10.2 or 11.0 and $PYTHON_VERSION is 3.7 or 3.8
 *For example for CUDA 10.1 and Python 3.7:*
@@ -127,8 +132,13 @@ Where $CUDA_VERSION is is 10.1, 10.2 or 11.0 and $PYTHON_VERSION is 3.7 or 3.8
 conda create -n bsql python=3.7
 conda activate bsql
 conda install --yes -c conda-forge spdlog=1.7.0 google-cloud-cpp=1.16 ninja
+<<<<<<< HEAD
+conda install --yes -c rapidsai -c nvidia -c conda-forge -c defaults dask-cuda=0.18 dask-cudf=0.18 cudf=0.18 ucx-py=0.18 ucx-proc=*=gpu python=3.7 cudatoolkit=10.1
+conda install --yes -c conda-forge cmake=3.18 gtest gmock cppzmq cython=0.29 openjdk=8.0 maven jpype1 netifaces pyhive tqdm ipywidgets
+=======
 conda install --yes -c rapidsai -c nvidia -c conda-forge -c defaults dask-cuda=0.17 dask-cudf=0.17 cudf=0.17 ucx-py=0.17 ucx-proc=*=gpu python=3.7 cudatoolkit=10.1
 conda install --yes -c conda-forge cmake=3.18 gtest gmock cppzmq cython=0.29 openjdk=8.0 maven jpype1 netifaces pyhive
+>>>>>>> main
 ```
 
 ### Build
@@ -153,8 +163,13 @@ $CONDA_PREFIX now has a folder for the blazingsql repository.
 conda create -n bsql python=$PYTHON_VERSION
 conda activate bsql
 conda install --yes -c conda-forge spdlog=1.7.0 google-cloud-cpp=1.16 ninja
+<<<<<<< HEAD
+conda install --yes -c rapidsai-nightly -c nvidia -c conda-forge -c defaults dask-cuda=0.19 dask-cudf=0.19 cudf=0.19 ucx-py=0.19 ucx-proc=*=gpu python=3.7 cudatoolkit=$CUDA_VERSION
+conda install --yes -c conda-forge cmake=3.18 gtest==1.10.0=h0efe328_4 gmock cppzmq cython=0.29 openjdk=8.0 maven jpype1 netifaces pyhive tqdm ipywidgets
+=======
 conda install --yes -c rapidsai-nightly -c nvidia -c conda-forge -c defaults dask-cuda=0.18 dask-cudf=0.18 cudf=0.18 ucx-py=0.18 ucx-proc=*=gpu python=3.7 cudatoolkit=$CUDA_VERSION
 conda install --yes -c conda-forge cmake=3.18 gtest gmock cppzmq cython=0.29 openjdk=8.0 maven jpype1 netifaces pyhive
+>>>>>>> main
 ```
 Where $CUDA_VERSION is is 10.1, 10.2 or 11.0 and $PYTHON_VERSION is 3.7 or 3.8
 *For example for CUDA 10.1 and Python 3.7:*
@@ -162,8 +177,13 @@ Where $CUDA_VERSION is is 10.1, 10.2 or 11.0 and $PYTHON_VERSION is 3.7 or 3.8
 conda create -n bsql python=3.7
 conda activate bsql
 conda install --yes -c conda-forge spdlog=1.7.0 google-cloud-cpp=1.16 ninja
+<<<<<<< HEAD
+conda install --yes -c rapidsai-nightly -c nvidia -c conda-forge -c defaults dask-cuda=0.19 dask-cudf=0.19 cudf=0.19 ucx-py=0.19 ucx-proc=*=gpu python=3.7 cudatoolkit=10.1
+conda install --yes -c conda-forge cmake=3.18 gtest==1.10.0=h0efe328_4 gmock cppzmq cython=0.29 openjdk=8.0 maven jpype1 netifaces pyhive tqdm ipywidgets
+=======
 conda install --yes -c rapidsai-nightly -c nvidia -c conda-forge -c defaults dask-cuda=0.18 dask-cudf=0.18 cudf=0.18 ucx-py=0.18 ucx-proc=*=gpu python=3.7 cudatoolkit=10.1
 conda install --yes -c conda-forge cmake=3.18 gtest gmock cppzmq cython=0.29 openjdk=8.0 maven jpype1 netifaces pyhive
+>>>>>>> main
 ```
 
 ### Build

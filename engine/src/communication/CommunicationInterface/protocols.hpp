@@ -12,7 +12,7 @@
 
 namespace io{
     void read_from_socket(int socket_fd, void * data, size_t read_size);
-    void write_to_socket(int socket_fd, void * data, size_t read_size);
+    void write_to_socket(int socket_fd, const void * data, size_t read_size);
 }
 
 
@@ -26,8 +26,8 @@ public:
 
    	static ucp_progress_manager * get_instance(ucp_worker_h ucp_worker, size_t request_size);
     static ucp_progress_manager * get_instance();
-    void add_recv_request(char * request, std::function<void()> callback);
-    void add_send_request(char * request, std::function<void()> callback);
+    void add_recv_request(char * request, std::function<void()> callback, ucs_status_t status);
+    void add_send_request(char * request, std::function<void()> callback, ucs_status_t status);
 private:
    struct request_struct{
         char * request;
@@ -96,14 +96,17 @@ public:
 		ral::cache::MetadataDictionary metadata,
 		std::vector<size_t> buffer_sizes,
 		std::vector<blazingdb::transport::ColumnTransport> column_transports,
-        int ral_id);
+        std::vector<ral::memory::blazing_chunked_column_info> chunked_column_infos,
+        int ral_id,
+        bool require_acknowledge);
     ~ucx_buffer_transport();
 
     void send_begin_transmission() override;
 
 protected:
     void send_impl(const char * buffer, size_t buffer_size) override;
-
+    void receive_acknowledge();
+	
 private:
 
     ucp_worker_h origin_node;
@@ -130,25 +133,27 @@ public:
 
     tcp_buffer_transport(
         std::vector<node> destinations,
-		ral::cache::MetadataDictionary metadata,
-		std::vector<size_t> buffer_sizes,
-		std::vector<blazingdb::transport::ColumnTransport> column_transports,
+        ral::cache::MetadataDictionary metadata,
+        std::vector<size_t> buffer_sizes,
+        std::vector<blazingdb::transport::ColumnTransport> column_transports,
+        std::vector<ral::memory::blazing_chunked_column_info> chunked_column_infos,
         int ral_id,
-        ctpl::thread_pool<BlazingThread> * allocate_copy_buffer_pool);
+        ctpl::thread_pool<BlazingThread> * allocate_copy_buffer_pool,
+        bool require_acknowledge);
     ~tcp_buffer_transport();
 
     void send_begin_transmission() override;
 
 protected:
     void send_impl(const char * buffer, size_t buffer_size) override;
-
+    void receive_acknowledge();
+	
 private:
-
     int ral_id;
     int message_id;
     std::vector<int> socket_fds;
     ctpl::thread_pool<BlazingThread> * allocate_copy_buffer_pool;
-    cudaStream_t stream;
+
 };
 
 

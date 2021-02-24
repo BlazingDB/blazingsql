@@ -2,6 +2,7 @@
 #define ORCPARSER_H_
 
 #include "DataParser.h"
+
 #include "arrow/io/interfaces.h"
 #include <memory>
 #include <vector>
@@ -12,8 +13,6 @@
 namespace ral {
 namespace io {
 
-namespace cudf_io = cudf::io;
-
 class orc_parser : public data_parser {
 public:
 	orc_parser(std::map<std::string, std::string> args_map);
@@ -21,12 +20,16 @@ public:
 	virtual ~orc_parser();
 
 	std::unique_ptr<ral::frame::BlazingTable> parse_batch(
-		std::shared_ptr<arrow::io::RandomAccessFile> file,
+		ral::io::data_handle handle,
 		const Schema & schema,
 		std::vector<int> column_indices,
 		std::vector<cudf::size_type> row_groups);
 
 	void parse_schema(std::shared_ptr<arrow::io::RandomAccessFile> file, Schema & schema);
+
+	std::unique_ptr<ral::frame::BlazingTable> get_metadata(
+		std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files,
+		int offset);
 
 	DataType type() const override { return DataType::ORC; }
 

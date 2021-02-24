@@ -23,14 +23,16 @@ const long long SIZE_OF_OBJECT_DIRECTORY = 11;
 namespace Logging = Library::Logging;
 
 GoogleCloudStorage::Private::Private(const FileSystemConnection & fileSystemConnection, const Path & root)
-	: gcsClient(nullptr), root(root) {
+	: root(root), gcsClient(nullptr) {
 	// TODO percy improve & error handling
-	const bool connected = this->connect(fileSystemConnection);
+//	const bool connected = this->connect(fileSystemConnection);
+	this->connect(fileSystemConnection);
 }
 
 GoogleCloudStorage::Private::~Private() {
 	// TODO percy improve & error handling
-	const bool disconnected = this->disconnect();
+//	const bool disconnected = this->disconnect();
+	this->disconnect();
 }
 
 bool GoogleCloudStorage::Private::connect(const FileSystemConnection & fileSystemConnection) {
@@ -99,7 +101,7 @@ bool GoogleCloudStorage::Private::exists(const Uri & uri) const {
 	}
 
 	const Uri uriWithRoot(uri.getScheme(), uri.getAuthority(), this->root + uri.getPath().toString());
-	const Path path = uriWithRoot.getPath().getPathWithNormalizedFolderConvention();
+	const Path path = uriWithRoot.getPath();
 
 	const std::string bucketName = this->getBucketName();
 	// TODO here we are removing the first "/" char so we create a Google Cloud Storage object key using the path ...
@@ -113,8 +115,7 @@ bool GoogleCloudStorage::Private::exists(const Uri & uri) const {
 	} else {
 		if(objectName[objectName.size() - 1] == '/') {  // if contains / at the end
 			const Uri uriWithRoot(uri.getScheme(), uri.getAuthority(), this->root + uri.getPath().toString());
-			const Path pathWithRoot = uriWithRoot.getPath();
-			const Path folderPath = pathWithRoot.getPathWithNormalizedFolderConvention();
+			const Path folderPath = uriWithRoot.getPath();
 		
 			// NOTE only files is always true basically so we dont check it this is until we implement bucket listing
 			// NOTE we want to get buckets bya filter, the sdk does not currently fully support that, the rest api does
@@ -145,7 +146,7 @@ FileStatus GoogleCloudStorage::Private::getFileStatus(const Uri & uri) const {
 
 	const std::string bucketName = this->getBucketName();
 	const Uri uriWithRoot(uri.getScheme(), uri.getAuthority(), this->root + uri.getPath().toString());
-	const Path path = uriWithRoot.getPath().getPathWithNormalizedFolderConvention();
+	const Path path = uriWithRoot.getPath();
 	const std::string bucket = this->getBucketName();
 	std::string objectKey = path.toString(true).substr(1, path.toString(true).size());
 
@@ -186,9 +187,8 @@ FileStatus GoogleCloudStorage::Private::getFileStatus(const Uri & uri) const {
 	} else {
 		if(objectKey[objectKey.size() - 1] == '/') {  // if contains / at the end
 			const Uri uriWithRoot(uri.getScheme(), uri.getAuthority(), this->root + uri.getPath().toString());
-			const Path pathWithRoot = uriWithRoot.getPath();
-			const Path folderPath = pathWithRoot.getPathWithNormalizedFolderConvention();
-		
+			const Path folderPath = uriWithRoot.getPath();
+
 			// NOTE only files is always true basically so we dont check it this is until we implement bucket listing
 			// NOTE we want to get buckets bya filter, the sdk does not currently fully support that, the rest api does
 		
@@ -209,7 +209,7 @@ FileStatus GoogleCloudStorage::Private::getFileStatus(const Uri & uri) const {
 	return fileStatus;
 }
 
-std::vector<FileStatus> GoogleCloudStorage::Private::list(const Uri & uri, const FileFilter & filter) const {
+std::vector<FileStatus> GoogleCloudStorage::Private::list(const Uri & /*uri*/, const FileFilter & /*filter*/) const {
 	//	std::vector<FileStatus> response;
 
 	//	if (uri.isValid() == false) {
@@ -218,7 +218,7 @@ std::vector<FileStatus> GoogleCloudStorage::Private::list(const Uri & uri, const
 
 	//	const Uri uriWithRoot(uri.getScheme(), uri.getAuthority(), this->root + uri.getPath().toString());
 	//	const Path pathWithRoot = uriWithRoot.getPath();
-	//	const Path folderPath = pathWithRoot.getPathWithNormalizedFolderConvention();
+	//	const Path folderPath = pathWithRoot;
 
 	//	//NOTE only files is always true basically so we dont check it this is until we implement bucket listing
 	//	//NOTE we want to get buckets bya filter, the sdk does not currently fully support that, the rest api does
@@ -328,6 +328,7 @@ std::vector<FileStatus> GoogleCloudStorage::Private::list(const Uri & uri, const
 	//	}
 
 	//	return response;
+	return {};
 }
 
 std::vector<Uri> GoogleCloudStorage::Private::list(const Uri & uri, const std::string & wildcard) const {
@@ -338,8 +339,7 @@ std::vector<Uri> GoogleCloudStorage::Private::list(const Uri & uri, const std::s
 	}
 
 	const Uri uriWithRoot(uri.getScheme(), uri.getAuthority(), this->root + uri.getPath().toString());
-	const Path pathWithRoot = uriWithRoot.getPath();
-	const Path folderPath = pathWithRoot.getPathWithNormalizedFolderConvention();
+	const Path folderPath = uriWithRoot.getPath();
 
 	// NOTE only files is always true basically so we dont check it this is until we implement bucket listing
 	// NOTE we want to get buckets bya filter, the sdk does not currently fully support that, the rest api does
@@ -357,8 +357,7 @@ std::vector<Uri> GoogleCloudStorage::Private::list(const Uri & uri, const std::s
 		for(auto && object_metadata : objectsOutcome) {
 			// WARNING TODO percy there is no folders concept in S# ... we should change Path::isFile::bool to
 			// Path::ObjectType::Unkwnow,DIR,FILE,SYMLIN,ETC
-			const Path path = Path("/" + object_metadata->name(), true)
-								  .getPathWithNormalizedFolderConvention();  // TODO percy avoid hardcoded string
+			const Path path = Path("/" + object_metadata->name(), true); // TODO percy avoid hardcoded string
 
 			if(path != folderPath) {
 				const bool pass = WildcardFilter::match(path.toString(true), finalWildcard);
@@ -376,8 +375,7 @@ std::vector<Uri> GoogleCloudStorage::Private::list(const Uri & uri, const std::s
 			for(auto && object_metadata : objectsOutcome) {
 				// WARNING TODO percy there is no folders concept in S# ... we should change Path::isFile::bool to
 				// Path::ObjectType::Unkwnow,DIR,FILE,SYMLIN,ETC
-				const Path path = Path("/" + object_metadata->name(), true)
-									  .getPathWithNormalizedFolderConvention();  // TODO percy avoid hardcoded string
+				const Path path = Path("/" + object_metadata->name(), true);  // TODO percy avoid hardcoded string
 	
 				if(path != folderPath) {
 					const bool pass = WildcardFilter::match(path.toString(true), finalWildcard);
@@ -409,7 +407,7 @@ std::vector<Uri> GoogleCloudStorage::Private::list(const Uri & uri, const std::s
 }
 
 std::vector<std::string> GoogleCloudStorage::Private::listResourceNames(
-	const Uri & uri, FileType fileType, const std::string & wildcard) const {
+	const Uri & /*uri*/, FileType /*fileType*/, const std::string & /*wildcard*/) const {
 	//	std::vector<std::string> response;
 
 	//	if (uri.isValid() == false) {
@@ -417,7 +415,7 @@ std::vector<std::string> GoogleCloudStorage::Private::listResourceNames(
 	//	}
 
 	//	const Uri uriWithRoot(uri.getScheme(), uri.getAuthority(), this->root + uri.getPath().toString());
-	//	const Path folderPath = uriWithRoot.getPath().getPathWithNormalizedFolderConvention();
+	//	const Path folderPath = uriWithRoot.getPath();
 
 	//	//NOTE only files is always true basically so we dont check it this is until we implement bucket listing
 	//	//NOTE we want to get buckets bya filter, the sdk does not currently fully support that, the rest api does
@@ -529,6 +527,7 @@ std::vector<std::string> GoogleCloudStorage::Private::listResourceNames(
 	//	}
 
 	//	return response;
+	return {};
 }
 
 std::vector<std::string> GoogleCloudStorage::Private::listResourceNames(
@@ -540,7 +539,7 @@ std::vector<std::string> GoogleCloudStorage::Private::listResourceNames(
 	}
 
 	const Uri uriWithRoot(uri.getScheme(), uri.getAuthority(), this->root + uri.getPath().toString());
-	const Path folderPath = uriWithRoot.getPath().getPathWithNormalizedFolderConvention();
+	const Path folderPath = uriWithRoot.getPath();
 
 	// NOTE only files is always true basically so we dont check it this is until we implement bucket listing
 	// NOTE we want to get buckets bya filter, the sdk does not currently fully support that, the rest api does
@@ -561,8 +560,7 @@ std::vector<std::string> GoogleCloudStorage::Private::listResourceNames(
 		for(auto && object_metadata : objectsOutcome) {
 			// WARNING TODO percy there is no folders concept in S# ... we should change Path::isFile::bool to
 			// Path::ObjectType::Unkwnow,DIR,FILE,SYMLIN,ETC
-			const Path path = Path("/" + object_metadata->name(), true)
-								  .getPathWithNormalizedFolderConvention();  // TODO percy avoid hardcoded string
+			const Path path = Path("/" + object_metadata->name(), true);  // TODO percy avoid hardcoded string
 
 			if(path != folderPath) {
 				const Uri entry(uri.getScheme(), uri.getAuthority(), path);
@@ -598,7 +596,7 @@ bool GoogleCloudStorage::Private::makeDirectory(const Uri & uri) const {
 	}
 
 	const Uri uriWithRoot(uri.getScheme(), uri.getAuthority(), this->root + uri.getPath().toString());
-	const Path path = uriWithRoot.getPath().getPathWithNormalizedFolderConvention();
+	const Path path = uriWithRoot.getPath();
 	const std::string bucket = this->getBucketName();
 
 	std::string mutablePath = path.toString(true);  // TODO ugly ... fix StringUtil api
@@ -642,7 +640,7 @@ bool GoogleCloudStorage::Private::makeDirectory(const Uri & uri) const {
 	return false;
 }
 
-bool GoogleCloudStorage::Private::remove(const Uri & uri) const {
+bool GoogleCloudStorage::Private::remove(const Uri & /*uri*/) const {
 	//	if (uri.isValid() == false) {
 	//		throw BlazingInvalidPathException(uri);
 	//	}
@@ -682,9 +680,10 @@ bool GoogleCloudStorage::Private::remove(const Uri & uri) const {
 
 	//		return false;
 	//	}
+	return false;
 }
 
-bool GoogleCloudStorage::Private::move(const Uri & src, const Uri & dst) const {
+bool GoogleCloudStorage::Private::move(const Uri & /*src*/, const Uri & /*dst*/) const {
 	//	if (src.isValid() == false) {
 	//		throw BlazingInvalidPathException(src);
 	//	}
@@ -743,11 +742,12 @@ bool GoogleCloudStorage::Private::move(const Uri & src, const Uri & dst) const {
 
 	//		return false;
 	//	}
+	return false;
 }
 
 // TODO: truncate file can't be rolled back easily as it stands
 // an easier way  might be to use move instead of remove
-bool GoogleCloudStorage::Private::truncateFile(const Uri & uri, long long length) const {
+bool GoogleCloudStorage::Private::truncateFile(const Uri & /*uri*/, long long /*length*/) const {
 	//	if (uri.isValid() == false) {
 	//		throw BlazingInvalidPathException(uri);
 	//	}
@@ -820,7 +820,7 @@ bool GoogleCloudStorage::Private::truncateFile(const Uri & uri, long long length
 	//		//TODO percy this use case is not needed yet
 	//	}
 
-	//	return false;
+	return false;
 }
 
 bool GoogleCloudStorage::Private::openReadable(
@@ -839,7 +839,7 @@ bool GoogleCloudStorage::Private::openReadable(
 }
 
 bool GoogleCloudStorage::Private::openWriteable(
-	const Uri & uri, std::shared_ptr<GoogleCloudStorageOutputStream> * file) const {
+	const Uri & /*uri*/, std::shared_ptr<GoogleCloudStorageOutputStream> * /*file*/) const {
 	//	if (uri.isValid() == false) {
 	//		throw BlazingInvalidPathException(uri);
 	//	}
@@ -868,10 +868,12 @@ bool GoogleCloudStorage::Private::useDefaultAdcJsonFile() const {
 	using namespace GoogleCloudStorageConnection;
 	//	return (this->encryptionType() != EncryptionType::NONE) && (this->encryptionType() !=
 	//EncryptionType::UNDEFINED);
+	return false;
 }
 
 const std::string GoogleCloudStorage::Private::getAdcJsonFile() const {
 	using namespace GoogleCloudStorageConnection;
 	//	const std::string kmsKey =
 	//this->fileSystemConnection.getConnectionProperty(ConnectionProperty::KMS_KEY_AMAZON_RESOURCE_NAME); 	return kmsKey;
+	return "";
 }

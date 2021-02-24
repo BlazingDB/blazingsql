@@ -513,39 +513,39 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
-            queryId = "TEST_20"
+            # queryId = "TEST_20"
 
-            query = tpch.get_tpch_query(queryId)
+            # query = tpch.get_tpch_query(queryId)
 
-            runTest.run_query(
-                bc,
-                spark,
-                query,
-                queryId,
-                queryType,
-                worder,
-                "",
-                acceptable_difference,
-                True,
-                fileSchemaType,
-            )
+            # runTest.run_query(
+            #     bc,
+            #     spark,
+            #     query,
+            #     queryId,
+            #     queryType,
+            #     worder,
+            #     "",
+            #     acceptable_difference,
+            #     True,
+            #     fileSchemaType,
+            # )
 
-            queryId = "TEST_21"
+            # queryId = "TEST_21"
 
-            query = tpch.get_tpch_query(queryId)
+            # query = tpch.get_tpch_query(queryId)
 
-            runTest.run_query(
-                bc,
-                spark,
-                query,
-                queryId,
-                queryType,
-                worder,
-                "",
-                acceptable_difference,
-                use_percentage,
-                fileSchemaType,
-            )
+            # runTest.run_query(
+            #     bc,
+            #     spark,
+            #     query,
+            #     queryId,
+            #     queryType,
+            #     worder,
+            #     "",
+            #     acceptable_difference,
+            #     use_percentage,
+            #     fileSchemaType,
+            # )
 
             queryId = "TEST_22"
 

@@ -10,7 +10,7 @@ namespace ral {
 namespace frame{
 
 BlazingTable::BlazingTable(std::vector<std::unique_ptr<BlazingColumn>> columns, const std::vector<std::string> & columnNames)
-	: columns(std::move(columns)), columnNames(columnNames) {}
+	: columnNames(columnNames), columns(std::move(columns)) {}
 
 
 BlazingTable::BlazingTable(	std::unique_ptr<CudfTable> table, const std::vector<std::string> & columnNames){
@@ -23,7 +23,7 @@ BlazingTable::BlazingTable(	std::unique_ptr<CudfTable> table, const std::vector<
 }
 
 BlazingTable::BlazingTable(const CudfTableView & table, const std::vector<std::string> & columnNames){
-	for (size_t i = 0; i < table.num_columns(); i++){
+	for (int i = 0; i < table.num_columns(); i++){
 		columns.emplace_back(std::make_unique<BlazingColumnView>(table.column(i)));
 	}
 	this->columnNames = columnNames;
@@ -59,6 +59,7 @@ BlazingTableView BlazingTable::toBlazingTableView() const{
 }
 
 std::unique_ptr<CudfTable> BlazingTable::releaseCudfTable() {
+	valid = false; // we are taking the data out, so we want to indicate that its no longer valid
 	std::vector<std::unique_ptr<CudfColumn>> columns_out;
 	for (size_t i = 0; i < columns.size(); i++){
 		columns_out.emplace_back(std::move(columns[i]->release()));
@@ -67,16 +68,15 @@ std::unique_ptr<CudfTable> BlazingTable::releaseCudfTable() {
 }
 
 std::vector<std::unique_ptr<BlazingColumn>> BlazingTable::releaseBlazingColumns() {
+	valid = false; // we are taking the data out, so we want to indicate that its no longer valid
 	return std::move(columns);
 }
-
 
 unsigned long long BlazingTable::sizeInBytes()
 {
 	unsigned long long total_size = 0UL;
-	for(cudf::size_type i = 0; i < this->columns.size(); ++i) {
-		auto & bz_column = this->columns[i];
-		auto column =  bz_column->view();
+	for(auto & bz_column : this->columns) {
+			auto column =  bz_column->view();
 		if(column.type().id() == cudf::type_id::STRING) {
 			auto num_children = column.num_children();
 			if(num_children == 2) {
@@ -109,7 +109,7 @@ BlazingTableView::BlazingTableView(){
 BlazingTableView::BlazingTableView(
 	CudfTableView table,
 	std::vector<std::string> columnNames)
-	: table(table), columnNames(columnNames){
+	: columnNames(std::move(columnNames)), table(std::move(table)){
 
 }
 
@@ -171,7 +171,7 @@ std::unique_ptr<ral::frame::BlazingTable> createEmptyBlazingTable(std::vector<cu
 																  std::vector<std::string> column_names) {
 	std::vector< std::unique_ptr<cudf::column> > empty_columns;
 	empty_columns.resize(column_types.size());
-	for(int i = 0; i < column_types.size(); ++i) {
+	for(size_t i = 0; i < column_types.size(); ++i) {
 		cudf::type_id col_type = column_types[i];
 		cudf::data_type dtype(col_type);
 		std::unique_ptr<cudf::column> empty_column = cudf::make_empty_column(dtype);
@@ -186,7 +186,7 @@ std::unique_ptr<ral::frame::BlazingTable> createEmptyBlazingTable(std::vector<cu
 									   std::vector<std::string> column_names) {
 	std::vector< std::unique_ptr<cudf::column> > empty_columns;
 	empty_columns.resize(column_types.size());
-	for(int i = 0; i < column_types.size(); ++i) {
+	for(size_t i = 0; i < column_types.size(); ++i) {
 		auto dtype = column_types[i];
 		std::unique_ptr<cudf::column> empty_column = cudf::make_empty_column(dtype);
 		empty_columns[i] = std::move(empty_column);
@@ -198,7 +198,7 @@ std::unique_ptr<ral::frame::BlazingTable> createEmptyBlazingTable(std::vector<cu
 
 std::vector<std::unique_ptr<BlazingColumn>> cudfTableViewToBlazingColumns(const CudfTableView & table){
 	std::vector<std::unique_ptr<BlazingColumn>> columns_out;
-	for (size_t i = 0; i < table.num_columns(); i++){
+	for (int i = 0; i < table.num_columns(); i++){
 		columns_out.emplace_back(std::make_unique<BlazingColumnView>(table.column(i)));
 	}
 	return columns_out;

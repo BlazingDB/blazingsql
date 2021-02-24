@@ -35,7 +35,7 @@ std::unique_ptr<ral::frame::BlazingTable> applyBooleanFilter(
 std::unique_ptr<ral::frame::BlazingTable> process_filter(
   const ral::frame::BlazingTableView & table_view,
   const std::string & query_part,
-  blazingdb::manager::Context * context) {
+  blazingdb::manager::Context * /*context*/) {
 
 	if(table_view.num_rows() == 0) {
 		return std::make_unique<ral::frame::BlazingTable>(cudf::empty_like(table_view.view()), table_view.names());

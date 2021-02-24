@@ -1,6 +1,16 @@
 #ifndef _BLAZING_DEBUG_UTILS_H
 #define _BLAZING_DEBUG_UTILS_H
 
+/*
+ * NOTE:
+ * The cmake will set the precondition definiton 'SQLDBGUTILS' when:
+ * - the build type is Release or
+ * - the build type is RelWithDebInfo or
+ * - we are in a conda build process
+ * So, when 'SQLDBGUTILS' is defined the ral will link against gtest and 
+ * cudf test utils and we will be able to use print_* functions
+*/
+
 #include "execution_graph/logic_controllers/LogicPrimitives.h"
 // #include "execution_graph/logic_controllers/CacheMachine.h"
 

@@ -19,14 +19,20 @@ enum AggregateKind{
 	MIN,
 	MAX,
 	COUNT_VALID,
-	COUNT_ALL
+	COUNT_ALL,
+	COUNT_DISTINCT,
+	ROW_NUMBER
 };
 
 namespace ral {
 namespace operators {
 
+	std::unique_ptr<cudf::aggregation> makeCudfAggregation(AggregateKind input);
+
+	AggregateKind get_aggregation_operation(std::string expression_in);
+
 	std::tuple<std::vector<int>, std::vector<std::string>, std::vector<AggregateKind>, std::vector<std::string>> 
-		parseGroupByExpression(const std::string & queryString);
+		parseGroupByExpression(const std::string & queryString, std::size_t num_cols);
 
 	std::tuple<std::vector<int>, std::vector<std::string>, std::vector<AggregateKind>, std::vector<std::string>> 
 		modGroupByParametersForMerge(const std::vector<int> & group_column_indices, 

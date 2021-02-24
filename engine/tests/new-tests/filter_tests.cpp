@@ -153,7 +153,7 @@ TYPED_TEST(LogicalFilterTest, filter_table_with_nulls)
   auto sequenceOut1 = cudf::test::make_counting_transform_iterator(0, [](auto row) {
       return static_cast<T>(2 * row);;
     });
-  auto sequenceOutValidity1 = cudf::test::make_counting_transform_iterator(0, [](auto row) {
+  auto sequenceOutValidity1 = cudf::test::make_counting_transform_iterator(0, [](auto /*row*/) {
       return true;
     });
   cudf::test::fixed_width_column_wrapper<T> expected_col1(sequenceOut1, sequenceOut1  + (inputRows / 2), sequenceOutValidity1);
@@ -161,7 +161,7 @@ TYPED_TEST(LogicalFilterTest, filter_table_with_nulls)
   auto sequenceOut2 = cudf::test::make_counting_transform_iterator(0, [](auto row) {
       return static_cast<T>(4 * row);;
     });
-  auto sequenceOutValidity2 = cudf::test::make_counting_transform_iterator(0, [](auto row) {
+  auto sequenceOutValidity2 = cudf::test::make_counting_transform_iterator(0, [](auto /*row*/) {
       return true;
     });
   cudf::test::fixed_width_column_wrapper<T> expected_col2(sequenceOut2, sequenceOut2 + (inputRows / 2), sequenceOutValidity2);
