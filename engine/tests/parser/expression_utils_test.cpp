@@ -103,20 +103,20 @@ TEST_F(ExpressionUtilsTest, getting_frame_type_from_over_clause) {
 
 TEST_F(ExpressionUtilsTest, gettings_bounds_from_window_expression) {
 	int preceding_value, following_value;
-	int expected_presceding = -1;
+	int expected_preceding = -1;
 	int expected_following = 0;
 	std::string query_part_1 = "LogicalProject(min_keys=[MIN($0) OVER (PARTITION BY $1, $2 ORDER BY $0)])";
 	std::tie(preceding_value, following_value) = get_bounds_from_window_expression(query_part_1);
 
-	EXPECT_EQ(preceding_value, expected_presceding);
+	EXPECT_EQ(preceding_value, expected_preceding);
 	EXPECT_EQ(following_value, expected_following);
 	
-	int expected_presceding2 = 1;
+	int expected_preceding2 = 1;
 	int expected_following2 = 2;
 	std::string query_part_2 = "max_keys=[MAX($0) OVER (PARTITION BY $1 ORDER BY $0 ROWS BETWEEN 1 PRECEDING AND 2 FOLLOWING)]";
 	std::tie(preceding_value, following_value) = get_bounds_from_window_expression(query_part_2);
 
-	EXPECT_EQ(preceding_value, expected_presceding2);
+	EXPECT_EQ(preceding_value, expected_preceding2);
 	EXPECT_EQ(following_value, expected_following2);	
 }
 

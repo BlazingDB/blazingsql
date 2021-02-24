@@ -64,13 +64,13 @@ public:
 
 	kstatus run() override;
 
-	void set_overlap_status(bool presceding, int index, std::string status);
-	std::string get_overlap_status(bool presceding, int index);
-	void combine_overlaps(bool presceding, int target_batch_index, std::unique_ptr<ral::frame::BlazingTable> new_overlap, std::string overlap_status);
-	void combine_overlaps(bool presceding, int target_batch_index, std::unique_ptr<ral::cache::CacheData> new_overlap_cache_data, std::string overlap_status);
+	void set_overlap_status(bool preceding, int index, std::string status);
+	std::string get_overlap_status(bool preceding, int index);
+	void combine_overlaps(bool preceding, int target_batch_index, std::unique_ptr<ral::frame::BlazingTable> new_overlap, std::string overlap_status);
+	void combine_overlaps(bool preceding, int target_batch_index, std::unique_ptr<ral::cache::CacheData> new_overlap_cache_data, std::string overlap_status);
 	void request_receiver();
-	void prepare_overlap_task(bool presceding, int source_batch_index, int target_node_index, int target_batch_index, size_t overlap_size);
-	void send_request(bool presceding, int source_node_index, int target_node_index, int target_batch_index, size_t overlap_size);
+	void prepare_overlap_task(bool preceding, int source_batch_index, int target_node_index, int target_batch_index, size_t overlap_size);
+	void send_request(bool preceding, int source_node_index, int target_node_index, int target_batch_index, size_t overlap_size);
 
 
 private:
@@ -78,20 +78,20 @@ private:
 
 	size_t num_batches;
 	bool have_all_batches = false;
-	std::vector<std::string> presceding_overlap_statuses;
-	size_t presceding_overlap_amount;
+	int preceding_value;     	   // X PRECEDING
+	int following_value;     		   // Y FOLLOWING
+	std::vector<std::string> preceding_overlap_statuses;
 	std::vector<std::string> following_overlap_status;
-	size_t following_overlap_amount;
-
+	
 	// these are the three input caches
 	std::shared_ptr<ral::cache::CacheMachine> input_batches_cache;
-	std::shared_ptr<ral::cache::CacheMachine> input_presceding_overlap_cache;
+	std::shared_ptr<ral::cache::CacheMachine> input_preceding_overlap_cache;
 	std::shared_ptr<ral::cache::CacheMachine> input_following_overlap_cache;
 
 	// these are the internal ones we want to work with. 
 	// We need to use internal ones, because the input ones will get a status of finish applied externally, which make the array access work differently
 	std::shared_ptr<ral::cache::CacheMachine> batches_cache;
-	std::shared_ptr<ral::cache::CacheMachine> presceding_overlap_cache;
+	std::shared_ptr<ral::cache::CacheMachine> preceding_overlap_cache;
 	std::shared_ptr<ral::cache::CacheMachine> following_overlap_cache;
 	
 	int self_node_index;
