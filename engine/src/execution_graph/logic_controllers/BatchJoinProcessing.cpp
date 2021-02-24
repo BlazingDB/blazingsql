@@ -134,7 +134,7 @@ void split_inequality_join_into_join_and_filter(const std::string & join_stateme
 				// and we will just have this equality as the root_
 				if (tree.root().children.size() == 2) {
 					for (auto&& c : tree.root().children) {
-						if (c->value == "=") {
+						if (c->value == "=" || c->value == "IS_NOT_DISTINCT_FROM") {
 							new_join_statement_expression = ral::parser::detail::rebuild_helper(c.get());
 						} else {
 							filter_statement_expression = ral::parser::detail::rebuild_helper(c.get());
