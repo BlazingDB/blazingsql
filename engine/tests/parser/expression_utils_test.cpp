@@ -102,30 +102,22 @@ TEST_F(ExpressionUtilsTest, getting_frame_type_from_over_clause) {
 }
 
 TEST_F(ExpressionUtilsTest, gettings_bounds_from_window_expression) {
-	std::vector<int> preceding_values, following_values;
-	std::vector<int> expected_presceding(1, -1), expected_following(1, 0);
+	int preceding_value, following_value;
+	int expected_presceding = -1;
+	int expected_following = 0;
 	std::string query_part_1 = "LogicalProject(min_keys=[MIN($0) OVER (PARTITION BY $1, $2 ORDER BY $0)])";
-	std::tie(preceding_values, following_values) = get_bounds_from_window_expression(query_part_1);
+	std::tie(preceding_value, following_value) = get_bounds_from_window_expression(query_part_1);
 
-	EXPECT_EQ(preceding_values.size(), expected_presceding.size());
-	EXPECT_EQ(following_values.size(), expected_following.size());
-
-	for (int i = 0; i < preceding_values.size(); ++i) {
-		EXPECT_EQ(preceding_values[i], expected_presceding[i]);
-		EXPECT_EQ(following_values[i], expected_following[i]);
-	}
-
-	std::vector<int> expected_presceding_2(1, 1), expected_following_2(1, 2);
+	EXPECT_EQ(preceding_value, expected_presceding);
+	EXPECT_EQ(following_value, expected_following);
+	
+	int expected_presceding2 = 1;
+	int expected_following2 = 2;
 	std::string query_part_2 = "max_keys=[MAX($0) OVER (PARTITION BY $1 ORDER BY $0 ROWS BETWEEN 1 PRECEDING AND 2 FOLLOWING)]";
-	std::tie(preceding_values, following_values) = get_bounds_from_window_expression(query_part_2);
+	std::tie(preceding_value, following_value) = get_bounds_from_window_expression(query_part_2);
 
-	EXPECT_EQ(preceding_values.size(), expected_presceding_2.size());
-	EXPECT_EQ(following_values.size(), expected_following_2.size());
-
-	for (int i = 0; i < preceding_values.size(); ++i) {
-		EXPECT_EQ(preceding_values[i], expected_presceding_2[i]);
-		EXPECT_EQ(following_values[i], expected_following_2[i]);
-	}
+	EXPECT_EQ(preceding_value, expected_presceding2);
+	EXPECT_EQ(following_value, expected_following2);	
 }
 
 TEST_F(ExpressionUtilsTest, getting_cols_to_apply_window_and_cols_to_apply_agg) {
