@@ -101,24 +101,31 @@ get_sort_vars(const std::string & query_part) {
 	return std::make_tuple(sortColIndices, sortOrderTypes, limitRows);
 }
 
-//input: window#0=[window(partition {0, 2} order by [1 DESC, 3, 4 DESC] aggs [MIN($0)])]
-//output: < [0, 2], [cudf::ASCENDING, cudf::ASCENDING] >
-std::tuple< std::vector<int>, std::vector<cudf::order> > get_vars_to_partition(const std::string & query_part) {
+// input: min_keys=[MIN($0) OVER (PARTITION BY $1, $2 ORDER BY $3)], n_nationkey=[$0]
+// output: < [1, 2], [cudf::ASCENDING, cudf::ASCENDING] >
+std::tuple< std::vector<int>, std::vector<cudf::order> > get_vars_to_partition(const std::string & logical_plan) {
 	std::vector<int> column_index;
 	std::vector<cudf::order> order_types;
+	const std::string partition_expr = "PARTITION BY ";
 
-	std::string expression_name = "partition ";
-	if (query_part.find(expression_name) == query_part.npos) {
+	// PARTITION BY $1, $2 ORDER BY $3
+	std::string over_expression = get_first_over_expression_from_logical_plan(logical_plan, partition_expr);
+
+	if (over_expression.size() == 0) {
 		return std::make_tuple(column_index, order_types);
 	}
-	
-	std::size_t start_position = query_part.find(expression_name) + expression_name.size();
-    std::size_t end_position = query_part.find("}", start_position);
 
-	// Now we have something like {0, 2}
-	std::string values = query_part.substr(start_position + 1, end_position - start_position - 1);
+	size_t start_position = over_expression.find(partition_expr) + partition_expr.size();
+	size_t end_position = over_expression.find("ORDER BY ");
+
+	if (end_position == get_query_part(logical_plan).npos) {
+		end_position = over_expression.size() + 1;
+	}
+	// $1, $2
+	std::string values = over_expression.substr(start_position, end_position - start_position - 1);
 	std::vector<std::string> column_numbers_string = StringUtil::split(values, ", ");
 	for (size_t i = 0; i < column_numbers_string.size(); i++) {
+		column_numbers_string[i] = StringUtil::replace(column_numbers_string[i], "$", "");
 		column_index.push_back(std::stoi(column_numbers_string[i]));
 		order_types.push_back(cudf::order::ASCENDING);
 	}
@@ -126,34 +133,45 @@ std::tuple< std::vector<int>, std::vector<cudf::order> > get_vars_to_partition(c
 	return std::make_tuple(column_index, order_types);
 }
 
-//input: window#0=[window(partition {0, 2} order by [1 DESC, 3, 4 DESC] aggs [MIN($0)])]
-//output: < [1, 3, 4], [cudf::DESCENDING, cudf::ASCENDING, cudf::DESCENDING] >
-std::tuple< std::vector<int>, std::vector<cudf::order> > get_vars_to_orders(const std::string & query_part) {
+// input: min_keys=[MIN($0) OVER (PARTITION BY $2 ORDER BY $3, $1 DESC)], n_nationkey=[$0]
+// output: < [3, 1], [cudf::ASCENDING, cudf::DESCENDING] >
+std::tuple< std::vector<int>, std::vector<cudf::order> > get_vars_to_orders(const std::string & logical_plan) {
 	std::vector<int> column_index;
 	std::vector<cudf::order> order_types;
+	std::string order_expr = "ORDER BY ";
 
-	std::string expression_name = "order by ";
+	// PARTITION BY $2 ORDER BY $3, $1 DESC
+	std::string over_expression = get_first_over_expression_from_logical_plan(logical_plan, order_expr);
 
-	std::size_t start_position = query_part.find(expression_name) + expression_name.size();
-    std::size_t end_position = query_part.find("]", start_position);
+	if (over_expression.size() == 0) {
+		return std::make_tuple(column_index, order_types);
+	}
 
-	// Now we have something like [1 DESC, 3]
-	std::string values = query_part.substr(start_position + 1, end_position - start_position - 1);
-	std::vector<std::string> column_order_string = StringUtil::split(values, ", ");   // ["1 DESC", "3"]
+	size_t start_position = over_expression.find(order_expr) + order_expr.size();
+	size_t end_position = over_expression.find("ROWS");
+	if (end_position != over_expression.npos) {
+		end_position = end_position - 1;
+	} else {
+		end_position = over_expression.size();
+	}
 
-	for (std::size_t i=0; i < column_order_string.size(); ++i) {
-		std::vector<std::string> split_parts = StringUtil::split(column_order_string[i], " ");
+	// $3, $1 DESC
+	std::string values = over_expression.substr(start_position, end_position - start_position);
+	std::vector<std::string> column_express = StringUtil::split(values, ", ");
+	for (std::size_t i = 0; i < column_express.size(); ++i) {
+		std::vector<std::string> split_parts = StringUtil::split(column_express[i], " ");
 		if (split_parts.size() == 1) order_types.push_back(cudf::order::ASCENDING);
 		else order_types.push_back(cudf::order::DESCENDING);
-	
+
+		split_parts[0] = StringUtil::replace(split_parts[0], "$", "");
 		column_index.push_back(std::stoi(split_parts[0]));
 	}
 
 	return std::make_tuple(column_index, order_types);
 }
 
-//input: window#0=[window(partition {0, 2} order by [1 DESC, 3, 4 DESC] aggs [MIN($0)])]
-//output: < [0, 2, 1, 3, 4], [cudf::ASCENDING, cudf::ASCENDING, cudf::DESCENDING, cudf::ASCENDING, cudf::DESCENDING] >
+// input: min_keys=[MIN($0) OVER (PARTITION BY $1, $2 ORDER BY $3 DESC)], n_nationkey=[$0]
+// output: < [1, 2, 3], [cudf::ASCENDING, cudf::ASCENDING, cudf::DESCENDING] >
 std::tuple< std::vector<int>, std::vector<cudf::order> > get_vars_to_partition_and_order(const std::string & query_part) {
 	std::vector<int> column_index_partition, column_index_order;
 	std::vector<cudf::order> order_types_partition, order_types_order;
@@ -172,19 +190,18 @@ std::tuple<std::vector<int>, std::vector<cudf::order> > get_right_sorts_vars(con
 	std::vector<int> sortColIndices;
 	cudf::size_type limitRows;
 
-	// window function
-	if (query_part.find("window") != query_part.npos) {
-		// order by and partition by
-		if (query_part.find("order by") != query_part.npos && query_part.find("partition") != query_part.npos) {
+	if (is_window_function(query_part)) {
+		// `order by` and `partition by`
+		if (query_part.find("ORDER BY") != query_part.npos && query_part.find("PARTITION BY") != query_part.npos) {
 			std::tie(sortColIndices, sortOrderTypes) = get_vars_to_partition_and_order(query_part);
 		}
-		// just partition by
-		else if (query_part.find("order by") == query_part.npos) {
+		// only `partition by`
+		else if (!window_expression_contains_order(query_part)) {
 			std::tie(sortColIndices, sortOrderTypes) = get_vars_to_partition(query_part);
 		}
-		// just order by. TODO: for now not supported
+		// TODO: for now over clauses without `partition by` are not supported
 		else {
-			throw std::runtime_error("Error, not support window function without partition by clause");
+			throw std::runtime_error("Error, not support for WINDOW FUNCTION without PARTITION BY clause");
 			//std::tie(sortColIndices, sortOrderTypes) = get_vars_to_orders(query_part);	
 		}
 	} else std::tie(sortColIndices, sortOrderTypes, limitRows) = get_sort_vars(query_part);
@@ -243,8 +260,12 @@ std::unique_ptr<ral::frame::BlazingTable> sample(const ral::frame::BlazingTableV
 	std::vector<int> sortColIndices;
 	cudf::size_type limitRows;
 
-	if (query_part.find("window") != query_part.npos) std::tie(sortColIndices, sortOrderTypes) = get_vars_to_partition(query_part);
-	else std::tie(sortColIndices, sortOrderTypes, limitRows) = get_sort_vars(query_part);
+	if (is_window_function(query_part)) {
+		std::tie(sortColIndices, sortOrderTypes) = get_vars_to_partition(query_part);
+	}
+	else {
+		std::tie(sortColIndices, sortOrderTypes, limitRows) = get_sort_vars(query_part);
+	}
 
 	auto tableNames = table.names();
 	std::vector<std::string> sortColNames(sortColIndices.size());
@@ -257,15 +278,21 @@ std::unique_ptr<ral::frame::BlazingTable> sample(const ral::frame::BlazingTableV
 	return std::make_unique<ral::frame::BlazingTable>(std::move(samples), sortColNames);
 }
 
-std::vector<cudf::table_view> partition_table(const ral::frame::BlazingTableView & partitionPlan, const ral::frame::BlazingTableView & sortedTable, const std::string & query_part) {
+std::vector<cudf::table_view> partition_table(const ral::frame::BlazingTableView & partitionPlan,
+	const ral::frame::BlazingTableView & sortedTable,
+	const std::string & query_part) {
 	std::vector<cudf::order> sortOrderTypes;
 	std::vector<int> sortColIndices;
 	cudf::size_type limitRows;
 
-	if (query_part.find("window") != query_part.npos) std::tie(sortColIndices, sortOrderTypes) = get_vars_to_partition(query_part);
-	else std::tie(sortColIndices, sortOrderTypes, limitRows) = get_sort_vars(query_part);
+	if (is_window_function(query_part)) {
+		std::tie(sortColIndices, sortOrderTypes) = get_vars_to_partition(query_part);
+	}
+	else {
+		std::tie(sortColIndices, sortOrderTypes, limitRows) = get_sort_vars(query_part);
+	}
 
-	if(sortedTable.num_rows() == 0) {
+	if (sortedTable.num_rows() == 0) {
 		return {sortedTable.view()};
 	}
 
@@ -279,15 +306,21 @@ std::vector<cudf::table_view> partition_table(const ral::frame::BlazingTableView
 	return cudf::split(sortedTable.view(), split_indexes);
 }
 
-std::unique_ptr<ral::frame::BlazingTable> generate_partition_plan(const std::vector<std::unique_ptr<ral::frame::BlazingTable>> & samples,
-	std::size_t table_num_rows, std::size_t avg_bytes_per_row, const std::string & query_part, Context * context){
+std::unique_ptr<ral::frame::BlazingTable> generate_partition_plan(
+	const std::vector<std::unique_ptr<ral::frame::BlazingTable>> & samples,
+	std::size_t table_num_rows, std::size_t avg_bytes_per_row,
+	const std::string & query_part, Context * context) {
 
 	std::vector<cudf::order> sortOrderTypes;
 	std::vector<int> sortColIndices;
 	cudf::size_type limitRows;
 	
-	if (query_part.find("window") != query_part.npos) std::tie(sortColIndices, sortOrderTypes) = get_vars_to_partition(query_part);
-	else std::tie(sortColIndices, sortOrderTypes, limitRows) = get_sort_vars(query_part);
+	if (is_window_function(query_part)) { 
+		std::tie(sortColIndices, sortOrderTypes) = get_vars_to_partition(query_part);
+	}
+	else {
+		std::tie(sortColIndices, sortOrderTypes, limitRows) = get_sort_vars(query_part);
+	}
 
 	std::unique_ptr<ral::frame::BlazingTable> partitionPlan;
 

@@ -108,10 +108,10 @@ ral::execution::task_result TableScan::do_process(std::vector< std::unique_ptr<r
     cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) {
     try{
         output->addToCache(std::move(inputs[0]));
-    }catch(rmm::bad_alloc e){
+    }catch(const rmm::bad_alloc& e){
         //can still recover if the input was not a GPUCacheData 
         return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
-    }catch(std::exception e){
+    }catch(const std::exception& e){
         return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }
     return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
@@ -221,10 +221,10 @@ ral::execution::task_result BindableTableScan::do_process(std::vector< std::uniq
             input->setNames(fix_column_aliases(input->names(), expression));
             output->addToCache(std::move(input));
         }
-    }catch(rmm::bad_alloc e){
-        //can still recover if the input was not a GPUCacheData 
+    }catch(const rmm::bad_alloc& e){
+        //can still recover if the input was not a GPUCacheData
         return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
-    }catch(std::exception e){
+    }catch(const std::exception& e){
         return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }
 
@@ -333,10 +333,10 @@ ral::execution::task_result Projection::do_process(std::vector< std::unique_ptr<
         auto & input = inputs[0];
         auto columns = ral::processor::process_project(std::move(input), expression, this->context.get());
         output->addToCache(std::move(columns));
-    }catch(rmm::bad_alloc e){
+    }catch(const rmm::bad_alloc& e){
         //can still recover if the input was not a GPUCacheData 
         return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
-    }catch(std::exception e){
+    }catch(const std::exception& e){
         return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }
     return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
@@ -408,9 +408,9 @@ ral::execution::task_result Filter::do_process(std::vector< std::unique_ptr<ral:
         auto & input = inputs[0];
         columns = ral::processor::process_filter(input->toBlazingTableView(), expression, this->context.get());
         output->addToCache(std::move(columns));
-    }catch(rmm::bad_alloc e){
+    }catch(const rmm::bad_alloc& e){
         return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
-    }catch(std::exception e){
+    }catch(const std::exception& e){
         return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }
 

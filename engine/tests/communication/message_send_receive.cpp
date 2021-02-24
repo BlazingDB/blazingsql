@@ -796,15 +796,15 @@ void ReceiverCall(const UcpWorkerAddress &peerUcpWorkerAddress,
 
   for (size_t i = 0; i < 30; i++)
   {
-    auto cache_data = input_cache->pullCacheData();
-    auto gpu_cache_data = static_cast<ral::cache::GPUCacheData *>(cache_data.get());
-    auto table_metadata_pair = gpu_cache_data->decacheWithMetaData();
-
+    std::unique_ptr<ral::cache::CacheData> cache_data = input_cache->pullCacheData();
+    ral::cache::MetadataDictionary metadata = cache_data->getMetadata();
+    std::unique_ptr<ral::frame::BlazingTable> table = cache_data->decache();
+    
     auto expected_metadata = generate_metadata();
-    EXPECT_TRUE(expected_metadata.get_values() == table_metadata_pair.second.get_values());
+    EXPECT_TRUE(expected_metadata.get_values() == metadata.get_values());
 
     auto expected_table = generate_table_data();
-    cudf::test::expect_tables_equal(expected_table->view(), table_metadata_pair.first->view());
+    cudf::test::expect_tables_equal(expected_table->view(), table->view());
   }
 }
 

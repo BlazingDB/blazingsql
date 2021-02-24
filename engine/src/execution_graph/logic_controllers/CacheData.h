@@ -38,7 +38,7 @@ using namespace fmt::literals;
 * CPU, or a file. We can also have GPU messages that contain metadata
 * which are used for sending CacheData from node to node
 */
-enum class CacheDataType { GPU, CPU, LOCAL_FILE, GPU_METADATA, IO_FILE, CONCATENATING, PINNED };
+enum class CacheDataType { GPU, CPU, LOCAL_FILE, IO_FILE, CONCATENATING, PINNED };
 
 const std::string KERNEL_ID_METADATA_LABEL = "kernel_id"; /**< A message metadata field that indicates which kernel owns this message. */
 const std::string RAL_ID_METADATA_LABEL = "ral_id"; /**< A message metadata field that indicates RAL ran this. */
@@ -274,7 +274,7 @@ public:
 	* @param metadata The metadata that will be used in transport and planning.
 	*/
 	GPUCacheData(std::unique_ptr<ral::frame::BlazingTable> table, const MetadataDictionary & metadata)
-		: GPUCacheData(std::move(table)) {
+		: CacheData(CacheDataType::GPU,table->names(), table->get_schema(), table->num_rows()),  data{std::move(table)} {
 			this->metadata = metadata;
 		}
     
@@ -380,8 +380,7 @@ protected:
  	virtual ~CPUCacheData() {}
 
 protected:
-	std::unique_ptr<ral::frame::BlazingHostTable> host_table; /**< The CPU representation of a DataFrame  */
- 	MetadataDictionary metadata; /**< The metadata used for routing and planning. */
+	std::unique_ptr<ral::frame::BlazingHostTable> host_table; /**< The CPU representation of a DataFrame  */ 	
  };
 
 

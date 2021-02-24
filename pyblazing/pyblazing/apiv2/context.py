@@ -906,6 +906,7 @@ def kwargs_validation(kwargs, bc_api_str):
             "use_index",
             "max_bytes_chunk_read",  # Used for reading CSV files in chunks
             "local_files",
+            "get_metadata",
         ]
         params_info = "https://docs.blazingdb.com/docs/create_table"
 
@@ -1978,6 +1979,9 @@ class BlazingContext(object):
                       only have access to a subset of the files
                       belonging to the same table. In such a case,
                       each worker will load their corresponding partitions.
+        get_metadata (optional) : boolean, to use parquet and orc metadata,
+                      defaults to True. When set to False it will skip
+                      the process of getting metadata.
 
         Examples
         --------
@@ -2022,6 +2026,7 @@ class BlazingContext(object):
         is_hive_input = False
         extra_columns = []
         local_files = kwargs.get("local_files", False)
+        get_metadata = kwargs.get("get_metadata", True)
 
         # See datasource.file_format
         file_format_hint = kwargs.get("file_format", "undefined")
@@ -2349,7 +2354,9 @@ class BlazingContext(object):
                 parsedMetadata = parseHiveMetadata(table, uri_values)
                 table.metadata = parsedMetadata
 
-            if (
+            # TODO: if still reading ORC metadata has issues then we can skip
+            # using get_metadata argument equals to False
+            if get_metadata and (
                 parsedSchema["file_type"] == DataType.PARQUET
                 or parsedSchema["file_type"] == DataType.ORC
             ):

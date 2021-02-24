@@ -322,9 +322,6 @@ operator_type map_to_operator_type(const std::string & operator_token) {
 		{"RIGHT", operator_type::BLZ_STR_RIGHT},
 	};
 
-	if(OPERATOR_MAP.find(operator_token) == OPERATOR_MAP.end()){
-		std::cout<<operator_token<<" is not a valid operator."<<std::endl;
-	}
 	RAL_EXPECTS(OPERATOR_MAP.find(operator_token) != OPERATOR_MAP.end(), "Unsupported operator: " + operator_token);
 
 	return OPERATOR_MAP[operator_token];
@@ -391,6 +388,12 @@ std::vector<std::string> fix_column_aliases(const std::vector<std::string> & col
 
 	std::vector<std::string> col_names = column_names;
 
+	// When Window Function exists more aliases are considered
+	// so we just want to return the same column_names
+	if (aliases_string_split.size() > col_names.size()) {
+		return col_names;
+	}
+
 	// Setting the aliases only when is not an empty set
 	for(size_t col_idx = 0; col_idx < aliases_string_split.size(); col_idx++) {
 		// TODO: Rommel, this check is needed when for example the scan has not projects but there are extra
@@ -403,67 +406,201 @@ std::vector<std::string> fix_column_aliases(const std::vector<std::string> & col
 	return col_names;
 }
 
-// input: LogicalWindow(window#0=[window(partition {2} aggs [COUNT($0), $SUM0($0)])])
-// output: a vector [0, 0]
-std::vector<int> get_columns_to_apply_window_function(const std::string & query_part) {
-	std::vector<int> column_index;
-	std::string expression_name = "aggs ";
+std::string remove_over_expr(std::string expression) {
 
-	if (query_part.find(expression_name) == query_part.npos) {
-		return column_index;
+	std::string over_expression = get_over_expression(expression);
+	std::string expression_to_remove = " OVER (" + over_expression + ")";
+	std::string removed_expression = StringUtil::replace(expression, expression_to_remove, "");
+
+	return removed_expression;
+}
+
+std::string remove_count_expr(std::string expression, size_t rigt_index) {
+
+	std::string removed_expression, express_to_remove;
+	size_t start_index = expression.find("COUNT");
+	// When a CAST was applied to a projected column
+	if (expression.find("COUNT(CAST") != expression.npos) {
+		removed_expression = StringUtil::replace(expression, "COUNT(", "");
+		size_t end_cast_index = removed_expression.find(", 0)");
+		removed_expression.erase(removed_expression.begin() + end_cast_index - 1);
+		removed_expression = removed_expression.substr(0, removed_expression.size() - 1);
+
+		size_t new_start_index = removed_expression.find("$");
+		size_t new_end_index = removed_expression.find(")");
+		std::string old_index = removed_expression.substr(new_start_index + 1, new_end_index - new_start_index - 1);
+		removed_expression = StringUtil::replace(removed_expression, "$" + old_index, "$" + std::to_string(rigt_index));
+	} else {
+		size_t end_index = expression.find(")");
+		express_to_remove = expression.substr(start_index, end_index - start_index + 1);
+		removed_expression = StringUtil::replace(expression, express_to_remove, "$" + std::to_string(rigt_index));
 	}
 
-	std::size_t start_position = query_part.find(expression_name) + expression_name.size();
-    std::size_t end_position = query_part.find("]", start_position);
+	return removed_expression;
+}
 
-	// COUNT($0), $SUM0($0)
-	std::string reduced_query_part = query_part.substr(start_position + 1, end_position - start_position - 1);
-	std::vector<std::string> column_agg_string = StringUtil::split(reduced_query_part, ",");
+std::string remove_sum0_expr(std::string expression, size_t rigt_index) {
 
-	if (column_agg_string.size() == 1) {
-		// ROW_NUMER()  does not have indice, so we add the first indice
-		if (reduced_query_part.find("(") + 1 == reduced_query_part.find(")")) {
-			column_index.push_back(0);
-			return column_index;
+	std::string removed_expression;
+	size_t start_index = expression.find("$SUM0");
+	size_t end_index = expression.find("null:") - 2;
+
+	if (expression.find("$SUM0(CAST") != expression.npos) {
+		removed_expression = StringUtil::replace(expression, "$SUM0(", "");
+		size_t end_index_2 = removed_expression.find(", null:");
+		removed_expression.erase(removed_expression.begin() + end_index_2 - 1);
+		removed_expression = StringUtil::replace(removed_expression, "0), CAST($" + std::to_string(rigt_index), "0), CAST($" + std::to_string(rigt_index + 1));
+	} else {
+		std::string express_to_remove = expression.substr(start_index, end_index - start_index);
+		removed_expression = StringUtil::replace(expression, express_to_remove, "$" + std::to_string(rigt_index + 1));
+	}
+
+	return removed_expression;
+}
+
+std::string get_query_part(std::string logical_plan) {
+	std::string query_part = logical_plan.substr(
+		logical_plan.find("(") + 1, logical_plan.rfind(")") - logical_plan.find("(") - 1);
+
+	return query_part;
+}
+
+std::tuple< std::vector<int>, std::vector<int> > get_bounds_from_window_expression(const std::string & logical_plan) {
+	std::vector<int> preceding_values, following_values;
+
+	std::string over_clause = get_first_over_expression_from_logical_plan(logical_plan, "PARTITION BY");
+
+	// the default behavior when not bounds are passed is
+	// RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW. 
+	if (over_clause.find("BETWEEN") == std::string::npos) {
+		preceding_values.push_back(-1);
+		following_values.push_back(0);
+		return std::make_tuple(preceding_values, following_values);
+	}
+
+	// getting the first limit value
+	std::string between_expr = "BETWEEN ";
+	std::string preceding_expr = " PRECEDING";
+	size_t start_pos = over_clause.find(between_expr) + between_expr.size();
+	size_t end_pos = over_clause.find(preceding_expr);
+	std::string first_limit = over_clause.substr(start_pos, end_pos - start_pos);
+	preceding_values.push_back(std::stoi(first_limit));
+
+	// getting the second limit value
+	std::string and_expr = "AND ";
+	std::string following_expr = " FOLLOWING";
+	start_pos = over_clause.find(and_expr) + and_expr.size();
+	end_pos = over_clause.find(following_expr);
+	std::string second_limit = over_clause.substr(start_pos, end_pos - start_pos);
+	following_values.push_back(std::stoi(second_limit));
+
+	return std::make_tuple(preceding_values, following_values);
+}
+
+std::string get_frame_type_from_over_clause(const std::string & logical_plan) {
+	std::string query_part = get_query_part(logical_plan);
+	if (is_window_function(query_part) && query_part.find("ROWS") != query_part.npos) {
+		return "ROWS";
+	}
+
+	return "RANGE";
+}
+
+// input: min_keys=[MIN($0) OVER (PARTITION BY $1, $2 ORDER BY $0)]
+// output: PARTITION BY $1, $2 ORDER BY $0
+std::string get_over_expression(std::string query_part) {
+	std::string expression_name = "OVER (";
+	size_t pos = query_part.find(expression_name);
+
+	if (pos == std::string::npos) {
+		return "";
+	}
+
+	std::string reduced_query_part = query_part.substr(pos + expression_name.size(), query_part.size());
+
+	// Sometimes there are more than one OVER clause, for instance: SUM and AVG
+	if (reduced_query_part.find(expression_name) != std::string::npos) {
+		reduced_query_part = get_over_expression(reduced_query_part);
+	}
+
+	return reduced_query_part.substr(0, reduced_query_part.find(")"));
+}
+
+std::string get_first_over_expression_from_logical_plan(const std::string & logical_plan, const std::string & expr) {
+	std::string over_expression;
+
+	std::string query_part = get_query_part(logical_plan);
+	if (query_part.find(expr) == query_part.npos) {
+		return over_expression;
+	}
+	// at least there is one PARTITION BY
+	std::vector<std::string> project_expressions = get_expressions_from_expression_list(query_part);
+	size_t first_pos_with_over;
+
+	// TODO: for now all the OVER clauses MUST be the same
+	for (size_t i = 0; i < project_expressions.size(); ++i) {
+		if (project_expressions[i].find(expr) != std::string::npos) {
+			first_pos_with_over = i;
+			break;
 		}
 	}
 
-	for (std::size_t agg_i=0; agg_i < column_agg_string.size(); ++agg_i) {
-		std::size_t dolar_pos = reduced_query_part.find("$");
-		std::size_t closed_parenth_pos = reduced_query_part.find(")");
+	over_expression = get_over_expression(project_expressions[first_pos_with_over]);
 
-		std::string indice = reduced_query_part.substr(dolar_pos + 1, closed_parenth_pos - dolar_pos - 1);
-		column_index.push_back(std::stoi(indice));
-	}
-
-	return column_index;
+	return over_expression;
 }
 
-// input: LogicalWindow(window#0=[window(partition {2} aggs [COUNT($0), $SUM0($0)])])
-// output: a vector ["COUNT", "$SUM0"]
-std::vector<std::string> get_window_function_agg(const std::string & query_part) {
+// input: LogicalComputeWindow(min_keys=[MIN($0) OVER (PARTITION BY $2 ORDER BY $1)],
+//                             max_keys=[MAX($0) OVER (PARTITION BY $2 ORDER BY $1)],
+//                             lead_val=[LEAD($0, 3) OVER (PARTITION BY $2 ORDER BY $1)],
+//                             n_nationkey=[$0])
+// output: < [0, 0, 0], ["MIN", "MAX", "LEAD"], [3] >
+std::tuple< std::vector<int>, std::vector<std::string>, std::vector<int> > 
+get_cols_to_apply_window_and_cols_to_apply_agg(const std::string & logical_plan) {
+	std::vector<int> column_index;
 	std::vector<std::string> aggregations;
-	std::string expression_name = "aggs ";
+	std::vector<int> agg_param_values;
 
-	if (query_part.find(expression_name) == query_part.npos) {
-		return aggregations;
+	std::string query_part = get_query_part(logical_plan);
+	std::vector<std::string> project_expressions = get_expressions_from_expression_list(query_part);
+
+	// we want all expressions that contains an OVER clause
+	for (size_t i = 0; i < project_expressions.size(); ++i) {
+		if (project_expressions[i].find("OVER") != std::string::npos) {
+			std::string express_i = project_expressions[i];
+			size_t start_pos = express_i.find("[") + 1;
+			size_t end_pos = express_i.find("OVER");
+			express_i = express_i.substr(start_pos, end_pos - start_pos);
+			std::string express_i_wo_trim = StringUtil::trim(express_i);
+			size_t num_over_clauses = StringUtil::findAndCountAllMatches(project_expressions[i], "OVER");
+			std::vector<std::string> split_parts = StringUtil::split(express_i_wo_trim, "($");
+			if (split_parts[0] == "ROW_NUMBER()") {
+				aggregations.push_back(StringUtil::replace(split_parts[0], "()", ""));
+				column_index.push_back(0);
+			} else if (split_parts[0] == "LAG" || split_parts[0] == "LEAD") {
+				// we need to get the constant values
+				std::string right_express = StringUtil::replace(split_parts[1], ")", "");
+				std::vector<std::string> inside_parts = StringUtil::split(right_express, ", ");
+				aggregations.push_back(split_parts[0]);
+				column_index.push_back(std::stoi(inside_parts[0]));
+				agg_param_values.push_back(std::stoi(inside_parts[1]));
+			} else if (num_over_clauses > 1) {
+				// SUM or AVG case
+				aggregations.push_back("COUNT");
+				aggregations.push_back("$SUM0");
+				std::string indice = split_parts[1].substr(0, split_parts[1].find(")"));
+				column_index.push_back(std::stoi(indice));
+				column_index.push_back(std::stoi(indice));
+			} else {
+				aggregations.push_back(split_parts[0]);
+				std::string col_index = StringUtil::replace(split_parts[1], ")", "");
+				column_index.push_back(std::stoi(col_index));
+			}
+		}
 	}
 
-	std::size_t start_position = query_part.find(expression_name) + expression_name.size();
-    std::size_t end_position = query_part.find("]", start_position);
-
-	// COUNT($0), $SUM0($0)
-	std::string reduced_query_part = query_part.substr(start_position + 1, end_position - start_position - 1);
-	aggregations = StringUtil::split(reduced_query_part, ",");
-
-	for (std::size_t agg_i=0; agg_i < aggregations.size(); ++agg_i) {
-		std::size_t open_parenthesis = aggregations[agg_i].find('(');
-		aggregations[agg_i] = aggregations[agg_i].substr(0, open_parenthesis);
-		aggregations[agg_i] = StringUtil::trim(aggregations[agg_i]);
-	}
-	return aggregations;
+	return std::make_tuple(column_index, aggregations, agg_param_values);
 }
-
 
 std::string get_named_expression(const std::string & query_part, const std::string & expression_name) {
 	if(query_part.find(expression_name + "=[") == query_part.npos) {
@@ -549,15 +686,41 @@ bool is_distribute_aggregate(std::string query_part) { return (query_part.find(L
 
 bool is_merge_aggregate(std::string query_part) { return (query_part.find(LOGICAL_MERGE_AGGREGATE_TEXT) != std::string::npos); }
 
-bool is_window(std::string query_part) { return (query_part.find(LOGICAL_WINDOW_TEXT) != std::string::npos); }
+bool is_window_function(std::string query_part) { return (query_part.find("OVER") != std::string::npos); }
 
 bool is_window_compute(std::string query_part) { return (query_part.find(LOGICAL_COMPUTE_WINDOW_TEXT) != std::string::npos); }
 
-bool contains_window_expression(std::string query_part) { return (query_part.find("window") != std::string::npos); }
+bool window_expression_contains_partition(std::string query_part) { return (query_part.find("PARTITION") != std::string::npos); }
 
-bool window_expression_contains_partition(std::string query_part) { return (query_part.find("partition") != std::string::npos); }
+bool window_expression_contains_order(std::string query_part) { return (query_part.find("ORDER") != std::string::npos); }
 
-bool window_expression_contains_multiple_windows(std::string query_part) { return (query_part.find("window#1") != std::string::npos); }
+// input: LogicalProject(min_keys=[MIN($0) OVER (PARTITION BY $2 ORDER BY $1)],
+//                       max_keys=[MAX($0) OVER (PARTITION BY $2 ORDER BY $0)])
+// output: true
+bool window_expression_contains_multiple_diff_over_clauses(std::string logical_plan) {
+	size_t num_over_clauses = StringUtil::findAndCountAllMatches(logical_plan, "OVER");
+	if (num_over_clauses < 2) return false;
+
+	std::string query_part = get_query_part(logical_plan);
+	std::vector<std::string> project_expressions = get_expressions_from_expression_list(query_part);
+
+	std::vector<std::string> full_over_expressions;
+	for (size_t i = 0; i < project_expressions.size(); ++i) {
+		if (is_window_function(project_expressions[i])) {
+			std::string over_express = get_over_expression(project_expressions[i]);
+			full_over_expressions.push_back(over_express);
+		}
+	}
+
+	std::string same_over_clause = full_over_expressions[0];
+	for (size_t i = 1; i < full_over_expressions.size(); ++i) {
+		if (same_over_clause.compare(full_over_expressions[i]) != 0) {
+			return true;
+		}
+	}
+
+	return false;
+}
 
 // Returns the index from table_scan if exists
 size_t get_table_index(std::vector<std::string> table_scans, std::string table_scan) {
