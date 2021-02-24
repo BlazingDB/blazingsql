@@ -795,7 +795,7 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
                 size_t num_over_clauses = StringUtil::findAndCountAllMatches(new_expressions[col_i], "OVER");
                 // AVG and SUM cases
                 if (num_over_clauses == 3 || num_over_clauses == 2) {
-                    std::string removed_expression = remove_partition_expr(new_expressions[col_i]);
+                    std::string removed_expression = remove_over_expr(new_expressions[col_i]);
                     removed_expression = remove_count_expr(removed_expression, rigt_index);
                     new_expressions[col_i] = remove_sum0_expr(removed_expression, rigt_index);
                     wf_count += 2;

@@ -406,7 +406,7 @@ std::vector<std::string> fix_column_aliases(const std::vector<std::string> & col
 	return col_names;
 }
 
-std::string remove_partition_expr(std::string expression) {
+std::string remove_over_expr(std::string expression) {
 
 	std::string over_expression = get_over_expression(expression);
 	std::string expression_to_remove = " OVER (" + over_expression + ")";
@@ -466,16 +466,16 @@ std::string get_query_part(std::string logical_plan) {
 }
 
 std::tuple< std::vector<int>, std::vector<int> > get_bounds_from_window_expression(const std::string & logical_plan) {
-	std::vector<int> presceding_values, following_values; 
+	std::vector<int> preceding_values, following_values;
 
 	std::string over_clause = get_first_over_expression_from_logical_plan(logical_plan, "PARTITION BY");
 
 	// the default behavior when not bounds are passed is
 	// RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW. 
 	if (over_clause.find("BETWEEN") == std::string::npos) {
-		presceding_values.push_back(-1);
+		preceding_values.push_back(-1);
 		following_values.push_back(0);
-		return std::make_tuple(presceding_values, following_values);
+		return std::make_tuple(preceding_values, following_values);
 	}
 
 	// getting the first limit value
@@ -484,7 +484,7 @@ std::tuple< std::vector<int>, std::vector<int> > get_bounds_from_window_expressi
 	size_t start_pos = over_clause.find(between_expr) + between_expr.size();
 	size_t end_pos = over_clause.find(preceding_expr);
 	std::string first_limit = over_clause.substr(start_pos, end_pos - start_pos);
-	presceding_values.push_back(std::stoi(first_limit));
+	preceding_values.push_back(std::stoi(first_limit));
 
 	// getting the second limit value
 	std::string and_expr = "AND ";
@@ -494,7 +494,7 @@ std::tuple< std::vector<int>, std::vector<int> > get_bounds_from_window_expressi
 	std::string second_limit = over_clause.substr(start_pos, end_pos - start_pos);
 	following_values.push_back(std::stoi(second_limit));
 
-	return std::make_tuple(presceding_values, following_values);
+	return std::make_tuple(preceding_values, following_values);
 }
 
 std::string get_frame_type_from_over_clause(const std::string & logical_plan) {
@@ -507,10 +507,15 @@ std::string get_frame_type_from_over_clause(const std::string & logical_plan) {
 }
 
 // input: min_keys=[MIN($0) OVER (PARTITION BY $1, $2 ORDER BY $0)]
-// output:  PARTITION BY $1, $2 ORDER BY $0
+// output: PARTITION BY $1, $2 ORDER BY $0
 std::string get_over_expression(std::string query_part) {
 	std::string expression_name = "OVER (";
 	size_t pos = query_part.find(expression_name);
+
+	if (pos == std::string::npos) {
+		return "";
+	}
+
 	std::string reduced_query_part = query_part.substr(pos + expression_name.size(), query_part.size());
 
 	// Sometimes there are more than one OVER clause, for instance: SUM and AVG
@@ -545,7 +550,6 @@ std::string get_first_over_expression_from_logical_plan(const std::string & logi
 	return over_expression;
 }
 
-// TODO: CHANGE THE NAME AND MAYBE SPLIT THIS FUNCTION INTO THREE more atomic functions..
 // input: LogicalComputeWindow(min_keys=[MIN($0) OVER (PARTITION BY $2 ORDER BY $1)],
 //                             max_keys=[MAX($0) OVER (PARTITION BY $2 ORDER BY $1)],
 //                             lead_val=[LEAD($0, 3) OVER (PARTITION BY $2 ORDER BY $1)],

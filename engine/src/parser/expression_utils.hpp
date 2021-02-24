@@ -166,7 +166,7 @@ bool window_expression_contains_order(std::string query_part);
 
 bool window_expression_contains_multiple_diff_over_clauses(std::string query_part);
 
-std::string remove_partition_expr(std::string expression);
+std::string remove_over_expr(std::string expression);
 
 std::string remove_count_expr(std::string expression, size_t rigt_index);
 

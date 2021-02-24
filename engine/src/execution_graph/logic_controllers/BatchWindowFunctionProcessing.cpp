@@ -27,7 +27,7 @@ ComputeWindowKernel::ComputeWindowKernel(std::size_t kernel_id, const std::strin
     std::shared_ptr<ral::cache::graph> query_graph)
     : kernel{kernel_id, queryString, context, kernel_type::ComputeWindowKernel} {
     this->query_graph = query_graph;
-    std::tie(this->presceding_values, this->following_values) = get_bounds_from_window_expression(this->expression);
+    std::tie(this->preceding_values, this->following_values) = get_bounds_from_window_expression(this->expression);
     this->frame_type = get_frame_type_from_over_clause(this->expression);
 }
 
@@ -63,7 +63,7 @@ std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_func
             if (this->expression.find("RANGE") != std::string::npos) {
                 throw std::runtime_error("In Window Function: RANGE is not currently supported");
             }
-            windowed_col = cudf::grouped_rolling_window(table_view_with_single_col, input_col_view, this->presceding_values[0] + 1, this->following_values[0], 1, window_aggregation);
+            windowed_col = cudf::grouped_rolling_window(table_view_with_single_col, input_col_view, this->preceding_values[0] + 1, this->following_values[0], 1, window_aggregation);
         } else {
             // we want to use all the size of each partition
             if (this->type_aggs_as_str[pos] == "LEAD") {
