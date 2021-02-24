@@ -15,7 +15,7 @@ namespace batch {
 std::tuple<std::string, std::string, std::string, std::string> parseExpressionToGetTypeAndCondition(const std::string & expression) {
 	std::string modified_expression, condition, filter_statement, join_type, new_join_statement;
 	modified_expression = expression;
-	StringUtil::findAndReplaceAll(modified_expression, "IS NOT DISTINCT FROM", "=");
+	StringUtil::findAndReplaceAll(modified_expression, "IS NOT DISTINCT FROM", "IS_NOT_DISTINCT_FROM");
 	split_inequality_join_into_join_and_filter(modified_expression, new_join_statement, filter_statement);
 
 	// Getting the condition and type of join
@@ -44,7 +44,7 @@ void parseJoinConditionToColumnIndices(const std::string & condition, std::vecto
 	std::vector<std::string> tokens = get_tokens_in_reverse_order(clean_expression);
 	for(std::string token : tokens) {
 		if(is_operator_token(token)) {
-			if(token == "=") {
+			if(token == "=" || token == "IS_NOT_DISTINCT_FROM") {
 				// so far only equijoins are supported in libgdf
 				operator_count++;
 			} else if(token != "AND") {
@@ -115,14 +115,14 @@ void split_inequality_join_into_join_and_filter(const std::string & join_stateme
 	assert(tree.root().type == ral::parser::node_type::OPERATOR or
 		tree.root().type == ral::parser::node_type::LITERAL); // condition=[true] (for cross join)
 
-	if (tree.root().value == "=") {
+	if (tree.root().value == "=" || tree.root().value == "IS_NOT_DISTINCT_FROM") {
 		// this would be a regular single equality join
 		new_join_statement_expression = condition;  // the join_out is the same as the original input
 		filter_statement_expression = "";					   // no filter out
 	} else if (tree.root().value == "AND") {
 		size_t num_equalities = 0;
 		for (auto&& c : tree.root().children) {
-			if (c->value == "=") {
+			if (c->value == "=" || c->value == "IS_NOT_DISTINCT_FROM") {
 				num_equalities++;
 			}
 		}
@@ -143,7 +143,7 @@ void split_inequality_join_into_join_and_filter(const std::string & join_stateme
 				} else {
 					auto filter_root = std::make_unique<ral::parser::operator_node>("AND");
 					for (auto&& c : tree.root().children) {
-						if (c->value == "=") {
+						if (c->value == "=" || c->value == "IS_NOT_DISTINCT_FROM") {
 							new_join_statement_expression = ral::parser::detail::rebuild_helper(c.get());
 						} else {
 							filter_root->children.push_back(std::unique_ptr<ral::parser::node>(c->clone()));
@@ -156,7 +156,7 @@ void split_inequality_join_into_join_and_filter(const std::string & join_stateme
 				// in the filter (without an and at the root_)
 				auto join_out_root = std::make_unique<ral::parser::operator_node>("AND");
 				for (auto&& c : tree.root().children) {
-					if (c->value == "=") {
+					if (c->value == "=" || c->value == "IS_NOT_DISTINCT_FROM") {
 						join_out_root->children.push_back(std::unique_ptr<ral::parser::node>(c->clone()));
 					} else {
 						filter_statement_expression = ral::parser::detail::rebuild_helper(c.get());
@@ -167,7 +167,7 @@ void split_inequality_join_into_join_and_filter(const std::string & join_stateme
 				auto join_out_root = std::make_unique<ral::parser::operator_node>("AND");
 				auto filter_root = std::make_unique<ral::parser::operator_node>("AND");
 				for (auto&& c : tree.root().children) {
-					if (c->value == "=") {
+					if (c->value == "=" || c->value == "IS_NOT_DISTINCT_FROM") {
 						join_out_root->children.push_back(std::unique_ptr<ral::parser::node>(c->clone()));
 					} else {
 						filter_root->children.push_back(std::unique_ptr<ral::parser::node>(c->clone()));
@@ -321,36 +321,16 @@ std::unique_ptr<ral::frame::BlazingTable> PartwiseJoin::join_set(
 			table_right.view());
 	} else {
 		if(this->join_type == INNER_JOIN) {
-			//Removing nulls on key columns before joining
-			std::unique_ptr<CudfTable> table_left_dropna;
-			std::unique_ptr<CudfTable> table_right_dropna;
-			bool has_nulls_left = ral::processor::check_if_has_nulls(table_left.view(), left_column_indices);
-			bool has_nulls_right = ral::processor::check_if_has_nulls(table_right.view(), right_column_indices);
-			if(has_nulls_left){
-				table_left_dropna = cudf::drop_nulls(table_left.view(), left_column_indices);
-			}
-			if(has_nulls_right){
-				table_right_dropna = cudf::drop_nulls(table_right.view(), right_column_indices);
-			}
-
 			result_table = cudf::inner_join(
-				has_nulls_left ? table_left_dropna->view() : table_left.view(),
-				has_nulls_right ? table_right_dropna->view() : table_right.view(),
+				table_left.view(),
+				table_right.view(),
 				this->left_column_indices,
 				this->right_column_indices,
 				columns_in_common);
-
 		} else if(this->join_type == LEFT_JOIN) {
-			//Removing nulls on right key columns before joining
-			std::unique_ptr<CudfTable> table_right_dropna;
-			bool has_nulls_right = ral::processor::check_if_has_nulls(table_right.view(), right_column_indices);
-			if(has_nulls_right){
-				table_right_dropna = cudf::drop_nulls(table_right.view(), right_column_indices);
-			}
-
 			result_table = cudf::left_join(
 				table_left.view(),
-				has_nulls_right ? table_right_dropna->view() : table_right.view(),
+				table_right.view(),
 				this->left_column_indices,
 				this->right_column_indices,
 				columns_in_common);

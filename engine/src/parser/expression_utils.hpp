@@ -49,6 +49,7 @@ enum class operator_type {
 	BLZ_STR_UPPER,
 	BLZ_STR_INITCAP,
 	BLZ_STR_REVERSE,
+	BLZ_IS_NOT_DISTINCT_FROM,
 
 	// Binary operators
 	BLZ_ADD,            ///< operator +
