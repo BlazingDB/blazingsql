@@ -873,6 +873,7 @@ def createPartitions(fileSchemaType, dir_data_file):
 
     # orders table
     utilityHive.test_hive_partition_data(input=("%s/%s_[0-9]*.%s") % (dir_data, "orders", ext),
+                                           file_format=ext,
                                            table_name="orders",
                                            partitions={
                                                'o_orderpriority': ['1-URGENT', '2-HIGH', '3-MEDIUM', '4-NOT SPECIFIED',
@@ -885,24 +886,26 @@ def createPartitions(fileSchemaType, dir_data_file):
 
     # customer table
     utilityHive.test_hive_partition_data(input=("%s/%s_[0-9]*.%s") % (dir_data, "customer", ext),
+                                           file_format=ext,
                                            table_name="customer",
                                            partitions={
                                                'c_nationkey': [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24],
                                                'c_mktsegment': ['AUTOMOBILE', 'BUILDING', 'FURNITURE', 'HOUSEHOLD', 'MACHINERY']},
-                                         partitions_schema=[('c_nationkey', 'int32'),
+                                           partitions_schema=[('c_nationkey', 'int32'),
                                                             ('c_mktsegment', 'str')],
                                            output='/tmp/BlazingSQL/partitions/' + ext + '/customer/',
                                            num_files=4)
 
     # lineitem table
     utilityHive.test_hive_partition_data(input=("%s/%s_[0-9]*.%s") % (dir_data, "lineitem", ext),
+                                           file_format=ext,
                                            table_name="lineitem",
                                            partitions={
                                                 'l_shipmode':['AIR','FOB','MAIL','RAIL','REG','AIR','SHIP','TRUCK'],
                                                 'l_linestatus':['F','O'],
                                                 'l_returnflag':['A','N','R']
                                            },
-                                         partitions_schema=[('l_shipmode', 'str'),
+                                           partitions_schema=[('l_shipmode', 'str'),
                                                             ('l_linestatus', 'str'),
                                                             ('l_returnflag', 'str')],
                                            output='/tmp/BlazingSQL/partitions/' + ext + '/lineitem/',
@@ -910,15 +913,17 @@ def createPartitions(fileSchemaType, dir_data_file):
 
     # nation table
     utilityHive.test_hive_partition_data(input=("%s/%s_[0-9]*.%s") % (dir_data, "nation", ext),
+                                           file_format=ext,
                                            table_name="nation",
                                            partitions={
                                                'n_regionkey': [0,1,2,3,4]},
-                                         partitions_schema=[('n_regionkey', 'int32')],
+                                           partitions_schema=[('n_regionkey', 'int32')],
                                            output='/tmp/BlazingSQL/partitions/' + ext + '/nation/',
                                            num_files=4)
 
     # part table
     utilityHive.test_hive_partition_data(input=("%s/%s_[0-9]*.%s") % (dir_data, "part", ext),
+                                           file_format=ext,
                                            table_name="part",
                                            partitions={
                                                'p_container': ['JUMBO BAG', 'JUMBO BOX', 'JUMBO CAN', 'JUMBO CASE',
@@ -930,16 +935,17 @@ def createPartitions(fileSchemaType, dir_data_file):
                                                                'SM DRUM', 'SM JAR', 'SM PACK', 'SM PKG', 'WRAP BAG',
                                                                'WRAP BOX', 'WRAP CAN', 'WRAP CASE', 'WRAP DRUM',
                                                                'WRAP JAR', 'WRAP PACK', 'WRAP PKG']},
-                                         partitions_schema=[('p_container', 'str')],
+                                           partitions_schema=[('p_container', 'str')],
                                            output='/tmp/BlazingSQL/partitions/' + ext + '/part/',
                                            num_files=4)
 
     # supplier table
     utilityHive.test_hive_partition_data(input=("%s/%s_[0-9]*.%s") % (dir_data, "supplier", ext),
+                                           file_format=ext,
                                            table_name="supplier",
                                            partitions={
                                                's_nationkey': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]},
-                                         partitions_schema=[('s_nationkey', 'int32')],
+                                           partitions_schema=[('s_nationkey', 'int32')],
                                            output='/tmp/BlazingSQL/partitions/' + ext + '/supplier/',
                                            num_files=4)
 
