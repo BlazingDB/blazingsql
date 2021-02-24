@@ -647,7 +647,7 @@ def get_dtypes(table_name, bool_column=False):
             "date64",
             "str",
             "str",
-            "str",
+            "int32",
             "str",
         ],
         "supplier": ["int64", "str", "str", "int32", "str", "float64", "str"],
