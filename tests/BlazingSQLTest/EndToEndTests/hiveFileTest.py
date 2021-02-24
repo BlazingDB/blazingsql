@@ -9,8 +9,7 @@ from Utils import Execution, gpuMemory, init_context, skip_test, utilityHive
 queryType = "Hive File"
 
 tables = ["orders", "customer", "lineitem", "nation", "part", "supplier"]
-# data_types = [DataType.CSV, DataType.PARQUET, DataType.ORC]
-data_types = [DataType.PARQUET]
+data_types = [DataType.CSV, DataType.PARQUET, DataType.ORC]
 
 def executionTestAuto(dask_client, spark, dir_data_file, bc, nRals):
 
