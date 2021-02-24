@@ -8,6 +8,7 @@
 - #1322 Updated and enabled several E2E tests
 - #1333 Fixing build due to cudf update
 - #1344 Removed GPUCacheDataMetadata class 
+- #1351 Added support for IS NOT DISTINCT FROM for joins and filters
 
 ## Bug Fixes
 - #1335 Fixing uninitialized var in orc metadata and handling the parseMetadata exceptions properly
