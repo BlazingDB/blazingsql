@@ -42,8 +42,8 @@ private:
 	std::vector<int> column_indices_partitioned;   // column indices to be partitioned: [1]
 	std::vector<int> column_indices_to_agg;        // column indices to be agg: [0, 0]
 	std::vector<int> agg_param_values;     		   // due to LAG or LEAD: [5]
-	std::vector<int> preceding_values;     	   // X PRECEDING
-	std::vector<int> following_values;     		   // Y FOLLOWING
+	int preceding_value;     	   // X PRECEDING
+	int following_value;     		   // Y FOLLOWING
 	std::string frame_type;                        // ROWS or RANGE
 	std::vector<std::string> type_aggs_as_str;     // ["MIN", "LAG"]
 	std::vector<AggregateKind> aggs_wind_func;     // [AggregateKind::MIN, AggregateKind::LAG]

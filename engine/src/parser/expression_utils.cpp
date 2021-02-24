@@ -465,17 +465,17 @@ std::string get_query_part(std::string logical_plan) {
 	return query_part;
 }
 
-std::tuple< std::vector<int>, std::vector<int> > get_bounds_from_window_expression(const std::string & logical_plan) {
-	std::vector<int> preceding_values, following_values;
+std::tuple< int, int > get_bounds_from_window_expression(const std::string & logical_plan) {
+	int preceding_value, following_value;
 
 	std::string over_clause = get_first_over_expression_from_logical_plan(logical_plan, "PARTITION BY");
 
 	// the default behavior when not bounds are passed is
 	// RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW. 
 	if (over_clause.find("BETWEEN") == std::string::npos) {
-		preceding_values.push_back(-1);
-		following_values.push_back(0);
-		return std::make_tuple(preceding_values, following_values);
+		preceding_value = -1;
+		following_value = 0;
+		return std::make_tuple(preceding_value, following_value);
 	}
 
 	// getting the first limit value
@@ -484,7 +484,7 @@ std::tuple< std::vector<int>, std::vector<int> > get_bounds_from_window_expressi
 	size_t start_pos = over_clause.find(between_expr) + between_expr.size();
 	size_t end_pos = over_clause.find(preceding_expr);
 	std::string first_limit = over_clause.substr(start_pos, end_pos - start_pos);
-	preceding_values.push_back(std::stoi(first_limit));
+	preceding_value = std::stoi(first_limit);
 
 	// getting the second limit value
 	std::string and_expr = "AND ";
@@ -492,9 +492,9 @@ std::tuple< std::vector<int>, std::vector<int> > get_bounds_from_window_expressi
 	start_pos = over_clause.find(and_expr) + and_expr.size();
 	end_pos = over_clause.find(following_expr);
 	std::string second_limit = over_clause.substr(start_pos, end_pos - start_pos);
-	following_values.push_back(std::stoi(second_limit));
+	following_value = std::stoi(second_limit);
 
-	return std::make_tuple(preceding_values, following_values);
+	return std::make_tuple(preceding_value, following_value);
 }
 
 std::string get_frame_type_from_over_clause(const std::string & logical_plan) {

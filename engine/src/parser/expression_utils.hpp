@@ -185,7 +185,7 @@ get_cols_to_apply_window_and_cols_to_apply_agg(const std::string & query_part);
 
 // input: min_val=[MIN($0) OVER (PARTITION BY $2 ORDER BY $1 ROWS BETWEEN 4 PRECEDING AND 3 FOLLOWING)]
 // output: < [4], [3] >
-std::tuple< std::vector<int>, std::vector<int> > get_bounds_from_window_expression(const std::string & logical_plan);
+std::tuple< int, int > get_bounds_from_window_expression(const std::string & logical_plan);
 
 std::string get_frame_type_from_over_clause(const std::string & logical_plan);
 
