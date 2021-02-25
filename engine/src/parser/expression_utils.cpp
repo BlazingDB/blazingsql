@@ -475,14 +475,6 @@ std::string get_named_expression(const std::string & query_part, const std::stri
 }
 
 std::vector<int> get_projections(const std::string & query_part) {
-	std::string project_string = get_named_expression(query_part, "projects");
-	std::vector<std::string> project_string_split =
-		get_expressions_from_expression_list(project_string, true);
-
-	std::vector<int> projections;
-	for(size_t i = 0; i < project_string_split.size(); i++) {
-		projections.push_back(std::stoi(project_string_split[i]));
-	}
 
 	// On Calcite, the select count(*) case is represented with
 	// the projection list empty and the aliases list containing
@@ -493,14 +485,26 @@ std::vector<int> get_projections(const std::string & query_part) {
 	//
 	// So, in such a scenario, we will load only the first column.
 
-	std::string aliases_string = get_named_expression(query_part, "aliases");
-	std::vector<std::string> aliases_string_split =
-		get_expressions_from_expression_list(aliases_string, true);
+	if (query_part.find(" projects=[[]]") != std::string::npos){
+		std::string aliases_string = get_named_expression(query_part, "aliases");
+		std::vector<std::string> aliases_string_split =
+			get_expressions_from_expression_list(aliases_string, true);
 
-	if(projections.size() == 0 && aliases_string_split.size() == 1) {
-		projections.push_back(0);
+		std::vector<int> projections;
+		if(aliases_string_split.size() == 1) {
+			projections.push_back(0);
+		}
+		return projections;
 	}
 
+	std::string project_string = get_named_expression(query_part, "projects");
+	std::vector<std::string> project_string_split =
+		get_expressions_from_expression_list(project_string, true);
+
+	std::vector<int> projections;
+	for(size_t i = 0; i < project_string_split.size(); i++) {
+		projections.push_back(std::stoi(project_string_split[i]));
+	}
 	return projections;
 }
 
