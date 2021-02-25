@@ -1,5 +1,6 @@
 #include <spdlog/spdlog.h>
 #include "tests/utilities/BlazingUnitTest.h"
+#include "utilities/DebuggingUtils.h"
 
 #include <chrono>
 #include <thread>
@@ -119,23 +120,36 @@ std::tuple<std::vector<std::unique_ptr<CacheData>>, std::vector<std::unique_ptr<
 	for (int i = 0; i < split_views.size(); i++){
 		auto cudf_table = std::make_unique<CudfTable>(split_views[i]);
 		auto blz_table = std::make_unique<BlazingTable>(std::move(cudf_table), names);
+		// ral::utilities::print_blazing_table_view(blz_table->toBlazingTableView(), "batch" + std::to_string(i));
 		batch_tables.push_back(std::move(blz_table));
 	}
 	for (int i = 0; i < split_views.size() - 1; i++){
-		std::vector<cudf::size_type> presceding_split_index = {preceding_value > batch_tables[i]->num_rows() ? preceding_value : batch_tables[i]->num_rows()};
-		auto preceding_split_views = cudf::split(batch_tables[i]->view(), presceding_split_index);
-		auto cudf_table = std::make_unique<CudfTable>(preceding_split_views[0]);
+		std::unique_ptr<CudfTable> cudf_table;
+		if (preceding_value > batch_tables[i]->num_rows()){
+			cudf_table = std::make_unique<CudfTable>(batch_tables[i]->view());
+		} else {
+			std::vector<cudf::size_type> presceding_split_index = {batch_tables[i]->num_rows() - preceding_value};
+			auto preceding_split_views = cudf::split(batch_tables[i]->view(), presceding_split_index);
+			cudf_table = std::make_unique<CudfTable>(preceding_split_views[1]);
+		}
 		auto blz_table = std::make_unique<BlazingTable>(std::move(cudf_table), names);
+		// ral::utilities::print_blazing_table_view(blz_table->toBlazingTableView(), "preceding" + std::to_string(i));
 		std::string overlap_status = preceding_value > batch_tables[i]->num_rows() ? ral::batch::INCOMPLETE_OVERLAP_STATUS : ral::batch::DONE_OVERLAP_STATUS;
 		ral::cache::MetadataDictionary metadata;
 		metadata.add_value(ral::cache::OVERLAP_STATUS, overlap_status);
 		preceding_overlaps.push_back(std::make_unique<ral::cache::GPUCacheData>(std::move(blz_table),metadata));
 	}
 	for (int i = 1; i < split_views.size(); i++){
-		std::vector<cudf::size_type> following_split_index = {following_value > batch_tables[i]->num_rows() ? 0 : batch_tables[i]->num_rows() - following_value};
-		auto following_split_views = cudf::split(batch_tables[i]->view(), following_split_index);
-		auto cudf_table = std::make_unique<CudfTable>(following_split_views[1]);
+		std::unique_ptr<CudfTable> cudf_table;
+		if (following_value > batch_tables[i]->num_rows()){
+			cudf_table = std::make_unique<CudfTable>(batch_tables[i]->view());
+		} else {
+			std::vector<cudf::size_type> following_split_index = {following_value};
+			auto following_split_views = cudf::split(batch_tables[i]->view(), following_split_index);
+			cudf_table = std::make_unique<CudfTable>(following_split_views[0]);
+		}	
 		auto blz_table = std::make_unique<BlazingTable>(std::move(cudf_table), names);
+		// ral::utilities::print_blazing_table_view(blz_table->toBlazingTableView(), "following" + std::to_string(i));
 		std::string overlap_status = following_value > batch_tables[i]->num_rows() ? ral::batch::INCOMPLETE_OVERLAP_STATUS : ral::batch::DONE_OVERLAP_STATUS;
 		ral::cache::MetadataDictionary metadata;
 		metadata.add_value(ral::cache::OVERLAP_STATUS, overlap_status);
@@ -168,7 +182,7 @@ std::vector<std::unique_ptr<BlazingTable>> make_expected_output(
 			auto cudf_table = std::make_unique<CudfTable>(out_split_views[1]);
 			out_batches.push_back(std::make_unique<BlazingTable>(std::move(cudf_table), names));
 		} else {
-			std::vector<cudf::size_type> out_split_index = {split_indexes[i] - preceding_value, split_indexes[i] + following_value};
+			std::vector<cudf::size_type> out_split_index = {split_indexes[i - 1] - preceding_value, split_indexes[i] + following_value};
 			auto out_split_views = cudf::split(full_data_cudf_view, out_split_index);
 			auto cudf_table = std::make_unique<CudfTable>(out_split_views[1]);
 			out_batches.push_back(std::make_unique<BlazingTable>(std::move(cudf_table), names));
@@ -180,25 +194,29 @@ std::vector<std::unique_ptr<BlazingTable>> make_expected_output(
 TEST_F(WindowOverlapTest, BasicSingleNode) {
 
 	size_t size = 100000;
+	// size_t size = 55;
 
 	// Define full dataset
 	auto iter0 = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return int32_t(i);});
-	// auto iter1 = cudf::detail::make_counting_transform_iterator(1000, [](auto i) { return int32_t(i * 2);});
-	// auto iter2 = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return int32_t(i % 5);});
-	auto valids_iter = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return i%2==0? true:false; });
+	auto iter1 = cudf::detail::make_counting_transform_iterator(1000, [](auto i) { return int32_t(i * 2);});
+	auto iter2 = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return int32_t(i % 5);});
+	auto valids_iter = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return true; });
 	
     cudf::test::fixed_width_column_wrapper<int32_t> col0(iter0, iter0 + size, valids_iter);
-	// cudf::test::fixed_width_column_wrapper<int32_t> col1(iter1, iter1 + size, valids_iter);
-	// cudf::test::fixed_width_column_wrapper<int32_t> col2(iter2, iter2 + size, valids_iter);
+	cudf::test::fixed_width_column_wrapper<int32_t> col1(iter1, iter1 + size, valids_iter);
+	cudf::test::fixed_width_column_wrapper<int32_t> col2(iter2, iter2 + size, valids_iter);
 	
-	CudfTableView full_data_cudf_view ({col0});//, col1, col2});
+	CudfTableView full_data_cudf_view ({col0, col1, col2});
 
 	int preceding_value = 50;
 	int following_value = 10;
 	std::vector<cudf::size_type> batch_sizes = {5000, 50000, 20000, 15000, 10000}; // need to sum up to size
+	// int preceding_value = 5;
+	// int following_value = 1;
+	// std::vector<cudf::size_type> batch_sizes = {20, 10, 25}; // need to sum up to size
 
 	// define how its broken up into batches and overlaps
-	std::vector<std::string> names({"A"});//, "B", "C"});
+	std::vector<std::string> names({"A", "B", "C"});
 	std::vector<std::unique_ptr<CacheData>> preceding_overlaps, batches, following_overlaps;
 	std::tie(preceding_overlaps, batches, following_overlaps) = break_up_full_data(full_data_cudf_view, preceding_value, following_value, batch_sizes, names);
 
@@ -253,7 +271,10 @@ TEST_F(WindowOverlapTest, BasicSingleNode) {
 	EXPECT_EQ(batches_pulled.size(), expected_out.size());
 	for (int i = 0; i < batches_pulled.size(); i++) {
 		auto table_out = batches_pulled[i]->decache();
+		// ral::utilities::print_blazing_table_view(expected_out[i]->toBlazingTableView(), "expected" + std::to_string(i));
+		// ral::utilities::print_blazing_table_view(table_out->toBlazingTableView(), "got" + std::to_string(i));
 		cudf::test::expect_tables_equivalent(expected_out[i]->view(), table_out->view());
 	}
 }
+
 
