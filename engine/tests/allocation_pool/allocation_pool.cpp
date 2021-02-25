@@ -97,7 +97,7 @@ TEST_F(AllocationPoolTest, mem_map_test) {
 	ral::memory::set_allocation_pools(size_buffers_host, num_buffers_host,
 	size_buffers_pinned, num_buffers_pinned, map_ucx, context);
 
-    ucp_mem_h handle = ral::memory::get_pinned_buffer_provider()->getUcpMemoryHandle();
+    ucp_mem_h handle = ral::memory::buffer_providers::get_pinned_buffer_provider()->getUcpMemoryHandle();
     ucp_mem_attr_t attr;
     std::memset(&attr, 0, sizeof(ucp_mem_attr_t));
     // check that it is mapped
