@@ -775,7 +775,8 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
     const std::vector<std::string> & expressions) {
     using interops::column_index_type;
 
-    // Let's clean all the expressions that contains Window functions
+    // Let's clean all the expressions that contains Window functions (if exists)
+    // as they should be updated with new indices
     std::vector<std::string> new_expressions = clean_window_function_expressions(expressions, table.num_columns());
 
     std::vector<std::unique_ptr<ral::frame::BlazingColumn>> out_columns(new_expressions.size());

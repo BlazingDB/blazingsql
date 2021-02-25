@@ -754,6 +754,11 @@ get_cols_to_apply_window_and_cols_to_apply_agg(const std::string & logical_plan)
 	return std::make_tuple(column_index, aggregations, agg_param_values);
 }
 
+// This function will update all the expressions that contains a window function
+// inputs:
+// expressions: [ MIN($0) OVER (PARTITION BY $2 ORDER BY $1), MAX($0) OVER (PARTITION BY $2 ORDER BY $1), $0, $2, $3 ]
+// num_columns: 6
+// output: [ $4, $5, $0, $2, $3]
 std::vector<std::string> clean_window_function_expressions(const std::vector<std::string> & expressions, size_t num_columns) {
 	// First of all, we need to know how many window columns exists
     size_t total_wf_cols = 0;
