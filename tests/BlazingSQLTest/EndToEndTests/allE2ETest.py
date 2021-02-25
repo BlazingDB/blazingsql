@@ -60,7 +60,6 @@ from EndToEndTests import unifyTablesTest
 from EndToEndTests import unionTest as unionTest
 from EndToEndTests import useLimitTest
 from EndToEndTests import whereClauseTest as whereClauseTest
-from EndToEndTests import nullsTest as nullsTest
 from EndToEndTests import wildCardTest
 from EndToEndTests import smilesTest
 from EndToEndTests import jsonTest
@@ -286,9 +285,6 @@ def main():
 
     if runAllTests or ("windowFunctionTest" in targetTestGroups):
         windowFunctionTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
-
-    if runAllTests or ("nullsTest" in targetTestGroups):
-        nullsTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     # WARNING!!! This Test must be the last one to test -------------------------------------------------------------------------------------------------------------------------------------------
     if runAllTests or ("configOptionsTest" in targetTestGroups):
