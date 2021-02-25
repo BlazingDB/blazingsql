@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 # BlazingSQL 0.18.0 (February 24, 2021)
-=======
-# BlazingSQL 0.17.0 (December 10, 2020)
->>>>>>> main
 
 ## New Features
 - #1139 Adding centralized task executor for kernels
@@ -76,13 +72,9 @@
 - #1201 Implement string TRIM
 - #1216 Add unit test for DAYOFWEEK
 - #1205 Implement string REVERSE
-<<<<<<< HEAD
-- #1220 Implement string LEFT and RIGHT
-- #1223 Add support for UNION statement
-=======
 - #1220 Implement string LEFT and RIGHT 
+- #1223 Add support for UNION statement
 - #1250 updated README.md and CHANGELOG and others preparing for 0.17 release
->>>>>>> main
 
 
 ## Improvements
@@ -139,13 +131,9 @@
 - #1203 Changed code back so that parquet is not read a single rowgroup at a time
 - #1207 Calcite uses literal as int32 if not explicit CAST was provided
 - #1212 Fixed issue when building the thirdpart, cmake version set to 3.18.4
-<<<<<<< HEAD
-- #1225 Fixed issue due to change in gather API
-- #1258 Fixing gtest version issue
-=======
 - #1225 Fixed issue due to change in gather API 
 - #1254 Fixing support of nightly and stable on localhost
->>>>>>> main
+- #1258 Fixing gtest version issue
 
 
 # BlazingSQL 0.16.0 (October 22, 2020)
