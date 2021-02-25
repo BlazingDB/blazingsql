@@ -166,16 +166,22 @@ bool window_expression_contains_order(std::string query_part);
 
 bool window_expression_contains_multiple_diff_over_clauses(std::string query_part);
 
+bool is_sum_window_function(std::string expression);
+
+bool is_avg_window_function(std::string expression);
+
 std::string remove_over_expr(std::string expression);
 
-std::string remove_count_expr(std::string expression, size_t rigt_index);
+std::string replace_count_expr_with_right_index(std::string expression, size_t rigt_index);
 
-std::string remove_sum0_expr(std::string expression, size_t rigt_index);
+std::string replace_sum0_expr_with_right_index(std::string expression, size_t rigt_index);
 
 std::string get_query_part(std::string logical_plan);
 
-// input: min_keys=[MIN($0) OVER (PARTITION BY $2 ORDER BY $1)]
-// output: PARTITION BY $2 ORDER BY $1
+std::tuple< int, int > get_bounds_from_window_expression(const std::string & logical_plan);
+
+std::string get_frame_type_from_over_clause(const std::string & logical_plan);
+
 std::string get_over_expression(std::string query_part);
 
 std::string get_first_over_expression_from_logical_plan(const std::string & logical_plan, const std::string & expr);
@@ -183,11 +189,7 @@ std::string get_first_over_expression_from_logical_plan(const std::string & logi
 std::tuple< std::vector<int>, std::vector<std::string>, std::vector<int> > 
 get_cols_to_apply_window_and_cols_to_apply_agg(const std::string & query_part);
 
-// input: min_val=[MIN($0) OVER (PARTITION BY $2 ORDER BY $1 ROWS BETWEEN 4 PRECEDING AND 3 FOLLOWING)]
-// output: < [4], [3] >
-std::tuple< int, int > get_bounds_from_window_expression(const std::string & logical_plan);
-
-std::string get_frame_type_from_over_clause(const std::string & logical_plan);
+std::vector<std::string> clean_window_function_expressions(const std::vector<std::string> & expressions, size_t num_columns);
 
 // Returns the index from table_scan if exists
 size_t get_table_index(std::vector<std::string> table_scans, std::string table_scan);

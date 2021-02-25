@@ -80,7 +80,7 @@ public:
 	static bool match(std::string & needle, std::string & haystack) { return match(needle.c_str(), haystack.c_str()); }
 	static bool match(char const * needle, char const * haystack);
 	static void findAndReplaceAll(std::string & data, std::string toSearch, std::string replaceStr);
-	static size_t findAndCountAllMatches(const std::string & input, std::string word);
+	static size_t findAndCountAllMatches(std::string input, std::string word);
 	static std::string makeCommaDelimitedSequence(std::size_t n_cols);
 };
 
