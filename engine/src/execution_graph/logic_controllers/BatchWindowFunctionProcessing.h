@@ -50,6 +50,32 @@ private:
 	std::vector<AggregateKind> aggs_wind_func;     // [AggregateKind::MIN, AggregateKind::LAG]
 };
 
+
+
+
+const std::string UNKNOWN_OVERLAP_STATUS="UNKNOWN";
+const std::string REQUESTED_OVERLAP_STATUS="REQUESTED";
+const std::string INCOMPLETE_OVERLAP_STATUS="INCOMPLETE";
+const std::string PROCESSING_OVERLAP_STATUS="PROCESSING"; // WSM TODO, do we need this?
+const std::string DONE_OVERLAP_STATUS="DONE";
+
+const std::string TASK_ARG_OP_TYPE="operation_type";
+const std::string TASK_ARG_OVERLAP_TYPE="overlap_type";
+const std::string TASK_ARG_OVERLAP_SIZE="overlap_size";
+const std::string TASK_ARG_SOURCE_BATCH_INDEX="source_batch_index";
+const std::string TASK_ARG_TARGET_BATCH_INDEX="target_batch_index";
+const std::string TASK_ARG_TARGET_NODE_INDEX="target_node_index";
+
+const std::string OVERLAP_TASK_TYPE="get_overlap";
+const std::string PRECEDING_OVERLAP_TYPE="preceding";
+const std::string FOLLOWING_OVERLAP_TYPE="following";
+const std::string NODE_COMPLETED_REQUEST="node_completed";
+const std::string PRECEDING_REQUEST="preceding_request";
+const std::string FOLLOWING_REQUEST="following_request";
+const std::string PRECEDING_FULFILLMENT="preceding_fulfillment";
+const std::string FOLLOWING_FULFILLMENT="following_fulfillment";
+
+
 class OverlapAccumulatorKernel : public distributing_kernel {
 public:
 	OverlapAccumulatorKernel(std::size_t kernel_id, const std::string & queryString,

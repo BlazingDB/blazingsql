@@ -203,10 +203,6 @@ OverlapAccumulatorKernel::OverlapAccumulatorKernel(std::size_t kernel_id, const 
     this->num_batches = 0;
 	this->have_all_batches = false;
 
-    input_batches_cache = this->input_.get_cache("batches");
-    input_preceding_overlap_cache = this->input_.get_cache("preceding_overlaps");
-    input_following_overlap_cache = this->input_.get_cache("following_overlaps");
-
     std::tie(this->preceding_value, this->following_value) = get_bounds_from_window_expression(this->expression);
 
     // WSM TODO make these and the join cacheMachines, be array_cache
@@ -225,29 +221,6 @@ OverlapAccumulatorKernel::OverlapAccumulatorKernel(std::size_t kernel_id, const 
 	self_node_index = context->getNodeIndex(self_node);
     
 }
-
-const std::string UNKNOWN_OVERLAP_STATUS="UNKNOWN";
-const std::string REQUESTED_OVERLAP_STATUS="REQUESTED";
-const std::string INCOMPLETE_OVERLAP_STATUS="INCOMPLETE";
-const std::string PROCESSING_OVERLAP_STATUS="PROCESSING"; // WSM TODO, do we need this?
-const std::string DONE_OVERLAP_STATUS="DONE";
-
-const std::string TASK_ARG_OP_TYPE="operation_type";
-const std::string TASK_ARG_OVERLAP_TYPE="overlap_type";
-const std::string TASK_ARG_OVERLAP_SIZE="overlap_size";
-const std::string TASK_ARG_SOURCE_BATCH_INDEX="source_batch_index";
-const std::string TASK_ARG_TARGET_BATCH_INDEX="target_batch_index";
-const std::string TASK_ARG_TARGET_NODE_INDEX="target_node_index";
-
-const std::string OVERLAP_TASK_TYPE="get_overlap";
-const std::string PRECEDING_OVERLAP_TYPE="preceding";
-const std::string FOLLOWING_OVERLAP_TYPE="following";
-const std::string NODE_COMPLETED_REQUEST="node_completed";
-const std::string PRECEDING_REQUEST="preceding_request";
-const std::string FOLLOWING_REQUEST="following_request";
-const std::string PRECEDING_FULFILLMENT="preceding_fulfillment";
-const std::string FOLLOWING_FULFILLMENT="following_fulfillment";
-
 
 void OverlapAccumulatorKernel::set_overlap_status(bool preceding, int index, std::string status){
     std::lock_guard<std::mutex> lock(kernel_mutex);
@@ -586,6 +559,10 @@ kstatus OverlapAccumulatorKernel::run() {
     bool all_done = false;
     bool neighbors_notified_of_complete = false;
     int total_nodes = context->getTotalNodes();
+
+    input_batches_cache = this->input_.get_cache("batches");
+    input_preceding_overlap_cache = this->input_.get_cache("preceding_overlaps");
+    input_following_overlap_cache = this->input_.get_cache("following_overlaps");
     
     int cur_batch_ind = 0;
     while (!have_all_batches){
@@ -608,10 +585,17 @@ kstatus OverlapAccumulatorKernel::run() {
     following_overlap_status.resize(num_batches, UNKNOWN_OVERLAP_STATUS);
     
     // lets send the requests for the first preceding overlap and last following overlap of this node
-    send_request(true, self_node_index - 1, self_node_index, 0, this->preceding_value);
-    send_request(false, self_node_index + 1, self_node_index, num_batches-1, this->following_value);
+    if (total_nodes > 1 && self_node_index > 0){
+        send_request(true, self_node_index - 1, self_node_index, 0, this->preceding_value);
+    }
+    if (total_nodes > 1 && self_node_index < total_nodes - 1){
+        send_request(false, self_node_index + 1, self_node_index, num_batches-1, this->following_value);
+    }
 
-    BlazingThread receiver_thread = BlazingThread(&OverlapAccumulatorKernel::request_receiver, this);
+    BlazingThread receiver_thread;
+    if (total_nodes > 1) {
+        receiver_thread = BlazingThread(&OverlapAccumulatorKernel::request_receiver, this);
+    }
     
     for (int cur_batch_ind = 0; cur_batch_ind < num_batches; cur_batch_ind++){      
         if (cur_batch_ind == 0){
@@ -669,7 +653,9 @@ kstatus OverlapAccumulatorKernel::run() {
     // lets wait until the receiver thread is done. 
     // When its done, it means we have received overlap requests and have make tasks for them, and
     // it also means we have received the fulfillments overlap requests we sent out
-    receiver_thread.join();
+    if (total_nodes > 1) {
+        receiver_thread.join();
+    }
 
     // lets wait to make sure that all tasks are done
     std::unique_lock<std::mutex> lock(kernel_mutex);
