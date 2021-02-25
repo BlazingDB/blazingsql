@@ -249,7 +249,7 @@ def main():
         stringCaseTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     if runAllTests or ("wildCardTest" in targetTestGroups):
-        wildCardTest.main(dask_client, drill, dir_data_file, bc, nRals)
+        wildCardTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     if runAllTests or ("tpchQueriesTest" in targetTestGroups):
         tpchQueriesTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
