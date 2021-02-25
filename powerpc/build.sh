@@ -437,7 +437,7 @@ if [ ! -d rmm ]; then
     git clone https://github.com/rapidsai/rmm.git --branch "branch-$cudf_version" --single-branch
     cd rmm
     # need to pin to a specific commit to keep this build script stable
-    git checkout efd4c08b4bd45e9f70c99c26ee47c02b6d3cbb1d
+    # git checkout efd4c08b4bd45e9f70c99c26ee47c02b6d3cbb1d
 
     INSTALL_PREFIX=$tmp_dir CUDACXX=$CUDA_HOME/bin/nvcc ./build.sh  -v clean librmm rmm
 fi
@@ -463,7 +463,7 @@ if [ ! -d cudf ]; then
     git clone https://github.com/rapidsai/cudf.git --branch "branch-$cudf_version" 
     cd cudf
     # need to pin to a specific commit to keep this build script stable
-    git checkout 88821fb7fd4b81a98b8efa2f2ab8c7871d02bdef
+    #git checkout 88821fb7fd4b81a98b8efa2f2ab8c7871d02bdef
     
     #git submodule update --init --remote --recursive
     #export CUDA_HOME=/usr/local/cuda/
@@ -555,7 +555,7 @@ if [ ! -d dask-cuda ]; then
   git clone https://github.com/rapidsai/dask-cuda.git --branch "branch-$cudf_version" --single-branch
   cd dask-cuda
   # need to pin to a specific commit to keep this build script stable
-  git checkout b170b2973a992652a57437937f95b87e6713a6e7
+  #git checkout b170b2973a992652a57437937f95b87e6713a6e7
   pip install .
 fi
 echo "END dask-cuda"
