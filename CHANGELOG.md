@@ -15,6 +15,7 @@
 - #1346 Delete allocated host chunks
 - #1348 Capturing error messages due to exceptions properly
 - #1350 Fixed bug where there are no projects in a bindable table scan
+- #1356 Removing old fix for count distinct with nulls
 
 
 # BlazingSQL 0.18.0 (Date TBS)
