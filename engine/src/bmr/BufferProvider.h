@@ -141,8 +141,22 @@ private:
 std::pair< std::vector<ral::memory::blazing_chunked_column_info>, std::vector<std::unique_ptr<ral::memory::blazing_allocation_chunk> >> convert_gpu_buffers_to_chunks(
     std::vector<std::size_t> buffer_sizes,bool use_pinned);
 
-std::shared_ptr<allocation_pool > get_host_buffer_provider();
-std::shared_ptr<allocation_pool > get_pinned_buffer_provider();
+/**
+	@brief This class represents the buffer providers used by the engine.
+  @note Myers' singleton. Thread safe and unique. Note: C++11 required.
+*/
+class buffer_providers {
+public:
+  static std::shared_ptr<allocation_pool > & get_host_buffer_provider() {
+    static std::shared_ptr<allocation_pool> host_buffer_instance{};
+    return host_buffer_instance;
+  }
+
+  static std::shared_ptr<allocation_pool > & get_pinned_buffer_provider(){
+    static std::shared_ptr<allocation_pool> pinned_buffer_instance{};
+    return pinned_buffer_instance;
+  }
+};
 
 // this function is what originally initialized the pinned memory and host memory allocation pools
 void set_allocation_pools(std::size_t size_buffers_host, std::size_t num_buffers_host,

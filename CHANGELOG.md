@@ -15,7 +15,7 @@
 - #1346 Delete allocated host chunks
 - #1348 Capturing error messages due to exceptions properly
 - #1350 Fixed bug where there are no projects in a bindable table scan
-
+- #1359 Avoid cuda issues when free pinned memory
 
 # BlazingSQL 0.18.0 (Date TBS)
 

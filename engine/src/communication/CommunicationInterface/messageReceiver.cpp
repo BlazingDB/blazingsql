@@ -60,7 +60,7 @@ void message_receiver::allocate_buffer(uint16_t index, cudaStream_t stream){
   if (index >= _raw_buffers.size()) {
     throw std::runtime_error("Invalid access to raw buffer");
   }
-  _raw_buffers[index] = ral::memory::get_pinned_buffer_provider()->get_chunk();
+  _raw_buffers[index] = ral::memory::buffer_providers::get_pinned_buffer_provider()->get_chunk();
 }
 
 node message_receiver::get_sender_node(){
