@@ -16,7 +16,7 @@
 - #1346 Delete allocated host chunks
 - #1348 Capturing error messages due to exceptions properly
 - #1350 Fixed bug where there are no projects in a bindable table scan
-
+- #1359 Avoid cuda issues when free pinned memory
 
 # BlazingSQL 0.18.0 (Date TBS)
 
@@ -38,6 +38,7 @@
 - #1303 Add support for INITCAP
 - #1313 getting and using ORC metadata
 - #1347 Fixing issue when reading orc metadata from DATE dtype
+- #1338 Window Function support for LEAD and LAG statements 
 
 
 ## Improvements
