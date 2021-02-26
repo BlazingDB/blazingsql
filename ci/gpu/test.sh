@@ -174,8 +174,7 @@ else
 
         export BLAZINGSQL_E2E_TARGET_TEST_GROUPS=$TARGET_E2E_TEST_GROUPS
 
-        NULLS_VALUES=("false" "true")
-        for include_nulls in ${NULLS_VALUES}; do
+        for include_nulls in "false" "true"; do
             # If we are running on a GPUCI environment then force to set nrals to 1
             if [ "$BLAZINGSQL_E2E_IN_GPUCI_ENV" == "true" ] ; then
                 logger "Running end to end tests SINGLE NODE (nrals=1), including nulls: $include_nulls ..."
