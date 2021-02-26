@@ -178,7 +178,7 @@ else
         for include_nulls in ${NULLS_VALUES}; do
             # If we are running on a GPUCI environment then force to set nrals to 1
             if [ "$BLAZINGSQL_E2E_IN_GPUCI_ENV" == "true" ] ; then
-                logger "Running end to end tests SINGLE NODE (nrals=1) ..."
+                logger "Running end to end tests SINGLE NODE (nrals=1), including nulls: $include_nulls ..."
                 export BLAZINGSQL_E2E_N_RALS=1
                 export BLAZINGSQL_E2E_TEST_WITH_NULLS=$include_nulls
             fi
@@ -195,12 +195,12 @@ else
 
             # If we are running on a GPUCI environment then print final status for nrals=1
             if [ "$BLAZINGSQL_E2E_IN_GPUCI_ENV" == "true" ] ; then
-                logger "End to end tests SINGLE NODE (nrals=1) ... DONE!"
+                logger "End to end tests SINGLE NODE (nrals=1), including nulls: $include_nulls ... DONE!"
             fi
 
             # If we are running on a GPUCI environment then run again the e2e but with nrals=2
             if [ "$BLAZINGSQL_E2E_IN_GPUCI_ENV" == "true" ] ; then
-                logger "Running end to end tests DISTRIBUTED (nrals=2) ..."
+                logger "Running end to end tests DISTRIBUTED (nrals=2), including nulls: $include_nulls ..."
                 export BLAZINGSQL_E2E_N_RALS=2
                 export BLAZINGSQL_E2E_TEST_WITH_NULLS=$include_nulls
                 cd ${WORKSPACE}/tests/BlazingSQLTest/
@@ -212,7 +212,7 @@ else
                 fi
                 duration=$SECONDS
                 logger "Total time for end to end tests: $(($duration / 60)) minutes and $(($duration % 60)) seconds"
-                logger "End to end tests DISTRIBUTED (nrals=2) ... DONE!"
+                logger "End to end tests DISTRIBUTED (nrals=2), including nulls: $include_nulls ... DONE!"
             fi
         done
     fi
