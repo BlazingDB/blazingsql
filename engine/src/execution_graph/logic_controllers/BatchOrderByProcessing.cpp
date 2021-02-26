@@ -2,6 +2,7 @@
 #include "CodeTimer.h"
 #include <src/utilities/CommonOperations.h>
 #include "taskflow/executor.h"
+#include "parser/expression_utils.hpp"
 
 namespace ral {
 namespace batch {
@@ -252,7 +253,6 @@ ral::execution::task_result SortAndSampleKernel::do_process(std::vector< std::un
             if(sortedTable){
                 auto num_rows = sortedTable->num_rows();
                 auto num_bytes = sortedTable->sizeInBytes();
-
             }
 
             output->addToCache(std::move(sortedTable), "output_a");
@@ -381,7 +381,7 @@ kstatus PartitionKernel::run() {
 
     std::map<std::string, std::map<int32_t, int> > node_count;
 
-    if (this->expression.find("window") != this->expression.npos) std::tie(sortColIndices, sortOrderTypes) = ral::operators::get_vars_to_partition(this->expression);
+    if (is_window_function(this->expression)) std::tie(sortColIndices, sortOrderTypes) = ral::operators::get_vars_to_partition(this->expression);
 	else std::tie(sortColIndices, sortOrderTypes, std::ignore) = ral::operators::get_sort_vars(this->expression);
 
     auto nodes = context->getAllNodes();

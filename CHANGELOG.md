@@ -37,6 +37,7 @@
 - #1303 Add support for INITCAP
 - #1313 getting and using ORC metadata
 - #1347 Fixing issue when reading orc metadata from DATE dtype
+- #1338 Window Function support for LEAD and LAG statements 
 
 
 ## Improvements
