@@ -339,18 +339,22 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
 
             select * from lastjoin
             """
-            runTest.run_query(
-                bc,
-                drill,
-                query,
-                queryId,
-                queryType,
-                worder,
-                "",
-                acceptable_difference,
-                use_percentage,
-                fileSchemaType,
-            )
+
+            # Too expensive with nulls reason: timeout
+            testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
+            if testsWithNulls != "true":
+                runTest.run_query(
+                    bc,
+                    drill,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
 
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")

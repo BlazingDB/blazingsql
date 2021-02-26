@@ -1413,6 +1413,7 @@ def run_query(
     nested_query = kwargs.get("nested_query", False)
 
     error_message = ""
+    result_gdf = None
 
     if not nested_query:
         # if int(nRals) == 1:  # Single Node
@@ -1473,6 +1474,7 @@ def run_query(
     result_dir = Settings.data["TestSettings"]["fileResultsDirectory"]
     file_results_dir = str(result_dir)
 
+    testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
 
     if not message_validation== "":
         print_query_results2(
@@ -1509,9 +1511,16 @@ def run_query(
                     formatResults(pdf1, pdf2, worder, orderBy)
 
                     if Settings.execution_mode == ExecutionMode.GENERATOR:
-                        file_res_drill_dir = (
-                            file_results_dir + "/" + "drill" + "/" + filename
-                        )
+
+                        file_res_drill_dir = None
+                        if testsWithNulls != "true":
+                            file_res_drill_dir = (
+                                file_results_dir + "/" + "drill" + "/" + filename
+                            )
+                        else:
+                            file_res_drill_dir = (
+                                file_results_dir + "/" + "drill-nulls" + "/" + filename
+                            )
 
                         if not os.path.exists(file_res_drill_dir):
                             save_results_parquet(file_res_drill_dir, pdf2)
@@ -1566,9 +1575,15 @@ def run_query(
 
                     if Settings.execution_mode == ExecutionMode.GENERATOR:
 
-                        file_res_drill_dir = (
-                            file_results_dir + "/" + "spark" + "/" + filename
-                        )
+                        file_res_drill_dir = None
+                        if testsWithNulls != "true":
+                            file_res_drill_dir = (
+                                file_results_dir + "/" + "spark" + "/" + filename
+                            )
+                        else:
+                            file_res_drill_dir = (
+                                file_results_dir + "/" + "spark-nulls" + "/" + filename
+                            )
 
                         if not os.path.exists(file_res_drill_dir):
                             save_results_parquet(file_res_drill_dir, pdf2)
@@ -1602,7 +1617,12 @@ def run_query(
             compareResults = Settings.data["RunSettings"]["compare_results"]
 
         if compareResults == "true":
-            resultFile = file_results_dir + "/" + str(engine) + "/" + filename
+            resultFile = None
+            if testsWithNulls != "true":
+                resultFile = file_results_dir + "/" + str(engine) + "/" + filename
+            else:
+                resultFile = file_results_dir + "/" + str(engine) + "-nulls" + "/" + filename
+
             pdf2 = get_results(resultFile)
             if result_gdf is not None:
                 if result_gdf.columns is not None:
