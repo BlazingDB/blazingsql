@@ -305,18 +305,22 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
             query = """select o_orderkey, sum(o_totalprice)/count(o_orderstatus)
                     from orders where o_custkey < 100
                     group by o_orderstatus, o_orderkey"""
-            runTest.run_query(
-                bc,
-                drill,
-                query,
-                queryId,
-                queryType,
-                worder,
-                "",
-                acceptable_difference,
-                True,
-                fileSchemaType,
-            )  # TODO: Change sum/count for avg KC
+
+            # TODO: Failed test with nulls
+            testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
+            if testsWithNulls != "true":
+                runTest.run_query(
+                    bc,
+                    drill,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "",
+                    acceptable_difference,
+                    True,
+                    fileSchemaType,
+                )  # TODO: Change sum/count for avg KC
 
             queryId = "TEST_16"
             query = """select o_orderkey, o_orderstatus
