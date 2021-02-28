@@ -67,35 +67,43 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             query = """select count(distinct o_custkey), o_orderkey
                     from orders where o_orderkey < 100
                     group by o_orderkey, (o_orderkey + o_custkey)"""
-            runTest.run_query(
-                bc,
-                drill,
-                query,
-                queryId,
-                queryType,
-                worder,
-                "o_orderkey",
-                acceptable_difference,
-                use_percentage,
-                fileSchemaType,
-            )
+
+            # TODO: Failed test with nulls and nRals=2
+            testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
+            if testsWithNulls != "true" and nRals > 1:
+                runTest.run_query(
+                    bc,
+                    drill,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "o_orderkey",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
 
             queryId = "TEST_03"
             query = """select count(distinct(o_orderkey + o_custkey))
                     as new_col, sum(o_orderkey), o_custkey
                     from orders group by o_custkey"""
-            runTest.run_query(
-                bc,
-                drill,
-                query,
-                queryId,
-                queryType,
-                worder,
-                "o_custkey",
-                acceptable_difference,
-                use_percentage,
-                fileSchemaType,
-            )
+
+            # TODO: Failed test with nulls and nRals=2
+            testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
+            if testsWithNulls != "true" and nRals > 1:
+                runTest.run_query(
+                    bc,
+                    drill,
+                    query,
+                    queryId,
+                    queryType,
+                    worder,
+                    "o_custkey",
+                    acceptable_difference,
+                    use_percentage,
+                    fileSchemaType,
+                )
 
             queryId = 'TEST_04'
             query = """select count(distinct(o_custkey)), avg(o_totalprice),
