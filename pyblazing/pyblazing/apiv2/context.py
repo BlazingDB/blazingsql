@@ -951,6 +951,9 @@ def kwargs_validation(kwargs, bc_api_str):
 
 
 def recognized_extension(extension):
+    if len(extension) == 0:
+        return False
+    extension = extension[1:]  # removing `.`
     if extension in ["orc", "parquet", "json", "csv", "psv"]:
         return True
     return False
