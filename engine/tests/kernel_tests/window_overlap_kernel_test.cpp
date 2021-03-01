@@ -328,32 +328,32 @@ TEST_F(WindowOverlapTest, BasicMultiNode_Node0) {
 
 	int self_node_index = 0;
 	int total_nodes = 5;
-	// size_t size = 100000;
-	size_t size = 55;
+	size_t size = 100000;
+	// size_t size = 55;
 
 	// Define full dataset
 	auto iter0 = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return int32_t(i);});
-	// auto iter1 = cudf::detail::make_counting_transform_iterator(1000, [](auto i) { return int32_t(i * 2);});
-	// auto iter2 = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return int32_t(i % 5);});
+	auto iter1 = cudf::detail::make_counting_transform_iterator(1000, [](auto i) { return int32_t(i * 2);});
+	auto iter2 = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return int32_t(i % 5);});
 	auto valids_iter = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return true; });
 	
     cudf::test::fixed_width_column_wrapper<int32_t> col0(iter0, iter0 + size, valids_iter);
-	// cudf::test::fixed_width_column_wrapper<int32_t> col1(iter1, iter1 + size, valids_iter);
-	// cudf::test::fixed_width_column_wrapper<int32_t> col2(iter2, iter2 + size, valids_iter);
+	cudf::test::fixed_width_column_wrapper<int32_t> col1(iter1, iter1 + size, valids_iter);
+	cudf::test::fixed_width_column_wrapper<int32_t> col2(iter2, iter2 + size, valids_iter);
 	
-	// CudfTableView full_data_cudf_view ({col0, col1, col2});
-	CudfTableView full_data_cudf_view ({col0});
+	CudfTableView full_data_cudf_view ({col0, col1, col2});
+	// CudfTableView full_data_cudf_view ({col0});
 
-	// int preceding_value = 50;
-	// int following_value = 10;
-	// std::vector<cudf::size_type> batch_sizes = {5000, 50000, 20000, 15000, 10000}; // need to sum up to size
-	int preceding_value = 5;
-	int following_value = 1;
-	std::vector<cudf::size_type> batch_sizes = {20, 10, 25}; // need to sum up to size
+	int preceding_value = 50;
+	int following_value = 10;
+	std::vector<cudf::size_type> batch_sizes = {5000, 50000, 20000, 15000, 10000}; // need to sum up to size
+	// int preceding_value = 5;
+	// int following_value = 1;
+	// std::vector<cudf::size_type> batch_sizes = {20, 10, 25}; // need to sum up to size
 
 	// define how its broken up into batches and overlaps
-	// std::vector<std::string> names({"A", "B", "C"});
-	std::vector<std::string> names({"A"});
+	std::vector<std::string> names({"A", "B", "C"});
+	// std::vector<std::string> names({"A"});
 	std::vector<std::unique_ptr<CacheData>> preceding_overlaps, batches, following_overlaps;
 	std::unique_ptr<CacheData> previous_node_overlap, next_node_overlap;
 	std::tie(preceding_overlaps, batches, following_overlaps, previous_node_overlap, next_node_overlap) = break_up_full_data_multinode(
