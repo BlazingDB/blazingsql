@@ -294,7 +294,7 @@ bool CacheMachine::addCacheData(std::unique_ptr<ral::cache::CacheData> cache_dat
 	return false;
 }
 
-bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, std::string message_id, bool always_add,const MetadataDictionary & metadata , bool include_meta, bool use_pinned) {
+bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, std::string message_id, bool always_add,const MetadataDictionary & metadata , bool use_pinned) {
     CodeTimer cacheEventTimer;
     cacheEventTimer.start();
 
@@ -329,11 +329,7 @@ bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, s
 					// before we put into a cache, we need to make sure we fully own the table
 					table->ensureOwnership();
 					std::unique_ptr<CacheData> cache_data;
-					if(include_meta){
-						cache_data = std::make_unique<GPUCacheData>(std::move(table),metadata);
-					}else{
-						cache_data = std::make_unique<GPUCacheData>(std::move(table));
-					}
+					cache_data = std::make_unique<GPUCacheData>(std::move(table),metadata);
 					auto item =	std::make_unique<message>(std::move(cache_data), message_id);
 					this->waitingCache->put(std::move(item));
 
@@ -355,11 +351,7 @@ bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, s
 				} else {
 					if(cacheIndex == 1) {
 						std::unique_ptr<CacheData> cache_data;
-						if(include_meta){
-							cache_data = std::make_unique<CPUCacheData>(std::move(table), metadata, use_pinned);
-						}else{
-							cache_data = std::make_unique<CPUCacheData>(std::move(table), use_pinned);
-						}
+						cache_data = std::make_unique<CPUCacheData>(std::move(table), metadata, use_pinned);
 							
 						auto item =	std::make_unique<message>(std::move(cache_data), message_id);
 						this->waitingCache->put(std::move(item));
@@ -383,6 +375,7 @@ bool CacheMachine::addToCache(std::unique_ptr<ral::frame::BlazingTable> table, s
 						// BlazingMutableThread t([table = std::move(table), this, cacheIndex, message_id]() mutable {
 						// want to get only cache directory where orc files should be saved
 						std::string orc_files_path = ral::communication::CommunicationData::getInstance().get_cache_directory();
+						// WSM TODO add metadata to CacheDataLocalFile
 						auto cache_data = std::make_unique<CacheDataLocalFile>(std::move(table), orc_files_path, (ctx ? std::to_string(ctx->getContextToken()) : "none"));
 						auto item =	std::make_unique<message>(std::move(cache_data), message_id);
 						this->waitingCache->put(std::move(item));
@@ -688,6 +681,41 @@ bool CacheMachine::has_messages_now(std::vector<std::string> messages){
 		}
 	}
 	return true;
+}
+
+std::unique_ptr<ral::cache::CacheData> CacheMachine::pullAnyCacheData(const std::vector<std::string> & messages) {
+
+	if (messages.size() == 0){
+		return nullptr;
+	}
+
+	CodeTimer cacheEventTimer;
+    cacheEventTimer.start();
+
+    std::unique_ptr<message> message_data = waitingCache->get_or_wait_any(messages);
+	std::string message_id = message_data->get_message_id();
+    
+    size_t num_rows = message_data->get_data().num_rows();
+    size_t num_bytes = message_data->get_data().sizeInBytes();
+    int dataType = static_cast<int>(message_data->get_data().get_type());
+    std::unique_ptr<ral::cache::CacheData> output = message_data->release_data();
+
+    cacheEventTimer.stop();
+    if(cache_events_logger) {
+        cache_events_logger->info("{ral_id}|{query_id}|{message_id}|{cache_id}|{num_rows}|{num_bytes}|{event_type}|{timestamp_begin}|{timestamp_end}|{description}",
+                                  "ral_id"_a=(ctx ? ctx->getNodeIndex(ral::communication::CommunicationData::getInstance().getSelfNode()) : -1),
+                                  "query_id"_a=(ctx ? ctx->getContextToken() : -1),
+                                  "message_id"_a=message_id,
+                                  "cache_id"_a=cache_id,
+                                  "num_rows"_a=num_rows,
+                                  "num_bytes"_a=num_bytes,
+                                  "event_type"_a="pullAnyCacheData",
+                                  "timestamp_begin"_a=cacheEventTimer.start_time(),
+                                  "timestamp_end"_a=cacheEventTimer.end_time(),
+                                  "description"_a="Pull from CacheMachine CacheData object type {}"_format(dataType));
+    }
+
+	return output;
 }
 
 bool CacheMachine::has_data_in_index_now(size_t index){

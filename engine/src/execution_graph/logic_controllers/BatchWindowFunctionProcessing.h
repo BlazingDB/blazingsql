@@ -69,7 +69,6 @@ const std::string TASK_ARG_TARGET_NODE_INDEX="target_node_index";
 const std::string OVERLAP_TASK_TYPE="get_overlap";
 const std::string PRECEDING_OVERLAP_TYPE="preceding";
 const std::string FOLLOWING_OVERLAP_TYPE="following";
-const std::string NODE_COMPLETED_REQUEST="node_completed";
 const std::string PRECEDING_REQUEST="preceding_request";
 const std::string FOLLOWING_REQUEST="following_request";
 const std::string PRECEDING_FULFILLMENT="preceding_fulfillment";
@@ -103,7 +102,6 @@ private:
 	void update_num_batches();
 
 	size_t num_batches;
-	bool have_all_batches = false;
 	int preceding_value;     	   // X PRECEDING
 	int following_value;     		   // Y FOLLOWING
 	std::vector<std::string> preceding_overlap_statuses;

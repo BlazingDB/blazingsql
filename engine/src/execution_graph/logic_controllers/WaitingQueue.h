@@ -333,6 +333,61 @@ public:
 	}
 
 	/**
+	* Get one of any of a specific set of messages from the WaitingQueue.
+	* Messages are always accompanied by a message_id though in some cases that
+	* id is empty string. This allows us to get a specific message from the
+	* WaitingQueue and wait around for it to exist or for this WaitingQueue to be
+	* finished. If WaitingQueue is finished and there are no messages we get
+	* a nullptr.
+	* @param messages A vector of possible messages ids that we want to get or wait for.
+	* @return The message that has this id or nullptr if that message will  never
+	* be able to arrive because the WaitingQueue is finished.
+	*/
+	message_ptr get_or_wait_any(const std::vector<std::string> & messages) {
+		CodeTimer blazing_timer;
+		std::unique_lock<std::mutex> lock(mutex_);
+		while(!condition_variable_.wait_for(lock, timeout*1ms, [messages, &blazing_timer, this] {
+				bool found = false;
+				std::string message_id;
+				for (int i = 0; i < messages.size(); i++){
+					message_id = messages[i];
+					found = std::any_of(this->message_queue_.cbegin(),
+								this->message_queue_.cend(), [&](auto &e) {
+									return e->get_message_id() == message_id;
+								});
+					if (found){
+						break;
+					}
+				}
+				bool done_waiting = this->finished.load(std::memory_order_seq_cst) or found;
+				if (!done_waiting && blazing_timer.elapsed_time() > 59000 && this->log_timeout){
+					std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
+					if(logger) {
+						logger->warn("|||{info}|{duration}|message_id|{message_id}||",
+											"info"_a="WaitingQueue " + this->queue_name + " get_or_wait_any timed out",
+											"duration"_a=blazing_timer.elapsed_time(),
+											"message_id"_a=message_id);
+					}
+				}
+				return done_waiting;
+				
+			})){
+
+			}
+		if(this->message_queue_.size() == 0) {
+			return nullptr;
+		}
+		while (true){
+			auto data = this->pop_unsafe();
+			if (std::find(messages.begin(), messages.end(), data->get_message_id()) != messages.end()){
+				return std::move(data);
+			} else {
+				putWaitingQueue(std::move(data));
+			}
+		}
+	}
+
+	/**
 	* Pop the front element WITHOUT thread safety.
 	* Allos us to pop from the front in situations where we have already acquired
 	* a unique_lock on this WaitingQueue's mutex.

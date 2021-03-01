@@ -59,7 +59,7 @@ public:
 
 	virtual void clear();
 
-	virtual bool addToCache(std::unique_ptr<ral::frame::BlazingTable> table, std::string message_id = "", bool always_add = false, const MetadataDictionary & metadata = {}, bool include_meta = false, bool use_pinned = false );
+	virtual bool addToCache(std::unique_ptr<ral::frame::BlazingTable> table, std::string message_id = "", bool always_add = false, const MetadataDictionary & metadata = {}, bool use_pinned = false );
 
 	virtual bool addCacheData(std::unique_ptr<ral::cache::CacheData> cache_data, std::string message_id = "", bool always_add = false);
 
@@ -90,6 +90,8 @@ public:
 	}
 
 	bool has_messages_now(std::vector<std::string> messages);
+
+	std::unique_ptr<ral::cache::CacheData> pullAnyCacheData(const std::vector<std::string> & messages);
 
 	std::size_t get_num_batches(){
 		return cache_count;

@@ -58,7 +58,7 @@ const std::string UNIQUE_MESSAGE_ID = "unique_message_id"; /**< A message metada
 
 // fields for window functions
 const std::string OVERLAP_STATUS = "overlap_status"; /**< A message metadata field that indicates the status of this overlap data. */
-const std::string OVERLAP_MESSAGE_TYPE = "overlap_message_type"; /**< A message metadata field that indicates the type of overlap request (node_completed, preceding_request, following_request, preceding_fulfillment, following_fulfillment)*/
+const std::string OVERLAP_MESSAGE_TYPE = "overlap_message_type"; /**< A message metadata field that indicates the type of overlap request (preceding_request, following_request, preceding_fulfillment, following_fulfillment)*/
 const std::string OVERLAP_SIZE = "overlap_size"; /**< A message metadata field that contains an integer indicating the amount of overlap*/
 const std::string OVERLAP_SOURCE_NODE_INDEX = "overlap_source_node_index"; /**< A message metadata field that contains an integer indicating the node to from where it came*/
 const std::string OVERLAP_TARGET_NODE_INDEX = "overlap_target_node_index"; /**< A message metadata field that contains an integer indicating the node to whom it will be sent*/
@@ -229,6 +229,13 @@ public:
 	*/
 	CacheDataType get_type() const {
 		return cache_type;
+	}
+
+	/**
+	* Set the MetadataDictionary
+	*/
+	void setMetadata(MetadataDictionary new_metadata){
+		this->metadata = new_metadata;
 	}
 
 	/**
