@@ -8,6 +8,11 @@
 
 #include <ucs/type/status.h>
 
+#include <spdlog/spdlog.h>
+#include <spdlog/async.h>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+
 namespace ral{
 namespace memory{
 
@@ -85,7 +90,6 @@ void pinned_allocator::do_deallocate(void * ptr){
 
 allocation_pool::allocation_pool(std::unique_ptr<base_allocator> allocator, std::size_t size_buffers, std::size_t num_buffers) :
 num_buffers (num_buffers), buffer_size(size_buffers), allocator(std::move(allocator)) {
-
   this->buffer_counter = 0; // this will get incremented by grow()
   this->allocation_counter = 0;
   this->grow();
@@ -131,13 +135,14 @@ std::unique_ptr<blazing_allocation_chunk> allocation_pool::get_chunk() {
 
 
 void allocation_pool::grow() {
-
   // if this is the first growth (initializaton) then we want num_buffers, else we will just grow by half that.
   std::size_t num_new_buffers = this->buffer_counter == 0 ? this->num_buffers : this->num_buffers/2;
   allocations.push_back(std::make_unique<blazing_allocation>());
+  allocations.back()->index = this->allocations.size() - 1;
   auto last_index = allocations.size() -1;
   try{
     allocator->allocate((void **) &allocations[last_index]->data,num_new_buffers * buffer_size);
+    this->allocations[last_index]->total_number_of_chunks = num_new_buffers;
     for (int buffer_index = 0; buffer_index < num_new_buffers; buffer_index++) {
        auto buffer = std::make_unique<blazing_allocation_chunk>();
       buffer->size = this->buffer_size;
@@ -153,10 +158,37 @@ void allocation_pool::grow() {
   }
 }
 
-
 void allocation_pool::free_chunk(std::unique_ptr<blazing_allocation_chunk> buffer) {
   std::unique_lock<std::mutex> lock(in_use_mutex);
+  const std::size_t idx = buffer->allocation->index;
+
+  if (idx+1 > this->allocations.size()) {
+    std::shared_ptr<spdlog::logger> logger = spdlog::get("batch_logger");
+    if(logger){
+      logger->error("|||{0}|||||","free_chunk cannot delete an invalid allocation.");
+    }
+    assert(("free_chunk cannot delete an invalid allocation.", idx < this->allocations.size()));
+  }
+
   buffer->allocation->allocation_chunks.push(std::move(buffer));
+
+  if (idx > 0) {
+    if (this->allocations.at(idx)->total_number_of_chunks == this->allocations.at(idx)->allocation_chunks.size()) {
+      auto it = this->allocations.begin();
+      std::advance(it, idx);
+      if ((*it)->data != nullptr) {
+        this->allocator->deallocate((*it)->data);
+        this->allocations.erase(it);
+
+        // for all allocations after the pos at idx
+        // we need to update the allocation.index after we deleted one
+        for (std::size_t i = idx; i < this->allocations.size(); ++i) {
+          this->allocations[i]->index = this->allocations[i]->index - 1;
+        }
+      }
+    }
+  }
+
   this->allocation_counter--;
 }
 
@@ -180,37 +212,33 @@ void allocation_pool::free_all() {
 std::size_t allocation_pool::size_buffers() { return this->buffer_size; }
 
 
-static std::shared_ptr<allocation_pool> host_buffer_instance{};
-static std::shared_ptr<allocation_pool> pinned_buffer_instance{};
-
-
 void set_allocation_pools(std::size_t size_buffers_host, std::size_t num_buffers_host,
 std::size_t size_buffers_pinned, std::size_t num_buffers_pinned, bool map_ucx,
     ucp_context_h context) {
 
-  if (host_buffer_instance == nullptr || host_buffer_instance->get_total_buffers() == 0) { // not initialized
+  if (buffer_providers::get_host_buffer_provider() == nullptr || buffer_providers::get_host_buffer_provider()->get_total_buffers() == 0) { // not initialized
 
     auto host_alloc = std::make_unique<host_allocator>(false);
 
-    host_buffer_instance = std::make_shared<allocation_pool>(
+    buffer_providers::get_host_buffer_provider() = std::make_shared<allocation_pool>(
     std::move(host_alloc) ,size_buffers_host,num_buffers_host);
   }
 
-  if (pinned_buffer_instance == nullptr || pinned_buffer_instance->get_total_buffers() == 0) { // not initialized
+  if (buffer_providers::get_pinned_buffer_provider() == nullptr || buffer_providers::get_pinned_buffer_provider()->get_total_buffers() == 0) { // not initialized
     auto pinned_alloc = std::make_unique<pinned_allocator>();
 
     if (map_ucx) {
       pinned_alloc->setUcpContext(context);
     }
 
-    pinned_buffer_instance = std::make_shared<allocation_pool>(std::move(pinned_alloc),
+    buffer_providers::get_pinned_buffer_provider() = std::make_shared<allocation_pool>(std::move(pinned_alloc),
       size_buffers_host,num_buffers_host);
   }
 }
 
 void empty_pools(){
-  host_buffer_instance->free_all();
-  pinned_buffer_instance->free_all();
+  buffer_providers::get_host_buffer_provider()->free_all();
+  buffer_providers::get_pinned_buffer_provider()->free_all();
 }
 std::size_t allocation_pool::get_allocated_buffers(){
   return allocation_counter;
@@ -222,14 +250,6 @@ std::size_t allocation_pool::get_total_buffers(){
 }
 
 
-std::shared_ptr<allocation_pool > get_host_buffer_provider(){
-  return host_buffer_instance;
-}
-std::shared_ptr<allocation_pool > get_pinned_buffer_provider(){
-  return pinned_buffer_instance;
-}
-
-
 std::pair< std::vector<ral::memory::blazing_chunked_column_info>, std::vector<std::unique_ptr<ral::memory::blazing_allocation_chunk> >> convert_gpu_buffers_to_chunks(
   std::vector<std::size_t> buffer_sizes,bool use_pinned){
 
@@ -237,7 +257,7 @@ std::pair< std::vector<ral::memory::blazing_chunked_column_info>, std::vector<st
   size_t buffer_index = 0;
   size_t allocation_position = 0;
 
-  std::shared_ptr<allocation_pool > pool = use_pinned ? get_pinned_buffer_provider() : get_host_buffer_provider();
+  std::shared_ptr<allocation_pool > pool = use_pinned ? buffer_providers::get_pinned_buffer_provider() : buffer_providers::get_host_buffer_provider();
   
   std::vector<std::unique_ptr<ral::memory::blazing_allocation_chunk> > allocations;
   std::vector<ral::memory::blazing_chunked_column_info> chunked_column_infos; 

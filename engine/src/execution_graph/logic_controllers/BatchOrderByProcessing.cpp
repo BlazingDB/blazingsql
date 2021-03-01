@@ -2,6 +2,7 @@
 #include "CodeTimer.h"
 #include <src/utilities/CommonOperations.h>
 #include "taskflow/executor.h"
+#include "parser/expression_utils.hpp"
 
 namespace ral {
 namespace batch {
@@ -30,9 +31,9 @@ ral::execution::task_result PartitionSingleNodeKernel::do_process(std::vector< s
                 cache_id
                 );
         }
-    }catch(rmm::bad_alloc e){
+    }catch(const rmm::bad_alloc& e){
         return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
-    }catch(std::exception e){
+    }catch(const std::exception& e){
         return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }
     
@@ -252,7 +253,6 @@ ral::execution::task_result SortAndSampleKernel::do_process(std::vector< std::un
             if(sortedTable){
                 auto num_rows = sortedTable->num_rows();
                 auto num_bytes = sortedTable->sizeInBytes();
-
             }
 
             output->addToCache(std::move(sortedTable), "output_a");
@@ -260,9 +260,9 @@ ral::execution::task_result SortAndSampleKernel::do_process(std::vector< std::un
         else if (operation_type == "compute_partition_plan") {
             compute_partition_plan(std::move(inputs));
         }
-    }catch(rmm::bad_alloc e){
+    }catch(const rmm::bad_alloc& e){
         return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
-    }catch(std::exception e){
+    }catch(const std::exception& e){
         return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }
     return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
@@ -362,9 +362,9 @@ ral::execution::task_result PartitionKernel::do_process(std::vector< std::unique
             "", //message_id_prefix
             part_ids
         );
-    }catch(rmm::bad_alloc e){
+    }catch(const rmm::bad_alloc& e){
         return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
-    }catch(std::exception e){
+    }catch(const std::exception& e){
         return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }
     return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
@@ -381,7 +381,7 @@ kstatus PartitionKernel::run() {
 
     std::map<std::string, std::map<int32_t, int> > node_count;
 
-    if (this->expression.find("window") != this->expression.npos) std::tie(sortColIndices, sortOrderTypes) = ral::operators::get_vars_to_partition(this->expression);
+    if (is_window_function(this->expression)) std::tie(sortColIndices, sortOrderTypes) = ral::operators::get_vars_to_partition(this->expression);
 	else std::tie(sortColIndices, sortOrderTypes, std::ignore) = ral::operators::get_sort_vars(this->expression);
 
     auto nodes = context->getAllNodes();
@@ -484,9 +484,9 @@ ral::execution::task_result MergeStreamKernel::do_process(std::vector< std::uniq
             auto output_merge = ral::operators::merge(tableViewsToConcat, this->expression);
             output->addToCache(std::move(output_merge));
         }
-    }catch(rmm::bad_alloc e){
+    }catch(const rmm::bad_alloc& e){
         return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
-    }catch(std::exception e){
+    }catch(const std::exception& e){
         return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }
     return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
@@ -602,9 +602,9 @@ ral::execution::task_result LimitKernel::do_process(std::vector< std::unique_ptr
             else
                 output->addToCache(std::move(limited_input));
         }
-    }catch(rmm::bad_alloc e){
+    }catch(const rmm::bad_alloc& e){
         return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
-    }catch(std::exception e){
+    }catch(const std::exception& e){
         return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }
     return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
