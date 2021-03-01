@@ -160,9 +160,19 @@ bool is_aggregate_and_sample(std::string query_part); // to be deprecated
 bool is_window_function(std::string query_part);
 bool is_window_compute(std::string query_part);
 
-bool window_expression_contains_partition(std::string query_part);
+bool window_expression_contains_partition_by(std::string query_part);
 
-bool window_expression_contains_order(std::string query_part);
+bool window_expression_contains_order_by(std::string query_part);
+
+bool window_expression_contains_bounds(std::string query_part);
+
+bool window_expression_contains_bounds_by_range(std::string query_part);
+
+bool is_lag_or_lead_aggregation(std::string expression);
+
+bool is_first_value_window(std::string expression);
+
+bool is_last_value_window(std::string expression);
 
 bool window_expression_contains_multiple_diff_over_clauses(std::string query_part);
 

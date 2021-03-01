@@ -41,8 +41,6 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
 
             # TODO: RANK() and DENSE_RANK(): cudf aggs no supported currently
 
-            # TODO: FIRST_VALUE() and LAST_VALUE(): cudf aggs no supported currently
-
             # TODO: BOUNDED/UNBOUNDED, ROW/RANGE: Calcite issue when get optimized plan
 
             # ------------------- ORDER BY ------------------------
@@ -1087,6 +1085,8 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 use_percentage,
                 fileSchemaType,
             )
+
+            # TODO: FIRST_VALUE() and LAST_VALUE(): cordova add new tests here
 
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")

@@ -168,10 +168,10 @@ ral::execution::task_result DistributeAggregateKernel::do_process(std::vector< s
             std::vector<CudfTableView> partitioned;
             std::unique_ptr<CudfTable> hashed_data; // Keep table alive in this scope
             if (batch_view.num_rows() > 0) {
-                std::vector<cudf::size_type> hased_data_offsets;
-                std::tie(hashed_data, hased_data_offsets) = cudf::hash_partition(input->view(), columns_to_hash, num_partitions);
+                std::vector<cudf::size_type> hashed_data_offsets;
+                std::tie(hashed_data, hashed_data_offsets) = cudf::hash_partition(input->view(), columns_to_hash, num_partitions);
                 // the offsets returned by hash_partition will always start at 0, which is a value we want to ignore for cudf::split
-                std::vector<cudf::size_type> split_indexes(hased_data_offsets.begin() + 1, hased_data_offsets.end());
+                std::vector<cudf::size_type> split_indexes(hashed_data_offsets.begin() + 1, hashed_data_offsets.end());
                 partitioned = cudf::split(hashed_data->view(), split_indexes);
             } else {
                 //  copy empty view
