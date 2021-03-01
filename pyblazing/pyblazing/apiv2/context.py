@@ -950,6 +950,12 @@ def kwargs_validation(kwargs, bc_api_str):
             )
 
 
+def recognized_extension(extension):
+    if extension in ["orc", "parquet", "json", "csv", "psv"]:
+        return True
+    return False
+
+
 class BlazingTable(object):
     def __init__(
         self,
@@ -2243,6 +2249,15 @@ class BlazingContext(object):
             # /path/to/data/file_wo_extens -> name_file = /path/to/data/file_wo_extens, extension = ''
             # /path/to/data/folder/ -> name_file = /path/to/data/folder/, extension = ''
             name_file, extension = os.path.splitext(input[0])
+
+            if not recognized_extension(extension) and file_format_hint == "undefined":
+                raise Exception(
+                    "ERROR: Your input file doesn't have a recognized extension, "
+                    + "you have to specify the `file_format` parameter. "
+                    + "Recognized extensions are: [orc, parquet, csv, json, psv]."
+                    + "\nFor example if you are using a *.log file you must pass file_format='csv' "
+                    + "with all the needed extra parameters. See https://docs.blazingdb.com/docs/creating-tables"
+                )
 
             if (
                 file_format_hint == "undefined"
