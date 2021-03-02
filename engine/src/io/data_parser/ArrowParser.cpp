@@ -21,19 +21,6 @@ arrow_parser::arrow_parser(std::shared_ptr< arrow::Table > table):  table(table)
 
 arrow_parser::~arrow_parser() {}
 
-// TODO: cordova erase this code when the new GDF parse works well with the new API
-// using UNIT TEST to check when it's ready
-// void arrow_parser::parse(std::shared_ptr<arrow::io::RandomAccessFile> file,
-// 		std::vector<gdf_column_cpp> & columns_out,
-// 		const Schema & schema,
-// 		std::vector<size_t> column_indices_requested){
-
-// 	if (column_indices_requested.size() == 0){ // including all columns by default
-// 		column_indices_requested.resize(schema.get_num_columns());
-// 		std::iota(column_indices_requested.begin(), column_indices_requested.end(), 0);
-// 	}
-// }
-
 void arrow_parser::parse_schema(std::shared_ptr<arrow::io::RandomAccessFile> /*file*/,
 		ral::io::Schema &  /*schema*/){
 	std::vector<std::string> names;

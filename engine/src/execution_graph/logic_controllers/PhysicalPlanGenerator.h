@@ -141,7 +141,7 @@ struct tree_processor {
 		return children;
 	}
 
-	void transform_json_tree(boost::property_tree::ptree &p_tree, bool is_windowed = false) {
+	void transform_json_tree(boost::property_tree::ptree &p_tree, bool first_windowed_call = true) {
 		std::string expr = p_tree.get<std::string>("expr", "");
 		if (is_sort(expr)){
 			std::string limit_expr = expr;
@@ -149,7 +149,7 @@ struct tree_processor {
 			std::string partition_expr = expr;
 			std::string sort_and_sample_expr = expr;
 
-			if( ral::operators::has_limit_only(expr) && !contains_window_expression(expr) ){
+			if( ral::operators::has_limit_only(expr) && !is_window_function(expr) ){
 				StringUtil::findAndReplaceAll(limit_expr, LOGICAL_SORT_TEXT, LOGICAL_LIMIT_TEXT);
 
 				p_tree.put("expr", limit_expr);
@@ -175,7 +175,7 @@ struct tree_processor {
 				merge_tree.put("expr", merge_expr);
 				merge_tree.add_child("children", create_array_tree(partition_tree));
 
-				if (contains_window_expression(expr)) {
+				if (is_window_function(expr)) {
 					p_tree = merge_tree;
 				} else {
 					p_tree.put("expr", limit_expr);
@@ -286,27 +286,32 @@ struct tree_processor {
 				p_tree.put_child("children", create_array_tree(distribute_aggregate_tree));
 			}
 		}
-		else if (is_window(expr)) {
+		else if (is_project(expr) && is_window_function(expr) && first_windowed_call) {
 			if (!window_expression_contains_partition(expr)) {
 				throw std::runtime_error("In Window Function: PARTITION BY clause is mandatory");
 			}
-			if (window_expression_contains_multiple_windows(expr)) {
+			if (window_expression_contains_multiple_diff_over_clauses(expr)) {
 				throw std::runtime_error("In Window Function: multiple WINDOW FUNCTIONs with different OVER clauses are not supported currently");
 			}
+
 			std::string sort_expr = expr;
 			std::string window_expr = expr;
 
-			StringUtil::findAndReplaceAll(window_expr, LOGICAL_WINDOW_TEXT, LOGICAL_COMPUTE_WINDOW_TEXT);
-			StringUtil::findAndReplaceAll(sort_expr, LOGICAL_WINDOW_TEXT, LOGICAL_SORT_TEXT);
+			StringUtil::findAndReplaceAll(window_expr, LOGICAL_PROJECT_TEXT, LOGICAL_COMPUTE_WINDOW_TEXT);
+			StringUtil::findAndReplaceAll(sort_expr, LOGICAL_PROJECT_TEXT, LOGICAL_SORT_TEXT);
 
 			boost::property_tree::ptree sort_tree;
 			sort_tree.put("expr", sort_expr);
 			sort_tree.add_child("children", p_tree.get_child("children"));
 
-			p_tree.put("expr", window_expr);
-			p_tree.put_child("children", create_array_tree(sort_tree));
+			boost::property_tree::ptree window_tree;
+			window_tree.put("expr", window_expr);
+			window_tree.put_child("children", create_array_tree(sort_tree));
+			
+			p_tree.put("expr", expr);
+			p_tree.put_child("children", create_array_tree(window_tree));
 
-			transform_json_tree(p_tree);
+			transform_json_tree(p_tree, false);
 			return;
 		}
 
