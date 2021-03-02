@@ -1,6 +1,7 @@
 # BlazingSQL 0.19.0 (Date TBS)
 
 ## New Features
+- #1364 Implement the concurrent API (bc.sql with token, bc.status, bc.fetch)
 
 
 ## Improvements
