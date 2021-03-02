@@ -3100,7 +3100,7 @@ class BlazingContext(object):
                 return ctxToken
 
     def status(self, token):
-        if not token in self.graphs:
+        if token not in self.graphs:
             raise Exception(
                 "ERROR: The graph associated with the token '"
                 + str(token)
