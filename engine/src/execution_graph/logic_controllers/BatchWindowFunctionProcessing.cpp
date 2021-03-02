@@ -598,8 +598,8 @@ kstatus OverlapAccumulatorKernel::run() {
                 preceding_overlap_cache->put(cur_batch_ind, std::move(overlap_cache_data));
                 
                 if (metadata.get_value(ral::cache::OVERLAP_STATUS) == INCOMPLETE_OVERLAP_STATUS){
-                    prepare_overlap_task(true, cur_batch_ind - 1, this->self_node_index, cur_batch_ind, 
-                                    this->preceding_value - cur_overlap_rows);                    
+                    size_t overlap_needed = this->preceding_value - cur_overlap_rows > 0 ? this->preceding_value - cur_overlap_rows : 0;
+                    prepare_overlap_task(true, cur_batch_ind - 1, this->self_node_index, cur_batch_ind, overlap_needed);                    
                 }
             } else {
                 // WSM TODO error
@@ -618,8 +618,8 @@ kstatus OverlapAccumulatorKernel::run() {
                 following_overlap_cache->put(cur_batch_ind, std::move(overlap_cache_data));
                 
                 if (metadata.get_value(ral::cache::OVERLAP_STATUS) == INCOMPLETE_OVERLAP_STATUS){
-                    prepare_overlap_task(false, cur_batch_ind + 1, this->self_node_index, cur_batch_ind, 
-                                    this->following_value - cur_overlap_rows);                    
+                    size_t overlap_needed = this->following_value - cur_overlap_rows > 0 ? this->following_value - cur_overlap_rows : 0;
+                    prepare_overlap_task(false, cur_batch_ind + 1, this->self_node_index, cur_batch_ind, overlap_needed);                    
                 }
             } else {
                 // WSM TODO error
