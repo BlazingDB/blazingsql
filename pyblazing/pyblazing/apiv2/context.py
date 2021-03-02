@@ -1607,16 +1607,16 @@ class BlazingContext(object):
         self.tables = {}
         self.logs_initialized = False
         self.enable_progress_bar = enable_progress_bar
-        self.graphs = OrderedDict() # token -> graph
+        self.graphs = OrderedDict()  # token -> graph
 
         # waitForPingSuccess(self.client)
         print("BlazingContext ready")
 
     def __del__(self):
         tokens = list(self.graphs.keys())
-        if self.dask_client is None: # the context is in this current process
+        if self.dask_client is None:  # the context is in this current process
             self.finalizeCaller(tokens)
-        else: # the context is in the dask worker process
+        else:  # the context is in the dask worker process
             # TODO percy william we need to free the memory from all workers invoking the finalizer
             # We cannot just send the finalizerCaller on each worker here because python garbage collector
             # already deleted some objects related with dask, so the tornado loop from dask doesn't exists here
@@ -2855,17 +2855,15 @@ class BlazingContext(object):
                         get_element, query_partid, workers=[worker_id], pure=False,
                     )
                 )
-        self.graphs[ctxToken] = None # NOTE we need to invalidate the graph
+        self.graphs[ctxToken] = None  # NOTE we need to invalidate the graph
         return dask.dataframe.from_delayed(futures, meta=meta)
 
     def _get_results_single_node(self, ctxToken):
         graph = self.graphs[ctxToken]
         self.do_progress_bar(
-            graph,
-            self._run_progress_bar_single_node,
-            self._wait_completed_single_node,
+            graph, self._run_progress_bar_single_node, self._wait_completed_single_node,
         )
-        self.graphs[ctxToken] = None # NOTE we need to invalidate the graph
+        self.graphs[ctxToken] = None  # NOTE we need to invalidate the graph
         return cio.getExecuteGraphResultCaller(graph, ctxToken, is_single_node=True)
 
     def fetch(self, token):
@@ -2874,7 +2872,7 @@ class BlazingContext(object):
         return self._get_results_distributed(token)
 
     def sql(
-        self, query, algebra=None, config_options={}, return_token:bool=False,
+        self, query, algebra=None, config_options={}, return_token: bool = False,
     ):
         """
         Query a BlazingSQL table.
@@ -3109,7 +3107,7 @@ class BlazingContext(object):
                 + "' does not exists. Please make sure you have a valid token."
             )
 
-        if self.graphs[token] is None: # then the executution was done
+        if self.graphs[token] is None:  # then the executution was done
             return True
 
         if self.dask_client is None:
