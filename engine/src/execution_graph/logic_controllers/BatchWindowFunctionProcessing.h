@@ -66,7 +66,6 @@ const std::string TASK_ARG_SOURCE_BATCH_INDEX="source_batch_index";
 const std::string TASK_ARG_TARGET_BATCH_INDEX="target_batch_index";
 const std::string TASK_ARG_TARGET_NODE_INDEX="target_node_index";
 
-const std::string OVERLAP_TASK_TYPE="get_overlap";
 const std::string PRECEDING_OVERLAP_TYPE="preceding";
 const std::string FOLLOWING_OVERLAP_TYPE="following";
 const std::string PRECEDING_REQUEST="preceding_request";
@@ -93,7 +92,12 @@ public:
 	std::string get_overlap_status(bool preceding, int index);
 	void combine_overlaps(bool preceding, int target_batch_index, std::unique_ptr<ral::frame::BlazingTable> new_overlap, std::string overlap_status);
 	void combine_overlaps(bool preceding, int target_batch_index, std::unique_ptr<ral::cache::CacheData> new_overlap_cache_data, std::string overlap_status);
-	void request_receiver();
+
+	void fulfillment_receiver();
+	void preceding_request_receiver();
+	void following_request_receiver();
+	void message_receiver(std::vector<std::string> expected_message_ids, int messages_expected);
+
 	void prepare_overlap_task(bool preceding, int source_batch_index, int target_node_index, int target_batch_index, size_t overlap_size);
 	void send_request(bool preceding, int source_node_index, int target_node_index, int target_batch_index, size_t overlap_size);
 
