@@ -129,7 +129,11 @@ ral::execution::task_result DistributeAggregateKernel::do_process(std::vector< s
     // num_partitions = context->getTotalNodes() will do for now, but may want a function to determine this in the future.
     // If we do partition into something other than the number of nodes, then we have to use part_ids and change up more of the logic
     int num_partitions = this->context->getTotalNodes();
-    
+
+    // we want to update the `columns_to_hash` because the input could have more columns after ComputeAggregateKernel
+    std::tie(columns_to_hash, std::ignore, std::ignore, std::ignore) = ral::operators::modGroupByParametersPostComputeAggregations(group_column_indices,
+                                                                                             aggregation_types, input->names());
+
     // If its an aggregation without group by we want to send all the results to the master node
     auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
     if (group_column_indices.size() == 0) {
@@ -307,7 +311,7 @@ ral::execution::task_result MergeAggregateKernel::do_process(std::vector< std::u
         std::vector<std::string> mod_aggregation_input_expressions, mod_aggregation_column_assigned_aliases, merging_column_names;
         std::vector<AggregateKind> mod_aggregation_types;
         std::tie(mod_group_column_indices, mod_aggregation_input_expressions, mod_aggregation_types,
-            mod_aggregation_column_assigned_aliases) = ral::operators::modGroupByParametersForMerge(
+            mod_aggregation_column_assigned_aliases) = ral::operators::modGroupByParametersPostComputeAggregations(
             group_column_indices, aggregation_types, concatenated->names());
 
         std::unique_ptr<ral::frame::BlazingTable> columns = nullptr;
