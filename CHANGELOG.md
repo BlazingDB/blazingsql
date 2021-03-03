@@ -39,7 +39,7 @@
 - #1313 getting and using ORC metadata
 - #1347 Fixing issue when reading orc metadata from DATE dtype
 - #1338 Window Function support for LEAD and LAG statements 
-
+- #1362 give useful message when file extension is not recognized
 
 ## Improvements
 - #1293 Added optional acknowledgments to message sending
