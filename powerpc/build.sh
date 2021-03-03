@@ -687,12 +687,13 @@ echo "END UCX requirements"
 echo "BEGIN JAVA"
 cd $build_dir
 if [ ! -f ibm-java-sdk-8.0-6.11-ppc64le-archive.bin ]; then
-    wget http://public.dhe.ibm.com/ibmdl/export/pub/systems/cloud/runtimes/java/8.0.6.11/linux/ppc64le/ibm-java-sdk-8.0-6.11-ppc64le-archive.bin
-    chmod +x ibm-java-sdk-8.0-6.11-ppc64le-archive.bin
-    ./ibm-java-sdk-8.0-6.11-ppc64le-archive.bin
+    wget http://public.dhe.ibm.com/ibmdl/export/pub/systems/cloud/runtimes/java/11.0.10.0/linux/ppc64le/ibm-java-jdk_ppc64le_linux_11.0.10.0-archive.bin
+    chmod +x ibm-java-jdk_ppc64le_linux_11.0.10.0-archive.bin
+    ./ibm-java-jdk_ppc64le_linux_11.0.10.0-archive.bin
 fi
-export PATH=$PWD/ibm-java-ppc64le-80/bin:$PATH
-export JAVA_HOME=$PWD/ibm-java-ppc64le-80/jre
+export PATH=$PWD/ibm-java-ppc64le-110/jdk-11.0.10+9/bin:$PATH
+export JAVA_HOME=$PWD/ibm-java-ppc64le-110/jdk-11.0.10+9/lib/j9vm/libjvm.so
+
 echo "END JAVA"
 # END JAVA
 
