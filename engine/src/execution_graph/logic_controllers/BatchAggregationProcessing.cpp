@@ -130,10 +130,6 @@ ral::execution::task_result DistributeAggregateKernel::do_process(std::vector< s
     // If we do partition into something other than the number of nodes, then we have to use part_ids and change up more of the logic
     int num_partitions = this->context->getTotalNodes();
 
-    // we want to update the `columns_to_hash` because the input could have more columns after ComputeAggregateKernel
-    std::tie(columns_to_hash, std::ignore, std::ignore, std::ignore) = ral::operators::modGroupByParametersPostComputeAggregations(group_column_indices,
-                                                                                             aggregation_types, input->names());
-
     // If its an aggregation without group by we want to send all the results to the master node
     auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
     if (group_column_indices.size() == 0) {
@@ -213,7 +209,9 @@ kstatus DistributeAggregateKernel::run() {
     std::tie(group_column_indices, aggregation_input_expressions, aggregation_types,
         aggregation_column_assigned_aliases) = ral::operators::parseGroupByExpression(this->expression, cache_data->num_columns());
 
-    std::transform(group_column_indices.begin(), group_column_indices.end(), std::back_inserter(columns_to_hash), [](int index) { return (cudf::size_type)index; });
+    // we want to update the `columns_to_hash` because the input could have more columns after ComputeAggregateKernel
+    std::tie(columns_to_hash, std::ignore, std::ignore, std::ignore) = ral::operators::modGroupByParametersPostComputeAggregations(group_column_indices,
+                                                                                             aggregation_types, cache_data->names());
 
     while(cache_data != nullptr ){
         std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
