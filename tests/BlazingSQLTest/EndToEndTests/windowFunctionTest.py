@@ -729,6 +729,38 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
+            queryId = "TEST_30"
+            query = """select (o_orderkey + o_custkey) as key_priority,
+                            max(o_totalprice) over
+                            (
+                                partition by o_orderpriority
+                                order by o_totalprice, o_custkey
+                            ) o_max_prices,
+                            o_custkey + o_totalprice, 
+                            min(o_totalprice) over
+                            (
+                                partition by o_orderpriority
+                                order by o_totalprice, o_custkey
+                            ) o_min_prices,
+                            o_custkey - o_totalprice + 5
+                        from orders
+                        where o_orderstatus not in ('O', 'F')
+                        and o_totalprice < 85000
+                        and o_orderpriority <> '2-HIGH'
+                        order by key_priority, o_max_prices"""
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
             # ---------- multiple WF with the same OVER clause ------------
 
             queryId = "TEST_31"

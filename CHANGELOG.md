@@ -13,8 +13,11 @@
 ## Bug Fixes
 - #1335 Fixing uninitialized var in orc metadata and handling the parseMetadata exceptions properly
 - #1339 Handling properly the nulls in case conditions with strings
+- #1346 Delete allocated host chunks
 - #1348 Capturing error messages due to exceptions properly
-
+- #1350 Fixed bug where there are no projects in a bindable table scan
+- #1359 Avoid cuda issues when free pinned memory
+- #1365 Fixed build after sublibs changes on cudf
 
 # BlazingSQL 0.18.0 (Date TBS)
 

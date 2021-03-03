@@ -56,9 +56,9 @@ TEST_F(ExpressionUtilsTest, removing_over_expression) {
 
 TEST_F(ExpressionUtilsTest, getting_query_part) {
 
-	std::string query_part_1 = "LogicalProject(sum_max_prices=[$0], o_orderkey=[$1], o_min_prices=[$2]])";
+	std::string query_part_1 = "LogicalProject(sum_max_prices=[$0], o_orderkey=[$1], o_min_prices=[$2])";
 	std::string result_1 = get_query_part(query_part_1);
-	std::string expected_1 = "sum_max_prices=[$0], o_orderkey=[$1], o_min_prices=[$2]]";
+	std::string expected_1 = "sum_max_prices=[$0], o_orderkey=[$1], o_min_prices=[$2]";
 
 	std::string query_part_2 = "LogicalFilter(condition=[AND(<($0, 19750.0:DECIMAL(6, 1)), <>($6, 'Clerk#000000880'), OR(=($3, '2-HIGH'), =($3, '5-LOW')))])";
 	std::string result_2 = get_query_part(query_part_2);

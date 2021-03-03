@@ -5,6 +5,7 @@
 #include <cudf/strings/contains.hpp>
 #include <cudf/strings/replace_re.hpp>
 #include <cudf/strings/replace.hpp>
+#include <cudf/strings/detail/replace.hpp>
 #include <cudf/strings/substring.hpp>
 #include <cudf/strings/case.hpp>
 #include <cudf/strings/strip.hpp>
@@ -142,7 +143,7 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         std::string target = StringUtil::removeEncapsulation(arg_tokens[1], encapsulation_character);
         std::string repl = StringUtil::removeEncapsulation(arg_tokens[2], encapsulation_character);
 
-        computed_col = cudf::strings::replace(column, target, repl);
+        computed_col = cudf::strings::detail::replace<cudf::strings::detail::replace_algorithm::ROW_PARALLEL>(column, target, repl);
         break;
     }
     case operator_type::BLZ_STR_REGEXP_REPLACE:
@@ -775,37 +776,9 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
     const std::vector<std::string> & expressions) {
     using interops::column_index_type;
 
-    // first of all, we need to know how many WINDOWs columns exists
-    size_t total_wf_cols = 0;
-    std::vector<std::string> new_expressions = expressions;
-    for(size_t col_i = 0; col_i < new_expressions.size(); col_i++) {
-        if (is_window_function(new_expressions[col_i])) {
-            size_t num_over_clauses = StringUtil::findAndCountAllMatches(new_expressions[col_i], "OVER");
-            if (num_over_clauses > 1) total_wf_cols += 2;  // AVG and SUM cases
-            else total_wf_cols++;
-        }
-    }
-
-    // now let's update the expressions that contains Window functions
-    if (total_wf_cols > 0) {
-        size_t wf_count = 0;
-        for(size_t col_i = 0; col_i < new_expressions.size(); col_i++) {
-            size_t rigt_index = table.num_columns() - total_wf_cols + wf_count;
-            if (wf_count < total_wf_cols && is_window_function(new_expressions[col_i])) {
-                size_t num_over_clauses = StringUtil::findAndCountAllMatches(new_expressions[col_i], "OVER");
-                // AVG and SUM cases
-                if (num_over_clauses == 3 || num_over_clauses == 2) {
-                    std::string removed_expression = remove_over_expr(new_expressions[col_i]);
-                    removed_expression = remove_count_expr(removed_expression, rigt_index);
-                    new_expressions[col_i] = remove_sum0_expr(removed_expression, rigt_index);
-                    wf_count += 2;
-                } else {
-                    new_expressions[col_i] = "$" + std::to_string(rigt_index);
-                    wf_count++;
-                }
-            }
-        }
-    }
+    // Let's clean all the expressions that contains Window functions (if exists)
+    // as they should be updated with new indices
+    std::vector<std::string> new_expressions = clean_window_function_expressions(expressions, table.num_columns());
 
     std::vector<std::unique_ptr<ral::frame::BlazingColumn>> out_columns(new_expressions.size());
 
