@@ -69,9 +69,9 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                     where customer.c_nationkey = 3
                     and customer.c_custkey < 500"""
 
-            # TODO: Failed test with nulls and nRals=2
+            # TODO: Failed test with nulls
             testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
-            if testsWithNulls != "true" and nRals > 1:
+            if testsWithNulls != "true":
                 runTest.run_query(
                     bc,
                     drill,
@@ -93,9 +93,9 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                     where customer.c_nationkey = 3
                     and customer.c_custkey < 500"""
 
-            # TODO: Failed test with nulls and nRals=2
+            # TODO: Failed test with nulls
             testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
-            if testsWithNulls != "true" and nRals > 1:
+            if testsWithNulls != "true":
                 runTest.run_query(
                     bc,
                     drill,
@@ -116,9 +116,9 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                     on customer.c_custkey = orders.o_custkey
                     where customer.c_nationkey = 3
                     and customer.c_custkey < 500"""
-            # TODO: Failed test with nulls and nRals=2
+            # TODO: Failed test with nulls
             testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
-            if testsWithNulls != "true" and nRals > 1:
+            if testsWithNulls != "true":
                 runTest.run_query(
                     bc,
                     drill,
@@ -236,9 +236,9 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             queryId = "TEST_10"
             query = "SELECT COALESCE(l_shipinstruct, l_comment) FROM lineitem"
 
-            # TODO: Failed test with nulls and nRals=2
+            # TODO: Failed test with nulls
             testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
-            if testsWithNulls != "true" and nRals > 1:
+            if testsWithNulls != "true":
                 runTest.run_query(
                     bc,
                     drill,
@@ -276,9 +276,9 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                     on l.l_orderkey = o.o_orderkey
                     where o.o_totalprice < 1574.23"""
 
-            # TODO: Failed test with nulls and nRals=2
+            # TODO: Failed test with nulls
             testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
-            if testsWithNulls != "true" and nRals > 1:
+            if testsWithNulls != "true":
                 runTest.run_query(
                     bc,
                     drill,

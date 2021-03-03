@@ -68,9 +68,9 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                     from orders where o_orderkey < 100
                     group by o_orderkey, (o_orderkey + o_custkey)"""
 
-            # TODO: Failed test with nulls and nRals=2
+            # TODO: Failed test with nulls
             testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
-            if testsWithNulls != "true" and nRals > 1:
+            if testsWithNulls != "true":
                 runTest.run_query(
                     bc,
                     drill,
@@ -89,9 +89,9 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                     as new_col, sum(o_orderkey), o_custkey
                     from orders group by o_custkey"""
 
-            # TODO: Failed test with nulls and nRals=2
+            # TODO: Failed test with nulls
             testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
-            if testsWithNulls != "true" and nRals > 1:
+            if testsWithNulls != "true":
                 runTest.run_query(
                     bc,
                     drill,

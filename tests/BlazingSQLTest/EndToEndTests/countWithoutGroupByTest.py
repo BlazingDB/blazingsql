@@ -92,9 +92,9 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             query = """select o_orderpriority, count(*) as order_count
                     from orders group by o_orderpriority"""
 
-            # TODO: Failed test with nulls and nRals=2
+            # TODO: Failed test with nulls
             testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
-            if testsWithNulls != "true" and nRals > 1:
+            if testsWithNulls != "true":
                 runTest.run_query(
                     bc,
                     drill,
@@ -113,9 +113,9 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                     count(coalesce(o_orderkey,0)), count(o_custkey), count(*)
                     from orders group by o_custkey"""
 
-            # TODO: Failed test with nulls and nRals=2
+            # TODO: Failed test with nulls
             testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
-            if testsWithNulls != "true" and nRals > 1:
+            if testsWithNulls != "true":
                 runTest.run_query(
                     bc,
                     drill,
