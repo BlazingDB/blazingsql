@@ -1295,12 +1295,17 @@ def create_tables(bc, dir_data_lc, fileSchemaType, **kwargs):
             gdf = read_data(table, dir_data_lc, bool_column)
             bc.create_table(table, gdf)
         elif fileSchemaType == DataType.DASK_CUDF:
-            bool_column = bool_orders_index != -1
-            gdf = read_data(table, dir_data_lc, bool_column)
             nRals = Settings.data["RunSettings"]["nRals"]
             num_partitions = nRals
-            ds = dask_cudf.from_cudf(gdf, npartitions=num_partitions)
-            bc.create_table(table, ds)
+            if testsWithNulls != "true":
+                bool_column = bool_orders_index != -1
+                gdf = read_data(table, dir_data_lc, bool_column)
+                ds = dask_cudf.from_cudf(gdf, npartitions=num_partitions)
+                bc.create_table(table, ds)
+            else:
+                table_files = ("%s/%s_[0-9]*.parquet") % (dir_data_lc, table)
+                dask_df = dask_cudf.read_parquet(table_files, npartitions=num_partitions)
+                bc.create_table(table, dask_df)
         # elif fileSchemaType == DataType.DASK_CUDF:
         #     bool_column = bool_orders_index != -1
         #     table_files = ("%s/%s_[0-9]*.%s") % (dir_data_lc, table,
