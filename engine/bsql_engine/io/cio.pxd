@@ -165,16 +165,16 @@ cdef extern from "../src/execution_graph/logic_controllers/taskflow/graph.h" nam
             graph_progress get_progress()
 
 cdef extern from "../src/execution_graph/logic_controllers/CacheMachine.h" namespace "ral::cache":
-        cdef cppclass CacheData
-        cdef unique_ptr[GPUCacheDataMetaData] cast_cache_data_to_gpu_with_meta(unique_ptr[CacheData] base_pointer)
         cdef cppclass MetadataDictionary:
             void set_values(map[string,string] new_values)
             map[string,string] get_values()
             void print() nogil
-        cdef cppclass GPUCacheDataMetaData:
-            GPUCacheDataMetaData(BlazingTable table, MetadataDictionary metadata)
-            map[string, string] get_map()
-            pair[unique_ptr[BlazingTable], MetadataDictionary ] decacheWithMetaData()
+        cdef cppclass CacheData:
+            unique_ptr[BlazingTable] decache()
+            MetadataDictionary getMetadata()
+        cdef cppclass GPUCacheData:
+            unique_ptr[BlazingTable] decache()
+            MetadataDictionary getMetadata()
         cdef cppclass CacheMachine:
             void addCacheData(unique_ptr[CacheData] cache_data, const string & message_id, bool always_add ) nogil except +
             void addToCache(unique_ptr[BlazingTable] table, const string & message_id , bool always_add) nogil except+
@@ -195,7 +195,7 @@ cdef extern from * namespace "blazing":
         """
         cdef T blaz_move[T](T) nogil
 
-        cdef unique_ptr[CacheData] blaz_move2(unique_ptr[GPUCacheDataMetaData]) nogil
+        cdef unique_ptr[CacheData] blaz_move2(unique_ptr[GPUCacheData]) nogil
 
 cdef extern from "../include/engine/common.h" nogil:
 

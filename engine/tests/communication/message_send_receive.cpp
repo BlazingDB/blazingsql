@@ -724,7 +724,7 @@ std::unique_ptr<ral::frame::BlazingTable> generate_table_data(){
   cudf::size_type inputRows = 10'000'000;
 
   using T = int32_t;
-  auto sequence1 = cudf::test::make_counting_transform_iterator(0, [](auto row) {
+  auto sequence1 = cudf::detail::make_counting_transform_iterator(0, [](auto row) {
       return static_cast<T>(row);
     });
   cudf::test::fixed_width_column_wrapper<T> col1(sequence1, sequence1 + inputRows);
@@ -763,7 +763,7 @@ void SenderCall(const UcpWorkerAddress &peerUcpWorkerAddress,
   for (size_t i = 0; i < 30; i++)
   {
     output_cache->addCacheData(
-            std::make_unique<ral::cache::GPUCacheDataMetaData>(generate_table_data(), generate_metadata()), "", true);
+            std::make_unique<ral::cache::GPUCacheData>(generate_table_data(), generate_metadata()), "", true);
   }
 
   comm::message_sender::initialize_instance(output_cache, nullptr, nodes_info_map, 1, ucp_context, ucp_worker, 0,comm::blazing_protocol::ucx);
@@ -796,15 +796,15 @@ void ReceiverCall(const UcpWorkerAddress &peerUcpWorkerAddress,
 
   for (size_t i = 0; i < 30; i++)
   {
-    auto cache_data = input_cache->pullCacheData();
-    auto gpu_cache_data = static_cast<ral::cache::GPUCacheDataMetaData *>(cache_data.get());
-    auto table_metadata_pair = gpu_cache_data->decacheWithMetaData();
-
+    std::unique_ptr<ral::cache::CacheData> cache_data = input_cache->pullCacheData();
+    ral::cache::MetadataDictionary metadata = cache_data->getMetadata();
+    std::unique_ptr<ral::frame::BlazingTable> table = cache_data->decache();
+    
     auto expected_metadata = generate_metadata();
-    EXPECT_TRUE(expected_metadata.get_values() == table_metadata_pair.second.get_values());
+    EXPECT_TRUE(expected_metadata.get_values() == metadata.get_values());
 
     auto expected_table = generate_table_data();
-    cudf::test::expect_tables_equal(expected_table->view(), table_metadata_pair.first->view());
+    cudf::test::expect_tables_equal(expected_table->view(), table->view());
   }
 }
 

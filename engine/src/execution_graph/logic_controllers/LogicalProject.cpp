@@ -5,6 +5,7 @@
 #include <cudf/strings/contains.hpp>
 #include <cudf/strings/replace_re.hpp>
 #include <cudf/strings/replace.hpp>
+#include <cudf/strings/detail/replace.hpp>
 #include <cudf/strings/substring.hpp>
 #include <cudf/strings/case.hpp>
 #include <cudf/strings/strip.hpp>
@@ -17,6 +18,7 @@
 #include "LogicalProject.h"
 #include "utilities/transform.hpp"
 #include "Interpreter/interpreter_cpp.h"
+#include "parser/expression_utils.hpp"
 
 namespace ral {
 namespace processor {
@@ -141,7 +143,7 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         std::string target = StringUtil::removeEncapsulation(arg_tokens[1], encapsulation_character);
         std::string repl = StringUtil::removeEncapsulation(arg_tokens[2], encapsulation_character);
 
-        computed_col = cudf::strings::replace(column, target, repl);
+        computed_col = cudf::strings::detail::replace<cudf::strings::detail::replace_algorithm::ROW_PARALLEL>(column, target, repl);
         break;
     }
     case operator_type::BLZ_STR_REGEXP_REPLACE:
@@ -590,7 +592,7 @@ std::unique_ptr<cudf::column> evaluate_string_case_when_else(const cudf::table_v
                                                             const std::string & expr1,
                                                             const std::string & expr2)
 {
-    if ((!is_string(expr1) && !is_var_column(expr1)) || (!is_string(expr2) && !is_var_column(expr2))) {
+    if ((!is_string(expr1) && !is_var_column(expr1) && !is_null(expr1)) || (!is_string(expr2) && !is_var_column(expr2) && !is_null(expr2))) {
         return nullptr;
     }
 
@@ -613,15 +615,15 @@ std::unique_ptr<cudf::column> evaluate_string_case_when_else(const cudf::table_v
     }
 
     std::unique_ptr<cudf::column> computed_col;
-    if (is_string(expr1) && is_string(expr2)) {
+    if ((is_string(expr1) || is_null(expr1)) && (is_string(expr2) || is_null(expr2))) {
         std::unique_ptr<cudf::scalar> lhs = get_scalar_from_string(expr1, cudf::data_type{cudf::type_id::STRING});
         std::unique_ptr<cudf::scalar> rhs = get_scalar_from_string(expr2, cudf::data_type{cudf::type_id::STRING});
         computed_col = cudf::copy_if_else(*lhs, *rhs, boolean_mask_view);
-    } else if (is_string(expr1)) {
+    } else if (is_string(expr1) || is_null(expr1)) {
         std::unique_ptr<cudf::scalar> lhs = get_scalar_from_string(expr1, cudf::data_type{cudf::type_id::STRING});
         cudf::column_view rhs = table.column(get_index(expr2));
         computed_col = cudf::copy_if_else(*lhs, rhs, boolean_mask_view);
-    } else if (is_string(expr2)) {
+    } else if (is_string(expr2) || is_null(expr2)) {
         cudf::column_view lhs = table.column(get_index(expr1));
         std::unique_ptr<cudf::scalar> rhs = get_scalar_from_string(expr2, cudf::data_type{cudf::type_id::STRING});
         computed_col = cudf::copy_if_else(lhs, *rhs, boolean_mask_view);
@@ -774,7 +776,11 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
     const std::vector<std::string> & expressions) {
     using interops::column_index_type;
 
-    std::vector<std::unique_ptr<ral::frame::BlazingColumn>> out_columns(expressions.size());
+    // Let's clean all the expressions that contains Window functions (if exists)
+    // as they should be updated with new indices
+    std::vector<std::string> new_expressions = clean_window_function_expressions(expressions, table.num_columns());
+
+    std::vector<std::unique_ptr<ral::frame::BlazingColumn>> out_columns(new_expressions.size());
 
     std::vector<bool> column_used(table.num_columns(), false);
     std::vector<std::pair<int, int>> out_idx_computed_idx_pair;
@@ -783,8 +789,8 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
     std::vector<cudf::mutable_column_view> interpreter_out_column_views;
 
     function_evaluator_transformer evaluator{table};
-    for(size_t i = 0; i < expressions.size(); i++){
-        std::string expression = replace_calcite_regex(expressions[i]);
+    for(size_t i = 0; i < new_expressions.size(); i++){
+        std::string expression = replace_calcite_regex(new_expressions[i]);
         expression = expand_if_logical_op(expression);
 
         parser::parse_tree tree;
@@ -887,9 +893,9 @@ std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
         out_columns.clear();
         computed_columns.clear();
 
-        size_t const half_size = expressions.size() / 2;
-        std::vector<std::string> split_lo(expressions.begin(), expressions.begin() + half_size);
-        std::vector<std::string> split_hi(expressions.begin() + half_size, expressions.end());
+        size_t const half_size = new_expressions.size() / 2;
+        std::vector<std::string> split_lo(new_expressions.begin(), new_expressions.begin() + half_size);
+        std::vector<std::string> split_hi(new_expressions.begin() + half_size, new_expressions.end());
         auto out_cols_lo = evaluate_expressions(table, split_lo);
         auto out_cols_hi = evaluate_expressions(table, split_hi);
 
@@ -921,10 +927,7 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
   const std::string & query_part,
   blazingdb::manager::Context * /*context*/) {
 
-    std::string combined_expression = query_part.substr(
-        query_part.find("(") + 1,
-        (query_part.rfind(")") - query_part.find("(")) - 1
-    );
+    std::string combined_expression = get_query_part(query_part);
 
     std::vector<std::string> named_expressions = get_expressions_from_expression_list(combined_expression);
     std::vector<std::string> expressions(named_expressions.size());

@@ -16,7 +16,7 @@ std::vector<int64_t> get_all_values_in_the_same_col(
 	std::vector<std::vector<std::int64_t>> & min_max,
 	std::size_t index) {
 	std::vector<std::int64_t> output_v;
-	for (std::size_t col_index; col_index < min_max.size(); ++col_index) {
+	for (std::size_t col_index=0; col_index < min_max.size(); ++col_index) {
 		output_v.push_back(min_max[col_index][index]);
 	}
 
@@ -27,7 +27,7 @@ std::vector<std::string> get_all_str_values_in_the_same_col(
 	std::vector<std::vector<std::string>> & minmax_string,
 	std::size_t index) {
 	std::vector<std::string> output_v;
-	for (std::size_t col_index; col_index < minmax_string.size(); ++col_index) {
+	for (std::size_t col_index=0; col_index < minmax_string.size(); ++col_index) {
 		output_v.push_back(minmax_string[col_index][index]);
 	}
 
@@ -127,6 +127,12 @@ void set_min_max(
 		auto type_stat = statistic.type_specific_stats<cudf::io::timestamp_statistics>();
 		auto min = type_stat->has_minimum() ? *type_stat->minimum() : std::numeric_limits<int64_t>::min();
 		auto max = type_stat->has_maximum() ? *type_stat->maximum() : std::numeric_limits<int64_t>::max();
+		minmax_metadata_table[col_index] = min;
+		minmax_metadata_table[col_index + 1] = max;
+	} else if (statistic.type() == cudf::io::statistics_type::DATE) {
+		auto type_stat = statistic.type_specific_stats<cudf::io::date_statistics>();
+		auto min = type_stat->has_minimum() ? *type_stat->minimum() : std::numeric_limits<int32_t>::min();
+		auto max = type_stat->has_maximum() ? *type_stat->maximum() : std::numeric_limits<int32_t>::max();
 		minmax_metadata_table[col_index] = min;
 		minmax_metadata_table[col_index + 1] = max;
 	} else {

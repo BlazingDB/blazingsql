@@ -906,6 +906,7 @@ def kwargs_validation(kwargs, bc_api_str):
             "use_index",
             "max_bytes_chunk_read",  # Used for reading CSV files in chunks
             "local_files",
+            "get_metadata",
         ]
         params_info = "https://docs.blazingdb.com/docs/create_table"
 
@@ -947,6 +948,15 @@ def kwargs_validation(kwargs, bc_api_str):
                 + "\nTo get the correct parameters, check:  "
                 + params_info
             )
+
+
+def recognized_extension(extension):
+    if len(extension) == 0:
+        return False
+    extension = extension[1:]  # removing `.`
+    if extension in ["orc", "parquet", "json", "csv", "psv"]:
+        return True
+    return False
 
 
 class BlazingTable(object):
@@ -1978,6 +1988,9 @@ class BlazingContext(object):
                       only have access to a subset of the files
                       belonging to the same table. In such a case,
                       each worker will load their corresponding partitions.
+        get_metadata (optional) : boolean, to use parquet and orc metadata,
+                      defaults to True. When set to False it will skip
+                      the process of getting metadata.
 
         Examples
         --------
@@ -2022,6 +2035,7 @@ class BlazingContext(object):
         is_hive_input = False
         extra_columns = []
         local_files = kwargs.get("local_files", False)
+        get_metadata = kwargs.get("get_metadata", True)
 
         # See datasource.file_format
         file_format_hint = kwargs.get("file_format", "undefined")
@@ -2239,6 +2253,15 @@ class BlazingContext(object):
             # /path/to/data/folder/ -> name_file = /path/to/data/folder/, extension = ''
             name_file, extension = os.path.splitext(input[0])
 
+            if not recognized_extension(extension) and file_format_hint == "undefined":
+                raise Exception(
+                    "ERROR: Your input file doesn't have a recognized extension, "
+                    + "you have to specify the `file_format` parameter. "
+                    + "Recognized extensions are: [orc, parquet, csv, json, psv]."
+                    + "\nFor example if you are using a *.log file you must pass file_format='csv' "
+                    + "with all the needed extra parameters. See https://docs.blazingdb.com/docs/creating-tables"
+                )
+
             if (
                 file_format_hint == "undefined"
                 and extension == ""
@@ -2349,7 +2372,9 @@ class BlazingContext(object):
                 parsedMetadata = parseHiveMetadata(table, uri_values)
                 table.metadata = parsedMetadata
 
-            if (
+            # TODO: if still reading ORC metadata has issues then we can skip
+            # using get_metadata argument equals to False
+            if get_metadata and (
                 parsedSchema["file_type"] == DataType.PARQUET
                 or parsedSchema["file_type"] == DataType.ORC
             ):

@@ -633,23 +633,48 @@ bool StringUtil::match(char const * needle, char const * haystack) {
 	return *haystack == '\0';
 }
 
-// if n_cols = 4: then result: 0,1,2,3
+size_t StringUtil::findAndCountAllMatches(std::string input, std::string word) {
+	size_t total_words = 0;
+	std::string reduced_string;
+    
+	// Get the first occurrence
+	size_t pos = input.find(word);
+	if (pos == std::string::npos) {
+	    return total_words;
+	} else {
+	    total_words++;
+	    reduced_string = input.substr(pos + word.size(), input.size());
+	}
+    
+	while(pos != std::string::npos) {
+		pos = reduced_string.find(word);
+		if (pos == std::string::npos) {
+	       return total_words;
+		}
+		reduced_string = reduced_string.substr(pos + word.size(), reduced_string.size());
+		total_words++;
+	}
+	
+	return total_words;
+}
+
+// if n_cols = 4: then result: "0,1,2,3"
 std::string StringUtil::makeCommaDelimitedSequence(std::size_t n_cols) {
 
 	std::string result;
 
-        if (n_cols == 0) {
-            result = "";
-        }
-        else if (n_cols == 1) {
-            result = "0";
-        }
-        else {
-            for (std::size_t i = 0; i < n_cols - 1; ++i) {
-                result += std::to_string(i) + ",";
-            }
-            result += std::to_string(n_cols - 1);
-        }
+	if (n_cols == 0) {
+		result = "";
+	}
+	else if (n_cols == 1) {
+		result = "0";
+	}
+	else {
+		for (std::size_t i = 0; i < n_cols - 1; ++i) {
+			result += std::to_string(i) + ",";
+		}
+		result += std::to_string(n_cols - 1);
+	}
 
-        return result;
+	return result;
 }
