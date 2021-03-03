@@ -396,63 +396,6 @@ ral::execution::task_result OverlapAccumulatorKernel::do_process(std::vector< st
     return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
 }
 
-// void OverlapAccumulatorKernel::message_receiver(std::string message_type){
-
-//     int total_nodes = context->getTotalNodes();
-//     std::vector<std::string> expected_message_ids;
-//     int messages_expected;
-//     if (self_node_index == 0){
-//         messages_expected = 1;       
-//         std::string sender_node_id = std::to_string(self_node_index + 1);
-//         expected_message_ids.push_back(message_type + std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + sender_node_id);
-//     } else if (self_node_index == total_nodes - 1) {
-//         messages_expected = 1;
-//         std::string sender_node_id = std::to_string(self_node_index - 1);
-//         expected_message_ids.push_back(message_type + std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + sender_node_id);
-//     } else {
-//         messages_expected = 2;
-//         std::string sender_node_id = std::to_string(self_node_index + 1);
-//         expected_message_ids.push_back(message_type + std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + sender_node_id);
-//         sender_node_id = std::to_string(self_node_index - 1);
-//         expected_message_ids.push_back(message_type + std::to_string(this->context->getContextToken()) + "_" + std::to_string(this->get_id()) + "_" + sender_node_id);
-//     }
-    
-//     int messages_received = 0;
-//     while(messages_received < messages_expected){
-//         auto message_cache_data = this->query_graph->get_input_message_cache()->pullAnyCacheData(expected_message_ids);
-//         auto metadata = message_cache_data->getMetadata();
-//         messages_received++;
-//         if (metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE) == PRECEDING_REQUEST
-//             || metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE) == FOLLOWING_REQUEST){
-
-//             size_t overlap_size = std::stoll(metadata.get_value(ral::cache::OVERLAP_SIZE));
-//             int target_node_index = std::stoi(metadata.get_value(ral::cache::OVERLAP_TARGET_NODE_INDEX));
-//             int target_batch_index = std::stoi(metadata.get_value(ral::cache::OVERLAP_TARGET_BATCH_INDEX));
-//             int source_batch_index = metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE) == PRECEDING_REQUEST ? num_batches - 1 : 0;
-
-//             prepare_overlap_task(metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE) == PRECEDING_REQUEST, 
-//                 source_batch_index, target_node_index, target_batch_index, overlap_size);
-            
-//         } else if (metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE) == PRECEDING_FULFILLMENT
-//                         || metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE) == FOLLOWING_FULFILLMENT){
-
-//             int source_node_index = std::stoi(metadata.get_value(ral::cache::OVERLAP_SOURCE_NODE_INDEX));
-//             int target_node_index = std::stoi(metadata.get_value(ral::cache::OVERLAP_TARGET_NODE_INDEX));
-//             int target_batch_index = std::stoi(metadata.get_value(ral::cache::OVERLAP_TARGET_BATCH_INDEX));
-//             bool preceding = metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE) == PRECEDING_FULFILLMENT;
-//             std::string overlap_status = metadata.get_value(ral::cache::OVERLAP_STATUS);
-
-//             if (target_node_index != self_node_index){
-//                 // WSM TODO "ERROR: FULFILLMENT message arrived at the wrong destination"
-//             } 
-//             combine_overlaps(preceding, target_batch_index, std::move(message_cache_data), overlap_status);
-                        
-//         } else {
-//             // TODO throw ERROR unknown request type in window function
-//         }
-//     }
-// }
-
 void OverlapAccumulatorKernel::fulfillment_receiver(){
     std::vector<std::string> expected_message_ids;
     int messages_expected;
