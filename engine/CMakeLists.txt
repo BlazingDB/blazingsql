@@ -324,24 +324,7 @@ target_link_libraries(blazingsql-engine
     #Threads::Threads
     pthread
 
-    # TODO: Make this cleaner. Here we just used to link cudf, but cudf got split into a whole bunch of libraries in this PR https://github.com/rapidsai/cudf/pull/6134
-    # cudf
-    libcudf_ast.so    
-    libcudf_interop.so 
-    libcudf_partitioning.so  
-    libcudf_rolling.so
-    libcudf_base.so
-    libcudf_io.so
-    libcudf_reductions.so
-    libcudf.so
-    libcudf_comms.so
-    libcudf_join.so
-    libcudf_replace.so
-    libcudf_hash.so
-    libcudf_merge.so
-    libcudf_reshape.so
-    libcudf_transpose.so 
-    
+    cudf
     zmq
     cudart
 
