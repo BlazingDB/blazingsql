@@ -20,7 +20,7 @@ def initialize():
     memory_list = []
 
     if data:
-        raise ValueError("Initialize must be called once")
+        return
 
     dateNow = datetime.now()
 
@@ -124,3 +124,5 @@ def create_json():
         "compareByPercentaje": compareByPercentaje,
         "acceptableDifference": acceptableDifference,
     }
+
+initialize()

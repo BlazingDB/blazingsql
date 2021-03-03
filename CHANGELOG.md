@@ -17,6 +17,7 @@
 - #1350 Fixed bug where there are no projects in a bindable table scan
 - #1359 Avoid cuda issues when free pinned memory
 - #1365 Fixed build after sublibs changes on cudf
+- #1371 Fixed e2e settings
 
 # BlazingSQL 0.18.0 (Date TBS)
 
