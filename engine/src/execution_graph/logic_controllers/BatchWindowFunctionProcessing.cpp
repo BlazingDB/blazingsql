@@ -193,6 +193,27 @@ kstatus ComputeWindowKernel::run() {
 
 // START OverlapAccumulatorKernel
 
+/*
+The OverlapAccumulatorKernel assumes three input caches:
+- "batches"
+- "preceding_overlaps"
+- "following_overlaps"
+It assumes the previous kernel will fill "batches" N cacheData that is sorted and the batches are in order
+It assumes that preceding_overlaps and following_overlaps will contain N-1 cacheData that corresponds to the preceding and following overlaps copied from the batches
+The idea is that part of batches[x] will be copied to fill preceding_overlaps[x+1] and part will be copied to fill following_overlaps[x-1]
+The preceding_overlaps and following_overlaps will contain metadata to indicate if the overlaps are complete or incomplete (DONE_OVERLAP_STATUS or INCOMPLETE_OVERLAP_STATUS)
+For example, preceding_overlaps[x+1] would be set to INCOMPLETE_OVERLAP_STATUS if batches[x] was not big enough to fulfill the required preceding_value which is defined by the window frame (i.e. ROWS BETWEEN X PRECEDING AND Y FOLLOWING)
+
+The purpose of OverlapAccumulatorKernel is to ensure that all INCOMPLETE_OVERLAP_STATUS overlaps coming from the previous kernel are COMPLETED by copying from other batches.
+The other purpose is to fill the overlaps of preceding_overlaps[0] and following_overlaps[N] with data that has to come from the neighboring nodes (or make a blank overlap if there is no neighbor)
+The OverlapAccumulatorKernel will comunicate with other nodes by sending overlap_requests (PRECEDING_REQUEST, FOLLOWING_REQUEST) which when received and fulfilled are returned as PRECEDING_FULFILLMENT and FOLLOWING_FULFILLMENT
+
+Right before outputting, OverlapAccumulatorKernel will combine preceding_overlaps[x], batches[x] and following_overlaps[x] together to make one batch pushed to the output.
+The following kernel, will then have in one batch with number of rows (preceding_overlaps[x]->num_rows() + batches[x]->num_rows() + following_overlaps[x]->num_rows()), which is the data necessary to procude a batches[x]->num_rows() worth out final output rows.
+
+This kernel uses ConcatenatingCacheDatas a lot to try to reduce and postpone the materialization of data.
+*/
+
 OverlapAccumulatorKernel::OverlapAccumulatorKernel(std::size_t kernel_id, const std::string & queryString,
     std::shared_ptr<Context> context,
     std::shared_ptr<ral::cache::graph> query_graph)
@@ -204,10 +225,10 @@ OverlapAccumulatorKernel::OverlapAccumulatorKernel(std::size_t kernel_id, const 
 	
     std::tie(this->preceding_value, this->following_value) = get_bounds_from_window_expression(this->expression);
 
-    // WSM TODO make these and the join cacheMachines, be array_cache
     ral::cache::cache_settings cache_machine_config;
 	cache_machine_config.type = ral::cache::CacheType::SIMPLE;
 	cache_machine_config.context = context->clone();
+    cache_machine_config.is_array_access = true;
 
     std::string batches_cache_name = std::to_string(this->get_id()) + "_batches";
     this->batches_cache = ral::cache::create_cache_machine(cache_machine_config, batches_cache_name);
@@ -468,13 +489,16 @@ void OverlapAccumulatorKernel::message_receiver(std::vector<std::string> expecte
             bool preceding = metadata.get_value(ral::cache::OVERLAP_MESSAGE_TYPE) == PRECEDING_FULFILLMENT;
             std::string overlap_status = metadata.get_value(ral::cache::OVERLAP_STATUS);
 
-            if (target_node_index != self_node_index){
-                // WSM TODO "ERROR: FULFILLMENT message arrived at the wrong destination"
-            } 
+            RAL_EXPECTS(target_node_index == self_node_index, "FULFILLMENT message arrived at the wrong destination");
             combine_overlaps(preceding, target_batch_index, std::move(message_cache_data), overlap_status);
                         
         } else {
-            // TODO throw ERROR unknown request type in window function
+            if(logger) {
+                logger->error("{query_id}|||{info}||kernel_id|{kernel_id}||",
+                            "query_id"_a=context->getContextToken(),
+                            "info"_a="ERROR: In OverlapAccumulatorKernel::message_receiver unknown OVERLAP_MESSAGE_TYPE",
+                            "kernel_id"_a=this->get_id());
+            }
         }
     }    
 }
@@ -620,9 +644,7 @@ kstatus OverlapAccumulatorKernel::run() {
             if (overlap_cache_data != nullptr){
                 auto metadata = overlap_cache_data->getMetadata();
                 size_t cur_overlap_rows = overlap_cache_data->num_rows();
-                if (!metadata.has_value(ral::cache::OVERLAP_STATUS)){
-                    // WSM TODO "ERROR: Overlap Data did not have OVERLAP_STATUS"
-                }
+                RAL_EXPECTS(metadata.has_value(ral::cache::OVERLAP_STATUS), "Overlap Data did not have OVERLAP_STATUS");
                 set_overlap_status(true, cur_batch_ind, metadata.get_value(ral::cache::OVERLAP_STATUS));
                 preceding_overlap_cache->put(cur_batch_ind, std::move(overlap_cache_data));
                 
@@ -632,7 +654,12 @@ kstatus OverlapAccumulatorKernel::run() {
                     prepare_overlap_task(true, cur_batch_ind - 2, this->self_node_index, cur_batch_ind, overlap_needed);                    
                 }
             } else {
-                // WSM TODO error
+                if(logger) {
+                    logger->error("{query_id}|||{info}||kernel_id|{kernel_id}||",
+                                "query_id"_a=context->getContextToken(),
+                                "info"_a="ERROR: In OverlapAccumulatorKernel::run() pulled nullptr overlap_cache_data",
+                                "kernel_id"_a=this->get_id());
+                }
             }
         }
     
@@ -641,9 +668,7 @@ kstatus OverlapAccumulatorKernel::run() {
             if (overlap_cache_data != nullptr){
                 auto metadata = overlap_cache_data->getMetadata();
                 size_t cur_overlap_rows = overlap_cache_data->num_rows();
-                if (!metadata.has_value(ral::cache::OVERLAP_STATUS)){
-                    // WSM TODO "ERROR: Overlap Data did not have OVERLAP_STATUS"
-                }
+                RAL_EXPECTS(metadata.has_value(ral::cache::OVERLAP_STATUS), "Overlap Data did not have OVERLAP_STATUS");
                 set_overlap_status(false, cur_batch_ind, metadata.get_value(ral::cache::OVERLAP_STATUS));
                 following_overlap_cache->put(cur_batch_ind, std::move(overlap_cache_data));
                 
@@ -653,7 +678,12 @@ kstatus OverlapAccumulatorKernel::run() {
                     prepare_overlap_task(false, cur_batch_ind + 2, this->self_node_index, cur_batch_ind, overlap_needed);                    
                 }
             } else {
-                // WSM TODO error
+                if(logger) {
+                    logger->error("{query_id}|||{info}||kernel_id|{kernel_id}||",
+                                "query_id"_a=context->getContextToken(),
+                                "info"_a="ERROR: In OverlapAccumulatorKernel::run() pulled nullptr overlap_cache_data",
+                                "kernel_id"_a=this->get_id());
+                }
             }
         }
     }

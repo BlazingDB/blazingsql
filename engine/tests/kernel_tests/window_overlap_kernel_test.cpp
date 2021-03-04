@@ -111,6 +111,8 @@ void add_data_to_cache_with_delay(
 	cache_machine->finish();
 }
 
+// this function takes one big vector and breaks it up into batch_sizes to generate a vector of batches and its corresponding preceding_overlaps and following_overlaps in a way similar to how 
+// the kernel which feeds OverlapAccumulatorKernel would do
 std::tuple<std::vector<std::unique_ptr<CacheData>>, std::vector<std::unique_ptr<CacheData>>, std::vector<std::unique_ptr<CacheData>>> break_up_full_data(
 		CudfTableView full_data_cudf_view, int preceding_value, int following_value, std::vector<cudf::size_type> batch_sizes, std::vector<std::string> names){
 	
@@ -174,7 +176,9 @@ std::tuple<std::vector<std::unique_ptr<CacheData>>, std::vector<std::unique_ptr<
 	return std::make_tuple(std::move(preceding_overlaps), std::move(batches), std::move(following_overlaps));
 }
 
-
+// this function takes one big vector and breaks it up into batch_sizes to generate a vector of batches and its corresponding preceding_overlaps and following_overlaps in a way similar to how 
+// the kernel which feeds OverlapAccumulatorKernel would do, similar to break_up_full_data. But it assumes a multi node setup, and therefore all the batches in batch_sizes are not assumed to belong
+// to the self_node_index node. It assumes that one or both of the edge batches belong to other nodes. It uses this assumption to produce previous_node_overlap and next_node_overlap
 std::tuple<std::vector<std::unique_ptr<CacheData>>, std::vector<std::unique_ptr<CacheData>>, std::vector<std::unique_ptr<CacheData>>, 
 		std::unique_ptr<CacheData>, std::unique_ptr<CacheData>> break_up_full_data_multinode(
 		CudfTableView full_data_cudf_view, int preceding_value, int following_value, std::vector<cudf::size_type> batch_sizes, std::vector<std::string> names, 
@@ -1205,3 +1209,96 @@ TEST_F(WindowOverlapTest, BigWindowMultiNode_MiddleNode) {
 	cudf::test::expect_tables_equivalent(expected_following_request_fulfillment_table->view(), following_request_fulfillment_table->view());
 
 }
+
+
+TEST_F(WindowOverlapTest, BigWindowSingleNode) {
+
+	int self_node_index = 0;
+	int total_nodes = 1;
+	size_t size = 14600;
+	// size_t size = 55;
+
+	// Define full dataset
+	auto iter0 = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return int32_t(i);});
+	auto iter1 = cudf::detail::make_counting_transform_iterator(1000, [](auto i) { return int32_t(i * 2);});
+	auto iter2 = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return int32_t(i % 5);});
+	auto valids_iter = cudf::detail::make_counting_transform_iterator(0, [](auto i) { return true; });
+	
+    cudf::test::fixed_width_column_wrapper<int32_t> col0(iter0, iter0 + size, valids_iter);
+	cudf::test::fixed_width_column_wrapper<int32_t> col1(iter1, iter1 + size, valids_iter);
+	cudf::test::fixed_width_column_wrapper<int32_t> col2(iter2, iter2 + size, valids_iter);
+	
+	CudfTableView full_data_cudf_view ({col0, col1, col2});
+	// CudfTableView full_data_cudf_view ({col0});
+
+	int preceding_value = 1500;
+	int following_value = 3000;
+	std::vector<cudf::size_type> batch_sizes = {5500, 1100, 1200, 1300, 5500}; // need to sum up to size
+	// int preceding_value = 5;
+	// int following_value = 1;
+	// std::vector<cudf::size_type> batch_sizes = {20, 10, 25}; // need to sum up to size
+
+	// define how its broken up into batches and overlaps
+	std::vector<std::string> names({"A", "B", "C"});
+	// std::vector<std::string> names({"A"});
+	std::vector<std::unique_ptr<CacheData>> preceding_overlaps, batches, following_overlaps;
+	std::tie(preceding_overlaps, batches, following_overlaps) = break_up_full_data(
+			full_data_cudf_view, preceding_value, following_value, batch_sizes, names);
+
+	std::vector<std::unique_ptr<BlazingTable>> expected_out = make_expected_output(full_data_cudf_view, preceding_value, following_value, batch_sizes, names);
+	
+    // create and start kernel
+	// Context
+	std::shared_ptr<Context> context = make_context(total_nodes);
+
+	auto & communicationData = ral::communication::CommunicationData::getInstance();
+	communicationData.initialize(std::to_string(self_node_index), "/tmp");
+
+	// overlap kernel
+	std::shared_ptr<kernel> overlap_kernel;
+	std::shared_ptr<ral::cache::CacheMachine> input_message_cache, output_message_cache;
+	std::tie(overlap_kernel, input_message_cache, output_message_cache) = make_overlap_kernel(
+		"LogicalProject(min_val=[MIN($0) OVER (PARTITION BY $2 ORDER BY $1 ROWS BETWEEN " + std::to_string(preceding_value) + " PRECEDING AND " + std::to_string(following_value) + " FOLLOWING)])", context);
+
+	// register cache machines with the kernel
+	std::shared_ptr<CacheMachine> batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine;
+	std::tie(batchesCacheMachine, precedingCacheMachine, followingCacheMachine, outputCacheMachine) = register_kernel_with_cache_machines(overlap_kernel, context);
+
+	// run function
+	std::thread run_thread = std::thread([overlap_kernel](){
+		kstatus process = overlap_kernel->run();
+		EXPECT_EQ(kstatus::proceed, process);
+	});
+
+	std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+	// add data into the CacheMachines
+	for (int i = 0; i < batches.size(); i++) {
+		batchesCacheMachine->addCacheData(std::move(batches[i]));
+		if (i != 0) {
+			std::this_thread::sleep_for(std::chrono::milliseconds(2));
+			precedingCacheMachine->addCacheData(std::move(preceding_overlaps[i - 1]));			
+		}
+		if (i != batches.size() - 1) {
+			std::this_thread::sleep_for(std::chrono::milliseconds(2));
+			followingCacheMachine->addCacheData(std::move(following_overlaps[i]));			
+		}
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+	}
+	batchesCacheMachine->finish();
+	precedingCacheMachine->finish();
+	followingCacheMachine->finish();
+	
+	run_thread.join();	
+	
+	// get and validate output
+	auto batches_pulled = outputCacheMachine->pull_all_cache_data();
+	EXPECT_EQ(batches_pulled.size(), expected_out.size());
+	for (int i = 0; i < batches_pulled.size(); i++) {
+		auto table_out = batches_pulled[i]->decache();
+		// ral::utilities::print_blazing_table_view(expected_out[i]->toBlazingTableView(), "expected" + std::to_string(i));
+		// ral::utilities::print_blazing_table_view(table_out->toBlazingTableView(), "got" + std::to_string(i));
+		cudf::test::expect_tables_equivalent(expected_out[i]->view(), table_out->view());
+	}
+}
+

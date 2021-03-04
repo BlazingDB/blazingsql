@@ -54,9 +54,7 @@ private:
 
 
 const std::string UNKNOWN_OVERLAP_STATUS="UNKNOWN";
-const std::string REQUESTED_OVERLAP_STATUS="REQUESTED";
 const std::string INCOMPLETE_OVERLAP_STATUS="INCOMPLETE";
-const std::string PROCESSING_OVERLAP_STATUS="PROCESSING"; // WSM TODO, do we need this?
 const std::string DONE_OVERLAP_STATUS="DONE";
 
 const std::string TASK_ARG_OP_TYPE="operation_type";
