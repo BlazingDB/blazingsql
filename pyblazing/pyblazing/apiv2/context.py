@@ -77,7 +77,10 @@ if "JAVA_HOME" in os.environ:
 # NOTE felipe try first with CONDA_PREFIX/jre/lib/amd64/server/libjvm.so
 # (for older Java versions e.g. 8.x)
 java_home_path = os.environ[the_java_home]
-jvm_path = java_home_path + "/lib/" + machine_processor + "/server/libjvm.so"
+jvm_path = java_home_path
+
+if not os.path.isfile(jvm_path):
+    jvm_path = java_home_path + "/lib/" + machine_processor + "/server/libjvm.so"
 
 if not os.path.isfile(jvm_path):
     # NOTE felipe try a second time using CONDA_PREFIX/lib/server/
@@ -950,6 +953,15 @@ def kwargs_validation(kwargs, bc_api_str):
                 + "\nTo get the correct parameters, check:  "
                 + params_info
             )
+
+
+def recognized_extension(extension):
+    if len(extension) == 0:
+        return False
+    extension = extension[1:]  # removing `.`
+    if extension in ["orc", "parquet", "json", "csv", "psv"]:
+        return True
+    return False
 
 
 class BlazingTable(object):
@@ -2253,6 +2265,15 @@ class BlazingContext(object):
             # /path/to/data/file_wo_extens -> name_file = /path/to/data/file_wo_extens, extension = ''
             # /path/to/data/folder/ -> name_file = /path/to/data/folder/, extension = ''
             name_file, extension = os.path.splitext(input[0])
+
+            if not recognized_extension(extension) and file_format_hint == "undefined":
+                raise Exception(
+                    "ERROR: Your input file doesn't have a recognized extension, "
+                    + "you have to specify the `file_format` parameter. "
+                    + "Recognized extensions are: [orc, parquet, csv, json, psv]."
+                    + "\nFor example if you are using a *.log file you must pass file_format='csv' "
+                    + "with all the needed extra parameters. See https://docs.blazingdb.com/docs/creating-tables"
+                )
 
             if (
                 file_format_hint == "undefined"
