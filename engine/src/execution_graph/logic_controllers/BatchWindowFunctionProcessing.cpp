@@ -476,7 +476,7 @@ void OverlapAccumulatorKernel::message_receiver(std::vector<std::string> expecte
         } else {
             // TODO throw ERROR unknown request type in window function
         }
-    }
+    }    
 }
 
 void OverlapAccumulatorKernel::prepare_overlap_task(bool preceding, int source_batch_index, int target_node_index, int target_batch_index, size_t overlap_size){
@@ -596,6 +596,16 @@ kstatus OverlapAccumulatorKernel::run() {
         send_request(false, self_node_index + 1, self_node_index, num_batches-1, this->following_value);
     }
 
+    // lets fill the empty overlaps that go at the very end of the cluster
+    if (self_node_index == 0){ // first overlap of first node, so make it empty
+        std::unique_ptr<ral::frame::BlazingTable> empty_table = ral::utilities::create_empty_table(this->col_names, this->schema);
+        preceding_overlap_cache->put(0, std::move(empty_table));
+    }
+    if (self_node_index == total_nodes - 1){ // last overlap of last node, so make it empty
+        std::unique_ptr<ral::frame::BlazingTable> empty_table = ral::utilities::create_empty_table(this->col_names, this->schema);
+        following_overlap_cache->put(num_batches - 1, std::move(empty_table));
+    } 
+
     BlazingThread fulfillment_receiver_thread, following_request_receiver_thread;
     if (total_nodes > 1) {
         // these need to be different threads because the data coming in from a fulfillment may be necessary to fulfill a request. If its all one thread, it could produce a deadlock
@@ -605,13 +615,7 @@ kstatus OverlapAccumulatorKernel::run() {
     }
     
     for (int cur_batch_ind = 0; cur_batch_ind < num_batches; cur_batch_ind++){      
-        if (cur_batch_ind == 0){
-            if (self_node_index == 0){ // first overlap of first node, so make it empty
-                std::unique_ptr<ral::frame::BlazingTable> empty_table = ral::utilities::create_empty_table(this->col_names, this->schema);
-                preceding_overlap_cache->put(cur_batch_ind, std::move(empty_table));
-            } // else, the first preceding overlap we already sent a request to our neighbor               
-            
-        } else {
+        if (cur_batch_ind > 0){
             auto overlap_cache_data = input_preceding_overlap_cache->pullCacheData();
             if (overlap_cache_data != nullptr){
                 auto metadata = overlap_cache_data->getMetadata();
@@ -651,11 +655,6 @@ kstatus OverlapAccumulatorKernel::run() {
             } else {
                 // WSM TODO error
             }
-        } else {
-            if (self_node_index == total_nodes - 1){ // last overlap of last node, so make it empty
-                std::unique_ptr<ral::frame::BlazingTable> empty_table = ral::utilities::create_empty_table(this->col_names, this->schema);
-                following_overlap_cache->put(cur_batch_ind, std::move(empty_table));
-            } // else, the last following overlap we already sent a request to our neighbor               
         }
     }
 
