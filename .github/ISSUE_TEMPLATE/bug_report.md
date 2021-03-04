@@ -23,6 +23,11 @@ A clear and concise description of what you expected to happen.
  - Environment location: [Bare-metal, Docker, Cloud(specify cloud provider)]
  - Method of BlazingSQL install: [conda, Docker, or from source]
    - If method of install is [Docker], provide `docker pull` & `docker run` commands used
+ - **BlazingSQL Version** which can be obtained by doing as follows:
+   ```
+   import blazingsql
+   print(blazingsql.__info__())
+   ```
 
 **Environment details**
 Please run and paste the output of the `print_env.sh` script here, to gather any other relevant environment details
