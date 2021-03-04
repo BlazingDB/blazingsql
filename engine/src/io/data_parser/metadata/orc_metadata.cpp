@@ -5,6 +5,7 @@
 #include "utilities/CommonOperations.h"
 
 #include <cudf/column/column_factories.hpp>
+#include <cudf/detail/utilities/vector_factories.hpp>
 #include <numeric>
 
 std::basic_string<char> get_typed_vector_str_content(cudf::type_id dtype, std::vector<std::string> & vector) {
@@ -272,7 +273,9 @@ std::unique_ptr<ral::frame::BlazingTable> get_minmax_metadata(
 			std::vector<std::string> vector_str = get_all_str_values_in_the_same_col(minmax_string_metadata, string_count);
 			string_count++;
 			std::pair<std::vector<char>, std::vector<cudf::size_type>> result_pair = concat_strings(vector_str);
-			std::unique_ptr<cudf::column> col = cudf::make_strings_column(result_pair.first, result_pair.second, {}, 0);
+			auto d_chars = cudf::detail::make_device_uvector_sync(result_pair.first);
+			auto d_offsets = cudf::detail::make_device_uvector_sync(result_pair.second);
+			std::unique_ptr<cudf::column> col = cudf::make_strings_column(d_chars, d_offsets, {}, 0);
 			minmax_metadata_gdf_table[index] = std::move(col);
 		} else {
 			std::vector<int64_t> vector = get_all_values_in_the_same_col(minmax_metadata, not_string_count);
