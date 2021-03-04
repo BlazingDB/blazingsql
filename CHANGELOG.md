@@ -19,6 +19,7 @@
 - #1365 Fixed build after sublibs changes on cudf
 - #1369 Updated java path for powerpc build 
 - #1371 Fixed e2e settings
+- #1372 Recompute `columns_to_hash` in DistributeAggregationKernel
 
 # BlazingSQL 0.18.0 (Date TBS)
 
