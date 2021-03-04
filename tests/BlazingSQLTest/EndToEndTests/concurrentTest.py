@@ -58,8 +58,15 @@ def datasources(data_types, dask_client, nRals):
         yield fileSchemaType
 
 
-def samples(data_types, dask_client, nRals):
+def samples(bc, data_types, dask_client, nRals, **kwargs):
+    init_tables = kwargs.get("init_tables", False)
+    dir_data_lc = kwargs.get("dir_data_lc", "")
+    tables = kwargs.get("tables", [])
     for fileSchemaType in datasources(data_types, dask_client, nRals):
+        if init_tables:
+            print("Creating tables for", str(fileSchemaType))
+            cs.create_tables(bc, dir_data_lc, fileSchemaType, tables=tables)
+            print("All tables were created for", str(fileSchemaType))
         i = 0
         for query in queries:
             i = i + 1
@@ -69,16 +76,15 @@ def samples(data_types, dask_client, nRals):
             yield sampleId, query, queryId, fileSchemaType
 
 
-def create_tables(bc, data_types, dask_client, nRals, dir_data_lc, tables):
-    print("######## Creating tables queries ...########")
-    for fileSchemaType in datasources(data_types, dask_client, nRals):
-        cs.create_tables(bc, dir_data_lc, fileSchemaType, tables=tables)
-
-
-def start_queries(bc, data_types, dask_client, nRals, tokens):
+def start_queries(bc, data_types, dask_client, nRals, tokens, dir_data_lc, tables):
     print("######## Starting queries ...########")
     done = {} # sampleId -> True|False (fetch completed?)
-    for sampleId, query, _, _ in samples(data_types, dask_client, nRals):
+    extra_args = {
+        "dir_data_lc": dir_data_lc,
+        "tables": tables,
+        "init_tables": True
+    }
+    for sampleId, query, _, _ in samples(bc, data_types, dask_client, nRals, **extra_args):
         start_query(bc, tokens, query, sampleId)
         done[sampleId] = False
     return done
@@ -91,7 +97,7 @@ def fetch_results(bc, data_types, dask_client, nRals, tokens, drill, done):
     break_flag = False
     total_samples = len(done)
     while done_count < total_samples and not break_flag:
-        for sampleId, query, queryId, fileSchemaType in samples(data_types, dask_client, nRals):
+        for sampleId, query, queryId, fileSchemaType in samples(bc, data_types, dask_client, nRals):
             if not done[sampleId]:
                 if fetch_result(bc, tokens, sampleId, drill, query, queryId, fileSchemaType):
                     done[sampleId] = True
@@ -124,11 +130,7 @@ def executionTest(dask_client, drill, dir_data_lc, bc, nRals):
         DataType.PARQUET,
     ]  # TODO json
 
-    if Settings.execution_mode == ExecutionMode.GENERATOR:
-        data_types = [DataType.CSV]
-
-    create_tables(bc, data_types, dask_client, nRals, dir_data_lc, tables)
-    done = start_queries(bc, data_types, dask_client, nRals, tokens)
+    done = start_queries(bc, data_types, dask_client, nRals, tokens, dir_data_lc, tables)
     fetch_results(bc, data_types, dask_client, nRals, tokens, drill, done)
 
 
