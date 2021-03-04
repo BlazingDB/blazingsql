@@ -314,6 +314,7 @@ def get_codTest(test_name):
         "String case": "STRINGCASE",
         "Message Validation": "MESSAGEVAL",
         "Json tests": "JSON",
+        "Concurrent": "CONCUR",
     }
 
     return switcher.get(test_name)
