@@ -133,7 +133,7 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(uint32_t masterIndex,
 	std::string query,
 	std::vector<std::vector<std::map<std::string, std::string>>> uri_values,
 	std::map<std::string, std::string> config_options,
-	std::string sql ) {
+	std::string sql) {
 
 	std::vector<ral::io::data_loader> input_loaders;
 	std::vector<ral::io::Schema> schemas;
@@ -151,7 +151,7 @@ std::shared_ptr<ral::cache::graph> runGenerateGraph(uint32_t masterIndex,
     }
 	Context queryContext{static_cast<uint32_t>(ctxToken), contextNodes, contextNodes[masterIndex], "", config_options};
 
-  auto graph = generate_graph(input_loaders, schemas, tableNames, tableScans, query, queryContext, sql);
+  	auto graph = generate_graph(input_loaders, schemas, tableNames, tableScans, query, queryContext, sql);
 
 	comm::graphs_info::getInstance().register_graph(ctxToken, graph);
 	return graph;
