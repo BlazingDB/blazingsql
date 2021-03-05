@@ -892,6 +892,8 @@ def Read_tpch_files(column_names, files_dir, table, data_types):
 
     table_pdf = None
     dataframes = []
+    testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
+
     for dataFile in listdir(files_dir):
         if isdir(files_dir + "/" + dataFile):
             continue
@@ -899,13 +901,18 @@ def Read_tpch_files(column_names, files_dir, table, data_types):
         dataFileName = dataFileTokens[0]
         dataFileExt = dataFileTokens[1]
         tableName_ = table + "_"
-        if dataFileExt == "psv":
+        if dataFileExt == "psv" and testsWithNulls == "false":
             if (table == dataFileName) or re.match(tableName_, dataFileName):
                 file_dir = files_dir + "/" + dataFile
                 tmp = cudf.read_csv(
                     file_dir, delimiter="|", names=column_names,
                     dtype=data_types
                 )
+                dataframes.append(tmp)
+        elif dataFileExt == "parquet" and testsWithNulls == "true":
+            if (table == dataFileName) or re.match(tableName_, dataFileName):
+                file_dir = files_dir + "/" + dataFile
+                tmp = cudf.read_parquet(file_dir)
                 dataframes.append(tmp)
     if len(dataframes) != 0:
         table_pdf = cudf.concat(dataframes)
