@@ -17,6 +17,8 @@
 #include <cudf/copying.hpp>
 #include <cudf/aggregation.hpp>
 #include <cudf/search.hpp>
+#include <cudf/join.hpp>
+#include <cudf/sorting.hpp>
 
 namespace ral {
 namespace batch {
@@ -58,14 +60,10 @@ std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_func
         column_partitioned_indices.push_back(col_i);
     }
 
-    cudf::table_view table_view_to_partition(columns_to_partition);
+    cudf::table_view partitioned_table_view(columns_to_partition);
     
     std::unique_ptr<CudfColumn> windowed_col;
     if (is_first_value_window(this->type_aggs_as_str[pos]) || is_last_value_window(this->type_aggs_as_str[pos])) {
-        
-        // When using cudf::grouped_rolling_window() it crashes
-        // rolling_detail.cuh:738: Aggregation operator and/or input type combination is invalid
-        // https://github.com/rapidsai/cudf/issues/7231 expecting unit test using make_nth_element_aggregation()
 
         // first: we want to get all the first (or last) values (due to the columns to partition)
         std::vector<cudf::groupby::aggregation_request> requests;
@@ -73,53 +71,59 @@ std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_func
         requests[0].values = col_view_to_agg;
         requests[0].aggregations.push_back(std::move(window_aggregation));
         
-        cudf::groupby::groupby gb_obj(cudf::table_view({table_view_to_partition}), cudf::null_policy::EXCLUDE, cudf::sorted::YES, {}, {});
+        cudf::groupby::groupby gb_obj(cudf::table_view({partitioned_table_view}), cudf::null_policy::EXCLUDE, cudf::sorted::YES, {}, {});
         std::pair<std::unique_ptr<cudf::table>, std::vector<cudf::groupby::aggregation_result>> result = gb_obj.aggregate(requests);
 
         windowed_col = std::move(result.second[0].results[0]);
 
-        // if exists duplicated values (in table_view_to_partition) we want to fill the `windowed_col` by repeating values
-        if (windowed_col->size() < col_view_to_agg.size()) { 
-            std::unique_ptr<cudf::table> table_view_to_partition_wo_repetitions = cudf::drop_duplicates(table_view_to_partition,
-                                                                                             column_partitioned_indices,
-                                                                                             cudf::duplicate_keep_option::KEEP_FIRST);
+        // if exists duplicated values (in partitioned_table_view) we want to fill the `windowed_col` with repeated values
+        // So let's do a join
+        if (windowed_col->size() < col_view_to_agg.size()) {
+            std::vector<std::unique_ptr<cudf::column>> keys_grouped = result.first->release();
+            keys_grouped.push_back(std::move(windowed_col)); 
 
-            // TODO this is just a default setting. Will want to be able to properly set null_order
-            std::vector<cudf::null_order> null_orders(column_partitioned_indices.size(), cudf::null_order::AFTER);
-            std::vector<cudf::order> sortOrderTypes(column_partitioned_indices.size(), cudf::order::ASCENDING);
-            std::unique_ptr<cudf::column> pivot_indexes = cudf::lower_bound(table_view_to_partition,
-                                                                            table_view_to_partition_wo_repetitions->view(),
-                                                                            sortOrderTypes,
-                                                                            null_orders);
-            // we want to get the differences between two contiguous pivots
-            std::vector<cudf::size_type> pivot_indexes_host = ral::utilities::column_to_vector<cudf::size_type>(pivot_indexes->view());
-            std::vector<cudf::size_type> offsets;
-            for (size_t i = 0; i < pivot_indexes_host.size() - 1; ++i) {
-                offsets.push_back(pivot_indexes_host[i + 1] - pivot_indexes_host[i]);
-            }
-            offsets.push_back(col_view_to_agg.size() - pivot_indexes_host[pivot_indexes_host.size() - 1]);
-            std::unique_ptr<cudf::column> offsets_col = ral::utilities::vector_to_column(offsets, cudf::data_type(cudf::type_id::INT32));
+            std::unique_ptr<cudf::table> reduced_table = std::make_unique<cudf::table>(std::move(keys_grouped));
 
-            // we want to repeat these unique values from `windowed_col`
-            cudf::table_view windowed_table_view{{std::move(windowed_col)->view()}};
-            std::unique_ptr<cudf::table> last_table = cudf::repeat(windowed_table_view, offsets_col->view());
+            // Let's get all the necessary params for the join
+            std::vector<std::pair<cudf::size_type, cudf::size_type>> columns_in_common;
 
-            windowed_col = std::move(last_table->release()[0]);
+            std::vector<cudf::size_type> left_column_indices(partitioned_table_view.num_columns());
+            std::iota(left_column_indices.begin(), left_column_indices.end(), 0);
+
+            // we just want the key columns, not the values column (which is the last column)
+            std::vector<cudf::size_type> right_column_indices(reduced_table->num_columns() - 1);
+            std::iota(right_column_indices.begin(), right_column_indices.end(), 0);
+
+            std::unique_ptr<cudf::table> join_table = cudf::inner_join(
+                                                            partitioned_table_view,
+                                                            reduced_table->view(),
+                                                            left_column_indices,
+                                                            right_column_indices,
+                                                            columns_in_common);
+
+            // Due to the values column is unordered, we want to sort it
+	        std::vector<cudf::null_order> null_orders(join_table->num_columns(), cudf::null_order::AFTER);
+
+            // partition by is always in ASCENDING order
+            std::vector<cudf::order> sortOrderTypes(join_table->num_columns(), cudf::order::ASCENDING);
+	        std::unique_ptr<cudf::table> sorted_table = cudf::sort(join_table->view(), sortOrderTypes, null_orders);
+
+            windowed_col = std::move(sorted_table->release()[1]);
         }
     }
     else if (window_expression_contains_order_by(this->expression)) {
         if (window_expression_contains_bounds(this->expression)) {
             // TODO: for now just ROWS bounds works (not RANGE)
-            windowed_col = cudf::grouped_rolling_window(table_view_to_partition, col_view_to_agg, this->preceding_value + 1, this->following_value, 1, window_aggregation);
+            windowed_col = cudf::grouped_rolling_window(partitioned_table_view, col_view_to_agg, this->preceding_value + 1, this->following_value, 1, window_aggregation);
         } else {
             if (this->type_aggs_as_str[pos] == "LEAD") {
-                windowed_col = cudf::grouped_rolling_window(table_view_to_partition, col_view_to_agg, 0, col_view_to_agg.size(), 1, window_aggregation);
+                windowed_col = cudf::grouped_rolling_window(partitioned_table_view, col_view_to_agg, 0, col_view_to_agg.size(), 1, window_aggregation);
             } else {
-                windowed_col = cudf::grouped_rolling_window(table_view_to_partition, col_view_to_agg, col_view_to_agg.size(), 0, 1, window_aggregation);
+                windowed_col = cudf::grouped_rolling_window(partitioned_table_view, col_view_to_agg, col_view_to_agg.size(), 0, 1, window_aggregation);
             }
         }
     } else {
-        windowed_col = cudf::grouped_rolling_window(table_view_to_partition, col_view_to_agg, col_view_to_agg.size(), col_view_to_agg.size(), 1, window_aggregation);
+        windowed_col = cudf::grouped_rolling_window(partitioned_table_view, col_view_to_agg, col_view_to_agg.size(), col_view_to_agg.size(), 1, window_aggregation);
     }
 
     return std::move(windowed_col);
