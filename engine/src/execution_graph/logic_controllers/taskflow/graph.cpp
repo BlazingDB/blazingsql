@@ -365,7 +365,7 @@ namespace cache {
 
 	graph_progress graph::get_progress() {
 		graph_progress progress;
-		for (int i = 0; i < ordered_kernel_ids.size() - 1; i++){ // want to iterate over all the kernels except the last one which is OutputKernel
+		for (std::size_t i = 0; i < ordered_kernel_ids.size() - 1; i++){ // want to iterate over all the kernels except the last one which is OutputKernel
 			auto kernel_id = ordered_kernel_ids[i];
 			kernel * kernel = get_node(kernel_id);
 			progress.kernel_descriptions.push_back(std::to_string(kernel_id) + "-" + kernel->kernel_name());

@@ -56,7 +56,7 @@ size_t message_receiver::buffer_size(u_int16_t index){
   return _buffer_sizes[index];
 }
 
-void message_receiver::allocate_buffer(uint16_t index, cudaStream_t stream){
+void message_receiver::allocate_buffer(uint16_t index, cudaStream_t /*stream*/){
   if (index >= _raw_buffers.size()) {
     throw std::runtime_error("Invalid access to raw buffer");
   }
@@ -87,7 +87,7 @@ bool message_receiver::is_finished(){
   return _finished_called;
 }
 
-void message_receiver::finish(cudaStream_t stream) {
+void message_receiver::finish(cudaStream_t /*stream*/) {
 
   std::lock_guard<std::mutex> lock(_finish_mutex);
   if(!_finished_called){

@@ -16,7 +16,6 @@
 #include <arrow/io/interfaces.h>
 
 #pragma GCC diagnostic ignored "-Wunknown-pragmas"
-//#include <cudf/cudf.h>
 #include <cudf/scalar/scalar.hpp>
 #include <cudf/scalar/scalar_factories.hpp>
 #include <cudf/types.hpp>

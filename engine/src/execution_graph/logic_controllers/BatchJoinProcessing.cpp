@@ -372,11 +372,9 @@ std::unique_ptr<ral::frame::BlazingTable> PartwiseJoin::join_set(
 ral::execution::task_result PartwiseJoin::do_process(std::vector<std::unique_ptr<ral::frame::BlazingTable>> inputs,
 	std::shared_ptr<ral::cache::CacheMachine> /*output*/,
 	cudaStream_t /*stream*/, const std::map<std::string, std::string>& args) {
-	CodeTimer eventTimer;
 
 	auto & left_batch = inputs[0];
 	auto & right_batch = inputs[1];
-
 
 	try{
 		if (this->normalize_left){
@@ -386,24 +384,12 @@ ral::execution::task_result PartwiseJoin::do_process(std::vector<std::unique_ptr
 			ral::utilities::normalize_types(right_batch, this->join_column_common_types, this->right_column_indices);
 		}
 
-		auto log_input_num_rows = left_batch->num_rows() + right_batch->num_rows();
-		auto log_input_num_bytes = left_batch->sizeInBytes() + right_batch->sizeInBytes();
-
 		std::unique_ptr<ral::frame::BlazingTable> joined = join_set(left_batch->toBlazingTableView(), right_batch->toBlazingTableView());
-
-		auto log_output_num_rows = joined->num_rows();
-		auto log_output_num_bytes = joined->sizeInBytes();
 
 		if (filter_statement != "") {
 			auto filter_table = ral::processor::process_filter(joined->toBlazingTableView(), filter_statement, this->context.get());
-			eventTimer.stop();
-
-			log_output_num_rows = filter_table->num_rows();
-			log_output_num_bytes = filter_table->sizeInBytes();
-
 			this->add_to_output_cache(std::move(filter_table));
 		} else{
-			eventTimer.stop();
 			this->add_to_output_cache(std::move(joined));
 		}
 

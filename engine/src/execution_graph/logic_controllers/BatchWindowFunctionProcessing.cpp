@@ -8,13 +8,10 @@
 #include <blazingdb/io/Util/StringUtil.h>
 
 #include <cudf/concatenate.hpp>
-#include <cudf/stream_compaction.hpp>
 #include "cudf/column/column_view.hpp"
 #include <cudf/rolling.hpp>
-#include <cudf/filling.hpp>
 #include <cudf/partitioning.hpp>
 #include <cudf/types.hpp>
-#include <cudf/copying.hpp>
 #include <cudf/aggregation.hpp>
 
 namespace ral {
@@ -36,7 +33,7 @@ ComputeWindowKernel::ComputeWindowKernel(std::size_t kernel_id, const std::strin
 std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_function(
     cudf::table_view input_cudf_view,
     cudf::column_view input_col_view,
-    std::size_t pos, int & agg_param_count ) {
+    std::size_t pos, std::size_t & agg_param_count ) {
 
     std::unique_ptr<cudf::aggregation> window_aggregation;
     
@@ -87,8 +84,6 @@ ral::execution::task_result ComputeWindowKernel::do_process(std::vector< std::un
         return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
     }
 
-    CodeTimer eventTimer(false);
-
     std::unique_ptr<ral::frame::BlazingTable> & input = inputs[0];
 
     try{
@@ -106,7 +101,7 @@ ral::execution::task_result ComputeWindowKernel::do_process(std::vector< std::un
         }
 
         std::vector< std::unique_ptr<CudfColumn> > new_wf_cols;
-        int agg_param_count = 0;
+        std::size_t agg_param_count = 0;
         for (std::size_t col_i = 0; col_i < this->type_aggs_as_str.size(); ++col_i) {
             cudf::column_view input_col_view = input_cudf_view.column(column_indices_to_agg[col_i]);
 
@@ -136,11 +131,6 @@ ral::execution::task_result ComputeWindowKernel::do_process(std::vector< std::un
 
         std::unique_ptr<cudf::table> cudf_table_window = std::make_unique<cudf::table>(std::move(output_columns));
         std::unique_ptr<ral::frame::BlazingTable> windowed_table = std::make_unique<ral::frame::BlazingTable>(std::move(cudf_table_window), output_names);
-
-        if (windowed_table) {
-            cudf::size_type num_rows = windowed_table->num_rows();
-            std::size_t num_bytes = windowed_table->sizeInBytes();
-        }
 
         output->addToCache(std::move(windowed_table));
     }catch(const rmm::bad_alloc& e){

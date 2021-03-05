@@ -278,13 +278,11 @@ ral::execution::task_result MergeAggregateKernel::do_process(std::vector< std::u
     std::shared_ptr<ral::cache::CacheMachine> output,
     cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) {
     try{
-        
         std::vector< ral::frame::BlazingTableView > tableViewsToConcat;
         for (std::size_t i = 0; i < inputs.size(); i++){
             tableViewsToConcat.emplace_back(inputs[i]->toBlazingTableView());
         }
 
-        CodeTimer eventTimer;
         if( ral::utilities::checkIfConcatenatingStringsWillOverflow(tableViewsToConcat)) {
             if(logger) {
                 logger->warn("{query_id}|{step}|{substep}|{info}",
@@ -295,9 +293,6 @@ ral::execution::task_result MergeAggregateKernel::do_process(std::vector< std::u
             }
         }
         auto concatenated = ral::utilities::concatTables(tableViewsToConcat);
-
-        auto log_input_num_rows = concatenated ? concatenated->num_rows() : 0;
-        auto log_input_num_bytes = concatenated ? concatenated->sizeInBytes() : 0;
 
         std::vector<int> group_column_indices;
         std::vector<std::string> aggregation_input_expressions, aggregation_column_assigned_aliases;
@@ -331,10 +326,6 @@ ral::execution::task_result MergeAggregateKernel::do_process(std::vector< std::u
                     concatenated->toBlazingTableView(), mod_aggregation_input_expressions, mod_aggregation_types,
                     mod_aggregation_column_assigned_aliases, mod_group_column_indices);
         }
-        eventTimer.stop();
-
-        auto log_output_num_rows = columns->num_rows();
-        auto log_output_num_bytes = columns->sizeInBytes();
 
         output->addToCache(std::move(columns));
         columns = nullptr;

@@ -250,11 +250,6 @@ ral::execution::task_result SortAndSampleKernel::do_process(std::vector< std::un
                 }
             }
 
-            if(sortedTable){
-                auto num_rows = sortedTable->num_rows();
-                auto num_bytes = sortedTable->sizeInBytes();
-            }
-
             output->addToCache(std::move(sortedTable), "output_a");
         }
         else if (operation_type == "compute_partition_plan") {
@@ -579,23 +574,14 @@ ral::execution::task_result LimitKernel::do_process(std::vector< std::unique_ptr
     std::shared_ptr<ral::cache::CacheMachine> output,
     cudaStream_t /*stream*/, const std::map<std::string, std::string>& /*args*/) {
     try{
-        CodeTimer eventTimer(false);
         auto & input = inputs[0];
         if (rows_limit<0) {
             output->addToCache(std::move(input));
         } else {
-            auto log_input_num_rows = input->num_rows();
-            auto log_input_num_bytes = input->sizeInBytes();
-
             std::unique_ptr<ral::frame::BlazingTable> limited_input;
             bool output_is_just_input;
 
-            eventTimer.start();
             std::tie(limited_input, output_is_just_input, rows_limit) = ral::operators::limit_table(input->toBlazingTableView(), rows_limit);
-            eventTimer.stop();
-
-            auto log_output_num_rows = output_is_just_input ? input->num_rows() : limited_input->num_rows();
-            auto log_output_num_bytes = output_is_just_input ? input->sizeInBytes() : limited_input->sizeInBytes();
 
             if (output_is_just_input)
                 output->addToCache(std::move(input));
@@ -612,7 +598,6 @@ ral::execution::task_result LimitKernel::do_process(std::vector< std::unique_ptr
 
 kstatus LimitKernel::run() {
     CodeTimer timer;
-    CodeTimer eventTimer(false);
 
     int64_t total_batch_rows = 0;
     std::vector<std::unique_ptr<ral::cache::CacheData>> cache_vector;

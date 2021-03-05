@@ -250,7 +250,7 @@ size_t internal_blazing_host_memory_resource::get_from_driver_used_memory()  {
     sysinfo (&si);
     // NOTE: sync point 
     total_memory_size = (size_t)si.totalram;
-    used_memory_size = total_memory_size - (size_t)si.freeram;;
+    used_memory_size = total_memory_size - (size_t)si.freeram;
     return used_memory_size;
 }
 

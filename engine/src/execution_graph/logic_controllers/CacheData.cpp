@@ -8,7 +8,6 @@
 #include <Util/StringUtil.h>
 #include <stdio.h>
 
-#include "Util/StringUtil.h"
 #include <src/utilities/DebuggingUtils.h>
 using namespace std::chrono_literals;
 namespace ral {
@@ -126,7 +125,7 @@ CPUCacheData::CPUCacheData(const std::vector<blazingdb::transport::ColumnTranspo
 
 	
 	this->cache_type = CacheDataType::CPU;
-	for(int i = 0; i < column_transports.size(); i++){
+	for(std::size_t i = 0; i < column_transports.size(); i++){
 		this->col_names.push_back(std::string(column_transports[i].metadata.col_name));
 		this->schema.push_back(cudf::data_type{cudf::type_id(column_transports[i].metadata.dtype)});			
 	}

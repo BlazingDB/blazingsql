@@ -673,7 +673,7 @@ TEST_F(ProviderTest, catch_exception_ignore_missing_paths)
 	}
 }
 
-bool make_directories_hive()
+void make_directories_hive()
 {
 	LocalFileSystem localFileSystem(Path{BLAZING_TMP_PATH});
 	localFileSystem.makeDirectory(Uri("/t_year=2017"));

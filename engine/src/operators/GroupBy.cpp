@@ -1,20 +1,13 @@
-#include <spdlog/spdlog.h>
-#include <spdlog/async.h>
-#include <spdlog/sinks/basic_file_sink.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
-
 #include "GroupBy.h"
 #include "parser/expression_utils.hpp"
 #include "CalciteExpressionParsing.h"
 #include "CodeTimer.h"
-#include "distribution/primitives.h"
 #include "utilities/CommonOperations.h"
 #include <blazingdb/io/Util/StringUtil.h>
 #include "execution_graph/logic_controllers/LogicalProject.h"
 #include <regex>
 
 #include <cudf/aggregation.hpp>
-#include <cudf/sorting.hpp>
 #include <cudf/replace.hpp>
 #include <cudf/stream_compaction.hpp>
 #include <cudf/filling.hpp>
@@ -229,8 +222,6 @@ std::tuple<std::vector<int>, std::vector<std::string>, std::vector<AggregateKind
 		std::move(mod_aggregation_types), std::move(mod_aggregation_column_assigned_aliases));
 }
 
-using namespace ral::distribution;
-
 std::unique_ptr<ral::frame::BlazingTable> compute_groupby_without_aggregations(
 	const ral::frame::BlazingTableView & table, const std::vector<int> & group_column_indices) {
 
@@ -399,7 +390,7 @@ std::unique_ptr<ral::frame::BlazingTable> compute_aggregations_with_groupby(
 	for (size_t i = 0; i < agg_out_indices.size(); i++){
 		output_names[agg_out_indices[i] + group_column_indices.size()] = agg_output_column_names[i];
 	}
-	return std::make_unique<BlazingTable>(std::move(output_table), output_names);
+	return std::make_unique<ral::frame::BlazingTable>(std::move(output_table), output_names);
 }
 
 }  // namespace operators

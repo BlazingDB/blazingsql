@@ -1,0 +1,2184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="blazingdb-ral"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;CMake Files\cmake\;CMake Files\..\;CMake Files\..\..\;CMake Files\..\..\lib\;CMake Files\..\..\lib\cmake\;CMake Files\..\..\lib\cmake\storage_client\;CMake Files\..\..\lib\cmake\absl\;CMake Files\..\..\lib\cmake\Crc32c\;CMake Files\..\..\lib\cmake\google_cloud_cpp_common\;CMake Files\tests\;CMake Files\tests\allocation_pool\;CMake Files\tests\cache_machine\;CMake Files\tests\logical-groupby\;CMake Files\tests\new-tests\;CMake Files\tests\parser\;CMake Files\tests\skipdata\;CMake Files\tests\sort\;CMake Files\tests\communication\;CMake Files\tests\waiting_queue\;CMake Files\tests\kernel_tests\;CMake Files\tests\provider\;CMake Files\tests\logic_controllers\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="install/strip">
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 install/strip"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="install">
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 install"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="list_install_components">
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 list_install_components"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="UpdateBSQLEngineInternalConfig">
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 UpdateBSQLEngineInternalConfig"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="blazingsql-engine">
+				<Option output="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/libblazingsql-engine.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-D__CLANG_SUPPORT_DYN_ANNOTATION__"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/libcudf/libcudacxx"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/blazingdb/io"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/usr/local/cuda/targets/x86_64-linux/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/python3.7m"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 blazingsql-engine"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="blazingsql-engine/fast">
+				<Option output="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/libblazingsql-engine.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-D__CLANG_SUPPORT_DYN_ANNOTATION__"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/libcudf/libcudacxx"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/blazingdb/io"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/usr/local/cuda/targets/x86_64-linux/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/python3.7m"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 blazingsql-engine/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="Nightly">
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 Nightly"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="install/local">
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 install/local"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="Continuous">
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 Continuous"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="test">
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 test"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="Experimental">
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 Experimental"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="allocation_test">
+				<Option output="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/gtests/allocation_test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/allocation_pool"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-D__CLANG_SUPPORT_DYN_ANNOTATION__"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/libcudf/libcudacxx"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/blazingdb/io"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/usr/local/cuda/targets/x86_64-linux/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/python3.7m"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/utilities"/>
+					<Add directory="/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/allocation_pool/Makefile&quot;  VERBOSE=1 allocation_test"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/allocation_pool/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/allocation_pool/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/allocation_pool/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="allocation_test/fast">
+				<Option output="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/gtests/allocation_test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/allocation_pool"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-D__CLANG_SUPPORT_DYN_ANNOTATION__"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/libcudf/libcudacxx"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/blazingdb/io"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/usr/local/cuda/targets/x86_64-linux/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/python3.7m"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/utilities"/>
+					<Add directory="/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/allocation_pool/Makefile&quot;  VERBOSE=1 allocation_test/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/allocation_pool/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/allocation_pool/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/allocation_pool/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="cache_test">
+				<Option output="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/gtests/cache_test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/cache_machine"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-D__CLANG_SUPPORT_DYN_ANNOTATION__"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/libcudf/libcudacxx"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/blazingdb/io"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/usr/local/cuda/targets/x86_64-linux/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/python3.7m"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/utilities"/>
+					<Add directory="/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/cache_machine/Makefile&quot;  VERBOSE=1 cache_test"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/cache_machine/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/cache_machine/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/cache_machine/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="cache_test/fast">
+				<Option output="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/gtests/cache_test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/cache_machine"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-D__CLANG_SUPPORT_DYN_ANNOTATION__"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/libcudf/libcudacxx"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/blazingdb/io"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/usr/local/cuda/targets/x86_64-linux/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/python3.7m"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/utilities"/>
+					<Add directory="/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/cache_machine/Makefile&quot;  VERBOSE=1 cache_test/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/cache_machine/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/cache_machine/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/cache_machine/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="exception_handling_test">
+				<Option output="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/gtests/exception_handling_test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/cache_machine"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-D__CLANG_SUPPORT_DYN_ANNOTATION__"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/libcudf/libcudacxx"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/blazingdb/io"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/usr/local/cuda/targets/x86_64-linux/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/python3.7m"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/utilities"/>
+					<Add directory="/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/cache_machine/Makefile&quot;  VERBOSE=1 exception_handling_test"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/cache_machine/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/cache_machine/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/cache_machine/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="exception_handling_test/fast">
+				<Option output="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/gtests/exception_handling_test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/cache_machine"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-D__CLANG_SUPPORT_DYN_ANNOTATION__"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/libcudf/libcudacxx"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/blazingdb/io"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/usr/local/cuda/targets/x86_64-linux/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/python3.7m"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/utilities"/>
+					<Add directory="/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/cache_machine/Makefile&quot;  VERBOSE=1 exception_handling_test/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/cache_machine/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/cache_machine/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/cache_machine/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="aggregation-test">
+				<Option output="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/gtests/aggregation-test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/logical-groupby"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-D__CLANG_SUPPORT_DYN_ANNOTATION__"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/libcudf/libcudacxx"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/blazingdb/io"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/usr/local/cuda/targets/x86_64-linux/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/python3.7m"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/utilities"/>
+					<Add directory="/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/logical-groupby/Makefile&quot;  VERBOSE=1 aggregation-test"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/logical-groupby/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/logical-groupby/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/logical-groupby/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="aggregation-test/fast">
+				<Option output="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/gtests/aggregation-test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/logical-groupby"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-D__CLANG_SUPPORT_DYN_ANNOTATION__"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/libcudf/libcudacxx"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/blazingdb/io"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/usr/local/cuda/targets/x86_64-linux/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/python3.7m"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/utilities"/>
+					<Add directory="/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/logical-groupby/Makefile&quot;  VERBOSE=1 aggregation-test/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/logical-groupby/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/logical-groupby/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/logical-groupby/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="filter_test">
+				<Option output="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/gtests/filter_test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/new-tests"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-D__CLANG_SUPPORT_DYN_ANNOTATION__"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/libcudf/libcudacxx"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/blazingdb/io"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/usr/local/cuda/targets/x86_64-linux/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/python3.7m"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/utilities"/>
+					<Add directory="/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/new-tests/Makefile&quot;  VERBOSE=1 filter_test"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/new-tests/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/new-tests/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/new-tests/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="filter_test/fast">
+				<Option output="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/gtests/filter_test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/new-tests"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-D__CLANG_SUPPORT_DYN_ANNOTATION__"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/libcudf/libcudacxx"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/blazingdb/io"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/usr/local/cuda/targets/x86_64-linux/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/python3.7m"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/utilities"/>
+					<Add directory="/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/new-tests/Makefile&quot;  VERBOSE=1 filter_test/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/new-tests/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/new-tests/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/new-tests/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="interops_test">
+				<Option output="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/gtests/interops_test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/new-tests"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-D__CLANG_SUPPORT_DYN_ANNOTATION__"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/libcudf/libcudacxx"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/blazingdb/io"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/usr/local/cuda/targets/x86_64-linux/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/python3.7m"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/utilities"/>
+					<Add directory="/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/new-tests/Makefile&quot;  VERBOSE=1 interops_test"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/new-tests/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/new-tests/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/new-tests/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="interops_test/fast">
+				<Option output="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/gtests/interops_test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/new-tests"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-D__CLANG_SUPPORT_DYN_ANNOTATION__"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/libcudf/libcudacxx"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/blazingdb/io"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/usr/local/cuda/targets/x86_64-linux/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/python3.7m"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/utilities"/>
+					<Add directory="/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/new-tests/Makefile&quot;  VERBOSE=1 interops_test/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/new-tests/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/new-tests/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/new-tests/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="apply_filter">
+				<Option output="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/gtests/apply_filter" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/new-tests"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-D__CLANG_SUPPORT_DYN_ANNOTATION__"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/libcudf/libcudacxx"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/blazingdb/io"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/usr/local/cuda/targets/x86_64-linux/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/python3.7m"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/utilities"/>
+					<Add directory="/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/new-tests/Makefile&quot;  VERBOSE=1 apply_filter"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/new-tests/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/new-tests/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/new-tests/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="apply_filter/fast">
+				<Option output="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/gtests/apply_filter" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/new-tests"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-D__CLANG_SUPPORT_DYN_ANNOTATION__"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/libcudf/libcudacxx"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/blazingdb/io"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/usr/local/cuda/targets/x86_64-linux/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/python3.7m"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/utilities"/>
+					<Add directory="/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/new-tests/Makefile&quot;  VERBOSE=1 apply_filter/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/new-tests/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/new-tests/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/new-tests/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="project_test">
+				<Option output="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/gtests/project_test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/new-tests"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-D__CLANG_SUPPORT_DYN_ANNOTATION__"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/libcudf/libcudacxx"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/blazingdb/io"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/usr/local/cuda/targets/x86_64-linux/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/python3.7m"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/utilities"/>
+					<Add directory="/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/new-tests/Makefile&quot;  VERBOSE=1 project_test"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/new-tests/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/new-tests/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/new-tests/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="project_test/fast">
+				<Option output="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/gtests/project_test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/new-tests"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-D__CLANG_SUPPORT_DYN_ANNOTATION__"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/libcudf/libcudacxx"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/blazingdb/io"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/usr/local/cuda/targets/x86_64-linux/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/python3.7m"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/utilities"/>
+					<Add directory="/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/new-tests/Makefile&quot;  VERBOSE=1 project_test/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/new-tests/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/new-tests/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/new-tests/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="parquet_metadata_test">
+				<Option output="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/gtests/parquet_metadata_test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/parser"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-D__CLANG_SUPPORT_DYN_ANNOTATION__"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/libcudf/libcudacxx"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/blazingdb/io"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/usr/local/cuda/targets/x86_64-linux/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/python3.7m"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/utilities"/>
+					<Add directory="/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/parser/Makefile&quot;  VERBOSE=1 parquet_metadata_test"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/parser/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/parser/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/parser/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="parquet_metadata_test/fast">
+				<Option output="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/gtests/parquet_metadata_test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/parser"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-D__CLANG_SUPPORT_DYN_ANNOTATION__"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/libcudf/libcudacxx"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/blazingdb/io"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/usr/local/cuda/targets/x86_64-linux/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/python3.7m"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/utilities"/>
+					<Add directory="/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/parser/Makefile&quot;  VERBOSE=1 parquet_metadata_test/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/parser/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/parser/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/parser/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="split_inequality_join_test">
+				<Option output="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/gtests/split_inequality_join_test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/parser"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-D__CLANG_SUPPORT_DYN_ANNOTATION__"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/libcudf/libcudacxx"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/blazingdb/io"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/usr/local/cuda/targets/x86_64-linux/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/python3.7m"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/utilities"/>
+					<Add directory="/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/parser/Makefile&quot;  VERBOSE=1 split_inequality_join_test"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/parser/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/parser/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/parser/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="split_inequality_join_test/fast">
+				<Option output="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/gtests/split_inequality_join_test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/parser"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-D__CLANG_SUPPORT_DYN_ANNOTATION__"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/libcudf/libcudacxx"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/blazingdb/io"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/usr/local/cuda/targets/x86_64-linux/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/python3.7m"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/utilities"/>
+					<Add directory="/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/parser/Makefile&quot;  VERBOSE=1 split_inequality_join_test/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/parser/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/parser/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/parser/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="parser_utils_test">
+				<Option output="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/gtests/parser_utils_test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/parser"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-D__CLANG_SUPPORT_DYN_ANNOTATION__"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/libcudf/libcudacxx"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/blazingdb/io"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/usr/local/cuda/targets/x86_64-linux/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/python3.7m"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/utilities"/>
+					<Add directory="/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/parser/Makefile&quot;  VERBOSE=1 parser_utils_test"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/parser/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/parser/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/parser/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="parser_utils_test/fast">
+				<Option output="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/gtests/parser_utils_test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/parser"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-D__CLANG_SUPPORT_DYN_ANNOTATION__"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/libcudf/libcudacxx"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/blazingdb/io"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/usr/local/cuda/targets/x86_64-linux/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/python3.7m"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/utilities"/>
+					<Add directory="/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/parser/Makefile&quot;  VERBOSE=1 parser_utils_test/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/parser/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/parser/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/parser/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="parser_test">
+				<Option output="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/gtests/parser_test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/parser"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-D__CLANG_SUPPORT_DYN_ANNOTATION__"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/libcudf/libcudacxx"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/blazingdb/io"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/usr/local/cuda/targets/x86_64-linux/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/python3.7m"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/utilities"/>
+					<Add directory="/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/parser/Makefile&quot;  VERBOSE=1 parser_test"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/parser/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/parser/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/parser/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="parser_test/fast">
+				<Option output="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/gtests/parser_test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/parser"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-D__CLANG_SUPPORT_DYN_ANNOTATION__"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/libcudf/libcudacxx"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/blazingdb/io"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/usr/local/cuda/targets/x86_64-linux/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/python3.7m"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/utilities"/>
+					<Add directory="/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/parser/Makefile&quot;  VERBOSE=1 parser_test/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/parser/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/parser/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/parser/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="skip_data_test">
+				<Option output="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/gtests/skip_data_test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/skipdata"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DPARQUET_FILE_PATH=&quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/skipdata/nation_0_0.parquet&quot;"/>
+					<Add option="-D__CLANG_SUPPORT_DYN_ANNOTATION__"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/libcudf/libcudacxx"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/blazingdb/io"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/usr/local/cuda/targets/x86_64-linux/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/python3.7m"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/utilities"/>
+					<Add directory="/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/skipdata/Makefile&quot;  VERBOSE=1 skip_data_test"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/skipdata/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/skipdata/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/skipdata/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="skip_data_test/fast">
+				<Option output="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/gtests/skip_data_test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/skipdata"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DPARQUET_FILE_PATH=&quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/skipdata/nation_0_0.parquet&quot;"/>
+					<Add option="-D__CLANG_SUPPORT_DYN_ANNOTATION__"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/libcudf/libcudacxx"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/blazingdb/io"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/usr/local/cuda/targets/x86_64-linux/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/python3.7m"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/utilities"/>
+					<Add directory="/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/skipdata/Makefile&quot;  VERBOSE=1 skip_data_test/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/skipdata/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/skipdata/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/skipdata/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="sort-test">
+				<Option output="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/gtests/sort-test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/sort"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-D__CLANG_SUPPORT_DYN_ANNOTATION__"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/libcudf/libcudacxx"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/blazingdb/io"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/usr/local/cuda/targets/x86_64-linux/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/python3.7m"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/utilities"/>
+					<Add directory="/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/sort/Makefile&quot;  VERBOSE=1 sort-test"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/sort/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/sort/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/sort/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="sort-test/fast">
+				<Option output="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/gtests/sort-test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/sort"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-D__CLANG_SUPPORT_DYN_ANNOTATION__"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/libcudf/libcudacxx"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/blazingdb/io"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/usr/local/cuda/targets/x86_64-linux/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/python3.7m"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/utilities"/>
+					<Add directory="/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/sort/Makefile&quot;  VERBOSE=1 sort-test/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/sort/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/sort/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/sort/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="send_and_receive_test">
+				<Option output="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/gtests/send_and_receive_test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/communication"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-D__CLANG_SUPPORT_DYN_ANNOTATION__"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/libcudf/libcudacxx"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/blazingdb/io"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/usr/local/cuda/targets/x86_64-linux/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/python3.7m"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/utilities"/>
+					<Add directory="/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/communication/Makefile&quot;  VERBOSE=1 send_and_receive_test"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/communication/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/communication/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/communication/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="send_and_receive_test/fast">
+				<Option output="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/gtests/send_and_receive_test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/communication"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-D__CLANG_SUPPORT_DYN_ANNOTATION__"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/libcudf/libcudacxx"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/blazingdb/io"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/usr/local/cuda/targets/x86_64-linux/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/python3.7m"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/utilities"/>
+					<Add directory="/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/communication/Makefile&quot;  VERBOSE=1 send_and_receive_test/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/communication/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/communication/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/communication/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="waiting_queue-test">
+				<Option output="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/gtests/waiting_queue-test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/waiting_queue"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-D__CLANG_SUPPORT_DYN_ANNOTATION__"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/libcudf/libcudacxx"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/blazingdb/io"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/usr/local/cuda/targets/x86_64-linux/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/python3.7m"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/utilities"/>
+					<Add directory="/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/waiting_queue/Makefile&quot;  VERBOSE=1 waiting_queue-test"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/waiting_queue/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/waiting_queue/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/waiting_queue/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="waiting_queue-test/fast">
+				<Option output="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/gtests/waiting_queue-test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/waiting_queue"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-D__CLANG_SUPPORT_DYN_ANNOTATION__"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/libcudf/libcudacxx"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/blazingdb/io"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/usr/local/cuda/targets/x86_64-linux/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/python3.7m"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/utilities"/>
+					<Add directory="/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/waiting_queue/Makefile&quot;  VERBOSE=1 waiting_queue-test/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/waiting_queue/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/waiting_queue/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/waiting_queue/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="kernel_projection_test">
+				<Option output="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/gtests/kernel_projection_test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/kernel_tests"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-D__CLANG_SUPPORT_DYN_ANNOTATION__"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/libcudf/libcudacxx"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/blazingdb/io"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/usr/local/cuda/targets/x86_64-linux/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/python3.7m"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/utilities"/>
+					<Add directory="/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/kernel_tests/Makefile&quot;  VERBOSE=1 kernel_projection_test"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/kernel_tests/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/kernel_tests/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/kernel_tests/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="kernel_projection_test/fast">
+				<Option output="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/gtests/kernel_projection_test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/kernel_tests"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-D__CLANG_SUPPORT_DYN_ANNOTATION__"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/libcudf/libcudacxx"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/blazingdb/io"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/usr/local/cuda/targets/x86_64-linux/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/python3.7m"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/utilities"/>
+					<Add directory="/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/kernel_tests/Makefile&quot;  VERBOSE=1 kernel_projection_test/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/kernel_tests/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/kernel_tests/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/kernel_tests/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="provider_test">
+				<Option output="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/gtests/provider_test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/provider"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-D__CLANG_SUPPORT_DYN_ANNOTATION__"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/libcudf/libcudacxx"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/blazingdb/io"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/usr/local/cuda/targets/x86_64-linux/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/python3.7m"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/utilities"/>
+					<Add directory="/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/provider/Makefile&quot;  VERBOSE=1 provider_test"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/provider/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/provider/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/provider/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="provider_test/fast">
+				<Option output="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/gtests/provider_test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/provider"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-D__CLANG_SUPPORT_DYN_ANNOTATION__"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/libcudf/libcudacxx"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/blazingdb/io"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/usr/local/cuda/targets/x86_64-linux/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/python3.7m"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/utilities"/>
+					<Add directory="/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/provider/Makefile&quot;  VERBOSE=1 provider_test/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/provider/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/provider/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/provider/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="physical_plan_generator_test">
+				<Option output="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/gtests/physical_plan_generator_test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/logic_controllers"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-D__CLANG_SUPPORT_DYN_ANNOTATION__"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/libcudf/libcudacxx"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/blazingdb/io"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/usr/local/cuda/targets/x86_64-linux/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/python3.7m"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/utilities"/>
+					<Add directory="/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/logic_controllers/Makefile&quot;  VERBOSE=1 physical_plan_generator_test"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/logic_controllers/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/logic_controllers/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/logic_controllers/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="physical_plan_generator_test/fast">
+				<Option output="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/gtests/physical_plan_generator_test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/logic_controllers"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-D__CLANG_SUPPORT_DYN_ANNOTATION__"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/libcudf/libcudacxx"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/blazingdb/io"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/thirdparty/jitify"/>
+					<Add directory="/usr/local/cuda/targets/x86_64-linux/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include/python3.7m"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/utilities"/>
+					<Add directory="/include"/>
+					<Add directory="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/logic_controllers/Makefile&quot;  VERBOSE=1 physical_plan_generator_test/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/logic_controllers/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/logic_controllers/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake-build-relwithdebinfo/tests/logic_controllers/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/CalciteExpressionParsing.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/CalciteExpressionParsing.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/CalciteInterpreter.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/CalciteInterpreter.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/Interpreter/interpreter_cpp.cu">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/Interpreter/interpreter_cpp.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/bmr/BlazingMemoryResource.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/bmr/BlazingMemoryResource.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/bmr/BufferProvider.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/bmr/BufferProvider.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/bmr/MemoryMonitor.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/bmr/MemoryMonitor.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/communication/CommunicationData.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/communication/CommunicationData.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/communication/CommunicationInterface/bufferTransport.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/communication/CommunicationInterface/bufferTransport.hpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/communication/CommunicationInterface/messageListener.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/communication/CommunicationInterface/messageListener.hpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/communication/CommunicationInterface/messageReceiver.hpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/communication/CommunicationInterface/messageSender.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/communication/CommunicationInterface/messageSender.hpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/communication/CommunicationInterface/node.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/communication/CommunicationInterface/node.hpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/communication/CommunicationInterface/protocols.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/communication/CommunicationInterface/protocols.hpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/communication/CommunicationInterface/serializer.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/communication/CommunicationInterface/serializer.hpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/communication/factory/MessageFactory.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/communication/factory/MessageFactory.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/communication/messages/GPUComponentMessage.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/communication/messages/GPUComponentMessage.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/communication/messages/MessageUtil.cu">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/config/GPUManager.cu">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/cython/engine.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/cython/errors.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/cython/initialize.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/cython/io.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/cython/static.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/distribution/primitives.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/distribution/primitives.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/execution_graph/Context.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/execution_graph/Context.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/execution_graph/logic_controllers/BatchAggregationProcessing.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/execution_graph/logic_controllers/BatchAggregationProcessing.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/execution_graph/logic_controllers/BatchJoinProcessing.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/execution_graph/logic_controllers/BatchOrderByProcessing.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/execution_graph/logic_controllers/BatchOrderByProcessing.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/execution_graph/logic_controllers/BatchProcessing.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/execution_graph/logic_controllers/BatchUnionProcessing.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/execution_graph/logic_controllers/BatchUnionProcessing.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/execution_graph/logic_controllers/BatchWindowFunctionProcessing.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/execution_graph/logic_controllers/BatchWindowFunctionProcessing.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/execution_graph/logic_controllers/BlazingColumnOwner.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/execution_graph/logic_controllers/BlazingColumnOwner.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/execution_graph/logic_controllers/BlazingHostTable.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/execution_graph/logic_controllers/BlazingHostTable.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/execution_graph/logic_controllers/CacheData.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/execution_graph/logic_controllers/CacheMachine.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/execution_graph/logic_controllers/CacheMachine.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/execution_graph/logic_controllers/LogicPrimitives.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/execution_graph/logic_controllers/LogicalFilter.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/execution_graph/logic_controllers/LogicalFilter.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.cpp">
+			<Option target="blazingsql-engine"/>
+			<Option target="project_test"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/execution_graph/logic_controllers/LogicalProject.h">
+			<Option target="blazingsql-engine"/>
+			<Option target="project_test"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/distributing_kernel.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/distributing_kernel.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/executor.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/executor.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/graph.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/kernel.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/kernel.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/kernel_type.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/kernel_type.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/port.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/execution_graph/logic_controllers/taskflow/port.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/io/DataLoader.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/io/DataLoader.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/io/Schema.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/io/Schema.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/io/data_parser/ArgsUtil.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/io/data_parser/ArgsUtil.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/io/data_parser/ArrowParser.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/io/data_parser/ArrowParser.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/io/data_parser/CSVParser.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/io/data_parser/CSVParser.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/io/data_parser/GDFParser.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/io/data_parser/GDFParser.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/io/data_parser/JSONParser.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/io/data_parser/JSONParser.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/io/data_parser/OrcParser.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/io/data_parser/OrcParser.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/io/data_parser/ParquetParser.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/io/data_parser/ParquetParser.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/io/data_parser/metadata/common_metadata.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/io/data_parser/metadata/common_metadata.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/io/data_parser/metadata/orc_metadata.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/io/data_parser/metadata/orc_metadata.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/io/data_parser/metadata/parquet_metadata.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/io/data_parser/metadata/parquet_metadata.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/io/data_provider/GDFDataProvider.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/io/data_provider/GDFDataProvider.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/io/data_provider/UriDataProvider.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/io/data_provider/UriDataProvider.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/operators/GroupBy.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/operators/GroupBy.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/operators/OrderBy.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/operators/OrderBy.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/parser/expression_tree.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/parser/expression_tree.hpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/parser/expression_utils.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/parser/expression_utils.hpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/skip_data/SkipDataProcessor.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/skip_data/SkipDataProcessor.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/skip_data/utils.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/skip_data/utils.hpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/transport/Node.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/transport/Node.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/utilities/CommonOperations.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/utilities/CommonOperations.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/utilities/DebuggingUtils.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/utilities/DebuggingUtils.h">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/utilities/scalar_timestamp_parser.cpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/utilities/scalar_timestamp_parser.hpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/utilities/transform.cu">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/src/utilities/transform.hpp">
+			<Option target="blazingsql-engine"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/allocation_pool/allocation_pool.cpp">
+			<Option target="allocation_test"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/cache_machine/cache_test.cpp">
+			<Option target="cache_test"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/cache_machine/exception_handling_test.cpp">
+			<Option target="exception_handling_test"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/communication/send_and_receive_test.cpp">
+			<Option target="send_and_receive_test"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/cython_errors_dummy.cpp">
+			<Option target="allocation_test"/>
+			<Option target="cache_test"/>
+			<Option target="exception_handling_test"/>
+			<Option target="aggregation-test"/>
+			<Option target="filter_test"/>
+			<Option target="interops_test"/>
+			<Option target="apply_filter"/>
+			<Option target="project_test"/>
+			<Option target="parquet_metadata_test"/>
+			<Option target="split_inequality_join_test"/>
+			<Option target="parser_utils_test"/>
+			<Option target="parser_test"/>
+			<Option target="skip_data_test"/>
+			<Option target="sort-test"/>
+			<Option target="send_and_receive_test"/>
+			<Option target="waiting_queue-test"/>
+			<Option target="kernel_projection_test"/>
+			<Option target="provider_test"/>
+			<Option target="physical_plan_generator_test"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/kernel_tests/kernel_projection_test.cpp">
+			<Option target="kernel_projection_test"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/logic_controllers/physical_plan_generator_test.cpp">
+			<Option target="physical_plan_generator_test"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/logical-groupby/aggregation-test.cpp">
+			<Option target="aggregation-test"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/new-tests/apply_filter.cpp">
+			<Option target="apply_filter"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/new-tests/filter_tests.cpp">
+			<Option target="filter_test"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/new-tests/interops_tests.cpp">
+			<Option target="interops_test"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/new-tests/process_project.cpp">
+			<Option target="project_test"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/parser/expression_tree_test.cpp">
+			<Option target="parser_test"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/parser/expression_utils_test.cpp">
+			<Option target="parser_utils_test"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/parser/parquet_metadata_test.cpp">
+			<Option target="parquet_metadata_test"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/parser/split_inequality_join_test.cpp">
+			<Option target="split_inequality_join_test"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/provider/provider_test.cpp">
+			<Option target="provider_test"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/skipdata/expression_tree_test.cpp">
+			<Option target="skip_data_test"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/sort/sort.cpp">
+			<Option target="sort-test"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/utilities/BlazingUnitTest.cpp">
+			<Option target="allocation_test"/>
+			<Option target="cache_test"/>
+			<Option target="exception_handling_test"/>
+			<Option target="aggregation-test"/>
+			<Option target="filter_test"/>
+			<Option target="interops_test"/>
+			<Option target="apply_filter"/>
+			<Option target="project_test"/>
+			<Option target="parquet_metadata_test"/>
+			<Option target="split_inequality_join_test"/>
+			<Option target="parser_utils_test"/>
+			<Option target="parser_test"/>
+			<Option target="skip_data_test"/>
+			<Option target="sort-test"/>
+			<Option target="send_and_receive_test"/>
+			<Option target="waiting_queue-test"/>
+			<Option target="kernel_projection_test"/>
+			<Option target="provider_test"/>
+			<Option target="physical_plan_generator_test"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/utilities/BlazingUnitTest.h">
+			<Option target="allocation_test"/>
+			<Option target="cache_test"/>
+			<Option target="exception_handling_test"/>
+			<Option target="aggregation-test"/>
+			<Option target="filter_test"/>
+			<Option target="interops_test"/>
+			<Option target="apply_filter"/>
+			<Option target="project_test"/>
+			<Option target="parquet_metadata_test"/>
+			<Option target="split_inequality_join_test"/>
+			<Option target="parser_utils_test"/>
+			<Option target="parser_test"/>
+			<Option target="skip_data_test"/>
+			<Option target="sort-test"/>
+			<Option target="send_and_receive_test"/>
+			<Option target="waiting_queue-test"/>
+			<Option target="kernel_projection_test"/>
+			<Option target="provider_test"/>
+			<Option target="physical_plan_generator_test"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/utilities/MemoryConsumer.cu">
+			<Option target="exception_handling_test"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/waiting_queue/waiting_queue-tests.cpp">
+			<Option target="waiting_queue-test"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/bsqlengine_config.h.cmake">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake/ConfigureProductVersion.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/cmake/FindUCX.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/../../lib/cmake/storage_client/storage-targets-release.cmake">
+			<Option virtualFolder="CMake Files\..\..\lib\cmake\storage_client\"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/../../lib/cmake/storage_client/storage-targets.cmake">
+			<Option virtualFolder="CMake Files\..\..\lib\cmake\storage_client\"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/../../lib/cmake/storage_client/storage_client-config-version.cmake">
+			<Option virtualFolder="CMake Files\..\..\lib\cmake\storage_client\"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/../../lib/cmake/storage_client/storage_client-config.cmake">
+			<Option virtualFolder="CMake Files\..\..\lib\cmake\storage_client\"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/../../lib/cmake/absl/abslConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\lib\cmake\absl\"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/../../lib/cmake/absl/abslTargets-release.cmake">
+			<Option virtualFolder="CMake Files\..\..\lib\cmake\absl\"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/../../lib/cmake/absl/abslTargets.cmake">
+			<Option virtualFolder="CMake Files\..\..\lib\cmake\absl\"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/../../lib/cmake/Crc32c/Crc32cConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\lib\cmake\Crc32c\"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/../../lib/cmake/Crc32c/Crc32cConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\lib\cmake\Crc32c\"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/../../lib/cmake/Crc32c/Crc32cTargets-release.cmake">
+			<Option virtualFolder="CMake Files\..\..\lib\cmake\Crc32c\"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/../../lib/cmake/Crc32c/Crc32cTargets.cmake">
+			<Option virtualFolder="CMake Files\..\..\lib\cmake\Crc32c\"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/../../lib/cmake/google_cloud_cpp_common/google_cloud_cpp_common-config-version.cmake">
+			<Option virtualFolder="CMake Files\..\..\lib\cmake\google_cloud_cpp_common\"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/../../lib/cmake/google_cloud_cpp_common/google_cloud_cpp_common-config.cmake">
+			<Option virtualFolder="CMake Files\..\..\lib\cmake\google_cloud_cpp_common\"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/../../lib/cmake/google_cloud_cpp_common/google_cloud_cpp_common-targets-release.cmake">
+			<Option virtualFolder="CMake Files\..\..\lib\cmake\google_cloud_cpp_common\"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/../../lib/cmake/google_cloud_cpp_common/google_cloud_cpp_common-targets.cmake">
+			<Option virtualFolder="CMake Files\..\..\lib\cmake\google_cloud_cpp_common\"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\tests\"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/allocation_pool/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\tests\allocation_pool\"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/cache_machine/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\tests\cache_machine\"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/logical-groupby/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\tests\logical-groupby\"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/new-tests/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\tests\new-tests\"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/parser/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\tests\parser\"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/skipdata/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\tests\skipdata\"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/sort/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\tests\sort\"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/communication/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\tests\communication\"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/waiting_queue/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\tests\waiting_queue\"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/kernel_tests/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\tests\kernel_tests\"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/provider/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\tests\provider\"/>
+		</Unit>
+		<Unit filename="/home/rommel/miniconda3/envs/blazingsqlonly-sources-020321/blazingsql/engine/tests/logic_controllers/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\tests\logic_controllers\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>

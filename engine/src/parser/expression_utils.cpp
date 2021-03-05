@@ -694,10 +694,10 @@ std::string get_first_over_expression_from_logical_plan(const std::string & logi
 	}
 	// at least there is one PARTITION BY
 	std::vector<std::string> project_expressions = get_expressions_from_expression_list(query_part);
-	size_t first_pos_with_over;
+	std::size_t first_pos_with_over = 0;
 
 	// TODO: for now all the OVER clauses MUST be the same
-	for (size_t i = 0; i < project_expressions.size(); ++i) {
+	for (std::size_t i = 0; i < project_expressions.size(); ++i) {
 		if (project_expressions[i].find(expr) != std::string::npos) {
 			first_pos_with_over = i;
 			break;

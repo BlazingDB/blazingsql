@@ -112,7 +112,7 @@ std::tuple<ral::cache::MetadataDictionary, std::vector<blazingdb::transport::Col
 	size_t num_chunked_column_info = from_byte_vector<size_t>(data.data() + ptr_offset);
 	ptr_offset += sizeof(size_t);
 	std::vector<ral::memory::blazing_chunked_column_info> chunked_column_infos(num_chunked_column_info);
-	for (auto i = 0; i < num_chunked_column_info; i++){
+	for (std::size_t i = 0; i < num_chunked_column_info; i++){
 		// first we deserialize chunk_index
 		size_t num_chunk_index = from_byte_vector<size_t>(data.data() + ptr_offset);
 		ptr_offset += sizeof(size_t);

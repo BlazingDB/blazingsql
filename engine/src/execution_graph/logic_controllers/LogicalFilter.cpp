@@ -1,4 +1,3 @@
-#include <spdlog/spdlog.h>
 #include <cudf/stream_compaction.hpp>
 #include <cudf/copying.hpp>
 #include "LogicalFilter.h"
