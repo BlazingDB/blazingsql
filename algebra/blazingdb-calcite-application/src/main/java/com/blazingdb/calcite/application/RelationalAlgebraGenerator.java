@@ -194,7 +194,6 @@ public class RelationalAlgebraGenerator {
 						  .addRuleInstance(FilterMergeRule.INSTANCE)
 						  //.addRuleInstance(ProjectJoinTransposeRule.INSTANCE)
 						  .addRuleInstance(ProjectFilterTransposeRule.INSTANCE)
-						  .addRuleInstance(ProjectRemoveRule.INSTANCE)
 
 						  //The following three rules evaluate expressions in Projects and Filters
 						  //.addRuleInstance(ReduceExpressionsRule.PROJECT_INSTANCE)
@@ -216,7 +215,6 @@ public class RelationalAlgebraGenerator {
 						  .addRuleInstance(FilterMergeRule.INSTANCE)
 						  .addRuleInstance(ProjectJoinTransposeRule.INSTANCE)
 						  .addRuleInstance(ProjectFilterTransposeRule.INSTANCE)
-						  .addRuleInstance(ProjectRemoveRule.INSTANCE)
 
 						  //The following three rules evaluate expressions in Projects and Filters
 						  .addRuleInstance(ReduceExpressionsRule.PROJECT_INSTANCE)
