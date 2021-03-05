@@ -5,7 +5,6 @@
 #include <cudf/strings/contains.hpp>
 #include <cudf/strings/replace_re.hpp>
 #include <cudf/strings/replace.hpp>
-#include <cudf/strings/detail/replace.hpp>
 #include <cudf/strings/substring.hpp>
 #include <cudf/strings/case.hpp>
 #include <cudf/strings/strip.hpp>
@@ -143,7 +142,7 @@ std::unique_ptr<cudf::column> evaluate_string_functions(const cudf::table_view &
         std::string target = StringUtil::removeEncapsulation(arg_tokens[1], encapsulation_character);
         std::string repl = StringUtil::removeEncapsulation(arg_tokens[2], encapsulation_character);
 
-        computed_col = cudf::strings::detail::replace<cudf::strings::detail::replace_algorithm::ROW_PARALLEL>(column, target, repl);
+        computed_col = cudf::strings::replace(column, target, repl);
         break;
     }
     case operator_type::BLZ_STR_REGEXP_REPLACE:
