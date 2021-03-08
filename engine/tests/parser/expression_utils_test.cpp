@@ -151,3 +151,15 @@ TEST_F(ExpressionUtilsTest, getting_cols_to_apply_window_and_cols_to_apply_agg_e
 	EXPECT_EQ(type_aggs_as_str.size(), 0);
 	EXPECT_EQ(agg_param_values.size(), 0);
 }
+
+// TODO: add cases for byPassingProject
+// first case:
+// inputs:
+//   logical_paln: LogicalProject(n_nationkey=[$0], n_name=[$1], n_regionkey=[$2], n_comment=[$3])
+//   names: [n_nationkey, n_name, n_regionkey, n_comment]
+// output: < true, false, std::ignore>
+// second case:
+// inputs:
+//   logical_paln: LogicalProject(n_col0=[$0], n_col1=[$1], n_col2=[$2], n_col3=[$3])
+//   names: [n_nationkey, n_name, n_regionkey, n_comment]
+// output: < true, true , [n_nationkey, n_name, n_regionkey, n_comment]>

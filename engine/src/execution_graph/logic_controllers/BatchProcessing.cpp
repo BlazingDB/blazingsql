@@ -346,15 +346,28 @@ kstatus Projection::run() {
     CodeTimer timer;
 
     std::unique_ptr <ral::cache::CacheData> cache_data = this->input_cache()->pullCacheData();
-    while(cache_data != nullptr ){
-        std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
-        inputs.push_back(std::move(cache_data));
+    std::vector<std::string> data_names = cache_data->names();
 
-        ral::execution::executor::get_instance()->add_task(
-                std::move(inputs),
-                this->output_cache(),
-                this);
+    // When this kernel will project all the columns 
+    bool by_passing_project, by_passing_project_with_aliases;
+    std::vector<std::string> aliases;
+    std::tie(by_passing_project, by_passing_project_with_aliases, aliases) = byPassingProject(this->expression, data_names);
 
+    while(cache_data != nullptr){
+        if (by_passing_project_with_aliases) {
+            cache_data->set_names(aliases);
+            this->add_to_output_cache(std::move(cache_data));
+        } else if (by_passing_project) {
+            this->add_to_output_cache(std::move(cache_data));
+        } else {
+            std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
+            inputs.push_back(std::move(cache_data));
+
+            ral::execution::executor::get_instance()->add_task(
+                    std::move(inputs),
+                    this->output_cache(),
+                    this);
+        }
         cache_data = this->input_cache()->pullCacheData();
     }
 

@@ -247,6 +247,12 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
+            # TODO: add a "select n_nationkey as n1, n_name as n2, n_regionkey as n3, n_comment as n4 from nation"
+            #query1 = """select n_nationkey, n_name, n_regionkey from 
+            #  ( select n_nationkey, n_name, n_regionkey, n_comment from nation where n_nationkey < 6 limit 4 ) 
+            #order by n_nationkey
+	        #"""
+
             # if Settings.execution_mode == ExecutionMode.GENERATOR:
             #     print("==============================")
             #     break

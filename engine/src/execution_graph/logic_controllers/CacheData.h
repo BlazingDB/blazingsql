@@ -180,6 +180,9 @@ public:
 	*/
 	virtual size_t sizeInBytes() const = 0;
 
+	// TODO: explain ..
+	virtual void set_names(const std::vector<std::string> & names) = 0;
+
 	/**
 	* Destructor
 	*/
@@ -285,6 +288,12 @@ public:
 	* @return The number of bytes the BlazingTable consumes.
 	*/
 	size_t sizeInBytes() const override { return data->sizeInBytes(); }
+
+	// TODO: explain here ..
+	void set_names(const std::vector<std::string> & names) override {
+		data->setNames(names);
+	}
+
 	/**
 	* Destructor
 	*/
@@ -366,6 +375,13 @@ protected:
 	* @return The number of bytes the BlazingHostTable consumes.
 	*/
  	size_t sizeInBytes() const override { return host_table->sizeInBytes(); }
+
+	// TODO: explain here ..
+	void set_names(const std::vector<std::string> & names) override
+	{
+		host_table->set_names(names);
+	}
+
 	/**
 	* Destructor
 	*/
@@ -417,6 +433,11 @@ public:
 	*/
 	size_t fileSizeInBytes() const;
 
+	// TODO: explain here ..
+	void set_names(const std::vector<std::string> & names) override {
+		this->col_names = names;
+	}
+
 	/**
 	* Destructor
 	*/
@@ -429,6 +450,7 @@ public:
 	std::string filePath() const { return filePath_; }
 
 private:
+	std::vector<std::string> col_names; /**< The names of the columns, extracted from the ORC file. */
 	std::string filePath_; /**< The path to the ORC file. Is usually generated randomly. */
 	size_t size_in_bytes; /**< The size of the file being stored. */
 };
@@ -473,6 +495,10 @@ public:
  	*/
 	size_t sizeInBytes() const override;
 
+	// TODO: explain here ..
+	void set_names(const std::vector<std::string> & names) override {
+		this->schema.set_names(names);
+	}
 
 	/**
 	* Destructor
@@ -512,6 +538,9 @@ public:
 	* @return The number of bytes the BlazingTable consumes.
 	*/
 	size_t sizeInBytes() const override;
+
+	// TODO: explain here ..
+	void set_names(const std::vector<std::string> & names) override;
 
 	std::vector<std::unique_ptr<CacheData>> releaseCacheDatas();
 
