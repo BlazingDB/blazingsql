@@ -1404,7 +1404,7 @@ def run_query(
             + str(queryId)
             + " - "
             + data_type
-            + " ================="
+            + " ("+queryType+")" + "================="
         )
 
     load_time = 0
