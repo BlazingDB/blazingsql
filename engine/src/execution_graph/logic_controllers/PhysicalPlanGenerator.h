@@ -79,7 +79,7 @@ struct tree_processor {
 			table_scans.erase(table_scans.begin() + table_index);
 			schemas.erase(schemas.begin() + table_index);
 
-		}  else if (is_single_node_partition(expr)) {
+		} else if (is_single_node_partition(expr)) {
 			k = std::make_shared<PartitionSingleNodeKernel>(kernel_id,expr, kernel_context, query_graph);
 
 		} else if (is_partition(expr)) {
@@ -88,6 +88,12 @@ struct tree_processor {
 		} else if (is_sort_and_sample(expr)) {
 			k = std::make_shared<SortAndSampleKernel>(kernel_id,expr, kernel_context, query_graph);
 
+		} else if (is_generate_overlaps(expr)) {
+			k = std::make_shared<OverlapGeneratorKernel>(kernel_id,expr, kernel_context, query_graph);
+		
+		} else if (is_accumulate_overlaps(expr)) {
+			k = std::make_shared<OverlapAccumulatorKernel>(kernel_id,expr, kernel_context, query_graph);
+		
 		} else if (is_window_compute(expr)) {
 			k = std::make_shared<ComputeWindowKernel>(kernel_id,expr, kernel_context, query_graph);
 
@@ -287,13 +293,10 @@ struct tree_processor {
 			}
 		}
 		else if (is_project(expr) && is_window_function(expr) && first_windowed_call) {
-			if (!window_expression_contains_partition(expr)) {
-				throw std::runtime_error("In Window Function: PARTITION BY clause is mandatory");
-			}
 			if (window_expression_contains_multiple_diff_over_clauses(expr)) {
 				throw std::runtime_error("In Window Function: multiple WINDOW FUNCTIONs with different OVER clauses are not supported currently");
 			}
-
+			
 			std::string sort_expr = expr;
 			std::string window_expr = expr;
 
@@ -306,13 +309,33 @@ struct tree_processor {
 
 			boost::property_tree::ptree window_tree;
 			window_tree.put("expr", window_expr);
-			window_tree.put_child("children", create_array_tree(sort_tree));
-			
+
+			if (window_expression_contains_partition(expr)) {
+				window_tree.put_child("children", create_array_tree(sort_tree));
+				
+			} else { // if the window expression does not contain a partition clause, then we need to add two extra steps
+				
+				std::string overlap_generation_expr = expr;
+				std::string overlap_accumulation_expr = expr;
+				
+				StringUtil::findAndReplaceAll(overlap_accumulation_expr, LOGICAL_PROJECT_TEXT, LOGICAL_ACCUMULATE_OVERLAPS_TEXT);
+				StringUtil::findAndReplaceAll(overlap_generation_expr, LOGICAL_PROJECT_TEXT, LOGICAL_GENERATE_OVERLAPS_TEXT);
+				
+				boost::property_tree::ptree overlap_generation_tree;
+				overlap_generation_tree.put("expr", overlap_generation_expr);
+				overlap_generation_tree.put_child("children", create_array_tree(sort_tree));
+
+				boost::property_tree::ptree overlap_accumulation_tree;
+				overlap_accumulation_tree.put("expr", overlap_accumulation_expr);
+				overlap_accumulation_tree.put_child("children", create_array_tree(overlap_generation_tree));
+
+				window_tree.put_child("children", create_array_tree(overlap_accumulation_tree));				
+			}
 			p_tree.put("expr", expr);
 			p_tree.put_child("children", create_array_tree(window_tree));
 
 			transform_json_tree(p_tree, false);
-			return;
+			return;				
 		}
 
 		for (auto &child : p_tree.get_child("children")) {

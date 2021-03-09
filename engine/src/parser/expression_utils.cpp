@@ -496,6 +496,10 @@ bool is_merge_aggregate(std::string query_part) { return (query_part.find(LOGICA
 
 bool is_window_function(std::string query_part) { return (query_part.find("OVER") != std::string::npos); }
 
+bool is_generate_overlaps(std::string query_part) { return (query_part.find(LOGICAL_GENERATE_OVERLAPS_TEXT) != std::string::npos); }
+
+bool is_accumulate_overlaps(std::string query_part) { return (query_part.find(LOGICAL_ACCUMULATE_OVERLAPS_TEXT) != std::string::npos); }
+
 bool is_window_compute(std::string query_part) { return (query_part.find(LOGICAL_COMPUTE_WINDOW_TEXT) != std::string::npos); }
 
 bool window_expression_contains_partition(std::string query_part) { return (query_part.find("PARTITION") != std::string::npos); }

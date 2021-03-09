@@ -13,6 +13,12 @@ PartitionSingleNodeKernel::PartitionSingleNodeKernel(std::size_t kernel_id, cons
     : kernel{kernel_id, queryString, context, kernel_type::PartitionSingleNodeKernel} {
     this->query_graph = query_graph;
     this->input_.add_port("input_a", "input_b");
+
+    if (is_window_function(queryString)) {
+		std::tie(sortColIndices, sortOrderTypes) = get_vars_to_partition(query_part);
+	} else {
+		std::tie(sortColIndices, sortOrderTypes, std::ignore) = get_sort_vars(query_part);
+	}
 }
 
 ral::execution::task_result PartitionSingleNodeKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
@@ -22,7 +28,7 @@ ral::execution::task_result PartitionSingleNodeKernel::do_process(std::vector< s
     try{
         auto & input = inputs[0];
 
-        auto partitions = ral::operators::partition_table(partitionPlan->toBlazingTableView(), input->toBlazingTableView(), this->expression);
+        auto partitions = ral::operators::partition_table(partitionPlan->toBlazingTableView(), input->toBlazingTableView(), this->sortOrderTypes, this->sortColIndices);
 
         for (std::size_t i = 0; i < partitions.size(); i++) {
             std::string cache_id = "output_" + std::to_string(i);
@@ -346,6 +352,16 @@ PartitionKernel::PartitionKernel(std::size_t kernel_id, const std::string & quer
         max_num_order_by_partitions_per_node = std::stoi(config_options["MAX_NUM_ORDER_BY_PARTITIONS_PER_NODE"]);
     }
     set_number_of_message_trackers(max_num_order_by_partitions_per_node);
+
+    if (is_window_function(this->expression)) {
+        if (window_expression_contains_partition(this->expression)){
+            std::tie(sortColIndices, sortOrderTypes) = ral::operators::get_vars_to_partition(this->expression);
+        } else {
+// WSM TODO
+        }
+    } else {
+        std::tie(sortColIndices, sortOrderTypes, std::ignore) = ral::operators::get_sort_vars(this->expression);
+    }
 }
 
 ral::execution::task_result PartitionKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
@@ -380,9 +396,6 @@ kstatus PartitionKernel::run() {
     context->incrementQuerySubstep();
 
     std::map<std::string, std::map<int32_t, int> > node_count;
-
-    if (is_window_function(this->expression)) std::tie(sortColIndices, sortOrderTypes) = ral::operators::get_vars_to_partition(this->expression);
-	else std::tie(sortColIndices, sortOrderTypes, std::ignore) = ral::operators::get_sort_vars(this->expression);
 
     auto nodes = context->getAllNodes();
 

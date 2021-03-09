@@ -55,31 +55,6 @@ std::unique_ptr<ral::frame::BlazingTable> logicalSort(
 }
 
 
-/**---------------------------------------------------------------------------*
- * @brief In a distributed context, this function determines what the limit would be
- * for this local node. It does this be distributing and collecting the total number of
- * rows in the table. Then knowing which node index this local node is, it can calculate
- * how many rows are ahead of the ones in this partition
- *
- * @param[in] contex
- * @param[in] local_num_rows    Number of rows of this partition
- * @param[in] limit_rows        Limit being applied to the whole query
- *
- * @returns The limit that would be applied to this partition
- *---------------------------------------------------------------------------**/
-int64_t determine_local_limit(Context * /*context*/, int64_t /*local_num_rows*/, cudf::size_type /*limit_rows*/){
-	// context->incrementQuerySubstep();
-	// ral::distribution::distributeNumRows(context, local_num_rows);
-
-	// std::vector<int64_t> nodesRowSize = ral::distribution::collectNumRows(context);
-	// int self_node_idx = context->getNodeIndex(CommunicationData::getInstance().getSelfNode());
-	// int64_t prev_total_rows = std::accumulate(nodesRowSize.begin(), nodesRowSize.begin() + self_node_idx, int64_t(0));
-
-	// return std::min(std::max(limit_rows - prev_total_rows, int64_t{0}), local_num_rows);
-
-	return 0;
-}
-
 std::tuple<std::vector<int>, std::vector<cudf::order>, cudf::size_type>
 get_sort_vars(const std::string & query_part) {
 	auto rangeStart = query_part.find("(");
@@ -258,13 +233,12 @@ std::size_t compute_total_samples(std::size_t num_rows) {
 std::unique_ptr<ral::frame::BlazingTable> sample(const ral::frame::BlazingTableView & table, const std::string & query_part){
 	std::vector<cudf::order> sortOrderTypes;
 	std::vector<int> sortColIndices;
-	cudf::size_type limitRows;
-
+	
 	if (is_window_function(query_part)) {
 		std::tie(sortColIndices, sortOrderTypes) = get_vars_to_partition(query_part);
 	}
 	else {
-		std::tie(sortColIndices, sortOrderTypes, limitRows) = get_sort_vars(query_part);
+		std::tie(sortColIndices, sortOrderTypes, std::ignore) = get_sort_vars(query_part);
 	}
 
 	auto tableNames = table.names();
@@ -280,18 +254,9 @@ std::unique_ptr<ral::frame::BlazingTable> sample(const ral::frame::BlazingTableV
 
 std::vector<cudf::table_view> partition_table(const ral::frame::BlazingTableView & partitionPlan,
 	const ral::frame::BlazingTableView & sortedTable,
-	const std::string & query_part) {
-	std::vector<cudf::order> sortOrderTypes;
-	std::vector<int> sortColIndices;
-	cudf::size_type limitRows;
-
-	if (is_window_function(query_part)) {
-		std::tie(sortColIndices, sortOrderTypes) = get_vars_to_partition(query_part);
-	}
-	else {
-		std::tie(sortColIndices, sortOrderTypes, limitRows) = get_sort_vars(query_part);
-	}
-
+	const std::vector<cudf::order> & sortOrderTypes,
+	const std::vector<int> & sortColIndices) {
+	
 	if (sortedTable.num_rows() == 0) {
 		return {sortedTable.view()};
 	}

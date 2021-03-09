@@ -40,7 +40,7 @@ std::unique_ptr<ral::frame::BlazingTable> generate_partition_plan(const std::vec
     std::size_t table_num_rows, std::size_t avg_bytes_per_row, const std::string & query_part, Context * context);
 
 std::vector<cudf::table_view> partition_table(const ral::frame::BlazingTableView & partitionPlan,
-	const ral::frame::BlazingTableView & sortedTable, const std::string & query_part);
+	const ral::frame::BlazingTableView & sortedTable, const std::vector<cudf::order> & sortOrderTypes,	const std::vector<int> & sortColIndices);
 
 bool has_limit_only(const std::string & query_part);
 
