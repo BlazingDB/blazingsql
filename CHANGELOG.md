@@ -23,6 +23,8 @@
 - #1372 Recompute `columns_to_hash` in DistributeAggregationKernel
 - #1375 Fix empty row_group_ids for parquet
 - #1380 Fixed issue with int64 literal values 
+- #1379 Remove ProjectRemoveRule
+
 
 # BlazingSQL 0.18.0 (Date TBS)
 
