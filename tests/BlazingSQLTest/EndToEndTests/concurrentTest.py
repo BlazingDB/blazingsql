@@ -27,7 +27,7 @@ tpch_queries = [
     "TEST_07",
     "TEST_12",
     "TEST_04",
-    "TEST_01"
+    "TEST_01",
 ]
 # Parameter to indicate if its necessary to order
 # the resulsets before compare them
