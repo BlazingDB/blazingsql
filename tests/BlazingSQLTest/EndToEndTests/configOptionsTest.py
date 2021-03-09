@@ -11,7 +11,14 @@ import gc
 import time
 
 
-def main(drill, spark, dir_data_file, nRals):
+def main(dask_client, drill, spark, dir_data_file, bc, nRals):
+
+    if dask_client is not None:
+        dask_client.close()
+        dask_client.shutdown()
+        del dask_client
+    del bc
+
     # conf_opt_1
     conf_opt_1 = {}
     conf_opt_1["JOIN_PARTITION_SIZE_THRESHOLD"] = 10
