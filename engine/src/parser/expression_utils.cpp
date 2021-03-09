@@ -947,3 +947,41 @@ std::string replace_calcite_regex(const std::string & expression) {
 	StringUtil::findAndReplaceAll(ret, "/INT(", "/(");
 	return ret;
 }
+
+std::tuple< bool, bool, std::vector<std::string> > bypassingProject(std::string logical_plan, std::vector<std::string> names) {
+	bool by_passing_project = false, by_passing_project_with_aliases = false;
+	std::vector<std::string> aliases;
+
+	std::string combined_expression = get_query_part(logical_plan);
+	std::vector<std::string> named_expressions = get_expressions_from_expression_list(combined_expression);
+	std::vector<std::string> expressions(named_expressions.size());
+	aliases.resize(named_expressions.size());
+
+	for(size_t i = 0; i < named_expressions.size(); ++i) {
+		const std::string & named_expr = named_expressions[i];
+		aliases[i] = named_expr.substr(0, named_expr.find("=["));
+		expressions[i] = named_expr.substr(named_expr.find("=[") + 2 , (named_expr.size() - named_expr.find("=[")) - 3);
+	}
+
+	if (names.size() != aliases.size()) {
+		return std::make_tuple(false, false, aliases);
+	}
+	
+	for(size_t i = 0; i < expressions.size(); ++i) {
+		if (expressions[i] != "$" + std::to_string(i)) {
+			return std::make_tuple(false, false, aliases);
+		}
+	}
+
+	by_passing_project = true;
+
+	// At this step, expressions: [$0, $1, $2, $3], let's see the aliases
+	for(size_t i = 0; i < aliases.size(); ++i) {
+		if (aliases[i] != names[i]) {
+			by_passing_project_with_aliases = true;
+			break;
+		}
+	}
+
+	return std::make_tuple(by_passing_project, by_passing_project_with_aliases, aliases);
+}
