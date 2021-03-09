@@ -180,7 +180,10 @@ public:
 	*/
 	virtual size_t sizeInBytes() const = 0;
 
-	// TODO: explain ..
+	/**
+	* Set the names of the columns.
+	* @param names a vector of the column names.
+	*/
 	virtual void set_names(const std::vector<std::string> & names) = 0;
 
 	/**
@@ -289,7 +292,10 @@ public:
 	*/
 	size_t sizeInBytes() const override { return data->sizeInBytes(); }
 
-	// TODO: explain here ..
+	/**
+	* Set the names of the columns of a BlazingTable.
+	* @param names a vector of the column names.
+	*/
 	void set_names(const std::vector<std::string> & names) override {
 		data->setNames(names);
 	}
@@ -376,7 +382,10 @@ protected:
 	*/
  	size_t sizeInBytes() const override { return host_table->sizeInBytes(); }
 
-	// TODO: explain here ..
+	/**
+	* Set the names of the columns of a BlazingHostTable.
+	* @param names a vector of the column names.
+	*/
 	void set_names(const std::vector<std::string> & names) override
 	{
 		host_table->set_names(names);
@@ -433,7 +442,10 @@ public:
 	*/
 	size_t fileSizeInBytes() const;
 
-	// TODO: explain here ..
+	/**
+	* Set the names of the columns to pass when decache if needed.
+	* @param names a vector of the column names.
+	*/
 	void set_names(const std::vector<std::string> & names) override {
 		this->col_names = names;
 	}
@@ -495,7 +507,10 @@ public:
  	*/
 	size_t sizeInBytes() const override;
 
-	// TODO: explain here ..
+	/**
+	* Set the names of the columns from the schema.
+	* @param names a vector of the column names.
+	*/
 	void set_names(const std::vector<std::string> & names) override {
 		this->schema.set_names(names);
 	}
@@ -539,7 +554,10 @@ public:
 	*/
 	size_t sizeInBytes() const override;
 
-	// TODO: explain here ..
+	/**
+	* Set the names of the columns.
+	* @param names a vector of the column names.
+	*/
 	void set_names(const std::vector<std::string> & names) override;
 
 	std::vector<std::unique_ptr<CacheData>> releaseCacheDatas();

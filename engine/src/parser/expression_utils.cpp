@@ -932,7 +932,7 @@ std::string replace_calcite_regex(const std::string & expression) {
 	return ret;
 }
 
-std::tuple< bool, bool, std::vector<std::string> > byPassingProject(std::string logical_plan, std::vector<std::string> names) {
+std::tuple< bool, bool, std::vector<std::string> > bypassingProject(std::string logical_plan, std::vector<std::string> names) {
 	bool by_passing_project = false, by_passing_project_with_aliases = false;
 	std::vector<std::string> aliases;
 
