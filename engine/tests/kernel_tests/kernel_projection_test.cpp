@@ -588,3 +588,65 @@ TYPED_TEST(ProjectionTest, TwoBatchsFirstEmptySecondFullWithDelays) {
 	// EXPECT_EQ(batches_pulled[0]->num_rows() + batches_pulled[1]->num_rows(), 4);
 	ASSERT_EQ(batches_pulled[0]->num_columns(), 1);
 }
+
+
+struct ProjectionTest2 : public ::testing::Test {
+	virtual void SetUp() override {
+		BlazingRMMInitialize("pool_memory_resource", 32*1024*1024, 256*1024*1024);
+		float host_memory_quota=0.75; //default value
+		blazing_host_memory_resource::getInstance().initialize(host_memory_quota);
+		ral::memory::set_allocation_pools(4000000, 10,
+										4000000, 10, false,nullptr);
+		int executor_threads = 10;
+		ral::execution::executor::init_executor(executor_threads, 0.8);
+	}
+
+	virtual void TearDown() override {
+		ral::memory::empty_pools();
+		BlazingRMMFinalize();
+	}
+};
+
+
+
+TEST_F(ProjectionTest2, LARGE_LITERAL) {
+
+	// Batch
+	cudf::test::fixed_width_column_wrapper<int16_t> col1{{10, 40, 70, 5, 2, 10, 11}, {1, 1, 1, 1, 1, 1, 1}};
+    cudf::test::strings_column_wrapper col2({"b", "d", "a", "d", "l", "d", "k"}, {1, 1, 1, 1, 1, 1, 1});
+    cudf::test::fixed_width_column_wrapper<int64_t> col3{{1000, 4000, 7000, 500, 200, 100, 1100}, {1, 1, 1, 1, 1, 1, 1}};
+
+    CudfTableView cudf_table_in_view {{col1, col2, col3}};
+    std::unique_ptr<CudfTable> cudf_table = std::make_unique<CudfTable>(cudf_table_in_view);
+
+    std::vector<std::string> names({"A", "B", "C"});
+    std::unique_ptr<BlazingTable> batch = std::make_unique<BlazingTable>(std::move(cudf_table), names);
+
+	// Context
+	std::shared_ptr<Context> context = make_context();
+
+	// Projection kernel
+	std::shared_ptr<kernel> project_kernel = make_project_kernel("LogicalProject(l_linenumber=[$0], l_comment=[$1], EXPR$2=[=($2, 100000000000)])", context);
+
+	// register cache machines with the `project_kernel`
+	std::shared_ptr<CacheMachine> inputCacheMachine, outputCacheMachine;
+	std::tie(inputCacheMachine, outputCacheMachine) = register_kernel_with_cache_machines(project_kernel, context);
+
+	// Add data to the inputCacheMachine with just one delay
+	std::vector<int> delays_in_ms {100};
+	std::vector<std::unique_ptr<BlazingTable>> batches;
+	batches.push_back(std::move(batch));
+	add_data_to_cache_with_delay(inputCacheMachine, std::move(batches), delays_in_ms);
+
+	// main function
+	kstatus process = project_kernel->run();
+	EXPECT_EQ(kstatus::proceed, process);
+
+	outputCacheMachine->finish();
+
+	// Assert output
+	auto batches_pulled = outputCacheMachine->pull_all_cache_data();
+	EXPECT_EQ(batches_pulled.size(), 1);
+	EXPECT_EQ(batches_pulled[0]->num_rows(), 7);
+	ASSERT_EQ(batches_pulled[0]->num_columns(), 3);
+}

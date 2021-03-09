@@ -152,14 +152,80 @@ TEST_F(ExpressionUtilsTest, getting_cols_to_apply_window_and_cols_to_apply_agg_e
 	EXPECT_EQ(agg_param_values.size(), 0);
 }
 
-// TODO: add cases for byPassingProject
-// first case:
-// inputs:
-//   logical_paln: LogicalProject(n_nationkey=[$0], n_name=[$1], n_regionkey=[$2], n_comment=[$3])
-//   names: [n_nationkey, n_name, n_regionkey, n_comment]
-// output: < true, false, std::ignore>
-// second case:
-// inputs:
-//   logical_paln: LogicalProject(n_col0=[$0], n_col1=[$1], n_col2=[$2], n_col3=[$3])
-//   names: [n_nationkey, n_name, n_regionkey, n_comment]
-// output: < true, true , [n_nationkey, n_name, n_regionkey, n_comment]>
+TEST_F(ExpressionUtilsTest, by_passing_project) {
+	bool by_passing_project, by_passing_project_with_aliases;
+	std::vector<std::string> aliases;
+	
+	std::string logical_plan = "LogicalProject(o_orderkey=[$0], o_custkey=[$1], o_orderstatus=[$2], o_totalprice=[$3])";
+	std::vector<std::string> col_names = {"o_orderkey", "o_custkey", "o_orderstatus", "o_totalprice"};
+	std::tie(by_passing_project, by_passing_project_with_aliases, aliases) = byPassingProject(logical_plan, col_names);
+
+	EXPECT_EQ(by_passing_project, true);
+	EXPECT_EQ(by_passing_project_with_aliases, false);
+}
+
+TEST_F(ExpressionUtilsTest, not_passing_project) {
+	bool by_passing_project, by_passing_project_with_aliases;
+	std::vector<std::string> aliases;
+	
+	std::string logical_plan = "LogicalProject(o_orderpriority=[$5], o_custkey=[$1], o_orderstatus=[$2])";
+	std::vector<std::string> col_names = {"o_orderkey", "o_custkey", "o_orderstatus", "o_totalprice", "o_orderdate", "o_orderpriority"};
+	std::tie(by_passing_project, by_passing_project_with_aliases, aliases) = byPassingProject(logical_plan, col_names);
+
+	EXPECT_EQ(by_passing_project, false);
+	EXPECT_EQ(by_passing_project_with_aliases, false);
+}
+
+TEST_F(ExpressionUtilsTest, by_passing_project_with_aliases) {
+	bool by_passing_project, by_passing_project_with_aliases;
+	std::vector<std::string> aliases;
+	
+	std::string logical_plan = "LogicalProject(alias_0=[$0], alias_1=[$1], alias_2=[$2], alias_3=[$3])";
+	std::vector<std::string> col_names = {"o_orderkey", "o_custkey", "o_orderstatus", "o_totalprice"};
+	std::tie(by_passing_project, by_passing_project_with_aliases, aliases) = byPassingProject(logical_plan, col_names);
+	std::vector<std::string> expected_aliases = {"alias_0", "alias_1", "alias_2", "alias_3"};
+
+	EXPECT_EQ(by_passing_project, true);
+	EXPECT_EQ(by_passing_project_with_aliases, true);
+	EXPECT_EQ(aliases.size(), expected_aliases.size());
+
+	for (int i = 0; i < aliases.size(); ++i) {
+		EXPECT_EQ(aliases[i], expected_aliases[i]);
+	}
+}
+
+TEST_F(ExpressionUtilsTest, not_passing_project_due_to_sum_operation) {
+	bool by_passing_project, by_passing_project_with_aliases;
+	std::vector<std::string> aliases;
+	
+	std::string logical_plan = "LogicalProject(alias_0=[+($0, 1)], alias_1=[$1], alias_2=[$2], alias_3=[$3])";
+	std::vector<std::string> col_names = {"o_orderkey", "o_custkey", "o_orderstatus", "o_totalprice"};
+	std::tie(by_passing_project, by_passing_project_with_aliases, aliases) = byPassingProject(logical_plan, col_names);
+
+	EXPECT_EQ(by_passing_project, false);
+	EXPECT_EQ(by_passing_project_with_aliases, false);
+}
+
+TEST_F(ExpressionUtilsTest, not_passing_project_empty_plan) {
+	bool by_passing_project, by_passing_project_with_aliases;
+	std::vector<std::string> aliases;
+	
+	std::string logical_plan = "";
+	std::vector<std::string> col_names = {"o_orderkey", "o_custkey", "o_orderstatus"};
+	std::tie(by_passing_project, by_passing_project_with_aliases, aliases) = byPassingProject(logical_plan, col_names);
+
+	EXPECT_EQ(by_passing_project, false);
+	EXPECT_EQ(by_passing_project_with_aliases, false);
+}
+
+TEST_F(ExpressionUtilsTest, not_passing_project_empty_col_names) {
+	bool by_passing_project, by_passing_project_with_aliases;
+	std::vector<std::string> aliases;
+	
+	std::string logical_plan = "LogicalProject(o_orderkey=[$0], o_custkey=[$1], o_orderstatus=[$2])";
+	std::vector<std::string> col_names;
+	std::tie(by_passing_project, by_passing_project_with_aliases, aliases) = byPassingProject(logical_plan, col_names);
+
+	EXPECT_EQ(by_passing_project, false);
+	EXPECT_EQ(by_passing_project_with_aliases, false);
+}

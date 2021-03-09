@@ -348,7 +348,8 @@ kstatus Projection::run() {
     std::unique_ptr <ral::cache::CacheData> cache_data = this->input_cache()->pullCacheData();
     std::vector<std::string> data_names = cache_data->names();
 
-    // When this kernel will project all the columns 
+    // When this kernel will project all the columns (with or without aliases)
+    // we want to avoid caching and decahing for this kernel
     bool by_passing_project, by_passing_project_with_aliases;
     std::vector<std::string> aliases;
     std::tie(by_passing_project, by_passing_project_with_aliases, aliases) = byPassingProject(this->expression, data_names);
