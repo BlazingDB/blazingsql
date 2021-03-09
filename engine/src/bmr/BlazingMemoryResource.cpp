@@ -132,15 +132,16 @@ void* internal_blazing_device_memory_resource::do_allocate(size_t bytes, rmm::cu
 }
 
 void internal_blazing_device_memory_resource::do_deallocate(void* p, size_t bytes, rmm::cuda_stream_view stream) {
-    if (nullptr == p || bytes == 0) return;
-    if (used_memory < bytes) {
-        std::cerr << "blazing_device_memory_resource: Deallocating more bytes than used right now, used_memory: " << used_memory.load() << " less than " << bytes << " bytes." << std::endl;
-        used_memory = 0;
-    } else {
-        used_memory -= bytes;
-    }
+    // UNCOMMENT THIS CODE!
+    // if (nullptr == p || bytes == 0) return;
+    // if (used_memory < bytes) {
+    //     std::cerr << "blazing_device_memory_resource: Deallocating more bytes than used right now, used_memory: " << used_memory.load() << " less than " << bytes << " bytes." << std::endl;
+    //     used_memory = 0;
+    // } else {
+    //     used_memory -= bytes;
+    // }
 
-    return memory_resource->deallocate(p, bytes, stream);
+    // return memory_resource->deallocate(p, bytes, stream);
 }
 
 bool internal_blazing_device_memory_resource::do_is_equal(device_memory_resource const& other) const noexcept {
