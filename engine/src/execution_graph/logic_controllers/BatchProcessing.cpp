@@ -346,7 +346,7 @@ kstatus Projection::run() {
     CodeTimer timer;
 
     std::unique_ptr <ral::cache::CacheData> cache_data = this->input_cache()->pullCacheData();
-    RAL_EXPECTS(cache_data != nullptr, "ERROR: Projection::run() first input CacheData was nullptr")
+    RAL_EXPECTS(cache_data != nullptr, "ERROR: Projection::run() first input CacheData was nullptr");
 
     // When this kernel will project all the columns (with or without aliases)
     // we want to avoid caching and decahing for this kernel
