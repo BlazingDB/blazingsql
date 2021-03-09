@@ -77,14 +77,14 @@ std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_func
         windowed_col = std::move(result.second[0].results[0]);
 
         // if exists duplicated values (in partitioned_table_view) we want to fill `windowed_col` with repeated values
-        // So let's do a left join
+        // So let's do a join
         if (windowed_col->size() < col_view_to_agg.size()) {
             std::vector<std::unique_ptr<cudf::column>> keys_grouped = result.first->release();
-            keys_grouped.push_back(std::move(windowed_col)); 
+            keys_grouped.push_back(std::move(windowed_col));
 
             std::unique_ptr<cudf::table> left_table = std::make_unique<cudf::table>(std::move(keys_grouped));
 
-            // Let's get all the necessary params for the left join
+            // Let's get all the necessary params for the join
             std::vector<std::pair<cudf::size_type, cudf::size_type>> columns_in_common;
 
             // we just want the key columns, not the values column (which is the last column)
@@ -94,21 +94,22 @@ std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_func
             std::vector<cudf::size_type> right_column_indices(partitioned_table_view.num_columns());
             std::iota(right_column_indices.begin(), right_column_indices.end(), 0);
 
-            std::unique_ptr<cudf::table> join_table = cudf::left_join(
+            std::unique_ptr<cudf::table> join_table = cudf::inner_join(
                                                             left_table->view(),
                                                             partitioned_table_view,
                                                             left_column_indices,
                                                             right_column_indices,
                                                             columns_in_common);
 
-            // Due to the values column is unordered, we want to sort it
+            //Because the values column is unordered, we want to sort it
 	        std::vector<cudf::null_order> null_orders(join_table->num_columns(), cudf::null_order::AFTER);
 
             // partition by is always in ASCENDING order
             std::vector<cudf::order> sortOrderTypes(join_table->num_columns(), cudf::order::ASCENDING);
 	        std::unique_ptr<cudf::table> sorted_table = cudf::sort(join_table->view(), sortOrderTypes, null_orders);
 
-            windowed_col = std::move(sorted_table->release()[1]);
+            size_t position_of_values_column = left_table->num_columns() - 1;
+            windowed_col = std::move(sorted_table->release()[position_of_values_column]);
         }
     }
     else if (window_expression_contains_order_by(this->expression)) {

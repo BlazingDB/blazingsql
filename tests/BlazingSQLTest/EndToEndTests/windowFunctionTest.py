@@ -969,6 +969,8 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
+            # using the same column `c_nationkey` to partition
+            # and first_value()
             queryId = "TEST_38"
             query = """select first_value(c_nationkey) over 
                             (
@@ -992,6 +994,8 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
+            # using the same column `c_nationkey` to partition
+            # and last_value()
             queryId = "TEST_39"
             query = """select last_value(c_nationkey) over 
                             (
@@ -1190,6 +1194,30 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             runTest.run_query(
                 bc,
                 spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            # using diffs columns to partition and first_value()
+            queryId = "TEST_54"
+            query = """select first_value(c_custkey) over 
+                            (
+                                partition by c_nationkey
+                                order by c_name desc
+                            ) row_num,
+                            c_phone, UPPER(SUBSTRING(c_name, 1, 7))
+                        from customer
+                        where c_acctbal < 225.0
+                        order by c_custkey, row_num"""
+            runTest.run_query(
+                bc,
+                drill,
                 query,
                 queryId,
                 queryType,
