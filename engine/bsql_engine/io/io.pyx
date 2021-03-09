@@ -179,9 +179,9 @@ cdef pair[pair[shared_ptr[cio.CacheMachine], shared_ptr[cio.CacheMachine] ], int
         return cio.initialize( ralId, worker_id, network_iface_name, ralCommunicationPort, workers_ucp_info, singleNode, config_options, allocation_mode, initial_pool_size, maximum_pool_size, enable_logging)
 
 
-cdef void finalizePython() nogil except +:
+cdef void finalizePython(vector[int] ctx_tokens) nogil except +:
     with nogil:
-        cio.finalize()
+        cio.finalize(ctx_tokens)
 
 cdef size_t getFreeMemoryPython() nogil except *:
     with nogil:
@@ -324,8 +324,11 @@ cpdef initializeCaller(uint16_t ralId, string worker_id, string network_iface_na
     return (transport_out,transport_in, port)
 
 
-cpdef finalizeCaller():
-    finalizePython()
+cpdef finalizeCaller(ctx_tokens: [int]):
+    cdef vector[int] tks
+    for ctx_token in ctx_tokens:
+        tks.push_back(ctx_token)
+    finalizePython(tks)
 
 cpdef getFreeMemoryCaller():
     return getFreeMemoryPython()
