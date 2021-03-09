@@ -191,6 +191,140 @@ kstatus ComputeWindowKernel::run() {
 // END ComputeWindowKernel
 
 
+OverlapGeneratorKernel::OverlapGeneratorKernel(std::size_t kernel_id, const std::string & queryString,
+    std::shared_ptr<Context> context,
+    std::shared_ptr<ral::cache::graph> query_graph)
+    : kernel{kernel_id, queryString, context, kernel_type::OverlapGeneratorKernel} {
+    this->query_graph = query_graph;
+    this->output_.add_port("batches", "preceding_overlaps", "following_overlaps");
+
+    std::tie(this->preceding_value, this->following_value) = get_bounds_from_window_expression(this->expression);
+
+    auto& self_node = ral::communication::CommunicationData::getInstance().getSelfNode();
+	self_node_index = context->getNodeIndex(self_node);
+    total_nodes = context->getTotalNodes();    
+}
+
+ral::execution::task_result OverlapGeneratorKernel::do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+    std::shared_ptr<ral::cache::CacheMachine> output,
+    cudaStream_t /*stream*/, const std::map<std::string, std::string>& args) {
+
+    try {
+
+        std::unique_ptr<ral::frame::BlazingTable> & input = inputs[0];
+        std::string overlap_type = args.at(TASK_ARG_OVERLAP_TYPE);
+        
+        // first lets do the preceding overlap
+        if (overlap_type == PRECEDING_OVERLAP_TYPE || overlap_type == BOTH_OVERLAP_TYPE){
+            if (input->num_rows() > this->preceding_value){
+                auto limited = ral::utilities::getLimitedRows(input->toBlazingTableView(), this->preceding_value, false);
+                ral::cache::MetadataDictionary extra_metadata;
+                extra_metadata.add_value(ral::cache::OVERLAP_STATUS, DONE_OVERLAP_STATUS);
+                this->output_preceding_overlap_cache->addToCache(std::move(limited), "", true, extra_metadata);
+            } else {
+                auto clone = input->toBlazingTableView().clone();
+                ral::cache::MetadataDictionary extra_metadata;
+                extra_metadata.add_value(ral::cache::OVERLAP_STATUS, INCOMPLETE_OVERLAP_STATUS);
+                this->output_preceding_overlap_cache->addToCache(std::move(clone), "", true, extra_metadata);                
+            }
+        }
+
+        // now lets do the following overlap
+        if (overlap_type == FOLLOWING_OVERLAP_TYPE || overlap_type == BOTH_OVERLAP_TYPE){
+            if (input->num_rows() > this->following_value){
+                auto limited = ral::utilities::getLimitedRows(input->toBlazingTableView(), this->following_value, true);
+                ral::cache::MetadataDictionary extra_metadata;
+                extra_metadata.add_value(ral::cache::OVERLAP_STATUS, DONE_OVERLAP_STATUS);
+                this->output_following_overlap_cache->addToCache(std::move(limited), "", true, extra_metadata);
+            } else {
+                auto clone = input->toBlazingTableView().clone();
+                ral::cache::MetadataDictionary extra_metadata;
+                extra_metadata.add_value(ral::cache::OVERLAP_STATUS, INCOMPLETE_OVERLAP_STATUS);
+                this->output_following_overlap_cache->addToCache(std::move(clone), "", true, extra_metadata);                
+            }
+        }
+        this->output_batches_cache->addToCache(std::move(input));
+        
+    }catch(rmm::bad_alloc e){
+        return {ral::execution::task_status::RETRY, std::string(e.what()), std::move(inputs)};
+    }catch(std::exception e){
+        return {ral::execution::task_status::FAIL, std::string(e.what()), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
+    }
+
+    return {ral::execution::task_status::SUCCESS, std::string(), std::vector< std::unique_ptr<ral::frame::BlazingTable> > ()};
+}
+
+kstatus OverlapGeneratorKernel::run() {
+
+    CodeTimer timer;
+    bool all_done = false;
+    bool neighbors_notified_of_complete = false;
+    int total_nodes = context->getTotalNodes();
+
+    output_batches_cache = this->output_.get_cache("batches");
+    output_preceding_overlap_cache = this->output_.get_cache("preceding_overlaps");
+    output_following_overlap_cache = this->output_.get_cache("following_overlaps");
+
+    std::unique_ptr<ral::cache::CacheData> cache_data = this->input_cache()->pullCacheData();
+    int batch_index = 0;
+    while (cache_data != nullptr ){
+        std::vector<std::unique_ptr <ral::cache::CacheData> > inputs;
+        inputs.push_back(std::move(cache_data));
+
+        cache_data = this->input_cache()->pullCacheData();
+
+        // lets see if we are doing a preceding overlap, following overlap or both
+        std::map<std::string, std::string> task_args;
+        if (cache_data == nullptr){ // that was the last batch, no need to do the preceding overlap
+            if (batch_index > 0){
+                task_args[TASK_ARG_OVERLAP_TYPE] = FOLLOWING_OVERLAP_TYPE;
+            }
+        } else {
+            if (batch_index == 0){ // that was the first batch, no need to do the following overlap
+                task_args[TASK_ARG_OVERLAP_TYPE] = PRECEDING_OVERLAP_TYPE;                
+            } else {
+                task_args[TASK_ARG_OVERLAP_TYPE] = BOTH_OVERLAP_TYPE;
+            }
+        }
+
+        if (cache_data == nullptr && batch_index == 0) {  // this is the first and last batch, then we dont need to process overlaps
+            this->output_batches_cache->addCacheData(std::move(inputs[0]));
+        } else {
+            ral::execution::executor::get_instance()->add_task(
+                std::move(inputs),
+                this->output_cache(),
+                this,
+                task_args);
+        }
+        
+        
+        batch_index++;
+    }
+    
+    // lets wait to make sure that all tasks are done
+    std::unique_lock<std::mutex> lock(kernel_mutex);
+    kernel_cv.wait(lock,[this]{
+        return this->tasks.empty() || ral::execution::executor::get_instance()->has_exception();
+    });
+    if(auto ep = ral::execution::executor::get_instance()->last_exception()){
+        std::rethrow_exception(ep);
+    }
+
+    if(logger) {
+        logger->debug("{query_id}|{step}|{substep}|{info}|{duration}|kernel_id|{kernel_id}||",
+                    "query_id"_a=context->getContextToken(),
+                    "step"_a=context->getQueryStep(),
+                    "substep"_a=context->getQuerySubstep(),
+                    "info"_a="OverlapGeneratorKernel Kernel Completed",
+                    "duration"_a=timer.elapsed_time(),
+                    "kernel_id"_a=this->get_id());
+    }
+
+    return kstatus::proceed;
+}
+
+
+
 // START OverlapAccumulatorKernel
 
 /*

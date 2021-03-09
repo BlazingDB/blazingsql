@@ -66,10 +66,38 @@ const std::string TASK_ARG_TARGET_NODE_INDEX="target_node_index";
 
 const std::string PRECEDING_OVERLAP_TYPE="preceding";
 const std::string FOLLOWING_OVERLAP_TYPE="following";
+const std::string BOTH_OVERLAP_TYPE="both_overlaps";
 const std::string PRECEDING_REQUEST="preceding_request";
 const std::string FOLLOWING_REQUEST="following_request";
 const std::string PRECEDING_FULFILLMENT="preceding_fulfillment";
 const std::string FOLLOWING_FULFILLMENT="following_fulfillment";
+
+class OverlapGeneratorKernel : public kernel {
+public:
+	OverlapGeneratorKernel(std::size_t kernel_id, const std::string & queryString,
+		std::shared_ptr<Context> context,
+		std::shared_ptr<ral::cache::graph> query_graph);
+
+	std::string kernel_name() { return "OverlapGenerator";}
+
+	ral::execution::task_result do_process(std::vector< std::unique_ptr<ral::frame::BlazingTable> > inputs,
+		std::shared_ptr<ral::cache::CacheMachine> output,
+		cudaStream_t stream, const std::map<std::string, std::string>& args) override;
+
+	kstatus run() override;
+
+private:
+	int preceding_value;     	   // X PRECEDING
+	int following_value;     		   // Y FOLLOWING
+
+	// these are the three output caches
+	std::shared_ptr<ral::cache::CacheMachine> output_batches_cache;
+	std::shared_ptr<ral::cache::CacheMachine> output_preceding_overlap_cache;
+	std::shared_ptr<ral::cache::CacheMachine> output_following_overlap_cache;
+
+	int self_node_index;
+	int total_nodes;
+};
 
 
 class OverlapAccumulatorKernel : public distributing_kernel {
@@ -101,8 +129,6 @@ public:
 
 
 private:
-	void update_num_batches();
-
 	size_t num_batches;
 	int preceding_value;     	   // X PRECEDING
 	int following_value;     		   // Y FOLLOWING
