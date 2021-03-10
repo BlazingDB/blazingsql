@@ -425,6 +425,7 @@ ral::execution::task_result PartwiseJoin::do_process(std::vector<std::unique_ptr
 		auto log_input_num_rows = left_batch->num_rows() + right_batch->num_rows();
 		auto log_input_num_bytes = left_batch->sizeInBytes() + right_batch->sizeInBytes();
 
+		std::cout<<"join_set "<<left_batch->num_rows()<<" "<<right_batch->num_rows()<<std::endl;
 		std::unique_ptr<ral::frame::BlazingTable> joined = join_set(left_batch->toBlazingTableView(), right_batch->toBlazingTableView());
 
 		auto log_output_num_rows = joined->num_rows();

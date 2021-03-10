@@ -257,44 +257,44 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             #     fileSchemaType,
             # )
 
-            # fail
-            queryId = "TEST_10"
-            query = """ select o1.o_orderkey as okey1, o2.o_orderkey as okey2 from orders as o1
-                    left outer join orders as o2 on o1.o_orderkey = o2.o_orderkey
-                    and o2.o_orderkey < 10000"""
-            print(bc.explain(query))
-            runTest.run_query(
-                bc,
-                spark,
-                query,
-                queryId,
-                queryType,
-                worder,
-                "",
-                acceptable_difference,
-                use_percentage,
-                fileSchemaType,
-            )
+            # # fail
+            # queryId = "TEST_10"
+            # query = """ select o1.o_orderkey as okey1, o2.o_orderkey as okey2 from orders as o1
+            #         left outer join orders as o2 on o1.o_orderkey = o2.o_orderkey
+            #         and o2.o_orderkey < 10000"""
+            # print(bc.explain(query))
+            # runTest.run_query(
+            #     bc,
+            #     spark,
+            #     query,
+            #     queryId,
+            #     queryType,
+            #     worder,
+            #     "",
+            #     acceptable_difference,
+            #     use_percentage,
+            #     fileSchemaType,
+            # )
 
-            # fail
-            queryId = "TEST_11"
-            query = """select o1.o_orderkey as okey1, o2.o_orderkey as okey2, o2.o_custkey from orders as o1
-                    left outer join orders as o2 on o1.o_orderkey = o2.o_orderkey
-                    and o1.o_orderkey < o2.o_custkey
-                    """
-            print(bc.explain(query))
-            runTest.run_query(
-                bc,
-                spark,
-                query,
-                queryId,
-                queryType,
-                worder,
-                "",
-                acceptable_difference,
-                use_percentage,
-                fileSchemaType,
-            )
+            # # fail
+            # queryId = "TEST_11"
+            # query = """select o1.o_orderkey as okey1, o2.o_orderkey as okey2, o2.o_custkey from orders as o1
+            #         left outer join orders as o2 on o1.o_orderkey = o2.o_orderkey
+            #         and o1.o_orderkey < o2.o_custkey
+            #         """
+            # print(bc.explain(query))
+            # runTest.run_query(
+            #     bc,
+            #     spark,
+            #     query,
+            #     queryId,
+            #     queryType,
+            #     worder,
+            #     "",
+            #     acceptable_difference,
+            #     use_percentage,
+            #     fileSchemaType,
+            # )
 
             # queryId = "TEST_12"
             # query = """select o1.o_orderkey as okey1, o2.o_orderkey as okey2, o2.o_custkey from orders as o1
@@ -314,11 +314,13 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             #     fileSchemaType,
             # )
 
-            # fail
+            # smallest fail case
             queryId = "TEST_13"
-            query = """select o1.o_orderkey as okey1, o2.o_orderkey as okey2, o2.o_custkey from orders as o1
+            query = """select o1.o_orderkey as okey1, o1.o_custkey as ocust1, o1.o_orderkey - o1.o_custkey as diffy, 
+                    o2.o_orderkey as okey2, o2.o_custkey as ocust2, o2.o_orderkey + o2.o_custkey as summy from orders as o1
                     left outer join orders as o2 on o1.o_orderkey = o2.o_orderkey + o2.o_custkey
                     and o1.o_orderkey - o1.o_custkey < o2.o_orderkey 
+                    where o1.o_orderkey between 3000 and 3050
                     """
             print(bc.explain(query))
             runTest.run_query(
@@ -332,7 +334,89 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
+                print_result=True
             )
+
+            # queryId = "TEST_13"
+            # query = """select o1.o_orderkey as okey1, o2.o_orderkey as okey2, o2.o_custkey from orders as o1
+            #         left outer join orders as o2 on o1.o_orderkey = o2.o_orderkey + o2.o_custkey
+            #         and o1.o_orderkey - o1.o_custkey < o2.o_orderkey 
+            #         where o1.o_orderkey between 3050 and 3100
+            #         """
+            # print(bc.explain(query))
+            # runTest.run_query(
+            #     bc,
+            #     spark,
+            #     query,
+            #     queryId,
+            #     queryType,
+            #     worder,
+            #     "",
+            #     acceptable_difference,
+            #     use_percentage,
+            #     fileSchemaType,
+            # )
+
+            # queryId = "TEST_13"
+            # query = """select o1.o_orderkey as okey1, o2.o_orderkey as okey2, o2.o_custkey from orders as o1
+            #         left outer join orders as o2 on o1.o_orderkey = o2.o_orderkey + o2.o_custkey
+            #         and o1.o_orderkey - o1.o_custkey < o2.o_orderkey 
+            #         where o1.o_orderkey between 3100 and 3150
+            #         """
+            # print(bc.explain(query))
+            # runTest.run_query(
+            #     bc,
+            #     spark,
+            #     query,
+            #     queryId,
+            #     queryType,
+            #     worder,
+            #     "",
+            #     acceptable_difference,
+            #     use_percentage,
+            #     fileSchemaType,
+            # )
+
+            # queryId = "TEST_13"
+            # query = """select o1.o_orderkey as okey1, o2.o_orderkey as okey2, o2.o_custkey from orders as o1
+            #         left outer join orders as o2 on o1.o_orderkey = o2.o_orderkey + o2.o_custkey
+            #         and o1.o_orderkey - o1.o_custkey < o2.o_orderkey 
+            #         where o1.o_orderkey between 3150 and 3200
+            #         """
+            # print(bc.explain(query))
+            # runTest.run_query(
+            #     bc,
+            #     spark,
+            #     query,
+            #     queryId,
+            #     queryType,
+            #     worder,
+            #     "",
+            #     acceptable_difference,
+            #     use_percentage,
+            #     fileSchemaType,
+            # )
+
+            # queryId = "TEST_13"
+            # query = """select o1.o_orderkey as okey1, o2.o_orderkey as okey2, o2.o_custkey from orders as o1
+            #         left outer join orders as o2 on o1.o_orderkey = o2.o_orderkey + o2.o_custkey
+            #         and o1.o_orderkey - o1.o_custkey < o2.o_orderkey 
+            #         where o1.o_orderkey between 3200 and 3250
+            #         """
+            # print(bc.explain(query))
+            # runTest.run_query(
+            #     bc,
+            #     spark,
+            #     query,
+            #     queryId,
+            #     queryType,
+            #     worder,
+            #     "",
+            #     acceptable_difference,
+            #     use_percentage,
+            #     fileSchemaType,
+            # )
+
 
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")
