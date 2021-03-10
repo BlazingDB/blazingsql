@@ -41,6 +41,7 @@ public:
 	virtual ~Schema();
 
 	std::vector<std::string> get_names() const;
+	void set_names(const std::vector<std::string> & names);
 	std::vector<std::string> get_files() const;
 	std::vector<bool> get_in_file() const;
 	bool all_in_file() const;

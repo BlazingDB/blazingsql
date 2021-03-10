@@ -1,5 +1,6 @@
 #include "expression_tree.hpp"
 #include <cassert>
+#include <limits.h>
 
 namespace ral {
 namespace parser {
@@ -226,9 +227,13 @@ cudf::data_type infer_type_from_literal_token(const lexer::token & token) {
       float casted_float = static_cast<float>(parsed_double);
       return parsed_double == casted_float ? cudf::data_type{cudf::type_id::FLOAT32} : cudf::data_type{cudf::type_id::FLOAT64};
     } else {
-      //int64_t parsed_int64 = std::stoll(token_value);
-      // as other SQL engines, defaults to int32
-      return cudf::data_type{cudf::type_id::INT32};
+      int64_t parsed_int64 = std::stoll(token_value);
+      if (parsed_int64 > INT_MAX){
+        return cudf::data_type{cudf::type_id::INT64};
+      } else {
+        // as other SQL engines, defaults to int32
+        return cudf::data_type{cudf::type_id::INT32};
+      }      
     }
   } else if(token.type == lexer::token_type::Timestamp) {
     const std::string & token_value = token.value;

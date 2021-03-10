@@ -64,6 +64,7 @@ from EndToEndTests import wildCardTest
 from EndToEndTests import smilesTest
 from EndToEndTests import jsonTest
 from EndToEndTests import windowFunctionTest
+from EndToEndTests import concurrentTest
 from pynvml import nvmlInit
 from Runner import runTest
 from Utils import Execution, init_context
@@ -285,6 +286,9 @@ def main():
 
     if runAllTests or ("windowFunctionTest" in targetTestGroups):
         windowFunctionTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
+
+    if runAllTests or ("concurrentTest" in targetTestGroups):
+        concurrentTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     # WARNING!!! This Test must be the last one to test -------------------------------------------------------------------------------------------------------------------------------------------
     if runAllTests or ("configOptionsTest" in targetTestGroups):

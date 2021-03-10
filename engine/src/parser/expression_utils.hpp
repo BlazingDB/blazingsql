@@ -205,3 +205,5 @@ std::string replace_calcite_regex(const std::string & expression);
 
 //Returns the column names according to the corresponding algebra expression
 std::vector<std::string> fix_column_aliases(const std::vector<std::string> & column_names, std::string expression);
+
+std::tuple< bool, bool, std::vector<std::string> > bypassingProject(std::string logical_plan, std::vector<std::string> names);
