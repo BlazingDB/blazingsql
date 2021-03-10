@@ -1,5 +1,6 @@
 #include <string>
 #include "BatchJoinProcessing.h"
+#include "LogicalProject.h"
 #include "ExceptionHandling/BlazingThread.h"
 #include "parser/expression_tree.hpp"
 #include "CodeTimer.h"
@@ -84,12 +85,12 @@ filter_statement = ""
 Simple case:
 join_statement = LogicalJoin(condition=[AND(=($3, $0), >($5, $2))], joinType=[inner])
 new_join_statement = LogicalJoin(condition=[=($3, $0)], joinType=[inner])
-filter_statement = LogicalFilter(condition=[>($5, $2)])
+filter_statement = >($5, $2)
 
 Complex case:
 join_statement = LogicalJoin(condition=[AND(=($7, $0), OR(AND($8, $9, $2, $3), AND($8, $9, $4, $5), AND($8, $9, $6, $5)))], joinType=[inner])
 new_join_statement = LogicalJoin(condition=[=($7, $0)], joinType=[inner])
-filter_statement = LogicalFilter(condition=[OR(AND($8, $9, $2, $3), AND($8, $9, $4, $5), AND($8, $9, $6, $5))])
+filter_statement = OR(AND($8, $9, $2, $3), AND($8, $9, $4, $5), AND($8, $9, $6, $5))
 
 Error case:
 join_statement = LogicalJoin(condition=[OR(=($7, $0), AND($8, $9, $2, $3), AND($8, $9, $4, $5), AND($8, $9, $6, $5))], joinType=[inner])
@@ -188,7 +189,7 @@ void split_inequality_join_into_join_and_filter(const std::string & join_stateme
 
 	new_join_statement = "LogicalJoin(condition=[" + new_join_statement_expression + "], joinType=[" + join_type + "])";
 	if (filter_statement_expression != ""){
-		filter_statement = "LogicalFilter(condition=[" + filter_statement_expression + "])";
+		filter_statement = filter_statement_expression;
 	} else {
 		filter_statement = "";
 	}
@@ -361,6 +362,8 @@ std::unique_ptr<ral::frame::BlazingTable> PartwiseJoin::join_set(
 				this->left_column_indices,
 				this->right_column_indices,
 				columns_in_common);
+		} else if (this->join_type == RIGHT_JOIN) {
+			RAL_FAIL("Right Outer Joins are not currently supported");
 		} else {
 			RAL_FAIL("Unsupported join operator");
 		}
@@ -369,6 +372,39 @@ std::unique_ptr<ral::frame::BlazingTable> PartwiseJoin::join_set(
 	return std::make_unique<ral::frame::BlazingTable>(std::move(result_table), this->result_names);
 }
 
+/*
+process_project: LogicalProject(o_orderkey=[$0], CASE=[CASE(>($0, 10), +($0, 1), null:BIGINT)])
+process_filter: LogicalFilter(condition=[<($0, $3)])
+
+*/
+std::unique_ptr<ral::frame::BlazingTable> PartwiseJoin::process_inequality_filter(
+	std::unique_ptr<ral::frame::BlazingTable> joined_table, std::string filter_statement, int num_left_columns){
+	
+	// if its an inner join, then we can process the inequality part of the join clause as a filter
+	if(this->join_type == INNER_JOIN) {
+		filter_statement = "LogicalFilter(condition=[" + filter_statement + "])";
+		return ral::processor::process_filter(joined_table->toBlazingTableView(), filter_statement, this->context.get());
+	} else if(this->join_type == LEFT_JOIN) {
+		std::vector<std::string> col_names = joined_table->names();
+		// lets build a project step that will apply the filter but by making the right table columns null, instead of just taking out the whole row
+		std::string query_part = "LogicalProject(";
+		// first lets add all the left columns which will be left intact
+		for (int i = 0; i < num_left_columns; i++){
+			query_part += col_names[i] + "=[$" + std::to_string(i) + "], ";			
+		}
+		// now lets build the case statements for every right table column
+		int num_right_columns = joined_table->num_columns() - num_left_columns;
+		for (int i = 0; i < num_right_columns; i++){
+			std::string right_col = "$" + std::to_string(i + num_left_columns);
+			std::string comma = i < num_right_columns - 1 ? ", " : ")"; // do we append a comma at the end of every statement or close it with a parenthesis
+			query_part += col_names[i] + "=[CASE(" + filter_statement + ", " + right_col + ", null)]" + comma;
+		}
+
+		return ral::processor::process_project(std::move(joined_table), query_part, this->context.get());  
+	} else if(this->join_type == OUTER_JOIN) {
+		// WSM TODO ERROR
+	}
+}
 ral::execution::task_result PartwiseJoin::do_process(std::vector<std::unique_ptr<ral::frame::BlazingTable>> inputs,
 	std::shared_ptr<ral::cache::CacheMachine> /*output*/,
 	cudaStream_t /*stream*/, const std::map<std::string, std::string>& args) {
@@ -395,7 +431,7 @@ ral::execution::task_result PartwiseJoin::do_process(std::vector<std::unique_ptr
 		auto log_output_num_bytes = joined->sizeInBytes();
 
 		if (filter_statement != "") {
-			auto filter_table = ral::processor::process_filter(joined->toBlazingTableView(), filter_statement, this->context.get());
+			std::unique_ptr<ral::frame::BlazingTable> filter_table = process_inequality_filter(std::move(joined), filter_statement, left_batch->num_columns());
 			eventTimer.stop();
 
 			log_output_num_rows = filter_table->num_rows();

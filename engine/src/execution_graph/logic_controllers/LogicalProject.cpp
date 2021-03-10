@@ -926,6 +926,8 @@ std::unique_ptr<ral::frame::BlazingTable> process_project(
   const std::string & query_part,
   blazingdb::manager::Context * /*context*/) {
 
+      std::cout<<"process_project: "<<query_part<<std::endl;
+
     std::string combined_expression = get_query_part(query_part);
 
     std::vector<std::string> named_expressions = get_expressions_from_expression_list(combined_expression);

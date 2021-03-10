@@ -43,6 +43,10 @@ public:
 	std::unique_ptr<ral::frame::BlazingTable> join_set(
 		const ral::frame::BlazingTableView & table_left,
 		const ral::frame::BlazingTableView & table_right);
+	
+	std::unique_ptr<ral::frame::BlazingTable> process_inequality_filter(
+		std::unique_ptr<ral::frame::BlazingTable> joined_table, 
+		std::string filter_statement, int num_left_columns);
 
 	ral::execution::task_result do_process(std::vector<std::unique_ptr<ral::frame::BlazingTable>> inputs,
 		std::shared_ptr<ral::cache::CacheMachine> output,
