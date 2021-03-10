@@ -82,7 +82,7 @@
 - #1300 Fixed issue when creating tables from a local dir relative path
 - #1312 Fix progress bar for jupyterlab
 - #1318 Disabled require acknowledge 
-
+- #1387 Skip getting orc metadata for decimal type
 
 # BlazingSQL 0.17.0 (December 10, 2020)
 
