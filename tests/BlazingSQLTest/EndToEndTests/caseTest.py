@@ -203,7 +203,8 @@ def main(dask_client, drill, spark, dir_data_lc, bc, nRals):
             queryId = "TEST_09"
             query = """select o_orderkey, o_custkey, case when
                     o_custkey > 10000 then o_orderkey else NULL end
-                    from orders where o_orderkey <= 50"""
+                    from orders where o_orderkey <= 50
+                    order by o_orderkey, o_custkey"""
             runTest.run_query(
                 bc,
                 drill,
@@ -220,7 +221,8 @@ def main(dask_client, drill, spark, dir_data_lc, bc, nRals):
             queryId = "TEST_10"
             query = """select o_orderkey, o_custkey,
                     case when o_custkey > 20000 then o_orderkey else null
-                    end from orders where o_orderkey <= 30"""
+                    end from orders where o_orderkey <= 30
+                    order by o_orderkey, o_custkey"""
             runTest.run_query(
                 bc,
                 drill,
@@ -238,7 +240,8 @@ def main(dask_client, drill, spark, dir_data_lc, bc, nRals):
             query = """select o_totalprice, o_custkey,
                     case when o_totalprice > 100000.2 then o_totalprice
                     else null end
-                    from orders where o_orderkey < 20"""
+                    from orders where o_orderkey < 20
+                    order by o_totalprice, o_custkey"""
             runTest.run_query(
                 bc,
                 drill,
@@ -255,7 +258,8 @@ def main(dask_client, drill, spark, dir_data_lc, bc, nRals):
             queryId = "TEST_12"
             query = """select n_nationkey, n_regionkey,
                     case when n_nationkey > 10 then n_regionkey else NULL end
-                    from nation"""
+                    from nation
+                    order by n_nationkey, n_regionkey"""
             runTest.run_query(
                 bc,
                 drill,
@@ -289,7 +293,7 @@ def main(dask_client, drill, spark, dir_data_lc, bc, nRals):
 
             queryId = "TEST_14"
             query = """select CASE WHEN l_comment in ('ABC') THEN 'CDE' END S, l_quantity
-                    from lineitem order by l_quantity limit 100"""
+                    from lineitem order by l_quantity, l_comment desc limit 1000"""
             runTest.run_query(
                 bc,
                 drill,
@@ -305,7 +309,7 @@ def main(dask_client, drill, spark, dir_data_lc, bc, nRals):
 
             queryId = "TEST_15"
             query = """select CASE WHEN l_comment in ('ABC') THEN l_comment END S, l_quantity
-                    from lineitem order by l_quantity limit 100"""
+                    from lineitem order by l_quantity, l_comment desc limit 1000"""
             runTest.run_query(
                 bc,
                 drill,
@@ -321,7 +325,7 @@ def main(dask_client, drill, spark, dir_data_lc, bc, nRals):
 
             queryId = "TEST_16"
             query = """select CASE WHEN l_comment is null THEN 'ABC' END S, l_quantity
-                    from lineitem order by l_quantity limit 100"""
+                    from lineitem order by l_quantity, l_comment desc limit 1000"""
 
             # TODO: Failed test with nulls
             testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
