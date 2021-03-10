@@ -1228,6 +1228,29 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
+            queryId = "TEST_55"
+            query = """select last_value(c_custkey) over 
+                            (
+                                partition by c_nationkey
+                                order by c_name
+                            ) last_key,
+                            c_phone, c_nationkey, UPPER(SUBSTRING(c_name, 1, 7))
+                        from customer
+                        where c_acctbal < 225.0
+                        order by last_key, c_nationkey, c_phone"""  
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")
                 break

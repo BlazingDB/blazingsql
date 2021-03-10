@@ -41,7 +41,7 @@ std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_func
     std::size_t pos, int & agg_param_count ) {
 
     std::unique_ptr<cudf::aggregation> window_aggregation;
-    
+
     // we want firs get the type of aggregation
     if (this->agg_param_values.size() > agg_param_count && is_lag_or_lead_aggregation(this->type_aggs_as_str[pos])) {
         window_aggregation = ral::operators::makeCudfAggregation(this->aggs_wind_func[pos], this->agg_param_values[agg_param_count]);
@@ -54,23 +54,30 @@ std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_func
 
     // want all columns to be partitioned
     std::vector<cudf::column_view> columns_to_partition;
-    std::vector<int> column_partitioned_indices;
     for (std::size_t col_i = 0; col_i < this->column_indices_partitioned.size(); ++col_i) {
         columns_to_partition.push_back(input_table_cudf_view.column(this->column_indices_partitioned[col_i]));
-        column_partitioned_indices.push_back(col_i);
     }
 
     cudf::table_view partitioned_table_view(columns_to_partition);
-    
+
     std::unique_ptr<CudfColumn> windowed_col;
     if (is_first_value_window(this->type_aggs_as_str[pos]) || is_last_value_window(this->type_aggs_as_str[pos])) {
+
+        if (is_last_value_window(this->type_aggs_as_str[pos])) {
+            // We want also all the ordered columns
+            for (std::size_t col_i = 0; col_i < this->column_indices_ordered.size(); ++col_i) {
+                columns_to_partition.push_back(input_table_cudf_view.column(this->column_indices_ordered[col_i]));
+            }
+
+            partitioned_table_view = {{cudf::table_view(columns_to_partition)}};
+        }
 
         // first: we want to get all the first (or last) values (due to the columns to partition)
         std::vector<cudf::groupby::aggregation_request> requests;
         requests.emplace_back(cudf::groupby::aggregation_request());
         requests[0].values = col_view_to_agg;
         requests[0].aggregations.push_back(std::move(window_aggregation));
-        
+
         cudf::groupby::groupby gb_obj(cudf::table_view({partitioned_table_view}), cudf::null_policy::EXCLUDE, cudf::sorted::YES, {}, {});
         std::pair<std::unique_ptr<cudf::table>, std::vector<cudf::groupby::aggregation_result>> result = gb_obj.aggregate(requests);
 
@@ -101,7 +108,7 @@ std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_func
                                                             right_column_indices,
                                                             columns_in_common);
 
-            //Because the values column is unordered, we want to sort it
+            // Because the values column is unordered, we want to sort it
 	        std::vector<cudf::null_order> null_orders(join_table->num_columns(), cudf::null_order::AFTER);
 
             // partition by is always in ASCENDING order
@@ -149,6 +156,7 @@ ral::execution::task_result ComputeWindowKernel::do_process(std::vector< std::un
         std::tie(this->column_indices_to_agg, this->type_aggs_as_str, this->agg_param_values) = 
                                         get_cols_to_apply_window_and_cols_to_apply_agg(this->expression);
         std::tie(this->column_indices_partitioned, std::ignore) = ral::operators::get_vars_to_partition(this->expression);
+        std::tie(this->column_indices_ordered, std::ignore) = ral::operators::get_vars_to_orders(this->expression);
 
         // fill all the Kind aggregations
         for (std::size_t col_i = 0; col_i < this->type_aggs_as_str.size(); ++col_i) {
@@ -168,12 +176,12 @@ ral::execution::task_result ComputeWindowKernel::do_process(std::vector< std::un
 
         std::unique_ptr<cudf::table> cudf_table_input = input->releaseCudfTable();
         std::vector< std::unique_ptr<CudfColumn> > input_cudf_columns = cudf_table_input->release();
-        
+
         size_t total_output_columns = input_cudf_columns.size() + new_wf_cols.size();
         size_t num_input_cols = input_cudf_columns.size();
         std::vector<std::string> output_names;
         std::vector< std::unique_ptr<CudfColumn> > output_columns;
-        
+
         for (size_t col_i = 0; col_i < total_output_columns; ++col_i) {
             // appending wf columns
             if (col_i >= num_input_cols) {
