@@ -25,6 +25,7 @@
 - #1375 Fix empty row_group_ids for parquet
 - #1380 Fixed issue with int64 literal values 
 - #1379 Remove ProjectRemoveRule
+- #1390 Fix for left outer join with inequality 
 
 
 # BlazingSQL 0.18.0 (Date TBS)

@@ -240,12 +240,10 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             #     fileSchemaType,
             # )
             
-            # #  WSM why does this query pass with ORC?
             # queryId = "TEST_09"
-            # query = """ select l.l_orderkey, o.o_orderkey, l.l_partkey, o.o_custkey from lineitem as l
-            #         left outer join orders as o on l.l_orderkey = o.o_orderkey
-            #         and l.l_partkey < o.o_custkey
-            #         where o.o_orderdate < '1992-01-01'"""
+            # query = """ select o1.o_orderkey as okey1, o2.o_orderkey as okey2 from orders as o1
+            #         left outer join orders as o2 on o1.o_orderkey = o2.o_orderkey
+            #         and o1.o_orderkey < 10000"""
             # runTest.run_query(
             #     bc,
             #     spark,
@@ -257,38 +255,14 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             #     acceptable_difference,
             #     use_percentage,
             #     fileSchemaType,
-            #     print_result=True
             # )
 
-            # # WSM this causes a right join. Need to implement right join
-            # queryId = "TEST_10"
-            # query = """ select l.l_orderkey, o.o_orderkey, l.l_partkey, o.o_custkey from lineitem as l
-            #         full outer join orders as o on l.l_orderkey = o.o_orderkey
-            #         and l.l_partkey < o.o_custkey
-            #         where o.o_orderdate < '1992-01-01'"""
-            # print(bc.explain(query))
-            # runTest.run_query(
-            #     bc,
-            #     spark,
-            #     query,
-            #     queryId,
-            #     queryType,
-            #     worder,
-            #     "",
-            #     acceptable_difference,
-            #     use_percentage,
-            #     fileSchemaType,
-            #     print_result=True
-            # )
-
-            queryId = "TEST_11"
+            # fail
+            queryId = "TEST_10"
             query = """ select o1.o_orderkey as okey1, o2.o_orderkey as okey2 from orders as o1
                     left outer join orders as o2 on o1.o_orderkey = o2.o_orderkey
-                    and o1.o_orderkey < 10000
-                    where o1.o_orderdate < DATE '1992-01-01'"""
-            query = """ select o1.o_orderkey as okey1, o2.o_orderkey as okey2 from orders as o1
-                    left outer join orders as o2 on o1.o_orderkey = o2.o_orderkey
-                    and o1.o_orderkey < 10000                    """
+                    and o2.o_orderkey < 10000"""
+            print(bc.explain(query))
             runTest.run_query(
                 bc,
                 spark,
@@ -300,26 +274,15 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True,                
             )
 
-            query = """ select o1.o_orderkey as okey1, o2.o_orderkey as okey2, case when o1.o_orderkey > 10 then o1.o_orderkey + 1 else null end as casy from orders as o1 left outer join orders as o2 on o1.o_orderkey = o2.o_orderkey and o1.o_orderkey < o2.o_custkey"""
-
-            breakpoint()
-
-            alt_query = """with tempjoin as (
-                    select o1.o_orderkey as okey1, o2.o_orderkey as okey2 from orders as o1
-                    left outer join orders as o2 on o1.o_orderkey = o2.o_orderkey
-                    )
-                    select okey1, case when okey1 < 10000 then okey2 else null end from tempjoin
-                    """
-            result_gdf = bc.sql(alt_query)
-
+            # fail
             queryId = "TEST_11"
-            query = """ select o1.o_orderkey as okey1, o2.o_orderkey as okey2 from orders as o1
+            query = """select o1.o_orderkey as okey1, o2.o_orderkey as okey2, o2.o_custkey from orders as o1
                     left outer join orders as o2 on o1.o_orderkey = o2.o_orderkey
-                    and o1.o_orderkey < 10000
+                    and o1.o_orderkey < o2.o_custkey
                     """
+            print(bc.explain(query))
             runTest.run_query(
                 bc,
                 spark,
@@ -331,9 +294,44 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
-                print_result=True,
-                # nested_query=True,
-                # blz_result=result_gdf,
+            )
+
+            # queryId = "TEST_12"
+            # query = """select o1.o_orderkey as okey1, o2.o_orderkey as okey2, o2.o_custkey from orders as o1
+            #         left outer join orders as o2 on o1.o_orderkey = o2.o_orderkey + 6
+            #         and o1.o_clerk < o2.o_clerk
+            #         """
+            # runTest.run_query(
+            #     bc,
+            #     spark,
+            #     query,
+            #     queryId,
+            #     queryType,
+            #     worder,
+            #     "",
+            #     acceptable_difference,
+            #     use_percentage,
+            #     fileSchemaType,
+            # )
+
+            # fail
+            queryId = "TEST_13"
+            query = """select o1.o_orderkey as okey1, o2.o_orderkey as okey2, o2.o_custkey from orders as o1
+                    left outer join orders as o2 on o1.o_orderkey = o2.o_orderkey + o2.o_custkey
+                    and o1.o_orderkey - o1.o_custkey < o2.o_orderkey 
+                    """
+            print(bc.explain(query))
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
             )
 
             if Settings.execution_mode == ExecutionMode.GENERATOR:

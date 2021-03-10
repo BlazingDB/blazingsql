@@ -432,6 +432,8 @@ ral::execution::task_result PartwiseJoin::do_process(std::vector<std::unique_ptr
 
 		if (filter_statement != "") {
 			std::unique_ptr<ral::frame::BlazingTable> filter_table = process_inequality_filter(std::move(joined), filter_statement, left_batch->num_columns());
+			// filter_statement = "LogicalFilter(condition=[" + filter_statement + "])";
+			// auto filter_table = ral::processor::process_filter(joined->toBlazingTableView(), filter_statement, this->context.get());
 			eventTimer.stop();
 
 			log_output_num_rows = filter_table->num_rows();
