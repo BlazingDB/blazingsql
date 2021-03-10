@@ -25,7 +25,7 @@
 - #1375 Fix empty row_group_ids for parquet
 - #1380 Fixed issue with int64 literal values 
 - #1379 Remove ProjectRemoveRule
-
+- #1389 Fix issue when CAST a literal
 
 # BlazingSQL 0.18.0 (Date TBS)
 
