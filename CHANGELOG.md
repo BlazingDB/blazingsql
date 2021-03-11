@@ -1,6 +1,7 @@
 # BlazingSQL 0.19.0 (Date TBS)
 
 ## New Features
+- #1364 Implement the concurrent API (bc.sql with token, bc.status, bc.fetch)
 
 
 ## Improvements
@@ -23,6 +24,14 @@
 - #1371 Fixed e2e settings
 - #1372 Recompute `columns_to_hash` in DistributeAggregationKernel
 - #1375 Fix empty row_group_ids for parquet
+- #1380 Fixed issue with int64 literal values 
+- #1379 Remove ProjectRemoveRule
+- #1389 Fix issue when CAST a literal
+- #1387 Skip getting orc metadata for decimal type
+- #1392 Fix substrings with nulls
+
+## Deprecated Features
+- #1394 Disabled support for outer joins with inequalities 
 
 # BlazingSQL 0.18.0 (Date TBS)
 
@@ -79,7 +88,6 @@
 - #1300 Fixed issue when creating tables from a local dir relative path
 - #1312 Fix progress bar for jupyterlab
 - #1318 Disabled require acknowledge 
-
 
 # BlazingSQL 0.17.0 (December 10, 2020)
 
