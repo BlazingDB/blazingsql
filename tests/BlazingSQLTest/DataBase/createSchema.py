@@ -892,7 +892,6 @@ def Read_tpch_files(column_names, files_dir, table, data_types):
 
     table_pdf = None
     dataframes = []
-    testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
 
     for dataFile in listdir(files_dir):
         if isdir(files_dir + "/" + dataFile):
@@ -901,18 +900,13 @@ def Read_tpch_files(column_names, files_dir, table, data_types):
         dataFileName = dataFileTokens[0]
         dataFileExt = dataFileTokens[1]
         tableName_ = table + "_"
-        if dataFileExt == "psv" and testsWithNulls == "false":
+        if dataFileExt == "psv":
             if (table == dataFileName) or re.match(tableName_, dataFileName):
                 file_dir = files_dir + "/" + dataFile
                 tmp = cudf.read_csv(
                     file_dir, delimiter="|", names=column_names,
                     dtype=data_types
                 )
-                dataframes.append(tmp)
-        elif dataFileExt == "parquet" and testsWithNulls == "true":
-            if (table == dataFileName) or re.match(tableName_, dataFileName):
-                file_dir = files_dir + "/" + dataFile
-                tmp = cudf.read_parquet(file_dir)
                 dataframes.append(tmp)
     if len(dataframes) != 0:
         table_pdf = cudf.concat(dataframes)
@@ -1305,15 +1299,10 @@ def create_tables(bc, dir_data_lc, fileSchemaType, **kwargs):
         elif fileSchemaType == DataType.DASK_CUDF:
             nRals = Settings.data["RunSettings"]["nRals"]
             num_partitions = nRals
-            if testsWithNulls != "true":
-                bool_column = bool_orders_index != -1
-                gdf = read_data(table_names[i], dir_data_lc, bool_column)
-                ds = dask_cudf.from_cudf(gdf, npartitions=num_partitions)
-                bc.create_table(table_names[i], ds)
-            else:
-                table_files = ("%s/%s_[0-9]*.parquet") % (dir_data_lc, table_names[i])
-                dask_df = dask_cudf.read_parquet(table_files, npartitions=num_partitions)
-                bc.create_table(table_names[i], dask_df)
+            bool_column = bool_orders_index != -1
+            gdf = read_data(table_names[i], dir_data_lc, bool_column)
+            ds = dask_cudf.from_cudf(gdf, npartitions=num_partitions)
+            bc.create_table(table_names[i], ds)
         # elif fileSchemaType == DataType.DASK_CUDF:
         #     bool_column = bool_orders_index != -1
         #     table_files = ("%s/%s_[0-9]*.%s") % (dir_data_lc, table,

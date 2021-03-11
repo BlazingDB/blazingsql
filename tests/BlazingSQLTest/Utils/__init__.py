@@ -28,8 +28,12 @@ def test_name(queryType, fileSchemaType):
 
 
 def skip_test(dask_client, nRals, fileSchemaType, queryType):
+    testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
+
     if fileSchemaType == DataType.DASK_CUDF:
-        if dask_client is None:
+        # Skipping combination DASK_CUDF and testsWithNulls="true"
+        # due to https://github.com/rapidsai/cudf/issues/7572
+        if dask_client is None or testsWithNulls == "true":
             return True
 
     if fileSchemaType == DataType.CUDF:
