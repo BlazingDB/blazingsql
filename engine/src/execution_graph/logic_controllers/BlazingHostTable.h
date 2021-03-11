@@ -33,6 +33,8 @@ public:
 
     std::vector<std::string> names() const;
 
+    void set_names(std::vector<std::string> names);
+
     cudf::size_type num_rows() const ;
 
     cudf::size_type num_columns() const ;
