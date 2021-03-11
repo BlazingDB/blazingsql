@@ -64,6 +64,7 @@ from EndToEndTests import wildCardTest
 from EndToEndTests import smilesTest
 from EndToEndTests import jsonTest
 from EndToEndTests import windowFunctionTest
+from EndToEndTests import concurrentTest
 from EndToEndTests import hiveFileTest
 from pynvml import nvmlInit
 from Runner import runTest
@@ -128,6 +129,59 @@ def main():
 
     if runAllTests or ("hiveFileTest" in targetTestGroups):
         hiveFileTest.main(dask_client, spark, dir_data_file, bc, nRals)
+
+    if runAllTests or ("aggregationsWithoutGroupByTest" in targetTestGroups):
+        aggregationsWithoutGroupByTest.main(
+            dask_client, drill, dir_data_file, bc, nRals
+        )
+
+    if runAllTests or ("coalesceTest" in targetTestGroups):
+        coalesceTest.main(dask_client, drill, dir_data_file, bc, nRals)
+
+    if runAllTests or ("columnBasisTest" in targetTestGroups):
+        columnBasisTest.main(dask_client, drill, dir_data_file, bc, nRals)
+
+    if runAllTests or ("commonTableExpressionsTest" in targetTestGroups):
+        commonTableExpressionsTest.main(dask_client, drill, dir_data_file, bc, nRals)
+
+    if runAllTests or ("countDistinctTest" in targetTestGroups):
+        countDistinctTest.main(dask_client, drill, dir_data_file, bc, nRals)
+
+    if runAllTests or ("countWithoutGroupByTest" in targetTestGroups):
+        countWithoutGroupByTest.main(dask_client, drill, dir_data_file, bc, nRals)
+
+    if runAllTests or ("dateTest" in targetTestGroups):
+        dateTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
+
+    if runAllTests or ("timestampTest" in targetTestGroups):
+        timestampTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
+
+    if runAllTests or ("toTimestampTest" in targetTestGroups):
+        toTimestampTest.main(dask_client, spark, dir_data_file, bc, nRals)
+
+    if runAllTests or ("dayOfWeekTest" in targetTestGroups):
+        dayOfWeekTest.main(dask_client, spark, dir_data_file, bc, nRals)
+
+    if runAllTests or ("fullOuterJoinsTest" in targetTestGroups):
+        fullOuterJoinsTest.main(dask_client, drill, dir_data_file, bc, nRals)
+
+    if runAllTests or ("groupByTest" in targetTestGroups):
+        groupByTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
+
+    if runAllTests or ("GroupByWitoutAggregations" in targetTestGroups):
+        GroupByWitoutAggregations.main(dask_client, drill, dir_data_file, bc, nRals)
+
+    if runAllTests or ("innerJoinsTest" in targetTestGroups):
+        innerJoinsTest.main(dask_client, drill, dir_data_file, bc, nRals)
+
+    if runAllTests or ("crossJoinsTest" in targetTestGroups):
+        crossJoinsTest.main(dask_client, spark, dir_data_file, bc, nRals)
+
+    if runAllTests or ("leftOuterJoinsTest" in targetTestGroups):
+        leftOuterJoinsTest.main(dask_client, drill, dir_data_file, bc, nRals)
+
+    if runAllTests or ("nonEquiJoinsTest" in targetTestGroups):
+        nonEquiJoinsTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     # loadDataTest.main(dask_client, bc) #check this
 
@@ -232,6 +286,9 @@ def main():
 
     if runAllTests or ("windowFunctionTest" in targetTestGroups):
         windowFunctionTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
+
+    if runAllTests or ("concurrentTest" in targetTestGroups):
+        concurrentTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     # WARNING!!! This Test must be the last one to test -------------------------------------------------------------------------------------------------------------------------------------------
     if runAllTests or ("configOptionsTest" in targetTestGroups):

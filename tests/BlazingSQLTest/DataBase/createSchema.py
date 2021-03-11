@@ -1254,6 +1254,7 @@ def create_tables(bc, dir_data_lc, fileSchemaType, **kwargs):
     ext = get_extension(fileSchemaType)
 
     tables = kwargs.get("tables", tpchTables)
+    table_names = kwargs.get("table_names", tables)
     bool_orders_index = kwargs.get("bool_orders_index", -1)
 
     if tables[0] in smilesTables:
@@ -1274,20 +1275,20 @@ def create_tables(bc, dir_data_lc, fileSchemaType, **kwargs):
             dtypes = get_dtypes(table, bool_orders_flag)
             col_names = get_column_names(table, bool_orders_flag)
             bc.create_table(
-                table, table_files, delimiter="|", dtype=dtypes,
+                table_names[i], table_files, delimiter="|", dtype=dtypes,
                 names=col_names
             )
         elif fileSchemaType == DataType.CUDF:
             bool_column = bool_orders_index != -1
             gdf = read_data(table, dir_data_lc, bool_column)
-            bc.create_table(table, gdf)
+            bc.create_table(table_names[i], gdf)
         elif fileSchemaType == DataType.DASK_CUDF:
             bool_column = bool_orders_index != -1
             gdf = read_data(table, dir_data_lc, bool_column)
             nRals = Settings.data["RunSettings"]["nRals"]
             num_partitions = nRals
             ds = dask_cudf.from_cudf(gdf, npartitions=num_partitions)
-            bc.create_table(table, ds)
+            bc.create_table(table_names[i], ds)
         # elif fileSchemaType == DataType.DASK_CUDF:
         #     bool_column = bool_orders_index != -1
         #     table_files = ("%s/%s_[0-9]*.%s") % (dir_data_lc, table,
@@ -1296,7 +1297,7 @@ def create_tables(bc, dir_data_lc, fileSchemaType, **kwargs):
         #     dask_df = bc.unify_partitions(dask_df)
         #     t = bc.create_table(table, dask_df)
         else:
-            bc.create_table(table, table_files)
+            bc.create_table(table_names[i], table_files)
 
         # TODO percy kharoly bindings
         # if (not t.is_valid()):

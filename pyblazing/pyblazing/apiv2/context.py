@@ -67,6 +67,8 @@ machine_processor = platform.processor()
 if machine_processor in ("x86_64", "x64"):
     machine_processor = "amd64"
 
+ctx_instances_ip_port = {}
+
 the_java_home = "CONDA_PREFIX"
 
 if "JAVA_HOME" in os.environ:
@@ -75,7 +77,10 @@ if "JAVA_HOME" in os.environ:
 # NOTE felipe try first with CONDA_PREFIX/jre/lib/amd64/server/libjvm.so
 # (for older Java versions e.g. 8.x)
 java_home_path = os.environ[the_java_home]
-jvm_path = java_home_path + "/lib/" + machine_processor + "/server/libjvm.so"
+jvm_path = java_home_path
+
+if not os.path.isfile(jvm_path):
+    jvm_path = java_home_path + "/lib/" + machine_processor + "/server/libjvm.so"
 
 if not os.path.isfile(jvm_path):
     # NOTE felipe try a second time using CONDA_PREFIX/lib/server/
@@ -950,6 +955,15 @@ def kwargs_validation(kwargs, bc_api_str):
             )
 
 
+def recognized_extension(extension):
+    if len(extension) == 0:
+        return False
+    extension = extension[1:]  # removing `.`
+    if extension in ["orc", "parquet", "json", "csv", "psv"]:
+        return True
+    return False
+
+
 class BlazingTable(object):
     def __init__(
         self,
@@ -1429,10 +1443,9 @@ class BlazingContext(object):
         """
 
         self.lock = Lock()
-        self.finalizeCaller = ref(cio.finalizeCaller)
+        self.finalizeCaller = cio.finalizeCaller
         self.nodes = []
         self.node_log_paths = set()
-        self.finalizeCaller = lambda: NotImplemented
         self.config_options = load_config_options_from_env(config_options)
         self.calcite_primed = False
 
@@ -1606,12 +1619,21 @@ class BlazingContext(object):
         self.tables = {}
         self.logs_initialized = False
         self.enable_progress_bar = enable_progress_bar
+        self.graphs = OrderedDict()  # token -> graph
 
         # waitForPingSuccess(self.client)
         print("BlazingContext ready")
 
     def __del__(self):
-        self.finalizeCaller()
+        tokens = list(self.graphs.keys())
+        if self.dask_client is None:  # the context is in this current process
+            self.finalizeCaller(tokens)
+        else:  # the context is in the dask worker process
+            # TODO percy william we need to free the memory from all workers invoking the finalizer
+            # We cannot just send the finalizerCaller on each worker here because python garbage collector
+            # already deleted some objects related with dask, so the tornado loop from dask doesn't exists here
+            # Related with -> https://github.com/BlazingDB/blazingsql/issues/1363
+            pass
 
     def __repr__(self):
         return "BlazingContext('%s')" % (self.dask_client)
@@ -2244,6 +2266,15 @@ class BlazingContext(object):
             # /path/to/data/folder/ -> name_file = /path/to/data/folder/, extension = ''
             name_file, extension = os.path.splitext(input[0])
 
+            if not recognized_extension(extension) and file_format_hint == "undefined":
+                raise Exception(
+                    "ERROR: Your input file doesn't have a recognized extension, "
+                    + "you have to specify the `file_format` parameter. "
+                    + "Recognized extensions are: [orc, parquet, csv, json, psv]."
+                    + "\nFor example if you are using a *.log file you must pass file_format='csv' "
+                    + "with all the needed extra parameters. See https://docs.blazingdb.com/docs/creating-tables"
+                )
+
             if (
                 file_format_hint == "undefined"
                 and extension == ""
@@ -2354,7 +2385,7 @@ class BlazingContext(object):
                 parsedMetadata = parseHiveMetadata(table, uri_values)
                 table.metadata = parsedMetadata
 
-            # TODO: if still reading ORC metadata has issues then we can skip
+            # TODO: if still reading ORC metadata has issues then we can skip it
             # using get_metadata argument equals to False
             if get_metadata and (
                 parsedSchema["file_type"] == DataType.PARQUET
@@ -2813,8 +2844,56 @@ class BlazingContext(object):
             "This function has been Deprecated. It is recommended to use ddf.shuffle(on=[colnames])"
         )
 
+    def _get_results_distributed(self, ctxToken):
+        self.do_progress_bar(
+            ctxToken,
+            self._run_progress_bar_distributed,
+            self._wait_completed_distributed,
+        )
+
+        dask_futures = []
+        for node in self.nodes:
+            worker = node["worker"]
+            dask_futures.append(
+                self.dask_client.submit(
+                    getExecuteGraphResult, ctxToken, workers=[worker], pure=False
+                )
+            )
+
+        try:
+            meta_results = self.dask_client.gather(dask_futures)
+        except Exception as e:
+            distributed_remove_orc_files_from_disk(
+                self.dask_client, self.cache_dir_path, ctxToken
+            )
+            raise e
+
+        futures = []
+        for query_partids, meta, worker_id in meta_results:
+            for query_partid in query_partids:
+                futures.append(
+                    self.dask_client.submit(
+                        get_element, query_partid, workers=[worker_id], pure=False,
+                    )
+                )
+        self.graphs[ctxToken] = None  # NOTE we need to invalidate the graph
+        return dask.dataframe.from_delayed(futures, meta=meta)
+
+    def _get_results_single_node(self, ctxToken):
+        graph = self.graphs[ctxToken]
+        self.do_progress_bar(
+            graph, self._run_progress_bar_single_node, self._wait_completed_single_node,
+        )
+        self.graphs[ctxToken] = None  # NOTE we need to invalidate the graph
+        return cio.getExecuteGraphResultCaller(graph, ctxToken, is_single_node=True)
+
+    def fetch(self, token):
+        if self.dask_client is None:
+            return self._get_results_single_node(token)
+        return self._get_results_distributed(token)
+
     def sql(
-        self, query, algebra=None, config_options={},
+        self, query, algebra=None, config_options={}, return_token: bool = False,
     ):
         """
         Query a BlazingSQL table.
@@ -2983,16 +3062,12 @@ class BlazingContext(object):
                     query,
                 )
                 cio.startExecuteGraphCaller(graph, ctxToken)
+                self.graphs[ctxToken] = graph
 
-                self.do_progress_bar(
-                    graph,
-                    self._run_progress_bar_single_node,
-                    self._wait_completed_single_node,
-                )
-
-                return cio.getExecuteGraphResultCaller(
-                    graph, ctxToken, is_single_node=True
-                )
+                if not return_token:
+                    return self._get_results_single_node(ctxToken)
+                else:
+                    return ctxToken
             except cio.RunExecuteGraphError as e:
                 remove_orc_files_from_disk(self.cache_dir_path, ctxToken)
                 print(">>>>>>>> ", e)
@@ -3027,7 +3102,8 @@ class BlazingContext(object):
                     )
                 )
                 i = i + 1
-            graph_futures = self.dask_client.gather(graph_futures)
+            graphs = self.dask_client.gather(graph_futures)
+            self.graphs[ctxToken] = graphs
 
             dask_futures = []
             for node in self.nodes:
@@ -3037,41 +3113,27 @@ class BlazingContext(object):
                         startExecuteGraph, ctxToken, workers=[worker], pure=False
                     )
                 )
-            self.dask_client.gather(dask_futures)
 
-            self.do_progress_bar(
-                ctxToken,
-                self._run_progress_bar_distributed,
-                self._wait_completed_distributed,
+            self.dask_client.gather(dask_futures)
+            if not return_token:
+                return self._get_results_distributed(ctxToken)
+            else:
+                return ctxToken
+
+    def status(self, token):
+        if token not in self.graphs:
+            raise Exception(
+                "ERROR: The graph associated with the token '"
+                + str(token)
+                + "' does not exists. Please make sure you have a valid token."
             )
 
-            dask_futures = []
-            for node in self.nodes:
-                worker = node["worker"]
-                dask_futures.append(
-                    self.dask_client.submit(
-                        getExecuteGraphResult, ctxToken, workers=[worker], pure=False
-                    )
-                )
+        if self.graphs[token] is None:  # then the executution was done
+            return True
 
-            try:
-                meta_results = self.dask_client.gather(dask_futures)
-            except Exception as e:
-                distributed_remove_orc_files_from_disk(
-                    self.dask_client, self.cache_dir_path, ctxToken
-                )
-                raise e
-
-            futures = []
-            for query_partids, meta, worker_id in meta_results:
-                for query_partid in query_partids:
-                    futures.append(
-                        self.dask_client.submit(
-                            get_element, query_partid, workers=[worker_id], pure=False,
-                        )
-                    )
-
-            return dask.dataframe.from_delayed(futures, meta=meta)
+        if self.dask_client is None:
+            return self.graphs[token].query_is_complete()
+        return self._is_query_completed_distributed(token)
 
     # END SQL interface
 
@@ -3417,6 +3479,19 @@ class BlazingContext(object):
             print(err_msg)
         return tqdm_found
 
+    def _is_query_completed_distributed(self, ctxToken):
+        dask_futures = []
+        for node in self.nodes:
+            worker = node["worker"]
+            dask_futures.append(
+                self.dask_client.submit(
+                    getQueryIsComplete, ctxToken, workers=[worker], pure=False
+                )
+            )
+        workers_is_complete = self.dask_client.gather(dask_futures)
+        query_complete = all(workers_is_complete)  # all workers returned true|false
+        return query_complete
+
     def _run_progress_bar_distributed(self, ctxToken):
         from tqdm.auto import tqdm
 
@@ -3427,16 +3502,7 @@ class BlazingContext(object):
         themax = -1
         last_sum_batches = -1
         while True:
-            dask_futures = []
-            for node in self.nodes:
-                worker = node["worker"]
-                dask_futures.append(
-                    self.dask_client.submit(
-                        getQueryIsComplete, ctxToken, workers=[worker], pure=False
-                    )
-                )
-            workers_is_complete = self.dask_client.gather(dask_futures)
-            query_complete = all(workers_is_complete)  # all workers returned true
+            query_complete = self._is_query_completed_distributed(ctxToken)
 
             dask_futures = []
             for node in self.nodes:
