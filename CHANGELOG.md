@@ -22,6 +22,7 @@
 - #1371 Fixed e2e settings
 - #1372 Recompute `columns_to_hash` in DistributeAggregationKernel
 - #1375 Fix empty row_group_ids for parquet
+- #1392 Fix substrings with nulls
 
 # BlazingSQL 0.18.0 (Date TBS)
 
