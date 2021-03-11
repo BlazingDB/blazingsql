@@ -1,7 +1,19 @@
 Execution Engine
 ================
 
-The execution engine is a graph composed of kernels which are connected by ports.
+DAG of Kernels and Caches
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. image:: /resources/join_example.jpg
+  :width: 800
+  :alt: A drawing of two nodes executing a Scan kernel, followed by a hash partition kernel that scatters data between the two nodes followed by a Join kernel.
+
+The above image gives a good overview of how we try to organize various operations that need to be performed on one or more dataframes or groups of files. Every kernel is connected to ever other kernel only through a cache. The purpose of the cache is to allow dataframes to be moved between different types of memory so that we can scale to problems larger than the different types of memory upon which we will be operating. All Kernels implement the `Kernel <api/library_root/classral_1_1cache_1_1kernel.html>`_ interface or one of their derived classes. A kernels purpose is to organize the flow and orchestration of performing complex distributed operations but it does not perform any of the execution itself. The final output of a DAG of kernels and caches thus arranged is a Cache itself.
+
+
+
+
+
 
 When a user runs a query using `bc.sql(query)`, that query is sent to Apache Calcite
 where it is parsed into relational algebra and then optimized. That optimized
@@ -61,13 +73,13 @@ Physical Plan Multi GPU
               BindableTableScan(table=[[main, orders]], filters=[[<($0, 10)]], projects=[[0, 1, 3]], aliases=[[$f0, o_custkey, o_totalprice]])
 
 
-The conversion of the relational algebra gets done by the function ``transform_json_tree`` in 
-:blazing_repo:`PhysicalPlanGenerator.h</engine/src/execution_graph/logic_controllers/PhysicalPlanGenerator.h>`. 
+The conversion of the relational algebra gets done by the function ``transform_json_tree`` in
+:blazing_repo:`PhysicalPlanGenerator.h</engine/src/execution_graph/logic_controllers/PhysicalPlanGenerator.h>`.
 This function gets called by ``build_batch_graph``.
 
 This new relational algebra plan is converted into a graph and each node in the graph becomes an execution kernel, while each edge becomes a ``CacheMachine``.
 
-The graph is created by ``ral::batch::tree_processor`` that has a function called ``build_batch_graph``. This produces the actual graph object, 
+The graph is created by ``ral::batch::tree_processor`` that has a function called ``build_batch_graph``. This produces the actual graph object,
 which is what contains all the execution kernels and CacheMachines. The graph has a function called ``execute()`` which is what actually starts the ``run()`` function of every execution kernel, each on its own thread.
 
 Column/Table Wrappers
@@ -112,7 +124,7 @@ The ports are just maps of name to CachedMachine.
 
 
 All kernels basically take data in batches from one or more input cache machines, do some work, and put results into an output cache machine.
-Almost all work done is done in batches, and usually the way the kernels iterate through those batches is via some form of a `DataSequencer` or which there are 4 kinds 
+Almost all work done is done in batches, and usually the way the kernels iterate through those batches is via some form of a `DataSequencer` or which there are 4 kinds
 (these are defined in :blazing_repo:`Join Kernels</engine/src/execution_graph/logic_controllers/BatchProcessing.h>`):
 BatchSequence
 This is the standard data sequences that just pulls data from an input cache one batch at a time
@@ -182,20 +194,20 @@ BlazingMemoryResource
 ^^^^^^^^^^^^^^^^^^^^^
 :blazing_repo:`View in Github</engine/src/bmr/BlazingMemoryResource.h>`
 
-BlazingSQL has a `BlazingMemoryResource` interface that it uses for tracking memory consumption. 
+BlazingSQL has a `BlazingMemoryResource` interface that it uses for tracking memory consumption.
 There are three implementations `blazing_device_memory_resource`, `blazing_host_memory_resource` and `blazing_disk_memory_resource`
 to manange to keep track of GPU, HOST and DISK memory consumption.
 
 The `blazing_device_memory_resource` internally has a `internal_blazing_device_memory_resource` which implements the `rmm::mr::device_memory_resource` interface.
 When a BlazingContext() is first created it will create a new `internal_blazing_device_memory_resource` and set it as the default resource using `rmm::mr::set_current_device_resource`.
 
-What form the `internal_blazing_device_memory_resource` takes is dependent on what parameters are passed to `BlazingContext()` parameters **allocator** and **pool**. 
+What form the `internal_blazing_device_memory_resource` takes is dependent on what parameters are passed to `BlazingContext()` parameters **allocator** and **pool**.
 Different allocators settings can make the allocator use different underlying RMM allocator types. If the allocator is set to **existing**, then it will take the current
 default allocator that has been set and wrap it with `internal_blazing_device_memory_resource`
 
 The `blazing_host_memory_resource` and `blazing_disk_memory_resource` only track allocations and deallocations when BSQL caches and decaches data in the CacheMachines.
 
-Whenever data enters a CacheMachine, it will check the memory consumption of the three `BlazingMemoryResource` to see where the CacheData should reside. This is one mechanism 
+Whenever data enters a CacheMachine, it will check the memory consumption of the three `BlazingMemoryResource` to see where the CacheData should reside. This is one mechanism
 employed by BSQL to manage memory consumption.
 
 

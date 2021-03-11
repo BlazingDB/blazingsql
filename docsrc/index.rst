@@ -5,7 +5,9 @@
 Welcome to BlazingSQL's documentation!
 ======================================
 
-Open-Source SQL in Python
+BlazingSQL is a collection of configurable primitives for operating on distributed dataframes. It includes an I/O layer for interacting with filesystems like S3 or HDFS. It contains communication primitives that can leverage different backends like UCX and TCP. It seperates the.
+
+Usage
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 BlazingSQL provides a high-performance distributed SQL engine in Python. Built on the RAPIDS GPU data science ecosystem, ETL massive datasets on GPUs. ::
 
