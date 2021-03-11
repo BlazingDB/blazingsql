@@ -28,6 +28,9 @@
 - #1389 Fix issue when CAST a literal
 - #1387 Skip getting orc metadata for decimal type
 
+## Deprecated Features
+- #1394 Disabled support for outer joins with inequalities 
+
 # BlazingSQL 0.18.0 (Date TBS)
 
 ## New Features
