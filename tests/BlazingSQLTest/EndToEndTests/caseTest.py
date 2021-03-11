@@ -203,8 +203,7 @@ def main(dask_client, drill, spark, dir_data_lc, bc, nRals):
             queryId = "TEST_09"
             query = """select o_orderkey, o_custkey, case when
                     o_custkey > 10000 then o_orderkey else NULL end
-                    from orders where o_orderkey <= 50
-                    order by o_orderkey, o_custkey"""
+                    from orders where o_orderkey <= 50"""
             runTest.run_query(
                 bc,
                 drill,
@@ -221,8 +220,7 @@ def main(dask_client, drill, spark, dir_data_lc, bc, nRals):
             queryId = "TEST_10"
             query = """select o_orderkey, o_custkey,
                     case when o_custkey > 20000 then o_orderkey else null
-                    end from orders where o_orderkey <= 30
-                    order by o_orderkey, o_custkey"""
+                    end from orders where o_orderkey <= 30"""
             runTest.run_query(
                 bc,
                 drill,
@@ -240,8 +238,7 @@ def main(dask_client, drill, spark, dir_data_lc, bc, nRals):
             query = """select o_totalprice, o_custkey,
                     case when o_totalprice > 100000.2 then o_totalprice
                     else null end
-                    from orders where o_orderkey < 20
-                    order by o_totalprice, o_custkey"""
+                    from orders where o_orderkey < 20"""
             runTest.run_query(
                 bc,
                 drill,
@@ -258,8 +255,7 @@ def main(dask_client, drill, spark, dir_data_lc, bc, nRals):
             queryId = "TEST_12"
             query = """select n_nationkey, n_regionkey,
                     case when n_nationkey > 10 then n_regionkey else NULL end
-                    from nation
-                    order by n_nationkey, n_regionkey"""
+                    from nation"""
             runTest.run_query(
                 bc,
                 drill,
