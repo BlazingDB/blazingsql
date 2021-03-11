@@ -1307,11 +1307,11 @@ def create_tables(bc, dir_data_lc, fileSchemaType, **kwargs):
             num_partitions = nRals
             if testsWithNulls != "true":
                 bool_column = bool_orders_index != -1
-                gdf = read_data(table, dir_data_lc, bool_column)
+                gdf = read_data(table_names[i], dir_data_lc, bool_column)
                 ds = dask_cudf.from_cudf(gdf, npartitions=num_partitions)
                 bc.create_table(table_names[i], ds)
             else:
-                table_files = ("%s/%s_[0-9]*.parquet") % (dir_data_lc, table)
+                table_files = ("%s/%s_[0-9]*.parquet") % (dir_data_lc, table_names[i])
                 dask_df = dask_cudf.read_parquet(table_files, npartitions=num_partitions)
                 bc.create_table(table_names[i], dask_df)
         # elif fileSchemaType == DataType.DASK_CUDF:
