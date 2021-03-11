@@ -27,7 +27,8 @@
 - #1375 Fix empty row_group_ids for parquet
 - #1380 Fixed issue with int64 literal values 
 - #1379 Remove ProjectRemoveRule
-
+- #1389 Fix issue when CAST a literal
+- #1387 Skip getting orc metadata for decimal type
 
 # BlazingSQL 0.18.0 (Date TBS)
 
@@ -84,7 +85,6 @@
 - #1300 Fixed issue when creating tables from a local dir relative path
 - #1312 Fix progress bar for jupyterlab
 - #1318 Disabled require acknowledge 
-
 
 # BlazingSQL 0.17.0 (December 10, 2020)
 

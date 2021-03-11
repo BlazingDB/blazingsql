@@ -909,7 +909,7 @@ std::string replace_calcite_regex(const std::string & expression) {
 
 	static const std::regex char_re{
 		R""(:CHAR\(\d+\))"", std::regex_constants::icase};
-	ret = std::regex_replace(ret, char_re, "VARCHAR");
+	ret = std::regex_replace(ret, char_re, ":VARCHAR");
 
 
 	StringUtil::findAndReplaceAll(ret, "IS NOT NULL", "IS_NOT_NULL");
