@@ -10,6 +10,7 @@ queryType = "Hive File"
 
 tables = ["orders", "customer", "lineitem", "nation", "part", "supplier"]
 data_types = [DataType.CSV, DataType.PARQUET, DataType.ORC]
+tmpPath = '/tmp/BlazingSQL/partitions/'
 
 def executionTestAuto(dask_client, spark, dir_data_file, bc, nRals):
 
@@ -18,8 +19,7 @@ def executionTestAuto(dask_client, spark, dir_data_file, bc, nRals):
         if skip_test(dask_client, nRals, fileSchemaType, queryType):
             continue
 
-        # Create hive partitions
-        location = createPartitions(fileSchemaType, dir_data_file)
+        location =  tmpPath + cs.get_extension(fileSchemaType) + '/'
 
         # Create tables for hive
         cs.create_hive_partitions_tables(bc=bc,
@@ -240,8 +240,7 @@ def executionTestWithPartitions(dask_client, spark, dir_data_file, bc, nRals):
         if skip_test(dask_client, nRals, fileSchemaType, queryType):
             continue
 
-        # Create hive partitions
-        location = createPartitions(fileSchemaType, dir_data_file)
+        location =  tmpPath + cs.get_extension(fileSchemaType) + '/'
 
         # Create tables with partitions
         cs.create_hive_partitions_tables(bc=bc,
@@ -532,8 +531,7 @@ def executionTestWithSomePartitions(dask_client, spark, dir_data_file, bc, nRals
         if skip_test(dask_client, nRals, fileSchemaType, queryType):
             continue
 
-        # Create hive partitions
-        location = createPartitions(fileSchemaType, dir_data_file)
+        location =  tmpPath + cs.get_extension(fileSchemaType) + '/'
 
         # Create tables with partitions
         cs.create_hive_partitions_tables(bc=bc,
@@ -854,6 +852,9 @@ def executionTestWithSomePartitions(dask_client, spark, dir_data_file, bc, nRals
 def main(dask_client, spark, dir_data_file, bc, nRals):
     start_mem = gpuMemory.capture_gpu_memory_usage()
 
+    for fileSchemaType in data_types:
+        createPartitions(fileSchemaType, dir_data_file)
+
     executionTestAuto(dask_client, spark, dir_data_file, bc, nRals)
     executionTestWithPartitions(dask_client, spark, dir_data_file, bc, nRals)
     executionTestWithSomePartitions(dask_client, spark, dir_data_file, bc, nRals)
@@ -880,7 +881,7 @@ def createPartitions(fileSchemaType, dir_data_file):
                                                'o_orderstatus': ['F', 'O', 'P']},
                                            partitions_schema=[('o_orderpriority', 'str'),
                                                               ('o_orderstatus', 'str')],
-                                           output='/tmp/BlazingSQL/partitions/' + ext + '/orders/',
+                                           output= tmpPath + ext + '/orders/',
                                            num_files=4)
 
     # customer table
@@ -892,7 +893,7 @@ def createPartitions(fileSchemaType, dir_data_file):
                                                'c_mktsegment': ['AUTOMOBILE', 'BUILDING', 'FURNITURE', 'HOUSEHOLD', 'MACHINERY']},
                                            partitions_schema=[('c_nationkey', 'int32'),
                                                             ('c_mktsegment', 'str')],
-                                           output='/tmp/BlazingSQL/partitions/' + ext + '/customer/',
+                                           output= tmpPath + ext + '/customer/',
                                            num_files=4)
 
     # lineitem table
@@ -907,7 +908,7 @@ def createPartitions(fileSchemaType, dir_data_file):
                                            partitions_schema=[('l_shipmode', 'str'),
                                                             ('l_linestatus', 'str'),
                                                             ('l_returnflag', 'str')],
-                                           output='/tmp/BlazingSQL/partitions/' + ext + '/lineitem/',
+                                           output= tmpPath + ext + '/lineitem/',
                                            num_files=4)
 
     # nation table
@@ -917,7 +918,7 @@ def createPartitions(fileSchemaType, dir_data_file):
                                            partitions={
                                                'n_regionkey': [0,1,2,3,4]},
                                            partitions_schema=[('n_regionkey', 'int32')],
-                                           output='/tmp/BlazingSQL/partitions/' + ext + '/nation/',
+                                           output= tmpPath + ext + '/nation/',
                                            num_files=4)
 
     # part table
@@ -935,7 +936,7 @@ def createPartitions(fileSchemaType, dir_data_file):
                                                                'WRAP BOX', 'WRAP CAN', 'WRAP CASE', 'WRAP DRUM',
                                                                'WRAP JAR', 'WRAP PACK', 'WRAP PKG']},
                                            partitions_schema=[('p_container', 'str')],
-                                           output='/tmp/BlazingSQL/partitions/' + ext + '/part/',
+                                           output= tmpPath + ext + '/part/',
                                            num_files=4)
 
     # supplier table
@@ -945,7 +946,7 @@ def createPartitions(fileSchemaType, dir_data_file):
                                            partitions={
                                                's_nationkey': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]},
                                            partitions_schema=[('s_nationkey', 'int32')],
-                                           output='/tmp/BlazingSQL/partitions/' + ext + '/supplier/',
+                                           output= tmpPath + ext + '/supplier/',
                                            num_files=4)
 
     # order table with datetime
@@ -955,7 +956,7 @@ def createPartitions(fileSchemaType, dir_data_file):
     #                                          'o_orderdate': [694224000000, 694310400000, 694396800000, 694483200000, 694569600000,
     #                                                          694656000000, 694742400000, 694828800000, 694915200000, 695001600000]},
     #                                      partitions_schema=[('o_orderdate', 'timestamp')],
-    #                                      output='/tmp/BlazingSQL/partitions/' + ext + '/ordersDatetime/',
+    #                                      output= tmpPath + ext + '/ordersDatetime/',
     #                                      num_files=4)
 
     # '1992-01-01 00:00:00', '1992-01-02 00:00:00',
@@ -982,10 +983,8 @@ def createPartitions(fileSchemaType, dir_data_file):
     #                                          's_nationkey': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
     #                                                          17, 18, 19, 20, 21, 22, 23, 24]},
     #                                      partitions_schema=[('s_nationkey', 'int32')],
-    #                                      output='/tmp/BlazingSQL/partitions/' + ext + '/supplier/',
+    #                                      output= tmpPath + ext + '/supplier/',
     #                                      num_files=4)
-
-    return '/tmp/BlazingSQL/partitions/' + ext + '/'
 
 if __name__ == "__main__":
 
