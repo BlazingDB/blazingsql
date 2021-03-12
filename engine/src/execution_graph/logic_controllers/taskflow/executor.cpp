@@ -206,7 +206,7 @@ executor::executor(int num_threads, double processing_memory_limit_threshold) :
 }
 
 void executor::execute(){
-    while(shutdown == 0){
+    while(shutdown == 0 || !exception_holder.empty()){
         //consider using get_all and calling in a loop.
         auto cur_task = this->task_queue.pop_or_wait();
         auto f = pool.push([&cur_task, this](int thread_id){
@@ -230,18 +230,18 @@ void executor::execute(){
                 });
 
             active_tasks_counter++;
-            cur_task->run(this->streams[thread_id],this);
+
+            try {
+                cur_task->run(this->streams[thread_id],this);
+            } catch(...) {
+                std::unique_lock<std::mutex> lock(exception_holder_mutex);
+                exception_holder.push(std::current_exception());
+                cur_task->fail();
+            }
+
             active_tasks_counter--;
             memory_safety_cv.notify_all();
         });
-
-        try {
-            f.get();
-        } catch(...) {
-            std::unique_lock<std::mutex> lock(exception_holder_mutex);
-            exception_holder.push(std::current_exception());
-            cur_task->fail();
-        }
     }
 }
 
