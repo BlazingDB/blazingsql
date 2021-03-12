@@ -340,11 +340,7 @@ def testing_load_hive_table(table_name, file_format, location, partitions, parti
 						dtype=dtypes,
 						names=col_names)
 	else:
-		bc2.create_table(table_name, location,
-						file_format=file_format,
-						hive_table_name=table_name,
-						partitions=partitions,
-						partitions_schema=partitions_schema)
+		bc2.create_table(table_name, location, file_format=file_format)
 
 	# bc.create_table(table_name, location, file_format='parquet')
 
