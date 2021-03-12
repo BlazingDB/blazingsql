@@ -30,7 +30,7 @@ release = 'v0.18'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['recommonmark','sphinx.ext.extlinks','breathe','exhale']
+extensions = ['recommonmark','sphinx.ext.extlinks', 'sphinx.ext.todo', 'breathe','exhale']
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
@@ -111,7 +111,7 @@ html_theme_options = {
 
 html_context = {
     "github_user": "blazingdb",
-    "github_repo": "blazing-notebooks-docs",
+    "github_repo": "blazingsql",
     "github_version": "feedback",
     "doc_path": "docsrc/source",
 }
