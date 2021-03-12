@@ -360,12 +360,14 @@ def testing_load_hive_table(table_name, file_format, location, partitions, parti
 def test_hive_partition_data(input, file_format, table_name, partitions, partitions_schema, output, num_files=1):
 	create_hive_partition_data(input, file_format, table_name, partitions, output, num_files)
 	testing_load_hive_table(table_name, file_format, output, partitions, partitions_schema)
-	shutil.rmtree(output)
+	os.remove(output + "/origin.csv")
+	os.remove(output + "/dest.csv")
 
 def main():
 	condaPath = os.environ['CONDA_PREFIX']
 	dir_data = condaPath + '/blazingsql-testing-files/data/tpch'
 	ext = "parquet"
+	output = '/tmp/BlazingSQL/partitions/utilityHive'
 
 	test_hive_partition_data(input=("%s/%s_[0-9]*.%s") % (dir_data, "orders", ext),
 							 file_format=ext,
@@ -377,8 +379,9 @@ def main():
 							 partitions_schema=[('o_orderpriority', 'str'),
 												('o_orderstatus', 'str'),
 												('o_shippriority', 'int')],
-							 output='/tmp/BlazingSQL/partitions/utilityHive',
+							 output=output,
 							 num_files=4)
+	shutil.rmtree(output)
 
 if __name__ == "__main__":
 	main()
