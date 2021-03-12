@@ -308,8 +308,7 @@ def create_hive_partition_data(input, file_format, table_name, partitions, outpu
 	if file_format == 'psv':
 		dtypes = get_dtypes(table_name)
 		col_names = get_column_names(table_name)
-		bc.create_table(table_name, input, file_format=file_format, delimiter="|", dtype=dtypes,
-						names=col_names)
+		bc.create_table(table_name, input, file_format='csv', delimiter="|", dtype=dtypes,names=col_names)
 	else:
 		bc.create_table(table_name, input)
 
