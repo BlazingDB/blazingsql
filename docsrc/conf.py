@@ -22,7 +22,7 @@ copyright = '2020, BlazingDB, Inc.'
 author = 'BlazingDB, Inc.'
 
 # The full version, including alpha/beta/rc tags
-release = 'v0.16'
+release = 'v0.18'
 
 
 # -- General configuration ---------------------------------------------------
@@ -75,13 +75,49 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+html_theme = 'pydata_sphinx_theme'
+
+# The name of the Pygments (syntax highlighting) style to use.
+pygments_style = "sphinx"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
+html_css_files = [
+    "css/getting_started.css",
+    "css/blazingsql.css",
+]
+# The name of an image file (relative to this directory) to place at the top
+# of the sidebar.
+html_logo = "_static/icons/blazingNotebooks_logo.png"
+
+html_favicon = "_static/icons/blazingsql-icon.ico"
+
+# If false, no module index is generated.
+html_use_modindex = True
+
+html_theme_options = {
+    "twitter_url": "https://twitter.com/blazingsql"
+    , "github_url": "https://github.com/BlazingDB/blazingsql"
+    , "search_bar_position": "navbar"
+    , "show_prev_next": False
+}
+
+html_theme_options = {
+    "use_edit_page_button": True,
+}
+
+html_context = {
+    "github_user": "blazingdb",
+    "github_repo": "blazing-notebooks-docs",
+    "github_version": "feedback",
+    "doc_path": "docsrc/source",
+}
+
+def setup(app):
+    app.add_js_file("js/d3.v3.min.js")
 
 extlinks = {'blazing_repo': ('https://github.com/BlazingDB/blazingsql/blob/branch-0.19/%s',
-                      'View on github')}
+                    'View on github')}
