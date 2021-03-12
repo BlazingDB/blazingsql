@@ -5,6 +5,7 @@ from DataBase import createSchema as cs
 from pynvml import nvmlInit
 from Runner import runTest
 from Utils import Execution, gpuMemory, init_context, skip_test, utilityHive
+import shutil
 
 queryType = "Hive File"
 
@@ -859,12 +860,11 @@ def main(dask_client, spark, dir_data_file, bc, nRals):
     executionTestWithPartitions(dask_client, spark, dir_data_file, bc, nRals)
     executionTestWithSomePartitions(dask_client, spark, dir_data_file, bc, nRals)
 
+    shutil.rmtree( tmpPath)
+
     end_mem = gpuMemory.capture_gpu_memory_usage()
 
     gpuMemory.log_memory_usage(queryType, start_mem, end_mem)
-
-    #remove paths
-
 
 def createPartitions(fileSchemaType, dir_data_file):
     dir_data = dir_data_file + "/tpch"
