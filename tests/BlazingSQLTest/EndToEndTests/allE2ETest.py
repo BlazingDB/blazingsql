@@ -177,7 +177,7 @@ def main():
         leftOuterJoinsTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     if runAllTests or ("nonEquiJoinsTest" in targetTestGroups):
-        nonEquiJoinsTest.main(dask_client, drill, dir_data_file, bc, nRals)
+        nonEquiJoinsTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     # loadDataTest.main(dask_client, bc) #check this
 
