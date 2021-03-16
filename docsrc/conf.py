@@ -82,6 +82,6 @@ html_theme = 'alabaster'
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
-
+html_theme_options = {'page_width': '90%', 'body_max_width': '1200px'}
 extlinks = {'blazing_repo': ('https://github.com/BlazingDB/blazingsql/blob/branch-0.19/%s',
                       'View on github')}
