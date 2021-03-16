@@ -287,8 +287,9 @@ def main():
     if runAllTests or ("windowFunctionTest" in targetTestGroups):
         windowFunctionTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
-    if runAllTests or ("concurrentTest" in targetTestGroups):
-        concurrentTest.main(dask_client, drill, dir_data_file, bc, nRals)
+    if testsWithNulls != "true":
+        if runAllTests or ("concurrentTest" in targetTestGroups):
+            concurrentTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     # WARNING!!! This Test must be the last one to test -------------------------------------------------------------------------------------------------------------------------------------------
     if runAllTests or ("configOptionsTest" in targetTestGroups):

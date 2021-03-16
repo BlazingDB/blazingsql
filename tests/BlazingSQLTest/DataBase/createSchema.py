@@ -1300,7 +1300,7 @@ def create_tables(bc, dir_data_lc, fileSchemaType, **kwargs):
             nRals = Settings.data["RunSettings"]["nRals"]
             num_partitions = nRals
             bool_column = bool_orders_index != -1
-            gdf = read_data(table_names[i], dir_data_lc, bool_column)
+            gdf = read_data(table, dir_data_lc, bool_column)
             ds = dask_cudf.from_cudf(gdf, npartitions=num_partitions)
             bc.create_table(table_names[i], ds)
         # elif fileSchemaType == DataType.DASK_CUDF:
