@@ -167,7 +167,7 @@ void allocation_pool::free_chunk(std::unique_ptr<blazing_allocation_chunk> buffe
     if(logger){
       logger->error("|||{0}|||||","free_chunk cannot delete an invalid allocation.");
     }
-    return;
+    assert(("free_chunk cannot delete an invalid allocation.", idx < this->allocations.size()));
   }
 
   buffer->allocation->allocation_chunks.push(std::move(buffer));
