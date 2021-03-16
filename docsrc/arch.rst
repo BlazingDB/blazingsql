@@ -1,5 +1,5 @@
-BlazingSQL Project Architecture
-===============================
+Architecture
+============
 
 C/C++
 -----
