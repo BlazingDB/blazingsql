@@ -2,16 +2,61 @@ Execution Engine
 ================
 
 DAG of Kernels and Caches
-^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------
 
 .. image:: /resources/join_example.jpg
   :width: 800
   :alt: A drawing of two nodes executing a Scan kernel, followed by a hash partition kernel that scatters data between the two nodes followed by a Join kernel.
 
-The above image gives a good overview of how we try to organize various operations that need to be performed on one or more dataframes or groups of files. Every kernel is connected to ever other kernel only through a cache. The purpose of the cache is to allow dataframes to be moved between different types of memory so that we can scale to problems larger than the different types of memory upon which we will be operating. All Kernels implement the `Kernel <api/library_root/classral_1_1cache_1_1kernel.html>`_ interface or one of their derived classes. A kernels purpose is to organize the flow and orchestration of performing complex distributed operations but it does not perform any of the execution itself. The final output of a DAG of kernels and caches thus arranged is a Cache itself.
+The above image gives a good overview of how we try to organize various operations that need to be performed on one or more dataframes or groups of files. Every kernel is connected to ever other kernel only through a cache. The purpose of the cache is to allow dataframes to be moved between different types of memory so that we can scale to problems larger than the different types of memory upon which we will be operating. All Kernels implement the `Kernel <api/classral_1_1cache_1_1kernel.html>`_ interface or one of their derived classes. A kernels purpose is to organize the flow and orchestration of performing complex distributed operations but it does not perform any of the execution itself. The final output of a DAG of kernels and caches thus arranged is a Cache itself.
+
+The Kernels push information forward into caches and kernels pull those cached representation to get inputs. They are decached only right before computation is about to take place.
+
+* The engine operates on partitions of data that form part of one larger distributed DataFrame.
+* That data can reside in GPU, CPU, in local file systems or on distributed file systems like hdfs.
+* The data can currently only be operated on using a GPU
+* The DAG is homogenous across the nodes
+* Data only moves from one kernel to another through a Cache.
+
+Kernels
+^^^^^^^
+:doc:`Kernels Main Page <kernels>`
+
+* Know what transformations are taking place.
+* Is not responsible for invoking the execution though it has a function do_process which every kernel must implement.
+* Knows how data is stored (Weakness)
+* Keeps track of a tasks completion or failure state.
+* Could easily be expanded upon to create kernels that target multiple backends
+
+In its current state our kernels are tied to their execution model because the do_process function is defined at the kernel level. This do_process function is the one that contains the code that actually transforms dataframes. In an ideal world the do_process function itself would be either retrieved as a function pointer from some repository of "named" transformations that belong to different executors.
+
+The kernel being ignorant of what is coming through it allows it to be more concerned with the logical execution of a plan without being tied to one specific execution model. Given that we currently only support the CUDA execution model we have yet to fully seperate these concerns.
+
+A list of the kernels can be found by looking at the derived types found in `Kernels <api/classral_1_1cache_1_1kernel.html>`_ and `Distributing Kernels <api/classral_1_1cache_1_1distributing__kernel.html>`
+
+Caches
+^^^^^^
 
 
 
+
+
+Task execution
+--------------
+
+The task executors job is to take all of the jobs in the queue and actually schedule them to run on the hardware that we are targetting. Currently we only target Nvidia GPUs with our executor. It manages access to resources like system and gpu memory and limits the number of tasks that are being executed concurrently. It also is what provides the ability to retry operations that failed due to lack of resources that can be retried when resources are more plentiful.
+
+
+Tasks
+^^^^^
+A list of all tasks that are currently waiting to be executed. Right now there is no priority for tasks and tasks are just processed FIFO. This is an obvious current weakness and should be improved upon when time permits. Upon completion / failure the kernel that sent to the task to the executor is notified the task has completed /failed. The majority of tasks can be reattempted, the only ones that can't are those where the input remained in GPU and was modified in place.
+
+
+
+Resource Management
+^^^^^^^^^^^^^^^^^^^
+
+Indeed, though we do not support it now, one could envision composing an executor from 2 or more executors to leverage multiple execution runtimes in parallel. Allowing the least busy or most appropriate executor to perform said operation. This would also require refactoring the kernels so that they either send a comamand which maps to a function that has been registered with the executor or have each executor be able to implement a run function per supported runtime.
 
 
 
