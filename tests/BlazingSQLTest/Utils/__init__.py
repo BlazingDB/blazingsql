@@ -42,7 +42,7 @@ def skip_test(dask_client, nRals, fileSchemaType, queryType):
         # on gdf tables with nRals>1
         skip = False
         if int(nRals) > 1:
-            if dask_client is None:
+            if dask_client is None or testsWithNulls == "true":
                 return True
 
         return skip
