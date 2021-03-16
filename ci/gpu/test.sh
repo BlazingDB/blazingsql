@@ -152,7 +152,7 @@ else
             else
                 logger "Preparing $CONDA_PREFIX/blazingsql-testing-files folder for end to end tests..."
                 cd $CONDA_PREFIX
-                git clone --depth 1 https://github.com/rommelDB/blazingsql-testing-files.git --branch null-tests --single-branch
+                git clone --depth 1 https://github.com/diegodfrf/blazingsql-testing-files.git --branch issue/nulls --single-branch
                 cd blazingsql-testing-files/data
                 tar xf tpch.tar.gz
                 tar xf tpch-with-nulls.tar.gz
