@@ -656,7 +656,7 @@ def get_dtypes(table_name, bool_column=False):
             "date64",
             "str",
             "str",
-            "str",
+            "int32",
             "str",
         ],
         "supplier": ["int64", "str", "str", "int32", "str", "float64", "str"],
@@ -818,7 +818,7 @@ def get_dtypes_pandas(table_name):
             "o_orderdatetime64": "datetime64",
             "o_orderpriority": "str",
             "o_clerk": "str",
-            "o_shippriority": "str",
+            "o_shippriority": "int64",
             "o_comment": "str",
         },
         "supplier": {
