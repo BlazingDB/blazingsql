@@ -30,33 +30,13 @@ release = 'v0.18'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['recommonmark','sphinx.ext.extlinks', 'sphinx.ext.todo', 'breathe','exhale']
-# Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+extensions = ['recommonmark','sphinx.ext.extlinks', 'sphinx.ext.todo', 'breathe', 'sphinx.ext.autodoc']
 
-
-# Setup the breathe extension
-breathe_projects = {
-    "BlazingSQL Engine": "./doxyoutput/xml"
-}
+breathe_projects = {"BlazingSQL Engine": "./xml/"}
 breathe_default_project = "BlazingSQL Engine"
 
-
-
-# Setup the exhale extension
-exhale_args = {
-    # These arguments are required
-    "containmentFolder":     "./api",
-    "rootFileName":          "library_root.rst",
-    "rootFileTitle":         "Library API",
-    "doxygenStripFromPath":  "..",
-    # Suggested optional arguments
-    "createTreeView":        True,
-    # TIP: if using the sphinx-bootstrap-theme, you need
-    # "treeViewIsBootstrap": True,
-    "exhaleExecutesDoxygen": True,
-    "exhaleDoxygenStdin":    "INPUT = ../engine/src"
-}
+# Add any paths that contain templates here, relative to this directory.
+templates_path = ['_templates']
 
 # Tell sphinx what the primary language being documented is.
 primary_domain = 'cpp'
@@ -67,7 +47,7 @@ highlight_language = 'cpp'
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'html', 'latex', 'xml']
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -78,7 +58,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 html_theme = 'pydata_sphinx_theme'
 
 # The name of the Pygments (syntax highlighting) style to use.
-# pygments_style = "sphinx"
+pygments_style = "sphinx"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
