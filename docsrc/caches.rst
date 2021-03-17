@@ -77,22 +77,28 @@ or in some algorithms several CacheData can be combined without materializing th
 
 WaitingQueue
 ------------
-:blazing_repo:`View in Github</engine/src/execution_graph/logic_controllers/CacheMachine.h#L167>`
+The WaitingQueue is a structure used by the CacheMachine that serves as a FIFO queue that is threadsafe and 
+has waiting mechanisms so that you try to retireve an item from the queue, it will wait until there is an item available.
+Additionally it can have a state where it can be "finished", in which case, any function calls waiting for 
+an item to be returned, just return a *nullptr*.
 
-Stores CacheData for us. Every CacheMachine has a WaitingQueue whose purpose it
-is to hold the CacheData until they are needed by a kernel. Many of its methods
-are waiting operations of the nature get_or_wait() which will wait on a
-condition variable until something can actually be pulled from the WaitingQueue.
+The WaitingQueue class is templated, but when used in the CacheMachine, the template object is a ``message`` which is simply a ``unique_ptr<CacheData>`` and a string which served as a ``message_id``.
+The *message_id* is used in several places in the code to identify or label a CacheData.
+
+Additionally, the WaitingQueue has facilities for knowing how many CacheData objects have been added or how many bytes have been added.
+
 
 CacheMachine
 ------------
 
-Cache Machines are an abstraction built on top of WaitingQueues that manage the
-logic of knowing when a dataframe should stay on the gpu or be moved to RAM or
-disk.
+CacheMachines are an abstraction built on top of WaitingQueues that provide facilities to add or remove :doc:`BlazingTables <data_structures>` or 
+other :doc:`data structures <data_structures>`  from a CacheMachine.
+The CacheMachine will convert it to and from a CacheData before adding it or after removing it from a WaitingQueue. 
 
-When you add data into a CacheMachine, it checks the memory consumption
-of the node by asking the memory resource (see below). If the consumption is below a certain
+A CacheMachine has an understanding of different 
+:doc:`memory resources <memory_management>` and therefore can automatically decide if a BlazingTable should be converted to a GPUCacheData, CPUCacheData or CacheDataLocalFile before added into
+the WaitingQueue that will hold the CacheData. When you add data into a CacheMachine, it checks the memory consumption
+of the node by asking the :doc:`memory resources <memory_management>`. If the consumption is below a certain
 threshold, then the data is maintained in GPU memory. It is converted into a
 GPUCacheData and added to the CacheMachine. If consumption is above the device
 memory threshold, then it checks the next tier in the CacheMachine, the CPU
@@ -102,7 +108,7 @@ copied all the data to host. If the CPU memory consumption is above a certain
 threshold, then it goes into the next tier, the Disk Cache. For the disk cache,
 the data is placed in an ORC file and a CacheDataLocalFile is created to keep track of it.
 
-Aside from the standard CacheMachine, there are two specialty types: HostCacheMachine and ConcatenatingCacheMachine. The HostCacheMachine is only used to place data received by other nodes and the ConcatenatingCacheMachine is used as the output of TableScans. The ConcatenatingCacheMachine will concatenate batches so that the resulting batch is not too small. This is configurable, and its done to increase performance. Operating on really small batches can be detrimental to performance.
+Aside from the standard CacheMachine, another specialty type: ConcatenatingCacheMachine. 
+The ConcatenatingCacheMachine will concatenate batches so that the resulting batch is not too small. It is used in several places and for some places, it is configurable.
+It is useful to concatenate batches to increase performance, since operating on really small batches can be detrimental to performance.
 
-
-CacheMachines and CacheData are defined :blazing_repo:`CacheMachine.h</engine/src/execution_graph/logic_controllers/CacheMachine.h>`
