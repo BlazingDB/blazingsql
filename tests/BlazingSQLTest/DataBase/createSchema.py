@@ -656,7 +656,7 @@ def get_dtypes(table_name, bool_column=False):
             "date64",
             "str",
             "str",
-            "str",
+            "int32",
             "str",
         ],
         "supplier": ["int64", "str", "str", "int32", "str", "float64", "str"],
@@ -696,78 +696,6 @@ def get_dtypes(table_name, bool_column=False):
     func = switcher.get(table_name, "nothing")
     # Execute the function
     return func
-
-
-def get_dtypes_wo_string(table_name):
-    switcher = {
-        "customer": [
-            "int32",
-            "int64",
-            "int64",
-            "int32",
-            "int64",
-            "float64",
-            "int64",
-            "int64",
-        ],
-        "region": ["int32", "int64", "int64"],
-        "nation": ["int32", "int64", "int32", "int64"],
-        "lineitem": [
-            "int64",
-            "int64",
-            "int64",
-            "int32",
-            "float64",
-            "float64",
-            "float64",
-            "float64",
-            "int64",
-            "int64",
-            "date64",
-            "date64",
-            "date64",
-            "int64",
-            "int64",
-            "int64",
-        ],
-        "orders": [
-            "int64",
-            "int32",
-            "int64",
-            "float64",
-            "date64",
-            "int64",
-            "int64",
-            "int64",
-            "int64",
-        ],
-        "supplier": [
-            "int64",
-            "int64",
-            "int64",
-            "int32",
-            "int64",
-            "float64",
-            "int64"
-        ],
-        "part": [
-            "int64",
-            "int64",
-            "int64",
-            "int64",
-            "int64",
-            "int64",
-            "int64",
-            "float32",
-            "int64",
-        ],
-        "partsupp": ["int64", "int64", "int64", "float32", "int64"],
-    }
-
-    func = switcher.get(table_name, "nothing")
-    # Execute the function
-    return func
-
 
 def get_dtypes_pandas(table_name):
     switcher = {
@@ -818,7 +746,7 @@ def get_dtypes_pandas(table_name):
             "o_orderdatetime64": "datetime64",
             "o_orderpriority": "str",
             "o_clerk": "str",
-            "o_shippriority": "str",
+            "o_shippriority": "int64",
             "o_comment": "str",
         },
         "supplier": {
