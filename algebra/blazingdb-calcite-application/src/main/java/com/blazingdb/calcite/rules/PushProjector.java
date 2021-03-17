@@ -520,8 +520,8 @@ public class PushProjector {
 			.build();
 	}
 
-	// This function is similar than `createProjectRefsAndExprs` function
-	// but computes the names (or aliases) certainly better
+	// Function similar than `createProjectRefsAndExprs`
+	// but consider the aliases before transpose with a Join
 	/**
    * Creates a projection based on the inputs specified in a bitmap and the
    * expressions that need to be preserved. The expressions are appended after
