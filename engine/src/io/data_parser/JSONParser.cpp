@@ -49,7 +49,8 @@ std::unique_ptr<ral::frame::BlazingTable> json_parser::parse_batch(ral::io::data
 	return nullptr;
 }
 
-void json_parser::parse_schema(std::shared_ptr<arrow::io::RandomAccessFile> file, ral::io::Schema & schema) {
+void json_parser::parse_schema(ral::io::data_handle handle, ral::io::Schema & schema) {
+  auto file = handle.file_handle;
 	auto arrow_source = cudf::io::arrow_io_source{file};
 	cudf::io::json_reader_options args = getJsonReaderOptions(args_map, arrow_source);
 

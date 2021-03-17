@@ -66,8 +66,7 @@ std::unique_ptr<ral::frame::BlazingTable> mysql_parser::parse_batch(
 	return nullptr;
 }
 
-void mysql_parser::parse_schema(
-	std::shared_ptr<arrow::io::RandomAccessFile> file, ral::io::Schema & schema) {
+void mysql_parser::parse_schema(ral::io::data_handle handle, ral::io::Schema & schema) {
 
 //	cudf_io::table_with_metadata table_out = cudf_io::read_parquet(pq_args);
 
@@ -81,7 +80,7 @@ void mysql_parser::parse_schema(
 }
 
 std::unique_ptr<ral::frame::BlazingTable> mysql_parser::get_metadata(
-	std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files, int offset){
+	std::vector<ral::io::data_handle> handles, int offset){
 //	std::vector<size_t> num_row_groups(files.size());
 //	BlazingThread threads[files.size()];
 //	std::vector<std::unique_ptr<parquet::ParquetFileReader>> parquet_readers(files.size());

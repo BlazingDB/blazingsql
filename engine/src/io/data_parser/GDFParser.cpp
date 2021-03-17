@@ -53,7 +53,7 @@ std::unique_ptr<ral::frame::BlazingTable> gdf_parser::parse_batch(
 size_t gdf_parser::get_num_partitions() {return 0;}
 
 void gdf_parser::parse_schema(
-	std::shared_ptr<arrow::io::RandomAccessFile> /*file*/, ral::io::Schema & /*schema*/) {}
+	ral::io::data_handle /*handle*/, ral::io::Schema & /*schema*/) {}
 
 
 }  // namespace io
