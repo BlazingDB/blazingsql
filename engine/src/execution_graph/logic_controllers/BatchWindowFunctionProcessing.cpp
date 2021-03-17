@@ -78,7 +78,7 @@ std::unique_ptr<CudfColumn> ComputeWindowKernel::compute_column_from_window_func
         requests[0].values = col_view_to_agg;
         requests[0].aggregations.push_back(std::move(window_aggregation));
 
-        cudf::groupby::groupby gb_obj(cudf::table_view({partitioned_table_view}), cudf::null_policy::EXCLUDE, cudf::sorted::YES, {}, {});
+        cudf::groupby::groupby gb_obj(cudf::table_view({partitioned_table_view}), cudf::null_policy::INCLUDE, cudf::sorted::YES, {}, {});
         std::pair<std::unique_ptr<cudf::table>, std::vector<cudf::groupby::aggregation_result>> result = gb_obj.aggregate(requests);
 
         windowed_col = std::move(result.second[0].results[0]);
