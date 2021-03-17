@@ -184,24 +184,18 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                         substring(c_comment, CHAR_LENGTH(c_comment) - 3 , CHAR_LENGTH(c_comment) - 1 ),
                         substring(substring(c_comment, 3 , CHAR_LENGTH(c_comment) - 1 ), 1, 1 )
                         from customer where c_custkey < 100"""
-
-            # Error only with nulls
-            # What: cuDF failure at: ../src/strings/substring.cu:329: Parameter stops must not contain nulls.
-            # https://github.com/BlazingDB/blazingsql/issues/1330
-            testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
-            if testsWithNulls != "true":
-                runTest.run_query(
-                    bc,
-                    spark,
-                    query,
-                    queryId,
-                    queryType,
-                    worder,
-                    "",
-                    acceptable_difference,
-                    use_percentage,
-                    fileSchemaType,
-                )
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
 
             queryId = "TEST_10"
             query = """select c_custkey, substring(c_name, 1),

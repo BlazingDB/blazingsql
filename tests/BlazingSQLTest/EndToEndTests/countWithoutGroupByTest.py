@@ -91,43 +91,35 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             queryId = "TEST_04"
             query = """select o_orderpriority, count(*) as order_count
                     from orders group by o_orderpriority"""
-
-            # TODO: Failed test with nulls
-            testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
-            if testsWithNulls != "true":
-                runTest.run_query(
-                    bc,
-                    drill,
-                    query,
-                    queryId,
-                    queryType,
-                    worder,
-                    "",
-                    acceptable_difference,
-                    use_percentage,
-                    fileSchemaType,
-                )
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
 
             queryId = "TEST_05"
             query = """SELECT o_custkey, count(o_orderkey),
                     count(coalesce(o_orderkey,0)), count(o_custkey), count(*)
                     from orders group by o_custkey"""
-
-            # TODO: Failed test with nulls
-            testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
-            if testsWithNulls != "true":
-                runTest.run_query(
-                    bc,
-                    drill,
-                    query,
-                    queryId,
-                    queryType,
-                    worder,
-                    "",
-                    acceptable_difference,
-                    use_percentage,
-                    fileSchemaType,
-                )
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
 
             queryId = "TEST_06"
             query = """SELECT c_custkey, count(c_nationkey),
