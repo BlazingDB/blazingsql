@@ -11,23 +11,24 @@ namespace io {
 abstractsql_data_provider::abstractsql_data_provider(
         const sql_connection &sql_conn,
         const std::string &table,
-        size_t batch_size_hint)
-	: data_provider(), sql_conn(sql_conn), table(table),
-    batch_size_hint(batch_size_hint), batch_position(0) {}
+        size_t batch_size_hint,
+        bool use_partitions)
+	: data_provider(), sql_conn(sql_conn), table(table)
+  , batch_size_hint(batch_size_hint), use_partitions(use_partitions)
+  , batch_position(0), row_count(0), partition_count(0), current_row_count(0) {}
 
 abstractsql_data_provider::~abstractsql_data_provider() {
 	this->close_file_handles(); 
+}
+
+bool abstractsql_data_provider::has_next() {
+  return this->current_row_count < row_count;
 }
 
 void abstractsql_data_provider::reset() {
 	this->batch_position = 0;
 }
 
-/**
- * Tries to get up to num_files data_handles. We use this instead of a get_all() because if there are too many files, 
- * trying to get too many file handles will cause a crash. Using get_some() forces breaking up the process of getting file_handles.
- * open_file = true will actually open the file and return a std::shared_ptr<arrow::io::RandomAccessFile>. If its false it will return a nullptr
- */
 std::vector<data_handle> abstractsql_data_provider::get_some(std::size_t batch_count, bool){
 	std::size_t count = 0;
 	std::vector<data_handle> file_handles;

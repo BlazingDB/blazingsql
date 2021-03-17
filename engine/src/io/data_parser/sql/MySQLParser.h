@@ -25,14 +25,14 @@ public:
 		ral::io::data_handle handle,
 		const Schema & schema,
 		std::vector<int> column_indices,
-		std::vector<cudf::size_type> row_groups);
+		std::vector<cudf::size_type> row_groups) override;
 
-	void parse_schema(std::shared_ptr<arrow::io::RandomAccessFile> file, Schema & schema);
+	void parse_schema(std::shared_ptr<arrow::io::RandomAccessFile> file, Schema & schema) override;
 
-	std::unique_ptr<ral::frame::BlazingTable> get_metadata( 
+	std::unique_ptr<ral::frame::BlazingTable> get_metadata(
 		std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files,
-		int offset);
-  // TODO percy add sql data types to the enum
+		int offset) override;
+
 	DataType type() const override { return DataType::PARQUET; }
 };
 

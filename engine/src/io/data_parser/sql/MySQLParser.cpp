@@ -4,11 +4,20 @@
  */
 
 #include "MySQLParser.h"
-#include <arrow/buffer.h>
-#include <arrow/io/memory.h>
+
+#include "utilities/CommonOperations.h"
+
 #include <numeric>
 
-#include <blazingdb/io/Library/Logging/Logger.h>
+#include <arrow/io/file.h>
+#include "ExceptionHandling/BlazingThread.h"
+
+#include <parquet/column_writer.h>
+#include <parquet/file_writer.h>
+
+#include <cudf/io/parquet.hpp>
+
+#include <mysql/jdbc.h>
 
 namespace ral {
 namespace io {
@@ -16,77 +25,49 @@ namespace io {
 namespace cudf_io = cudf::io;
 
 mysql_parser::mysql_parser() {
-	// TODO Auto-generated constructor stub
 }
 
 mysql_parser::~mysql_parser() {
-	// TODO Auto-generated destructor stub
+}
+
+cudf::io::table_with_metadata read_mysql(std::shared_ptr<sql::ResultSet> res) {
+  
 }
 
 std::unique_ptr<ral::frame::BlazingTable> mysql_parser::parse_batch(
 	ral::io::data_handle handle,
 	const Schema & schema,
 	std::vector<int> column_indices,
-	std::vector<cudf::size_type> row_groups)
+	std::vector<cudf::size_type> row_groups) 
 {
-//	std::shared_ptr<arrow::io::RandomAccessFile> file = handle.file_handle;
-//	if(file == nullptr) {
-//		return schema.makeEmptyBlazingTable(column_indices);
-//	}
-//	if(column_indices.size() > 0) {
-//		// Fill data to pq_args
-//		auto arrow_source = cudf_io::arrow_io_source{file};
-//		cudf_io::parquet_reader_options pq_args = cudf_io::parquet_reader_options::builder(cudf_io::source_info{&arrow_source});
+  auto res = handle.mysql_resultset;
+	if(res == nullptr) {
+		return schema.makeEmptyBlazingTable(column_indices);
+	}
+	if(column_indices.size() > 0) {
+		std::vector<std::string> col_names(column_indices.size());
 
-//		pq_args.enable_convert_strings_to_categories(false);
-//		pq_args.enable_use_pandas_metadata(false);
-		
-//		std::vector<std::string> col_names(column_indices.size());
+		for(size_t column_i = 0; column_i < column_indices.size(); column_i++) {
+			col_names[column_i] = schema.get_name(column_indices[column_i]);
+		}
 
-//		for(size_t column_i = 0; column_i < column_indices.size(); column_i++) {
-//			col_names[column_i] = schema.get_name(column_indices[column_i]);
-//		}
+		auto result = read_mysql(res);
 
-//		pq_args.set_columns(col_names);
+		auto result_table = std::move(result.tbl);
+		if (result.metadata.column_names.size() > column_indices.size()) {
+			auto columns = result_table->release();
+			// Assuming columns are in the same order as column_indices and any extra columns (i.e. index column) are put last
+			columns.resize(column_indices.size());
+			result_table = std::make_unique<cudf::table>(std::move(columns));
+		}
 
-//		// when we set `get_metadata=False` we need to send and empty full_row_groups
-//		std::vector<std::vector<cudf::size_type>> full_row_groups;
-//		if (row_groups.size() != 0) {
-//			full_row_groups = std::vector<std::vector<cudf::size_type>>(1, row_groups);
-//		}
-
-//		pq_args.set_row_groups(full_row_groups);
-
-//		auto result = cudf::io::read_parquet(pq_args);
-
-//		auto result_table = std::move(result.tbl);
-//		if (result.metadata.column_names.size() > column_indices.size()) {
-//			auto columns = result_table->release();
-//			// Assuming columns are in the same order as column_indices and any extra columns (i.e. index column) are put last
-//			columns.resize(column_indices.size());
-//			result_table = std::make_unique<cudf::table>(std::move(columns));
-//		}
-
-//		return std::make_unique<ral::frame::BlazingTable>(std::move(result_table), result.metadata.column_names);
-//	}
-//	return nullptr;
+		return std::make_unique<ral::frame::BlazingTable>(std::move(result_table), result.metadata.column_names);
+	}
+	return nullptr;
 }
 
 void mysql_parser::parse_schema(
 	std::shared_ptr<arrow::io::RandomAccessFile> file, ral::io::Schema & schema) {
-
-//	auto parquet_reader = parquet::ParquetFileReader::Open(file);
-//	if (parquet_reader->metadata()->num_rows() == 0) {
-//		parquet_reader->Close();
-//		return; // if the file has no rows, we dont want cudf_io to try to read it
-//	}
-
-//	auto arrow_source = cudf_io::arrow_io_source{file};
-//	cudf_io::parquet_reader_options pq_args = cudf_io::parquet_reader_options::builder(cudf_io::source_info{&arrow_source});
-
-//	pq_args.enable_convert_strings_to_categories(false);
-//	pq_args.enable_use_pandas_metadata(false);
-//	pq_args.set_num_rows(1);  // we only need the metadata, so one row is fine
 
 //	cudf_io::table_with_metadata table_out = cudf_io::read_parquet(pq_args);
 

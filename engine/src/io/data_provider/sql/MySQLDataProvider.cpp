@@ -14,6 +14,7 @@
 
 #include "MySQLDataProvider.h"
 #include "blazingdb/io/Util/StringUtil.h"
+
 #include <mysql/jdbc.h>
 
 using namespace fmt::literals;
@@ -101,16 +102,16 @@ table_info get_table_info(sql::Connection *con, std::string table) {
 
 mysql_data_provider::mysql_data_provider(const sql_connection &sql_conn,
                                          const std::string &table,
-                                         size_t batch_size_hint)
-	: abstractsql_data_provider(sql_conn, table, batch_size_hint)
-  , mysql_connection(nullptr)
-  , rows(0) {
+                                         size_t batch_size_hint,
+                                         bool use_partitions)
+	: abstractsql_data_provider(sql_conn, table, batch_size_hint, use_partitions)
+  , mysql_connection(nullptr) {
   sql::Driver *driver = sql::mysql::get_driver_instance();
   sql::ConnectOptionsMap options = build_connection_properties(this->sql_conn);
   this->mysql_connection = std::unique_ptr<sql::Connection>(driver->connect(options));
   table_info tbl_info = get_table_info(this->mysql_connection.get(), this->table);
   this->partitions = std::move(tbl_info.partitions);
-  this->rows = tbl_info.rows;
+  this->row_count = tbl_info.rows;
 }
 
 mysql_data_provider::~mysql_data_provider() {
@@ -122,44 +123,31 @@ std::shared_ptr<data_provider> mysql_data_provider::clone() {
 
 size_t mysql_data_provider::get_num_handles() {
   if (this->partitions.empty()) {
-    size_t ret = this->rows / this->batch_size_hint;
+    size_t ret = this->row_count / this->batch_size_hint;
     return ret == 0? 1 : ret;
   }
 
   return this->partitions.size();
 }
 
-bool mysql_data_provider::has_next() {
-  if (this->rows == 0) {
-    return false;
-  }
-
-  if (this->batch_position == 0) {
-    return true;
-  }
-  
-  if (this->partitions.empty()) {
-    return this->batch_position < (this->rows + this->batch_size_hint);
-  }
-
-  return this->batch_position < this->partitions.size();
-}
-
-data_handle mysql_data_provider::get_next(bool open_file) {
+data_handle mysql_data_provider::get_next(bool) {
   std::string query;
 
-  if (this->partitions.empty()) {
+  if (this->use_partitions) {
+    // TODO percy if part size less than batch full part fetch else apply limit offset over the partition to fetch
+    query = "SELECT * FROM " + this->table + " partition(" + this->partitions[this->batch_position++] + ")";
+  } else {
     query = "SELECT * FROM " + this->table + " LIMIT " + std::to_string(this->batch_size_hint) + " OFFSET " + std::to_string(this->batch_position);
     this->batch_position += this->batch_size_hint;
-    
-  } else {
-    query = "SELECT * FROM " + this->table + " partition(" + this->partitions[this->batch_position++] + ")";
   }
 
   std::cout << "query: " << query << "\n";
   auto res = execute_query(this->mysql_connection.get(), query);
+  this->current_row_count += res->rowsCount();
   data_handle ret;
   ret.mysql_resultset = res;
+  std::cout << "get_next TOTAL rows: " << this->row_count << "\n";
+  std::cout << "get_next current_row_count: " << this->current_row_count << "\n";
   return ret;
 }
 

@@ -21,34 +21,28 @@ namespace mysql {
  */
 class mysql_data_provider : public abstractsql_data_provider {
 public:
-	mysql_data_provider(const sql_connection &sql_conn, 
+	mysql_data_provider(const sql_connection &sql_conn,
                       const std::string &table,
-                      size_t batch_size_hint = abstractsql_data_provider::DETAULT_BATCH_SIZE_HINT);
+                      size_t batch_size_hint = abstractsql_data_provider::DETAULT_BATCH_SIZE_HINT,
+                      bool use_partitions = false);
 
   virtual ~mysql_data_provider();
 
 	std::shared_ptr<data_provider> clone() override; 
 
-  // TODO percy candidate to abstract
-	/**
-	 * tells us if there are more files in the list of uris to be provided
-	 */
-	bool has_next();
-
 	/**
 	 * if has partions will fetch each partition if not will use the limit/offset approach 
 	 * with the batch size hint as range
 	 */
-	data_handle get_next(bool open_file = true);
+	data_handle get_next(bool = true) override;
 
   // in case the table has not partitions will return row count / batch_size_hint else
   // will return the number of partitions
-	size_t get_num_handles();
+	size_t get_num_handles() override;
 
 private:
   std::unique_ptr<sql::Connection> mysql_connection;
   std::vector<std::string> partitions;
-  size_t rows;
 };
 
 } /* namespace mysql */
