@@ -1,5 +1,8 @@
 /*
- * TODO: cordova add comment here
+ * This file is a copy with some modifications of the ProjectJoinTransposeRule from
+ * the Apache Calcite project. The original code can be found at:
+ * https://github.com/apache/calcite/blob/branch-1.23/core/src/main/java/org/apache/calcite/rel/rules/ProjectJoinTransposeRule.java
+ * The changes are about using a customized version from the PushProjector class.
  */
 
 package com.blazingdb.calcite.rules;
@@ -117,6 +120,7 @@ public class ProjectJoinTransposeRule extends RelOptRule implements Transformati
 
     // create left and right projections, projecting only those
     // fields referenced on each side
+    // Let's call another function
     RelNode leftProjRel =
         pushProject.createProjectRefsAndExprsCustomized(
             join.getLeft(),

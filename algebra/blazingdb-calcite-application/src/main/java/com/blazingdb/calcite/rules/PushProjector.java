@@ -532,6 +532,7 @@ public class PushProjector {
    *                  otherwise, the existing ones are reused
    * @param rightSide if true, creating a projection for the right hand side
    *                  of a join
+   * @param origProj Project, to get the aliases before transpose with a Join
    * @return created projection
    */
   	public Project createProjectRefsAndExprsCustomized(RelNode projChild, boolean adjust, boolean rightSide, Project origProj) {
