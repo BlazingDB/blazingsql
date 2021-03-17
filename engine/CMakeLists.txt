@@ -254,9 +254,15 @@ set(SRC_FILES ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/Blazin
               ${PROJECT_SOURCE_DIR}/src/config/GPUManager.cu
               ${PROJECT_SOURCE_DIR}/src/operators/OrderBy.cpp
               ${PROJECT_SOURCE_DIR}/src/operators/GroupBy.cpp
+              ${PROJECT_SOURCE_DIR}/src/io/data_provider/sql/AbstractSQLDataProvider.cpp
+              ${PROJECT_SOURCE_DIR}/src/io/data_provider/sql/MySQLDataProvider.cpp
+              ${PROJECT_SOURCE_DIR}/src/io/data_provider/sql/PostgreSQLDataProvider.cpp
               ${PROJECT_SOURCE_DIR}/src/io/data_provider/UriDataProvider.cpp
               ${PROJECT_SOURCE_DIR}/src/io/data_provider/GDFDataProvider.cpp
               ${PROJECT_SOURCE_DIR}/src/io/Schema.cpp
+              ${PROJECT_SOURCE_DIR}/src/io/data_parser/sql/AbstractSQLParser.cpp
+              ${PROJECT_SOURCE_DIR}/src/io/data_parser/sql/MySQLParser.cpp
+              ${PROJECT_SOURCE_DIR}/src/io/data_parser/sql/PostgreSQLParser.cpp
               ${PROJECT_SOURCE_DIR}/src/io/data_parser/ParquetParser.cpp
               ${PROJECT_SOURCE_DIR}/src/io/data_parser/CSVParser.cpp
               ${PROJECT_SOURCE_DIR}/src/io/data_parser/JSONParser.cpp
@@ -351,6 +357,10 @@ target_link_libraries(blazingsql-engine
 
     # Library needed for blazing communication repository (debug)
     gcov
+    
+    # TODO percy use cmake::find
+    # sql deps
+    libmysqlcppconn-static.a
 )
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo" OR "$ENV{CONDA_BUILD}" STREQUAL "1")
