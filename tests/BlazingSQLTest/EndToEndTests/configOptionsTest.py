@@ -178,22 +178,18 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
 
             query = tpch.get_tpch_query(queryId)
 
-            # DISABLED failing without nulls also, TODO: Fernando
-            # TODO: Failed test with nulls
-            # testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
-            # if testsWithNulls != "true":
-            #     runTest.run_query(
-            #         bc,
-            #         drill,
-            #         query,
-            #         queryId,
-            #         queryType,
-            #         worder,
-            #         "",
-            #         0.1,
-            #         use_percentage,
-            #         fileSchemaType,
-            #     )
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                0.1,
+                use_percentage,
+                fileSchemaType,
+            )
 
             queryId = "TEST_04"
 
