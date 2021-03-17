@@ -1,9 +1,10 @@
 
 Caches
-------
+======
+Caches in general refer to the CacheMachines that connect kernels and the CacheData inside them. 
 
 CacheData
-^^^^^^^^^
+---------
 :blazing_repo:`View in Github</engine/src/execution_graph/logic_controllers/CacheMachine.h#L43>`
 
 There are different kinds of CacheData at the moment. GPU, CPU, LOCAL_FILE and
@@ -20,7 +21,7 @@ non GPU version.
 The LOCAL_FILE implementation uses ORC files as a temporary storage for data.
 
 WaitingQueue
-^^^^^^^^^^^^
+------------
 :blazing_repo:`View in Github</engine/src/execution_graph/logic_controllers/CacheMachine.h#L167>`
 
 Stores CacheData for us. Every CacheMachine has a WaitingQueue whose purpose it
@@ -29,7 +30,7 @@ are waiting operations of the nature get_or_wait() which will wait on a
 condition variable until something can actually be pulled from the WaitingQueue.
 
 CacheMachine
-^^^^^^^^^^^^
+------------
 
 Cache Machines are an abstraction built on top of WaitingQueues that manage the
 logic of knowing when a dataframe should stay on the gpu or be moved to RAM or
