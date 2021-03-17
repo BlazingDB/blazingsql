@@ -7,11 +7,6 @@
 #define _MYSQLSQLPARSER_H_
 
 #include "io/data_parser/DataParser.h"
-#include "arrow/io/interfaces.h"
-#include <memory>
-#include <vector>
-
-#include <cudf/io/datasource.hpp>
 
 namespace ral {
 namespace io {

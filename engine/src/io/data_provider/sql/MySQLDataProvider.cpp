@@ -21,7 +21,6 @@ using namespace fmt::literals;
 
 namespace ral {
 namespace io {
-namespace mysql {
 
 struct table_info {
   std::vector<std::string> partitions;
@@ -145,12 +144,11 @@ data_handle mysql_data_provider::get_next(bool) {
   auto res = execute_query(this->mysql_connection.get(), query);
   this->current_row_count += res->rowsCount();
   data_handle ret;
-  ret.mysql_resultset = res;
+  ret.sql_handle.mysql_resultset = res;
   std::cout << "get_next TOTAL rows: " << this->row_count << "\n";
   std::cout << "get_next current_row_count: " << this->current_row_count << "\n";
   return ret;
 }
 
-} /* namespace mysql */
 } /* namespace io */
 } /* namespace ral */

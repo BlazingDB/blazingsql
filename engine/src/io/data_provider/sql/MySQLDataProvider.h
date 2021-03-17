@@ -12,7 +12,6 @@
 
 namespace ral {
 namespace io {
-namespace mysql {
 
 /**
  * can generate a series of randomaccessfiles from uris that are provided
@@ -45,7 +44,6 @@ private:
   std::vector<std::string> partitions;
 };
 
-} /* namespace mysql */
 } /* namespace io */
 } /* namespace ral */
 

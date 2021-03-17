@@ -40,7 +40,7 @@ std::unique_ptr<ral::frame::BlazingTable> mysql_parser::parse_batch(
 	std::vector<int> column_indices,
 	std::vector<cudf::size_type> row_groups) 
 {
-  auto res = handle.mysql_resultset;
+  auto res = handle.sql_handle.mysql_resultset;
 	if(res == nullptr) {
 		return schema.makeEmptyBlazingTable(column_indices);
 	}

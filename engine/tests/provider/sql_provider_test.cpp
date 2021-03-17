@@ -13,14 +13,14 @@ TEST_F(MySQLProviderTest, select_all) {
 		.password = "admin",
 		.schema = "employees"};
 
-  auto mysql_provider = std::make_shared<ral::io::mysql::mysql_data_provider>(sql_conn, "departments", 2);
+  auto mysql_provider = std::make_shared<ral::io::mysql_data_provider>(sql_conn, "departments", 2);
   
   
   
   int rows = mysql_provider->get_num_handles();
 
   std::cout << "\trows: " << rows << "\n";
-  auto res = mysql_provider->get_next().mysql_resultset;
+  auto res = mysql_provider->get_next().sql_handle.mysql_resultset;
 
   bool has_next = mysql_provider->has_next();
   std::cout << "\tNEXT?: " << (has_next?"TRUE":"FALSE") << "\n";
