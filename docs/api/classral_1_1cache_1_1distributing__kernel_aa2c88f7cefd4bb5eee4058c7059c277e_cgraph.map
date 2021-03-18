@@ -1,6 +1,0 @@
-<map id="ral::cache::distributing_kernel::send_message" name="ral::cache::distributing_kernel::send_message">
-<area shape="rect" id="node2" href="$classral_1_1cache_1_1MetadataDictionary.html#a99828bf2a71b8e06d568420e5c2b460d" title="ral::cache::MetadataDictionary\l::add_value" alt="" coords="213,5,413,47"/>
-<area shape="rect" id="node3" href="$classral_1_1cache_1_1MetadataDictionary.html#abdc2863d96dc839565f2078471f4c9f7" title="ral::cache::MetadataDictionary\l::get_values" alt="" coords="213,71,413,112"/>
-<area shape="rect" id="node4" href="$classral_1_1cache_1_1kernel.html#a94c3bd66b93a0e67165d0a54741c19dc" title="Returns the output cache associated to an identifier. " alt="" coords="252,136,375,177"/>
-<area shape="rect" id="node5" href="$classral_1_1cache_1_1kernel.html#a33ce6e9907abce1acedb01e236c6812e" title="Returns the kernel identifier. " alt="" coords="461,136,584,177"/>
-</map>

@@ -1,4 +1,0 @@
-<map id="ral::batch::JoinPartitionKernel" name="ral::batch::JoinPartitionKernel">
-<area shape="rect" id="node2" href="$classral_1_1cache_1_1distributing__kernel.html" title="The distributing_kernel interface allows kernels calling distributing primitives. ..." alt="" coords="8,80,159,121"/>
-<area shape="rect" id="node3" href="$classral_1_1cache_1_1kernel.html" title="This interface represents a computation unit in the execution graph. Each kernel has basically and in..." alt="" coords="22,5,145,32"/>
-</map>

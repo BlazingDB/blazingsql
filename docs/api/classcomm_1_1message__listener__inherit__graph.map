@@ -1,4 +1,0 @@
-<map id="comm::message_listener" name="comm::message_listener">
-<area shape="rect" id="node2" href="$classcomm_1_1tcp__message__listener.html" title="comm::tcp_message_listener" alt="" coords="5,80,199,107"/>
-<area shape="rect" id="node3" href="$classcomm_1_1ucx__message__listener.html" title="comm::ucx_message_listener" alt="" coords="223,80,419,107"/>
-</map>

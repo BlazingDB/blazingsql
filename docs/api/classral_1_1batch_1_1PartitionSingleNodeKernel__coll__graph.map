@@ -1,4 +1,0 @@
-<map id="ral::batch::PartitionSingleNodeKernel" name="ral::batch::PartitionSingleNodeKernel">
-<area shape="rect" id="node2" href="$classral_1_1cache_1_1kernel.html" title="This interface represents a computation unit in the execution graph. Each kernel has basically and in..." alt="" coords="113,5,236,32"/>
-<area shape="rect" id="node3" href="$classral_1_1cache_1_1port.html" title="This class represent a diccionary of tuples &lt;port_name, cache_machine&gt; used by each kernel (input and..." alt="" coords="197,117,307,143"/>
-</map>

@@ -1,9 +1,0 @@
-<map id="ral::cache::distributing_kernel::scatterParts" name="ral::cache::distributing_kernel::scatterParts">
-<area shape="rect" id="node2" href="$classral_1_1cache_1_1distributing__kernel.html#aa2c88f7cefd4bb5eee4058c7059c277e" title="Sends a table with their corresponding metadata. " alt="" coords="204,100,364,141"/>
-<area shape="rect" id="node7" href="$classral_1_1cache_1_1kernel.html#af6b7b538f6a692393f314a4f1037d4a6" title="Adds a BlazingTable into the output cache. " alt="" coords="207,195,361,236"/>
-<area shape="rect" id="node3" href="$classral_1_1cache_1_1MetadataDictionary.html#a99828bf2a71b8e06d568420e5c2b460d" title="ral::cache::MetadataDictionary\l::add_value" alt="" coords="412,5,612,47"/>
-<area shape="rect" id="node4" href="$classral_1_1cache_1_1MetadataDictionary.html#abdc2863d96dc839565f2078471f4c9f7" title="ral::cache::MetadataDictionary\l::get_values" alt="" coords="412,71,612,112"/>
-<area shape="rect" id="node5" href="$classral_1_1cache_1_1kernel.html#a94c3bd66b93a0e67165d0a54741c19dc" title="Returns the output cache associated to an identifier. " alt="" coords="451,136,573,177"/>
-<area shape="rect" id="node6" href="$classral_1_1cache_1_1kernel.html#a33ce6e9907abce1acedb01e236c6812e" title="Returns the kernel identifier. " alt="" coords="660,165,783,207"/>
-<area shape="rect" id="node8" href="$classral_1_1cache_1_1kernel.html#aa9e353759b65c2c53571cf80b0213d31" title="Returns the id message as a string. " alt="" coords="449,253,575,295"/>
-</map>

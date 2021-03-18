@@ -1,5 +1,0 @@
-<map id="ral::cache::distributing_kernel::set_number_of_message_trackers" name="ral::cache::distributing_kernel::set_number_of_message_trackers">
-<area shape="rect" id="node2" href="$classral_1_1batch_1_1PartitionSingleNodeKernel.html#a5af293b33505bec1e9fb66f9bb9d29af" title="Executes the batch processing. Loads the data from their input port, and after processing it..." alt="" coords="241,5,409,47"/>
-<area shape="rect" id="node3" href="$classral_1_1batch_1_1SortAndSampleKernel.html#a6e97bc1286a0e8d8273556d56372fa56" title="Executes the batch processing. Loads the data from their input port, and after processing it..." alt="" coords="237,71,412,112"/>
-<area shape="rect" id="node4" href="$classral_1_1batch_1_1MergeStreamKernel.html#a7d89339b2f4f3adecda2fe64b47948cd" title="Executes the batch processing. Loads the data from their input port, and after processing it..." alt="" coords="212,137,437,163"/>
-</map>

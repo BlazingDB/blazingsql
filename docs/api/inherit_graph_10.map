@@ -1,5 +1,0 @@
-<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$classcomm_1_1buffer__transport.html" title="Base class used to send a chunk of bytes throught a transport protocol e.g. TCP, UCP, etc. " alt="" coords="5,31,163,57"/>
-<area shape="rect" id="node2" href="$classcomm_1_1tcp__buffer__transport.html" title="comm::tcp_buffer_transport" alt="" coords="212,5,395,32"/>
-<area shape="rect" id="node3" href="$classcomm_1_1ucx__buffer__transport.html" title="comm::ucx_buffer_transport" alt="" coords="211,56,396,83"/>
-</map>
