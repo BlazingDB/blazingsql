@@ -259,7 +259,7 @@ def main():
         roundTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     if runAllTests or ("fileSystemLocalTest" in targetTestGroups):
-        fileSystemLocalTest.main(dask_client, drill, dir_data_file, bc, nRals)
+        fileSystemLocalTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     if runAllTests or ("messageValidationTest" in targetTestGroups):
         messageValidationTest.main(dask_client, drill, dir_data_file, bc, nRals)

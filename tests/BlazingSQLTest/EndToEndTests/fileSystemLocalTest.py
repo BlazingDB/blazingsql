@@ -9,7 +9,7 @@ from Utils import Execution, gpuMemory, init_context, skip_test
 queryType = "File System Local"
 
 
-def main(dask_client, drill, dir_data_lc, bc, nRals):
+def main(dask_client, drill, spark, dir_data_lc, bc, nRals):
 
     start_mem = gpuMemory.capture_gpu_memory_usage()
 
@@ -283,10 +283,10 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
             )
 
             queryId = "TEST_14"
-            query = """select 100168549 - sum(o_orderkey)/count(o_orderkey),
+            query = """select 100168549 - avg(o_orderkey),
                         56410984/sum(o_totalprice),
                         (123 - 945/max(o_orderkey)) /
-                        (sum(81619/o_orderkey)/count(81619/o_orderkey))
+                        avg(81619.0/o_orderkey)
                         from orders"""
             runTest.run_query(
                 bc,
@@ -299,28 +299,24 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
                 acceptable_difference,
                 True,
                 fileSchemaType,
-            )  # TODO: Change sum/count for avg KC
+            )
 
             queryId = "TEST_15"
             query = """select o_orderkey, sum(o_totalprice)/count(o_orderstatus)
                     from orders where o_custkey < 100
                     group by o_orderstatus, o_orderkey"""
-
-            # TODO: Failed test with nulls
-            testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
-            if testsWithNulls != "true":
-                runTest.run_query(
-                    bc,
-                    drill,
-                    query,
-                    queryId,
-                    queryType,
-                    worder,
-                    "",
-                    acceptable_difference,
-                    True,
-                    fileSchemaType,
-                )  # TODO: Change sum/count for avg KC
+            runTest.run_query(
+                bc,
+                spark, #because Drill outputs some inf's instead of NaN
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                True,
+                fileSchemaType,
+            )  # TODO: Change sum/count for avg KC
 
             queryId = "TEST_16"
             query = """select o_orderkey, o_orderstatus
@@ -464,13 +460,19 @@ if __name__ == "__main__":
         cs.init_drill_schema(drill,
                              Settings.data["TestSettings"]["dataDirectory"])
 
+        # Create Table Spark ------------------------------------------------
+        from pyspark.sql import SparkSession
+
+        spark = SparkSession.builder.appName("timestampTest").getOrCreate()
+        cs.init_spark_schema(spark, Settings.data["TestSettings"]["dataDirectory"])
+
     # Create Context For BlazingSQL
 
     bc, dask_client = init_context()
 
     nRals = Settings.data["RunSettings"]["nRals"]
 
-    main(dask_client, drill, Settings.data["TestSettings"]["dataDirectory"],
+    main(dask_client, drill, spark, Settings.data["TestSettings"]["dataDirectory"],
          bc, nRals)
 
     if Settings.execution_mode != ExecutionMode.GENERATOR:
