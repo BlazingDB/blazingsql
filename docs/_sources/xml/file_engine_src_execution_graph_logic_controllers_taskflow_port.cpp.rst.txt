@@ -1,0 +1,48 @@
+
+.. _file_engine_src_execution_graph_logic_controllers_taskflow_port.cpp:
+
+File port.cpp
+=============
+
+|exhale_lsh| :ref:`Parent directory <dir_engine_src_execution_graph_logic_controllers_taskflow>` (``engine/src/execution_graph/logic_controllers/taskflow``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``engine/src/execution_graph/logic_controllers/taskflow/port.cpp``)
+-------------------------------------------------------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file_engine_src_execution_graph_logic_controllers_taskflow_port.cpp.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``kernel.h`` (:ref:`file_engine_src_execution_graph_logic_controllers_taskflow_distributing_kernel.h`)
+
+- ``port.h`` (:ref:`file_engine_src_communication_CommunicationInterface_bufferTransport.hpp`)
+
+
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_ral`
+
+- :ref:`namespace_ral__cache`
+

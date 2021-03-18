@@ -1,0 +1,16 @@
+.. _exhale_class_classCodeTimer:
+
+Class CodeTimer
+===============
+
+- Defined in :ref:`file_engine_src_CodeTimer.h`
+
+
+Class Documentation
+-------------------
+
+
+.. doxygenclass:: CodeTimer
+   :members:
+   :protected-members:
+   :undoc-members:

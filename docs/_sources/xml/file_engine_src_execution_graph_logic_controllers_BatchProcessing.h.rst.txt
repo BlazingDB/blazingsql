@@ -1,0 +1,104 @@
+
+.. _file_engine_src_execution_graph_logic_controllers_BatchProcessing.h:
+
+File BatchProcessing.h
+======================
+
+|exhale_lsh| :ref:`Parent directory <dir_engine_src_execution_graph_logic_controllers>` (``engine/src/execution_graph/logic_controllers``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``engine/src/execution_graph/logic_controllers/BatchProcessing.h``)
+-------------------------------------------------------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file_engine_src_execution_graph_logic_controllers_BatchProcessing.h.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``CacheMachine.h`` (:ref:`file_engine_src_execution_graph_logic_controllers_CacheMachine.h`)
+
+- ``execution_graph/logic_controllers/LogicPrimitives.h`` (:ref:`file_engine_src_execution_graph_logic_controllers_LogicPrimitives.h`)
+
+- ``execution_graph/logic_controllers/taskflow/kernel.h`` (:ref:`file_engine_src_execution_graph_logic_controllers_taskflow_kernel.h`)
+
+- ``io/DataLoader.h`` (:ref:`file_engine_src_io_DataLoader.h`)
+
+- ``io/Schema.h`` (:ref:`file_engine_src_io_Schema.h`)
+
+- ``mutex``
+
+- ``taskflow/graph.h`` (:ref:`file_engine_src_execution_graph_logic_controllers_taskflow_graph.h`)
+
+
+
+Included By
+-----------
+
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_BatchOrderByProcessing.h`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_BatchAggregationProcessing.h`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_BatchJoinProcessing.h`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_BatchUnionProcessing.h`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_BatchWindowFunctionProcessing.h`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_BatchProcessing.cpp`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_taskflow_graph.cpp`
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_ral`
+
+- :ref:`namespace_ral__batch`
+
+
+Classes
+-------
+
+
+- :ref:`exhale_class_classral_1_1batch_1_1BatchSequence`
+
+- :ref:`exhale_class_classral_1_1batch_1_1BatchSequenceBypass`
+
+- :ref:`exhale_class_classral_1_1batch_1_1BindableTableScan`
+
+- :ref:`exhale_class_classral_1_1batch_1_1Filter`
+
+- :ref:`exhale_class_classral_1_1batch_1_1OutputKernel`
+
+- :ref:`exhale_class_classral_1_1batch_1_1Print`
+
+- :ref:`exhale_class_classral_1_1batch_1_1Projection`
+
+- :ref:`exhale_class_classral_1_1batch_1_1TableScan`
+
+
+Typedefs
+--------
+
+
+- :ref:`exhale_typedef_BatchProcessing_8h_1a558c5bce9b3654ad7158381e97d73e29`
+

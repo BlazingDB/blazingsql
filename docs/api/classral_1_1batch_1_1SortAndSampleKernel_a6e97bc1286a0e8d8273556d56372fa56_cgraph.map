@@ -1,0 +1,12 @@
+<map id="ral::batch::SortAndSampleKernel::run" name="ral::batch::SortAndSampleKernel::run">
+<area shape="rect" id="node2" href="$classral_1_1cache_1_1kernel.html#aac90d80ed296715da2a7736691847270" title="Returns the input cache. " alt="" coords="453,5,576,47"/>
+<area shape="rect" id="node3" href="$classral_1_1cache_1_1kernel.html#a33ce6e9907abce1acedb01e236c6812e" title="Returns the kernel identifier. " alt="" coords="891,93,1013,135"/>
+<area shape="rect" id="node4" href="$classral_1_1cache_1_1kernel.html#a94c3bd66b93a0e67165d0a54741c19dc" title="Returns the output cache associated to an identifier. " alt="" coords="681,123,804,164"/>
+<area shape="rect" id="node5" href="$classral_1_1cache_1_1distributing__kernel.html#a6466f289452c10450861276054b751da" title="Resizes the vector of the message trackers. Keeping more than one message tracker is useful for examp..." alt="" coords="228,173,387,229"/>
+<area shape="rect" id="node6" href="$classral_1_1cache_1_1distributing__kernel.html#ac84717592ca882bcae7efd6a20ea2863" title="Sends each partition to its corresponding nodes and corresponding part_id More than one partition can..." alt="" coords="232,253,383,295"/>
+<area shape="rect" id="node7" href="$classral_1_1cache_1_1distributing__kernel.html#aa2c88f7cefd4bb5eee4058c7059c277e" title="Sends a table with their corresponding metadata. " alt="" coords="435,217,595,259"/>
+<area shape="rect" id="node10" href="$classral_1_1cache_1_1kernel.html#af6b7b538f6a692393f314a4f1037d4a6" title="Adds a BlazingTable into the output cache. " alt="" coords="437,312,592,353"/>
+<area shape="rect" id="node8" href="$classral_1_1cache_1_1MetadataDictionary.html#a99828bf2a71b8e06d568420e5c2b460d" title="ral::cache::MetadataDictionary\l::add_value" alt="" coords="643,188,843,229"/>
+<area shape="rect" id="node9" href="$classral_1_1cache_1_1MetadataDictionary.html#abdc2863d96dc839565f2078471f4c9f7" title="ral::cache::MetadataDictionary\l::get_values" alt="" coords="643,253,843,295"/>
+<area shape="rect" id="node11" href="$classral_1_1cache_1_1kernel.html#aa9e353759b65c2c53571cf80b0213d31" title="Returns the id message as a string. " alt="" coords="680,371,805,412"/>
+</map>

@@ -1,0 +1,38 @@
+
+.. _program_listing_file_engine_src_transport_common_macros.hpp:
+
+Program Listing for File macros.hpp
+===================================
+
+|exhale_lsh| :ref:`Return to documentation for file <file_engine_src_transport_common_macros.hpp>` (``engine/src/transport/common/macros.hpp``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. code-block:: cpp
+
+   #ifndef BLAZINGDB_UC_UTIL_MACROS_HPP_
+   #define BLAZINGDB_UC_UTIL_MACROS_HPP_
+   
+   #ifdef __GNUC__
+   #define UC_INLINE inline __attribute__((always_inline))
+   #else
+   #define UC_INLINE inline
+   #endif
+   
+   #define BZ_INTERFACE(Kind)               \
+   public:                                  \
+     virtual ~Kind() = default;             \
+                                            \
+   protected:                               \
+     explicit Kind() = default;             \
+                                            \
+   private:                                 \
+     Kind(const Kind &) = delete;           \
+     Kind(const Kind &&) = delete;          \
+     void operator=(const Kind &) = delete; \
+     void operator=(const Kind &&) = delete
+   
+   #define DefineClassName(className) \
+     static std::string MessageID() { return #className; }
+   
+   #endif

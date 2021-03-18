@@ -1,0 +1,551 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Enum operator_type &#8212; BlazingSQL v0.18 documentation</title>
+    
+  <link href="../_static/css/theme.css" rel="stylesheet" />
+  <link href="../_static/css/index.101715efdecc9b59cb6e1ddfa685c31f.css" rel="stylesheet" />
+
+    
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+
+    
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/getting_started.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
+    
+  <link rel="preload" as="script" href="../_static/js/index.d8bbf5861d671d414e1a.js">
+
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/d3.v3.min.js"></script>
+    <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
+    <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
+    <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="container-xl">
+
+
+    
+      
+      <a class="navbar-brand" href="../index.html">
+        <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo">
+      </a>
+      
+    
+
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        <li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../arch.html">
+  BlazingSQL Project Architecture
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../graph.html">
+  Execution Engine
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../api.html">
+  API Documentation
+ </a>
+</li>
+
+        
+      </ul>
+
+      <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+            
+            <!-- Only show if we have sidebars configured, else just a small margin  -->
+            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <div class="bd-toc-item active">
+    
+  </div>
+</nav>
+            </div>
+            
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#enum-documentation">
+   Enum Documentation
+  </a>
+ </li>
+</ul>
+
+</nav>
+
+
+
+<div class="tocsection editthispage">
+    <a href="https://github.com/blazingdb/blazingsql/edit/feedback/docsrc/source/xml/enum_expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3e.rst">
+        <i class="fas fa-pencil-alt"></i> Edit this page
+    </a>
+</div>
+
+              
+          </div>
+          
+
+          
+          
+            
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="enum-operator-type">
+<span id="exhale-enum-expression-utils-8hpp-1aa4e0b391dad4cb8871271b6d6374fc3e"></span><h1>Enum operator_type<a class="headerlink" href="#enum-operator-type" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p>Defined in <a class="reference internal" href="file_engine_src_parser_expression_utils.hpp.html#file-engine-src-parser-expression-utils-hpp"><span class="std std-ref">File expression_utils.hpp</span></a></p></li>
+</ul>
+<div class="section" id="enum-documentation">
+<h2>Enum Documentation<a class="headerlink" href="#enum-documentation" title="Permalink to this headline">¶</a></h2>
+<dl class="cpp enum">
+<dt id="_CPPv413operator_type">
+<span id="_CPPv313operator_type"></span><span id="_CPPv213operator_type"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3e"></span><em class="property"><span class="pre">enum</span> </em><code class="sig-name descname"><span class="pre">operator_type</span></code><a class="headerlink" href="#_CPPv413operator_type" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p><em>Values:</em></p>
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type14BLZ_INVALID_OPE">
+<span id="_CPPv3N13operator_type14BLZ_INVALID_OPE"></span><span id="_CPPv2N13operator_type14BLZ_INVALID_OPE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea1983ac3158d68c3d98feae75547c3edd"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_INVALID_OP</span></code><a class="headerlink" href="#_CPPv4N13operator_type14BLZ_INVALID_OPE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type8BLZ_RANDE">
+<span id="_CPPv3N13operator_type8BLZ_RANDE"></span><span id="_CPPv2N13operator_type8BLZ_RANDE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea0e673dbc196ac9a04f2ac5ce3b4aaa79"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_RAND</span></code><a class="headerlink" href="#_CPPv4N13operator_type8BLZ_RANDE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type7BLZ_NOTE">
+<span id="_CPPv3N13operator_type7BLZ_NOTE"></span><span id="_CPPv2N13operator_type7BLZ_NOTE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea39e261690ef7ceca8adffe5d181dddbd"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_NOT</span></code><a class="headerlink" href="#_CPPv4N13operator_type7BLZ_NOTE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type7BLZ_ABSE">
+<span id="_CPPv3N13operator_type7BLZ_ABSE"></span><span id="_CPPv2N13operator_type7BLZ_ABSE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea1043a6b5463d6e27e1fa92e43f5779fc"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_ABS</span></code><a class="headerlink" href="#_CPPv4N13operator_type7BLZ_ABSE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type9BLZ_FLOORE">
+<span id="_CPPv3N13operator_type9BLZ_FLOORE"></span><span id="_CPPv2N13operator_type9BLZ_FLOORE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea24076a6ed88e6cc92a991504a41ba14a"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_FLOOR</span></code><a class="headerlink" href="#_CPPv4N13operator_type9BLZ_FLOORE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type8BLZ_CEILE">
+<span id="_CPPv3N13operator_type8BLZ_CEILE"></span><span id="_CPPv2N13operator_type8BLZ_CEILE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3eaf4755788ff730ee9b8bf0c3d9004bf2d"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_CEIL</span></code><a class="headerlink" href="#_CPPv4N13operator_type8BLZ_CEILE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type7BLZ_SINE">
+<span id="_CPPv3N13operator_type7BLZ_SINE"></span><span id="_CPPv2N13operator_type7BLZ_SINE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea995c80e73976f3828efb17cd2e10cff6"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_SIN</span></code><a class="headerlink" href="#_CPPv4N13operator_type7BLZ_SINE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type7BLZ_COSE">
+<span id="_CPPv3N13operator_type7BLZ_COSE"></span><span id="_CPPv2N13operator_type7BLZ_COSE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea520a1383e99d347b5b0ab51a65570377"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_COS</span></code><a class="headerlink" href="#_CPPv4N13operator_type7BLZ_COSE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type8BLZ_ASINE">
+<span id="_CPPv3N13operator_type8BLZ_ASINE"></span><span id="_CPPv2N13operator_type8BLZ_ASINE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3eaa0b22831afa1fbe4f7440c7e9f59c360"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_ASIN</span></code><a class="headerlink" href="#_CPPv4N13operator_type8BLZ_ASINE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type8BLZ_ACOSE">
+<span id="_CPPv3N13operator_type8BLZ_ACOSE"></span><span id="_CPPv2N13operator_type8BLZ_ACOSE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3eaa8dfb5c6256517b1f22a97b5fd45bccd"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_ACOS</span></code><a class="headerlink" href="#_CPPv4N13operator_type8BLZ_ACOSE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type7BLZ_TANE">
+<span id="_CPPv3N13operator_type7BLZ_TANE"></span><span id="_CPPv2N13operator_type7BLZ_TANE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea19e1637150dd29062feeafe67ab03085"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_TAN</span></code><a class="headerlink" href="#_CPPv4N13operator_type7BLZ_TANE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type9BLZ_COTANE">
+<span id="_CPPv3N13operator_type9BLZ_COTANE"></span><span id="_CPPv2N13operator_type9BLZ_COTANE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea4a5d202b8cbe30d9cd3f0d210485a694"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_COTAN</span></code><a class="headerlink" href="#_CPPv4N13operator_type9BLZ_COTANE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type8BLZ_ATANE">
+<span id="_CPPv3N13operator_type8BLZ_ATANE"></span><span id="_CPPv2N13operator_type8BLZ_ATANE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3eab2f477a30d5245f94d1c3883e645ee9e"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_ATAN</span></code><a class="headerlink" href="#_CPPv4N13operator_type8BLZ_ATANE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type6BLZ_LNE">
+<span id="_CPPv3N13operator_type6BLZ_LNE"></span><span id="_CPPv2N13operator_type6BLZ_LNE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3eaea17f4c3509cc2398c7286db5c0c8382"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_LN</span></code><a class="headerlink" href="#_CPPv4N13operator_type6BLZ_LNE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type7BLZ_LOGE">
+<span id="_CPPv3N13operator_type7BLZ_LOGE"></span><span id="_CPPv2N13operator_type7BLZ_LOGE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ead9af4259137a4856e2b34bcf7f455791"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_LOG</span></code><a class="headerlink" href="#_CPPv4N13operator_type7BLZ_LOGE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type8BLZ_YEARE">
+<span id="_CPPv3N13operator_type8BLZ_YEARE"></span><span id="_CPPv2N13operator_type8BLZ_YEARE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea9a502276354dfa9a88a1ee77bc11985a"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_YEAR</span></code><a class="headerlink" href="#_CPPv4N13operator_type8BLZ_YEARE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type9BLZ_MONTHE">
+<span id="_CPPv3N13operator_type9BLZ_MONTHE"></span><span id="_CPPv2N13operator_type9BLZ_MONTHE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3eac37baa54fc55d4eabf5089552a7d20df"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_MONTH</span></code><a class="headerlink" href="#_CPPv4N13operator_type9BLZ_MONTHE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type7BLZ_DAYE">
+<span id="_CPPv3N13operator_type7BLZ_DAYE"></span><span id="_CPPv2N13operator_type7BLZ_DAYE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea819fe3937d534c0489401e0e61dcd5b0"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_DAY</span></code><a class="headerlink" href="#_CPPv4N13operator_type7BLZ_DAYE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type13BLZ_DAYOFWEEKE">
+<span id="_CPPv3N13operator_type13BLZ_DAYOFWEEKE"></span><span id="_CPPv2N13operator_type13BLZ_DAYOFWEEKE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea3f352f0d26fd94e20abe60af740793e5"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_DAYOFWEEK</span></code><a class="headerlink" href="#_CPPv4N13operator_type13BLZ_DAYOFWEEKE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type8BLZ_HOURE">
+<span id="_CPPv3N13operator_type8BLZ_HOURE"></span><span id="_CPPv2N13operator_type8BLZ_HOURE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea61635b1c89e2363c53e9d84a6196bd08"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_HOUR</span></code><a class="headerlink" href="#_CPPv4N13operator_type8BLZ_HOURE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type10BLZ_MINUTEE">
+<span id="_CPPv3N13operator_type10BLZ_MINUTEE"></span><span id="_CPPv2N13operator_type10BLZ_MINUTEE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3eadfbcc772aee8aa41f92b1f46a9d8492d"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_MINUTE</span></code><a class="headerlink" href="#_CPPv4N13operator_type10BLZ_MINUTEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type10BLZ_SECONDE">
+<span id="_CPPv3N13operator_type10BLZ_SECONDE"></span><span id="_CPPv2N13operator_type10BLZ_SECONDE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea986f0c32721842587046af33287f990d"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_SECOND</span></code><a class="headerlink" href="#_CPPv4N13operator_type10BLZ_SECONDE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type11BLZ_IS_NULLE">
+<span id="_CPPv3N13operator_type11BLZ_IS_NULLE"></span><span id="_CPPv2N13operator_type11BLZ_IS_NULLE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea45e6b02d269e1ade637ef429cda06751"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_IS_NULL</span></code><a class="headerlink" href="#_CPPv4N13operator_type11BLZ_IS_NULLE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type15BLZ_IS_NOT_NULLE">
+<span id="_CPPv3N13operator_type15BLZ_IS_NOT_NULLE"></span><span id="_CPPv2N13operator_type15BLZ_IS_NOT_NULLE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3eacaf623bc50bb91ca2477c1bc8a2c9188"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_IS_NOT_NULL</span></code><a class="headerlink" href="#_CPPv4N13operator_type15BLZ_IS_NOT_NULLE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type16BLZ_CAST_TINYINTE">
+<span id="_CPPv3N13operator_type16BLZ_CAST_TINYINTE"></span><span id="_CPPv2N13operator_type16BLZ_CAST_TINYINTE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3eabec4ae1dd80e6586c89026b0c1829d92"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_CAST_TINYINT</span></code><a class="headerlink" href="#_CPPv4N13operator_type16BLZ_CAST_TINYINTE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type17BLZ_CAST_SMALLINTE">
+<span id="_CPPv3N13operator_type17BLZ_CAST_SMALLINTE"></span><span id="_CPPv2N13operator_type17BLZ_CAST_SMALLINTE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea2f978d83020fcc5ac378f8489238433d"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_CAST_SMALLINT</span></code><a class="headerlink" href="#_CPPv4N13operator_type17BLZ_CAST_SMALLINTE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type16BLZ_CAST_INTEGERE">
+<span id="_CPPv3N13operator_type16BLZ_CAST_INTEGERE"></span><span id="_CPPv2N13operator_type16BLZ_CAST_INTEGERE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea1c61ee0f63a791d8a7b2fa5fc104a74f"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_CAST_INTEGER</span></code><a class="headerlink" href="#_CPPv4N13operator_type16BLZ_CAST_INTEGERE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type15BLZ_CAST_BIGINTE">
+<span id="_CPPv3N13operator_type15BLZ_CAST_BIGINTE"></span><span id="_CPPv2N13operator_type15BLZ_CAST_BIGINTE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea55f422814f00952f78ebb51eaa6bc8cb"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_CAST_BIGINT</span></code><a class="headerlink" href="#_CPPv4N13operator_type15BLZ_CAST_BIGINTE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type14BLZ_CAST_FLOATE">
+<span id="_CPPv3N13operator_type14BLZ_CAST_FLOATE"></span><span id="_CPPv2N13operator_type14BLZ_CAST_FLOATE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea8c9033dc17e9fc20c530511949282574"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_CAST_FLOAT</span></code><a class="headerlink" href="#_CPPv4N13operator_type14BLZ_CAST_FLOATE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type15BLZ_CAST_DOUBLEE">
+<span id="_CPPv3N13operator_type15BLZ_CAST_DOUBLEE"></span><span id="_CPPv2N13operator_type15BLZ_CAST_DOUBLEE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea0be4dd172f87147885bf6b2167b46b8b"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_CAST_DOUBLE</span></code><a class="headerlink" href="#_CPPv4N13operator_type15BLZ_CAST_DOUBLEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type13BLZ_CAST_DATEE">
+<span id="_CPPv3N13operator_type13BLZ_CAST_DATEE"></span><span id="_CPPv2N13operator_type13BLZ_CAST_DATEE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3eaf40b7f7ca1cdc0db1b5fbef800d73fab"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_CAST_DATE</span></code><a class="headerlink" href="#_CPPv4N13operator_type13BLZ_CAST_DATEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type18BLZ_CAST_TIMESTAMPE">
+<span id="_CPPv3N13operator_type18BLZ_CAST_TIMESTAMPE"></span><span id="_CPPv2N13operator_type18BLZ_CAST_TIMESTAMPE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea4e32561c8fbb9422c0b98c22d6039405"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_CAST_TIMESTAMP</span></code><a class="headerlink" href="#_CPPv4N13operator_type18BLZ_CAST_TIMESTAMPE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type16BLZ_CAST_VARCHARE">
+<span id="_CPPv3N13operator_type16BLZ_CAST_VARCHARE"></span><span id="_CPPv2N13operator_type16BLZ_CAST_VARCHARE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea05b236e6602def6bd40f86763a27da8f"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_CAST_VARCHAR</span></code><a class="headerlink" href="#_CPPv4N13operator_type16BLZ_CAST_VARCHARE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type15BLZ_CHAR_LENGTHE">
+<span id="_CPPv3N13operator_type15BLZ_CHAR_LENGTHE"></span><span id="_CPPv2N13operator_type15BLZ_CHAR_LENGTHE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea2d62119e1eda1bb88e7f115fa238e76d"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_CHAR_LENGTH</span></code><a class="headerlink" href="#_CPPv4N13operator_type15BLZ_CHAR_LENGTHE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type13BLZ_STR_LOWERE">
+<span id="_CPPv3N13operator_type13BLZ_STR_LOWERE"></span><span id="_CPPv2N13operator_type13BLZ_STR_LOWERE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3eabace7247e970b4d94fa8e5fe8bd152f8"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_STR_LOWER</span></code><a class="headerlink" href="#_CPPv4N13operator_type13BLZ_STR_LOWERE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type13BLZ_STR_UPPERE">
+<span id="_CPPv3N13operator_type13BLZ_STR_UPPERE"></span><span id="_CPPv2N13operator_type13BLZ_STR_UPPERE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea454dac808d16853c499409ce606c232a"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_STR_UPPER</span></code><a class="headerlink" href="#_CPPv4N13operator_type13BLZ_STR_UPPERE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type15BLZ_STR_INITCAPE">
+<span id="_CPPv3N13operator_type15BLZ_STR_INITCAPE"></span><span id="_CPPv2N13operator_type15BLZ_STR_INITCAPE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3eac7899ddb9183485551c3ef3590251f91"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_STR_INITCAP</span></code><a class="headerlink" href="#_CPPv4N13operator_type15BLZ_STR_INITCAPE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type15BLZ_STR_REVERSEE">
+<span id="_CPPv3N13operator_type15BLZ_STR_REVERSEE"></span><span id="_CPPv2N13operator_type15BLZ_STR_REVERSEE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea8749b4b142f3eb2febf1eda8d3c95c4a"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_STR_REVERSE</span></code><a class="headerlink" href="#_CPPv4N13operator_type15BLZ_STR_REVERSEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type7BLZ_ADDE">
+<span id="_CPPv3N13operator_type7BLZ_ADDE"></span><span id="_CPPv2N13operator_type7BLZ_ADDE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea619121dbfeea1111e9e3e39d45086c41"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_ADD</span></code><a class="headerlink" href="#_CPPv4N13operator_type7BLZ_ADDE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>operator + </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type7BLZ_SUBE">
+<span id="_CPPv3N13operator_type7BLZ_SUBE"></span><span id="_CPPv2N13operator_type7BLZ_SUBE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea6092ed122f1e33a2a6291c2514e11db7"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_SUB</span></code><a class="headerlink" href="#_CPPv4N13operator_type7BLZ_SUBE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>operator - </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type7BLZ_MULE">
+<span id="_CPPv3N13operator_type7BLZ_MULE"></span><span id="_CPPv2N13operator_type7BLZ_MULE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3eaf21e5bccf824990b416b1c598e6cf825"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_MUL</span></code><a class="headerlink" href="#_CPPv4N13operator_type7BLZ_MULE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>operator * </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type7BLZ_DIVE">
+<span id="_CPPv3N13operator_type7BLZ_DIVE"></span><span id="_CPPv2N13operator_type7BLZ_DIVE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea611e0c4bf2537273666943ce40752342"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_DIV</span></code><a class="headerlink" href="#_CPPv4N13operator_type7BLZ_DIVE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>operator / using common type of lhs and rhs </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type7BLZ_MODE">
+<span id="_CPPv3N13operator_type7BLZ_MODE"></span><span id="_CPPv2N13operator_type7BLZ_MODE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea3ddc0a74bc1e81f300bf1049a0653dc4"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_MOD</span></code><a class="headerlink" href="#_CPPv4N13operator_type7BLZ_MODE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>operator % </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type7BLZ_POWE">
+<span id="_CPPv3N13operator_type7BLZ_POWE"></span><span id="_CPPv2N13operator_type7BLZ_POWE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea1354ca5c0986c6fbee989f92949ddc53"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_POW</span></code><a class="headerlink" href="#_CPPv4N13operator_type7BLZ_POWE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>lhs ^ rhs </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type9BLZ_ROUNDE">
+<span id="_CPPv3N13operator_type9BLZ_ROUNDE"></span><span id="_CPPv2N13operator_type9BLZ_ROUNDE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea6fc1277da760135c49248f3352f62bae"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_ROUND</span></code><a class="headerlink" href="#_CPPv4N13operator_type9BLZ_ROUNDE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type9BLZ_EQUALE">
+<span id="_CPPv3N13operator_type9BLZ_EQUALE"></span><span id="_CPPv2N13operator_type9BLZ_EQUALE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea02fad5f9e09a90dffe4ca8bc3fcfb6cf"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_EQUAL</span></code><a class="headerlink" href="#_CPPv4N13operator_type9BLZ_EQUALE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>operator == </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type13BLZ_NOT_EQUALE">
+<span id="_CPPv3N13operator_type13BLZ_NOT_EQUALE"></span><span id="_CPPv2N13operator_type13BLZ_NOT_EQUALE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea90109a1a8087551d5d97e90793012ced"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_NOT_EQUAL</span></code><a class="headerlink" href="#_CPPv4N13operator_type13BLZ_NOT_EQUALE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>operator != </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type8BLZ_LESSE">
+<span id="_CPPv3N13operator_type8BLZ_LESSE"></span><span id="_CPPv2N13operator_type8BLZ_LESSE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea3367233e04b5f842a45ff78a13692ad1"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_LESS</span></code><a class="headerlink" href="#_CPPv4N13operator_type8BLZ_LESSE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>operator &lt; </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type11BLZ_GREATERE">
+<span id="_CPPv3N13operator_type11BLZ_GREATERE"></span><span id="_CPPv2N13operator_type11BLZ_GREATERE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea720b947fe71fb6bbdc8622f4e93d7c7d"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_GREATER</span></code><a class="headerlink" href="#_CPPv4N13operator_type11BLZ_GREATERE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>operator &gt; </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type14BLZ_LESS_EQUALE">
+<span id="_CPPv3N13operator_type14BLZ_LESS_EQUALE"></span><span id="_CPPv2N13operator_type14BLZ_LESS_EQUALE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea42f724472bddbf49bb39bd4cff2b3764"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_LESS_EQUAL</span></code><a class="headerlink" href="#_CPPv4N13operator_type14BLZ_LESS_EQUALE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>operator &lt;= </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type17BLZ_GREATER_EQUALE">
+<span id="_CPPv3N13operator_type17BLZ_GREATER_EQUALE"></span><span id="_CPPv2N13operator_type17BLZ_GREATER_EQUALE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea2c20917ac494716e43c396b6e003058f"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_GREATER_EQUAL</span></code><a class="headerlink" href="#_CPPv4N13operator_type17BLZ_GREATER_EQUALE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>operator &gt;= </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type15BLZ_BITWISE_ANDE">
+<span id="_CPPv3N13operator_type15BLZ_BITWISE_ANDE"></span><span id="_CPPv2N13operator_type15BLZ_BITWISE_ANDE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea27c56d16ae489b75ebde65758ddd19e0"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_BITWISE_AND</span></code><a class="headerlink" href="#_CPPv4N13operator_type15BLZ_BITWISE_ANDE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>operator &amp; </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type14BLZ_BITWISE_ORE">
+<span id="_CPPv3N13operator_type14BLZ_BITWISE_ORE"></span><span id="_CPPv2N13operator_type14BLZ_BITWISE_ORE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea2ca0e0bfd73ac4047a5874bad6f566c5"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_BITWISE_OR</span></code><a class="headerlink" href="#_CPPv4N13operator_type14BLZ_BITWISE_ORE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>operator | </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type15BLZ_BITWISE_XORE">
+<span id="_CPPv3N13operator_type15BLZ_BITWISE_XORE"></span><span id="_CPPv2N13operator_type15BLZ_BITWISE_XORE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3eaa292076eee5495d1a73ade9e7e378680"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_BITWISE_XOR</span></code><a class="headerlink" href="#_CPPv4N13operator_type15BLZ_BITWISE_XORE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>operator ^ </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type15BLZ_LOGICAL_ANDE">
+<span id="_CPPv3N13operator_type15BLZ_LOGICAL_ANDE"></span><span id="_CPPv2N13operator_type15BLZ_LOGICAL_ANDE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3eae0898bc0b3fa36691481e3ffec1f9b08"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_LOGICAL_AND</span></code><a class="headerlink" href="#_CPPv4N13operator_type15BLZ_LOGICAL_ANDE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>operator &amp;&amp; </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type14BLZ_LOGICAL_ORE">
+<span id="_CPPv3N13operator_type14BLZ_LOGICAL_ORE"></span><span id="_CPPv2N13operator_type14BLZ_LOGICAL_ORE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea741458f75c39960f601da87b34168350"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_LOGICAL_OR</span></code><a class="headerlink" href="#_CPPv4N13operator_type14BLZ_LOGICAL_ORE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>operator || </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type19BLZ_FIRST_NON_MAGICE">
+<span id="_CPPv3N13operator_type19BLZ_FIRST_NON_MAGICE"></span><span id="_CPPv2N13operator_type19BLZ_FIRST_NON_MAGICE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea05897e3b5c0409bfcb726dbeab5304ff"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_FIRST_NON_MAGIC</span></code><a class="headerlink" href="#_CPPv4N13operator_type19BLZ_FIRST_NON_MAGICE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type16BLZ_MAGIC_IF_NOTE">
+<span id="_CPPv3N13operator_type16BLZ_MAGIC_IF_NOTE"></span><span id="_CPPv2N13operator_type16BLZ_MAGIC_IF_NOTE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3eaef8424a43cb4d3a912ef67846c3c81b6"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_MAGIC_IF_NOT</span></code><a class="headerlink" href="#_CPPv4N13operator_type16BLZ_MAGIC_IF_NOTE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type12BLZ_STR_LIKEE">
+<span id="_CPPv3N13operator_type12BLZ_STR_LIKEE"></span><span id="_CPPv2N13operator_type12BLZ_STR_LIKEE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea3da57fca5aa82eaaa135a111cc59f6ae"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_STR_LIKE</span></code><a class="headerlink" href="#_CPPv4N13operator_type12BLZ_STR_LIKEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type17BLZ_STR_SUBSTRINGE">
+<span id="_CPPv3N13operator_type17BLZ_STR_SUBSTRINGE"></span><span id="_CPPv2N13operator_type17BLZ_STR_SUBSTRINGE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3eaecbf6cb5bf140d76d4b783afebbfe3a8"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_STR_SUBSTRING</span></code><a class="headerlink" href="#_CPPv4N13operator_type17BLZ_STR_SUBSTRINGE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type22BLZ_STR_REGEXP_REPLACEE">
+<span id="_CPPv3N13operator_type22BLZ_STR_REGEXP_REPLACEE"></span><span id="_CPPv2N13operator_type22BLZ_STR_REGEXP_REPLACEE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3eaf265c875de2eb4cdbaec84853fb24c18"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_STR_REGEXP_REPLACE</span></code><a class="headerlink" href="#_CPPv4N13operator_type22BLZ_STR_REGEXP_REPLACEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type14BLZ_STR_CONCATE">
+<span id="_CPPv3N13operator_type14BLZ_STR_CONCATE"></span><span id="_CPPv2N13operator_type14BLZ_STR_CONCATE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3eadb4cd566a94c67b57c105aeb692633a2"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_STR_CONCAT</span></code><a class="headerlink" href="#_CPPv4N13operator_type14BLZ_STR_CONCATE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type15BLZ_STR_REPLACEE">
+<span id="_CPPv3N13operator_type15BLZ_STR_REPLACEE"></span><span id="_CPPv2N13operator_type15BLZ_STR_REPLACEE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3eade2c57e635e3c73a0bf66efaee132f9d"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_STR_REPLACE</span></code><a class="headerlink" href="#_CPPv4N13operator_type15BLZ_STR_REPLACEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type12BLZ_STR_LEFTE">
+<span id="_CPPv3N13operator_type12BLZ_STR_LEFTE"></span><span id="_CPPv2N13operator_type12BLZ_STR_LEFTE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3eac61d28d40c7943aef95cfaac42e44b30"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_STR_LEFT</span></code><a class="headerlink" href="#_CPPv4N13operator_type12BLZ_STR_LEFTE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type13BLZ_STR_RIGHTE">
+<span id="_CPPv3N13operator_type13BLZ_STR_RIGHTE"></span><span id="_CPPv2N13operator_type13BLZ_STR_RIGHTE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea896386f12fd95caf45a1ca8d4db843d5"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_STR_RIGHT</span></code><a class="headerlink" href="#_CPPv4N13operator_type13BLZ_STR_RIGHTE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type11BLZ_TO_DATEE">
+<span id="_CPPv3N13operator_type11BLZ_TO_DATEE"></span><span id="_CPPv2N13operator_type11BLZ_TO_DATEE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea424a89986ecddb37a488f136b216b128"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_TO_DATE</span></code><a class="headerlink" href="#_CPPv4N13operator_type11BLZ_TO_DATEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type16BLZ_TO_TIMESTAMPE">
+<span id="_CPPv3N13operator_type16BLZ_TO_TIMESTAMPE"></span><span id="_CPPv2N13operator_type16BLZ_TO_TIMESTAMPE"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3eae9dd5d32b30a54497ad35ed7569df9d3"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_TO_TIMESTAMP</span></code><a class="headerlink" href="#_CPPv4N13operator_type16BLZ_TO_TIMESTAMPE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N13operator_type12BLZ_STR_TRIME">
+<span id="_CPPv3N13operator_type12BLZ_STR_TRIME"></span><span id="_CPPv2N13operator_type12BLZ_STR_TRIME"></span><span class="target" id="expression__utils_8hpp_1aa4e0b391dad4cb8871271b6d6374fc3ea382426f383da93c1f0fdfe94ee0047c2"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">BLZ_STR_TRIM</span></code><a class="headerlink" href="#_CPPv4N13operator_type12BLZ_STR_TRIME" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+              </div>
+              
+              
+              <div class='prev-next-bottom'>
+                
+
+              </div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../_static/js/index.d8bbf5861d671d414e1a.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright 2020, BlazingDB, Inc..<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

@@ -1,0 +1,3 @@
+<map id="comm::ucx_buffer_transport" name="comm::ucx_buffer_transport">
+<area shape="rect" id="node2" href="$classcomm_1_1buffer__transport.html" title="Base class used to send a chunk of bytes throught a transport protocol e.g. TCP, UCP, etc. " alt="" coords="19,5,177,32"/>
+</map>

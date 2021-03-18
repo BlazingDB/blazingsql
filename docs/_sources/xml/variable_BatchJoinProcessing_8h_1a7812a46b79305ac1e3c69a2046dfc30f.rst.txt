@@ -1,0 +1,13 @@
+.. _exhale_variable_BatchJoinProcessing_8h_1a7812a46b79305ac1e3c69a2046dfc30f:
+
+Variable ral::batch::OUTER_JOIN
+===============================
+
+- Defined in :ref:`file_engine_src_execution_graph_logic_controllers_BatchJoinProcessing.h`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: ral::batch::OUTER_JOIN

@@ -1,0 +1,31 @@
+
+.. _program_listing_file_engine_src_communication_CommunicationInterface_serializer.hpp:
+
+Program Listing for File serializer.hpp
+=======================================
+
+|exhale_lsh| :ref:`Return to documentation for file <file_engine_src_communication_CommunicationInterface_serializer.hpp>` (``engine/src/communication/CommunicationInterface/serializer.hpp``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. code-block:: cpp
+
+   #pragma once
+   
+   #include <vector>
+   #include <map>
+   #include <memory>
+   #include <tuple>
+   #include <rmm/device_buffer.hpp>
+   #include <transport/ColumnTransport.h>
+   #include "execution_graph/logic_controllers/LogicPrimitives.h"
+   
+   namespace comm {
+   
+   
+   std::unique_ptr<ral::frame::BlazingTable> deserialize_from_gpu_raw_buffers(
+     const std::vector<blazingdb::transport::ColumnTransport> & columns_offsets,
+     const std::vector<rmm::device_buffer> & raw_buffers,
+     cudaStream_t stream = 0);
+   
+   } // namespace comm

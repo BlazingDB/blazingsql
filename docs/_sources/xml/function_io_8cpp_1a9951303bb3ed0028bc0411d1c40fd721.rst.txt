@@ -1,0 +1,13 @@
+.. _exhale_function_io_8cpp_1a9951303bb3ed0028bc0411d1c40fd721:
+
+Function registerFileSystemHDFS_C
+=================================
+
+- Defined in :ref:`file_engine_src_cython_io.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: registerFileSystemHDFS_C(HDFS, std::string, std::string)

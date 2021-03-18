@@ -1,0 +1,641 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Program Listing for File protocols.cpp &#8212; BlazingSQL v0.18 documentation</title>
+    
+  <link href="../_static/css/theme.css" rel="stylesheet" />
+  <link href="../_static/css/index.101715efdecc9b59cb6e1ddfa685c31f.css" rel="stylesheet" />
+
+    
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+
+    
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/getting_started.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
+    
+  <link rel="preload" as="script" href="../_static/js/index.d8bbf5861d671d414e1a.js">
+
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/d3.v3.min.js"></script>
+    <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
+    <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
+    <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="container-xl">
+
+
+    
+      
+      <a class="navbar-brand" href="../index.html">
+        <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo">
+      </a>
+      
+    
+
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        <li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../arch.html">
+  BlazingSQL Project Architecture
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../graph.html">
+  Execution Engine
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../api.html">
+  API Documentation
+ </a>
+</li>
+
+        
+      </ul>
+
+      <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+            
+            <!-- Only show if we have sidebars configured, else just a small margin  -->
+            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <div class="bd-toc-item active">
+    
+  </div>
+</nav>
+            </div>
+            
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+
+<nav id="bd-toc-nav">
+    
+</nav>
+
+
+
+<div class="tocsection editthispage">
+    <a href="https://github.com/blazingdb/blazingsql/edit/feedback/docsrc/source/xml/program_listing_file_engine_src_communication_CommunicationInterface_protocols.cpp.rst">
+        <i class="fas fa-pencil-alt"></i> Edit this page
+    </a>
+</div>
+
+              
+          </div>
+          
+
+          
+          
+            
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="program-listing-for-file-protocols-cpp">
+<span id="program-listing-file-engine-src-communication-communicationinterface-protocols-cpp"></span><h1>Program Listing for File protocols.cpp<a class="headerlink" href="#program-listing-for-file-protocols-cpp" title="Permalink to this headline">¶</a></h1>
+<p>↰ <a class="reference internal" href="file_engine_src_communication_CommunicationInterface_protocols.cpp.html#file-engine-src-communication-communicationinterface-protocols-cpp"><span class="std std-ref">Return to documentation for file</span></a> (<code class="docutils literal notranslate"><span class="pre">engine/src/communication/CommunicationInterface/protocols.cpp</span></code>)</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;map&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;vector&gt;</span><span class="cp"></span>
+
+<span class="cp">#include</span> <span class="cpf">&quot;protocols.hpp&quot;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&quot;messageReceiver.hpp&quot;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&quot;CodeTimer.h&quot;</span><span class="cp"></span>
+
+<span class="cp">#include</span> <span class="cpf">&lt;ucp/api/ucp.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;ucp/api/ucp_def.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;thread&gt;</span><span class="cp"></span>
+
+
+<span class="cp">#include</span> <span class="cpf">&quot;execution_graph/logic_controllers/CacheMachine.h&quot;</span><span class="cp"></span>
+
+<span class="k">using</span> <span class="k">namespace</span> <span class="n">fmt</span><span class="o">::</span><span class="n">literals</span><span class="p">;</span>
+<span class="k">using</span> <span class="k">namespace</span> <span class="n">std</span><span class="o">::</span><span class="n">chrono_literals</span><span class="p">;</span>
+
+<span class="k">constexpr</span> <span class="kt">size_t</span> <span class="n">NUMBER_RETRIES</span> <span class="o">=</span> <span class="mi">20</span><span class="p">;</span>
+<span class="k">constexpr</span> <span class="kt">size_t</span> <span class="n">FILE_RETRY_DELAY</span> <span class="o">=</span> <span class="mi">20</span><span class="p">;</span>
+
+
+<span class="k">namespace</span> <span class="n">io</span><span class="p">{</span>
+
+
+    <span class="kt">void</span> <span class="n">read_from_socket</span><span class="p">(</span><span class="kt">int</span> <span class="n">socket_fd</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span> <span class="n">data</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">read_size</span><span class="p">){</span>
+        <span class="k">try</span> <span class="p">{</span>
+            <span class="kt">size_t</span> <span class="n">amount_read</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+            <span class="kt">int</span> <span class="n">bytes_read</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+            <span class="kt">size_t</span> <span class="n">count_invalids</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+            <span class="k">while</span> <span class="p">(</span><span class="n">amount_read</span> <span class="o">&lt;</span> <span class="n">read_size</span> <span class="o">&amp;&amp;</span> <span class="n">count_invalids</span> <span class="o">&lt;</span> <span class="n">NUMBER_RETRIES</span><span class="p">)</span> <span class="p">{</span>
+                <span class="n">bytes_read</span> <span class="o">=</span> <span class="n">read</span><span class="p">(</span><span class="n">socket_fd</span><span class="p">,</span> <span class="n">data</span> <span class="o">+</span> <span class="n">amount_read</span><span class="p">,</span> <span class="n">read_size</span> <span class="o">-</span> <span class="n">amount_read</span><span class="p">);</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">bytes_read</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+                    <span class="n">amount_read</span> <span class="o">+=</span> <span class="n">bytes_read</span><span class="p">;</span>
+                    <span class="n">count_invalids</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+                <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">errno</span> <span class="o">==</span> <span class="mi">9</span><span class="p">)</span> <span class="p">{</span> <span class="c1">// Bad socket number</span>
+                        <span class="n">std</span><span class="o">::</span><span class="n">cerr</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Bad socket reading from  &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">socket_fd</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+                        <span class="k">throw</span> <span class="n">std</span><span class="o">::</span><span class="n">runtime_error</span><span class="p">(</span><span class="s">&quot;Bad socket&quot;</span><span class="p">);</span>
+                    <span class="p">}</span>
+                    <span class="k">const</span> <span class="kt">int</span> <span class="n">sleep_milliseconds</span> <span class="o">=</span> <span class="p">(</span><span class="n">count_invalids</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">FILE_RETRY_DELAY</span><span class="p">;</span>
+                    <span class="n">std</span><span class="o">::</span><span class="n">this_thread</span><span class="o">::</span><span class="n">sleep_for</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">chrono</span><span class="o">::</span><span class="n">milliseconds</span><span class="p">(</span><span class="n">sleep_milliseconds</span><span class="p">));</span>
+                    <span class="n">count_invalids</span><span class="o">++</span><span class="p">;</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">amount_read</span> <span class="o">&lt;</span> <span class="n">read_size</span><span class="p">){</span>
+                <span class="k">throw</span> <span class="n">std</span><span class="o">::</span><span class="n">runtime_error</span><span class="p">(</span><span class="s">&quot;Could not read complete message from socket with errno &quot;</span>  <span class="o">+</span> <span class="n">std</span><span class="o">::</span><span class="n">to_string</span><span class="p">(</span><span class="n">errno</span><span class="p">));</span>
+            <span class="p">}</span>
+        <span class="p">}</span> <span class="k">catch</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">exception</span> <span class="o">&amp;</span> <span class="n">e</span><span class="p">){</span>
+            <span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">spdlog</span><span class="o">::</span><span class="n">logger</span><span class="o">&gt;</span> <span class="n">logger</span> <span class="o">=</span> <span class="n">spdlog</span><span class="o">::</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;batch_logger&quot;</span><span class="p">);</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">logger</span><span class="p">){</span>
+                <span class="n">logger</span><span class="o">-&gt;</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;|||{info}|||||&quot;</span><span class="p">,</span>
+                        <span class="s">&quot;info&quot;</span><span class="n">_a</span><span class="o">=</span><span class="s">&quot;ERROR in read_from_socket. What: {}&quot;</span><span class="n">_format</span><span class="p">(</span><span class="n">e</span><span class="p">.</span><span class="n">what</span><span class="p">()));</span>
+            <span class="p">}</span>
+            <span class="k">throw</span><span class="p">;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="kt">void</span> <span class="n">write_to_socket</span><span class="p">(</span><span class="kt">int</span> <span class="n">socket_fd</span><span class="p">,</span> <span class="k">const</span> <span class="kt">void</span> <span class="o">*</span> <span class="n">data</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">write_size</span><span class="p">){</span>
+        <span class="k">try</span> <span class="p">{</span>
+            <span class="kt">size_t</span> <span class="n">amount_written</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+            <span class="kt">int</span> <span class="n">bytes_written</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+            <span class="kt">size_t</span> <span class="n">count_invalids</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+            <span class="k">while</span> <span class="p">(</span><span class="n">amount_written</span> <span class="o">&lt;</span> <span class="n">write_size</span> <span class="o">&amp;&amp;</span> <span class="n">count_invalids</span> <span class="o">&lt;</span> <span class="n">NUMBER_RETRIES</span><span class="p">)</span> <span class="p">{</span>
+                <span class="n">bytes_written</span> <span class="o">=</span> <span class="n">write</span><span class="p">(</span><span class="n">socket_fd</span><span class="p">,</span> <span class="n">data</span> <span class="o">+</span> <span class="n">amount_written</span><span class="p">,</span> <span class="n">write_size</span> <span class="o">-</span> <span class="n">amount_written</span><span class="p">);</span>
+
+                <span class="k">if</span> <span class="p">(</span><span class="n">bytes_written</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+                    <span class="n">amount_written</span> <span class="o">+=</span> <span class="n">bytes_written</span><span class="p">;</span>
+                    <span class="n">count_invalids</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+                <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">errno</span> <span class="o">==</span> <span class="mi">9</span><span class="p">)</span> <span class="p">{</span> <span class="c1">// Bad socket number</span>
+                        <span class="n">std</span><span class="o">::</span><span class="n">cerr</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Bad socket writing to &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">socket_fd</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+                        <span class="k">throw</span> <span class="n">std</span><span class="o">::</span><span class="n">runtime_error</span><span class="p">(</span><span class="s">&quot;Bad socket&quot;</span><span class="p">);</span>
+                    <span class="p">}</span>
+                    <span class="c1">// TODO: add check to make sure that the task was not handlerThread</span>
+                    <span class="k">const</span> <span class="kt">int</span> <span class="n">sleep_milliseconds</span> <span class="o">=</span> <span class="p">(</span><span class="n">count_invalids</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">FILE_RETRY_DELAY</span><span class="p">;</span>
+                    <span class="n">std</span><span class="o">::</span><span class="n">this_thread</span><span class="o">::</span><span class="n">sleep_for</span><span class="p">(</span>
+                        <span class="n">std</span><span class="o">::</span><span class="n">chrono</span><span class="o">::</span><span class="n">milliseconds</span><span class="p">(</span><span class="n">sleep_milliseconds</span><span class="p">));</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">count_invalids</span> <span class="o">&lt;</span> <span class="mi">300</span><span class="p">)</span> <span class="p">{</span>
+                        <span class="n">count_invalids</span><span class="o">++</span><span class="p">;</span>
+                    <span class="p">}</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+
+            <span class="k">if</span><span class="p">(</span><span class="n">amount_written</span> <span class="o">&lt;</span> <span class="n">write_size</span> <span class="p">){</span>
+                <span class="k">throw</span> <span class="n">std</span><span class="o">::</span><span class="n">runtime_error</span><span class="p">(</span><span class="s">&quot;Could not write complete message to socket with errno &quot;</span> <span class="o">+</span><span class="n">std</span><span class="o">::</span><span class="n">to_string</span><span class="p">(</span><span class="n">errno</span><span class="p">));</span>
+            <span class="p">}</span>
+        <span class="p">}</span> <span class="k">catch</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">exception</span> <span class="o">&amp;</span> <span class="n">e</span><span class="p">){</span>
+            <span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">spdlog</span><span class="o">::</span><span class="n">logger</span><span class="o">&gt;</span> <span class="n">logger</span> <span class="o">=</span> <span class="n">spdlog</span><span class="o">::</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;batch_logger&quot;</span><span class="p">);</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">logger</span><span class="p">){</span>
+                <span class="n">logger</span><span class="o">-&gt;</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;|||{info}|||||&quot;</span><span class="p">,</span>
+                        <span class="s">&quot;info&quot;</span><span class="n">_a</span><span class="o">=</span><span class="s">&quot;ERROR in write_to_socket. What: {}&quot;</span><span class="n">_format</span><span class="p">(</span><span class="n">e</span><span class="p">.</span><span class="n">what</span><span class="p">()));</span>
+            <span class="p">}</span>
+            <span class="k">throw</span><span class="p">;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+
+<span class="k">namespace</span> <span class="n">comm</span> <span class="p">{</span>
+
+<span class="n">graphs_info</span> <span class="o">&amp;</span> <span class="n">graphs_info</span><span class="o">::</span><span class="n">getInstance</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">static</span> <span class="n">graphs_info</span> <span class="n">instance</span><span class="p">;</span>
+    <span class="k">return</span> <span class="n">instance</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="n">std</span><span class="o">::</span><span class="n">mutex</span> <span class="n">instance_mutex</span><span class="p">;</span>
+<span class="n">ucp_progress_manager</span> <span class="o">*</span> <span class="n">instance</span> <span class="o">=</span> <span class="k">nullptr</span><span class="p">;</span>
+<span class="n">ucp_progress_manager</span> <span class="o">*</span> <span class="n">ucp_progress_manager</span><span class="o">::</span><span class="n">get_instance</span><span class="p">(</span><span class="n">ucp_worker_h</span> <span class="n">ucp_worker</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">request_size</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">unique_lock</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span> <span class="n">lock</span><span class="p">(</span><span class="n">instance_mutex</span><span class="p">);</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">instance</span> <span class="o">==</span> <span class="k">nullptr</span><span class="p">){</span>
+        <span class="n">instance</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ucp_progress_manager</span><span class="p">(</span><span class="n">ucp_worker</span><span class="p">,</span><span class="n">request_size</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">instance</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="n">ucp_progress_manager</span> <span class="o">*</span> <span class="n">ucp_progress_manager</span><span class="o">::</span><span class="n">get_instance</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">instance</span> <span class="o">==</span> <span class="k">nullptr</span><span class="p">){</span>
+        <span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">spdlog</span><span class="o">::</span><span class="n">logger</span><span class="o">&gt;</span> <span class="n">logger</span> <span class="o">=</span> <span class="n">spdlog</span><span class="o">::</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;batch_logger&quot;</span><span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">logger</span><span class="p">){</span>
+            <span class="n">logger</span><span class="o">-&gt;</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;|||{info}|||||&quot;</span><span class="p">,</span>
+                    <span class="s">&quot;info&quot;</span><span class="n">_a</span><span class="o">=</span><span class="s">&quot;ERROR in ucp_progress_manager (in blazing) not initialized.&quot;</span><span class="p">);</span>
+        <span class="p">}</span>
+        <span class="k">throw</span> <span class="n">std</span><span class="o">::</span><span class="n">runtime_error</span><span class="p">(</span><span class="s">&quot;ucp_progress_manager (in blazing) not initialized.&quot;</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">instance</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="n">ucp_progress_manager</span><span class="o">::</span><span class="n">ucp_progress_manager</span><span class="p">(</span><span class="n">ucp_worker_h</span> <span class="n">ucp_worker</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">request_size</span><span class="p">)</span> <span class="o">:</span>
+ <span class="n">_request_size</span><span class="p">{</span><span class="n">request_size</span><span class="p">},</span> <span class="n">ucp_worker</span><span class="p">{</span><span class="n">ucp_worker</span><span class="p">}</span> <span class="p">{</span>
+    <span class="n">std</span><span class="o">::</span><span class="kr">thread</span> <span class="n">t</span><span class="p">([</span><span class="k">this</span><span class="p">]{</span>
+        <span class="n">cudaSetDevice</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+        <span class="k">this</span><span class="o">-&gt;</span><span class="n">check_progress</span><span class="p">();</span>
+    <span class="p">});</span>
+    <span class="n">t</span><span class="p">.</span><span class="n">detach</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">ucp_progress_manager</span><span class="o">::</span><span class="n">add_recv_request</span><span class="p">(</span><span class="kt">char</span> <span class="o">*</span> <span class="n">request</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">function</span><span class="o">&lt;</span><span class="kt">void</span><span class="p">()</span><span class="o">&gt;</span> <span class="n">callback</span><span class="p">,</span> <span class="n">ucs_status_t</span> <span class="n">status</span><span class="p">){</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">status</span> <span class="o">==</span> <span class="n">UCS_OK</span><span class="p">){</span>
+        <span class="k">delete</span> <span class="n">request</span><span class="p">;</span>
+        <span class="n">callback</span><span class="p">();</span>
+    <span class="p">}</span><span class="k">else</span><span class="p">{</span>
+        <span class="n">std</span><span class="o">::</span><span class="n">lock_guard</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span> <span class="n">lock</span><span class="p">(</span><span class="n">request_mutex</span><span class="p">);</span>
+        <span class="n">recv_requests</span><span class="p">.</span><span class="n">insert</span><span class="p">({</span><span class="n">request</span><span class="p">,</span> <span class="n">callback</span><span class="p">});</span>
+        <span class="n">cv</span><span class="p">.</span><span class="n">notify_all</span><span class="p">();</span>
+    <span class="p">}</span>
+
+<span class="p">}</span>
+
+
+<span class="kt">void</span> <span class="n">ucp_progress_manager</span><span class="o">::</span><span class="n">add_send_request</span><span class="p">(</span><span class="kt">char</span> <span class="o">*</span> <span class="n">request</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">function</span><span class="o">&lt;</span><span class="kt">void</span><span class="p">()</span><span class="o">&gt;</span> <span class="n">callback</span><span class="p">,</span> <span class="n">ucs_status_t</span> <span class="n">status</span><span class="p">){</span>
+    <span class="c1">// if(status == UCS_OK){</span>
+    <span class="c1">//     delete request;</span>
+    <span class="c1">//     callback();</span>
+    <span class="c1">// }else{</span>
+        <span class="n">std</span><span class="o">::</span><span class="n">lock_guard</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span> <span class="n">lock</span><span class="p">(</span><span class="n">request_mutex</span><span class="p">);</span>
+        <span class="n">send_requests</span><span class="p">.</span><span class="n">insert</span><span class="p">({</span><span class="n">request</span><span class="p">,</span> <span class="n">callback</span><span class="p">});</span>
+        <span class="n">cv</span><span class="p">.</span><span class="n">notify_all</span><span class="p">();</span>
+    <span class="c1">// }</span>
+
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">ucp_progress_manager</span><span class="o">::</span><span class="n">check_progress</span><span class="p">(){</span>
+    <span class="k">try</span> <span class="p">{</span>
+        <span class="k">while</span><span class="p">(</span><span class="nb">true</span><span class="p">){</span>
+            <span class="n">std</span><span class="o">::</span><span class="n">set</span><span class="o">&lt;</span><span class="n">request_struct</span><span class="o">&gt;</span> <span class="n">cur_send_requests</span><span class="p">;</span>
+            <span class="n">std</span><span class="o">::</span><span class="n">set</span><span class="o">&lt;</span><span class="n">request_struct</span><span class="o">&gt;</span> <span class="n">cur_recv_requests</span><span class="p">;</span>
+            <span class="p">{</span>
+                <span class="n">CodeTimer</span> <span class="n">blazing_timer</span><span class="p">;</span>
+                <span class="n">std</span><span class="o">::</span><span class="n">unique_lock</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span> <span class="n">lock</span><span class="p">(</span><span class="n">request_mutex</span><span class="p">);</span>
+
+                <span class="n">cv</span><span class="p">.</span><span class="n">wait_for</span><span class="p">(</span><span class="n">lock</span><span class="p">,</span><span class="mi">5</span><span class="n">ms</span><span class="p">,[</span><span class="k">this</span><span class="p">]{</span>
+                    <span class="k">return</span> <span class="p">(</span><span class="n">send_requests</span><span class="p">.</span><span class="n">size</span><span class="p">()</span> <span class="o">+</span> <span class="n">recv_requests</span><span class="p">.</span><span class="n">size</span><span class="p">())</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">;</span>
+                <span class="p">});</span>
+
+                <span class="n">cur_send_requests</span> <span class="o">=</span> <span class="n">send_requests</span><span class="p">;</span>
+                <span class="n">cur_recv_requests</span> <span class="o">=</span> <span class="n">recv_requests</span><span class="p">;</span>
+            <span class="p">}</span>
+
+            <span class="n">ucp_worker_progress</span><span class="p">(</span><span class="n">ucp_worker</span><span class="p">);</span>
+
+            <span class="k">for</span><span class="p">(</span><span class="k">const</span> <span class="k">auto</span> <span class="o">&amp;</span> <span class="nl">req_struct</span> <span class="p">:</span> <span class="n">cur_send_requests</span><span class="p">){</span>
+                <span class="k">auto</span> <span class="n">status</span> <span class="o">=</span> <span class="n">ucp_request_check_status</span><span class="p">(</span><span class="n">req_struct</span><span class="p">.</span><span class="n">request</span> <span class="o">+</span> <span class="n">_request_size</span><span class="p">);</span>
+
+                <span class="k">if</span> <span class="p">(</span><span class="n">status</span> <span class="o">==</span> <span class="n">UCS_OK</span><span class="p">){</span>
+
+                    <span class="n">req_struct</span><span class="p">.</span><span class="n">callback</span><span class="p">();</span>
+                    <span class="p">{</span>
+                        <span class="n">std</span><span class="o">::</span><span class="n">lock_guard</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span> <span class="n">lock</span><span class="p">(</span><span class="n">request_mutex</span><span class="p">);</span>
+                        <span class="k">this</span><span class="o">-&gt;</span><span class="n">send_requests</span><span class="p">.</span><span class="n">erase</span><span class="p">(</span><span class="n">req_struct</span><span class="p">);</span>
+                    <span class="p">}</span>
+                    <span class="k">delete</span> <span class="n">req_struct</span><span class="p">.</span><span class="n">request</span><span class="p">;</span>
+                <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">status</span> <span class="o">!=</span> <span class="n">UCS_INPROGRESS</span><span class="p">){</span>
+                    <span class="k">throw</span> <span class="n">std</span><span class="o">::</span><span class="n">runtime_error</span><span class="p">(</span><span class="s">&quot;Communication error in check_progress for send_requests.&quot;</span><span class="p">);</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+
+            <span class="k">for</span><span class="p">(</span><span class="k">const</span> <span class="k">auto</span> <span class="o">&amp;</span> <span class="nl">req_struct</span> <span class="p">:</span> <span class="n">cur_recv_requests</span><span class="p">){</span>
+                <span class="k">auto</span> <span class="n">status</span> <span class="o">=</span> <span class="n">ucp_request_check_status</span><span class="p">(</span><span class="n">req_struct</span><span class="p">.</span><span class="n">request</span> <span class="o">+</span> <span class="n">_request_size</span><span class="p">);</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">status</span> <span class="o">==</span> <span class="n">UCS_OK</span><span class="p">){</span>
+
+                    <span class="n">req_struct</span><span class="p">.</span><span class="n">callback</span><span class="p">();</span>
+                    <span class="p">{</span>
+                        <span class="n">std</span><span class="o">::</span><span class="n">lock_guard</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span> <span class="n">lock</span><span class="p">(</span><span class="n">request_mutex</span><span class="p">);</span>
+                        <span class="k">this</span><span class="o">-&gt;</span><span class="n">recv_requests</span><span class="p">.</span><span class="n">erase</span><span class="p">(</span><span class="n">req_struct</span><span class="p">);</span>
+                    <span class="p">}</span>
+                    <span class="k">delete</span> <span class="n">req_struct</span><span class="p">.</span><span class="n">request</span><span class="p">;</span>
+                <span class="p">}</span><span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">status</span> <span class="o">!=</span> <span class="n">UCS_INPROGRESS</span><span class="p">){</span>
+                    <span class="k">throw</span> <span class="n">std</span><span class="o">::</span><span class="n">runtime_error</span><span class="p">(</span><span class="s">&quot;Communication error in check_progress for recv_requests.&quot;</span><span class="p">);</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+
+        <span class="p">}</span>
+    <span class="p">}</span> <span class="k">catch</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">exception</span> <span class="o">&amp;</span> <span class="n">e</span><span class="p">){</span>
+        <span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">spdlog</span><span class="o">::</span><span class="n">logger</span><span class="o">&gt;</span> <span class="n">logger</span> <span class="o">=</span> <span class="n">spdlog</span><span class="o">::</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;batch_logger&quot;</span><span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">logger</span><span class="p">){</span>
+            <span class="n">logger</span><span class="o">-&gt;</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;|||{info}|||||&quot;</span><span class="p">,</span>
+                    <span class="s">&quot;info&quot;</span><span class="n">_a</span><span class="o">=</span><span class="s">&quot;ERROR in ucp_progress_manager::check_progress() here. What: {}&quot;</span><span class="n">_format</span><span class="p">(</span><span class="n">e</span><span class="p">.</span><span class="n">what</span><span class="p">()));</span>
+        <span class="p">}</span>
+        <span class="k">throw</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+
+
+<span class="kt">void</span> <span class="n">graphs_info</span><span class="o">::</span><span class="n">register_graph</span><span class="p">(</span><span class="kt">int32_t</span> <span class="n">ctx_token</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">ral</span><span class="o">::</span><span class="n">cache</span><span class="o">::</span><span class="n">graph</span><span class="o">&gt;</span> <span class="n">graph</span><span class="p">){</span>
+    <span class="n">_ctx_token_to_graph_map</span><span class="p">.</span><span class="n">insert</span><span class="p">({</span><span class="n">ctx_token</span><span class="p">,</span> <span class="n">graph</span><span class="p">});</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">graphs_info</span><span class="o">::</span><span class="n">deregister_graph</span><span class="p">(</span><span class="kt">int32_t</span> <span class="n">ctx_token</span><span class="p">){</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">_ctx_token_to_graph_map</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="n">ctx_token</span><span class="p">)</span> <span class="o">!=</span> <span class="n">_ctx_token_to_graph_map</span><span class="p">.</span><span class="n">end</span><span class="p">()){</span>
+        <span class="n">_ctx_token_to_graph_map</span><span class="p">[</span><span class="n">ctx_token</span><span class="p">]</span><span class="o">-&gt;</span><span class="n">clear_kernels</span><span class="p">();</span>
+        <span class="n">_ctx_token_to_graph_map</span><span class="p">.</span><span class="n">erase</span><span class="p">(</span><span class="n">ctx_token</span><span class="p">);</span>
+    <span class="p">}</span> <span class="k">else</span><span class="p">{</span>
+       <span class="c1">// std::cout&lt;&lt;&quot;did not clear kernels &quot;&lt;&lt;ctx_token&lt;&lt;std::endl;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">ral</span><span class="o">::</span><span class="n">cache</span><span class="o">::</span><span class="n">graph</span><span class="o">&gt;</span> <span class="n">graphs_info</span><span class="o">::</span><span class="n">get_graph</span><span class="p">(</span><span class="kt">int32_t</span> <span class="n">ctx_token</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">_ctx_token_to_graph_map</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="n">ctx_token</span><span class="p">)</span> <span class="o">==</span> <span class="n">_ctx_token_to_graph_map</span><span class="p">.</span><span class="n">end</span><span class="p">()){</span>
+        <span class="k">return</span> <span class="k">nullptr</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">_ctx_token_to_graph_map</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="n">ctx_token</span><span class="p">);</span>
+<span class="p">}</span>
+
+
+<span class="n">ucx_buffer_transport</span><span class="o">::</span><span class="n">ucx_buffer_transport</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">request_size</span><span class="p">,</span>
+    <span class="n">ucp_worker_h</span> <span class="n">origin_node</span><span class="p">,</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">node</span><span class="o">&gt;</span> <span class="n">destinations</span><span class="p">,</span>
+    <span class="n">ral</span><span class="o">::</span><span class="n">cache</span><span class="o">::</span><span class="n">MetadataDictionary</span> <span class="n">metadata</span><span class="p">,</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span> <span class="n">buffer_sizes</span><span class="p">,</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">blazingdb</span><span class="o">::</span><span class="n">transport</span><span class="o">::</span><span class="n">ColumnTransport</span><span class="o">&gt;</span> <span class="n">column_transports</span><span class="p">,</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">ral</span><span class="o">::</span><span class="n">memory</span><span class="o">::</span><span class="n">blazing_chunked_column_info</span><span class="o">&gt;</span> <span class="n">chunked_column_infos</span><span class="p">,</span>
+    <span class="kt">int</span> <span class="n">ral_id</span><span class="p">,</span>
+    <span class="kt">bool</span> <span class="n">require_acknowledge</span><span class="p">)</span>
+    <span class="o">:</span> <span class="n">buffer_transport</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">buffer_sizes</span><span class="p">,</span> <span class="n">column_transports</span><span class="p">,</span> <span class="n">chunked_column_infos</span><span class="p">,</span> <span class="n">destinations</span><span class="p">,</span> <span class="n">require_acknowledge</span><span class="p">),</span>
+    <span class="n">origin_node</span><span class="p">(</span><span class="n">origin_node</span><span class="p">),</span> <span class="n">ral_id</span><span class="p">{</span><span class="n">ral_id</span><span class="p">},</span> <span class="n">_request_size</span><span class="p">{</span><span class="n">request_size</span><span class="p">}{</span>
+        <span class="n">tag</span> <span class="o">=</span> <span class="n">generate_message_tag</span><span class="p">();</span>
+
+<span class="p">}</span>
+
+<span class="n">ucx_buffer_transport</span><span class="o">::~</span><span class="n">ucx_buffer_transport</span><span class="p">()</span> <span class="p">{</span>
+<span class="p">}</span>
+
+<span class="n">std</span><span class="o">::</span><span class="n">atomic</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">atomic_message_id</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">atomic</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+
+<span class="n">ucp_tag_t</span> <span class="n">ucx_buffer_transport</span><span class="o">::</span><span class="n">generate_message_tag</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">auto</span> <span class="n">current_message_id</span> <span class="o">=</span> <span class="n">atomic_message_id</span><span class="p">.</span><span class="n">fetch_add</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+    <span class="n">blazing_ucp_tag</span> <span class="n">blazing_tag</span> <span class="o">=</span> <span class="p">{</span><span class="n">current_message_id</span><span class="p">,</span> <span class="n">ral_id</span><span class="p">,</span> <span class="mi">0U</span><span class="p">};</span>
+    <span class="k">this</span><span class="o">-&gt;</span><span class="n">message_id</span> <span class="o">=</span> <span class="n">blazing_tag</span><span class="p">.</span><span class="n">message_id</span><span class="p">;</span>
+    <span class="k">return</span> <span class="o">*</span><span class="k">reinterpret_cast</span><span class="o">&lt;</span><span class="n">ucp_tag_t</span> <span class="o">*&gt;</span><span class="p">(</span><span class="o">&amp;</span><span class="n">blazing_tag</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">ucx_buffer_transport</span><span class="o">::</span><span class="n">send_begin_transmission</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">try</span> <span class="p">{</span>
+        <span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">char</span><span class="o">&gt;&gt;</span> <span class="n">buffer_to_send</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">make_shared</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">char</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="n">detail</span><span class="o">::</span><span class="n">serialize_metadata_and_transports_and_buffer_sizes</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">column_transports</span><span class="p">,</span> <span class="n">chunked_column_infos</span><span class="p">,</span> <span class="n">buffer_sizes</span><span class="p">));</span>
+
+        <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+        <span class="k">for</span><span class="p">(</span><span class="k">auto</span> <span class="k">const</span> <span class="o">&amp;</span> <span class="nl">node</span> <span class="p">:</span> <span class="n">destinations</span><span class="p">)</span> <span class="p">{</span>
+            <span class="kt">char</span> <span class="o">*</span> <span class="n">request</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">char</span><span class="p">[</span><span class="n">_request_size</span><span class="p">];</span>
+            <span class="c1">//auto temp_tag = *reinterpret_cast&lt;blazing_ucp_tag *&gt;(&amp;tag);</span>
+            <span class="k">auto</span> <span class="n">status</span> <span class="o">=</span> <span class="n">ucp_tag_send_nbr</span><span class="p">(</span>
+                <span class="n">node</span><span class="p">.</span><span class="n">get_ucp_endpoint</span><span class="p">(),</span> <span class="n">buffer_to_send</span><span class="o">-&gt;</span><span class="n">data</span><span class="p">(),</span> <span class="n">buffer_to_send</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">(),</span> <span class="n">ucp_dt_make_contig</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">tag</span><span class="p">,</span> <span class="n">request</span> <span class="o">+</span> <span class="n">_request_size</span><span class="p">);</span>
+            <span class="n">status</span> <span class="o">=</span> <span class="n">ucp_request_check_status</span><span class="p">(</span><span class="n">request</span> <span class="o">+</span> <span class="n">_request_size</span><span class="p">);</span>
+            <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">UCS_STATUS_IS_ERR</span><span class="p">(</span><span class="n">status</span><span class="p">))</span> <span class="p">{</span>
+                <span class="n">ucp_progress_manager</span><span class="o">::</span><span class="n">get_instance</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">add_send_request</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="p">[</span><span class="n">buffer_to_send</span><span class="p">,</span> <span class="k">this</span><span class="p">]()</span> <span class="k">mutable</span> <span class="p">{</span>
+                    <span class="k">this</span><span class="o">-&gt;</span><span class="n">increment_begin_transmission</span><span class="p">();</span>
+                <span class="p">},</span><span class="n">status</span><span class="p">);</span>
+            <span class="p">}</span><span class="k">else</span> <span class="p">{</span>
+                <span class="k">throw</span> <span class="n">std</span><span class="o">::</span><span class="n">runtime_error</span><span class="p">(</span><span class="s">&quot;Immediate Communication error in send_begin_transmission.&quot;</span><span class="p">);</span>
+            <span class="p">}</span>
+
+            <span class="n">i</span><span class="o">++</span><span class="p">;</span>
+        <span class="p">}</span>
+        <span class="k">reinterpret_cast</span><span class="o">&lt;</span><span class="n">blazing_ucp_tag</span> <span class="o">*&gt;</span><span class="p">(</span><span class="o">&amp;</span><span class="n">tag</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">frame_id</span><span class="o">++</span><span class="p">;</span>
+    <span class="p">}</span> <span class="k">catch</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">exception</span> <span class="o">&amp;</span> <span class="n">e</span><span class="p">){</span>
+        <span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">spdlog</span><span class="o">::</span><span class="n">logger</span><span class="o">&gt;</span> <span class="n">logger</span> <span class="o">=</span> <span class="n">spdlog</span><span class="o">::</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;batch_logger&quot;</span><span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">logger</span><span class="p">){</span>
+            <span class="n">logger</span><span class="o">-&gt;</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;|||{info}|||||&quot;</span><span class="p">,</span>
+                    <span class="s">&quot;info&quot;</span><span class="n">_a</span><span class="o">=</span><span class="s">&quot;ERROR in ucx_buffer_transport::send_begin_transmission(). What: {}&quot;</span><span class="n">_format</span><span class="p">(</span><span class="n">e</span><span class="p">.</span><span class="n">what</span><span class="p">()));</span>
+        <span class="p">}</span>
+        <span class="k">throw</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">ucx_buffer_transport</span><span class="o">::</span><span class="n">send_impl</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span> <span class="n">buffer</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">buffer_size</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">try</span> <span class="p">{</span>
+
+        <span class="k">for</span> <span class="p">(</span><span class="k">auto</span> <span class="k">const</span> <span class="o">&amp;</span><span class="nl">node</span> <span class="p">:</span> <span class="n">destinations</span><span class="p">)</span> <span class="p">{</span>
+            <span class="kt">char</span> <span class="o">*</span><span class="n">request</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">char</span><span class="p">[</span><span class="n">_request_size</span><span class="p">];</span>
+            <span class="k">auto</span> <span class="n">status</span> <span class="o">=</span> <span class="n">ucp_tag_send_nbr</span><span class="p">(</span><span class="n">node</span><span class="p">.</span><span class="n">get_ucp_endpoint</span><span class="p">(),</span>
+                                            <span class="n">buffer</span><span class="p">,</span>
+                                            <span class="n">buffer_size</span><span class="p">,</span>
+                                            <span class="n">ucp_dt_make_contig</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
+                                            <span class="n">tag</span><span class="p">,</span>
+                                            <span class="n">request</span> <span class="o">+</span> <span class="n">_request_size</span><span class="p">);</span>
+
+            <span class="k">if</span> <span class="p">((</span><span class="n">status</span> <span class="o">&gt;=</span> <span class="n">UCS_OK</span><span class="p">))</span> <span class="p">{</span>
+                <span class="n">ucp_progress_manager</span><span class="o">::</span><span class="n">get_instance</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">add_send_request</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="p">[</span><span class="k">this</span><span class="p">](){</span> <span class="k">this</span><span class="o">-&gt;</span><span class="n">increment_frame_transmission</span><span class="p">();</span> <span class="p">},</span><span class="n">status</span><span class="p">);</span>
+            <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+                <span class="k">throw</span> <span class="n">std</span><span class="o">::</span><span class="n">runtime_error</span><span class="p">(</span><span class="s">&quot;Immediate Communication error in send_impl.&quot;</span><span class="p">);</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+        <span class="k">reinterpret_cast</span><span class="o">&lt;</span><span class="n">blazing_ucp_tag</span> <span class="o">*&gt;</span><span class="p">(</span><span class="o">&amp;</span><span class="n">tag</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">frame_id</span><span class="o">++</span><span class="p">;</span>
+    <span class="p">}</span> <span class="k">catch</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">exception</span> <span class="o">&amp;</span> <span class="n">e</span><span class="p">){</span>
+        <span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">spdlog</span><span class="o">::</span><span class="n">logger</span><span class="o">&gt;</span> <span class="n">logger</span> <span class="o">=</span> <span class="n">spdlog</span><span class="o">::</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;batch_logger&quot;</span><span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">logger</span><span class="p">){</span>
+            <span class="n">logger</span><span class="o">-&gt;</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;|||{info}|||||&quot;</span><span class="p">,</span>
+                    <span class="s">&quot;info&quot;</span><span class="n">_a</span><span class="o">=</span><span class="s">&quot;ERROR in ucx_buffer_transport::send_impl. What: {}&quot;</span><span class="n">_format</span><span class="p">(</span><span class="n">e</span><span class="p">.</span><span class="n">what</span><span class="p">()));</span>
+        <span class="p">}</span>
+        <span class="k">throw</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="cp">#define ACK_BUFFER_SIZE 40</span>
+<span class="kt">void</span> <span class="n">ucx_buffer_transport</span><span class="o">::</span><span class="n">receive_acknowledge</span><span class="p">(){</span>
+    <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">transmitted_acknowledgements</span><span class="p">.</span><span class="n">size</span><span class="p">();</span> <span class="n">i</span><span class="o">++</span><span class="p">){</span>
+        <span class="kt">char</span> <span class="o">*</span> <span class="n">request</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">char</span><span class="p">[</span><span class="n">_request_size</span><span class="p">];</span>
+        <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">char</span><span class="o">&gt;</span> <span class="n">data_buffer</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">));</span>
+        <span class="kt">char</span> <span class="o">*</span> <span class="n">data</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">char</span><span class="p">[</span><span class="n">ACK_BUFFER_SIZE</span><span class="p">];</span>
+        <span class="n">ucp_tag_t</span> <span class="n">temp_tag</span> <span class="o">=</span> <span class="n">tag</span><span class="p">;</span>
+        <span class="n">blazing_ucp_tag</span> <span class="n">message_tag</span> <span class="o">=</span> <span class="o">*</span><span class="k">reinterpret_cast</span><span class="o">&lt;</span><span class="n">blazing_ucp_tag</span> <span class="o">*&gt;</span><span class="p">(</span><span class="o">&amp;</span><span class="n">temp_tag</span><span class="p">);</span>
+        <span class="n">message_tag</span><span class="p">.</span><span class="n">frame_id</span> <span class="o">=</span> <span class="mh">0xFFFF</span><span class="p">;</span>
+        <span class="k">auto</span> <span class="n">status</span> <span class="o">=</span> <span class="n">ucp_tag_recv_nbr</span><span class="p">(</span><span class="n">origin_node</span><span class="p">,</span>
+            <span class="n">data</span><span class="p">,</span>
+            <span class="n">ACK_BUFFER_SIZE</span><span class="p">,</span>
+            <span class="n">ucp_dt_make_contig</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">temp_tag</span><span class="p">,</span>
+            <span class="n">acknownledge_tag_mask</span><span class="p">,</span>
+            <span class="n">request</span> <span class="o">+</span> <span class="n">_request_size</span><span class="p">);</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="n">ucp_request_check_status</span><span class="p">(</span><span class="n">request</span> <span class="o">+</span> <span class="n">_request_size</span><span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">UCS_STATUS_IS_ERR</span><span class="p">(</span><span class="n">status</span><span class="p">))</span> <span class="p">{</span>
+                <span class="n">ucp_progress_manager</span><span class="o">::</span><span class="n">get_instance</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">add_recv_request</span><span class="p">(</span>
+                    <span class="n">request</span><span class="p">,</span>
+                    <span class="p">[</span><span class="n">data</span><span class="p">,</span><span class="k">this</span><span class="p">](){</span>
+                        <span class="kt">bool</span> <span class="n">found</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+                        <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">node_address</span><span class="p">(</span><span class="n">data</span><span class="p">);</span>
+                        <span class="k">for</span><span class="p">(</span><span class="k">auto</span> <span class="o">&amp;</span> <span class="nl">destination</span> <span class="p">:</span> <span class="n">destinations</span><span class="p">){</span>
+
+                            <span class="k">if</span><span class="p">(</span><span class="n">destination</span><span class="p">.</span><span class="n">id</span><span class="p">()</span> <span class="o">==</span> <span class="n">node_address</span><span class="p">){</span>
+                                <span class="k">this</span><span class="o">-&gt;</span><span class="n">transmitted_acknowledgements</span><span class="p">[</span><span class="n">node_address</span><span class="p">]</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+                                <span class="n">found</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+                                <span class="k">this</span><span class="o">-&gt;</span><span class="n">completion_condition_variable</span><span class="p">.</span><span class="n">notify_one</span><span class="p">();</span>
+                            <span class="p">}</span>
+                        <span class="p">}</span>
+                        <span class="k">delete</span> <span class="n">data</span><span class="p">;</span>
+                        <span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="n">found</span> <span class="p">){</span>
+                            <span class="k">throw</span> <span class="n">std</span><span class="o">::</span><span class="n">runtime_error</span><span class="p">(</span><span class="s">&quot;invalid ack tag&quot;</span><span class="p">);</span>
+                        <span class="p">}</span>
+
+                    <span class="p">}</span>
+                    <span class="p">,</span><span class="n">status</span><span class="p">);</span>
+        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+            <span class="k">throw</span> <span class="n">std</span><span class="o">::</span><span class="n">runtime_error</span><span class="p">(</span><span class="s">&quot;Immediate Communication error in poll_begin_message_tag.&quot;</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+
+
+<span class="n">tcp_buffer_transport</span><span class="o">::</span><span class="n">tcp_buffer_transport</span><span class="p">(</span>
+        <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">node</span><span class="o">&gt;</span> <span class="n">destinations</span><span class="p">,</span>
+        <span class="n">ral</span><span class="o">::</span><span class="n">cache</span><span class="o">::</span><span class="n">MetadataDictionary</span> <span class="n">metadata</span><span class="p">,</span>
+        <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span> <span class="n">buffer_sizes</span><span class="p">,</span>
+        <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">blazingdb</span><span class="o">::</span><span class="n">transport</span><span class="o">::</span><span class="n">ColumnTransport</span><span class="o">&gt;</span> <span class="n">column_transports</span><span class="p">,</span>
+        <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">ral</span><span class="o">::</span><span class="n">memory</span><span class="o">::</span><span class="n">blazing_chunked_column_info</span><span class="o">&gt;</span> <span class="n">chunked_column_infos</span><span class="p">,</span>
+        <span class="kt">int</span> <span class="n">ral_id</span><span class="p">,</span>
+        <span class="n">ctpl</span><span class="o">::</span><span class="n">thread_pool</span><span class="o">&lt;</span><span class="n">BlazingThread</span><span class="o">&gt;</span> <span class="o">*</span> <span class="n">allocate_copy_buffer_pool</span><span class="p">,</span>
+        <span class="kt">bool</span> <span class="n">require_acknowledge</span><span class="p">)</span>
+        <span class="o">:</span> <span class="n">buffer_transport</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">buffer_sizes</span><span class="p">,</span> <span class="n">column_transports</span><span class="p">,</span> <span class="n">chunked_column_infos</span><span class="p">,</span> <span class="n">destinations</span><span class="p">,</span><span class="n">require_acknowledge</span><span class="p">),</span>
+        <span class="n">ral_id</span><span class="p">{</span><span class="n">ral_id</span><span class="p">},</span> <span class="n">allocate_copy_buffer_pool</span><span class="p">{</span><span class="n">allocate_copy_buffer_pool</span><span class="p">}</span> <span class="p">{</span>
+
+        <span class="c1">//Initialize connection to get</span>
+
+    <span class="c1">//metadata.print();</span>
+    <span class="k">for</span><span class="p">(</span><span class="k">auto</span> <span class="nl">destination</span> <span class="p">:</span> <span class="n">destinations</span><span class="p">){</span>
+        <span class="kt">int</span> <span class="n">socket_fd</span><span class="p">;</span>
+        <span class="k">struct</span> <span class="n">sockaddr_in</span> <span class="n">address</span><span class="p">;</span>
+
+        <span class="k">if</span> <span class="p">((</span><span class="n">socket_fd</span> <span class="o">=</span> <span class="n">socket</span><span class="p">(</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">SOCK_STREAM</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="k">throw</span> <span class="n">std</span><span class="o">::</span><span class="n">runtime_error</span><span class="p">(</span><span class="s">&quot;Could not open communication socket&quot;</span><span class="p">);</span>
+        <span class="p">}</span>
+        <span class="n">address</span><span class="p">.</span><span class="n">sin_family</span> <span class="o">=</span> <span class="n">AF_INET</span><span class="p">;</span>
+        <span class="n">address</span><span class="p">.</span><span class="n">sin_port</span> <span class="o">=</span> <span class="n">htons</span><span class="p">(</span><span class="n">destination</span><span class="p">.</span><span class="n">port</span><span class="p">());</span>
+
+        <span class="kt">int</span> <span class="n">error_code</span> <span class="o">=</span> <span class="n">inet_pton</span><span class="p">(</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">destination</span><span class="p">.</span><span class="n">ip</span><span class="p">().</span><span class="n">c_str</span><span class="p">(),</span> <span class="o">&amp;</span><span class="n">address</span><span class="p">.</span><span class="n">sin_addr</span><span class="p">);</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">error_code</span> <span class="o">&lt;=</span><span class="mi">0</span><span class="p">)</span> <span class="c1">// inet_pton returns 1 on success, 0 or -1 on fail</span>
+        <span class="p">{</span>
+            <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">node_info</span> <span class="o">=</span> <span class="s">&quot;Index: &quot;</span> <span class="o">+</span> <span class="n">std</span><span class="o">::</span><span class="n">to_string</span><span class="p">(</span><span class="n">destination</span><span class="p">.</span><span class="n">index</span><span class="p">())</span> <span class="o">+</span> <span class="s">&quot; Id: &quot;</span> <span class="o">+</span> <span class="n">destination</span><span class="p">.</span><span class="n">id</span><span class="p">()</span> <span class="o">+</span> <span class="s">&quot; IP: &quot;</span> <span class="o">+</span> <span class="n">destination</span><span class="p">.</span><span class="n">ip</span><span class="p">()</span> <span class="o">+</span> <span class="s">&quot; Port: &quot;</span> <span class="o">+</span> <span class="n">std</span><span class="o">::</span><span class="n">to_string</span><span class="p">(</span><span class="n">destination</span><span class="p">.</span><span class="n">port</span><span class="p">());</span>
+            <span class="k">throw</span> <span class="n">std</span><span class="o">::</span><span class="n">runtime_error</span><span class="p">(</span><span class="s">&quot;Invalid Communication Address. Errno: &quot;</span> <span class="o">+</span> <span class="n">std</span><span class="o">::</span><span class="n">to_string</span><span class="p">(</span><span class="n">errno</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot; Could not get address of node &quot;</span> <span class="o">+</span> <span class="n">node_info</span><span class="p">);</span>
+        <span class="p">}</span>
+        <span class="n">error_code</span> <span class="o">=</span> <span class="n">connect</span><span class="p">(</span><span class="n">socket_fd</span><span class="p">,</span> <span class="p">(</span><span class="k">struct</span> <span class="n">sockaddr</span> <span class="o">*</span><span class="p">)</span><span class="o">&amp;</span><span class="n">address</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">address</span><span class="p">));</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">error_code</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="c1">// connect returns 0 on success, -1 on fail</span>
+        <span class="p">{</span>
+            <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">node_info</span> <span class="o">=</span> <span class="s">&quot;Index: &quot;</span> <span class="o">+</span> <span class="n">std</span><span class="o">::</span><span class="n">to_string</span><span class="p">(</span><span class="n">destination</span><span class="p">.</span><span class="n">index</span><span class="p">())</span> <span class="o">+</span> <span class="s">&quot; Id: &quot;</span> <span class="o">+</span> <span class="n">destination</span><span class="p">.</span><span class="n">id</span><span class="p">()</span> <span class="o">+</span> <span class="s">&quot; IP: &quot;</span> <span class="o">+</span> <span class="n">destination</span><span class="p">.</span><span class="n">ip</span><span class="p">()</span> <span class="o">+</span> <span class="s">&quot; Port: &quot;</span> <span class="o">+</span> <span class="n">std</span><span class="o">::</span><span class="n">to_string</span><span class="p">(</span><span class="n">destination</span><span class="p">.</span><span class="n">port</span><span class="p">());</span>
+            <span class="k">throw</span> <span class="n">std</span><span class="o">::</span><span class="n">runtime_error</span><span class="p">(</span><span class="s">&quot;Invalid Communication Address could not connect to node. Errno: &quot;</span> <span class="o">+</span> <span class="n">std</span><span class="o">::</span><span class="n">to_string</span><span class="p">(</span><span class="n">errno</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot; Node is: &quot;</span> <span class="o">+</span> <span class="n">node_info</span><span class="p">);</span>
+        <span class="p">}</span>
+        <span class="n">socket_fds</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">socket_fd</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">tcp_buffer_transport</span><span class="o">::</span><span class="n">send_begin_transmission</span><span class="p">(){</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">char</span><span class="o">&gt;</span> <span class="n">buffer_to_send</span> <span class="o">=</span> <span class="n">detail</span><span class="o">::</span><span class="n">serialize_metadata_and_transports_and_buffer_sizes</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">column_transports</span><span class="p">,</span> <span class="n">chunked_column_infos</span><span class="p">,</span> <span class="n">buffer_sizes</span><span class="p">);</span>
+    <span class="k">auto</span> <span class="n">size_to_send</span> <span class="o">=</span> <span class="n">buffer_to_send</span><span class="p">.</span><span class="n">size</span><span class="p">();</span>
+
+    <span class="k">for</span> <span class="p">(</span><span class="k">auto</span> <span class="nl">socket_fd</span> <span class="p">:</span> <span class="n">socket_fds</span><span class="p">){</span>
+        <span class="c1">//write out begin_message_size</span>
+        <span class="n">io</span><span class="o">::</span><span class="n">write_to_socket</span><span class="p">(</span><span class="n">socket_fd</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">size_to_send</span> <span class="p">,</span><span class="k">sizeof</span><span class="p">(</span><span class="n">size_to_send</span><span class="p">));</span>
+        <span class="n">io</span><span class="o">::</span><span class="n">write_to_socket</span><span class="p">(</span><span class="n">socket_fd</span><span class="p">,</span> <span class="n">buffer_to_send</span><span class="p">.</span><span class="n">data</span><span class="p">(),</span><span class="n">buffer_to_send</span><span class="p">.</span><span class="n">size</span><span class="p">());</span>
+        <span class="c1">//io::read_from_socket(socket_fd,&amp;status, sizeof(status_code));</span>
+        <span class="c1">//if(status != status_code::OK){</span>
+         <span class="c1">//   throw std::runtime_error(&quot;Could not send begin transmission&quot;);</span>
+        <span class="c1">//}</span>
+        <span class="n">increment_begin_transmission</span><span class="p">();</span>
+    <span class="p">}</span>
+
+<span class="p">}</span>
+<span class="kt">void</span> <span class="n">tcp_buffer_transport</span><span class="o">::</span><span class="n">receive_acknowledge</span><span class="p">(){</span>
+    <span class="k">for</span><span class="p">(</span><span class="k">auto</span> <span class="o">&amp;</span> <span class="nl">elem</span> <span class="p">:</span> <span class="n">transmitted_acknowledgements</span><span class="p">){</span>
+        <span class="n">elem</span><span class="p">.</span><span class="n">second</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">tcp_buffer_transport</span><span class="o">::</span><span class="n">send_impl</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span> <span class="n">buffer</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">buffer_size</span><span class="p">){</span>
+    <span class="k">try</span><span class="p">{</span>
+        <span class="k">for</span> <span class="p">(</span><span class="k">auto</span> <span class="nl">socket_fd</span> <span class="p">:</span> <span class="n">socket_fds</span><span class="p">){</span>
+            <span class="n">io</span><span class="o">::</span><span class="n">write_to_socket</span><span class="p">(</span><span class="n">socket_fd</span><span class="p">,</span> <span class="n">buffer</span><span class="p">,</span><span class="n">buffer_size</span><span class="p">);</span>
+            <span class="n">increment_frame_transmission</span><span class="p">();</span>
+        <span class="p">}</span>
+
+    <span class="p">}</span><span class="k">catch</span><span class="p">(</span><span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">exception</span> <span class="o">&amp;</span> <span class="n">e</span> <span class="p">){</span>
+        <span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">spdlog</span><span class="o">::</span><span class="n">logger</span><span class="o">&gt;</span> <span class="n">logger</span> <span class="o">=</span> <span class="n">spdlog</span><span class="o">::</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;batch_logger&quot;</span><span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">logger</span><span class="p">){</span>
+            <span class="n">logger</span><span class="o">-&gt;</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;|||{info}|||||&quot;</span><span class="p">,</span>
+                    <span class="s">&quot;info&quot;</span><span class="n">_a</span><span class="o">=</span><span class="s">&quot;ERROR in tcp_buffer_transport::send_impl. What: {}&quot;</span><span class="n">_format</span><span class="p">(</span><span class="n">e</span><span class="p">.</span><span class="n">what</span><span class="p">()));</span>
+        <span class="p">}</span>
+        <span class="k">throw</span><span class="p">;</span>
+    <span class="p">}</span>
+
+<span class="p">}</span>
+
+<span class="n">tcp_buffer_transport</span><span class="o">::~</span><span class="n">tcp_buffer_transport</span><span class="p">(){</span>
+    <span class="k">for</span> <span class="p">(</span><span class="k">auto</span> <span class="nl">socket_fd</span> <span class="p">:</span> <span class="n">socket_fds</span><span class="p">){</span>
+        <span class="n">close</span><span class="p">(</span><span class="n">socket_fd</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="p">}</span>  <span class="c1">// namespace comm</span>
+</pre></div>
+</div>
+</div>
+
+
+              </div>
+              
+              
+              <div class='prev-next-bottom'>
+                
+
+              </div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../_static/js/index.d8bbf5861d671d414e1a.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright 2020, BlazingDB, Inc..<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>
