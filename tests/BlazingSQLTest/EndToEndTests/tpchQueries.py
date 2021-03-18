@@ -337,6 +337,8 @@ def get_tpch_query(test_id, tables = {}):
             #   errors on Drill
             # - no needed to converting to explicit joins, added
             #   only table aliases
+            # - order by c.c_custkey, with null data it is necessary
+            #   for it to match with drill or spark, because there is a "Limit"
 
         "TEST_10": f"""
                 select
@@ -369,7 +371,8 @@ def get_tpch_query(test_id, tables = {}):
                     c.c_address,
                     c.c_comment
                 order by
-                    revenue desc
+                    revenue desc,
+                    c.c_custkey
                 limit 20
             """,
 

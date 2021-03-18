@@ -8,8 +8,9 @@
 - #1325 Refactored CacheMachine.h and CacheMachine.cpp 
 - #1322 Updated and enabled several E2E tests
 - #1333 Fixing build due to cudf update
-- #1344 Removed GPUCacheDataMetadata class 
+- #1344 Removed GPUCacheDataMetadata class
 - #1376 Fixing build due to some strings refactor in cudf, undoing the replace workaround
+- #1331 Added flag to enable null e2e testing
 
 ## Bug Fixes
 - #1335 Fixing uninitialized var in orc metadata and handling the parseMetadata exceptions properly
