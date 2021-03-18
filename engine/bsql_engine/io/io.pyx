@@ -544,7 +544,7 @@ cpdef runGenerateGraphCaller(uint32_t masterIndex, worker_ids, tables,  table_sc
         blazingTableViews.resize(0)
         for cython_table in table.input:
           column_views.resize(0)
-          for cython_col in cython_table._data.values():
+          for cython_col in cython_table._data.columns:
             column_views.push_back(cython_col.view())
           blazingTableViews.push_back(BlazingTableView(table_view(column_views), names))
         currentTableSchemaCpp.blazingTableViews = blazingTableViews
