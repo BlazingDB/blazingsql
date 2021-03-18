@@ -18,6 +18,7 @@ from pyblazing.apiv2 import DataType
 from pyblazing.apiv2.comms import listen
 from pyblazing.apiv2.algebra import get_json_plan
 from pyblazing.apiv2.sqlengines_utils import (
+    GetSQLEngineArgs,
     SQLEngineDataTypeMap,
     UnsupportedSQLEngineError)
 
@@ -2448,6 +2449,8 @@ class BlazingContext(object):
               sqlEngineDataType = SQLEngineDataTypeMap[sqlEngineName]
           except KeyError as error:
             raise UnsupportedSQLEngineError(sqlEngineName) from error
+
+          sqlEngineArgs = GetSQLEngineArgs(kwargs)
 
         if table is not None:
             self.add_remove_table(table_name, True, table)
