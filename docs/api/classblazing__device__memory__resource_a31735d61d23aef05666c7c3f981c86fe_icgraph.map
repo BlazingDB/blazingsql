@@ -1,0 +1,4 @@
+<map id="blazing_device_memory_resource::getInstance" name="blazing_device_memory_resource::getInstance">
+<area shape="rect" id="node2" href="$classral_1_1batch_1_1MergeStreamKernel.html#a7d89339b2f4f3adecda2fe64b47948cd" title="Executes the batch processing. Loads the data from their input port, and after processing it..." alt="" coords="216,5,441,32"/>
+<area shape="rect" id="node3" href="$classral_1_1execution_1_1task.html#a9d1c2ebe66d6ada25cc1eccb246774b9" title="ral::execution::task\l::set_inputs" alt="" coords="262,57,395,98"/>
+</map>

@@ -1,0 +1,858 @@
+:orphan:
+
+
+Full API
+========
+
+Directories
+***********
+
+
+.. toctree::
+   :maxdepth: 5
+
+   dir_engine.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   dir_engine_src.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   dir_engine_src_bmr.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   dir_engine_src_communication.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   dir_engine_src_communication_CommunicationInterface.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   dir_engine_src_communication_factory.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   dir_engine_src_communication_messages.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   dir_engine_src_cython.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   dir_engine_src_distribution.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   dir_engine_src_execution_graph.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   dir_engine_src_execution_graph_logic_controllers.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   dir_engine_src_execution_graph_logic_controllers_taskflow.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   dir_engine_src_Interpreter.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   dir_engine_src_io.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   dir_engine_src_io_data_parser.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   dir_engine_src_io_data_parser_metadata.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   dir_engine_src_io_data_provider.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   dir_engine_src_operators.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   dir_engine_src_parser.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   dir_engine_src_skip_data.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   dir_engine_src_transport.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   dir_engine_src_transport_common.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   dir_engine_src_utilities.rst
+
+Files
+*****
+
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_io_data_parser_ArgsUtil.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_io_data_parser_ArgsUtil.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_io_data_parser_ArrowParser.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_io_data_parser_ArrowParser.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_execution_graph_logic_controllers_BatchAggregationProcessing.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_execution_graph_logic_controllers_BatchAggregationProcessing.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_execution_graph_logic_controllers_BatchJoinProcessing.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_execution_graph_logic_controllers_BatchJoinProcessing.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_execution_graph_logic_controllers_BatchOrderByProcessing.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_execution_graph_logic_controllers_BatchOrderByProcessing.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_execution_graph_logic_controllers_BatchProcessing.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_execution_graph_logic_controllers_BatchProcessing.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_execution_graph_logic_controllers_BatchUnionProcessing.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_execution_graph_logic_controllers_BatchUnionProcessing.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_execution_graph_logic_controllers_BatchWindowFunctionProcessing.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_execution_graph_logic_controllers_BatchWindowFunctionProcessing.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_execution_graph_logic_controllers_BlazingColumn.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_execution_graph_logic_controllers_BlazingColumnOwner.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_execution_graph_logic_controllers_BlazingColumnOwner.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_execution_graph_logic_controllers_BlazingColumnView.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_execution_graph_logic_controllers_BlazingHostTable.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_execution_graph_logic_controllers_BlazingHostTable.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_bmr_BlazingMemoryResource.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_bmr_BlazingMemoryResource.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_bmr_BufferProvider.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_bmr_BufferProvider.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_communication_CommunicationInterface_bufferTransport.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_communication_CommunicationInterface_bufferTransport.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_execution_graph_logic_controllers_CacheData.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_execution_graph_logic_controllers_CacheData.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_execution_graph_logic_controllers_CacheMachine.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_execution_graph_logic_controllers_CacheMachine.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_CalciteExpressionParsing.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_CalciteExpressionParsing.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_CalciteInterpreter.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_CalciteInterpreter.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_CodeTimer.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_transport_ColumnTransport.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_io_data_parser_metadata_common_metadata.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_io_data_parser_metadata_common_metadata.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_utilities_CommonOperations.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_utilities_CommonOperations.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_communication_CommunicationData.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_communication_CommunicationData.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_communication_messages_ComponentMessages.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_execution_graph_Context.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_execution_graph_Context.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_io_data_parser_CSVParser.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_io_data_parser_CSVParser.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_utilities_ctpl_stl.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_io_DataLoader.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_io_DataLoader.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_io_data_parser_DataParser.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_io_data_provider_DataProvider.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_io_DataType.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_transport_common_dbg.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_utilities_DebuggingUtils.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_utilities_DebuggingUtils.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_execution_graph_logic_controllers_taskflow_distributing_kernel.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_execution_graph_logic_controllers_taskflow_distributing_kernel.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_io_data_provider_DummyProvider.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_cython_engine.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_error.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_cython_errors.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_execution_graph_logic_controllers_taskflow_executor.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_execution_graph_logic_controllers_taskflow_executor.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_parser_expression_tree.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_parser_expression_tree.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_parser_expression_utils.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_parser_expression_utils.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_io_data_provider_GDFDataProvider.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_io_data_provider_GDFDataProvider.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_io_data_parser_GDFParser.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_io_data_parser_GDFParser.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_communication_messages_GPUComponentMessage.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_communication_messages_GPUComponentMessage.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_execution_graph_logic_controllers_taskflow_graph.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_execution_graph_logic_controllers_taskflow_graph.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_operators_GroupBy.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_operators_GroupBy.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_cython_initialize.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_bmr_initializer.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_Interpreter_interpreter_cpp.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_cython_io.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_io_data_parser_JSONParser.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_io_data_parser_JSONParser.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_execution_graph_logic_controllers_taskflow_kernel.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_execution_graph_logic_controllers_taskflow_kernel.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_execution_graph_logic_controllers_taskflow_kernel_type.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_execution_graph_logic_controllers_taskflow_kernel_type.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_execution_graph_logic_controllers_taskflow_kpair.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_execution_graph_logic_controllers_LogicalFilter.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_execution_graph_logic_controllers_LogicalFilter.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_execution_graph_logic_controllers_LogicalProject.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_execution_graph_logic_controllers_LogicalProject.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_execution_graph_logic_controllers_LogicPrimitives.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_execution_graph_logic_controllers_LogicPrimitives.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_transport_common_macros.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_bmr_MemoryMonitor.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_bmr_MemoryMonitor.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_communication_factory_MessageFactory.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_communication_factory_MessageFactory.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_communication_CommunicationInterface_messageListener.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_communication_CommunicationInterface_messageListener.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_communication_CommunicationInterface_messageReceiver.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_communication_CommunicationInterface_messageReceiver.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_communication_CommunicationInterface_messageSender.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_communication_CommunicationInterface_messageSender.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_communication_CommunicationInterface_node.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_transport_Node.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_transport_Node.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_communication_CommunicationInterface_node.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_io_data_parser_metadata_orc_metadata.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_io_data_parser_metadata_orc_metadata.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_io_data_parser_OrcParser.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_io_data_parser_OrcParser.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_operators_OrderBy.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_operators_OrderBy.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_io_data_parser_metadata_parquet_metadata.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_io_data_parser_metadata_parquet_metadata.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_io_data_parser_ParquetParser.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_io_data_parser_ParquetParser.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_execution_graph_logic_controllers_PhysicalPlanGenerator.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_execution_graph_logic_controllers_taskflow_port.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_execution_graph_logic_controllers_taskflow_port.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_distribution_primitives.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_distribution_primitives.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_communication_CommunicationInterface_protocols.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_communication_CommunicationInterface_protocols.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_utilities_scalar_timestamp_parser.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_utilities_scalar_timestamp_parser.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_io_Schema.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_io_Schema.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_communication_CommunicationInterface_serializer.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_communication_CommunicationInterface_serializer.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_skip_data_SkipDataProcessor.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_skip_data_SkipDataProcessor.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_cython_static.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_transport_Status.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_utilities_transform.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_communication_ucx_init.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_io_data_provider_UriDataProvider.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_io_data_provider_UriDataProvider.h.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_skip_data_utils.cpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_skip_data_utils.hpp.rst
+
+.. toctree::
+   :maxdepth: 5
+
+   file_engine_src_execution_graph_logic_controllers_WaitingQueue.h.rst

@@ -1,0 +1,31 @@
+
+.. _program_listing_file_engine_src_execution_graph_logic_controllers_LogicalProject.h:
+
+Program Listing for File LogicalProject.h
+=========================================
+
+|exhale_lsh| :ref:`Return to documentation for file <file_engine_src_execution_graph_logic_controllers_LogicalProject.h>` (``engine/src/execution_graph/logic_controllers/LogicalProject.h``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. code-block:: cpp
+
+   #pragma once
+   
+   #include <execution_graph/Context.h>
+   #include "LogicPrimitives.h"
+   #include "execution_graph/logic_controllers/BlazingColumn.h"
+   
+   namespace ral{
+   namespace processor{
+   
+   std::vector<std::unique_ptr<ral::frame::BlazingColumn>> evaluate_expressions(
+     const cudf::table_view & table, const std::vector<std::string> & expressions);
+   
+   std::unique_ptr<ral::frame::BlazingTable> process_project(
+     std::unique_ptr<ral::frame::BlazingTable> blazing_table_in,
+     const std::string & query_part,
+     blazingdb::manager::Context * context);
+   
+   } // namespace processor
+   } // namespace ral

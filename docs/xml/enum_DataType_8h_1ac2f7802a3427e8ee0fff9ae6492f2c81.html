@@ -1,0 +1,234 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Enum DataType &#8212; BlazingSQL v0.18 documentation</title>
+    
+  <link href="../_static/css/theme.css" rel="stylesheet" />
+  <link href="../_static/css/index.101715efdecc9b59cb6e1ddfa685c31f.css" rel="stylesheet" />
+
+    
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+
+    
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/getting_started.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
+    
+  <link rel="preload" as="script" href="../_static/js/index.d8bbf5861d671d414e1a.js">
+
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/d3.v3.min.js"></script>
+    <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
+    <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
+    <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="container-xl">
+
+
+    
+      
+      <a class="navbar-brand" href="../index.html">
+        <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo">
+      </a>
+      
+    
+
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        <li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../arch.html">
+  BlazingSQL Project Architecture
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../graph.html">
+  Execution Engine
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../api.html">
+  API Documentation
+ </a>
+</li>
+
+        
+      </ul>
+
+      <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+            
+            <!-- Only show if we have sidebars configured, else just a small margin  -->
+            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <div class="bd-toc-item active">
+    
+  </div>
+</nav>
+            </div>
+            
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#enum-documentation">
+   Enum Documentation
+  </a>
+ </li>
+</ul>
+
+</nav>
+
+
+
+<div class="tocsection editthispage">
+    <a href="https://github.com/blazingdb/blazingsql/edit/feedback/docsrc/source/xml/enum_DataType_8h_1ac2f7802a3427e8ee0fff9ae6492f2c81.rst">
+        <i class="fas fa-pencil-alt"></i> Edit this page
+    </a>
+</div>
+
+              
+          </div>
+          
+
+          
+          
+            
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="enum-datatype">
+<span id="exhale-enum-datatype-8h-1ac2f7802a3427e8ee0fff9ae6492f2c81"></span><h1>Enum DataType<a class="headerlink" href="#enum-datatype" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p>Defined in <a class="reference internal" href="file_engine_src_io_DataType.h.html#file-engine-src-io-datatype-h"><span class="std std-ref">File DataType.h</span></a></p></li>
+</ul>
+<div class="section" id="enum-documentation">
+<h2>Enum Documentation<a class="headerlink" href="#enum-documentation" title="Permalink to this headline">¶</a></h2>
+<dl class="cpp enum">
+<dt id="_CPPv4N3ral2io8DataTypeE">
+<span id="_CPPv3N3ral2io8DataTypeE"></span><span id="_CPPv2N3ral2io8DataTypeE"></span><span class="target" id="DataType_8h_1ac2f7802a3427e8ee0fff9ae6492f2c81"></span><em class="property"><span class="pre">enum</span> </em><code class="sig-prename descclassname"><span class="pre">ral</span><span class="pre">::</span><span class="pre">io</span><code class="sig-prename descclassname"><span class="pre">::</span></code></code><code class="sig-name descname"><span class="pre">DataType</span></code><a class="headerlink" href="#_CPPv4N3ral2io8DataTypeE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p><em>Values:</em></p>
+<dl class="cpp enumerator">
+<dt id="_CPPv4N3ral2io8DataType9UNDEFINEDE">
+<span id="_CPPv3N3ral2io8DataType9UNDEFINEDE"></span><span id="_CPPv2N3ral2io8DataType9UNDEFINEDE"></span><span class="target" id="DataType_8h_1ac2f7802a3427e8ee0fff9ae6492f2c81a9cb439b9fd62f0c2adc7ccb457fd4949"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">UNDEFINED</span></code><a class="headerlink" href="#_CPPv4N3ral2io8DataType9UNDEFINEDE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N3ral2io8DataType7PARQUETE">
+<span id="_CPPv3N3ral2io8DataType7PARQUETE"></span><span id="_CPPv2N3ral2io8DataType7PARQUETE"></span><span class="target" id="DataType_8h_1ac2f7802a3427e8ee0fff9ae6492f2c81a60d6a6154afa059636488f75a95ab78a"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">PARQUET</span></code><a class="headerlink" href="#_CPPv4N3ral2io8DataType7PARQUETE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N3ral2io8DataType3ORCE">
+<span id="_CPPv3N3ral2io8DataType3ORCE"></span><span id="_CPPv2N3ral2io8DataType3ORCE"></span><span class="target" id="DataType_8h_1ac2f7802a3427e8ee0fff9ae6492f2c81ad89e12a09f616bd8b3e7f7c3247f04e4"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">ORC</span></code><a class="headerlink" href="#_CPPv4N3ral2io8DataType3ORCE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N3ral2io8DataType3CSVE">
+<span id="_CPPv3N3ral2io8DataType3CSVE"></span><span id="_CPPv2N3ral2io8DataType3CSVE"></span><span class="target" id="DataType_8h_1ac2f7802a3427e8ee0fff9ae6492f2c81a2e26a7c9913716f40eda0aa0f329102b"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">CSV</span></code><a class="headerlink" href="#_CPPv4N3ral2io8DataType3CSVE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N3ral2io8DataType4JSONE">
+<span id="_CPPv3N3ral2io8DataType4JSONE"></span><span id="_CPPv2N3ral2io8DataType4JSONE"></span><span class="target" id="DataType_8h_1ac2f7802a3427e8ee0fff9ae6492f2c81aa92d922d1f5de7b747eba25ccb674fe1"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">JSON</span></code><a class="headerlink" href="#_CPPv4N3ral2io8DataType4JSONE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N3ral2io8DataType4CUDFE">
+<span id="_CPPv3N3ral2io8DataType4CUDFE"></span><span id="_CPPv2N3ral2io8DataType4CUDFE"></span><span class="target" id="DataType_8h_1ac2f7802a3427e8ee0fff9ae6492f2c81af7e8f213caf31d091972e9af52bce0ed"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">CUDF</span></code><a class="headerlink" href="#_CPPv4N3ral2io8DataType4CUDFE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N3ral2io8DataType9DASK_CUDFE">
+<span id="_CPPv3N3ral2io8DataType9DASK_CUDFE"></span><span id="_CPPv2N3ral2io8DataType9DASK_CUDFE"></span><span class="target" id="DataType_8h_1ac2f7802a3427e8ee0fff9ae6492f2c81abf70176a1a5e604c743fb48c46a1e199"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">DASK_CUDF</span></code><a class="headerlink" href="#_CPPv4N3ral2io8DataType9DASK_CUDFE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt id="_CPPv4N3ral2io8DataType5ARROWE">
+<span id="_CPPv3N3ral2io8DataType5ARROWE"></span><span id="_CPPv2N3ral2io8DataType5ARROWE"></span><span class="target" id="DataType_8h_1ac2f7802a3427e8ee0fff9ae6492f2c81a1bf2c4eb945117cdc1de5363c7b2acad"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">ARROW</span></code><a class="headerlink" href="#_CPPv4N3ral2io8DataType5ARROWE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+              </div>
+              
+              
+              <div class='prev-next-bottom'>
+                
+
+              </div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../_static/js/index.d8bbf5861d671d414e1a.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright 2020, BlazingDB, Inc..<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

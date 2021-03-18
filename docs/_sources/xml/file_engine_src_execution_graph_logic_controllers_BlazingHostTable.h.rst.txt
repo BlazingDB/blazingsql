@@ -1,0 +1,82 @@
+
+.. _file_engine_src_execution_graph_logic_controllers_BlazingHostTable.h:
+
+File BlazingHostTable.h
+=======================
+
+|exhale_lsh| :ref:`Parent directory <dir_engine_src_execution_graph_logic_controllers>` (``engine/src/execution_graph/logic_controllers``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``engine/src/execution_graph/logic_controllers/BlazingHostTable.h``)
+--------------------------------------------------------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file_engine_src_execution_graph_logic_controllers_BlazingHostTable.h.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``LogicPrimitives.h`` (:ref:`file_engine_src_execution_graph_logic_controllers_LogicPrimitives.h`)
+
+- ``bmr/BufferProvider.h`` (:ref:`file_engine_src_bmr_BufferProvider.h`)
+
+- ``cudf/types.hpp``
+
+- ``memory``
+
+- ``string``
+
+- ``transport/ColumnTransport.h`` (:ref:`file_engine_src_transport_ColumnTransport.h`)
+
+- ``vector``
+
+
+
+Included By
+-----------
+
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_LogicPrimitives.h`
+
+- :ref:`file_engine_src_communication_messages_GPUComponentMessage.h`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_BlazingHostTable.cpp`
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_ral`
+
+- :ref:`namespace_ral__frame`
+
+
+Classes
+-------
+
+
+- :ref:`exhale_class_classral_1_1frame_1_1BlazingHostTable`
+
+
+Typedefs
+--------
+
+
+- :ref:`exhale_typedef_BlazingHostTable_8h_1aa6d4bd70661380463cfd498e215223ce`
+

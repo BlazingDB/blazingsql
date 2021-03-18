@@ -1,0 +1,24 @@
+.. _dir_engine_src_cython:
+
+
+Directory cython
+================
+
+
+|exhale_lsh| :ref:`Parent directory <dir_engine_src>` (``engine/src``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+*Directory path:* ``engine/src/cython``
+
+
+Files
+-----
+
+- :ref:`file_engine_src_cython_engine.cpp`
+- :ref:`file_engine_src_cython_errors.cpp`
+- :ref:`file_engine_src_cython_initialize.cpp`
+- :ref:`file_engine_src_cython_io.cpp`
+- :ref:`file_engine_src_cython_static.cpp`
+
+

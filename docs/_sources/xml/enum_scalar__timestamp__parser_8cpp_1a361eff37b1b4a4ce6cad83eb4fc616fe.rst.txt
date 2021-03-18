@@ -1,0 +1,13 @@
+.. _exhale_enum_scalar__timestamp__parser_8cpp_1a361eff37b1b4a4ce6cad83eb4fc616fe:
+
+Enum format_char_type
+=====================
+
+- Defined in :ref:`file_engine_src_utilities_scalar_timestamp_parser.cpp`
+
+
+Enum Documentation
+------------------
+
+
+.. doxygenenum:: strings::detail::@143::format_char_type

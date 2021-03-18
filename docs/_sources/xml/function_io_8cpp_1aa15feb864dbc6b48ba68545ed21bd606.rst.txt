@@ -1,0 +1,13 @@
+.. _exhale_function_io_8cpp_1aa15feb864dbc6b48ba68545ed21bd606:
+
+Function registerFileSystemS3
+=============================
+
+- Defined in :ref:`file_engine_src_cython_io.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: registerFileSystemS3(S3, std::string, std::string)

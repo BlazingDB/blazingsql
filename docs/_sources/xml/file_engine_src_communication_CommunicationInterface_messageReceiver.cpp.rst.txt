@@ -1,0 +1,48 @@
+
+.. _file_engine_src_communication_CommunicationInterface_messageReceiver.cpp:
+
+File messageReceiver.cpp
+========================
+
+|exhale_lsh| :ref:`Parent directory <dir_engine_src_communication_CommunicationInterface>` (``engine/src/communication/CommunicationInterface``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``engine/src/communication/CommunicationInterface/messageReceiver.cpp``)
+------------------------------------------------------------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file_engine_src_communication_CommunicationInterface_messageReceiver.cpp.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``messageReceiver.hpp`` (:ref:`file_engine_src_communication_CommunicationInterface_messageReceiver.hpp`)
+
+- ``protocols.hpp`` (:ref:`file_engine_src_communication_CommunicationInterface_protocols.hpp`)
+
+- ``spdlog/spdlog.h``
+
+
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_comm`
+

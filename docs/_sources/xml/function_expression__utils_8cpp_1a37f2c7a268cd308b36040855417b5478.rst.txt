@@ -1,0 +1,13 @@
+.. _exhale_function_expression__utils_8cpp_1a37f2c7a268cd308b36040855417b5478:
+
+Function get_first_over_expression_from_logical_plan(const std::string&, const std::string&)
+============================================================================================
+
+- Defined in :ref:`file_engine_src_parser_expression_utils.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: get_first_over_expression_from_logical_plan(const std::string&, const std::string&)

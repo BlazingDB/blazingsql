@@ -1,0 +1,13 @@
+.. _exhale_function_io_8cpp_1aaa962128be76bbe3071dc56756d46e42:
+
+Function registerFileSystemLocal_C
+==================================
+
+- Defined in :ref:`file_engine_src_cython_io.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: registerFileSystemLocal_C(std::string, std::string)

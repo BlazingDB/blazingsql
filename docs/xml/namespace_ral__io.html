@@ -1,0 +1,256 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Namespace ral::io &#8212; BlazingSQL v0.18 documentation</title>
+    
+  <link href="../_static/css/theme.css" rel="stylesheet" />
+  <link href="../_static/css/index.101715efdecc9b59cb6e1ddfa685c31f.css" rel="stylesheet" />
+
+    
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+
+    
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/getting_started.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
+    
+  <link rel="preload" as="script" href="../_static/js/index.d8bbf5861d671d414e1a.js">
+
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/d3.v3.min.js"></script>
+    <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
+    <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
+    <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="container-xl">
+
+
+    
+      
+      <a class="navbar-brand" href="../index.html">
+        <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo">
+      </a>
+      
+    
+
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        <li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../arch.html">
+  BlazingSQL Project Architecture
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../graph.html">
+  Execution Engine
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../api.html">
+  API Documentation
+ </a>
+</li>
+
+        
+      </ul>
+
+      <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+            
+            <!-- Only show if we have sidebars configured, else just a small margin  -->
+            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <div class="bd-toc-item active">
+    
+  </div>
+</nav>
+            </div>
+            
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#namespaces">
+   Namespaces
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#classes">
+   Classes
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#enums">
+   Enums
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#functions">
+   Functions
+  </a>
+ </li>
+</ul>
+
+</nav>
+
+
+
+<div class="tocsection editthispage">
+    <a href="https://github.com/blazingdb/blazingsql/edit/feedback/docsrc/source/xml/namespace_ral__io.rst">
+        <i class="fas fa-pencil-alt"></i> Edit this page
+    </a>
+</div>
+
+              
+          </div>
+          
+
+          
+          
+            
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="namespace-ral-io">
+<span id="id1"></span><h1>Namespace ral::io<a class="headerlink" href="#namespace-ral-io" title="Permalink to this headline">¶</a></h1>
+<div class="contents local topic" id="contents">
+<p class="topic-title">Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#namespaces" id="id2">Namespaces</a></p></li>
+<li><p><a class="reference internal" href="#classes" id="id3">Classes</a></p></li>
+<li><p><a class="reference internal" href="#enums" id="id4">Enums</a></p></li>
+<li><p><a class="reference internal" href="#functions" id="id5">Functions</a></p></li>
+</ul>
+</div>
+<div class="section" id="namespaces">
+<h2>Namespaces<a class="headerlink" href="#namespaces" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="namespace_ral__io__%40116.html#namespace-ral-io-116"><span class="std std-ref">Namespace ral::io::&#64;116</span></a></p></li>
+</ul>
+</div>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="structral_1_1io_1_1data__handle.html#exhale-struct-structral-1-1io-1-1data-handle"><span class="std std-ref">Struct data_handle</span></a></p></li>
+<li><p><a class="reference internal" href="classral_1_1io_1_1arrow__parser.html#exhale-class-classral-1-1io-1-1arrow-parser"><span class="std std-ref">Class arrow_parser</span></a></p></li>
+<li><p><a class="reference internal" href="classral_1_1io_1_1csv__parser.html#exhale-class-classral-1-1io-1-1csv-parser"><span class="std std-ref">Class csv_parser</span></a></p></li>
+<li><p><a class="reference internal" href="classral_1_1io_1_1data__loader.html#exhale-class-classral-1-1io-1-1data-loader"><span class="std std-ref">Class data_loader</span></a></p></li>
+<li><p><a class="reference internal" href="classral_1_1io_1_1data__parser.html#exhale-class-classral-1-1io-1-1data-parser"><span class="std std-ref">Class data_parser</span></a></p></li>
+<li><p><a class="reference internal" href="classral_1_1io_1_1data__provider.html#exhale-class-classral-1-1io-1-1data-provider"><span class="std std-ref">Class data_provider</span></a></p></li>
+<li><p><a class="reference internal" href="classral_1_1io_1_1dummy__data__provider.html#exhale-class-classral-1-1io-1-1dummy-data-provider"><span class="std std-ref">Class dummy_data_provider</span></a></p></li>
+<li><p><a class="reference internal" href="classral_1_1io_1_1gdf__data__provider.html#exhale-class-classral-1-1io-1-1gdf-data-provider"><span class="std std-ref">Class gdf_data_provider</span></a></p></li>
+<li><p><a class="reference internal" href="classral_1_1io_1_1gdf__parser.html#exhale-class-classral-1-1io-1-1gdf-parser"><span class="std std-ref">Class gdf_parser</span></a></p></li>
+<li><p><a class="reference internal" href="classral_1_1io_1_1json__parser.html#exhale-class-classral-1-1io-1-1json-parser"><span class="std std-ref">Class json_parser</span></a></p></li>
+<li><p><a class="reference internal" href="classral_1_1io_1_1orc__parser.html#exhale-class-classral-1-1io-1-1orc-parser"><span class="std std-ref">Class orc_parser</span></a></p></li>
+<li><p><a class="reference internal" href="classral_1_1io_1_1parquet__parser.html#exhale-class-classral-1-1io-1-1parquet-parser"><span class="std std-ref">Class parquet_parser</span></a></p></li>
+<li><p><a class="reference internal" href="classral_1_1io_1_1Schema.html#exhale-class-classral-1-1io-1-1schema"><span class="std std-ref">Class Schema</span></a></p></li>
+<li><p><a class="reference internal" href="classral_1_1io_1_1uri__data__provider.html#exhale-class-classral-1-1io-1-1uri-data-provider"><span class="std std-ref">Class uri_data_provider</span></a></p></li>
+</ul>
+</div>
+<div class="section" id="enums">
+<h2>Enums<a class="headerlink" href="#enums" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="enum_DataType_8h_1ac2f7802a3427e8ee0fff9ae6492f2c81.html#exhale-enum-datatype-8h-1ac2f7802a3427e8ee0fff9ae6492f2c81"><span class="std std-ref">Enum DataType</span></a></p></li>
+</ul>
+</div>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="function_ArgsUtil_8cpp_1abe1a7bf84069fedb46ce55b5f4c53cec.html#exhale-function-argsutil-8cpp-1abe1a7bf84069fedb46ce55b5f4c53cec"><span class="std std-ref">Function ral::io::getCsvReaderOptions</span></a></p></li>
+<li><p><a class="reference internal" href="function_ArgsUtil_8cpp_1ab3471859a4fed557f91279ed0cc74b0b.html#exhale-function-argsutil-8cpp-1ab3471859a4fed557f91279ed0cc74b0b"><span class="std std-ref">Function ral::io::getDataTypeName</span></a></p></li>
+<li><p><a class="reference internal" href="function_ArgsUtil_8cpp_1a11edc1f5eed8fe67aa8f6ca4dd905d8b.html#exhale-function-argsutil-8cpp-1a11edc1f5eed8fe67aa8f6ca4dd905d8b"><span class="std std-ref">Function ral::io::getJsonReaderOptions</span></a></p></li>
+<li><p><a class="reference internal" href="function_ArgsUtil_8cpp_1aa0296cfb7e317aab580f0a31238af33f.html#exhale-function-argsutil-8cpp-1aa0296cfb7e317aab580f0a31238af33f"><span class="std std-ref">Function ral::io::getOrcReaderOptions</span></a></p></li>
+<li><p><a class="reference internal" href="function_ArgsUtil_8h_1a96ffb004025cce28e58088645e2f2856.html#exhale-function-argsutil-8h-1a96ffb004025cce28e58088645e2f2856"><span class="std std-ref">Function ral::io::in</span></a></p></li>
+<li><p><a class="reference internal" href="function_ArgsUtil_8cpp_1a60f8a1a41a4e1af64f8ff15e616e45b8.html#exhale-function-argsutil-8cpp-1a60f8a1a41a4e1af64f8ff15e616e45b8"><span class="std std-ref">Function ral::io::inferDataType</span></a></p></li>
+<li><p><a class="reference internal" href="function_ArgsUtil_8cpp_1a2de58bece361223056a85382ea05b926.html#exhale-function-argsutil-8cpp-1a2de58bece361223056a85382ea05b926"><span class="std std-ref">Function ral::io::inferFileType</span></a></p></li>
+<li><p><a class="reference internal" href="function_ArgsUtil_8cpp_1a7f1968d0bacaf231959ee970bea24e07.html#exhale-function-argsutil-8cpp-1a7f1968d0bacaf231959ee970bea24e07"><span class="std std-ref">Function ral::io::map_contains</span></a></p></li>
+<li><p><a class="reference internal" href="function_ArgsUtil_8cpp_1a73013ac0c543a4481db2c9c35f0ded90.html#exhale-function-argsutil-8cpp-1a73013ac0c543a4481db2c9c35f0ded90"><span class="std std-ref">Function ral::io::ord</span></a></p></li>
+<li><p><a class="reference internal" href="function_ArgsUtil_8cpp_1a4edc1ec9bb0bd72d5be8d7d8dc063a9e.html#exhale-function-argsutil-8cpp-1a4edc1ec9bb0bd72d5be8d7d8dc063a9e"><span class="std std-ref">Function ral::io::to_bool</span></a></p></li>
+<li><p><a class="reference internal" href="function_ArgsUtil_8cpp_1a99ef3d0f03b1b76bb6a64374519a5b65.html#exhale-function-argsutil-8cpp-1a99ef3d0f03b1b76bb6a64374519a5b65"><span class="std std-ref">Function ral::io::to_int</span></a></p></li>
+<li><p><a class="reference internal" href="function_ArgsUtil_8cpp_1a789e576acd9ab34d82126b236fdc6929.html#exhale-function-argsutil-8cpp-1a789e576acd9ab34d82126b236fdc6929"><span class="std std-ref">Function ral::io::to_map</span></a></p></li>
+<li><p><a class="reference internal" href="function_ArgsUtil_8cpp_1aadd6d0c6c51ed55590b2665df168f74d.html#exhale-function-argsutil-8cpp-1aadd6d0c6c51ed55590b2665df168f74d"><span class="std std-ref">Function ral::io::to_vector_int</span></a></p></li>
+<li><p><a class="reference internal" href="function_ArgsUtil_8cpp_1aae1b17e5ca08ead191713f5d177d3629.html#exhale-function-argsutil-8cpp-1aae1b17e5ca08ead191713f5d177d3629"><span class="std std-ref">Function ral::io::to_vector_string</span></a></p></li>
+</ul>
+</div>
+</div>
+
+
+              </div>
+              
+              
+              <div class='prev-next-bottom'>
+                
+
+              </div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../_static/js/index.d8bbf5861d671d414e1a.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright 2020, BlazingDB, Inc..<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

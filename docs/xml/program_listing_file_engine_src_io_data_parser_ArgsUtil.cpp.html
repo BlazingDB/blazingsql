@@ -1,0 +1,427 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Program Listing for File ArgsUtil.cpp &#8212; BlazingSQL v0.18 documentation</title>
+    
+  <link href="../_static/css/theme.css" rel="stylesheet" />
+  <link href="../_static/css/index.101715efdecc9b59cb6e1ddfa685c31f.css" rel="stylesheet" />
+
+    
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+
+    
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/getting_started.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
+    
+  <link rel="preload" as="script" href="../_static/js/index.d8bbf5861d671d414e1a.js">
+
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/d3.v3.min.js"></script>
+    <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
+    <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
+    <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="container-xl">
+
+
+    
+      
+      <a class="navbar-brand" href="../index.html">
+        <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo">
+      </a>
+      
+    
+
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        <li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../arch.html">
+  BlazingSQL Project Architecture
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../graph.html">
+  Execution Engine
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../api.html">
+  API Documentation
+ </a>
+</li>
+
+        
+      </ul>
+
+      <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+            
+            <!-- Only show if we have sidebars configured, else just a small margin  -->
+            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <div class="bd-toc-item active">
+    
+  </div>
+</nav>
+            </div>
+            
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+
+<nav id="bd-toc-nav">
+    
+</nav>
+
+
+
+<div class="tocsection editthispage">
+    <a href="https://github.com/blazingdb/blazingsql/edit/feedback/docsrc/source/xml/program_listing_file_engine_src_io_data_parser_ArgsUtil.cpp.rst">
+        <i class="fas fa-pencil-alt"></i> Edit this page
+    </a>
+</div>
+
+              
+          </div>
+          
+
+          
+          
+            
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="program-listing-for-file-argsutil-cpp">
+<span id="program-listing-file-engine-src-io-data-parser-argsutil-cpp"></span><h1>Program Listing for File ArgsUtil.cpp<a class="headerlink" href="#program-listing-for-file-argsutil-cpp" title="Permalink to this headline">¶</a></h1>
+<p>↰ <a class="reference internal" href="file_engine_src_io_data_parser_ArgsUtil.cpp.html#file-engine-src-io-data-parser-argsutil-cpp"><span class="std std-ref">Return to documentation for file</span></a> (<code class="docutils literal notranslate"><span class="pre">engine/src/io/data_parser/ArgsUtil.cpp</span></code>)</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&quot;ArgsUtil.h&quot;</span><span class="cp"></span>
+
+<span class="cp">#include</span> <span class="cpf">&lt;blazingdb/io/FileSystem/Uri.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;blazingdb/io/Util/StringUtil.h&gt;</span><span class="cp"></span>
+
+<span class="cp">#include</span> <span class="cpf">&quot;../data_provider/UriDataProvider.h&quot;</span><span class="cp"></span>
+
+<span class="k">namespace</span> <span class="n">ral</span> <span class="p">{</span>
+<span class="k">namespace</span> <span class="n">io</span> <span class="p">{</span>
+
+<span class="n">DataType</span> <span class="n">inferDataType</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">file_format_hint</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">file_format_hint</span> <span class="o">==</span> <span class="s">&quot;parquet&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">DataType</span><span class="o">::</span><span class="n">PARQUET</span><span class="p">;</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">file_format_hint</span> <span class="o">==</span> <span class="s">&quot;json&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">DataType</span><span class="o">::</span><span class="n">JSON</span><span class="p">;</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">file_format_hint</span> <span class="o">==</span> <span class="s">&quot;orc&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">DataType</span><span class="o">::</span><span class="n">ORC</span><span class="p">;</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">file_format_hint</span> <span class="o">==</span> <span class="s">&quot;csv&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">DataType</span><span class="o">::</span><span class="n">CSV</span><span class="p">;</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">file_format_hint</span> <span class="o">==</span> <span class="s">&quot;psv&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">DataType</span><span class="o">::</span><span class="n">CSV</span><span class="p">;</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">file_format_hint</span> <span class="o">==</span> <span class="s">&quot;tbl&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">DataType</span><span class="o">::</span><span class="n">CSV</span><span class="p">;</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">file_format_hint</span> <span class="o">==</span> <span class="s">&quot;txt&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">DataType</span><span class="o">::</span><span class="n">CSV</span><span class="p">;</span>
+    <span class="c1">// NOTE if you need more options the user can pass file_format in the create table</span>
+
+    <span class="k">return</span> <span class="n">DataType</span><span class="o">::</span><span class="n">UNDEFINED</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="n">DataType</span> <span class="n">inferFileType</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span> <span class="n">files</span><span class="p">,</span> <span class="n">DataType</span> <span class="n">data_type_hint</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">ignore_missing_paths</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">data_type_hint</span> <span class="o">==</span> <span class="n">DataType</span><span class="o">::</span><span class="n">PARQUET</span> <span class="o">||</span> <span class="n">data_type_hint</span> <span class="o">==</span> <span class="n">DataType</span><span class="o">::</span><span class="n">CSV</span> <span class="o">||</span> <span class="n">data_type_hint</span> <span class="o">==</span> <span class="n">DataType</span><span class="o">::</span><span class="n">JSON</span> <span class="o">||</span>
+        <span class="n">data_type_hint</span> <span class="o">==</span> <span class="n">DataType</span><span class="o">::</span><span class="n">ORC</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">data_type_hint</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">Uri</span><span class="o">&gt;</span> <span class="n">uris</span><span class="p">;</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">transform</span><span class="p">(</span>
+        <span class="n">files</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span> <span class="n">files</span><span class="p">.</span><span class="n">end</span><span class="p">(),</span> <span class="n">std</span><span class="o">::</span><span class="n">back_inserter</span><span class="p">(</span><span class="n">uris</span><span class="p">),</span> <span class="p">[](</span><span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">uri</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Uri</span> <span class="p">{</span> <span class="k">return</span> <span class="n">Uri</span><span class="p">(</span><span class="n">uri</span><span class="p">);</span> <span class="p">});</span>
+    <span class="n">ral</span><span class="o">::</span><span class="n">io</span><span class="o">::</span><span class="n">uri_data_provider</span> <span class="n">udp</span><span class="p">(</span><span class="n">uris</span><span class="p">,</span> <span class="n">ignore_missing_paths</span><span class="p">);</span>
+    <span class="kt">bool</span> <span class="n">open_file</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+    <span class="k">const</span> <span class="n">ral</span><span class="o">::</span><span class="n">io</span><span class="o">::</span><span class="n">data_handle</span> <span class="n">dh</span> <span class="o">=</span> <span class="n">udp</span><span class="p">.</span><span class="n">get_next</span><span class="p">(</span><span class="n">open_file</span><span class="p">);</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">dh</span><span class="p">.</span><span class="n">uri</span><span class="p">.</span><span class="n">getPath</span><span class="p">().</span><span class="n">getFileExtension</span><span class="p">();</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">transform</span><span class="p">(</span><span class="n">ext</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span> <span class="n">ext</span><span class="p">.</span><span class="n">end</span><span class="p">(),</span> <span class="n">ext</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span> <span class="o">::</span><span class="n">tolower</span><span class="p">);</span>
+
+    <span class="k">return</span> <span class="nf">inferDataType</span><span class="p">(</span><span class="n">ext</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">bool</span> <span class="n">map_contains</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">key</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">map</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span> <span class="n">args</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="o">!</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="o">==</span> <span class="n">args</span><span class="p">.</span><span class="n">end</span><span class="p">());</span> <span class="p">}</span>
+
+<span class="kt">bool</span> <span class="n">to_bool</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">value</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">value</span> <span class="o">==</span> <span class="s">&quot;True&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">value</span> <span class="o">==</span> <span class="s">&quot;False&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+    <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">char</span> <span class="n">ord</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">value</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="p">(</span><span class="kt">char</span><span class="p">)</span> <span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span> <span class="p">}</span>
+
+<span class="kt">int</span> <span class="n">to_int</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">value</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="n">std</span><span class="o">::</span><span class="n">atoi</span><span class="p">(</span><span class="n">value</span><span class="p">.</span><span class="n">c_str</span><span class="p">());</span> <span class="p">}</span>
+
+<span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span> <span class="n">to_vector_string</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">value</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">vec</span> <span class="o">=</span> <span class="n">StringUtil</span><span class="o">::</span><span class="n">replace</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="s">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">);</span>
+    <span class="n">vec</span> <span class="o">=</span> <span class="n">StringUtil</span><span class="o">::</span><span class="n">replace</span><span class="p">(</span><span class="n">vec</span><span class="p">,</span> <span class="s">&quot;[&quot;</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">);</span>
+    <span class="n">vec</span> <span class="o">=</span> <span class="n">StringUtil</span><span class="o">::</span><span class="n">replace</span><span class="p">(</span><span class="n">vec</span><span class="p">,</span> <span class="s">&quot;]&quot;</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">);</span>
+    <span class="n">vec</span> <span class="o">=</span> <span class="n">StringUtil</span><span class="o">::</span><span class="n">replace</span><span class="p">(</span><span class="n">vec</span><span class="p">,</span> <span class="s">&quot; &quot;</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">);</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span> <span class="n">ret</span> <span class="o">=</span> <span class="n">StringUtil</span><span class="o">::</span><span class="n">split</span><span class="p">(</span><span class="n">vec</span><span class="p">,</span> <span class="s">&quot;,&quot;</span><span class="p">);</span>
+    <span class="k">return</span> <span class="n">ret</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">to_vector_int</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">value</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span> <span class="n">input</span> <span class="o">=</span> <span class="n">to_vector_string</span><span class="p">(</span><span class="n">value</span><span class="p">);</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">ret</span><span class="p">;</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">transform</span><span class="p">(</span><span class="n">input</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span> <span class="n">input</span><span class="p">.</span><span class="n">end</span><span class="p">(),</span> <span class="n">std</span><span class="o">::</span><span class="n">back_inserter</span><span class="p">(</span><span class="n">ret</span><span class="p">),</span> <span class="p">[](</span><span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">v</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">int</span> <span class="p">{</span> <span class="k">return</span> <span class="n">to_int</span><span class="p">(</span><span class="n">v</span><span class="p">);</span> <span class="p">});</span>
+    <span class="k">return</span> <span class="n">ret</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="n">cudf</span><span class="o">::</span><span class="n">io</span><span class="o">::</span><span class="n">json_reader_options</span> <span class="n">getJsonReaderOptions</span><span class="p">(</span><span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">map</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span> <span class="o">&amp;</span> <span class="n">args</span><span class="p">,</span> <span class="n">cudf</span><span class="o">::</span><span class="n">io</span><span class="o">::</span><span class="n">arrow_io_source</span> <span class="o">&amp;</span> <span class="n">arrow_source</span><span class="p">)</span> <span class="p">{</span>
+
+    <span class="n">cudf</span><span class="o">::</span><span class="n">io</span><span class="o">::</span><span class="n">json_reader_options</span> <span class="n">reader_opts</span> <span class="o">=</span> <span class="n">cudf</span><span class="o">::</span><span class="n">io</span><span class="o">::</span><span class="n">json_reader_options</span><span class="o">::</span><span class="n">builder</span><span class="p">(</span><span class="n">cudf</span><span class="o">::</span><span class="n">io</span><span class="o">::</span><span class="n">source_info</span><span class="p">{</span><span class="o">&amp;</span><span class="n">arrow_source</span><span class="p">});</span>
+    <span class="n">reader_opts</span><span class="p">.</span><span class="n">enable_lines</span><span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">map_contains</span><span class="p">(</span><span class="s">&quot;dtype&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">reader_opts</span><span class="p">.</span><span class="n">dtypes</span><span class="p">(</span><span class="n">to_vector_string</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="s">&quot;dtype&quot;</span><span class="p">)));</span>
+    <span class="p">}</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">map_contains</span><span class="p">(</span><span class="s">&quot;compression&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">reader_opts</span><span class="p">.</span><span class="n">compression</span><span class="p">(</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="n">cudf</span><span class="o">::</span><span class="n">io</span><span class="o">::</span><span class="n">compression_type</span><span class="o">&gt;</span><span class="p">(</span><span class="n">to_int</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="s">&quot;compression&quot;</span><span class="p">))));</span>
+    <span class="p">}</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">map_contains</span><span class="p">(</span><span class="s">&quot;lines&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">reader_opts</span><span class="p">.</span><span class="n">enable_lines</span><span class="p">(</span><span class="n">to_bool</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="s">&quot;lines&quot;</span><span class="p">)));</span>
+    <span class="p">}</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">map_contains</span><span class="p">(</span><span class="s">&quot;dayfirst&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">reader_opts</span><span class="p">.</span><span class="n">enable_dayfirst</span><span class="p">(</span><span class="n">to_bool</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="s">&quot;dayfirst&quot;</span><span class="p">)));</span>
+    <span class="p">}</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">map_contains</span><span class="p">(</span><span class="s">&quot;byte_range_offset&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">reader_opts</span><span class="p">.</span><span class="n">set_byte_range_offset</span><span class="p">(</span> <span class="p">(</span><span class="kt">size_t</span><span class="p">)</span> <span class="n">to_int</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="s">&quot;byte_range_offset&quot;</span><span class="p">))</span> <span class="p">);</span>
+    <span class="p">}</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">map_contains</span><span class="p">(</span><span class="s">&quot;byte_range_size&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">reader_opts</span><span class="p">.</span><span class="n">set_byte_range_size</span><span class="p">(</span> <span class="p">(</span><span class="kt">size_t</span><span class="p">)</span> <span class="n">to_int</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="s">&quot;byte_range_size&quot;</span><span class="p">))</span> <span class="p">);</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">reader_opts</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="n">cudf</span><span class="o">::</span><span class="n">io</span><span class="o">::</span><span class="n">orc_reader_options</span> <span class="n">getOrcReaderOptions</span><span class="p">(</span><span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">map</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span> <span class="o">&amp;</span> <span class="n">args</span><span class="p">,</span> <span class="n">cudf</span><span class="o">::</span><span class="n">io</span><span class="o">::</span><span class="n">arrow_io_source</span> <span class="o">&amp;</span> <span class="n">arrow_source</span><span class="p">)</span> <span class="p">{</span>
+
+    <span class="n">cudf</span><span class="o">::</span><span class="n">io</span><span class="o">::</span><span class="n">orc_reader_options</span> <span class="n">reader_opts</span> <span class="o">=</span> <span class="n">cudf</span><span class="o">::</span><span class="n">io</span><span class="o">::</span><span class="n">orc_reader_options</span><span class="o">::</span><span class="n">builder</span><span class="p">(</span><span class="n">cudf</span><span class="o">::</span><span class="n">io</span><span class="o">::</span><span class="n">source_info</span><span class="p">{</span><span class="o">&amp;</span><span class="n">arrow_source</span><span class="p">});</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">map_contains</span><span class="p">(</span><span class="s">&quot;stripes&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">reader_opts</span><span class="p">.</span><span class="n">set_stripes</span><span class="p">(</span><span class="n">to_vector_int</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="s">&quot;stripes&quot;</span><span class="p">)));</span>
+    <span class="p">}</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">map_contains</span><span class="p">(</span><span class="s">&quot;skiprows&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">reader_opts</span><span class="p">.</span><span class="n">set_skip_rows</span><span class="p">(</span><span class="n">to_int</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="s">&quot;skiprows&quot;</span><span class="p">)));</span>
+    <span class="p">}</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">map_contains</span><span class="p">(</span><span class="s">&quot;num_rows&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">reader_opts</span><span class="p">.</span><span class="n">set_num_rows</span><span class="p">(</span><span class="n">to_int</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="s">&quot;num_rows&quot;</span><span class="p">)));</span>
+    <span class="p">}</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">map_contains</span><span class="p">(</span><span class="s">&quot;use_index&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">reader_opts</span><span class="p">.</span><span class="n">enable_use_index</span><span class="p">(</span><span class="n">to_int</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="s">&quot;use_index&quot;</span><span class="p">)));</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="n">reader_opts</span><span class="p">.</span><span class="n">enable_use_index</span><span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">reader_opts</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="n">cudf</span><span class="o">::</span><span class="n">io</span><span class="o">::</span><span class="n">csv_reader_options</span> <span class="n">getCsvReaderOptions</span><span class="p">(</span><span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">map</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span> <span class="o">&amp;</span> <span class="n">args</span><span class="p">,</span> <span class="n">cudf</span><span class="o">::</span><span class="n">io</span><span class="o">::</span><span class="n">arrow_io_source</span> <span class="o">&amp;</span> <span class="n">arrow_source</span><span class="p">)</span> <span class="p">{</span>
+
+    <span class="n">cudf</span><span class="o">::</span><span class="n">io</span><span class="o">::</span><span class="n">csv_reader_options</span> <span class="n">reader_opts</span> <span class="o">=</span> <span class="n">cudf</span><span class="o">::</span><span class="n">io</span><span class="o">::</span><span class="n">csv_reader_options</span><span class="o">::</span><span class="n">builder</span><span class="p">(</span><span class="n">cudf</span><span class="o">::</span><span class="n">io</span><span class="o">::</span><span class="n">source_info</span><span class="p">{</span><span class="o">&amp;</span><span class="n">arrow_source</span><span class="p">});</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">map_contains</span><span class="p">(</span><span class="s">&quot;compression&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">reader_opts</span><span class="p">.</span><span class="n">set_compression</span><span class="p">((</span><span class="n">cudf</span><span class="o">::</span><span class="n">io</span><span class="o">::</span><span class="n">compression_type</span><span class="p">)</span> <span class="n">to_int</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="s">&quot;compression&quot;</span><span class="p">)));</span>
+    <span class="p">}</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">map_contains</span><span class="p">(</span><span class="s">&quot;lineterminator&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">reader_opts</span><span class="p">.</span><span class="n">set_lineterminator</span><span class="p">(</span><span class="n">ord</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="s">&quot;lineterminator&quot;</span><span class="p">)));</span>
+    <span class="p">}</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">map_contains</span><span class="p">(</span><span class="s">&quot;delimiter&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">reader_opts</span><span class="p">.</span><span class="n">set_delimiter</span><span class="p">(</span><span class="n">ord</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="s">&quot;delimiter&quot;</span><span class="p">)));</span>
+    <span class="p">}</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">map_contains</span><span class="p">(</span><span class="s">&quot;windowslinetermination&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">reader_opts</span><span class="p">.</span><span class="n">enable_windowslinetermination</span><span class="p">(</span><span class="n">to_bool</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="s">&quot;windowslinetermination&quot;</span><span class="p">)));</span>
+    <span class="p">}</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">map_contains</span><span class="p">(</span><span class="s">&quot;delim_whitespace&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">reader_opts</span><span class="p">.</span><span class="n">enable_delim_whitespace</span><span class="p">(</span><span class="n">to_bool</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="s">&quot;delim_whitespace&quot;</span><span class="p">)));</span>
+    <span class="p">}</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">map_contains</span><span class="p">(</span><span class="s">&quot;skipinitialspace&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">reader_opts</span><span class="p">.</span><span class="n">enable_skipinitialspace</span><span class="p">(</span><span class="n">to_bool</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="s">&quot;skipinitialspace&quot;</span><span class="p">)));</span>
+    <span class="p">}</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">map_contains</span><span class="p">(</span><span class="s">&quot;skip_blank_lines&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">reader_opts</span><span class="p">.</span><span class="n">enable_skip_blank_lines</span><span class="p">(</span><span class="n">to_bool</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="s">&quot;skip_blank_lines&quot;</span><span class="p">)));</span>
+    <span class="p">}</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">map_contains</span><span class="p">(</span><span class="s">&quot;nrows&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">reader_opts</span><span class="p">.</span><span class="n">set_nrows</span><span class="p">((</span><span class="n">cudf</span><span class="o">::</span><span class="n">size_type</span><span class="p">)</span> <span class="n">to_int</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="s">&quot;nrows&quot;</span><span class="p">)));</span>
+    <span class="p">}</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">map_contains</span><span class="p">(</span><span class="s">&quot;skiprows&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">reader_opts</span><span class="p">.</span><span class="n">set_skiprows</span><span class="p">((</span><span class="n">cudf</span><span class="o">::</span><span class="n">size_type</span><span class="p">)</span> <span class="n">to_int</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="s">&quot;skiprows&quot;</span><span class="p">)));</span>
+    <span class="p">}</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">map_contains</span><span class="p">(</span><span class="s">&quot;skipfooter&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">reader_opts</span><span class="p">.</span><span class="n">set_skipfooter</span><span class="p">((</span><span class="n">cudf</span><span class="o">::</span><span class="n">size_type</span><span class="p">)</span> <span class="n">to_int</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="s">&quot;skipfooter&quot;</span><span class="p">)));</span>
+    <span class="p">}</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">map_contains</span><span class="p">(</span><span class="s">&quot;names&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">reader_opts</span><span class="p">.</span><span class="n">set_names</span><span class="p">(</span><span class="n">to_vector_string</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="s">&quot;names&quot;</span><span class="p">)));</span>
+        <span class="n">reader_opts</span><span class="p">.</span><span class="n">set_header</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="n">reader_opts</span><span class="p">.</span><span class="n">set_header</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">map_contains</span><span class="p">(</span><span class="s">&quot;header&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">reader_opts</span><span class="p">.</span><span class="n">set_header</span><span class="p">((</span><span class="n">cudf</span><span class="o">::</span><span class="n">size_type</span><span class="p">)</span> <span class="n">to_int</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="s">&quot;header&quot;</span><span class="p">)));</span>
+    <span class="p">}</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">map_contains</span><span class="p">(</span><span class="s">&quot;dtype&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">reader_opts</span><span class="p">.</span><span class="n">set_dtypes</span><span class="p">(</span><span class="n">to_vector_string</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="s">&quot;dtype&quot;</span><span class="p">)));</span>
+    <span class="p">}</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">map_contains</span><span class="p">(</span><span class="s">&quot;use_cols_indexes&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">reader_opts</span><span class="p">.</span><span class="n">set_use_cols_indexes</span><span class="p">(</span><span class="n">to_vector_int</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="s">&quot;use_cols_indexes&quot;</span><span class="p">)));</span>
+    <span class="p">}</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">map_contains</span><span class="p">(</span><span class="s">&quot;use_cols_names&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">reader_opts</span><span class="p">.</span><span class="n">set_use_cols_names</span><span class="p">(</span><span class="n">to_vector_string</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="s">&quot;use_cols_names&quot;</span><span class="p">)));</span>
+    <span class="p">}</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">map_contains</span><span class="p">(</span><span class="s">&quot;true_values&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">reader_opts</span><span class="p">.</span><span class="n">set_true_values</span><span class="p">(</span><span class="n">to_vector_string</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="s">&quot;true_values&quot;</span><span class="p">)));</span>
+    <span class="p">}</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">map_contains</span><span class="p">(</span><span class="s">&quot;false_values&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">reader_opts</span><span class="p">.</span><span class="n">set_false_values</span><span class="p">(</span><span class="n">to_vector_string</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="s">&quot;false_values&quot;</span><span class="p">)));</span>
+    <span class="p">}</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">map_contains</span><span class="p">(</span><span class="s">&quot;na_values&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">reader_opts</span><span class="p">.</span><span class="n">set_na_values</span><span class="p">(</span><span class="n">to_vector_string</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="s">&quot;na_values&quot;</span><span class="p">)));</span>
+    <span class="p">}</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">map_contains</span><span class="p">(</span><span class="s">&quot;keep_default_na&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">reader_opts</span><span class="p">.</span><span class="n">enable_keep_default_na</span><span class="p">(</span><span class="n">to_bool</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="s">&quot;keep_default_na&quot;</span><span class="p">)));</span>
+    <span class="p">}</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">map_contains</span><span class="p">(</span><span class="s">&quot;na_filter&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">reader_opts</span><span class="p">.</span><span class="n">enable_na_filter</span><span class="p">(</span><span class="n">to_bool</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="s">&quot;na_filter&quot;</span><span class="p">)));</span>
+    <span class="p">}</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">map_contains</span><span class="p">(</span><span class="s">&quot;prefix&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">reader_opts</span><span class="p">.</span><span class="n">set_prefix</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="s">&quot;prefix&quot;</span><span class="p">));</span>
+    <span class="p">}</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">map_contains</span><span class="p">(</span><span class="s">&quot;mangle_dupe_cols&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">reader_opts</span><span class="p">.</span><span class="n">enable_mangle_dupe_cols</span><span class="p">(</span><span class="n">to_bool</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="s">&quot;mangle_dupe_cols&quot;</span><span class="p">)));</span>
+    <span class="p">}</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">map_contains</span><span class="p">(</span><span class="s">&quot;dayfirst&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">reader_opts</span><span class="p">.</span><span class="n">enable_dayfirst</span><span class="p">(</span><span class="n">to_bool</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="s">&quot;dayfirst&quot;</span><span class="p">)));</span>
+    <span class="p">}</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">map_contains</span><span class="p">(</span><span class="s">&quot;thousands&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">reader_opts</span><span class="p">.</span><span class="n">set_thousands</span><span class="p">(</span><span class="n">ord</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="s">&quot;thousands&quot;</span><span class="p">)));</span>
+    <span class="p">}</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">map_contains</span><span class="p">(</span><span class="s">&quot;decimal&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">reader_opts</span><span class="p">.</span><span class="n">set_decimal</span><span class="p">(</span><span class="n">ord</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="s">&quot;decimal&quot;</span><span class="p">)));</span>
+    <span class="p">}</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">map_contains</span><span class="p">(</span><span class="s">&quot;comment&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">reader_opts</span><span class="p">.</span><span class="n">set_comment</span><span class="p">(</span><span class="n">ord</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="s">&quot;comment&quot;</span><span class="p">)));</span>
+    <span class="p">}</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">map_contains</span><span class="p">(</span><span class="s">&quot;quotechar&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">reader_opts</span><span class="p">.</span><span class="n">set_quotechar</span><span class="p">(</span><span class="n">ord</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="s">&quot;quotechar&quot;</span><span class="p">)));</span>
+    <span class="p">}</span>
+    <span class="c1">// if (map_contains(&quot;quoting&quot;, args)) {</span>
+    <span class="c1">//    reader_opts.quoting = args.at(&quot;quoting&quot;]</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">map_contains</span><span class="p">(</span><span class="s">&quot;doublequote&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">reader_opts</span><span class="p">.</span><span class="n">enable_doublequote</span><span class="p">(</span><span class="n">to_bool</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="s">&quot;doublequote&quot;</span><span class="p">)));</span>
+    <span class="p">}</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">map_contains</span><span class="p">(</span><span class="s">&quot;byte_range_offset&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">reader_opts</span><span class="p">.</span><span class="n">set_byte_range_offset</span><span class="p">((</span><span class="kt">size_t</span><span class="p">)</span> <span class="n">to_int</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="s">&quot;byte_range_offset&quot;</span><span class="p">)));</span>
+    <span class="p">}</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">map_contains</span><span class="p">(</span><span class="s">&quot;byte_range_size&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">reader_opts</span><span class="p">.</span><span class="n">set_byte_range_size</span><span class="p">((</span><span class="kt">size_t</span><span class="p">)</span> <span class="n">to_int</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="s">&quot;byte_range_size&quot;</span><span class="p">)));</span>
+    <span class="p">}</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">map_contains</span><span class="p">(</span><span class="s">&quot;out_time_unit&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span> <span class="p">{</span>
+        <span class="c1">// TODO</span>
+        <span class="c1">// reader_opts.out_time_unit = args.at(&quot;out_time_unit&quot;);</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">reader_opts</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="n">std</span><span class="o">::</span><span class="n">map</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span> <span class="n">to_map</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span> <span class="n">arg_keys</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span> <span class="n">arg_values</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">map</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span> <span class="n">ret</span><span class="p">;</span>
+    <span class="k">for</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">arg_keys</span><span class="p">.</span><span class="n">size</span><span class="p">();</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">ret</span><span class="p">[</span><span class="n">arg_keys</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">=</span> <span class="n">arg_values</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">ret</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">getDataTypeName</span><span class="p">(</span><span class="n">DataType</span> <span class="n">dataType</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">switch</span><span class="p">(</span><span class="n">dataType</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">case</span> <span class="n">DataType</span><span class="o">::</span><span class="nl">PARQUET</span><span class="p">:</span> <span class="k">return</span> <span class="s">&quot;parquet&quot;</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+    <span class="k">case</span> <span class="n">DataType</span><span class="o">::</span><span class="nl">ORC</span><span class="p">:</span> <span class="k">return</span> <span class="s">&quot;orc&quot;</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+    <span class="k">case</span> <span class="n">DataType</span><span class="o">::</span><span class="nl">CSV</span><span class="p">:</span> <span class="k">return</span> <span class="s">&quot;csv&quot;</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+    <span class="k">case</span> <span class="n">DataType</span><span class="o">::</span><span class="nl">JSON</span><span class="p">:</span> <span class="k">return</span> <span class="s">&quot;json&quot;</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+    <span class="k">case</span> <span class="n">DataType</span><span class="o">::</span><span class="nl">CUDF</span><span class="p">:</span> <span class="k">return</span> <span class="s">&quot;cudf&quot;</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+    <span class="k">case</span> <span class="n">DataType</span><span class="o">::</span><span class="nl">DASK_CUDF</span><span class="p">:</span> <span class="k">return</span> <span class="s">&quot;dask_cudf&quot;</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+    <span class="k">default</span><span class="o">:</span> <span class="k">break</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="s">&quot;undefined&quot;</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="p">}</span> <span class="cm">/* namespace io */</span>
+<span class="p">}</span> <span class="cm">/* namespace ral */</span>
+</pre></div>
+</div>
+</div>
+
+
+              </div>
+              
+              
+              <div class='prev-next-bottom'>
+                
+
+              </div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../_static/js/index.d8bbf5861d671d414e1a.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright 2020, BlazingDB, Inc..<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

@@ -1,0 +1,6 @@
+<map id="ral::batch::MergeStreamKernel::run" name="ral::batch::MergeStreamKernel::run">
+<area shape="rect" id="node2" href="$classral_1_1cache_1_1kernel.html#a94c3bd66b93a0e67165d0a54741c19dc" title="Returns the output cache associated to an identifier. " alt="" coords="299,5,421,47"/>
+<area shape="rect" id="node3" href="$classral_1_1cache_1_1kernel.html#a33ce6e9907abce1acedb01e236c6812e" title="Returns the kernel identifier. " alt="" coords="489,35,612,76"/>
+<area shape="rect" id="node4" href="$classblazing__device__memory__resource.html#a31735d61d23aef05666c7c3f981c86fe" title="Get the blazing_device_memory_resource instance singleton object. " alt="" coords="279,123,441,164"/>
+<area shape="rect" id="node5" href="$classral_1_1cache_1_1distributing__kernel.html#a6466f289452c10450861276054b751da" title="Resizes the vector of the message trackers. Keeping more than one message tracker is useful for examp..." alt="" coords="281,189,439,245"/>
+</map>

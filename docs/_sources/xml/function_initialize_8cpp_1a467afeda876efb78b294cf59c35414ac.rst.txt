@@ -1,0 +1,13 @@
+.. _exhale_function_initialize_8cpp_1a467afeda876efb78b294cf59c35414ac:
+
+Function isEmptyFile
+====================
+
+- Defined in :ref:`file_engine_src_cython_initialize.cpp`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: isEmptyFile(std::ifstream&)

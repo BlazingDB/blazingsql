@@ -1,0 +1,71 @@
+
+.. _file_engine_src_io_data_provider_GDFDataProvider.h:
+
+File GDFDataProvider.h
+======================
+
+|exhale_lsh| :ref:`Parent directory <dir_engine_src_io_data_provider>` (``engine/src/io/data_provider``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``engine/src/io/data_provider/GDFDataProvider.h``)
+--------------------------------------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file_engine_src_io_data_provider_GDFDataProvider.h.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``DataProvider.h`` (:ref:`file_engine_src_io_data_provider_DataProvider.h`)
+
+- ``arrow/io/interfaces.h``
+
+- ``blazingdb/io/FileSystem/Uri.h``
+
+- ``map``
+
+- ``memory``
+
+- ``vector``
+
+
+
+Included By
+-----------
+
+
+- :ref:`file_engine_src_cython_engine.cpp`
+
+- :ref:`file_engine_src_io_data_provider_GDFDataProvider.cpp`
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_ral`
+
+- :ref:`namespace_ral__io`
+
+
+Classes
+-------
+
+
+- :ref:`exhale_class_classral_1_1io_1_1gdf__data__provider`
+
