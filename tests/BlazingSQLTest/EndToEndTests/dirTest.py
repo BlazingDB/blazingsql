@@ -10,7 +10,7 @@ queryType = "Dir"
 
 
 # TODO percy use new cs.create_tables adapt to send wildcard or dir
-def main(dask_client, drill, dir_data_lc, bc, nRals):
+def main(dask_client, drill, spark, dir_data_lc, bc, nRals):
 
     start_mem = gpuMemory.capture_gpu_memory_usage()
 
@@ -313,22 +313,18 @@ def main(dask_client, drill, dir_data_lc, bc, nRals):
                     count(o_orderstatus) from orders
                     where o_custkey < 100
                     group by o_orderstatus, o_orderkey"""
-
-            # TODO: Failed test with nulls
-            testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
-            if testsWithNulls != "true":
-                runTest.run_query(
-                    bc,
-                    drill,
-                    query,
-                    queryId,
-                    queryType,
-                    worder,
-                    "",
-                    acceptable_difference,
-                    use_percentage,
-                    fileSchemaType,
-                )
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
 
             queryId = "TEST_16"
             query = """select o_orderkey, o_orderstatus from orders
@@ -515,13 +511,19 @@ if __name__ == "__main__":
         cs.init_drill_schema(drill,
                              Settings.data["TestSettings"]["dataDirectory"])
 
+        # Create Table Spark ------------------------------------------------
+        from pyspark.sql import SparkSession
+
+        spark = SparkSession.builder.appName("timestampTest").getOrCreate()
+        cs.init_spark_schema(spark, Settings.data["TestSettings"]["dataDirectory"])
+
     # Create Context For BlazingSQL
 
     bc, dask_client = init_context()
 
     nRals = Settings.data["RunSettings"]["nRals"]
 
-    main(dask_client, drill,
+    main(dask_client, drill, spark,
          Settings.data["TestSettings"]["dataDirectory"], bc, nRals)
 
     if Settings.execution_mode != ExecutionMode.GENERATOR:

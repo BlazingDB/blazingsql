@@ -232,7 +232,7 @@ def main():
         literalTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     if runAllTests or ("dirTest" in targetTestGroups):
-        dirTest.main(dask_client, drill, dir_data_file, bc, nRals)
+        dirTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     # HDFS is not working yet
     # fileSystemHdfsTest.main(dask_client, drill, dir_data_file, bc)
