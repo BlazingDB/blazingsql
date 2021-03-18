@@ -39,6 +39,8 @@ namespace io {
 struct sql_datasource {
   std::string table;
   std::string query;
+  std::vector<std::string> column_names;
+  std::vector<std::string> column_types; // always uppercase
   std::shared_ptr<sql::ResultSet> mysql_resultset;
   // TODO percy add postgre and other backends here
 };

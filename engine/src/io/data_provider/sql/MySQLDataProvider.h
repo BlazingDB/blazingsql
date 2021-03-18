@@ -42,6 +42,8 @@ public:
 private:
   std::unique_ptr<sql::Connection> mysql_connection;
   std::vector<std::string> partitions;
+  std::vector<std::string> columns;
+  std::vector<std::string> types;
 };
 
 } /* namespace io */

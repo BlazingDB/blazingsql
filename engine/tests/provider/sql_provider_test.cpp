@@ -1,5 +1,6 @@
 #include "tests/utilities/BlazingUnitTest.h"
 #include "io/data_provider/sql/MySQLDataProvider.h"
+#include "io/data_parser/sql/MySQLParser.h"
 
 struct MySQLProviderTest : public BlazingUnitTest {};
 
@@ -14,14 +15,13 @@ TEST_F(MySQLProviderTest, select_all) {
 		.schema = "employees"};
 
   auto mysql_provider = std::make_shared<ral::io::mysql_data_provider>(sql_conn, "departments", 2);
-  
-  
-  
+
   int rows = mysql_provider->get_num_handles();
 
   std::cout << "\trows: " << rows << "\n";
-  auto res = mysql_provider->get_next().sql_handle.mysql_resultset;
-
+  auto handle = mysql_provider->get_next();
+  auto res = handle.sql_handle.mysql_resultset;
+  
   bool has_next = mysql_provider->has_next();
   std::cout << "\tNEXT?: " << (has_next?"TRUE":"FALSE") << "\n";
   
@@ -30,9 +30,19 @@ TEST_F(MySQLProviderTest, select_all) {
     std::cout << "\t\t" << res->getString("dept_no") << "\n";
   }
 
+  std::cout << "PARSERRRRRRRRRRRRRRRRRRRRRRR\n";
+  
+  ral::io::mysql_parser parser;
+  ral::io::Schema schema;
+  parser.parse_schema(handle, schema);
+  
+  auto cols = schema.get_names();
+  std::cout << "total cols: " << cols.size() << "\n";
+  for (int i = 0; i < cols.size(); ++i) {
+    std::cout << "\ncol: " << schema.get_name(i) << "\n";
+    std::cout << "\ntyp: " << (int32_t)schema.get_dtype(i) << "\n";
+  }
 
-      
-      
 
 //  if(mysql_provider->has_next()){
 //      ral::io::data_handle new_handle;

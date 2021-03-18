@@ -27,6 +27,11 @@ struct table_info {
   size_t rows;
 };
 
+struct columns_info {
+  std::vector<std::string> columns;
+  std::vector<std::string> types;
+};
+
 /* MySQL supports these connection properties:
   - hostName
   - userName
@@ -71,13 +76,15 @@ sql::ConnectOptionsMap build_connection_properties(const sql_connection &sql_con
   return ret;
 }
 
-std::shared_ptr<sql::ResultSet> execute_query(sql::Connection *con, const std::string &query) {
+std::shared_ptr<sql::ResultSet> execute_query(sql::Connection *con,
+                                              const std::string &query)
+{
   std::unique_ptr<sql::Statement> stmt(con->createStatement());
   std::shared_ptr<sql::ResultSet> res(stmt->executeQuery(query));
   return res;
 }
 
-table_info get_table_info(sql::Connection *con, std::string table) {
+table_info get_table_info(sql::Connection *con, const std::string &table) {
   table_info ret;
 
   try {
@@ -99,6 +106,28 @@ table_info get_table_info(sql::Connection *con, std::string table) {
   return ret;
 }
 
+columns_info get_columns_info(sql::Connection *con,
+                              const std::string &table) {
+  columns_info ret;
+
+  try {
+    std::string db = con->getSchema().asStdString();
+    std::string query = "SELECT * from INFORMATION_SCHEMA.COLUMNS WHERE `TABLE_SCHEMA`='"+db+"' AND `TABLE_NAME`='"+table+"'";
+    auto res = execute_query(con, query);
+
+    while (res->next()) {
+      std::string col_name = res->getString("COLUMN_NAME").asStdString();
+      std::string col_type = StringUtil::toUpper(res->getString("DATA_TYPE").asStdString());
+      ret.columns.push_back(col_name);
+      ret.types.push_back(col_type);
+    }
+  } catch (sql::SQLException &e) {
+    // TODO percy
+  }
+
+  return ret;
+}
+
 mysql_data_provider::mysql_data_provider(const sql_connection &sql_conn,
                                          const std::string &table,
                                          size_t batch_size_hint,
@@ -111,6 +140,9 @@ mysql_data_provider::mysql_data_provider(const sql_connection &sql_conn,
   table_info tbl_info = get_table_info(this->mysql_connection.get(), this->table);
   this->partitions = std::move(tbl_info.partitions);
   this->row_count = tbl_info.rows;
+  columns_info cols_info = get_columns_info(this->mysql_connection.get(), this->table);
+  this->columns = cols_info.columns;
+  this->types = cols_info.types;
 }
 
 mysql_data_provider::~mysql_data_provider() {
@@ -144,6 +176,9 @@ data_handle mysql_data_provider::get_next(bool) {
   auto res = execute_query(this->mysql_connection.get(), query);
   this->current_row_count += res->rowsCount();
   data_handle ret;
+  ret.sql_handle.table = this->table;
+  ret.sql_handle.column_names = this->columns;
+  ret.sql_handle.column_types = this->types;
   ret.sql_handle.mysql_resultset = res;
   std::cout << "get_next TOTAL rows: " << this->row_count << "\n";
   std::cout << "get_next current_row_count: " << this->current_row_count << "\n";
