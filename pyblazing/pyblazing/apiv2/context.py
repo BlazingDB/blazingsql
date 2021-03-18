@@ -17,6 +17,9 @@ from pyblazing.apiv2.filesystem import FileSystem
 from pyblazing.apiv2 import DataType
 from pyblazing.apiv2.comms import listen
 from pyblazing.apiv2.algebra import get_json_plan
+from pyblazing.apiv2.sqlengines_utils import (
+    SQLEngineDataTypeMap,
+    UnsupportedSQLEngineError)
 
 import json
 import collections
@@ -2437,6 +2440,14 @@ class BlazingContext(object):
             table = BlazingTable(
                 table_name, input, DataType.DASK_CUDF, client=self.dask_client
             )
+
+        if 'from_sql_engine' in kwargs:
+          sqlEngineName = kwargs['from_sql_engine']
+
+          try:
+              sqlEngineDataType = SQLEngineDataTypeMap[sqlEngineName]
+          except KeyError as error:
+            raise UnsupportedSQLEngineError(sqlEngineName) from error
 
         if table is not None:
             self.add_remove_table(table_name, True, table)
