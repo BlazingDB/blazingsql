@@ -634,6 +634,8 @@ bool StringUtil::match(char const * needle, char const * haystack) {
 }
 
 size_t StringUtil::findAndCountAllMatches(std::string input, std::string word) {
+	if (input.size() == 0) return 0;
+
 	size_t total_words = 0;
 	std::string reduced_string;
     
