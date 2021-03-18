@@ -201,7 +201,7 @@ User guides and public APIs documentation can be found at [here](https://docs.bl
 
 Our internal code architecture can be built using Spinx.
 ```bash
-pip install recommonmark exhale
+pip install -U sphinx && pip install pydata-sphinx-theme breathe exhale recommonmark
 conda install -c conda-forge doxygen
 cd $CONDA_PREFIX
 cd blazingsql/docs
