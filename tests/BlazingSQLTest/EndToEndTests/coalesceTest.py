@@ -281,7 +281,8 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 ) SELECT * FROM main_lr
                 """
 
-            # TODO: Failed test with nulls
+            # Failed test with nulls
+            # Reported issue: https://github.com/BlazingDB/blazingsql/issues/1404
             testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
             if testsWithNulls != "true":
                 runTest.run_query(
@@ -338,7 +339,8 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
             select * from lastjoin
             """
 
-            # TODO: Too expensive with nulls reason: timeout
+            # Failed test with nulls
+            # Reported issue: https://github.com/BlazingDB/blazingsql/issues/1405
             testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
             if testsWithNulls != "true":
                 runTest.run_query(
