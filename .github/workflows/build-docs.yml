@@ -24,11 +24,12 @@ jobs:
       - uses: ammaraskar/sphinx-action@master
         with:
           pre-build-command: "apt -y install doxygen && pip install -U sphinx && pip install pydata-sphinx-theme recommonmark"
-          build-command: "make html -e && doxygen Doxyfile"
+          build-command: "make html -e"
           docs-folder: "docsrc/"
       - name: Commit documentation changes
         run: |
           git clone https://github.com/BlazingDB/BlazingSQL.git --branch doxygen/graph --single-branch doxygen/graph
+          cd docssrc && doxygen Doxyfile
           cp -a docsrc/_build/html/. docs/
           cp -a docsrc/html/. docs/api/
           cd docs
