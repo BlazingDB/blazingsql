@@ -23,14 +23,14 @@ jobs:
       # Runs a single command using the runners shell
       - uses: ammaraskar/sphinx-action@master
         with:
-          pre-build-command: "apt -y install doxygen && pip install -U sphinx && pip install pydata-sphinx-theme recommonmark"
-          build-command: "make html -e && doxygen Doxyfile"
+          pre-build-command: "apt -y install doxygen && pip install -U sphinx && pip install pydata-sphinx-theme recommonmark breathe exhale"
+          build-command: "make html -e"
           docs-folder: "docsrc/"
       - name: Commit documentation changes
         run: |
           git clone https://github.com/romulo-auccapuclla/blazingsql.git --branch doxygen/graph --single-branch doxygen/graph
           cp -a docsrc/_build/html/. docs/
-          cp -a docsrc/html/. docs/api/
+          cp -a docsrc/doxyfiles/html/. docs/api/
           cd docs
           touch .nojekyll
           git config --local user.email "action@github.com"

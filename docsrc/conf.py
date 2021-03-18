@@ -30,7 +30,34 @@ release = 'v0.18'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['recommonmark','sphinx.ext.extlinks', 'sphinx.ext.todo', 'sphinx.ext.autodoc']
+extensions = ['recommonmark',
+                'sphinx.ext.extlinks',
+                'sphinx.ext.todo',
+                'sphinx.ext.autodoc',
+                'breathe',
+                'exhale']
+
+# Setup the exhale extension
+exhale_args = {
+    # These arguments are required
+    "containmentFolder":     "./xml",
+    "rootFileName":          "library_root.rst",
+    "rootFileTitle":         "Library API",
+    "doxygenStripFromPath":  "..",
+    # Suggested optional arguments
+    "createTreeView":        True,
+    # TIP: if using the sphinx-bootstrap-theme, you need
+    # "treeViewIsBootstrap": True,
+    "exhaleExecutesDoxygen": True,
+    "exhaleUseDoxyfile": True,
+    
+}
+
+# Setup the breathe extension
+breathe_projects = {
+    "BlazingSQL Engine": "./doxyfiles/xml"
+}
+breathe_default_project = "BlazingSQL Engine"
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
