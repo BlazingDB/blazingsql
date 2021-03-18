@@ -30,7 +30,7 @@ release = 'v0.18'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['recommonmark','sphinx.ext.extlinks', 'sphinx.ext.todo', 'breathe', 'sphinx.ext.autodoc']
+extensions = ['recommonmark','sphinx.ext.extlinks', 'sphinx.ext.todo', 'sphinx.ext.autodoc']
 
 breathe_projects = {"BlazingSQL Engine": "./xml/"}
 breathe_default_project = "BlazingSQL Engine"
