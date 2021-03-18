@@ -1,0 +1,13 @@
+.. _exhale_define_errors_8cpp_1ab49f41449e8965744341d1285ed30401:
+
+Define RAISE_ERROR
+==================
+
+- Defined in :ref:`file_engine_src_cython_errors.cpp`
+
+
+Define Documentation
+--------------------
+
+
+.. doxygendefine:: RAISE_ERROR

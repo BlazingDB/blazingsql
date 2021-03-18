@@ -1,0 +1,281 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Class ConcatCacheData &#8212; BlazingSQL v0.18 documentation</title>
+    
+  <link href="../_static/css/theme.css" rel="stylesheet" />
+  <link href="../_static/css/index.101715efdecc9b59cb6e1ddfa685c31f.css" rel="stylesheet" />
+
+    
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+
+    
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/getting_started.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
+    
+  <link rel="preload" as="script" href="../_static/js/index.d8bbf5861d671d414e1a.js">
+
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/d3.v3.min.js"></script>
+    <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
+    <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
+    <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="container-xl">
+
+
+    
+      
+      <a class="navbar-brand" href="../index.html">
+        <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo">
+      </a>
+      
+    
+
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        <li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../arch.html">
+  BlazingSQL Project Architecture
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../graph.html">
+  Execution Engine
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../api.html">
+  API Documentation
+ </a>
+</li>
+
+        
+      </ul>
+
+      <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+            
+            <!-- Only show if we have sidebars configured, else just a small margin  -->
+            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <div class="bd-toc-item active">
+    
+  </div>
+</nav>
+            </div>
+            
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#inheritance-relationships">
+   Inheritance Relationships
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#base-type">
+     Base Type
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#class-documentation">
+   Class Documentation
+  </a>
+ </li>
+</ul>
+
+</nav>
+
+
+
+<div class="tocsection editthispage">
+    <a href="https://github.com/blazingdb/blazingsql/edit/feedback/docsrc/source/xml/classral_1_1cache_1_1ConcatCacheData.rst">
+        <i class="fas fa-pencil-alt"></i> Edit this page
+    </a>
+</div>
+
+              
+          </div>
+          
+
+          
+          
+            
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="class-concatcachedata">
+<span id="exhale-class-classral-1-1cache-1-1concatcachedata"></span><h1>Class ConcatCacheData<a class="headerlink" href="#class-concatcachedata" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p>Defined in <a class="reference internal" href="file_engine_src_execution_graph_logic_controllers_CacheData.h.html#file-engine-src-execution-graph-logic-controllers-cachedata-h"><span class="std std-ref">File CacheData.h</span></a></p></li>
+</ul>
+<div class="section" id="inheritance-relationships">
+<h2>Inheritance Relationships<a class="headerlink" href="#inheritance-relationships" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="base-type">
+<h3>Base Type<a class="headerlink" href="#base-type" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">public</span> <span class="pre">ral::cache::CacheData</span></code> (<a class="reference internal" href="classral_1_1cache_1_1CacheData.html#exhale-class-classral-1-1cache-1-1cachedata"><span class="std std-ref">Class CacheData</span></a>)</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="class-documentation">
+<h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
+<dl class="cpp class">
+<dt id="_CPPv4N3ral5cache15ConcatCacheDataE">
+<span id="_CPPv3N3ral5cache15ConcatCacheDataE"></span><span id="_CPPv2N3ral5cache15ConcatCacheDataE"></span><span id="ral::cache::ConcatCacheData"></span><span class="target" id="classral_1_1cache_1_1ConcatCacheData"></span><em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ral</span><span class="pre">::</span><span class="pre">cache</span><code class="sig-prename descclassname"><span class="pre">::</span></code></code><code class="sig-name descname"><span class="pre">ConcatCacheData</span></code> <span class="pre">:</span> <em class="property"><span class="pre">public</span></em> <span class="pre">ral</span><span class="pre">::</span><span class="pre">cache</span><span class="pre">::</span><a class="reference internal" href="classral_1_1cache_1_1CacheData.html#_CPPv4N3ral5cache9CacheDataE" title="ral::cache::CacheData"><span class="pre">CacheData</span></a><a class="headerlink" href="#_CPPv4N3ral5cache15ConcatCacheDataE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Functions</p>
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5cache15ConcatCacheData15ConcatCacheDataENSt6vectorINSt10unique_ptrI9CacheDataEEEERKNSt6vectorINSt6stringEEERKNSt6vectorIN4cudf9data_typeEEE">
+<span id="_CPPv3N3ral5cache15ConcatCacheData15ConcatCacheDataENSt6vectorINSt10unique_ptrI9CacheDataEEEERKNSt6vectorINSt6stringEEERKNSt6vectorIN4cudf9data_typeEEE"></span><span id="_CPPv2N3ral5cache15ConcatCacheData15ConcatCacheDataENSt6vectorINSt10unique_ptrI9CacheDataEEEERKNSt6vectorINSt6stringEEERKNSt6vectorIN4cudf9data_typeEEE"></span><span id="ral::cache::ConcatCacheData::ConcatCacheData__std::vector:std::unique_ptr:CacheData::.std::vector:ss:CR.std::vector:cudf::data_type:CR"></span><span class="target" id="classral_1_1cache_1_1ConcatCacheData_1a9b88f49d90532642cb20be1de7f414c5"></span><code class="sig-name descname"><span class="pre">ConcatCacheData</span></code><span class="sig-paren">(</span><span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><span class="pre">std</span><span class="pre">::</span><span class="pre">unique_ptr</span><span class="pre">&lt;</span><a class="reference internal" href="classral_1_1cache_1_1CacheData.html#_CPPv4N3ral5cache9CacheDataE" title="ral::cache::CacheData"><span class="pre">CacheData</span></a><span class="pre">&gt;</span><span class="pre">&gt;</span> <em><span class="pre">cache_datas</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><span class="pre">std</span><span class="pre">::</span><span class="pre">string</span><span class="pre">&gt;</span> <span class="pre">&amp;</span><em><span class="pre">col_names</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><span class="pre">cudf</span><span class="pre">::</span><span class="pre">data_type</span><span class="pre">&gt;</span> <span class="pre">&amp;</span><em><span class="pre">schema</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache15ConcatCacheData15ConcatCacheDataENSt6vectorINSt10unique_ptrI9CacheDataEEEERKNSt6vectorINSt6stringEEERKNSt6vectorIN4cudf9data_typeEEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Constructor <dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">table</span></code>: The cache_datas that will be concatenated when decached. </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">col_names</span></code>: The names of the columns in the dataframe. </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">schema</span></code>: The types of the columns in the dataframe. </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5cache15ConcatCacheData7decacheEv">
+<span id="_CPPv3N3ral5cache15ConcatCacheData7decacheEv"></span><span id="_CPPv2N3ral5cache15ConcatCacheData7decacheEv"></span><span id="ral::cache::ConcatCacheData::decache"></span><span class="target" id="classral_1_1cache_1_1ConcatCacheData_1af726fc27fcf1621fff1f399f8b2d3cec"></span><em class="property"><span class="pre">virtual</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">unique_ptr</span><span class="pre">&lt;</span><span class="pre">ral</span><span class="pre">::</span><span class="pre">frame</span><span class="pre">::</span><a class="reference internal" href="classral_1_1frame_1_1BlazingTable.html#_CPPv4N3ral5frame12BlazingTableE" title="ral::frame::BlazingTable"><span class="pre">BlazingTable</span></a><span class="pre">&gt;</span> <code class="sig-name descname"><span class="pre">decache</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property"><span class="pre">override</span></em><a class="headerlink" href="#_CPPv4N3ral5cache15ConcatCacheData7decacheEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Decaches all caches datas and concatenates them into one BlazingTable <dl class="simple">
+<dt><strong>Return</strong></dt><dd><p>The BlazingTable that results from concatenating all cache datas. </p>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4NK3ral5cache15ConcatCacheData11sizeInBytesEv">
+<span id="_CPPv3NK3ral5cache15ConcatCacheData11sizeInBytesEv"></span><span id="_CPPv2NK3ral5cache15ConcatCacheData11sizeInBytesEv"></span><span id="ral::cache::ConcatCacheData::sizeInBytesC"></span><span class="target" id="classral_1_1cache_1_1ConcatCacheData_1a25914d06c36e4a1748dc9479adc5ccd8"></span><em class="property"><span class="pre">virtual</span></em> <span class="pre">size_t</span> <code class="sig-name descname"><span class="pre">sizeInBytes</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em> <em class="property"><span class="pre">override</span></em><a class="headerlink" href="#_CPPv4NK3ral5cache15ConcatCacheData11sizeInBytesEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the amount of GPU memory consumed by this <a class="reference internal" href="classral_1_1cache_1_1CacheData.html#classral_1_1cache_1_1CacheData"><span class="std std-ref">CacheData</span></a> Having this function allows us to have one api for seeing the consumption of all the <a class="reference internal" href="classral_1_1cache_1_1CacheData.html#classral_1_1cache_1_1CacheData"><span class="std std-ref">CacheData</span></a> objects that are currently in Caches. <dl class="simple">
+<dt><strong>Return</strong></dt><dd><p>The number of bytes the BlazingTable consumes. </p>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5cache15ConcatCacheData9set_namesERKNSt6vectorINSt6stringEEE">
+<span id="_CPPv3N3ral5cache15ConcatCacheData9set_namesERKNSt6vectorINSt6stringEEE"></span><span id="_CPPv2N3ral5cache15ConcatCacheData9set_namesERKNSt6vectorINSt6stringEEE"></span><span id="ral::cache::ConcatCacheData::set_names__std::vector:ss:CR"></span><span class="target" id="classral_1_1cache_1_1ConcatCacheData_1a02f400f33f88ba3e216f5899fa4f12b8"></span><em class="property"><span class="pre">virtual</span></em> <span class="pre">void</span> <code class="sig-name descname"><span class="pre">set_names</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><span class="pre">std</span><span class="pre">::</span><span class="pre">string</span><span class="pre">&gt;</span> <span class="pre">&amp;</span><em><span class="pre">names</span></em><span class="sig-paren">)</span> <em class="property"><span class="pre">override</span></em><a class="headerlink" href="#_CPPv4N3ral5cache15ConcatCacheData9set_namesERKNSt6vectorINSt6stringEEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Set the names of the columns. <dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">names</span></code>: a vector of the column names. </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5cache15ConcatCacheData17releaseCacheDatasEv">
+<span id="_CPPv3N3ral5cache15ConcatCacheData17releaseCacheDatasEv"></span><span id="_CPPv2N3ral5cache15ConcatCacheData17releaseCacheDatasEv"></span><span id="ral::cache::ConcatCacheData::releaseCacheDatas"></span><span class="target" id="classral_1_1cache_1_1ConcatCacheData_1ab6b4c1d4bd8752827d522d8911547a1e"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><span class="pre">std</span><span class="pre">::</span><span class="pre">unique_ptr</span><span class="pre">&lt;</span><a class="reference internal" href="classral_1_1cache_1_1CacheData.html#_CPPv4N3ral5cache9CacheDataE" title="ral::cache::CacheData"><span class="pre">CacheData</span></a><span class="pre">&gt;</span><span class="pre">&gt;</span> <code class="sig-name descname"><span class="pre">releaseCacheDatas</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache15ConcatCacheData17releaseCacheDatasEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5cache15ConcatCacheDataD0Ev">
+<span id="_CPPv3N3ral5cache15ConcatCacheDataD0Ev"></span><span id="_CPPv2N3ral5cache15ConcatCacheDataD0Ev"></span><span id="ral::cache::ConcatCacheData::~ConcatCacheData"></span><span class="target" id="classral_1_1cache_1_1ConcatCacheData_1a80135012152898a8bc2e490ef56fd053"></span><em class="property"><span class="pre">inline</span></em> <em class="property"><span class="pre">virtual</span></em> <code class="sig-name descname"><span class="pre">~ConcatCacheData</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache15ConcatCacheDataD0Ev" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Protected Attributes</p>
+<dl class="cpp var">
+<dt id="_CPPv4N3ral5cache15ConcatCacheData12_cache_datasE">
+<span id="_CPPv3N3ral5cache15ConcatCacheData12_cache_datasE"></span><span id="_CPPv2N3ral5cache15ConcatCacheData12_cache_datasE"></span><span id="ral::cache::ConcatCacheData::_cache_datas__std::vector:std::unique_ptr:CacheData::"></span><span class="target" id="classral_1_1cache_1_1ConcatCacheData_1a420b449b6862f7db831e7e51acb6fee5"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><span class="pre">std</span><span class="pre">::</span><span class="pre">unique_ptr</span><span class="pre">&lt;</span><a class="reference internal" href="classral_1_1cache_1_1CacheData.html#_CPPv4N3ral5cache9CacheDataE" title="ral::cache::CacheData"><span class="pre">CacheData</span></a><span class="pre">&gt;</span><span class="pre">&gt;</span> <code class="sig-name descname"><span class="pre">_cache_datas</span></code><a class="headerlink" href="#_CPPv4N3ral5cache15ConcatCacheData12_cache_datasE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+</div>
+
+
+              </div>
+              
+              
+              <div class='prev-next-bottom'>
+                
+
+              </div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../_static/js/index.d8bbf5861d671d414e1a.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright 2020, BlazingDB, Inc..<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

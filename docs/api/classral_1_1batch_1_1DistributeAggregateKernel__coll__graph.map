@@ -1,0 +1,5 @@
+<map id="ral::batch::DistributeAggregateKernel" name="ral::batch::DistributeAggregateKernel">
+<area shape="rect" id="node2" href="$classral_1_1cache_1_1distributing__kernel.html" title="The distributing_kernel interface allows kernels calling distributing primitives. ..." alt="" coords="29,109,180,151"/>
+<area shape="rect" id="node3" href="$classral_1_1cache_1_1kernel.html" title="This interface represents a computation unit in the execution graph. Each kernel has basically and in..." alt="" coords="121,5,243,32"/>
+<area shape="rect" id="node4" href="$classral_1_1cache_1_1port.html" title="This class represent a diccionary of tuples &lt;port_name, cache_machine&gt; used by each kernel (input and..." alt="" coords="205,117,314,143"/>
+</map>

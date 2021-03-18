@@ -1,0 +1,256 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>File CalciteExpressionParsing.cpp &#8212; BlazingSQL v0.18 documentation</title>
+    
+  <link href="../_static/css/theme.css" rel="stylesheet" />
+  <link href="../_static/css/index.101715efdecc9b59cb6e1ddfa685c31f.css" rel="stylesheet" />
+
+    
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+
+    
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/getting_started.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
+    
+  <link rel="preload" as="script" href="../_static/js/index.d8bbf5861d671d414e1a.js">
+
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/d3.v3.min.js"></script>
+    <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
+    <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
+    <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="container-xl">
+
+
+    
+      
+      <a class="navbar-brand" href="../index.html">
+        <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo">
+      </a>
+      
+    
+
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        <li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../arch.html">
+  BlazingSQL Project Architecture
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../graph.html">
+  Execution Engine
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../api.html">
+  API Documentation
+ </a>
+</li>
+
+        
+      </ul>
+
+      <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+            
+            <!-- Only show if we have sidebars configured, else just a small margin  -->
+            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <div class="bd-toc-item active">
+    
+  </div>
+</nav>
+            </div>
+            
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#definition-engine-src-calciteexpressionparsing-cpp">
+   Definition (
+   <code class="docutils literal notranslate">
+    <span class="pre">
+     engine/src/CalciteExpressionParsing.cpp
+    </span>
+   </code>
+   )
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#includes">
+   Includes
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#functions">
+   Functions
+  </a>
+ </li>
+</ul>
+
+</nav>
+
+
+
+<div class="tocsection editthispage">
+    <a href="https://github.com/blazingdb/blazingsql/edit/feedback/docsrc/source/xml/file_engine_src_CalciteExpressionParsing.cpp.rst">
+        <i class="fas fa-pencil-alt"></i> Edit this page
+    </a>
+</div>
+
+              
+          </div>
+          
+
+          
+          
+            
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="file-calciteexpressionparsing-cpp">
+<span id="file-engine-src-calciteexpressionparsing-cpp"></span><h1>File CalciteExpressionParsing.cpp<a class="headerlink" href="#file-calciteexpressionparsing-cpp" title="Permalink to this headline">¶</a></h1>
+<p>↰ <a class="reference internal" href="dir_engine_src.html#dir-engine-src"><span class="std std-ref">Parent directory</span></a> (<code class="docutils literal notranslate"><span class="pre">engine/src</span></code>)</p>
+<div class="contents local topic" id="contents">
+<p class="topic-title">Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#definition-engine-src-calciteexpressionparsing-cpp" id="id1">Definition (<code class="docutils literal notranslate"><span class="pre">engine/src/CalciteExpressionParsing.cpp</span></code>)</a></p></li>
+<li><p><a class="reference internal" href="#includes" id="id2">Includes</a></p></li>
+<li><p><a class="reference internal" href="#functions" id="id3">Functions</a></p></li>
+</ul>
+</div>
+<div class="section" id="definition-engine-src-calciteexpressionparsing-cpp">
+<h2>Definition (<code class="docutils literal notranslate"><span class="pre">engine/src/CalciteExpressionParsing.cpp</span></code>)<a class="headerlink" href="#definition-engine-src-calciteexpressionparsing-cpp" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="program_listing_file_engine_src_CalciteExpressionParsing.cpp.html">Program Listing for File CalciteExpressionParsing.cpp</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="includes">
+<h2>Includes<a class="headerlink" href="#includes" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">CalciteExpressionParsing.h</span></code> (<a class="reference internal" href="file_engine_src_CalciteExpressionParsing.h.html#file-engine-src-calciteexpressionparsing-h"><span class="std std-ref">File CalciteExpressionParsing.h</span></a>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">algorithm</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">blazingdb/io/Util/StringUtil.h</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cudf/binaryop.hpp</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cudf/scalar/scalar_factories.hpp</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cudf/table/table_view.hpp</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">error.hpp</span></code> (<a class="reference internal" href="file_engine_src_error.hpp.html#file-engine-src-error-hpp"><span class="std std-ref">File error.hpp</span></a>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">iomanip</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">limits.h</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">map</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">parser/expression_tree.hpp</span></code> (<a class="reference internal" href="file_engine_src_parser_expression_tree.hpp.html#file-engine-src-parser-expression-tree-hpp"><span class="std std-ref">File expression_tree.hpp</span></a>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">regex</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">spdlog/async.h</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">spdlog/sinks/basic_file_sink.h</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">spdlog/sinks/stdout_color_sinks.h</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">spdlog/spdlog.h</span></code></p></li>
+</ul>
+</div>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="function_CalciteExpressionParsing_8cpp_1a774174506cadfc9987816e9d95df05d7.html#exhale-function-calciteexpressionparsing-8cpp-1a774174506cadfc9987816e9d95df05d7"><span class="std std-ref">Function clean_calcite_expression(const std::string&amp;)</span></a></p></li>
+<li><p><a class="reference internal" href="function_CalciteExpressionParsing_8cpp_1aaffe8adbb74cbdedf9c6313029e5d7ca.html#exhale-function-calciteexpressionparsing-8cpp-1aaffe8adbb74cbdedf9c6313029e5d7ca"><span class="std std-ref">Function count_string_occurrence(std::string, std::string)</span></a></p></li>
+<li><p><a class="reference internal" href="function_CalciteExpressionParsing_8cpp_1a16ab6f33339b397615c5fd7380bbfc55.html#exhale-function-calciteexpressionparsing-8cpp-1a16ab6f33339b397615c5fd7380bbfc55"><span class="std std-ref">Function expand_if_logical_op(std::string)</span></a></p></li>
+<li><p><a class="reference internal" href="function_CalciteExpressionParsing_8cpp_1ad00ff8d6ea58fe38322d3ca02b52de99.html#exhale-function-calciteexpressionparsing-8cpp-1ad00ff8d6ea58fe38322d3ca02b52de99"><span class="std std-ref">Function find_closing_char</span></a></p></li>
+<li><p><a class="reference internal" href="function_CalciteExpressionParsing_8cpp_1a38b2b470b5a33db83e70c86e9f9fcc6e.html#exhale-function-calciteexpressionparsing-8cpp-1a38b2b470b5a33db83e70c86e9f9fcc6e"><span class="std std-ref">Function get_aggregation_operation_string(std::string)</span></a></p></li>
+<li><p><a class="reference internal" href="function_CalciteExpressionParsing_8cpp_1ae82256997677ac5d9716140bfc75a965.html#exhale-function-calciteexpressionparsing-8cpp-1ae82256997677ac5d9716140bfc75a965"><span class="std std-ref">Function get_index(const std::string&amp;)</span></a></p></li>
+<li><p><a class="reference internal" href="function_CalciteExpressionParsing_8cpp_1abdba8cb9205076d65b966688e33c8573.html#exhale-function-calciteexpressionparsing-8cpp-1abdba8cb9205076d65b966688e33c8573"><span class="std std-ref">Function get_max_integer_scalar(cudf::data_type)</span></a></p></li>
+<li><p><a class="reference internal" href="function_CalciteExpressionParsing_8cpp_1a3ec66f525b0a50c73c81afc0ddc36c6e.html#exhale-function-calciteexpressionparsing-8cpp-1a3ec66f525b0a50c73c81afc0ddc36c6e"><span class="std std-ref">Function get_scalar_from_string(const std::string&amp;, cudf::data_type, bool)</span></a></p></li>
+<li><p><a class="reference internal" href="function_CalciteExpressionParsing_8cpp_1a8f810c7bb94c5cb0eeba883914f2dedf.html#exhale-function-calciteexpressionparsing-8cpp-1a8f810c7bb94c5cb0eeba883914f2dedf"><span class="std std-ref">Function get_string_between_outer_parentheses(std::string)</span></a></p></li>
+<li><p><a class="reference internal" href="function_CalciteExpressionParsing_8cpp_1a060bd9d2bb4f60aab4c38a1c4bf1e358.html#exhale-function-calciteexpressionparsing-8cpp-1a060bd9d2bb4f60aab4c38a1c4bf1e358"><span class="std std-ref">Function get_tokens_in_reverse_order(const std::string&amp;)</span></a></p></li>
+<li><p><a class="reference internal" href="function_CalciteExpressionParsing_8cpp_1add91d6583500ed618b683908adbcd9d9.html#exhale-function-calciteexpressionparsing-8cpp-1add91d6583500ed618b683908adbcd9d9"><span class="std std-ref">Function is_type_bool(cudf::type_id)</span></a></p></li>
+<li><p><a class="reference internal" href="function_CalciteExpressionParsing_8cpp_1ad6a7007ab3c8e8473b26290bf8a45224.html#exhale-function-calciteexpressionparsing-8cpp-1ad6a7007ab3c8e8473b26290bf8a45224"><span class="std std-ref">Function is_type_float(cudf::type_id)</span></a></p></li>
+<li><p><a class="reference internal" href="function_CalciteExpressionParsing_8cpp_1a70d96f69856c00dd66a6cb2e29b04a0c.html#exhale-function-calciteexpressionparsing-8cpp-1a70d96f69856c00dd66a6cb2e29b04a0c"><span class="std std-ref">Function is_type_integer(cudf::type_id)</span></a></p></li>
+<li><p><a class="reference internal" href="function_CalciteExpressionParsing_8cpp_1aa9e7eab73fe2077667b40a97422b9621.html#exhale-function-calciteexpressionparsing-8cpp-1aa9e7eab73fe2077667b40a97422b9621"><span class="std std-ref">Function is_type_string(cudf::type_id)</span></a></p></li>
+<li><p><a class="reference internal" href="function_CalciteExpressionParsing_8cpp_1a1f19d4b8aab24ad6bd20c38b89845f1b.html#exhale-function-calciteexpressionparsing-8cpp-1a1f19d4b8aab24ad6bd20c38b89845f1b"><span class="std std-ref">Function is_type_timestamp(cudf::type_id)</span></a></p></li>
+</ul>
+</div>
+</div>
+
+
+              </div>
+              
+              
+              <div class='prev-next-bottom'>
+                
+
+              </div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../_static/js/index.d8bbf5861d671d414e1a.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright 2020, BlazingDB, Inc..<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

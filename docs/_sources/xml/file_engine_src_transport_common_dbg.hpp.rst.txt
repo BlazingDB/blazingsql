@@ -1,0 +1,120 @@
+
+.. _file_engine_src_transport_common_dbg.hpp:
+
+File dbg.hpp
+============
+
+|exhale_lsh| :ref:`Parent directory <dir_engine_src_transport_common>` (``engine/src/transport/common``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``engine/src/transport/common/dbg.hpp``)
+----------------------------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file_engine_src_transport_common_dbg.hpp.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``ios``
+
+- ``iostream``
+
+- ``sstream``
+
+- ``string``
+
+- ``type_traits``
+
+- ``unistd.h``
+
+
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_dbg_macro`
+
+- :ref:`namespace_dbg_macro__detail_detector`
+
+
+Classes
+-------
+
+
+- :ref:`exhale_struct_structdbg__macro_1_1detail__detector_1_1detector`
+
+- :ref:`exhale_struct_structdbg__macro_1_1detail__detector_1_1detector_3_01Default_00_01void__t_3_01Op_3_01Args_8_8_8_7a587da40c906bd309ce2dec06959c4d`
+
+- :ref:`exhale_struct_structdbg__macro_1_1detail__detector_1_1nonesuch`
+
+- :ref:`exhale_struct_structdbg__macro_1_1has__begin__end__size`
+
+- :ref:`exhale_class_classdbg__macro_1_1DebugOutput`
+
+
+Functions
+---------
+
+
+- :ref:`exhale_function_dbg_8hpp_1aa9fdf7314d3ed417ce417e2d54d94b3e`
+
+- :ref:`exhale_function_dbg_8hpp_1a7d2713ea440a6f885567be1f4b983e98`
+
+- :ref:`exhale_function_dbg_8hpp_1a4f8125f57f1a6411a815ff14b0585d25`
+
+- :ref:`exhale_function_dbg_8hpp_1a6fdcf2651bcb47e3d703dccd86e14ad7`
+
+- :ref:`exhale_function_dbg_8hpp_1a47085a02f3d4771e8a32b62147566d1c`
+
+- :ref:`exhale_function_dbg_8hpp_1a8cd9706dcf99965377842446769f3527`
+
+- :ref:`exhale_function_dbg_8hpp_1aead8b7b31ac4e59314cb6dd0559cc199`
+
+- :ref:`exhale_function_dbg_8hpp_1ae827cdc8b6fe9b66cc015cdcb17f89ac`
+
+- :ref:`exhale_function_dbg_8hpp_1a829df0c4b81fd3769d3712023397964e`
+
+- :ref:`exhale_function_dbg_8hpp_1a655d7497da1e6d375b19ac6e1a5e8293`
+
+- :ref:`exhale_function_dbg_8hpp_1a4166480f854c53ec062cf61c871087fb`
+
+
+Defines
+-------
+
+
+- :ref:`exhale_define_dbg_8hpp_1afde3f42696113719c9ae35507125ee6e`
+
+
+Typedefs
+--------
+
+
+- :ref:`exhale_typedef_dbg_8hpp_1a6f99664732957cf3ac632ddd28ee9752`
+
+- :ref:`exhale_typedef_dbg_8hpp_1a5fccea185f880b828afeaf9121a07eb3`
+
+- :ref:`exhale_typedef_dbg_8hpp_1af741237ad6c9ecc9146e511f9b5f2617`
+
+- :ref:`exhale_typedef_dbg_8hpp_1a7aa5f53d554fd9d654d9d16a7d7f7f05`
+
+- :ref:`exhale_typedef_dbg_8hpp_1a3d5961fae5aaaacb8b2f5bf549eaa4e4`
+

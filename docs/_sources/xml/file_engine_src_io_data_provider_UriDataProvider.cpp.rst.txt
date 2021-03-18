@@ -1,0 +1,52 @@
+
+.. _file_engine_src_io_data_provider_UriDataProvider.cpp:
+
+File UriDataProvider.cpp
+========================
+
+|exhale_lsh| :ref:`Parent directory <dir_engine_src_io_data_provider>` (``engine/src/io/data_provider``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``engine/src/io/data_provider/UriDataProvider.cpp``)
+----------------------------------------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file_engine_src_io_data_provider_UriDataProvider.cpp.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``Config/BlazingContext.h``
+
+- ``UriDataProvider.h`` (:ref:`file_engine_src_io_data_provider_UriDataProvider.h`)
+
+- ``arrow/status.h``
+
+- ``blazingdb/io/Util/StringUtil.h``
+
+
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_ral`
+
+- :ref:`namespace_ral__io`
+

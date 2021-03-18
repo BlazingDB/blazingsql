@@ -1,0 +1,73 @@
+
+.. _file_engine_src_io_data_provider_UriDataProvider.h:
+
+File UriDataProvider.h
+======================
+
+|exhale_lsh| :ref:`Parent directory <dir_engine_src_io_data_provider>` (``engine/src/io/data_provider``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``engine/src/io/data_provider/UriDataProvider.h``)
+--------------------------------------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file_engine_src_io_data_provider_UriDataProvider.h.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``DataProvider.h`` (:ref:`file_engine_src_io_data_provider_DataProvider.h`)
+
+- ``arrow/io/interfaces.h``
+
+- ``blazingdb/io/FileSystem/Uri.h``
+
+- ``memory``
+
+- ``vector``
+
+
+
+Included By
+-----------
+
+
+- :ref:`file_engine_src_cython_engine.cpp`
+
+- :ref:`file_engine_src_cython_io.cpp`
+
+- :ref:`file_engine_src_io_data_parser_ArgsUtil.cpp`
+
+- :ref:`file_engine_src_io_data_provider_UriDataProvider.cpp`
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_ral`
+
+- :ref:`namespace_ral__io`
+
+
+Classes
+-------
+
+
+- :ref:`exhale_class_classral_1_1io_1_1uri__data__provider`
+

@@ -1,0 +1,73 @@
+
+.. _file_engine_src_transport_ColumnTransport.h:
+
+File ColumnTransport.h
+======================
+
+|exhale_lsh| :ref:`Parent directory <dir_engine_src_transport>` (``engine/src/transport``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``engine/src/transport/ColumnTransport.h``)
+-------------------------------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file_engine_src_transport_ColumnTransport.h.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``cstdint``
+
+
+
+Included By
+-----------
+
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_BlazingHostTable.h`
+
+- :ref:`file_engine_src_communication_CommunicationInterface_bufferTransport.hpp`
+
+- :ref:`file_engine_src_communication_CommunicationInterface_protocols.hpp`
+
+- :ref:`file_engine_src_communication_CommunicationInterface_messageReceiver.hpp`
+
+- :ref:`file_engine_src_communication_CommunicationInterface_messageSender.hpp`
+
+- :ref:`file_engine_src_communication_CommunicationInterface_serializer.hpp`
+
+- :ref:`file_engine_src_communication_messages_GPUComponentMessage.h`
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_blazingdb`
+
+- :ref:`namespace_blazingdb__transport`
+
+
+Classes
+-------
+
+
+- :ref:`exhale_struct_structblazingdb_1_1transport_1_1ColumnTransport`
+
+- :ref:`exhale_struct_structblazingdb_1_1transport_1_1ColumnTransport_1_1MetaData`
+

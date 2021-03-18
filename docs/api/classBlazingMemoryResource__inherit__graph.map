@@ -1,0 +1,5 @@
+<map id="BlazingMemoryResource" name="BlazingMemoryResource">
+<area shape="rect" id="node2" href="$classblazing__device__memory__resource.html" title="RMM blazing_device_memory_resource class maintains the device memory manager context, including the RMM event log, configuration options, and registered streams. " alt="" coords="221,5,384,47"/>
+<area shape="rect" id="node3" href="$classblazing__disk__memory__resource.html" title="This class represents a custom disk memory resource used in the cache system. " alt="" coords="229,71,377,112"/>
+<area shape="rect" id="node4" href="$classblazing__host__memory__resource.html" title="blazing_host_memory_resource class maintains the host memory manager context. " alt="" coords="228,136,377,177"/>
+</map>

@@ -1,0 +1,293 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Class blazing_device_memory_resource &#8212; BlazingSQL v0.18 documentation</title>
+    
+  <link href="../_static/css/theme.css" rel="stylesheet" />
+  <link href="../_static/css/index.101715efdecc9b59cb6e1ddfa685c31f.css" rel="stylesheet" />
+
+    
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+
+    
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/getting_started.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
+    
+  <link rel="preload" as="script" href="../_static/js/index.d8bbf5861d671d414e1a.js">
+
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/d3.v3.min.js"></script>
+    <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
+    <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
+    <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="container-xl">
+
+
+    
+      
+      <a class="navbar-brand" href="../index.html">
+        <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo">
+      </a>
+      
+    
+
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        <li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../arch.html">
+  BlazingSQL Project Architecture
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../graph.html">
+  Execution Engine
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../api.html">
+  API Documentation
+ </a>
+</li>
+
+        
+      </ul>
+
+      <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+            
+            <!-- Only show if we have sidebars configured, else just a small margin  -->
+            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <div class="bd-toc-item active">
+    
+  </div>
+</nav>
+            </div>
+            
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#inheritance-relationships">
+   Inheritance Relationships
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#base-type">
+     Base Type
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#class-documentation">
+   Class Documentation
+  </a>
+ </li>
+</ul>
+
+</nav>
+
+
+
+<div class="tocsection editthispage">
+    <a href="https://github.com/blazingdb/blazingsql/edit/feedback/docsrc/source/xml/classblazing__device__memory__resource.rst">
+        <i class="fas fa-pencil-alt"></i> Edit this page
+    </a>
+</div>
+
+              
+          </div>
+          
+
+          
+          
+            
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="class-blazing-device-memory-resource">
+<span id="exhale-class-classblazing-device-memory-resource"></span><h1>Class blazing_device_memory_resource<a class="headerlink" href="#class-blazing-device-memory-resource" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p>Defined in <a class="reference internal" href="file_engine_src_bmr_BlazingMemoryResource.h.html#file-engine-src-bmr-blazingmemoryresource-h"><span class="std std-ref">File BlazingMemoryResource.h</span></a></p></li>
+</ul>
+<div class="section" id="inheritance-relationships">
+<h2>Inheritance Relationships<a class="headerlink" href="#inheritance-relationships" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="base-type">
+<h3>Base Type<a class="headerlink" href="#base-type" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">public</span> <span class="pre">BlazingMemoryResource</span></code> (<a class="reference internal" href="classBlazingMemoryResource.html#exhale-class-classblazingmemoryresource"><span class="std std-ref">Class BlazingMemoryResource</span></a>)</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="class-documentation">
+<h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
+<dl class="cpp class">
+<dt id="_CPPv430blazing_device_memory_resource">
+<span id="_CPPv330blazing_device_memory_resource"></span><span id="_CPPv230blazing_device_memory_resource"></span><span id="blazing_device_memory_resource"></span><span class="target" id="classblazing__device__memory__resource"></span><em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">blazing_device_memory_resource</span></code> <span class="pre">:</span> <em class="property"><span class="pre">public</span></em> <a class="reference internal" href="classBlazingMemoryResource.html#_CPPv421BlazingMemoryResource" title="BlazingMemoryResource"><span class="pre">BlazingMemoryResource</span></a><a class="headerlink" href="#_CPPv430blazing_device_memory_resource" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>RMM <a class="reference internal" href="#classblazing__device__memory__resource"><span class="std std-ref">blazing_device_memory_resource</span></a> class maintains the device memory manager context, including the RMM event log, configuration options, and registered streams. </p>
+<p>———————————————————————-* <a class="reference internal" href="#classblazing__device__memory__resource"><span class="std std-ref">blazing_device_memory_resource</span></a> is a singleton class, and should be accessed via <a class="reference internal" href="#classblazing__device__memory__resource_1a31735d61d23aef05666c7c3f981c86fe"><span class="std std-ref">getInstance()</span></a>. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Functions</p>
+<dl class="cpp function">
+<dt id="_CPPv4N30blazing_device_memory_resource15get_memory_usedEv">
+<span id="_CPPv3N30blazing_device_memory_resource15get_memory_usedEv"></span><span id="_CPPv2N30blazing_device_memory_resource15get_memory_usedEv"></span><span id="blazing_device_memory_resource::get_memory_used"></span><span class="target" id="classblazing__device__memory__resource_1ae6a57a18e3a02583bb111a273d9b9467"></span><em class="property"><span class="pre">virtual</span></em> <span class="pre">size_t</span> <code class="sig-name descname"><span class="pre">get_memory_used</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N30blazing_device_memory_resource15get_memory_usedEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N30blazing_device_memory_resource19get_max_memory_usedEv">
+<span id="_CPPv3N30blazing_device_memory_resource19get_max_memory_usedEv"></span><span id="_CPPv2N30blazing_device_memory_resource19get_max_memory_usedEv"></span><span id="blazing_device_memory_resource::get_max_memory_used"></span><span class="target" id="classblazing__device__memory__resource_1aeacacda54cf9cc89b2f1bb30ad54a77d"></span><span class="pre">size_t</span> <code class="sig-name descname"><span class="pre">get_max_memory_used</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N30blazing_device_memory_resource19get_max_memory_usedEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N30blazing_device_memory_resource16get_total_memoryEv">
+<span id="_CPPv3N30blazing_device_memory_resource16get_total_memoryEv"></span><span id="_CPPv2N30blazing_device_memory_resource16get_total_memoryEv"></span><span id="blazing_device_memory_resource::get_total_memory"></span><span class="target" id="classblazing__device__memory__resource_1a34c81aa0fe6a5d542573739a187264bb"></span><em class="property"><span class="pre">virtual</span></em> <span class="pre">size_t</span> <code class="sig-name descname"><span class="pre">get_total_memory</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N30blazing_device_memory_resource16get_total_memoryEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N30blazing_device_memory_resource27get_from_driver_used_memoryEv">
+<span id="_CPPv3N30blazing_device_memory_resource27get_from_driver_used_memoryEv"></span><span id="_CPPv2N30blazing_device_memory_resource27get_from_driver_used_memoryEv"></span><span id="blazing_device_memory_resource::get_from_driver_used_memory"></span><span class="target" id="classblazing__device__memory__resource_1ac64dc046686ed83b8f6b0f85cd79517e"></span><em class="property"><span class="pre">virtual</span></em> <span class="pre">size_t</span> <code class="sig-name descname"><span class="pre">get_from_driver_used_memory</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N30blazing_device_memory_resource27get_from_driver_used_memoryEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N30blazing_device_memory_resource16get_memory_limitEv">
+<span id="_CPPv3N30blazing_device_memory_resource16get_memory_limitEv"></span><span id="_CPPv2N30blazing_device_memory_resource16get_memory_limitEv"></span><span id="blazing_device_memory_resource::get_memory_limit"></span><span class="target" id="classblazing__device__memory__resource_1a0d0e8280d74b19fdfbab855b790c872e"></span><em class="property"><span class="pre">virtual</span></em> <span class="pre">size_t</span> <code class="sig-name descname"><span class="pre">get_memory_limit</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N30blazing_device_memory_resource16get_memory_limitEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N30blazing_device_memory_resource8get_typeEv">
+<span id="_CPPv3N30blazing_device_memory_resource8get_typeEv"></span><span id="_CPPv2N30blazing_device_memory_resource8get_typeEv"></span><span id="blazing_device_memory_resource::get_type"></span><span class="target" id="classblazing__device__memory__resource_1adcd21d872aad1620305edc061145d882"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">string</span> <code class="sig-name descname"><span class="pre">get_type</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N30blazing_device_memory_resource8get_typeEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N30blazing_device_memory_resource23get_full_memory_summaryEv">
+<span id="_CPPv3N30blazing_device_memory_resource23get_full_memory_summaryEv"></span><span id="_CPPv2N30blazing_device_memory_resource23get_full_memory_summaryEv"></span><span id="blazing_device_memory_resource::get_full_memory_summary"></span><span class="target" id="classblazing__device__memory__resource_1ac80188ecfe926a72194b98e2ad7f61e0"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">string</span> <code class="sig-name descname"><span class="pre">get_full_memory_summary</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N30blazing_device_memory_resource23get_full_memory_summaryEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N30blazing_device_memory_resource21reset_max_memory_usedE6size_t">
+<span id="_CPPv3N30blazing_device_memory_resource21reset_max_memory_usedE6size_t"></span><span id="_CPPv2N30blazing_device_memory_resource21reset_max_memory_usedE6size_t"></span><span id="blazing_device_memory_resource::reset_max_memory_used__s"></span><span class="target" id="classblazing__device__memory__resource_1a3d5d3b2e31f50b773e36c5b5516144c6"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">reset_max_memory_used</span></code><span class="sig-paren">(</span><span class="pre">size_t</span> <em><span class="pre">to</span></em> <span class="pre">=</span> <span class="pre">0</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N30blazing_device_memory_resource21reset_max_memory_usedE6size_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N30blazing_device_memory_resource10initializeENSt6stringENSt6size_tENSt6size_tENSt6stringEf">
+<span id="_CPPv3N30blazing_device_memory_resource10initializeENSt6stringENSt6size_tENSt6size_tENSt6stringEf"></span><span id="_CPPv2N30blazing_device_memory_resource10initializeENSt6stringENSt6size_tENSt6size_tENSt6stringEf"></span><span id="blazing_device_memory_resource::initialize__ss.std::s.std::s.ss.float"></span><span class="target" id="classblazing__device__memory__resource_1aff09e3f24d6448da5176747dbb37aa6b"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">initialize</span></code><span class="sig-paren">(</span><span class="pre">std</span><span class="pre">::</span><span class="pre">string</span> <em><span class="pre">allocation_mode</span></em>, <span class="pre">std</span><span class="pre">::</span><span class="pre">size_t</span> <em><span class="pre">initial_pool_size</span></em>, <span class="pre">std</span><span class="pre">::</span><span class="pre">size_t</span> <em><span class="pre">maximum_pool_size</span></em>, <span class="pre">std</span><span class="pre">::</span><span class="pre">string</span> <em><span class="pre">allocator_logging_file</span></em>, <span class="pre">float</span> <em><span class="pre">device_mem_resouce_consumption_thresh</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N30blazing_device_memory_resource10initializeENSt6stringENSt6size_tENSt6size_tENSt6stringEf" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Initialize RMM options. </p>
+<p>——————————————————————–* allocator : “managed” or “default” or “existing”, where “managed” uses Unified Virtual Memory (UVM) and may use system memory if GPU memory runs out, “default” uses the default Cuda allocation and “existing” assumes rmm allocator is already set and does not initialize it. “managed” is the BlazingSQL default, since it provides the most robustness against OOM errors. pool : if True, BlazingContext will self-allocate a GPU memory pool. can greatly improve performance. initial_pool_size : initial size of memory pool in bytes (if pool=True). if None, and pool=True, defaults to 1/2 GPU memory. maximum_pool_size : maximum size of memory pool in bytes (if pool=True). if None, and pool=True, defaults to all the GPU memory. allocator_logging_file : File that would be used by the allocator logger. If empty, then no allocator logging will be enabled. device_mem_resouce_consumption_thresh : The percent (as a decimal) of total GPU memory that the memory resource</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N30blazing_device_memory_resource8finalizeEv">
+<span id="_CPPv3N30blazing_device_memory_resource8finalizeEv"></span><span id="_CPPv2N30blazing_device_memory_resource8finalizeEv"></span><span id="blazing_device_memory_resource::finalize"></span><span class="target" id="classblazing__device__memory__resource_1ab92679fbcfe6a6075be76d3026e19b47"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">finalize</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N30blazing_device_memory_resource8finalizeEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>——————————————————————–* </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N30blazing_device_memory_resource13isInitializedEv">
+<span id="_CPPv3N30blazing_device_memory_resource13isInitializedEv"></span><span id="_CPPv2N30blazing_device_memory_resource13isInitializedEv"></span><span id="blazing_device_memory_resource::isInitialized"></span><span class="target" id="classblazing__device__memory__resource_1a01ae4b27062b3e30a22771edb4c625ac"></span><span class="pre">bool</span> <code class="sig-name descname"><span class="pre">isInitialized</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N30blazing_device_memory_resource13isInitializedEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Check whether the <a class="reference internal" href="#classblazing__device__memory__resource"><span class="std std-ref">blazing_device_memory_resource</span></a> has been initialized. </p>
+<p>——————————————————————–* <dl class="simple">
+<dt><strong>Return</strong></dt><dd><p>true if <a class="reference internal" href="#classblazing__device__memory__resource"><span class="std std-ref">blazing_device_memory_resource</span></a> has been initialized. </p>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Static Functions</p>
+<dl class="cpp function">
+<dt id="_CPPv4N30blazing_device_memory_resource11getInstanceEv">
+<span id="_CPPv3N30blazing_device_memory_resource11getInstanceEv"></span><span id="_CPPv2N30blazing_device_memory_resource11getInstanceEv"></span><span id="blazing_device_memory_resource::getInstance"></span><span class="target" id="classblazing__device__memory__resource_1a31735d61d23aef05666c7c3f981c86fe"></span><em class="property"><span class="pre">static</span></em> <em class="property"><span class="pre">inline</span></em> <a class="reference internal" href="#_CPPv430blazing_device_memory_resource" title="blazing_device_memory_resource"><span class="pre">blazing_device_memory_resource</span></a> <span class="pre">&amp;</span><code class="sig-name descname"><span class="pre">getInstance</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N30blazing_device_memory_resource11getInstanceEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the <a class="reference internal" href="#classblazing__device__memory__resource"><span class="std std-ref">blazing_device_memory_resource</span></a> instance singleton object. </p>
+<p>——————————————————————–* </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+</div>
+
+
+              </div>
+              
+              
+              <div class='prev-next-bottom'>
+                
+
+              </div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../_static/js/index.d8bbf5861d671d414e1a.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright 2020, BlazingDB, Inc..<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

@@ -1,0 +1,4 @@
+<map id="ral::cache::CacheData::num_rows" name="ral::cache::CacheData::num_rows">
+<area shape="rect" id="node2" href="$classral_1_1batch_1_1PartwiseJoin.html#a280aee308eff9e14f239cdce229c4035" title="Executes the batch processing. Loads the data from their input port, and after processing it..." alt="" coords="207,5,392,32"/>
+<area shape="rect" id="node3" href="$classral_1_1cache_1_1CacheDataIO.html#a7fb2dceef20a385e31508ac70edfbf58" title="ral::cache::CacheDataIO\l::decache" alt="" coords="216,57,383,98"/>
+</map>

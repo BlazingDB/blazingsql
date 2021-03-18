@@ -1,0 +1,13 @@
+.. _exhale_function_orc__metadata_8h_1a6952454c5b7dd29dc423f0f5fafd23d0:
+
+Function to_dtype(cudf::io::statistics_type)
+============================================
+
+- Defined in :ref:`file_engine_src_io_data_parser_metadata_orc_metadata.h`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: to_dtype(cudf::io::statistics_type)

@@ -1,0 +1,4 @@
+<map id="comm::buffer_transport" name="comm::buffer_transport">
+<area shape="rect" id="node2" href="$classcomm_1_1tcp__buffer__transport.html" title="comm::tcp_buffer_transport" alt="" coords="5,80,188,107"/>
+<area shape="rect" id="node3" href="$classcomm_1_1ucx__buffer__transport.html" title="comm::ucx_buffer_transport" alt="" coords="212,80,397,107"/>
+</map>
