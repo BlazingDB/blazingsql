@@ -28,7 +28,7 @@ jobs:
           docs-folder: "docsrc/"
       - name: Commit documentation changes
         run: |
-          git clone https://github.com/BlazingDB/BlazingSQL.git --branch doxygen/graph --single-branch doxygen/graph
+          git clone https://github.com/romulo-auccapuclla/blazingsql.git --branch doxygen/graph --single-branch doxygen/graph
           cd docssrc && doxygen Doxyfile
           cp -a docsrc/_build/html/. docs/
           cp -a docsrc/html/. docs/api/
