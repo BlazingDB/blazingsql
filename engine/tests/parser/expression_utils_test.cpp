@@ -229,3 +229,40 @@ TEST_F(ExpressionUtilsTest, not_passing_project_empty_col_names) {
 	EXPECT_EQ(by_passing_project, false);
 	EXPECT_EQ(by_passing_project_with_aliases, false);
 }
+
+TEST_F(ExpressionUtilsTest, filling_minus_op_with_zero_not_apply_case1) {
+	std::string expression = "-(4, $3)";
+	std::string expression_result = fill_minus_op_with_zero(expression);
+
+	EXPECT_EQ(expression_result, expression);
+}
+
+TEST_F(ExpressionUtilsTest, filling_minus_op_with_zero_not_apply_case2) {
+	std::string expression = "-($0, $3)";
+	std::string expression_result = fill_minus_op_with_zero(expression);
+
+	EXPECT_EQ(expression_result, expression);
+}
+
+TEST_F(ExpressionUtilsTest, filling_minus_op_with_zero_not_apply_case3) {
+	std::string expression = "-(-($0, $1), $0)";
+	std::string expression_result = fill_minus_op_with_zero(expression);
+
+	EXPECT_EQ(expression_result, expression);
+}
+
+TEST_F(ExpressionUtilsTest, filling_minus_op_with_zero_success) {
+	std::string expression = "-($3)";
+	std::string expression_result = fill_minus_op_with_zero(expression);
+	std::string expected_expression = "-(0, $3)";
+
+	EXPECT_EQ(expression_result, expected_expression);
+}
+
+TEST_F(ExpressionUtilsTest, filling_minus_op_with_zero_success_with_cast) {
+	std::string expression = "-(CAST($0):DOUBLE)";
+	std::string expression_result = fill_minus_op_with_zero(expression);
+	std::string expected_expression = "-(0, CAST($0):DOUBLE)";
+
+	EXPECT_EQ(expression_result, expected_expression);
+}
