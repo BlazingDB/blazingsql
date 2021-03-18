@@ -24,7 +24,7 @@ jobs:
       - uses: ammaraskar/sphinx-action@master
         with:
           pre-build-command: "apt -y install doxygen && pip install -U sphinx && pip install pydata-sphinx-theme recommonmark"
-          build-command: "doxygen Doxyfile && make html -e"
+          build-command: "make html -e && doxygen Doxyfile"
           docs-folder: "docsrc/"
       - name: Commit documentation changes
         run: |
