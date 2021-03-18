@@ -29,7 +29,7 @@ jobs:
       - name: Commit documentation changes
         run: |
           git clone https://github.com/romulo-auccapuclla/blazingsql.git --branch doxygen/graph --single-branch doxygen/graph
-          cd docssrc && doxygen Doxyfile
+          cd docsrc && doxygen Doxyfile
           cp -a docsrc/_build/html/. docs/
           cp -a docsrc/html/. docs/api/
           cd docs
