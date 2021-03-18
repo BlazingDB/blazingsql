@@ -291,7 +291,8 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                         and l_linenumber > 4
                         order by l_orderkey, l_partkey"""
 
-            # TODO: Failed test with nulls
+            # Failed test with nulls
+            # Reported issue: https://github.com/BlazingDB/blazingsql/issues/1409
             testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
             if testsWithNulls != "true":
                 runTest.run_query(
@@ -571,7 +572,8 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                         order by o_custkey, o_orderpriority, o_orderkey
                         limit 50"""
 
-            # TODO: Failed test with nulls
+            # Failed test with nulls
+            # Reported issue: https://github.com/BlazingDB/blazingsql/issues/1410
             testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
             if testsWithNulls != "true":
                 runTest.run_query(
@@ -652,7 +654,8 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                         where c_acctbal < 95.0
                         order by c_custkey, row_num"""
 
-            # TODO: Failed test with nulls
+            # Failed test with nulls
+            # Reported issue: https://github.com/BlazingDB/blazingsql/issues/1411
             testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
             if testsWithNulls != "true":
                 runTest.run_query(
