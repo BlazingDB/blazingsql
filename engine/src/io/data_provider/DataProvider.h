@@ -36,12 +36,21 @@
 namespace ral {
 namespace io {
 
+struct sql_datasource {
+  std::string table;
+  std::string query;
+  std::vector<std::string> column_names;
+  std::vector<std::string> column_types; // always uppercase
+  std::shared_ptr<sql::ResultSet> mysql_resultset;
+  // TODO percy add postgre and other backends here
+};
+
 struct data_handle {
 	std::shared_ptr<arrow::io::RandomAccessFile> file_handle;
 	std::map<std::string, std::string> column_values;  // allows us to add hive values
 	Uri uri;										  // in case the data was loaded from a file
 	frame::BlazingTableView table_view;
-  std::shared_ptr<sql::ResultSet> mysql_resultset;
+  sql_datasource sql_handle;
 	data_handle(){}
 	data_handle(
 		std::shared_ptr<arrow::io::RandomAccessFile> file_handle,

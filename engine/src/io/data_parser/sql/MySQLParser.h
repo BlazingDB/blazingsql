@@ -7,11 +7,6 @@
 #define _MYSQLSQLPARSER_H_
 
 #include "io/data_parser/DataParser.h"
-#include "arrow/io/interfaces.h"
-#include <memory>
-#include <vector>
-
-#include <cudf/io/datasource.hpp>
 
 namespace ral {
 namespace io {
@@ -27,10 +22,10 @@ public:
 		std::vector<int> column_indices,
 		std::vector<cudf::size_type> row_groups) override;
 
-	void parse_schema(std::shared_ptr<arrow::io::RandomAccessFile> file, Schema & schema) override;
+	void parse_schema(ral::io::data_handle handle, Schema & schema) override;
 
 	std::unique_ptr<ral::frame::BlazingTable> get_metadata(
-		std::vector<std::shared_ptr<arrow::io::RandomAccessFile>> files,
+		std::vector<ral::io::data_handle> handles,
 		int offset) override;
 
 	DataType type() const override { return DataType::PARQUET; }
