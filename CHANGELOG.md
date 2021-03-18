@@ -30,6 +30,7 @@
 - #1387 Skip getting orc metadata for decimal type
 - #1392 Fix substrings with nulls
 - #1398 Fix performance regression
+- #1401 Fix support for minus unary operation
 
 ## Deprecated Features
 - #1394 Disabled support for outer joins with inequalities 
