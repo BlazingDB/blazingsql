@@ -40,7 +40,7 @@ jobs:
       - name: Push changes
         uses: ad-m/github-push-action@master
         with:
-          branch: main
+          branch: doxygen/graph
           directory: docs
           force: true
           github_token: ${{ secrets.GITHUB_TOKEN }}
