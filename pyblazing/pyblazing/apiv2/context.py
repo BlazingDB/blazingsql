@@ -2452,11 +2452,11 @@ class BlazingContext(object):
 
           sqlEngineArgs = GetSQLEngineArgs(kwargs)
 
-          blazingTable = BlazingTable(table_name,
-                                      None,
-                                      sqlEngineDataType,
-                                      args=sqlEngineArgs,
-                                      client=self.dask_client)
+          table = BlazingTable(table_name,
+                               None,
+                               sqlEngineDataType,
+                               args=sqlEngineArgs,
+                               client=self.dask_client)
 
         if table is not None:
             self.add_remove_table(table_name, True, table)
