@@ -290,23 +290,18 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                         where l_partkey < 250
                         and l_linenumber > 4
                         order by l_orderkey, l_partkey"""
-
-            # Failed test with nulls
-            # Reported issue: https://github.com/BlazingDB/blazingsql/issues/1409
-            testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
-            if testsWithNulls != "true":
-                runTest.run_query(
-                    bc,
-                    drill,
-                    query,
-                    queryId,
-                    queryType,
-                    worder,
-                    "",
-                    acceptable_difference,
-                    use_percentage,
-                    fileSchemaType,
-                )
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
 
             queryId = "TEST_14"
             query = """select sum(o_custkey) over 
@@ -571,23 +566,18 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                         where o_totalprice < 1352.0
                         order by o_custkey, o_orderpriority, o_orderkey
                         limit 50"""
-
-            # Failed test with nulls
-            # Reported issue: https://github.com/BlazingDB/blazingsql/issues/1410
-            testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
-            if testsWithNulls != "true":
-                runTest.run_query(
-                    bc,
-                    drill,
-                    query,
-                    queryId,
-                    queryType,
-                    worder,
-                    "",
-                    acceptable_difference,
-                    use_percentage,
-                    fileSchemaType,
-                )
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
 
             queryId = "TEST_24"
             query = """select sum(n.n_nationkey) over 
