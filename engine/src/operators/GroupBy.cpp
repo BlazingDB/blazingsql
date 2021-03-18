@@ -81,11 +81,12 @@ std::string aggregator_to_string(AggregateKind aggregation) {
 	}
 }
 
-AggregateKind get_aggregation_operation(std::string expression_in) {
+AggregateKind get_aggregation_operation(std::string expression_in, bool is_window_operation) {
 
 	std::string operator_string = get_aggregation_operation_string(expression_in);
 	std::string expression = get_string_between_outer_parentheses(expression_in);
-	if (expression == "" && operator_string == "COUNT"){
+
+	if (expression == "" && operator_string == "COUNT" && is_window_operation == false){
 		return AggregateKind::COUNT_ALL;
 	} else if(operator_string == "SUM") {
 		return AggregateKind::SUM;
