@@ -102,7 +102,8 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                 (o_orderkey + o_custkey) as num from orders
                 where o_custkey < 100 group by o_custkey, o_orderkey"""
 
-            # TODO: Failed test with nulls
+            # Failed test with nulls
+            # Reported issue: https://github.com/BlazingDB/blazingsql/issues/1406
             testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
             if testsWithNulls != "true":
                 runTest.run_query(
@@ -123,7 +124,8 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                     min(o_totalprice), avg(o_totalprice)
                     from orders group by o_custkey"""
 
-            # TODO: Failed test with nulls
+            # Failed test with nulls
+            # Reported issue: https://github.com/BlazingDB/blazingsql/issues/1407
             testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
             if testsWithNulls != "true":
                 runTest.run_query(
@@ -161,7 +163,8 @@ def main(dask_client, drill, dir_data_file, bc, nRals):
                     count(distinct(o_totalprice)), sum(o_orderkey)
                     from orders group by o_custkey"""
 
-            # TODO: Failed test with nulls
+            # Failed test with nulls
+            # Reported issue: https://github.com/BlazingDB/blazingsql/issues/1408
             testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
             if testsWithNulls != "true":
                 runTest.run_query(
