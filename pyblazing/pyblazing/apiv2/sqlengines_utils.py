@@ -16,7 +16,8 @@ class SQLEngineArgs(TypedDict):
         username(str): username for engine authentication
         password(str): password for engine authentication
         host(str): engine host
-        host(str): engine posrt
+        port(str): engine port
+        database_table(str): database table name used to import data
     """
     from_sql_engine: str
     database: str
@@ -24,6 +25,7 @@ class SQLEngineArgs(TypedDict):
     password: str
     host: str
     port: str
+    database_table: str
 
 
 def GetSQLEngineArgs(kwargs: Dict[AnyStr, Any]) -> SQLEngineArgs:
