@@ -169,7 +169,8 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                     FROM lineitem
                     GROUP BY l_orderkey, l_partkey, l_suppkey"""
 
-            # TODO: Failed test with nulls
+            # Failed test with nulls
+            # Reported issue: https://github.com/BlazingDB/blazingsql/issues/1402
             testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
             if testsWithNulls != "true":
                 runTest.run_query(
@@ -190,7 +191,8 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                     FROM lineitem
                     GROUP BY l_partkey, l_suppkey"""
 
-            # TODO: Failed test with nulls
+            # Failed test with nulls
+            # Reported issue: https://github.com/BlazingDB/blazingsql/issues/1403
             testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
             if testsWithNulls != "true":
                 runTest.run_query(
