@@ -3,7 +3,7 @@
  *     Copyright 2021 Percy Camilo Triveño Aucahuasi <percy@blazingdb.com>
  */
 
-#include "MySQLParser.h"
+#include "SQLiteParser.h"
 
 #include "utilities/CommonOperations.h"
 
@@ -44,7 +44,7 @@ namespace cudf_io = cudf::io;
 //LONGBLOB	For BLOBs (Binary Large OBjects). Holds up to 4,294,967,295 bytes of data
 //ENUM(val1, val2, val3, ...)	A string object that can have only one value, chosen from a list of possible values. You can list up to 65535 values in an ENUM list. If a value is inserted that is not in the list, a blank value will be inserted. The values are sorted in the order you enter them
 //SET(val1, val2, val3, ...)
-bool mysql_is_cudf_string(const std::string &t) {
+bool sqlite_is_cudf_string(const std::string &t) {
   std::vector<std::string> mysql_string_types_hints = {
     "CHAR",
     "VARCHAR",
@@ -69,8 +69,8 @@ bool mysql_is_cudf_string(const std::string &t) {
   return false;
 }
 
-cudf::type_id parse_mysql_column_type(const std::string t) {
-  if (mysql_is_cudf_string(t)) return cudf::type_id::STRING;
+cudf::type_id parse_sqlite_column_type(const std::string t) {
+  if (sqlite_is_cudf_string(t)) return cudf::type_id::STRING;
   // test numeric data types ...
   if (StringUtil::beginsWith(t, "BOOL") || 
       StringUtil::beginsWith(t, "BOOLEAN")) return cudf::type_id::BOOL8;
@@ -84,19 +84,19 @@ cudf::type_id parse_mysql_column_type(const std::string t) {
   // TODO percy ...
 }
 
-std::vector<cudf::type_id> parse_mysql_column_types(const std::vector<std::string> types) {
+std::vector<cudf::type_id> parse_sqlite_column_types(const std::vector<std::string> types) {
   std::vector<cudf::type_id> ret;
   for (auto t : types) {
-    ret.push_back(parse_mysql_column_type(t));
+    ret.push_back(parse_sqlite_column_type(t));
   }
   return ret;
 }
 
 cudf::io::table_with_metadata read_mysql(std::shared_ptr<sql::ResultSet> res,
-                                         const std::vector<std::string> types,
-                                         size_t total_rows) {
+                                         const std::vector<std::string> types) {
+  int total_rows = 9; // TODO percy add this logic to the provider
   cudf::io::table_with_metadata ret;
-  std::vector<cudf::type_id> cudf_types = parse_mysql_column_types(types);
+  std::vector<cudf::type_id> cudf_types = parse_sqlite_column_types(types);
   std::vector<std::vector<char*>> host_cols(types.size());
   std::vector<std::vector<uint32_t>> host_valids(host_cols.size());
 
@@ -340,13 +340,13 @@ cudf::io::table_with_metadata read_mysql(std::shared_ptr<sql::ResultSet> res,
   return ret;
 }
 
-mysql_parser::mysql_parser() {
+sqlite_parser::sqlite_parser() {
 }
 
-mysql_parser::~mysql_parser() {
+sqlite_parser::~sqlite_parser() {
 }
 
-std::unique_ptr<ral::frame::BlazingTable> mysql_parser::parse_batch(
+std::unique_ptr<ral::frame::BlazingTable> sqlite_parser::parse_batch(
 	ral::io::data_handle handle,
 	const Schema & schema,
 	std::vector<int> column_indices,
@@ -366,7 +366,7 @@ std::unique_ptr<ral::frame::BlazingTable> mysql_parser::parse_batch(
 			col_names[column_i] = schema.get_name(column_indices[column_i]);
 		}
 
-		auto result = read_mysql(res, handle.sql_handle.column_types, schema.get_files().size());
+		auto result = read_mysql(res, handle.sql_handle.column_types);
     result.metadata.column_names = col_names;
 
 		auto result_table = std::move(result.tbl);
@@ -382,17 +382,17 @@ std::unique_ptr<ral::frame::BlazingTable> mysql_parser::parse_batch(
 	return nullptr;
 }
 
-void mysql_parser::parse_schema(ral::io::data_handle handle, ral::io::Schema & schema) {
+void sqlite_parser::parse_schema(ral::io::data_handle handle, ral::io::Schema & schema) {
 	for(int i = 0; i < handle.sql_handle.column_names.size(); i++) {
-		cudf::type_id type = parse_mysql_column_type(handle.sql_handle.column_types.at(i));
-		size_t file_index = i;
-		bool is_in_file = true;
-		std::string name = handle.sql_handle.column_names.at(i);
-		schema.add_column(name, type, file_index, is_in_file);
+//		cudf::type_id type = parse_column_type(handle.sql_handle.column_types.at(i));
+//		size_t file_index = i;
+//		bool is_in_file = true;
+//		std::string name = handle.sql_handle.column_names.at(i);
+//		schema.add_column(name, type, file_index, is_in_file);
 	}
 }
 
-std::unique_ptr<ral::frame::BlazingTable> mysql_parser::get_metadata(
+std::unique_ptr<ral::frame::BlazingTable> sqlite_parser::get_metadata(
 	std::vector<ral::io::data_handle> handles, int offset){
 //	std::vector<size_t> num_row_groups(files.size());
 //	BlazingThread threads[files.size()];

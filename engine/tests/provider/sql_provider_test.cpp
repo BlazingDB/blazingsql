@@ -1,14 +1,15 @@
 #include "tests/utilities/BlazingUnitTest.h"
 #include "io/data_provider/sql/MySQLDataProvider.h"
+#include "io/data_provider/sql/SQLiteDataProvider.h"
 #include "io/data_parser/sql/MySQLParser.h"
 #include <cudf_test/column_wrapper.hpp>
 #include <cudf_test/column_utilities.hpp>
 #include "utilities/DebuggingUtils.h"
 #include <cudf_test/column_utilities.hpp> 
 
-struct MySQLProviderTest : public BlazingUnitTest {};
+struct SQLProviderTest : public BlazingUnitTest {};
 
-TEST_F(MySQLProviderTest, select_all) {
+TEST_F(SQLProviderTest, mysql_select_all) {
   std::cout << "TEST\n";
 
 	ral::io::sql_connection sql_conn = {
@@ -108,4 +109,13 @@ TEST_F(MySQLProviderTest, select_all) {
 //          FAIL();
 //      }
 //  }
+}
+
+TEST_F(SQLProviderTest, sqlite_select_all) {
+  std::cout << "TEST\n";
+
+	ral::io::sql_connection sql_conn;
+  sql_conn.schema = "/home/percy/workspace/madona19/aucahuasi/bsql_Debug/feature_create-tables-from-rdbms/car_company_database/Car_Database.db";
+
+  auto mysql_provider = std::make_shared<ral::io::sqlite_data_provider>(sql_conn, "Customers", 212);
 }
