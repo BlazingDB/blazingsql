@@ -134,38 +134,6 @@ protected:
     int global_index;
 };
 
-/**
-	@brief A class that represents a Host Cache Machine on a
-	multi-tier cache system, however this cache machine only stores CacheData of type CPUCacheData.
-	This class is used to by pass BatchSequences.
-*/
-class HostCacheMachine {
-public:
-	HostCacheMachine(std::shared_ptr<Context> context, const std::size_t id);
-
-	~HostCacheMachine() {}
-
-	void addToCache(std::unique_ptr<ral::frame::BlazingHostTable> host_table, const std::string & message_id = "");
-
-	std::int32_t get_id() const;
-
-	void finish();
-
-	void wait_until_finished();
-
-	bool wait_for_next();
-
-	bool has_next_now();
-
-	std::unique_ptr<ral::frame::BlazingHostTable> pullFromCache(Context * ctx = nullptr);
-
-protected:
-	std::unique_ptr<WaitingQueue <std::unique_ptr<message> > > waitingCache;
-	std::shared_ptr<Context> ctx;
-	std::shared_ptr<spdlog::logger> cache_events_logger;
-	bool something_added;
-	const std::size_t cache_id;
-};
 
 /**
 	@brief A class that represents a Cache Machine on a

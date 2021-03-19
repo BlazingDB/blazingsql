@@ -109,6 +109,8 @@ html_theme_options = {
     , "github_url": "https://github.com/BlazingDB/blazingsql"
     , "search_bar_position": "navbar"
     , "show_prev_next": False
+    , 'page_width': '90%'
+    , 'body_max_width': '1200px'
 }
 
 html_theme_options = {
