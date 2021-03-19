@@ -2459,7 +2459,7 @@ class BlazingContext(object):
 
           sqlEngineArgs = GetSQLEngineArgs(kwargs)
 
-          parsedSchema, _ = self._parseSchema(input, sqlEngineName, kwargs, [], False, [])
+          parsedSchema, _ = self._parseSchema([], sqlEngineName, kwargs, [], False, [])
 
           print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
           print(parsedSchema)
