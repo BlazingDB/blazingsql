@@ -917,12 +917,15 @@ def kwargs_validation(kwargs, bc_api_str):
             "local_files",
             "get_metadata",
             "from_sql_engine",
+            # SQL Engines arguments
             "database",
             "username",
             "password",
             "host",
             "port",
             "database_table",
+            "batch_size",
+            "use_partitions"
         ]
         params_info = "https://docs.blazingdb.com/docs/create_table"
 
