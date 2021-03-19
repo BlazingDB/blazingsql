@@ -72,11 +72,11 @@ Functions
 
 - :ref:`exhale_function_expression__utils_8cpp_1aa60fd2cf4a5990f75376962058107160`
 
-- :ref:`exhale_function_expression__utils_8cpp_1a4996fc412c775b98b4b6c010259a66b0`
-
 - :ref:`exhale_function_expression__utils_8cpp_1ab852f06a7c2678e10788ef5dc79d2ab4`
 
 - :ref:`exhale_function_expression__utils_8cpp_1a6fce7f7944d7704c2e129080f0789150`
+
+- :ref:`exhale_function_expression__utils_8cpp_1a4996fc412c775b98b4b6c010259a66b0`
 
 - :ref:`exhale_function_expression__utils_8cpp_1ae67a78cff7624957f904219c398e23f2`
 
