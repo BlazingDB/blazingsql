@@ -89,10 +89,10 @@ pygments_style = "sphinx"
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
-html_css_files = [
-    "css/getting_started.css",
-    "css/blazingsql.css",
-]
+#html_css_files = [
+#    "css/getting_started.css",
+#    "css/blazingsql.css",
+#]
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
 html_logo = "_static/icons/blazingNotebooks_logo.png"
