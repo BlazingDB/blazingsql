@@ -645,7 +645,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                             order by c_custkey, row_num"""
             else:
                 # NOTE: c_custkey contains nulls so just ordering by c_custkey will fail
-                # when comparing again other engine
+                # when comparing against other engine
                 query = """select row_number() over 
                             (
                                 partition by c_nationkey
@@ -669,31 +669,42 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             )
 
             queryId = "TEST_27"
-            query = """select row_number() over 
+            testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
+            if  testsWithNulls != "true":
+                query = """select row_number() over 
+                                (
+                                    partition by c_nationkey, c_mktsegment
+                                    order by c_custkey desc, c_name
+                                ) row_num,
+                                c_phone, UPPER(SUBSTRING(c_name, 1, 8))
+                            from customer
+                            where c_acctbal < 155.0
+                            order by c_custkey, row_num desc"""
+            else:
+                # NOTE: all the columns to partition and order contains nulls
+                # in the same rows in many cases. We need to add c_phone column
+                # to order also, so we can compare against other engines
+                query = """select row_number() over 
                             (
                                 partition by c_nationkey, c_mktsegment
-                                order by c_custkey desc, c_name
+                                order by c_custkey desc, c_name, c_phone
                             ) row_num,
                             c_phone, UPPER(SUBSTRING(c_name, 1, 8))
                         from customer
                         where c_acctbal < 155.0
                         order by c_custkey, row_num desc"""
-
-            # TODO: Failed test with nulls
-            testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
-            if testsWithNulls != "true":
-                runTest.run_query(
-                    bc,
-                    drill,
-                    query,
-                    queryId,
-                    queryType,
-                    worder,
-                    "",
-                    acceptable_difference,
-                    use_percentage,
-                    fileSchemaType,
-                )
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
 
             queryId = "TEST_28"
             query = """select lag(l_partkey, 2) over 
