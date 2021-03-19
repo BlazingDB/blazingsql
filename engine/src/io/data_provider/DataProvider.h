@@ -32,6 +32,7 @@
 #include "execution_graph/logic_controllers/LogicPrimitives.h"
 
 #include "jdbc/cppconn/resultset.h"
+#include <sqlite3.h>
 
 namespace ral {
 namespace io {
@@ -42,6 +43,7 @@ struct sql_datasource {
   std::vector<std::string> column_names;
   std::vector<std::string> column_types; // always uppercase
   std::shared_ptr<sql::ResultSet> mysql_resultset;
+  std::shared_ptr<sqlite3_stmt> sqlite_statement;
   // TODO percy add postgre and other backends here
 };
 

@@ -22,12 +22,12 @@ using namespace fmt::literals;
 namespace ral {
 namespace io {
 
-struct table_info {
+struct mysql_table_info {
   std::vector<std::string> partitions;
   size_t rows;
 };
 
-struct columns_info {
+struct mysql_columns_info {
   std::vector<std::string> columns;
   std::vector<std::string> types;
 };
@@ -66,7 +66,7 @@ struct columns_info {
   - OPT_CHARSET_NAME
   - OPT_REPORT_DATA_TRUNCATION
 */
-sql::ConnectOptionsMap build_connection_properties(const sql_connection &sql_conn) {
+sql::ConnectOptionsMap build_jdbc_mysql_connection(const sql_connection &sql_conn) {
   sql::ConnectOptionsMap ret; // aka connection properties
   ret["hostName"] = sql_conn.host;
   ret["userName"] = sql_conn.user;
@@ -76,7 +76,7 @@ sql::ConnectOptionsMap build_connection_properties(const sql_connection &sql_con
   return ret;
 }
 
-std::shared_ptr<sql::ResultSet> execute_query(sql::Connection *con,
+std::shared_ptr<sql::ResultSet> execute_mysql_query(sql::Connection *con,
                                               const std::string &query)
 {
   std::unique_ptr<sql::Statement> stmt(con->createStatement());
@@ -84,12 +84,12 @@ std::shared_ptr<sql::ResultSet> execute_query(sql::Connection *con,
   return res;
 }
 
-table_info get_table_info(sql::Connection *con, const std::string &table) {
-  table_info ret;
+mysql_table_info get_mysql_table_info(sql::Connection *con, const std::string &table) {
+  mysql_table_info ret;
 
   try {
     std::string query = "EXPLAIN PARTITIONS SELECT * FROM " + table;
-    auto res = execute_query(con, query);
+    auto res = execute_mysql_query(con, query);
 
     while (res->next()) {
       std::string parts = res->getString("partitions").asStdString();
@@ -106,14 +106,14 @@ table_info get_table_info(sql::Connection *con, const std::string &table) {
   return ret;
 }
 
-columns_info get_columns_info(sql::Connection *con,
+mysql_columns_info get_mysql_columns_info(sql::Connection *con,
                               const std::string &table) {
-  columns_info ret;
+  mysql_columns_info ret;
 
   try {
     std::string db = con->getSchema().asStdString();
     std::string query = "SELECT * from INFORMATION_SCHEMA.COLUMNS WHERE `TABLE_SCHEMA`='"+db+"' AND `TABLE_NAME`='"+table+"'";
-    auto res = execute_query(con, query);
+    auto res = execute_mysql_query(con, query);
 
     while (res->next()) {
       std::string col_name = res->getString("COLUMN_NAME").asStdString();
@@ -135,12 +135,12 @@ mysql_data_provider::mysql_data_provider(const sql_connection &sql_conn,
 	: abstractsql_data_provider(sql_conn, table, batch_size_hint, use_partitions)
   , mysql_connection(nullptr) {
   sql::Driver *driver = sql::mysql::get_driver_instance();
-  sql::ConnectOptionsMap options = build_connection_properties(this->sql_conn);
+  sql::ConnectOptionsMap options = build_jdbc_mysql_connection(this->sql_conn);
   this->mysql_connection = std::unique_ptr<sql::Connection>(driver->connect(options));
-  table_info tbl_info = get_table_info(this->mysql_connection.get(), this->table);
+  mysql_table_info tbl_info = get_mysql_table_info(this->mysql_connection.get(), this->table);
   this->partitions = std::move(tbl_info.partitions);
   this->row_count = tbl_info.rows;
-  columns_info cols_info = get_columns_info(this->mysql_connection.get(), this->table);
+  mysql_columns_info cols_info = get_mysql_columns_info(this->mysql_connection.get(), this->table);
   this->columns = cols_info.columns;
   this->types = cols_info.types;
 }
@@ -173,13 +173,15 @@ data_handle mysql_data_provider::get_next(bool) {
   }
 
   std::cout << "query: " << query << "\n";
-  auto res = execute_query(this->mysql_connection.get(), query);
+  auto res = execute_mysql_query(this->mysql_connection.get(), query);
   this->current_row_count += res->rowsCount();
   data_handle ret;
   ret.sql_handle.table = this->table;
   ret.sql_handle.column_names = this->columns;
   ret.sql_handle.column_types = this->types;
   ret.sql_handle.mysql_resultset = res;
+  // TODO percy add columns to uri.query
+  ret.uri = Uri("mysql", "", this->sql_conn.schema + "/" + this->table, "", "");
   std::cout << "get_next TOTAL rows: " << this->row_count << "\n";
   std::cout << "get_next current_row_count: " << this->current_row_count << "\n";
   return ret;

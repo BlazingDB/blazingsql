@@ -207,3 +207,5 @@ std::string replace_calcite_regex(const std::string & expression);
 std::vector<std::string> fix_column_aliases(const std::vector<std::string> & column_names, std::string expression);
 
 std::tuple< bool, bool, std::vector<std::string> > bypassingProject(std::string logical_plan, std::vector<std::string> names);
+
+std::string fill_minus_op_with_zero(std::string expression);
