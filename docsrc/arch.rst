@@ -1,7 +1,9 @@
 Technology Stack
 ================
 
-TODO add tech stack image
+.. image:: /resources/tech_stack.png
+  :width: 800
+  :alt: Technology Stack for Distributed BlazingSQL 
 
 Python
 ------

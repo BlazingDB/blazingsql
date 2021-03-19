@@ -18,9 +18,12 @@ What form the `internal_blazing_device_memory_resource` takes is dependent on wh
 Different allocators settings can make the allocator use different underlying RMM allocator types. If the allocator is set to **existing**, then it will take the current
 default allocator that has been set and wrap it with `internal_blazing_device_memory_resource`
 
-The `blazing_host_memory_resource` and `blazing_disk_memory_resource` only track allocations and deallocations when BSQL caches and decaches data in the CacheMachines.
+The `blazing_host_memory_resource` and `blazing_disk_memory_resource` only track allocations and deallocations when BSQL caches and decaches data in the CacheMachines. Therefore,
+they do not track host memory consumption or disk memory consumption by anything else in the system. Similarly, the blazing_device_memory_resource cannot track GPU memory consumption
+of anything that does not use an rmm memory resource. The blazing_device_memory_resource could be made to track all GPU memory consumption by asking the CUDA driver
+but such an implementation would not be very performant.
 
-Whenever data enters a CacheMachine, it will check the memory consumption of the three `BlazingMemoryResource` to see where the CacheData should reside. This is one mechanism
+Whenever data enters a CacheMachine, it will check the memory consumption of the three `BlazingMemoryResource` to see what type of :doc:`CacheData <caches>` to use. This is one mechanism
 employed by BSQL to manage memory consumption.
 
 
@@ -36,9 +39,14 @@ the data to Host or Disk.
 The `MemoryMonitor` helps ensure that memory GPU consumption does not get too high and therefore helps prevent OOM errors.
 
 
-
-Future Resource Management
+Task Execution Resource Management
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+The task executor tries to ensure that when it schedules tasks to run, that it does not run out of resources. There are two configuration options that
+control how many concurrent tasks can be executred:
+- *EXECUTOR_THREADS*: This sets a hard maximum number of concurrent tasks that can be executed
+- *BLAZING_PROCESSING_DEVICE_MEM_CONSUMPTION_THRESHOLD*: This is a percent of the total GPU memory that the executor will try to stay under for starting new tasks. 
 
-Indeed, though we do not support it now, one could envision composing an executor from 2 or more executors to leverage multiple execution runtimes in parallel. Allowing the least busy or most appropriate executor to perform said operation. This would also require refactoring the kernels so that they either send a comamand which maps to a function that has been registered with the executor or have each executor be able to implement a run function per supported runtime.
-
+Before every task it will compare how much GPU memory the task will need, plus the memory already being used and compare that against this threshold. 
+If the task will take it over the threshold, it will not start the task. The exception to that is that if there are no tasks running, then it will always try to run a task.
+The memory estimation for how much a task will need is the sum of the estimate of how much decacheing the inputs will need, plus an estimate of the size of the outputs, plut an estimate
+of the memory overhead needed for that algorithm. The kernel interface requires to implement the functions necessary for these memory consumption estimates.
