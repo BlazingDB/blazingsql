@@ -96,7 +96,7 @@ cudf::io::table_with_metadata read_mysql(std::shared_ptr<sql::ResultSet> res,
                                          const std::vector<std::string> types,
                                          size_t total_rows) {
   cudf::io::table_with_metadata ret;
-  std::vector<cudf::type_id> cudf_types = parse_mysql_column_types(types);
+  std::vector<cudf::type_id> cudf_types = parse_mysql_column_types(types); // usar from schema directly
   std::vector<std::vector<char*>> host_cols(types.size());
   std::vector<std::vector<uint32_t>> host_valids(host_cols.size());
 
@@ -298,6 +298,7 @@ cudf::io::table_with_metadata read_mysql(std::shared_ptr<sql::ResultSet> res,
           void *dat = host_cols[col][row_index];
           char *strdat = (char*)dat;
           std::string v(strdat);
+          free(strdat);
           cols[row_index] = v;
         }
 
@@ -366,6 +367,7 @@ std::unique_ptr<ral::frame::BlazingTable> mysql_parser::parse_batch(
 			col_names[column_i] = schema.get_name(column_indices[column_i]);
 		}
 
+    // TODO percy add column_indices to the read_mysql
 		auto result = read_mysql(res, handle.sql_handle.column_types, schema.get_files().size());
     result.metadata.column_names = col_names;
 

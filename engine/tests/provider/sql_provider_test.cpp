@@ -7,6 +7,8 @@
 #include "utilities/DebuggingUtils.h"
 #include <cudf_test/column_utilities.hpp> 
 
+#include <sqlite3.h>
+
 struct SQLProviderTest : public BlazingUnitTest {};
 
 TEST_F(SQLProviderTest, mysql_select_all) {
@@ -69,7 +71,7 @@ TEST_F(SQLProviderTest, mysql_select_all) {
   for (int i = 0; i < column_indices.size(); ++i) {
     column_indices[i] = i;
   }
-  
+
 	std::vector<cudf::size_type> row_groups;
 
   std::cout << "RESULTSET DATA -->>> TEST antes de parse batch -->> " << res->rowsCount() << "\n";
@@ -118,4 +120,32 @@ TEST_F(SQLProviderTest, sqlite_select_all) {
   sql_conn.schema = "/home/percy/workspace/madona19/aucahuasi/bsql_Debug/feature_create-tables-from-rdbms/car_company_database/Car_Database.db";
 
   auto mysql_provider = std::make_shared<ral::io::sqlite_data_provider>(sql_conn, "Customers", 212);
+
+  auto handle = mysql_provider->get_next();
+
+  std::cout << "COLUMNAS FOR SQLITE\n";
+  std::cout << "URI ----> : " << handle.uri.toString(false) << "\n";
+  for (int i = 0; i < handle.sql_handle.column_names.size(); ++i) {
+    auto col_name = handle.sql_handle.column_names[i];
+    auto col_type = handle.sql_handle.column_types[i];
+    std::cout << "\t" << col_name << " ( " << col_type << " )" << "\n";
+  }
+  
+
+  auto stmt = handle.sql_handle.sqlite_statement.get();
+  int rc = 0;
+  while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+    const unsigned char *name = sqlite3_column_text(stmt, 1);
+    std::string col_name((char*)name);
+    std::cout << col_name << "  |  ";
+
+    auto type = sqlite3_column_int64(stmt, 6);
+    std::cout << type << "\n";
+  }
+  if (rc != SQLITE_DONE) {
+      printf("error: %s", "NOOOOO FALLO sqlite test");
+      // TODO percy error
+  }
+
+  std::cout << "OEFSQLITETEST\n";
 }

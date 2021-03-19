@@ -30,32 +30,33 @@ struct sqlite_columns_info {
   std::vector<std::string> types;
 };
 
-static int sqlite_callback(void *NotUsed, int argc, char **argv, char **azColName) {
-   int i;
-   for(i = 0; i<argc; i++) {
-      printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
-   }
-   printf("\n");
-   return 0;
-}
-
-std::vector<std::vector<std::string>> execute_sqlite_query(sqlite3 *conn,
-                                                     const std::string &query)
-{
-  std::vector<std::vector<std::string>> res;
-  char *zErrMsg = 0;
-  int rc = sqlite3_exec(conn, query.c_str(), sqlite_callback, 0, &zErrMsg);
-  
-  if (rc != SQLITE_OK){
-     fprintf(stderr, "SQL error: %s\n", zErrMsg);
-     sqlite3_free(zErrMsg);
-  } else {
-     fprintf(stdout, "run sqlite query successfully\n");
+struct callb {
+  int sqlite_callback(void *NotUsed, int argc, char **argv, char **azColName) {
+     int i;
+     for(i = 0; i<argc; i++) {
+        printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
+     }
+     printf("\n");
+     return 0;
   }
+};
 
-  //std::unique_ptr<sql::Statement> stmt(con->createStatement());
-  //std::shared_ptr<sql::ResultSet> res(stmt->executeQuery(query));
-  return res;
+std::shared_ptr<sqlite3_stmt> execute_sqlite_query(sqlite3 *conn,
+                                                   const std::string &query)
+{
+  sqlite3_stmt *stmt;
+  const char *sql = query.c_str();
+  int rc = sqlite3_prepare_v2(conn, sql, -1, &stmt, NULL);
+  if (rc != SQLITE_OK) {
+      printf("error: %s", sqlite3_errmsg(conn));
+      // TODO percy error
+  }
+  auto sqlite_deleter = [](sqlite3_stmt *pointer) {
+    std::cout << "sqlite smt deleted!!!!\n";
+    sqlite3_finalize(pointer);
+  };
+  std::shared_ptr<sqlite3_stmt> ret(stmt, sqlite_deleter);
+  return ret;
 }
 
 sqlite_table_info get_sqlite_table_info(sqlite3 *conn, const std::string &table)
@@ -85,18 +86,24 @@ sqlite_columns_info get_sqlite_columns_info(sqlite3 *conn,
   // TODO percy error handling
   
   sqlite_columns_info ret;
+  std::string query = "PRAGMA table_info("+table+")";
+  auto A = execute_sqlite_query(conn, query);
+  sqlite3_stmt *stmt = A.get();
 
-//    std::string db = con->getSchema().asStdString();
-//    std::string query = "SELECT * from INFORMATION_SCHEMA.COLUMNS WHERE `TABLE_SCHEMA`='"+db+"' AND `TABLE_NAME`='"+table+"'";
-//    auto res = execute_sqlite_query(con, query);
+  int rc = 0;
+  while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+    const unsigned char *name = sqlite3_column_text(stmt, 1);
+    std::string col_name((char*)name);
+    ret.columns.push_back(col_name);
 
-//    while (res->next()) {
-//      std::string col_name = res->getString("COLUMN_NAME").asStdString();
-//      std::string col_type = StringUtil::toUpper(res->getString("DATA_TYPE").asStdString());
-//      ret.columns.push_back(col_name);
-//      ret.types.push_back(col_type);
-//    }
-
+    const unsigned char *type = sqlite3_column_text(stmt, 2);
+    std::string col_type((char*)type);
+    ret.types.push_back(col_type);
+  }
+  if (rc != SQLITE_DONE) {
+      printf("error: %s", sqlite3_errmsg(conn));
+      // TODO percy error
+  }
 
   return ret;
 }
@@ -147,27 +154,27 @@ size_t sqlite_data_provider::get_num_handles() {
 data_handle sqlite_data_provider::get_next(bool) {
   std::string query;
 
-//  if (this->use_partitions) {
-//    // TODO percy if part size less than batch full part fetch else apply limit offset over the partition to fetch
-//    query = "SELECT * FROM " + this->table + " partition(" + this->partitions[this->batch_position++] + ")";
-//  } else {
-//    query = "SELECT * FROM " + this->table + " LIMIT " + std::to_string(this->batch_size_hint) + " OFFSET " + std::to_string(this->batch_position);
-//    this->batch_position += this->batch_size_hint;
-//  }
+  if (this->use_partitions) {
+    // TODO percy if part size less than batch full part fetch else apply limit offset over the partition to fetch
+    query = "SELECT * FROM " + this->table + " partition(" + this->partitions[this->batch_position++] + ")";
+  } else {
+    query = "SELECT * FROM " + this->table + " LIMIT " + std::to_string(this->batch_size_hint) + " OFFSET " + std::to_string(this->batch_position);
+    this->batch_position += this->batch_size_hint;
+  }
 
-//  std::cout << "query: " << query << "\n";
-//  auto res = execute_sqlite_query(this->sqlite_connection.get(), query);
-//  this->current_row_count += res->rowsCount();
+  std::cout << "query: " << query << "\n";
+  auto stmt = execute_sqlite_query(this->sqlite_connection, query);
+  //this->current_row_count += res->
   data_handle ret;
   ret.sql_handle.table = this->table;
-//  ret.sql_handle.column_names = this->columns;
-//  ret.sql_handle.column_types = this->types;
-//  ret.sql_handle.sqlite_resultset = res;
+  ret.sql_handle.column_names = this->columns;
+  ret.sql_handle.column_types = this->types;
+  ret.sql_handle.sqlite_statement = stmt;
   // TODO percy add columns to uri.query
   ret.uri = Uri("mysql", "", this->sql_conn.schema + "/" + this->table, "", "");
 //  std::cout << "get_next TOTAL rows: " << this->row_count << "\n";
 //  std::cout << "get_next current_row_count: " << this->current_row_count << "\n";
-//  return ret;
+  return ret;
 }
 
 } /* namespace io */
