@@ -12,6 +12,7 @@ class DataType(IntEnum):
     CUDF = 4,
     DASK_CUDF = 5
     ARROW = 6
+    MYSQL = 7
 
 
 # NOTE Same values from io
