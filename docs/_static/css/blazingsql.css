@@ -1,5 +1,12 @@
 /* Getting started index page */
 
+:root {
+  --pst-font-family-base: Lato,sans-serif, var(--pst-font-family-base-system);
+  --pst-font-family-heading: Cambria, Georgia, Times, var(--pst-font-family-base-system);
+  --pst-font-family-monospace: Courier, var(--pst-font-family-monospace-system);
+  --pst-color-link: #005b81;
+}
+
 .intro-card {
   background: #fff;
   border-radius: 0;
