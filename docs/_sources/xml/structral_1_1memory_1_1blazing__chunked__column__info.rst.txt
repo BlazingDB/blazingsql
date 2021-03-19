@@ -1,0 +1,16 @@
+.. _exhale_struct_structral_1_1memory_1_1blazing__chunked__column__info:
+
+Struct blazing_chunked_column_info
+==================================
+
+- Defined in :ref:`file_engine_src_bmr_BufferProvider.h`
+
+
+Struct Documentation
+--------------------
+
+
+.. doxygenstruct:: ral::memory::blazing_chunked_column_info
+   :members:
+   :protected-members:
+   :undoc-members:

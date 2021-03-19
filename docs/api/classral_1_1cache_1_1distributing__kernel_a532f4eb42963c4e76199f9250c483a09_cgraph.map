@@ -1,0 +1,7 @@
+<map id="ral::cache::distributing_kernel::send_total_partition_counts" name="ral::cache::distributing_kernel::send_total_partition_counts">
+<area shape="rect" id="node2" href="$classral_1_1cache_1_1MetadataDictionary.html#a99828bf2a71b8e06d568420e5c2b460d" title="ral::cache::MetadataDictionary\l::add_value" alt="" coords="492,5,692,47"/>
+<area shape="rect" id="node3" href="$classral_1_1cache_1_1distributing__kernel.html#aa2c88f7cefd4bb5eee4058c7059c277e" title="Sends a table with their corresponding metadata. " alt="" coords="284,68,444,109"/>
+<area shape="rect" id="node4" href="$classral_1_1cache_1_1MetadataDictionary.html#abdc2863d96dc839565f2078471f4c9f7" title="ral::cache::MetadataDictionary\l::get_values" alt="" coords="492,71,692,112"/>
+<area shape="rect" id="node5" href="$classral_1_1cache_1_1kernel.html#a94c3bd66b93a0e67165d0a54741c19dc" title="Returns the output cache associated to an identifier. " alt="" coords="531,136,653,177"/>
+<area shape="rect" id="node6" href="$classral_1_1cache_1_1kernel.html#a33ce6e9907abce1acedb01e236c6812e" title="Returns the kernel identifier. " alt="" coords="740,136,863,177"/>
+</map>

@@ -1,0 +1,62 @@
+
+.. _file_engine_src_io_data_parser_ParquetParser.cpp:
+
+File ParquetParser.cpp
+======================
+
+|exhale_lsh| :ref:`Parent directory <dir_engine_src_io_data_parser>` (``engine/src/io/data_parser``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``engine/src/io/data_parser/ParquetParser.cpp``)
+------------------------------------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file_engine_src_io_data_parser_ParquetParser.cpp.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``ExceptionHandling/BlazingThread.h``
+
+- ``ParquetParser.h`` (:ref:`file_engine_src_io_data_parser_ParquetParser.h`)
+
+- ``arrow/io/file.h``
+
+- ``cudf/io/parquet.hpp``
+
+- ``metadata/parquet_metadata.h`` (:ref:`file_engine_src_io_data_parser_metadata_parquet_metadata.h`)
+
+- ``numeric``
+
+- ``parquet/column_writer.h``
+
+- ``parquet/file_writer.h``
+
+- ``utilities/CommonOperations.h`` (:ref:`file_engine_src_utilities_CommonOperations.h`)
+
+
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_ral`
+
+- :ref:`namespace_ral__io`
+

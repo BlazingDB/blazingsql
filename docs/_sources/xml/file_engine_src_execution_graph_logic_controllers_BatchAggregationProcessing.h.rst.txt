@@ -1,0 +1,69 @@
+
+.. _file_engine_src_execution_graph_logic_controllers_BatchAggregationProcessing.h:
+
+File BatchAggregationProcessing.h
+=================================
+
+|exhale_lsh| :ref:`Parent directory <dir_engine_src_execution_graph_logic_controllers>` (``engine/src/execution_graph/logic_controllers``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``engine/src/execution_graph/logic_controllers/BatchAggregationProcessing.h``)
+------------------------------------------------------------------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file_engine_src_execution_graph_logic_controllers_BatchAggregationProcessing.h.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``BatchProcessing.h`` (:ref:`file_engine_src_execution_graph_logic_controllers_BatchProcessing.h`)
+
+- ``operators/GroupBy.h`` (:ref:`file_engine_src_operators_GroupBy.h`)
+
+- ``taskflow/distributing_kernel.h`` (:ref:`file_engine_src_execution_graph_logic_controllers_taskflow_distributing_kernel.h`)
+
+
+
+Included By
+-----------
+
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_PhysicalPlanGenerator.h`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_BatchAggregationProcessing.cpp`
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_ral`
+
+- :ref:`namespace_ral__batch`
+
+
+Classes
+-------
+
+
+- :ref:`exhale_class_classral_1_1batch_1_1ComputeAggregateKernel`
+
+- :ref:`exhale_class_classral_1_1batch_1_1DistributeAggregateKernel`
+
+- :ref:`exhale_class_classral_1_1batch_1_1MergeAggregateKernel`
+

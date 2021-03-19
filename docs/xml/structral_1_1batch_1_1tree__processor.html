@@ -1,0 +1,279 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Struct tree_processor &#8212; BlazingSQL v0.18 documentation</title>
+    
+  <link href="../_static/css/theme.css" rel="stylesheet" />
+  <link href="../_static/css/index.101715efdecc9b59cb6e1ddfa685c31f.css" rel="stylesheet" />
+
+    
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+
+    
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/getting_started.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
+    
+  <link rel="preload" as="script" href="../_static/js/index.d8bbf5861d671d414e1a.js">
+
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/d3.v3.min.js"></script>
+    <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
+    <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
+    <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="container-xl">
+
+
+    
+      
+      <a class="navbar-brand" href="../index.html">
+        <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo">
+      </a>
+      
+    
+
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        <li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../arch.html">
+  BlazingSQL Project Architecture
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../graph.html">
+  Execution Engine
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../api.html">
+  API Documentation
+ </a>
+</li>
+
+        
+      </ul>
+
+      <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+            
+            <!-- Only show if we have sidebars configured, else just a small margin  -->
+            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <div class="bd-toc-item active">
+    
+  </div>
+</nav>
+            </div>
+            
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#struct-documentation">
+   Struct Documentation
+  </a>
+ </li>
+</ul>
+
+</nav>
+
+
+
+<div class="tocsection editthispage">
+    <a href="https://github.com/blazingdb/blazingsql/edit/feedback/docsrc/source/xml/structral_1_1batch_1_1tree__processor.rst">
+        <i class="fas fa-pencil-alt"></i> Edit this page
+    </a>
+</div>
+
+              
+          </div>
+          
+
+          
+          
+            
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="struct-tree-processor">
+<span id="exhale-struct-structral-1-1batch-1-1tree-processor"></span><h1>Struct tree_processor<a class="headerlink" href="#struct-tree-processor" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p>Defined in <a class="reference internal" href="file_engine_src_execution_graph_logic_controllers_PhysicalPlanGenerator.h.html#file-engine-src-execution-graph-logic-controllers-physicalplangenerator-h"><span class="std std-ref">File PhysicalPlanGenerator.h</span></a></p></li>
+</ul>
+<div class="section" id="struct-documentation">
+<h2>Struct Documentation<a class="headerlink" href="#struct-documentation" title="Permalink to this headline">¶</a></h2>
+<dl class="cpp struct">
+<dt id="_CPPv4N3ral5batch14tree_processorE">
+<span id="_CPPv3N3ral5batch14tree_processorE"></span><span id="_CPPv2N3ral5batch14tree_processorE"></span><span id="ral::batch::tree_processor"></span><span class="target" id="structral_1_1batch_1_1tree__processor"></span><em class="property"><span class="pre">struct</span> </em><code class="sig-prename descclassname"><span class="pre">ral</span><span class="pre">::</span><span class="pre">batch</span><code class="sig-prename descclassname"><span class="pre">::</span></code></code><code class="sig-name descname"><span class="pre">tree_processor</span></code><a class="headerlink" href="#_CPPv4N3ral5batch14tree_processorE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Functions</p>
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5batch14tree_processor14tree_processorE4nodeNSt10shared_ptrI7ContextEENSt6vectorIN3ral2io11data_loaderEEENSt6vectorIN3ral2io6SchemaEEENSt6vectorINSt6stringEEENSt6vectorINSt6stringEEEKb">
+<span id="_CPPv3N3ral5batch14tree_processor14tree_processorE4nodeNSt10shared_ptrI7ContextEENSt6vectorIN3ral2io11data_loaderEEENSt6vectorIN3ral2io6SchemaEEENSt6vectorINSt6stringEEENSt6vectorINSt6stringEEEKb"></span><span id="_CPPv2N3ral5batch14tree_processor14tree_processorE4nodeNSt10shared_ptrI7ContextEENSt6vectorIN3ral2io11data_loaderEEENSt6vectorIN3ral2io6SchemaEEENSt6vectorINSt6stringEEENSt6vectorINSt6stringEEEKb"></span><span id="ral::batch::tree_processor::tree_processor__node.std::shared_ptr:Context:.std::vector:ral::io::data_loader:.std::vector:ral::io::Schema:.std::vector:ss:.std::vector:ss:.bC"></span><span class="target" id="structral_1_1batch_1_1tree__processor_1adc5da4556f8c70a08476a61b9042f9d9"></span><em class="property"><span class="pre">inline</span></em> <code class="sig-name descname"><span class="pre">tree_processor</span></code><span class="sig-paren">(</span><a class="reference internal" href="structral_1_1batch_1_1node.html#_CPPv4N3ral5batch4nodeE" title="ral::batch::node"><span class="pre">node</span></a> <em><span class="pre">root</span></em>, <span class="pre">std</span><span class="pre">::</span><span class="pre">shared_ptr</span><span class="pre">&lt;</span><a class="reference internal" href="typedef_BatchJoinProcessing_8h_1afe86ae51878bc067a8c99c61f679f2a6.html#_CPPv4N3ral5batch7ContextE" title="ral::batch::Context"><span class="pre">Context</span></a><span class="pre">&gt;</span> <em><span class="pre">context</span></em>, <span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><span class="pre">ral</span><span class="pre">::</span><span class="pre">io</span><span class="pre">::</span><a class="reference internal" href="classral_1_1io_1_1data__loader.html#_CPPv4N3ral2io11data_loaderE" title="ral::io::data_loader"><span class="pre">data_loader</span></a><span class="pre">&gt;</span> <em><span class="pre">input_loaders</span></em>, <span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><span class="pre">ral</span><span class="pre">::</span><span class="pre">io</span><span class="pre">::</span><a class="reference internal" href="classral_1_1io_1_1Schema.html#_CPPv4N3ral2io6SchemaE" title="ral::io::Schema"><span class="pre">Schema</span></a><span class="pre">&gt;</span> <em><span class="pre">schemas</span></em>, <span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><span class="pre">std</span><span class="pre">::</span><span class="pre">string</span><span class="pre">&gt;</span> <em><span class="pre">table_names</span></em>, <span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><span class="pre">std</span><span class="pre">::</span><span class="pre">string</span><span class="pre">&gt;</span> <em><span class="pre">table_scans</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">bool</span> <em><span class="pre">transform_operators_bigger_than_gpu</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5batch14tree_processor14tree_processorE4nodeNSt10shared_ptrI7ContextEENSt6vectorIN3ral2io11data_loaderEEENSt6vectorIN3ral2io6SchemaEEENSt6vectorINSt6stringEEENSt6vectorINSt6stringEEEKb" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5batch14tree_processor11make_kernelENSt6size_tENSt6stringENSt10shared_ptrIN3ral5cache5graphEEE">
+<span id="_CPPv3N3ral5batch14tree_processor11make_kernelENSt6size_tENSt6stringENSt10shared_ptrIN3ral5cache5graphEEE"></span><span id="_CPPv2N3ral5batch14tree_processor11make_kernelENSt6size_tENSt6stringENSt10shared_ptrIN3ral5cache5graphEEE"></span><span id="ral::batch::tree_processor::make_kernel__std::s.ss.std::shared_ptr:ral::cache::graph:"></span><span class="target" id="structral_1_1batch_1_1tree__processor_1a380b0ebf92171d2bc12a40bcc465c0fc"></span><em class="property"><span class="pre">inline</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">shared_ptr</span><span class="pre">&lt;</span><span class="pre">kernel</span><span class="pre">&gt;</span> <code class="sig-name descname"><span class="pre">make_kernel</span></code><span class="sig-paren">(</span><span class="pre">std</span><span class="pre">::</span><span class="pre">size_t</span> <em><span class="pre">kernel_id</span></em>, <span class="pre">std</span><span class="pre">::</span><span class="pre">string</span> <em><span class="pre">expr</span></em>, <span class="pre">std</span><span class="pre">::</span><span class="pre">shared_ptr</span><span class="pre">&lt;</span><span class="pre">ral</span><span class="pre">::</span><span class="pre">cache</span><span class="pre">::</span><a class="reference internal" href="classral_1_1cache_1_1graph.html#_CPPv4N3ral5cache5graphE" title="ral::cache::graph"><span class="pre">graph</span></a><span class="pre">&gt;</span> <em><span class="pre">query_graph</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5batch14tree_processor11make_kernelENSt6size_tENSt6stringENSt10shared_ptrIN3ral5cache5graphEEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5batch14tree_processor19expr_tree_from_jsonENSt6size_tERKN5boost13property_tree5ptreeEP4nodeiNSt10shared_ptrIN3ral5cache5graphEEE">
+<span id="_CPPv3N3ral5batch14tree_processor19expr_tree_from_jsonENSt6size_tERKN5boost13property_tree5ptreeEP4nodeiNSt10shared_ptrIN3ral5cache5graphEEE"></span><span id="_CPPv2N3ral5batch14tree_processor19expr_tree_from_jsonENSt6size_tERKN5boost13property_tree5ptreeEP4nodeiNSt10shared_ptrIN3ral5cache5graphEEE"></span><span id="ral::batch::tree_processor::expr_tree_from_json__std::s.boost::property_tree::ptreeCR.nodeP.i.std::shared_ptr:ral::cache::graph:"></span><span class="target" id="structral_1_1batch_1_1tree__processor_1aad6415f756e52d44f91fb2d21f8e3f78"></span><em class="property"><span class="pre">inline</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">size_t</span> <code class="sig-name descname"><span class="pre">expr_tree_from_json</span></code><span class="sig-paren">(</span><span class="pre">std</span><span class="pre">::</span><span class="pre">size_t</span> <em><span class="pre">kernel_id</span></em>, <span class="pre">boost</span><span class="pre">::</span><span class="pre">property_tree</span><span class="pre">::</span><span class="pre">ptree</span> <em class="property"><span class="pre">const</span></em> <span class="pre">&amp;</span><em><span class="pre">p_tree</span></em>, <a class="reference internal" href="structral_1_1batch_1_1node.html#_CPPv4N3ral5batch4nodeE" title="ral::batch::node"><span class="pre">node</span></a> <span class="pre">*</span><em><span class="pre">root_ptr</span></em>, <span class="pre">int</span> <em><span class="pre">level</span></em>, <span class="pre">std</span><span class="pre">::</span><span class="pre">shared_ptr</span><span class="pre">&lt;</span><span class="pre">ral</span><span class="pre">::</span><span class="pre">cache</span><span class="pre">::</span><a class="reference internal" href="classral_1_1cache_1_1graph.html#_CPPv4N3ral5cache5graphE" title="ral::cache::graph"><span class="pre">graph</span></a><span class="pre">&gt;</span> <em><span class="pre">query_graph</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5batch14tree_processor19expr_tree_from_jsonENSt6size_tERKN5boost13property_tree5ptreeEP4nodeiNSt10shared_ptrIN3ral5cache5graphEEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5batch14tree_processor17create_array_treeEN5boost13property_tree5ptreeE">
+<span id="_CPPv3N3ral5batch14tree_processor17create_array_treeEN5boost13property_tree5ptreeE"></span><span id="_CPPv2N3ral5batch14tree_processor17create_array_treeEN5boost13property_tree5ptreeE"></span><span id="ral::batch::tree_processor::create_array_tree__boost::property_tree::ptree"></span><span class="target" id="structral_1_1batch_1_1tree__processor_1a1ef5919766ba268b525d228218b6865f"></span><em class="property"><span class="pre">inline</span></em> <span class="pre">boost</span><span class="pre">::</span><span class="pre">property_tree</span><span class="pre">::</span><span class="pre">ptree</span> <code class="sig-name descname"><span class="pre">create_array_tree</span></code><span class="sig-paren">(</span><span class="pre">boost</span><span class="pre">::</span><span class="pre">property_tree</span><span class="pre">::</span><span class="pre">ptree</span> <em><span class="pre">child</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5batch14tree_processor17create_array_treeEN5boost13property_tree5ptreeE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5batch14tree_processor19transform_json_treeERN5boost13property_tree5ptreeEb">
+<span id="_CPPv3N3ral5batch14tree_processor19transform_json_treeERN5boost13property_tree5ptreeEb"></span><span id="_CPPv2N3ral5batch14tree_processor19transform_json_treeERN5boost13property_tree5ptreeEb"></span><span id="ral::batch::tree_processor::transform_json_tree__boost::property_tree::ptreeR.b"></span><span class="target" id="structral_1_1batch_1_1tree__processor_1a99c4e9e369c38f1a0a10c1b51a2d0353"></span><em class="property"><span class="pre">inline</span></em> <span class="pre">void</span> <code class="sig-name descname"><span class="pre">transform_json_tree</span></code><span class="sig-paren">(</span><span class="pre">boost</span><span class="pre">::</span><span class="pre">property_tree</span><span class="pre">::</span><span class="pre">ptree</span> <span class="pre">&amp;</span><em><span class="pre">p_tree</span></em>, <span class="pre">bool</span> <em><span class="pre">first_windowed_call</span></em> <span class="pre">=</span> <span class="pre">true</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5batch14tree_processor19transform_json_treeERN5boost13property_tree5ptreeEb" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5batch14tree_processor9to_stringEv">
+<span id="_CPPv3N3ral5batch14tree_processor9to_stringEv"></span><span id="_CPPv2N3ral5batch14tree_processor9to_stringEv"></span><span id="ral::batch::tree_processor::to_string"></span><span class="target" id="structral_1_1batch_1_1tree__processor_1a1e6fd084fd75a1f9ff90c248fd54558f"></span><em class="property"><span class="pre">inline</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">string</span> <code class="sig-name descname"><span class="pre">to_string</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5batch14tree_processor9to_stringEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5batch14tree_processor9to_stringEP4nodei">
+<span id="_CPPv3N3ral5batch14tree_processor9to_stringEP4nodei"></span><span id="_CPPv2N3ral5batch14tree_processor9to_stringEP4nodei"></span><span id="ral::batch::tree_processor::to_string__nodeP.i"></span><span class="target" id="structral_1_1batch_1_1tree__processor_1aafdf123aeee84d5d0b3d6d7be4c0f341"></span><em class="property"><span class="pre">inline</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">string</span> <code class="sig-name descname"><span class="pre">to_string</span></code><span class="sig-paren">(</span><a class="reference internal" href="structral_1_1batch_1_1node.html#_CPPv4N3ral5batch4nodeE" title="ral::batch::node"><span class="pre">node</span></a> <span class="pre">*</span><em><span class="pre">p_tree</span></em>, <span class="pre">int</span> <em><span class="pre">level</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5batch14tree_processor9to_stringEP4nodei" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5batch14tree_processor17build_batch_graphENSt6stringE">
+<span id="_CPPv3N3ral5batch14tree_processor17build_batch_graphENSt6stringE"></span><span id="_CPPv2N3ral5batch14tree_processor17build_batch_graphENSt6stringE"></span><span id="ral::batch::tree_processor::build_batch_graph__ss"></span><span class="target" id="structral_1_1batch_1_1tree__processor_1a7e8b1c6d1e558b7df3b63e01174d60dc"></span><em class="property"><span class="pre">inline</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">tuple</span><span class="pre">&lt;</span><span class="pre">std</span><span class="pre">::</span><span class="pre">shared_ptr</span><span class="pre">&lt;</span><span class="pre">ral</span><span class="pre">::</span><span class="pre">cache</span><span class="pre">::</span><a class="reference internal" href="classral_1_1cache_1_1graph.html#_CPPv4N3ral5cache5graphE" title="ral::cache::graph"><span class="pre">graph</span></a><span class="pre">&gt;</span><span class="pre">,</span> <span class="pre">std</span><span class="pre">::</span><span class="pre">size_t</span><span class="pre">&gt;</span> <code class="sig-name descname"><span class="pre">build_batch_graph</span></code><span class="sig-paren">(</span><span class="pre">std</span><span class="pre">::</span><span class="pre">string</span> <em><span class="pre">json</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5batch14tree_processor17build_batch_graphENSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N3ral5batch14tree_processor5visitERN3ral5cache5graphEP4nodeRNSt6vectorINSt10shared_ptrI4nodeEEEE">
+<span id="_CPPv3N3ral5batch14tree_processor5visitERN3ral5cache5graphEP4nodeRNSt6vectorINSt10shared_ptrI4nodeEEEE"></span><span id="_CPPv2N3ral5batch14tree_processor5visitERN3ral5cache5graphEP4nodeRNSt6vectorINSt10shared_ptrI4nodeEEEE"></span><span id="ral::batch::tree_processor::visit__ral::cache::graphR.nodeP.std::vector:std::shared_ptr:node::R"></span><span class="target" id="structral_1_1batch_1_1tree__processor_1a9f0f7e5089826076cb1bdfa30083ddcd"></span><em class="property"><span class="pre">inline</span></em> <span class="pre">void</span> <code class="sig-name descname"><span class="pre">visit</span></code><span class="sig-paren">(</span><span class="pre">ral</span><span class="pre">::</span><span class="pre">cache</span><span class="pre">::</span><a class="reference internal" href="classral_1_1cache_1_1graph.html#_CPPv4N3ral5cache5graphE" title="ral::cache::graph"><span class="pre">graph</span></a> <span class="pre">&amp;</span><em><span class="pre">query_graph</span></em>, <a class="reference internal" href="structral_1_1batch_1_1node.html#_CPPv4N3ral5batch4nodeE" title="ral::batch::node"><span class="pre">node</span></a> <span class="pre">*</span><em><span class="pre">parent</span></em>, <span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><span class="pre">std</span><span class="pre">::</span><span class="pre">shared_ptr</span><span class="pre">&lt;</span><a class="reference internal" href="structral_1_1batch_1_1node.html#_CPPv4N3ral5batch4nodeE" title="ral::batch::node"><span class="pre">node</span></a><span class="pre">&gt;</span><span class="pre">&gt;</span> <span class="pre">&amp;</span><em><span class="pre">children</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5batch14tree_processor5visitERN3ral5cache5graphEP4nodeRNSt6vectorINSt10shared_ptrI4nodeEEEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Members</p>
+<dl class="cpp var">
+<dt id="_CPPv4N3ral5batch14tree_processor4rootE">
+<span id="_CPPv3N3ral5batch14tree_processor4rootE"></span><span id="_CPPv2N3ral5batch14tree_processor4rootE"></span><span id="ral::batch::tree_processor::root__node"></span><span class="target" id="structral_1_1batch_1_1tree__processor_1a38c2010979cc4c09e6ab57e0b8cf9a3b"></span><a class="reference internal" href="structral_1_1batch_1_1node.html#_CPPv4N3ral5batch4nodeE" title="ral::batch::node"><span class="pre">node</span></a> <code class="sig-name descname"><span class="pre">root</span></code><a class="headerlink" href="#_CPPv4N3ral5batch14tree_processor4rootE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N3ral5batch14tree_processor7contextE">
+<span id="_CPPv3N3ral5batch14tree_processor7contextE"></span><span id="_CPPv2N3ral5batch14tree_processor7contextE"></span><span id="ral::batch::tree_processor::context__std::shared_ptr:Context:"></span><span class="target" id="structral_1_1batch_1_1tree__processor_1a2d1624b6ca76bb66d5ce052037498d30"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">shared_ptr</span><span class="pre">&lt;</span><a class="reference internal" href="typedef_BatchJoinProcessing_8h_1afe86ae51878bc067a8c99c61f679f2a6.html#_CPPv4N3ral5batch7ContextE" title="ral::batch::Context"><span class="pre">Context</span></a><span class="pre">&gt;</span> <code class="sig-name descname"><span class="pre">context</span></code><a class="headerlink" href="#_CPPv4N3ral5batch14tree_processor7contextE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N3ral5batch14tree_processor13input_loadersE">
+<span id="_CPPv3N3ral5batch14tree_processor13input_loadersE"></span><span id="_CPPv2N3ral5batch14tree_processor13input_loadersE"></span><span id="ral::batch::tree_processor::input_loaders__std::vector:ral::io::data_loader:"></span><span class="target" id="structral_1_1batch_1_1tree__processor_1afd6296fcae67c2f0e4e9514204e47e74"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><span class="pre">ral</span><span class="pre">::</span><span class="pre">io</span><span class="pre">::</span><a class="reference internal" href="classral_1_1io_1_1data__loader.html#_CPPv4N3ral2io11data_loaderE" title="ral::io::data_loader"><span class="pre">data_loader</span></a><span class="pre">&gt;</span> <code class="sig-name descname"><span class="pre">input_loaders</span></code><a class="headerlink" href="#_CPPv4N3ral5batch14tree_processor13input_loadersE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N3ral5batch14tree_processor7schemasE">
+<span id="_CPPv3N3ral5batch14tree_processor7schemasE"></span><span id="_CPPv2N3ral5batch14tree_processor7schemasE"></span><span id="ral::batch::tree_processor::schemas__std::vector:ral::io::Schema:"></span><span class="target" id="structral_1_1batch_1_1tree__processor_1a7632a35857e3fad6693eab43ea07a299"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><span class="pre">ral</span><span class="pre">::</span><span class="pre">io</span><span class="pre">::</span><a class="reference internal" href="classral_1_1io_1_1Schema.html#_CPPv4N3ral2io6SchemaE" title="ral::io::Schema"><span class="pre">Schema</span></a><span class="pre">&gt;</span> <code class="sig-name descname"><span class="pre">schemas</span></code><a class="headerlink" href="#_CPPv4N3ral5batch14tree_processor7schemasE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N3ral5batch14tree_processor11table_namesE">
+<span id="_CPPv3N3ral5batch14tree_processor11table_namesE"></span><span id="_CPPv2N3ral5batch14tree_processor11table_namesE"></span><span id="ral::batch::tree_processor::table_names__std::vector:ss:"></span><span class="target" id="structral_1_1batch_1_1tree__processor_1aab2b3310b02c1ebba7006282c3d847cf"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><span class="pre">std</span><span class="pre">::</span><span class="pre">string</span><span class="pre">&gt;</span> <code class="sig-name descname"><span class="pre">table_names</span></code><a class="headerlink" href="#_CPPv4N3ral5batch14tree_processor11table_namesE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N3ral5batch14tree_processor11table_scansE">
+<span id="_CPPv3N3ral5batch14tree_processor11table_scansE"></span><span id="_CPPv2N3ral5batch14tree_processor11table_scansE"></span><span id="ral::batch::tree_processor::table_scans__std::vector:ss:"></span><span class="target" id="structral_1_1batch_1_1tree__processor_1a3824095215e25aef4488dc5d99bc8605"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><span class="pre">std</span><span class="pre">::</span><span class="pre">string</span><span class="pre">&gt;</span> <code class="sig-name descname"><span class="pre">table_scans</span></code><a class="headerlink" href="#_CPPv4N3ral5batch14tree_processor11table_scansE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N3ral5batch14tree_processor35transform_operators_bigger_than_gpuE">
+<span id="_CPPv3N3ral5batch14tree_processor35transform_operators_bigger_than_gpuE"></span><span id="_CPPv2N3ral5batch14tree_processor35transform_operators_bigger_than_gpuE"></span><span id="ral::batch::tree_processor::transform_operators_bigger_than_gpu__bC"></span><span class="target" id="structral_1_1batch_1_1tree__processor_1a347b4fc1d2dae6c27261bbc0d4e28347"></span><em class="property"><span class="pre">const</span></em> <span class="pre">bool</span> <code class="sig-name descname"><span class="pre">transform_operators_bigger_than_gpu</span></code> <span class="pre">=</span> <span class="pre">false</span><a class="headerlink" href="#_CPPv4N3ral5batch14tree_processor35transform_operators_bigger_than_gpuE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+</div>
+
+
+              </div>
+              
+              
+              <div class='prev-next-bottom'>
+                
+
+              </div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../_static/js/index.d8bbf5861d671d414e1a.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright 2020, BlazingDB, Inc..<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

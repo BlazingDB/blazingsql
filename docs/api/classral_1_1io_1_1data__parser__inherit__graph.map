@@ -1,0 +1,8 @@
+<map id="ral::io::data_parser" name="ral::io::data_parser">
+<area shape="rect" id="node2" href="$classral_1_1io_1_1arrow__parser.html" title="ral::io::arrow_parser" alt="" coords="189,5,327,32"/>
+<area shape="rect" id="node3" href="$classral_1_1io_1_1csv__parser.html" title="ral::io::csv_parser" alt="" coords="195,56,321,83"/>
+<area shape="rect" id="node4" href="$classral_1_1io_1_1gdf__parser.html" title="ral::io::gdf_parser" alt="" coords="197,107,319,133"/>
+<area shape="rect" id="node5" href="$classral_1_1io_1_1json__parser.html" title="ral::io::json_parser" alt="" coords="193,157,323,184"/>
+<area shape="rect" id="node6" href="$classral_1_1io_1_1orc__parser.html" title="ral::io::orc_parser" alt="" coords="197,208,319,235"/>
+<area shape="rect" id="node7" href="$classral_1_1io_1_1parquet__parser.html" title="ral::io::parquet_parser" alt="" coords="184,259,332,285"/>
+</map>

@@ -1,0 +1,50 @@
+
+.. _file_engine_src_bmr_MemoryMonitor.cpp:
+
+File MemoryMonitor.cpp
+======================
+
+|exhale_lsh| :ref:`Parent directory <dir_engine_src_bmr>` (``engine/src/bmr``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``engine/src/bmr/MemoryMonitor.cpp``)
+-------------------------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file_engine_src_bmr_MemoryMonitor.cpp.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``BlazingMemoryResource.h`` (:ref:`file_engine_src_bmr_BlazingMemoryResource.h`)
+
+- ``MemoryMonitor.h`` (:ref:`file_engine_src_bmr_MemoryMonitor.h`)
+
+- ``execution_graph/logic_controllers/PhysicalPlanGenerator.h`` (:ref:`file_engine_src_execution_graph_logic_controllers_PhysicalPlanGenerator.h`)
+
+- ``execution_graph/logic_controllers/taskflow/executor.h`` (:ref:`file_engine_src_execution_graph_logic_controllers_taskflow_executor.h`)
+
+
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_ral`
+

@@ -1,0 +1,46 @@
+
+.. _file_engine_src_execution_graph_logic_controllers_BlazingColumnOwner.cpp:
+
+File BlazingColumnOwner.cpp
+===========================
+
+|exhale_lsh| :ref:`Parent directory <dir_engine_src_execution_graph_logic_controllers>` (``engine/src/execution_graph/logic_controllers``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``engine/src/execution_graph/logic_controllers/BlazingColumnOwner.cpp``)
+------------------------------------------------------------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file_engine_src_execution_graph_logic_controllers_BlazingColumnOwner.cpp.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``execution_graph/logic_controllers/BlazingColumnOwner.h`` (:ref:`file_engine_src_execution_graph_logic_controllers_BlazingColumnOwner.h`)
+
+
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_ral`
+
+- :ref:`namespace_ral__frame`
+

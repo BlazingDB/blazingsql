@@ -1,0 +1,4 @@
+<map id="ral::memory::base_allocator" name="ral::memory::base_allocator">
+<area shape="rect" id="node2" href="$classral_1_1memory_1_1host__allocator.html" title="ral::memory::host_allocator" alt="" coords="5,87,185,114"/>
+<area shape="rect" id="node3" href="$classral_1_1memory_1_1pinned__allocator.html" title="ral::memory::pinned\l_allocator" alt="" coords="209,80,347,121"/>
+</map>

@@ -1,0 +1,100 @@
+
+.. _file_engine_src_CalciteExpressionParsing.h:
+
+File CalciteExpressionParsing.h
+===============================
+
+|exhale_lsh| :ref:`Parent directory <dir_engine_src>` (``engine/src``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``engine/src/CalciteExpressionParsing.h``)
+------------------------------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file_engine_src_CalciteExpressionParsing.h.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``cudf/types.hpp``
+
+- ``string``
+
+- ``vector``
+
+
+
+Included By
+-----------
+
+
+- :ref:`file_engine_src_CalciteExpressionParsing.cpp`
+
+- :ref:`file_engine_src_parser_expression_tree.hpp`
+
+- :ref:`file_engine_src_distribution_primitives.cpp`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_CacheData.cpp`
+
+- :ref:`file_engine_src_execution_graph_logic_controllers_CacheMachine.cpp`
+
+- :ref:`file_engine_src_io_DataLoader.cpp`
+
+- :ref:`file_engine_src_operators_GroupBy.cpp`
+
+- :ref:`file_engine_src_operators_OrderBy.cpp`
+
+- :ref:`file_engine_src_parser_expression_utils.cpp`
+
+- :ref:`file_engine_src_skip_data_SkipDataProcessor.cpp`
+
+- :ref:`file_engine_src_utilities_CommonOperations.cpp`
+
+
+
+
+Functions
+---------
+
+
+- :ref:`exhale_function_CalciteExpressionParsing_8h_1a774174506cadfc9987816e9d95df05d7`
+
+- :ref:`exhale_function_CalciteExpressionParsing_8h_1aaffe8adbb74cbdedf9c6313029e5d7ca`
+
+- :ref:`exhale_function_CalciteExpressionParsing_8h_1a16ab6f33339b397615c5fd7380bbfc55`
+
+- :ref:`exhale_function_CalciteExpressionParsing_8h_1adc1a9ca33720d06aaef1f5cfca885677`
+
+- :ref:`exhale_function_CalciteExpressionParsing_8h_1ae82256997677ac5d9716140bfc75a965`
+
+- :ref:`exhale_function_CalciteExpressionParsing_8h_1abdba8cb9205076d65b966688e33c8573`
+
+- :ref:`exhale_function_CalciteExpressionParsing_8h_1a70c2a2177f4613c6318b374246b084fc`
+
+- :ref:`exhale_function_CalciteExpressionParsing_8h_1a822ceb68fbb4bd6d6b78c33c3df2ebee`
+
+- :ref:`exhale_function_CalciteExpressionParsing_8h_1a060bd9d2bb4f60aab4c38a1c4bf1e358`
+
+- :ref:`exhale_function_CalciteExpressionParsing_8h_1add91d6583500ed618b683908adbcd9d9`
+
+- :ref:`exhale_function_CalciteExpressionParsing_8h_1ad6a7007ab3c8e8473b26290bf8a45224`
+
+- :ref:`exhale_function_CalciteExpressionParsing_8h_1a70d96f69856c00dd66a6cb2e29b04a0c`
+
+- :ref:`exhale_function_CalciteExpressionParsing_8h_1aa9e7eab73fe2077667b40a97422b9621`
+
+- :ref:`exhale_function_CalciteExpressionParsing_8h_1a1f19d4b8aab24ad6bd20c38b89845f1b`
+

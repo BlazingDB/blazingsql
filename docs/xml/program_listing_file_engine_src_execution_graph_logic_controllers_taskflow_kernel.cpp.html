@@ -1,0 +1,325 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Program Listing for File kernel.cpp &#8212; BlazingSQL v0.18 documentation</title>
+    
+  <link href="../_static/css/theme.css" rel="stylesheet" />
+  <link href="../_static/css/index.101715efdecc9b59cb6e1ddfa685c31f.css" rel="stylesheet" />
+
+    
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+
+    
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/getting_started.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
+    
+  <link rel="preload" as="script" href="../_static/js/index.d8bbf5861d671d414e1a.js">
+
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/d3.v3.min.js"></script>
+    <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
+    <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
+    <link rel="shortcut icon" href="../_static/blazingsql-icon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="container-xl">
+
+
+    
+      
+      <a class="navbar-brand" href="../index.html">
+        <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo">
+      </a>
+      
+    
+
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        <li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../arch.html">
+  BlazingSQL Project Architecture
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../graph.html">
+  Execution Engine
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../api.html">
+  API Documentation
+ </a>
+</li>
+
+        
+      </ul>
+
+      <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+            
+            <!-- Only show if we have sidebars configured, else just a small margin  -->
+            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <div class="bd-toc-item active">
+    
+  </div>
+</nav>
+            </div>
+            
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+
+<nav id="bd-toc-nav">
+    
+</nav>
+
+
+
+<div class="tocsection editthispage">
+    <a href="https://github.com/blazingdb/blazingsql/edit/feedback/docsrc/source/xml/program_listing_file_engine_src_execution_graph_logic_controllers_taskflow_kernel.cpp.rst">
+        <i class="fas fa-pencil-alt"></i> Edit this page
+    </a>
+</div>
+
+              
+          </div>
+          
+
+          
+          
+            
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="program-listing-for-file-kernel-cpp">
+<span id="program-listing-file-engine-src-execution-graph-logic-controllers-taskflow-kernel-cpp"></span><h1>Program Listing for File kernel.cpp<a class="headerlink" href="#program-listing-for-file-kernel-cpp" title="Permalink to this headline">¶</a></h1>
+<p>↰ <a class="reference internal" href="file_engine_src_execution_graph_logic_controllers_taskflow_kernel.cpp.html#file-engine-src-execution-graph-logic-controllers-taskflow-kernel-cpp"><span class="std std-ref">Return to documentation for file</span></a> (<code class="docutils literal notranslate"><span class="pre">engine/src/execution_graph/logic_controllers/taskflow/kernel.cpp</span></code>)</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&quot;kernel.h&quot;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&quot;CodeTimer.h&quot;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&quot;communication/CommunicationData.h&quot;</span><span class="cp"></span>
+
+<span class="k">namespace</span> <span class="n">ral</span> <span class="p">{</span>
+<span class="k">namespace</span> <span class="n">cache</span> <span class="p">{</span>
+
+<span class="n">kernel</span><span class="o">::</span><span class="n">kernel</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span> <span class="n">kernel_id</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">expr</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">Context</span><span class="o">&gt;</span> <span class="n">context</span><span class="p">,</span> <span class="n">kernel_type</span> <span class="n">kernel_type_id</span><span class="p">)</span>
+        <span class="o">:</span> <span class="n">total_input_bytes_processed</span><span class="p">{</span><span class="mi">0</span><span class="p">},</span>
+          <span class="n">expression</span><span class="p">{</span><span class="n">expr</span><span class="p">},</span>
+          <span class="n">kernel_id</span><span class="p">(</span><span class="n">kernel_id</span><span class="p">),</span>
+          <span class="n">parent_id_</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span>
+          <span class="n">kernel_type_id</span><span class="p">{</span><span class="n">kernel_type_id</span><span class="p">},</span>
+          <span class="n">context</span><span class="p">{</span><span class="n">context</span><span class="p">},</span>
+          <span class="n">has_limit_</span><span class="p">(</span><span class="nb">false</span><span class="p">),</span>
+          <span class="n">limit_rows_</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span>
+          <span class="n">logger</span><span class="p">(</span><span class="n">spdlog</span><span class="o">::</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;batch_logger&quot;</span><span class="p">))</span> <span class="p">{</span>
+
+    <span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">spdlog</span><span class="o">::</span><span class="n">logger</span><span class="o">&gt;</span> <span class="n">kernels_logger</span> <span class="o">=</span> <span class="n">spdlog</span><span class="o">::</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;kernels_logger&quot;</span><span class="p">);</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">kernels_logger</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">kernels_logger</span><span class="o">-&gt;</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;{ral_id}|{query_id}|{kernel_id}|{is_kernel}|{kernel_type}|{description}&quot;</span><span class="p">,</span>
+                            <span class="s">&quot;ral_id&quot;</span><span class="n">_a</span><span class="o">=</span><span class="n">context</span><span class="o">-&gt;</span><span class="n">getNodeIndex</span><span class="p">(</span><span class="n">ral</span><span class="o">::</span><span class="n">communication</span><span class="o">::</span><span class="n">CommunicationData</span><span class="o">::</span><span class="n">getInstance</span><span class="p">().</span><span class="n">getSelfNode</span><span class="p">()),</span>
+                            <span class="s">&quot;query_id&quot;</span><span class="n">_a</span><span class="o">=</span><span class="p">(</span><span class="k">this</span><span class="o">-&gt;</span><span class="n">context</span> <span class="o">?</span> <span class="n">std</span><span class="o">::</span><span class="n">to_string</span><span class="p">(</span><span class="k">this</span><span class="o">-&gt;</span><span class="n">context</span><span class="o">-&gt;</span><span class="n">getContextToken</span><span class="p">())</span> <span class="o">:</span> <span class="s">&quot;null&quot;</span><span class="p">),</span>
+                            <span class="s">&quot;kernel_id&quot;</span><span class="n">_a</span><span class="o">=</span><span class="k">this</span><span class="o">-&gt;</span><span class="n">get_id</span><span class="p">(),</span>
+                            <span class="s">&quot;is_kernel&quot;</span><span class="n">_a</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="c1">//true</span>
+                            <span class="s">&quot;kernel_type&quot;</span><span class="n">_a</span><span class="o">=</span><span class="n">get_kernel_type_name</span><span class="p">(</span><span class="k">this</span><span class="o">-&gt;</span><span class="n">get_type_id</span><span class="p">()),</span>
+                            <span class="s">&quot;description&quot;</span><span class="n">_a</span><span class="o">=</span><span class="n">expression</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">ral</span><span class="o">::</span><span class="n">cache</span><span class="o">::</span><span class="n">CacheMachine</span><span class="o">&gt;</span> <span class="n">kernel</span><span class="o">::</span><span class="n">output_cache</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">cache_id</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">cache_id</span> <span class="o">=</span> <span class="n">cache_id</span><span class="p">.</span><span class="n">empty</span><span class="p">()</span> <span class="o">?</span> <span class="n">std</span><span class="o">::</span><span class="n">to_string</span><span class="p">(</span><span class="k">this</span><span class="o">-&gt;</span><span class="n">get_id</span><span class="p">())</span> <span class="o">:</span> <span class="n">cache_id</span><span class="p">;</span>
+    <span class="k">return</span> <span class="k">this</span><span class="o">-&gt;</span><span class="n">output_</span><span class="p">.</span><span class="n">get_cache</span><span class="p">(</span><span class="n">cache_id</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">ral</span><span class="o">::</span><span class="n">cache</span><span class="o">::</span><span class="n">CacheMachine</span><span class="o">&gt;</span> <span class="n">kernel</span><span class="o">::</span><span class="n">input_cache</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">auto</span> <span class="n">kernel_id</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">to_string</span><span class="p">(</span><span class="k">this</span><span class="o">-&gt;</span><span class="n">get_id</span><span class="p">());</span>
+    <span class="k">return</span> <span class="k">this</span><span class="o">-&gt;</span><span class="n">input_</span><span class="p">.</span><span class="n">get_cache</span><span class="p">(</span><span class="n">kernel_id</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">bool</span> <span class="n">kernel</span><span class="o">::</span><span class="n">add_to_output_cache</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">ral</span><span class="o">::</span><span class="n">frame</span><span class="o">::</span><span class="n">BlazingTable</span><span class="o">&gt;</span> <span class="n">table</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">cache_id</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">always_add</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">message_id</span> <span class="o">=</span> <span class="n">get_message_id</span><span class="p">();</span>
+    <span class="n">message_id</span> <span class="o">=</span> <span class="o">!</span><span class="n">cache_id</span><span class="p">.</span><span class="n">empty</span><span class="p">()</span> <span class="o">?</span> <span class="n">cache_id</span> <span class="o">+</span> <span class="s">&quot;_&quot;</span> <span class="o">+</span> <span class="nl">message_id</span> <span class="p">:</span> <span class="n">message_id</span><span class="p">;</span>
+    <span class="n">cache_id</span> <span class="o">=</span> <span class="n">cache_id</span><span class="p">.</span><span class="n">empty</span><span class="p">()</span> <span class="o">?</span> <span class="n">std</span><span class="o">::</span><span class="n">to_string</span><span class="p">(</span><span class="k">this</span><span class="o">-&gt;</span><span class="n">get_id</span><span class="p">())</span> <span class="o">:</span> <span class="n">cache_id</span><span class="p">;</span>
+    <span class="kt">bool</span> <span class="n">added</span> <span class="o">=</span> <span class="k">this</span><span class="o">-&gt;</span><span class="n">output_</span><span class="p">.</span><span class="n">get_cache</span><span class="p">(</span><span class="n">cache_id</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">addToCache</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">move</span><span class="p">(</span><span class="n">table</span><span class="p">),</span> <span class="n">message_id</span><span class="p">,</span> <span class="n">always_add</span><span class="p">);</span>
+
+    <span class="k">return</span> <span class="n">added</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">bool</span> <span class="n">kernel</span><span class="o">::</span><span class="n">add_to_output_cache</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">ral</span><span class="o">::</span><span class="n">cache</span><span class="o">::</span><span class="n">CacheData</span><span class="o">&gt;</span> <span class="n">cache_data</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">cache_id</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">always_add</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">message_id</span> <span class="o">=</span> <span class="n">get_message_id</span><span class="p">();</span>
+    <span class="n">message_id</span> <span class="o">=</span> <span class="o">!</span><span class="n">cache_id</span><span class="p">.</span><span class="n">empty</span><span class="p">()</span> <span class="o">?</span> <span class="n">cache_id</span> <span class="o">+</span> <span class="s">&quot;_&quot;</span> <span class="o">+</span> <span class="nl">message_id</span> <span class="p">:</span> <span class="n">message_id</span><span class="p">;</span>
+    <span class="n">cache_id</span> <span class="o">=</span> <span class="n">cache_id</span><span class="p">.</span><span class="n">empty</span><span class="p">()</span> <span class="o">?</span> <span class="n">std</span><span class="o">::</span><span class="n">to_string</span><span class="p">(</span><span class="k">this</span><span class="o">-&gt;</span><span class="n">get_id</span><span class="p">())</span> <span class="o">:</span> <span class="n">cache_id</span><span class="p">;</span>
+    <span class="kt">bool</span> <span class="n">added</span> <span class="o">=</span> <span class="k">this</span><span class="o">-&gt;</span><span class="n">output_</span><span class="p">.</span><span class="n">get_cache</span><span class="p">(</span><span class="n">cache_id</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">addCacheData</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">move</span><span class="p">(</span><span class="n">cache_data</span><span class="p">),</span> <span class="n">message_id</span><span class="p">,</span> <span class="n">always_add</span><span class="p">);</span>
+
+    <span class="k">return</span> <span class="n">added</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">bool</span> <span class="n">kernel</span><span class="o">::</span><span class="n">add_to_output_cache</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">ral</span><span class="o">::</span><span class="n">frame</span><span class="o">::</span><span class="n">BlazingHostTable</span><span class="o">&gt;</span> <span class="n">host_table</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">cache_id</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">message_id</span> <span class="o">=</span> <span class="n">get_message_id</span><span class="p">();</span>
+    <span class="n">message_id</span> <span class="o">=</span> <span class="o">!</span><span class="n">cache_id</span><span class="p">.</span><span class="n">empty</span><span class="p">()</span> <span class="o">?</span> <span class="n">cache_id</span> <span class="o">+</span> <span class="s">&quot;_&quot;</span> <span class="o">+</span> <span class="nl">message_id</span> <span class="p">:</span> <span class="n">message_id</span><span class="p">;</span>
+    <span class="n">cache_id</span> <span class="o">=</span> <span class="n">cache_id</span><span class="p">.</span><span class="n">empty</span><span class="p">()</span> <span class="o">?</span> <span class="n">std</span><span class="o">::</span><span class="n">to_string</span><span class="p">(</span><span class="k">this</span><span class="o">-&gt;</span><span class="n">get_id</span><span class="p">())</span> <span class="o">:</span> <span class="n">cache_id</span><span class="p">;</span>
+    <span class="kt">bool</span> <span class="n">added</span> <span class="o">=</span> <span class="k">this</span><span class="o">-&gt;</span><span class="n">output_</span><span class="p">.</span><span class="n">get_cache</span><span class="p">(</span><span class="n">cache_id</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">addHostFrameToCache</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">move</span><span class="p">(</span><span class="n">host_table</span><span class="p">),</span> <span class="n">message_id</span><span class="p">);</span>
+
+    <span class="k">return</span> <span class="n">added</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">// this function gets the estimated num_rows for the output</span>
+<span class="c1">// the default is that its the same as the input (i.e. project, sort, ...)</span>
+<span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="kt">bool</span><span class="p">,</span> <span class="kt">uint64_t</span><span class="o">&gt;</span> <span class="n">kernel</span><span class="o">::</span><span class="n">get_estimated_output_num_rows</span><span class="p">(){</span>
+    <span class="k">return</span> <span class="k">this</span><span class="o">-&gt;</span><span class="n">query_graph</span><span class="o">-&gt;</span><span class="n">get_estimated_input_rows_to_kernel</span><span class="p">(</span><span class="k">this</span><span class="o">-&gt;</span><span class="n">kernel_id</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="n">ral</span><span class="o">::</span><span class="n">execution</span><span class="o">::</span><span class="n">task_result</span> <span class="n">kernel</span><span class="o">::</span><span class="n">process</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">ral</span><span class="o">::</span><span class="n">frame</span><span class="o">::</span><span class="n">BlazingTable</span><span class="o">&gt;&gt;</span>  <span class="n">inputs</span><span class="p">,</span>
+        <span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">ral</span><span class="o">::</span><span class="n">cache</span><span class="o">::</span><span class="n">CacheMachine</span><span class="o">&gt;</span> <span class="n">output</span><span class="p">,</span>
+        <span class="n">cudaStream_t</span> <span class="n">stream</span><span class="p">,</span>
+    <span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">map</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;&amp;</span> <span class="n">args</span><span class="p">){</span>
+
+    <span class="c1">// TODO: figure out if this can be re enabled;</span>
+    <span class="c1">// if (this-&gt;has_limit_ &amp;&amp; output-&gt;get_num_rows_added() &gt;= this-&gt;limit_rows_) {</span>
+    <span class="c1">//     return;</span>
+    <span class="c1">// }</span>
+
+    <span class="k">if</span><span class="p">(</span><span class="n">inputs</span><span class="p">.</span><span class="n">size</span><span class="p">()</span><span class="o">==</span><span class="mi">0</span><span class="p">){</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">ral</span><span class="o">::</span><span class="n">execution</span><span class="o">::</span><span class="n">task_status</span><span class="o">::</span><span class="n">SUCCESS</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">(),</span> <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">ral</span><span class="o">::</span><span class="n">frame</span><span class="o">::</span><span class="n">BlazingTable</span><span class="o">&gt;</span> <span class="o">&gt;</span> <span class="p">()};</span>
+    <span class="p">}</span>
+
+    <span class="kt">size_t</span> <span class="n">bytes</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="k">for</span><span class="p">(</span><span class="k">auto</span> <span class="o">&amp;</span> <span class="nl">input</span> <span class="p">:</span> <span class="n">inputs</span><span class="p">){</span>
+        <span class="n">bytes</span> <span class="o">+=</span> <span class="n">input</span><span class="o">-&gt;</span><span class="n">sizeInBytes</span><span class="p">();</span>
+    <span class="p">}</span>
+    <span class="k">auto</span> <span class="n">result</span> <span class="o">=</span> <span class="n">do_process</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">move</span><span class="p">(</span><span class="n">inputs</span><span class="p">),</span> <span class="n">output</span><span class="p">,</span> <span class="n">stream</span><span class="p">,</span> <span class="n">args</span><span class="p">);</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">result</span><span class="p">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">ral</span><span class="o">::</span><span class="n">execution</span><span class="o">::</span><span class="n">SUCCESS</span><span class="p">){</span>
+        <span class="n">total_input_bytes_processed</span> <span class="o">+=</span> <span class="n">bytes</span><span class="p">;</span> <span class="c1">// increment this AFTER its been processed successfully</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="k">auto</span> <span class="n">logger</span> <span class="o">=</span> <span class="n">spdlog</span><span class="o">::</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;batch_logger&quot;</span><span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">logger</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">logger</span><span class="o">-&gt;</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;|||{info}|||||&quot;</span><span class="p">,</span>
+                    <span class="s">&quot;info&quot;</span><span class="n">_a</span><span class="o">=</span><span class="s">&quot;ERROR in kernel::process trying to do do_process. Kernel name is: &quot;</span> <span class="o">+</span> <span class="k">this</span><span class="o">-&gt;</span><span class="n">kernel_name</span><span class="p">()</span> <span class="o">+</span> <span class="s">&quot; Kernel id is: &quot;</span> <span class="o">+</span> <span class="n">std</span><span class="o">::</span><span class="n">to_string</span><span class="p">(</span><span class="k">this</span><span class="o">-&gt;</span><span class="n">kernel_id</span><span class="p">));</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">std</span><span class="o">::</span><span class="n">move</span><span class="p">(</span><span class="n">result</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">kernel</span><span class="o">::</span><span class="n">add_task</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">task_id</span><span class="p">){</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">lock_guard</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span> <span class="n">lock</span><span class="p">(</span><span class="n">kernel_mutex</span><span class="p">);</span>
+    <span class="k">this</span><span class="o">-&gt;</span><span class="n">tasks</span><span class="p">.</span><span class="n">insert</span><span class="p">(</span><span class="n">task_id</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">kernel</span><span class="o">::</span><span class="n">notify_complete</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">task_id</span><span class="p">){</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">lock_guard</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span> <span class="n">lock</span><span class="p">(</span><span class="n">kernel_mutex</span><span class="p">);</span>
+    <span class="k">this</span><span class="o">-&gt;</span><span class="n">tasks</span><span class="p">.</span><span class="n">erase</span><span class="p">(</span><span class="n">task_id</span><span class="p">);</span>
+    <span class="n">kernel_cv</span><span class="p">.</span><span class="n">notify_one</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">kernel</span><span class="o">::</span><span class="n">notify_fail</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">task_id</span><span class="p">){</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">lock_guard</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span> <span class="n">lock</span><span class="p">(</span><span class="n">kernel_mutex</span><span class="p">);</span>
+    <span class="k">this</span><span class="o">-&gt;</span><span class="n">tasks</span><span class="p">.</span><span class="n">erase</span><span class="p">(</span><span class="n">task_id</span><span class="p">);</span>
+    <span class="n">kernel_cv</span><span class="p">.</span><span class="n">notify_one</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="c1">// This is only the default estimate of the bytes to be output by a kernel based on the input.</span>
+<span class="c1">// Each kernel should implement its own version of this, if its possible to obtain a better estimate</span>
+<span class="n">std</span><span class="o">::</span><span class="kt">size_t</span> <span class="n">kernel</span><span class="o">::</span><span class="n">estimate_output_bytes</span><span class="p">(</span><span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">ral</span><span class="o">::</span><span class="n">cache</span><span class="o">::</span><span class="n">CacheData</span> <span class="o">&gt;</span> <span class="o">&gt;</span> <span class="o">&amp;</span> <span class="n">inputs</span><span class="p">){</span>
+
+    <span class="n">std</span><span class="o">::</span><span class="kt">size_t</span> <span class="n">input_bytes</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="k">for</span> <span class="p">(</span><span class="k">auto</span> <span class="o">&amp;</span> <span class="nl">input</span> <span class="p">:</span> <span class="n">inputs</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">input_bytes</span> <span class="o">+=</span> <span class="n">input</span><span class="o">-&gt;</span><span class="n">sizeInBytes</span><span class="p">();</span>
+    <span class="p">}</span>
+
+    <span class="c1">// if we have already processed, then we can estimate based on previous inputs and outputs</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">total_input_bytes_processed</span><span class="p">.</span><span class="n">load</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">){</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="p">)((</span><span class="kt">double</span><span class="p">)</span><span class="n">input_bytes</span> <span class="o">*</span> <span class="p">((</span><span class="kt">double</span><span class="p">)</span><span class="k">this</span><span class="o">-&gt;</span><span class="n">output_</span><span class="p">.</span><span class="n">total_bytes_added</span><span class="p">()</span><span class="o">/</span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">total_input_bytes_processed</span><span class="p">.</span><span class="n">load</span><span class="p">()));</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span> <span class="c1">// if we have not already any batches, then lets estimate that the output is the same as the input</span>
+        <span class="k">return</span> <span class="n">input_bytes</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">// This is only the default estimate of the bytes needed by the kernel to perform the operation based on the input.</span>
+<span class="c1">// Each kernel should implement its own version of this, if its possible to obtain a better estimate</span>
+<span class="n">std</span><span class="o">::</span><span class="kt">size_t</span> <span class="n">kernel</span><span class="o">::</span><span class="n">estimate_operating_bytes</span><span class="p">(</span><span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">ral</span><span class="o">::</span><span class="n">cache</span><span class="o">::</span><span class="n">CacheData</span> <span class="o">&gt;</span> <span class="o">&gt;</span> <span class="o">&amp;</span> <span class="n">inputs</span><span class="p">){</span>
+    <span class="n">std</span><span class="o">::</span><span class="kt">size_t</span> <span class="n">bytes_esimate</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="k">for</span> <span class="p">(</span><span class="k">auto</span> <span class="o">&amp;</span> <span class="nl">input</span> <span class="p">:</span> <span class="n">inputs</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">bytes_esimate</span> <span class="o">+=</span> <span class="n">input</span><span class="o">-&gt;</span><span class="n">sizeInBytes</span><span class="p">();</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">bytes_esimate</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="p">}</span>  <span class="c1">// end namespace cache</span>
+<span class="p">}</span>  <span class="c1">// end namespace ral</span>
+</pre></div>
+</div>
+</div>
+
+
+              </div>
+              
+              
+              <div class='prev-next-bottom'>
+                
+
+              </div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../_static/js/index.d8bbf5861d671d414e1a.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright 2020, BlazingDB, Inc..<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>
