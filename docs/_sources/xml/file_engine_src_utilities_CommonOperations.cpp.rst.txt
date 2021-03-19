@@ -73,17 +73,17 @@ Functions
 ---------
 
 
-- :ref:`exhale_function_CommonOperations_8cpp_1a617a940d7e62ec983d9a4438fbe52dec`
-
 - :ref:`exhale_function_CommonOperations_8cpp_1ab00fe34826431aae403ba8d00cf84e30`
 
+- :ref:`exhale_function_CommonOperations_8cpp_1a617a940d7e62ec983d9a4438fbe52dec`
+
 - :ref:`exhale_function_CommonOperations_8cpp_1ac24210f1ed2385d943983435eae2c4d4`
+
+- :ref:`exhale_function_CommonOperations_8cpp_1a66244d6370e7cf9ec7bc2a4488f95446`
 
 - :ref:`exhale_function_CommonOperations_8cpp_1a38409d742b076f7ef66a4b7ad79e014a`
 
 - :ref:`exhale_function_CommonOperations_8cpp_1a9047f7579abb1d46982975ba6d28014c`
-
-- :ref:`exhale_function_CommonOperations_8cpp_1a66244d6370e7cf9ec7bc2a4488f95446`
 
 - :ref:`exhale_function_CommonOperations_8cpp_1a4e6f3dc33119de69fdf488a1dd3c10dc`
 
