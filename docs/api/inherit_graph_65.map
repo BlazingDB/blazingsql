@@ -1,6 +1,0 @@
-<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$classral_1_1io_1_1data__provider.html" title="ral::io::data_provider" alt="" coords="5,71,145,98"/>
-<area shape="rect" id="node2" href="$classral_1_1io_1_1dummy__data__provider.html" title="ral::io::dummy_data\l_provider" alt="" coords="207,5,345,47"/>
-<area shape="rect" id="node3" href="$classral_1_1io_1_1gdf__data__provider.html" title="ral::io::gdf_data_provider" alt="" coords="193,71,359,98"/>
-<area shape="rect" id="node4" href="$classral_1_1io_1_1uri__data__provider.html" title="ral::io::uri_data_provider" alt="" coords="195,122,357,149"/>
-</map>

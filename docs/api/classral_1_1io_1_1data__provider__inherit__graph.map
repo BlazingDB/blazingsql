@@ -1,5 +1,0 @@
-<map id="ral::io::data_provider" name="ral::io::data_provider">
-<area shape="rect" id="node2" href="$classral_1_1io_1_1dummy__data__provider.html" title="ral::io::dummy_data\l_provider" alt="" coords="5,80,143,121"/>
-<area shape="rect" id="node3" href="$classral_1_1io_1_1gdf__data__provider.html" title="ral::io::gdf_data_provider" alt="" coords="167,87,333,114"/>
-<area shape="rect" id="node4" href="$classral_1_1io_1_1uri__data__provider.html" title="ral::io::uri_data_provider" alt="" coords="357,87,519,114"/>
-</map>

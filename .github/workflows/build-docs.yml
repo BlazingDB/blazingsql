@@ -6,7 +6,7 @@ name: Build docs
 on:
   push:
     branches: 
-      - doxygen/graph
+      - main
   
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -28,8 +28,9 @@ jobs:
           docs-folder: "docsrc/"
       - name: Commit documentation changes
         run: |
-          git clone https://github.com/romulo-auccapuclla/blazingsql.git --branch doxygen/graph --single-branch doxygen/graph
-          rm -rf docs
+          git clone https://github.com/romulo-auccapuclla/blazingsql.git --branch main --single-branch main
+          rm -rf docsrc/_build/html/xml
+          rm -rf docsrc/_build/html/_sources
           cp -a docsrc/_build/html/. docs/
           cp -a docsrc/doxyfiles/html/. docs/api/
           cd docs
@@ -41,7 +42,7 @@ jobs:
       - name: Push changes
         uses: ad-m/github-push-action@master
         with:
-          branch: doxygen/graph
+          branch: main
           directory: docs
           force: true
           github_token: ${{ secrets.GITHUB_TOKEN }}

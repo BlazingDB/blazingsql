@@ -1,4 +1,0 @@
-<map id="ral::batch::BatchSequence::next" name="ral::batch::BatchSequence::next">
-<area shape="rect" id="node2" href="$classral_1_1batch_1_1PartitionKernel.html#a5313617a63ab0fb23a0e4211399f439f" title="Executes the batch processing. Loads the data from their input port, and after processing it..." alt="" coords="229,5,424,32"/>
-<area shape="rect" id="node3" href="$classral_1_1batch_1_1Print.html#aaa9c9b3999fa088344f8505fcf201721" title="ral::batch::Print::run" alt="" coords="258,56,395,83"/>
-</map>
