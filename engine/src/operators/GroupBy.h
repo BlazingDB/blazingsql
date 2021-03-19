@@ -23,7 +23,8 @@ enum AggregateKind{
 	COUNT_DISTINCT,
 	ROW_NUMBER,
 	LAG,
-	LEAD
+	LEAD,
+	NTH_ELEMENT
 };
 
 namespace ral {

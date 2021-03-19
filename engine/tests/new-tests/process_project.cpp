@@ -323,6 +323,49 @@ TEST_F(ProjectTestString, test_string_substring)
     cudf::test::expect_tables_equal(expected_table_view, out_table->view());
 }
 
+TEST_F(ProjectTestString, test_string_substring_null)
+{
+  cudf::test::strings_column_wrapper col1{
+    {"ABC",  "123", "",  "XYZ"},
+    {1, 1, 0, 1}};
+        
+    cudf::table_view in_table_view {{col1}};
+    std::unique_ptr<CudfTable> cudf_table = std::make_unique<CudfTable>(in_table_view);
+    std::vector<std::string> names(in_table_view.num_columns());
+    std::unique_ptr<ral::frame::BlazingTable> table = std::make_unique<ral::frame::BlazingTable>(std::move(cudf_table), names);
+
+    auto out_table = ral::processor::process_project(std::move(table),
+                                                     "LogicalProject(EXPR$0=[SUBSTRING($0, 2, -(CHAR_LENGTH($0), 2))])",
+                                                     //"LogicalProject(EXPR$0=[SUBSTRING($0, 15, -4)])",
+                                                    nullptr);
+    
+    cudf::test::strings_column_wrapper expected_col1{{"B", "2", "", "Y"}, {1, 1, 0, 1}};
+    cudf::table_view expected_table_view {{expected_col1}};
+
+    cudf::test::expect_tables_equal(expected_table_view, out_table->view());
+}
+
+TEST_F(ProjectTestString, test_char_length)
+{
+  cudf::test::strings_column_wrapper col1{
+    {"abc",  "12345", "",  "xyzw"},
+    {1, 1, 0, 1}};
+
+    cudf::table_view in_table_view {{col1}};
+    std::unique_ptr<CudfTable> cudf_table = std::make_unique<CudfTable>(in_table_view);
+    std::vector<std::string> names(in_table_view.num_columns());
+    std::unique_ptr<ral::frame::BlazingTable> table = std::make_unique<ral::frame::BlazingTable>(std::move(cudf_table), names);
+
+    auto out_table = ral::processor::process_project(std::move(table),
+                                                     "LogicalProject(EXPR$0=[-(CHAR_LENGTH($0), 1)])",
+                                                    nullptr);
+    
+    cudf::test::fixed_width_column_wrapper<int> expected_col1{{2, 4, -1, 3}, {1, 1, 0, 1}};
+    cudf::table_view expected_table_view {{expected_col1}};
+
+    cudf::test::expect_tables_equal(expected_table_view, out_table->view());
+}
+
 TEST_F(ProjectTestString, test_string_concat)
 {
     cudf::test::strings_column_wrapper col1{{"foo", "d", "e", "a", "hello", "k", "d", "l", "", ""}};

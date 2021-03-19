@@ -189,6 +189,12 @@ public:
 	virtual size_t sizeInBytes() const = 0;
 
 	/**
+	* Set the names of the columns.
+	* @param names a vector of the column names.
+	*/
+	virtual void set_names(const std::vector<std::string> & names) = 0;
+
+	/**
 	* Destructor
 	*/
 	virtual ~CacheData() {}
@@ -300,6 +306,15 @@ public:
 	* @return The number of bytes the BlazingTable consumes.
 	*/
 	size_t sizeInBytes() const override { return data->sizeInBytes(); }
+
+	/**
+	* Set the names of the columns of a BlazingTable.
+	* @param names a vector of the column names.
+	*/
+	void set_names(const std::vector<std::string> & names) override {
+		data->setNames(names);
+	}
+
 	/**
 	* Destructor
 	*/
@@ -381,6 +396,16 @@ protected:
 	* @return The number of bytes the BlazingHostTable consumes.
 	*/
  	size_t sizeInBytes() const override { return host_table->sizeInBytes(); }
+
+	/**
+	* Set the names of the columns of a BlazingHostTable.
+	* @param names a vector of the column names.
+	*/
+	void set_names(const std::vector<std::string> & names) override
+	{
+		host_table->set_names(names);
+	}
+
 	/**
 	* Destructor
 	*/
@@ -433,6 +458,14 @@ public:
 	size_t fileSizeInBytes() const;
 
 	/**
+	* Set the names of the columns to pass when decache if needed.
+	* @param names a vector of the column names.
+	*/
+	void set_names(const std::vector<std::string> & names) override {
+		this->col_names = names;
+	}
+
+	/**
 	* Destructor
 	*/
 	virtual ~CacheDataLocalFile() {}
@@ -444,6 +477,7 @@ public:
 	std::string filePath() const { return filePath_; }
 
 private:
+	std::vector<std::string> col_names; /**< The names of the columns, extracted from the ORC file. */
 	std::string filePath_; /**< The path to the ORC file. Is usually generated randomly. */
 	size_t size_in_bytes; /**< The size of the file being stored. */
 };
@@ -488,6 +522,13 @@ public:
  	*/
 	size_t sizeInBytes() const override;
 
+	/**
+	* Set the names of the columns from the schema.
+	* @param names a vector of the column names.
+	*/
+	void set_names(const std::vector<std::string> & names) override {
+		this->schema.set_names(names);
+	}
 
 	/**
 	* Destructor
@@ -527,6 +568,12 @@ public:
 	* @return The number of bytes the BlazingTable consumes.
 	*/
 	size_t sizeInBytes() const override;
+
+	/**
+	* Set the names of the columns.
+	* @param names a vector of the column names.
+	*/
+	void set_names(const std::vector<std::string> & names) override;
 
 	std::vector<std::unique_ptr<CacheData>> releaseCacheDatas();
 

@@ -33,6 +33,7 @@
 
 #include "communication/ucx_init.h"
 #include "communication/CommunicationData.h"
+#include "communication/CommunicationInterface/protocols.hpp"
 
 #include <bmr/initializer.h>
 #include <bmr/BlazingMemoryResource.h>
@@ -55,6 +56,7 @@ using namespace fmt::literals;
 
 #include "engine/initialize.h"
 #include "engine/static.h" // this contains function call for getProductDetails
+#include "engine/engine.h"
 
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -63,6 +65,25 @@ using namespace fmt::literals;
 
 using namespace fmt::literals;
 using namespace ral::cache;
+
+/**
+	@brief This class has a counter of the number of blazingcontext we have in the process
+*/
+class blazing_context_ref_counter {
+public:
+    static blazing_context_ref_counter& getInstance() {
+        // Myers' singleton. Thread safe and unique. Note: C++11 required.
+        static blazing_context_ref_counter instance;
+        return instance;
+    }
+
+    size_t get_count() const { return this->count; }
+    void increase() { ++count; } // +1
+    void decrease() { assert(this->count > 0); --count; } // -1 (assert if the count < 0)
+
+private:
+    size_t count = 0;
+};
 
 void handler(int sig) {
   void *array[10];
@@ -297,8 +318,7 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 
 	blazing_host_memory_resource::getInstance().initialize(host_memory_quota);
 
-
-	// Init AWS S3 ... TODO see if we need to call shutdown and avoid leaks from s3 percy
+	// Init AWS S3
 	BlazingContext::getInstance()->initExternalSystems();
 
 	int executor_threads = 10;
@@ -597,15 +617,52 @@ std::pair<std::pair<std::shared_ptr<CacheMachine>,std::shared_ptr<CacheMachine> 
 
 	ral::execution::executor::init_executor(executor_threads, processing_memory_limit_threshold);
 	initialized = true;
+  blazing_context_ref_counter::getInstance().increase();
 	return std::make_pair(output_input_caches, ralCommunicationPort);	
 }
 
-void finalize() {
+void clear_graphs(std::vector<int32_t> ctx_tokens) {
+  for (auto& ctx_token : ctx_tokens) {
+    //printf("will deregister the graph with token: %d\n", ctx_token);
+    auto graph = comm::graphs_info::getInstance().get_graph(ctx_token);
+    if (graph != nullptr) {
+      //printf("\tnot null\n");
+      try {
+        // TODO percy felipe william rommel threads/futures in c++ cannot be cancel by 
+        // itself we need to program that logic: We should implement some sort 
+        // of interruption logic for the kernel threads/futures and then clean 
+        // its memory. For now we are using getExecuteGraphResult for the 
+        // finalize caller and this will ensure to free all the memory.
+        // Related with -> https://github.com/BlazingDB/blazingsql/issues/1363
+        auto freeThis = getExecuteGraphResult(graph, ctx_token);
+        // printf("\tdone!\n");
+      } catch(const std::exception& e) {
+        throw;
+      }
+    }
+   }
+}
 
-	BlazingRMMFinalize();
-	spdlog::shutdown();
-	cudaDeviceReset();
-	exit(0);
+void finalize(std::vector<int32_t> ctx_tokens) {
+  clear_graphs(ctx_tokens);
+
+  if (blazing_context_ref_counter::getInstance().get_count() == 1) {
+    BlazingContext::getInstance()->shutDownExternalSystems();
+
+    // TODO BlazingRMMFinalize and cudaDeviceReset percy william felipe rommel
+    // if we want to finalize all the engine properly we need to implement 
+    // first many parts: thread interruptions, free memory from incomplete 
+    // threads, notify every ral node to shutdown the processing, etc.
+    // More details here -> https://github.com/BlazingDB/blazingsql/issues/1363
+
+    // BlazingRMMFinalize();
+
+    spdlog::shutdown();
+
+    //cudaDeviceReset();
+  }
+
+  blazing_context_ref_counter::getInstance().decrease();
 }
 
 error_code_t initialize_C(uint16_t ralId,
@@ -639,9 +696,9 @@ error_code_t initialize_C(uint16_t ralId,
 	}
 }
 
-error_code_t finalize_C() {
+error_code_t finalize_C(std::vector<int32_t> ctx_tokens) {
 	try {
-		finalize();
+		finalize(ctx_tokens);
 		return E_SUCCESS;
 	} catch (std::exception& e) {
 		return E_EXCEPTION;

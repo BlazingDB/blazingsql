@@ -20,7 +20,7 @@ std::pair<std::pair<std::shared_ptr<ral::cache::CacheMachine>,std::shared_ptr<ra
 	std::size_t maximum_pool_size,
 	bool enable_logging);
 
-void finalize();
+void finalize(std::vector<int32_t> ctx_tokens);
 
 size_t getFreeMemory();
 void resetMaxMemoryUsed(int to = 0);
@@ -40,6 +40,6 @@ error_code_t initialize_C(uint16_t ralId,
 	std::size_t maximum_pool_size,
 	bool enable_logging);
 
-error_code_t finalize_C();
+error_code_t finalize_C(std::vector<int32_t> ctx_tokens);
 
 } // extern "C"

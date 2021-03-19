@@ -296,7 +296,65 @@ struct tree_processor {
 			if (window_expression_contains_multiple_diff_over_clauses(expr)) {
 				throw std::runtime_error("In Window Function: multiple WINDOW FUNCTIONs with different OVER clauses are not supported currently");
 			}
-			
+
+			if (window_expression_contains_bounds_by_range(expr)) {
+                throw std::runtime_error("In Window Function: RANGE is not currently supported");
+            }
+
+			if (window_expression_contains_partition_by(expr)) {
+				std::string sort_expr = expr;
+				std::string window_expr = expr;
+
+				StringUtil::findAndReplaceAll(window_expr, LOGICAL_PROJECT_TEXT, LOGICAL_COMPUTE_WINDOW_TEXT);
+				StringUtil::findAndReplaceAll(sort_expr, LOGICAL_PROJECT_TEXT, LOGICAL_SORT_TEXT);
+
+				boost::property_tree::ptree sort_tree;
+				sort_tree.put("expr", sort_expr);
+				sort_tree.add_child("children", p_tree.get_child("children"));
+
+				boost::property_tree::ptree window_tree;
+				window_tree.put("expr", window_expr);
+				window_tree.put_child("children", create_array_tree(sort_tree));
+
+				p_tree.put("expr", expr);
+				p_tree.put_child("children", create_array_tree(window_tree));
+
+				transform_json_tree(p_tree, false);
+				return;
+			} else {
+				std::string sort_expr = expr;
+				std::string window_expr = expr;
+				std::string overlap_generation_expr = expr;
+				std::string overlap_accumulation_expr = expr;
+
+				StringUtil::findAndReplaceAll(window_expr, LOGICAL_PROJECT_TEXT, LOGICAL_COMPUTE_WINDOW_TEXT);
+				StringUtil::findAndReplaceAll(overlap_accumulation_expr, LOGICAL_PROJECT_TEXT, LOGICAL_ACCUMULATE_OVERLAPS_TEXT);
+				StringUtil::findAndReplaceAll(overlap_generation_expr, LOGICAL_PROJECT_TEXT, LOGICAL_GENERATE_OVERLAPS_TEXT);
+				StringUtil::findAndReplaceAll(sort_expr, LOGICAL_PROJECT_TEXT, LOGICAL_SORT_TEXT);
+
+				boost::property_tree::ptree sort_tree;
+				sort_tree.put("expr", sort_expr);
+				sort_tree.add_child("children", p_tree.get_child("children"));
+
+				boost::property_tree::ptree overlap_generation_tree;
+				overlap_generation_tree.put("expr", overlap_generation_expr);
+				overlap_generation_tree.put_child("children", create_array_tree(sort_tree));
+
+				boost::property_tree::ptree overlap_accumulation_tree;
+				overlap_accumulation_tree.put("expr", overlap_accumulation_expr);
+				overlap_accumulation_tree.put_child("children", create_array_tree(overlap_generation_tree));
+
+				boost::property_tree::ptree window_tree;
+				window_tree.put("expr", window_expr);
+				window_tree.put_child("children", create_array_tree(overlap_accumulation_tree));
+
+				p_tree.put("expr", expr);
+				p_tree.put_child("children", create_array_tree(window_tree));
+
+				transform_json_tree(p_tree, false);
+				return;
+			}
+
 			std::string sort_expr = expr;
 			std::string window_expr = expr;
 
@@ -310,7 +368,7 @@ struct tree_processor {
 			boost::property_tree::ptree window_tree;
 			window_tree.put("expr", window_expr);
 
-			if (window_expression_contains_partition(expr)) {
+			if (window_expression_contains_partition_by(expr)) {
 				window_tree.put_child("children", create_array_tree(sort_tree));
 				
 			} else { // if the window expression does not contain a partition clause, then we need to add two extra steps
@@ -448,6 +506,15 @@ struct tree_processor {
 
 					query_graph.addPair(ral::cache::kpair(child->kernel_unit, "output_a", parent->kernel_unit, "input_a", cache_machine_config));
 					query_graph.addPair(ral::cache::kpair(child->kernel_unit, "output_b", parent->kernel_unit, "input_b", cache_machine_config));
+
+				} else if (child_kernel_type == kernel_type::OverlapGeneratorKernel && parent_kernel_type == kernel_type::OverlapAccumulatorKernel) {
+
+					cache_settings cache_machine_config;
+					cache_machine_config.context = context->clone();
+
+					query_graph.addPair(ral::cache::kpair(child->kernel_unit, "batches", parent->kernel_unit, "batches", cache_machine_config));
+					query_graph.addPair(ral::cache::kpair(child->kernel_unit, "preceding_overlaps", parent->kernel_unit, "preceding_overlaps", cache_machine_config));
+					query_graph.addPair(ral::cache::kpair(child->kernel_unit, "following_overlaps", parent->kernel_unit, "following_overlaps", cache_machine_config));
 
 				} else if ((child_kernel_type == kernel_type::PartitionKernel && parent_kernel_type == kernel_type::MergeStreamKernel)
 							|| (child_kernel_type == kernel_type::PartitionSingleNodeKernel && parent_kernel_type == kernel_type::MergeStreamKernel)) {

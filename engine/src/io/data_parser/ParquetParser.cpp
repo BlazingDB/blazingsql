@@ -53,7 +53,13 @@ std::unique_ptr<ral::frame::BlazingTable> parquet_parser::parse_batch(
 
 		pq_args.set_columns(col_names);
 
-		pq_args.set_row_groups(std::vector<std::vector<cudf::size_type>>(1, row_groups));
+		// when we set `get_metadata=False` we need to send and empty full_row_groups
+		std::vector<std::vector<cudf::size_type>> full_row_groups;
+		if (row_groups.size() != 0) {
+			full_row_groups = std::vector<std::vector<cudf::size_type>>(1, row_groups);
+		}
+
+		pq_args.set_row_groups(full_row_groups);
 
 		auto result = cudf::io::read_parquet(pq_args);
 

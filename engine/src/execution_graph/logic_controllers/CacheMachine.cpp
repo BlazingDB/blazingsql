@@ -133,10 +133,12 @@ bool CacheMachine::addHostFrameToCache(std::unique_ptr<ral::frame::BlazingHostTa
 }
 
 void CacheMachine::put(size_t index, std::unique_ptr<ral::frame::BlazingTable> table) {
+    std::cout<<"CacheMachine::put table "<<this->cache_machine_name<<" numrows: "<<table->num_rows()<<std::endl;
 	this->addToCache(std::move(table), this->cache_machine_name + "_" + std::to_string(index), true);
 }
 
 void CacheMachine::put(size_t index, std::unique_ptr<ral::cache::CacheData> cacheData) {
+    std::cout<<"CacheMachine::put cacheData "<<this->cache_machine_name<<" numrows: "<<cacheData->num_rows()<<std::endl;
 	this->addCacheData(std::move(cacheData), this->cache_machine_name + "_" + std::to_string(index), true);
 }
 

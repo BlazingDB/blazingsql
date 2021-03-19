@@ -167,17 +167,17 @@ std::tuple<std::vector<int>, std::vector<cudf::order> > get_right_sorts_vars(con
 
 	if (is_window_function(query_part)) {
 		// `order by` and `partition by`
-		if (query_part.find("ORDER BY") != query_part.npos && query_part.find("PARTITION BY") != query_part.npos) {
+		if (window_expression_contains_order_by(query_part) && window_expression_contains_partition_by(query_part)) {
 			std::tie(sortColIndices, sortOrderTypes) = get_vars_to_partition_and_order(query_part);
 		}
 		// only `partition by`
-		else if (!window_expression_contains_order(query_part)) {
+		else if (!window_expression_contains_order_by(query_part)) {
 			std::tie(sortColIndices, sortOrderTypes) = get_vars_to_partition(query_part);
 		}
-		// TODO: for now over clauses without `partition by` are not supported
+		// without `partition by`
 		else {
-			throw std::runtime_error("Error, not support for WINDOW FUNCTION without PARTITION BY clause");
-			//std::tie(sortColIndices, sortOrderTypes) = get_vars_to_orders(query_part);	
+			std::tie(sortColIndices, sortOrderTypes) = get_vars_to_orders(query_part);
+			std::cout<<"get_right_sorts_vars "<<query_part<<" index "<<sortColIndices.size()<<" "<<sortColIndices[0]<<std::endl;
 		}
 	} else std::tie(sortColIndices, sortOrderTypes, limitRows) = get_sort_vars(query_part);
 
@@ -234,13 +234,18 @@ std::unique_ptr<ral::frame::BlazingTable> sample(const ral::frame::BlazingTableV
 	std::vector<cudf::order> sortOrderTypes;
 	std::vector<int> sortColIndices;
 	
-	if (is_window_function(query_part)) {
-		std::tie(sortColIndices, sortOrderTypes) = get_vars_to_partition(query_part);
+	if (is_window_function(query_part)){
+		if (window_expression_contains_partition_by(query_part)) {
+			std::tie(sortColIndices, sortOrderTypes) = get_vars_to_partition(query_part);
+		} else {
+			std::tie(sortColIndices, sortOrderTypes) = get_vars_to_orders(query_part);
+		}
 	}
 	else {
 		std::tie(sortColIndices, sortOrderTypes, std::ignore) = get_sort_vars(query_part);
 	}
-
+	std::cout<<"sample "<<query_part<<"  index  "<<sortColIndices[0]<<std::endl;
+	
 	auto tableNames = table.names();
 	std::vector<std::string> sortColNames(sortColIndices.size());
 	std::transform(sortColIndices.begin(), sortColIndices.end(), sortColNames.begin(), [&](auto index) { return tableNames[index]; });
@@ -249,6 +254,7 @@ std::unique_ptr<ral::frame::BlazingTable> sample(const ral::frame::BlazingTableV
 	std::random_device rd;
 	auto samples = cudf::sample(table.view().select(sortColIndices), num_samples, cudf::sample_with_replacement::FALSE, rd());
 
+	std::cout<<"sample samples "<<samples->num_rows()<<std::endl;
 	return std::make_unique<ral::frame::BlazingTable>(std::move(samples), sortColNames);
 }
 
@@ -267,7 +273,7 @@ std::vector<cudf::table_view> partition_table(const ral::frame::BlazingTableView
 	cudf::table_view columns_to_search = sortedTable.view().select(sortColIndices);
 	auto pivot_indexes = cudf::upper_bound(columns_to_search, partitionPlan.view(), sortOrderTypes, null_orders);
 
-	std::vector<cudf::size_type> split_indexes = ral::utilities::vector_to_column<cudf::size_type>(pivot_indexes->view());
+	std::vector<cudf::size_type> split_indexes = ral::utilities::column_to_vector<cudf::size_type>(pivot_indexes->view());
 	return cudf::split(sortedTable.view(), split_indexes);
 }
 
@@ -280,13 +286,17 @@ std::unique_ptr<ral::frame::BlazingTable> generate_partition_plan(
 	std::vector<int> sortColIndices;
 	cudf::size_type limitRows;
 	
-	if (is_window_function(query_part)) { 
-		std::tie(sortColIndices, sortOrderTypes) = get_vars_to_partition(query_part);
+	if (is_window_function(query_part)){
+		if (window_expression_contains_partition_by(query_part)) {
+			std::tie(sortColIndices, sortOrderTypes) = get_vars_to_partition(query_part);
+		} else {
+			std::tie(sortColIndices, sortOrderTypes) = get_vars_to_orders(query_part);
+		}
 	}
 	else {
-		std::tie(sortColIndices, sortOrderTypes, limitRows) = get_sort_vars(query_part);
+		std::tie(sortColIndices, sortOrderTypes, std::ignore) = get_sort_vars(query_part);
 	}
-
+	
 	std::unique_ptr<ral::frame::BlazingTable> partitionPlan;
 
 	std::size_t num_bytes_per_order_by_partition = 400000000;

@@ -64,6 +64,7 @@ from EndToEndTests import wildCardTest
 from EndToEndTests import smilesTest
 from EndToEndTests import jsonTest
 from EndToEndTests import windowFunctionTest
+from EndToEndTests import concurrentTest
 from pynvml import nvmlInit
 from Runner import runTest
 from Utils import Execution, init_context
@@ -176,7 +177,7 @@ def main():
         leftOuterJoinsTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     if runAllTests or ("nonEquiJoinsTest" in targetTestGroups):
-        nonEquiJoinsTest.main(dask_client, drill, dir_data_file, bc, nRals)
+        nonEquiJoinsTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     # loadDataTest.main(dask_client, bc) #check this
 
@@ -213,8 +214,10 @@ def main():
     if runAllTests or ("bindableAliasTest" in targetTestGroups):
         bindableAliasTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
-    if runAllTests or ("booleanTest" in targetTestGroups):
-        booleanTest.main(dask_client, drill, dir_data_file, bc, nRals)
+    testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
+    if testsWithNulls != "true":
+        if runAllTests or ("booleanTest" in targetTestGroups):
+            booleanTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     if runAllTests or ("caseTest" in targetTestGroups):
         caseTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
@@ -229,7 +232,7 @@ def main():
         literalTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     if runAllTests or ("dirTest" in targetTestGroups):
-        dirTest.main(dask_client, drill, dir_data_file, bc, nRals)
+        dirTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     # HDFS is not working yet
     # fileSystemHdfsTest.main(dask_client, drill, dir_data_file, bc)
@@ -247,7 +250,7 @@ def main():
         stringCaseTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     if runAllTests or ("wildCardTest" in targetTestGroups):
-        wildCardTest.main(dask_client, drill, dir_data_file, bc, nRals)
+        wildCardTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     if runAllTests or ("tpchQueriesTest" in targetTestGroups):
         tpchQueriesTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
@@ -256,17 +259,18 @@ def main():
         roundTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     if runAllTests or ("fileSystemLocalTest" in targetTestGroups):
-        fileSystemLocalTest.main(dask_client, drill, dir_data_file, bc, nRals)
+        fileSystemLocalTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
 
     if runAllTests or ("messageValidationTest" in targetTestGroups):
         messageValidationTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
-    if Settings.execution_mode != ExecutionMode.GPUCI:
-        if runAllTests or ("fileSystemS3Test" in targetTestGroups):
-            fileSystemS3Test.main(dask_client, drill, dir_data_file, bc, nRals)
+    if testsWithNulls != "true":
+        if Settings.execution_mode != ExecutionMode.GPUCI:
+            if runAllTests or ("fileSystemS3Test" in targetTestGroups):
+                fileSystemS3Test.main(dask_client, drill, dir_data_file, bc, nRals)
 
-        if runAllTests or ("fileSystemGSTest" in targetTestGroups):
-            fileSystemGSTest.main(dask_client, drill, dir_data_file, bc, nRals)
+            if runAllTests or ("fileSystemGSTest" in targetTestGroups):
+                fileSystemGSTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     if runAllTests or ("loggingTest" in targetTestGroups):
         loggingTest.main(dask_client, dir_data_file, bc, nRals)
@@ -276,11 +280,16 @@ def main():
     if runAllTests or ("smilesTest" in targetTestGroups):
         smilesTest.main(dask_client, spark, dir_data_file, bc, nRals)
 
-    if runAllTests or ("jsonTest" in targetTestGroups):
-        jsonTest.main(dask_client, drill, dir_data_file, bc, nRals)
+    if testsWithNulls != "true":
+        if runAllTests or ("jsonTest" in targetTestGroups):
+            jsonTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     if runAllTests or ("windowFunctionTest" in targetTestGroups):
         windowFunctionTest.main(dask_client, drill, spark, dir_data_file, bc, nRals)
+
+    if testsWithNulls != "true":
+        if runAllTests or ("concurrentTest" in targetTestGroups):
+            concurrentTest.main(dask_client, drill, dir_data_file, bc, nRals)
 
     # WARNING!!! This Test must be the last one to test -------------------------------------------------------------------------------------------------------------------------------------------
     if runAllTests or ("configOptionsTest" in targetTestGroups):

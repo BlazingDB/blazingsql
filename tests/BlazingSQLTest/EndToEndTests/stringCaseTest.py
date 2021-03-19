@@ -210,7 +210,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             query = """select INITCAP(LOWER(o_clerk)) as init_a, 
                     INITCAP(SUBSTRING(o_comment, 0, 10)) || INITCAP(o_orderstatus) as init_b
                     from orders where MOD(o_custkey, 2) = 0 
-                    order by init_a, init_b
+                    order by init_a nulls last, init_b nulls last
                     limit 180"""
             runTest.run_query(
                 bc,
@@ -249,7 +249,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                     from customer
                     where c_mktsegment in ('AUTOMOBILE', 'HOUSEHOLD')
                     and 50.0 <= c_acctbal
-                    order by c_custkey, init_comment
+                    order by c_custkey nulls last, init_comment nulls last
                     limit 200"""
             runTest.run_query(
                 bc,

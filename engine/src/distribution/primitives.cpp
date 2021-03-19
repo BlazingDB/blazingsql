@@ -12,6 +12,7 @@
 #include <cudf/utilities/traits.hpp>
 
 #include "utilities/CommonOperations.h"
+#include "operators/OrderBy.h"
 
 #include "error.hpp"
 #include "utilities/ctpl_stl.h"
@@ -89,7 +90,7 @@ std::vector<NodeColumnView> partitionData(Context * context,
 		sortOrderTypes.assign(searchColIndices.size(), cudf::order::ASCENDING);
 	}
 
-	std::vector<CudfTableView> partitioned_data = ral::operators::partition_table(pivots, table, sortOrderTypes, sortColIndices);
+	std::vector<CudfTableView> partitioned_data = ral::operators::partition_table(pivots, table, sortOrderTypes, searchColIndices);
 
 	std::vector<Node> all_nodes = context->getAllNodes();
 
