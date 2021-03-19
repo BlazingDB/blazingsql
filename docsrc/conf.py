@@ -92,6 +92,8 @@ html_static_path = ['_static']
 html_css_files = [
     "css/getting_started.css",
     "css/blazingsql.css",
+    "css/theme.css",
+    "css/pandas.css"
 ]
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
