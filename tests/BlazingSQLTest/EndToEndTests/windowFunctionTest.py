@@ -876,7 +876,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                                 partition by n_regionkey order by n_name
                             ) max_keys,
                             n_nationkey, n_name, n_regionkey
-                            from nation order by n_nationkey"""
+                        from nation order by n_nationkey"""
             runTest.run_query(
                bc,
                spark,
@@ -894,12 +894,12 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             query = """select sum(o_custkey) over 
                             (
                                 partition by o_orderstatus, o_orderpriority
-                                order by o_orderkey
+                                order by o_totalprice, o_custkey
                             ) sum_keys,
                             lag(o_custkey, 2) over 
                             (
                                 partition by o_orderstatus, o_orderpriority
-                                order by o_orderkey
+                                order by  o_totalprice, o_custkey
                             ) lag_keys,
                             cast(o_shippriority as double) as o_ship_double,
                             o_orderpriority
@@ -907,23 +907,19 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                         where o_orderstatus <> 'O'
                         and o_totalprice <= 6000
                         and o_orderpriority in ('2-HIGH', '1-URGENT')
-                        order by o_orderpriority"""
-
-            # TODO: Failed test with nulls
-            testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
-            if testsWithNulls != "true":
-                runTest.run_query(
-                    bc,
-                    spark,
-                    query,
-                    queryId,
-                    queryType,
-                    worder,
-                    "",
-                    acceptable_difference,
-                    use_percentage,
-                    fileSchemaType,
-                )
+                        order by o_orderpriority, o_totalprice"""
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
 
             queryId = "TEST_36"
             query = """select sum(o_custkey) over 
