@@ -632,32 +632,41 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             )
 
             queryId = "TEST_26"
-            query = """select row_number() over 
+            testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
+            if testsWithNulls != "true":
+                query = """select row_number() over 
+                                (
+                                    partition by c_nationkey
+                                    order by c_custkey desc
+                                ) row_num,
+                                c_phone, UPPER(SUBSTRING(c_name, 1, 8))
+                            from customer
+                            where c_acctbal < 95.0
+                            order by c_custkey, row_num"""
+            else:
+                # NOTE: c_custkey contains nulls so just ordering by c_custkey will fail
+                # when comparing again other engine
+                query = """select row_number() over 
                             (
                                 partition by c_nationkey
-                                order by c_custkey desc
+                                order by c_custkey desc, c_acctbal
                             ) row_num,
                             c_phone, UPPER(SUBSTRING(c_name, 1, 8))
                         from customer
                         where c_acctbal < 95.0
-                        order by c_custkey, row_num"""
-
-            # Failed test with nulls
-            # Reported issue: https://github.com/BlazingDB/blazingsql/issues/1411
-            testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
-            if testsWithNulls != "true":
-                runTest.run_query(
-                    bc,
-                    drill,
-                    query,
-                    queryId,
-                    queryType,
-                    worder,
-                    "",
-                    acceptable_difference,
-                    use_percentage,
-                    fileSchemaType,
-                )
+                        order by row_num, c_acctbal"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
 
             queryId = "TEST_27"
             query = """select row_number() over 
