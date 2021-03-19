@@ -97,7 +97,7 @@ Functions
 ---------
 
 
-- :ref:`exhale_function_CommonOperations_8h_1adf927d8218ad46061632d1ee6d0f00e9`
-
 - :ref:`exhale_function_CommonOperations_8h_1af088e3a8310407797f3d5d48d07258da`
+
+- :ref:`exhale_function_CommonOperations_8h_1adf927d8218ad46061632d1ee6d0f00e9`
 
