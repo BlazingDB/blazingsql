@@ -103,9 +103,11 @@ AggregateKind get_aggregation_operation(std::string expression_in) {
 		return AggregateKind::COUNT_VALID;
 	} else if (operator_string == "LEAD") {
 		return AggregateKind::LEAD;
-	}  else if (operator_string == "LAG") {
+	} else if (operator_string == "LAG") {
 		return AggregateKind::LAG;
-	}  else if(operator_string == "COUNT_DISTINCT") {
+	} else if (operator_string == "FIRST_VALUE" || operator_string == "LAST_VALUE") {
+		return AggregateKind::NTH_ELEMENT;
+	}else if(operator_string == "COUNT_DISTINCT") {
 		/* Currently this conditional is unreachable.
 		   Calcite transforms count distincts through the
 		   AggregateExpandDistinctAggregates rule, so in fact,
@@ -138,6 +140,8 @@ std::unique_ptr<cudf::aggregation> makeCudfAggregation(AggregateKind input, int 
 		return cudf::make_lag_aggregation(offset);	
 	}else if(input == AggregateKind::LEAD){
 		return cudf::make_lead_aggregation(offset);	
+	}else if(input == AggregateKind::NTH_ELEMENT){
+		return cudf::make_nth_element_aggregation(offset, cudf::null_policy::INCLUDE);	
 	}else if(input == AggregateKind::COUNT_DISTINCT){
 		/* Currently this conditional is unreachable.
 		   Calcite transforms count distincts through the
