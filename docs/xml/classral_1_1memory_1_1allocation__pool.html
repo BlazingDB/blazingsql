@@ -7,8 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Class allocation_pool &#8212; BlazingSQL v0.18 documentation</title>
     
-  <link href="../_static/css/theme.css" rel="stylesheet" />
-  <link href="../_static/css/index.101715efdecc9b59cb6e1ddfa685c31f.css" rel="stylesheet" />
+  <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
     
   <link rel="stylesheet"
@@ -20,17 +19,21 @@
 
     
       
+  <link rel="stylesheet"
+    href="../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../_static/vendor/lato_latin-ext/1.44.1/index.css">
 
     
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/getting_started.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     
-  <link rel="preload" as="script" href="../_static/js/index.d8bbf5861d671d414e1a.js">
+  <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
     <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
@@ -47,46 +50,43 @@
   </head>
   <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
     
-    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="container-xl">
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
 
-
+    <a class="navbar-brand" href="../index.html">
     
-      
-      <a class="navbar-brand" href="../index.html">
-        <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo">
-      </a>
-      
+      <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo" />
     
-
+    </a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
     </button>
 
-    
     <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
       <ul id="navbar-main-elements" class="navbar-nav mr-auto">
-        <li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../arch.html">
-  BlazingSQL Project Architecture
- </a>
-</li>
-
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../graph.html">
-  Execution Engine
- </a>
-</li>
-
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../api.html">
-  API Documentation
- </a>
-</li>
-
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../arch.html">BlazingSQL Project Architecture</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../graph.html">Execution Engine</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../api.html">API Documentation</a>
+        </li>
+        
         
       </ul>
 
-      <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+
+      
+
+      <ul class="navbar-nav">
+        
+        
       </ul>
     </div>
 </div>
@@ -96,19 +96,27 @@
     <div class="container-xl">
       <div class="row">
           
-            
-            <!-- Only show if we have sidebars configured, else just a small margin  -->
-            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
   <i class="icon fas fa-search"></i>
   <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
 </form>
 <nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
-  <div class="bd-toc-item active">
+
+    <div class="bd-toc-item active">
     
-  </div>
-</nav>
-            </div>
-            
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
           
 
           
@@ -119,14 +127,13 @@
 </div>
 
 <nav id="bd-toc-nav">
-    <ul class="visible nav section-nav flex-column">
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#class-documentation">
-   Class Documentation
-  </a>
- </li>
-</ul>
-
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#class-documentation" class="nav-link">Class Documentation</a>
+        </li>
+    
+    </ul>
 </nav>
 
 
@@ -142,9 +149,6 @@
           
 
           
-          
-            
-          
           <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
               
               <div>
@@ -158,52 +162,52 @@
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
 <dl class="cpp class">
 <dt id="_CPPv4N3ral6memory15allocation_poolE">
-<span id="_CPPv3N3ral6memory15allocation_poolE"></span><span id="_CPPv2N3ral6memory15allocation_poolE"></span><span id="ral::memory::allocation_pool"></span><span class="target" id="classral_1_1memory_1_1allocation__pool"></span><em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ral</span><span class="pre">::</span><span class="pre">memory</span><code class="sig-prename descclassname"><span class="pre">::</span></code></code><code class="sig-name descname"><span class="pre">allocation_pool</span></code><a class="headerlink" href="#_CPPv4N3ral6memory15allocation_poolE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral6memory15allocation_poolE"></span><span id="_CPPv2N3ral6memory15allocation_poolE"></span><span id="ral::memory::allocation_pool"></span><span class="target" id="classral_1_1memory_1_1allocation__pool"></span><em class="property">class </em><code class="sig-prename descclassname">ral::memory<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">allocation_pool</code><a class="headerlink" href="#_CPPv4N3ral6memory15allocation_poolE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Public Functions</p>
 <dl class="cpp function">
 <dt id="_CPPv4N3ral6memory15allocation_pool15allocation_poolENSt10unique_ptrI14base_allocatorEENSt6size_tENSt6size_tE">
-<span id="_CPPv3N3ral6memory15allocation_pool15allocation_poolENSt10unique_ptrI14base_allocatorEENSt6size_tENSt6size_tE"></span><span id="_CPPv2N3ral6memory15allocation_pool15allocation_poolENSt10unique_ptrI14base_allocatorEENSt6size_tENSt6size_tE"></span><span id="ral::memory::allocation_pool::allocation_pool__std::unique_ptr:base_allocator:.std::s.std::s"></span><span class="target" id="classral_1_1memory_1_1allocation__pool_1a7ca793ed2beca97009c7b9d280d3b8a5"></span><code class="sig-name descname"><span class="pre">allocation_pool</span></code><span class="sig-paren">(</span><span class="pre">std</span><span class="pre">::</span><span class="pre">unique_ptr</span><span class="pre">&lt;</span><a class="reference internal" href="classral_1_1memory_1_1base__allocator.html#_CPPv4N3ral6memory14base_allocatorE" title="ral::memory::base_allocator"><span class="pre">base_allocator</span></a><span class="pre">&gt;</span> <em><span class="pre">allocator</span></em>, <span class="pre">std</span><span class="pre">::</span><span class="pre">size_t</span> <em><span class="pre">size_buffers</span></em>, <span class="pre">std</span><span class="pre">::</span><span class="pre">size_t</span> <em><span class="pre">num_buffers</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral6memory15allocation_pool15allocation_poolENSt10unique_ptrI14base_allocatorEENSt6size_tENSt6size_tE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral6memory15allocation_pool15allocation_poolENSt10unique_ptrI14base_allocatorEENSt6size_tENSt6size_tE"></span><span id="_CPPv2N3ral6memory15allocation_pool15allocation_poolENSt10unique_ptrI14base_allocatorEENSt6size_tENSt6size_tE"></span><span id="ral::memory::allocation_pool::allocation_pool__std::unique_ptr:base_allocator:.std::s.std::s"></span><span class="target" id="classral_1_1memory_1_1allocation__pool_1a7ca793ed2beca97009c7b9d280d3b8a5"></span><code class="sig-name descname">allocation_pool</code><span class="sig-paren">(</span>std::unique_ptr&lt;<a class="reference internal" href="classral_1_1memory_1_1base__allocator.html#_CPPv4N3ral6memory14base_allocatorE" title="ral::memory::base_allocator">base_allocator</a>&gt; <em>allocator</em>, std::size_t <em>size_buffers</em>, std::size_t <em>num_buffers</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral6memory15allocation_pool15allocation_poolENSt10unique_ptrI14base_allocatorEENSt6size_tENSt6size_tE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral6memory15allocation_poolD0Ev">
-<span id="_CPPv3N3ral6memory15allocation_poolD0Ev"></span><span id="_CPPv2N3ral6memory15allocation_poolD0Ev"></span><span id="ral::memory::allocation_pool::~allocation_pool"></span><span class="target" id="classral_1_1memory_1_1allocation__pool_1a42d54ed5f69a53b7628b4f5dc91cd446"></span><code class="sig-name descname"><span class="pre">~allocation_pool</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral6memory15allocation_poolD0Ev" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral6memory15allocation_poolD0Ev"></span><span id="_CPPv2N3ral6memory15allocation_poolD0Ev"></span><span id="ral::memory::allocation_pool::~allocation_pool"></span><span class="target" id="classral_1_1memory_1_1allocation__pool_1a42d54ed5f69a53b7628b4f5dc91cd446"></span><code class="sig-name descname">~allocation_pool</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral6memory15allocation_poolD0Ev" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral6memory15allocation_pool9get_chunkEv">
-<span id="_CPPv3N3ral6memory15allocation_pool9get_chunkEv"></span><span id="_CPPv2N3ral6memory15allocation_pool9get_chunkEv"></span><span id="ral::memory::allocation_pool::get_chunk"></span><span class="target" id="classral_1_1memory_1_1allocation__pool_1a5494d7e758157816f90b62f77d9f09b0"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">unique_ptr</span><span class="pre">&lt;</span><a class="reference internal" href="structral_1_1memory_1_1blazing__allocation__chunk.html#_CPPv4N3ral6memory24blazing_allocation_chunkE" title="ral::memory::blazing_allocation_chunk"><span class="pre">blazing_allocation_chunk</span></a><span class="pre">&gt;</span> <code class="sig-name descname"><span class="pre">get_chunk</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral6memory15allocation_pool9get_chunkEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral6memory15allocation_pool9get_chunkEv"></span><span id="_CPPv2N3ral6memory15allocation_pool9get_chunkEv"></span><span id="ral::memory::allocation_pool::get_chunk"></span><span class="target" id="classral_1_1memory_1_1allocation__pool_1a5494d7e758157816f90b62f77d9f09b0"></span>std::unique_ptr&lt;<a class="reference internal" href="structral_1_1memory_1_1blazing__allocation__chunk.html#_CPPv4N3ral6memory24blazing_allocation_chunkE" title="ral::memory::blazing_allocation_chunk">blazing_allocation_chunk</a>&gt; <code class="sig-name descname">get_chunk</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral6memory15allocation_pool9get_chunkEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4NK3ral6memory15allocation_pool18getUcpMemoryHandleEv">
-<span id="_CPPv3NK3ral6memory15allocation_pool18getUcpMemoryHandleEv"></span><span id="_CPPv2NK3ral6memory15allocation_pool18getUcpMemoryHandleEv"></span><span id="ral::memory::allocation_pool::getUcpMemoryHandleC"></span><span class="target" id="classral_1_1memory_1_1allocation__pool_1a32240d0bf4c754e943db833d6979428b"></span><em class="property"><span class="pre">inline</span></em> <span class="pre">ucp_mem_h</span> <code class="sig-name descname"><span class="pre">getUcpMemoryHandle</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em><a class="headerlink" href="#_CPPv4NK3ral6memory15allocation_pool18getUcpMemoryHandleEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3NK3ral6memory15allocation_pool18getUcpMemoryHandleEv"></span><span id="_CPPv2NK3ral6memory15allocation_pool18getUcpMemoryHandleEv"></span><span id="ral::memory::allocation_pool::getUcpMemoryHandleC"></span><span class="target" id="classral_1_1memory_1_1allocation__pool_1a32240d0bf4c754e943db833d6979428b"></span><em class="property">inline</em> ucp_mem_h <code class="sig-name descname">getUcpMemoryHandle</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral6memory15allocation_pool18getUcpMemoryHandleEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral6memory15allocation_pool10free_chunkENSt10unique_ptrI24blazing_allocation_chunkEE">
-<span id="_CPPv3N3ral6memory15allocation_pool10free_chunkENSt10unique_ptrI24blazing_allocation_chunkEE"></span><span id="_CPPv2N3ral6memory15allocation_pool10free_chunkENSt10unique_ptrI24blazing_allocation_chunkEE"></span><span id="ral::memory::allocation_pool::free_chunk__std::unique_ptr:blazing_allocation_chunk:"></span><span class="target" id="classral_1_1memory_1_1allocation__pool_1a117316c8c3b893b49a013e1b795f5e4d"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">free_chunk</span></code><span class="sig-paren">(</span><span class="pre">std</span><span class="pre">::</span><span class="pre">unique_ptr</span><span class="pre">&lt;</span><a class="reference internal" href="structral_1_1memory_1_1blazing__allocation__chunk.html#_CPPv4N3ral6memory24blazing_allocation_chunkE" title="ral::memory::blazing_allocation_chunk"><span class="pre">blazing_allocation_chunk</span></a><span class="pre">&gt;</span> <em><span class="pre">allocation</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral6memory15allocation_pool10free_chunkENSt10unique_ptrI24blazing_allocation_chunkEE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral6memory15allocation_pool10free_chunkENSt10unique_ptrI24blazing_allocation_chunkEE"></span><span id="_CPPv2N3ral6memory15allocation_pool10free_chunkENSt10unique_ptrI24blazing_allocation_chunkEE"></span><span id="ral::memory::allocation_pool::free_chunk__std::unique_ptr:blazing_allocation_chunk:"></span><span class="target" id="classral_1_1memory_1_1allocation__pool_1a117316c8c3b893b49a013e1b795f5e4d"></span>void <code class="sig-name descname">free_chunk</code><span class="sig-paren">(</span>std::unique_ptr&lt;<a class="reference internal" href="structral_1_1memory_1_1blazing__allocation__chunk.html#_CPPv4N3ral6memory24blazing_allocation_chunkE" title="ral::memory::blazing_allocation_chunk">blazing_allocation_chunk</a>&gt; <em>allocation</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral6memory15allocation_pool10free_chunkENSt10unique_ptrI24blazing_allocation_chunkEE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral6memory15allocation_pool12size_buffersEv">
-<span id="_CPPv3N3ral6memory15allocation_pool12size_buffersEv"></span><span id="_CPPv2N3ral6memory15allocation_pool12size_buffersEv"></span><span id="ral::memory::allocation_pool::size_buffers"></span><span class="target" id="classral_1_1memory_1_1allocation__pool_1a832314c575b0ecd133945738f07eb2e7"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">size_t</span> <code class="sig-name descname"><span class="pre">size_buffers</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral6memory15allocation_pool12size_buffersEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral6memory15allocation_pool12size_buffersEv"></span><span id="_CPPv2N3ral6memory15allocation_pool12size_buffersEv"></span><span id="ral::memory::allocation_pool::size_buffers"></span><span class="target" id="classral_1_1memory_1_1allocation__pool_1a832314c575b0ecd133945738f07eb2e7"></span>std::size_t <code class="sig-name descname">size_buffers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral6memory15allocation_pool12size_buffersEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral6memory15allocation_pool8free_allEv">
-<span id="_CPPv3N3ral6memory15allocation_pool8free_allEv"></span><span id="_CPPv2N3ral6memory15allocation_pool8free_allEv"></span><span id="ral::memory::allocation_pool::free_all"></span><span class="target" id="classral_1_1memory_1_1allocation__pool_1a891ab60c9c6756f91cd3c065885fcc98"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">free_all</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral6memory15allocation_pool8free_allEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral6memory15allocation_pool8free_allEv"></span><span id="_CPPv2N3ral6memory15allocation_pool8free_allEv"></span><span id="ral::memory::allocation_pool::free_all"></span><span class="target" id="classral_1_1memory_1_1allocation__pool_1a891ab60c9c6756f91cd3c065885fcc98"></span>void <code class="sig-name descname">free_all</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral6memory15allocation_pool8free_allEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral6memory15allocation_pool21get_allocated_buffersEv">
-<span id="_CPPv3N3ral6memory15allocation_pool21get_allocated_buffersEv"></span><span id="_CPPv2N3ral6memory15allocation_pool21get_allocated_buffersEv"></span><span id="ral::memory::allocation_pool::get_allocated_buffers"></span><span class="target" id="classral_1_1memory_1_1allocation__pool_1a736b458e329b20ff9f960f1948d71c48"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">size_t</span> <code class="sig-name descname"><span class="pre">get_allocated_buffers</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral6memory15allocation_pool21get_allocated_buffersEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral6memory15allocation_pool21get_allocated_buffersEv"></span><span id="_CPPv2N3ral6memory15allocation_pool21get_allocated_buffersEv"></span><span id="ral::memory::allocation_pool::get_allocated_buffers"></span><span class="target" id="classral_1_1memory_1_1allocation__pool_1a736b458e329b20ff9f960f1948d71c48"></span>std::size_t <code class="sig-name descname">get_allocated_buffers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral6memory15allocation_pool21get_allocated_buffersEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral6memory15allocation_pool17get_total_buffersEv">
-<span id="_CPPv3N3ral6memory15allocation_pool17get_total_buffersEv"></span><span id="_CPPv2N3ral6memory15allocation_pool17get_total_buffersEv"></span><span id="ral::memory::allocation_pool::get_total_buffers"></span><span class="target" id="classral_1_1memory_1_1allocation__pool_1a75e28a2486e1eb1920a482a196612852"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">size_t</span> <code class="sig-name descname"><span class="pre">get_total_buffers</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral6memory15allocation_pool17get_total_buffersEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral6memory15allocation_pool17get_total_buffersEv"></span><span id="_CPPv2N3ral6memory15allocation_pool17get_total_buffersEv"></span><span id="ral::memory::allocation_pool::get_total_buffers"></span><span class="target" id="classral_1_1memory_1_1allocation__pool_1a75e28a2486e1eb1920a482a196612852"></span>std::size_t <code class="sig-name descname">get_total_buffers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral6memory15allocation_pool17get_total_buffersEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 </div>
@@ -228,14 +232,14 @@
     </div>
 
     
-  <script src="../_static/js/index.d8bbf5861d671d414e1a.js"></script>
+  <script src="../_static/js/index.d3f166471bb80abb5163.js"></script>
 
 
     <footer class="footer mt-5 mt-md-0">
   <div class="container">
     <p>
           &copy; Copyright 2020, BlazingDB, Inc..<br/>
-        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.4.3.<br/>
     </p>
   </div>
 </footer>

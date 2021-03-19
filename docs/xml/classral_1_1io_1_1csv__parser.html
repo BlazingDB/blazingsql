@@ -7,8 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Class csv_parser &#8212; BlazingSQL v0.18 documentation</title>
     
-  <link href="../_static/css/theme.css" rel="stylesheet" />
-  <link href="../_static/css/index.101715efdecc9b59cb6e1ddfa685c31f.css" rel="stylesheet" />
+  <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
     
   <link rel="stylesheet"
@@ -20,17 +19,21 @@
 
     
       
+  <link rel="stylesheet"
+    href="../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../_static/vendor/lato_latin-ext/1.44.1/index.css">
 
     
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/getting_started.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     
-  <link rel="preload" as="script" href="../_static/js/index.d8bbf5861d671d414e1a.js">
+  <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
     <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
@@ -47,46 +50,43 @@
   </head>
   <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
     
-    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="container-xl">
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
 
-
+    <a class="navbar-brand" href="../index.html">
     
-      
-      <a class="navbar-brand" href="../index.html">
-        <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo">
-      </a>
-      
+      <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo" />
     
-
+    </a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
     </button>
 
-    
     <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
       <ul id="navbar-main-elements" class="navbar-nav mr-auto">
-        <li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../arch.html">
-  BlazingSQL Project Architecture
- </a>
-</li>
-
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../graph.html">
-  Execution Engine
- </a>
-</li>
-
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../api.html">
-  API Documentation
- </a>
-</li>
-
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../arch.html">BlazingSQL Project Architecture</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../graph.html">Execution Engine</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../api.html">API Documentation</a>
+        </li>
+        
         
       </ul>
 
-      <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+
+      
+
+      <ul class="navbar-nav">
+        
+        
       </ul>
     </div>
 </div>
@@ -96,19 +96,27 @@
     <div class="container-xl">
       <div class="row">
           
-            
-            <!-- Only show if we have sidebars configured, else just a small margin  -->
-            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
   <i class="icon fas fa-search"></i>
   <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
 </form>
 <nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
-  <div class="bd-toc-item active">
+
+    <div class="bd-toc-item active">
     
-  </div>
-</nav>
-            </div>
-            
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
           
 
           
@@ -119,26 +127,23 @@
 </div>
 
 <nav id="bd-toc-nav">
-    <ul class="visible nav section-nav flex-column">
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#inheritance-relationships">
-   Inheritance Relationships
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#base-type">
-     Base Type
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#class-documentation">
-   Class Documentation
-  </a>
- </li>
-</ul>
-
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#inheritance-relationships" class="nav-link">Inheritance Relationships</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#base-type" class="nav-link">Base Type</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#class-documentation" class="nav-link">Class Documentation</a>
+        </li>
+    
+    </ul>
 </nav>
 
 
@@ -153,9 +158,6 @@
           </div>
           
 
-          
-          
-            
           
           <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
               
@@ -179,37 +181,37 @@
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
 <dl class="cpp class">
 <dt id="_CPPv4N3ral2io10csv_parserE">
-<span id="_CPPv3N3ral2io10csv_parserE"></span><span id="_CPPv2N3ral2io10csv_parserE"></span><span id="ral::io::csv_parser"></span><span class="target" id="classral_1_1io_1_1csv__parser"></span><em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ral</span><span class="pre">::</span><span class="pre">io</span><code class="sig-prename descclassname"><span class="pre">::</span></code></code><code class="sig-name descname"><span class="pre">csv_parser</span></code> <span class="pre">:</span> <em class="property"><span class="pre">public</span></em> <span class="pre">ral</span><span class="pre">::</span><span class="pre">io</span><span class="pre">::</span><a class="reference internal" href="classral_1_1io_1_1data__parser.html#_CPPv4N3ral2io11data_parserE" title="ral::io::data_parser"><span class="pre">data_parser</span></a><a class="headerlink" href="#_CPPv4N3ral2io10csv_parserE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral2io10csv_parserE"></span><span id="_CPPv2N3ral2io10csv_parserE"></span><span id="ral::io::csv_parser"></span><span class="target" id="classral_1_1io_1_1csv__parser"></span><em class="property">class </em><code class="sig-prename descclassname">ral::io<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">csv_parser</code> : <em class="property">public</em> ral::io::<a class="reference internal" href="classral_1_1io_1_1data__parser.html#_CPPv4N3ral2io11data_parserE" title="ral::io::data_parser">data_parser</a><a class="headerlink" href="#_CPPv4N3ral2io10csv_parserE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Public Functions</p>
 <dl class="cpp function">
 <dt id="_CPPv4N3ral2io10csv_parser10csv_parserENSt3mapINSt6stringENSt6stringEEE">
-<span id="_CPPv3N3ral2io10csv_parser10csv_parserENSt3mapINSt6stringENSt6stringEEE"></span><span id="_CPPv2N3ral2io10csv_parser10csv_parserENSt3mapINSt6stringENSt6stringEEE"></span><span id="ral::io::csv_parser::csv_parser__std::map:ss.ss:"></span><span class="target" id="classral_1_1io_1_1csv__parser_1a968d6e3184638dfb497d4ac8a3080d1f"></span><code class="sig-name descname"><span class="pre">csv_parser</span></code><span class="sig-paren">(</span><span class="pre">std</span><span class="pre">::</span><span class="pre">map</span><span class="pre">&lt;</span><span class="pre">std</span><span class="pre">::</span><span class="pre">string</span><span class="pre">,</span> <span class="pre">std</span><span class="pre">::</span><span class="pre">string</span><span class="pre">&gt;</span> <em><span class="pre">args_map</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io10csv_parser10csv_parserENSt3mapINSt6stringENSt6stringEEE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral2io10csv_parser10csv_parserENSt3mapINSt6stringENSt6stringEEE"></span><span id="_CPPv2N3ral2io10csv_parser10csv_parserENSt3mapINSt6stringENSt6stringEEE"></span><span id="ral::io::csv_parser::csv_parser__std::map:ss.ss:"></span><span class="target" id="classral_1_1io_1_1csv__parser_1a968d6e3184638dfb497d4ac8a3080d1f"></span><code class="sig-name descname">csv_parser</code><span class="sig-paren">(</span>std::map&lt;std::string, std::string&gt; <em>args_map</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io10csv_parser10csv_parserENSt3mapINSt6stringENSt6stringEEE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral2io10csv_parserD0Ev">
-<span id="_CPPv3N3ral2io10csv_parserD0Ev"></span><span id="_CPPv2N3ral2io10csv_parserD0Ev"></span><span id="ral::io::csv_parser::~csv_parser"></span><span class="target" id="classral_1_1io_1_1csv__parser_1ac29fcf8f2f1fcdebb2ef303a5d5bf4d1"></span><em class="property"><span class="pre">virtual</span></em> <code class="sig-name descname"><span class="pre">~csv_parser</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io10csv_parserD0Ev" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral2io10csv_parserD0Ev"></span><span id="_CPPv2N3ral2io10csv_parserD0Ev"></span><span id="ral::io::csv_parser::~csv_parser"></span><span class="target" id="classral_1_1io_1_1csv__parser_1ac29fcf8f2f1fcdebb2ef303a5d5bf4d1"></span><em class="property">virtual</em> <code class="sig-name descname">~csv_parser</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io10csv_parserD0Ev" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral2io10csv_parser11parse_batchEN3ral2io11data_handleERK6SchemaNSt6vectorIiEENSt6vectorIN4cudf9size_typeEEE">
-<span id="_CPPv3N3ral2io10csv_parser11parse_batchEN3ral2io11data_handleERK6SchemaNSt6vectorIiEENSt6vectorIN4cudf9size_typeEEE"></span><span id="_CPPv2N3ral2io10csv_parser11parse_batchEN3ral2io11data_handleERK6SchemaNSt6vectorIiEENSt6vectorIN4cudf9size_typeEEE"></span><span id="ral::io::csv_parser::parse_batch__ral::io::data_handle.SchemaCR.std::vector:i:.std::vector:cudf::size_type:"></span><span class="target" id="classral_1_1io_1_1csv__parser_1aa5f2a8243cc1897ec38162f5955e1265"></span><em class="property"><span class="pre">virtual</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">unique_ptr</span><span class="pre">&lt;</span><span class="pre">ral</span><span class="pre">::</span><span class="pre">frame</span><span class="pre">::</span><a class="reference internal" href="classral_1_1frame_1_1BlazingTable.html#_CPPv4N3ral5frame12BlazingTableE" title="ral::frame::BlazingTable"><span class="pre">BlazingTable</span></a><span class="pre">&gt;</span> <code class="sig-name descname"><span class="pre">parse_batch</span></code><span class="sig-paren">(</span><span class="pre">ral</span><span class="pre">::</span><span class="pre">io</span><span class="pre">::</span><a class="reference internal" href="structral_1_1io_1_1data__handle.html#_CPPv4N3ral2io11data_handleE" title="ral::io::data_handle"><span class="pre">data_handle</span></a> <em><span class="pre">handle</span></em>, <em class="property"><span class="pre">const</span></em> <a class="reference internal" href="classral_1_1io_1_1Schema.html#_CPPv4N3ral2io6SchemaE" title="ral::io::Schema"><span class="pre">Schema</span></a> <span class="pre">&amp;</span><em><span class="pre">schema</span></em>, <span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><span class="pre">int</span><span class="pre">&gt;</span> <em><span class="pre">column_indices</span></em>, <span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><span class="pre">cudf</span><span class="pre">::</span><span class="pre">size_type</span><span class="pre">&gt;</span> <em><span class="pre">row_groups</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io10csv_parser11parse_batchEN3ral2io11data_handleERK6SchemaNSt6vectorIiEENSt6vectorIN4cudf9size_typeEEE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral2io10csv_parser11parse_batchEN3ral2io11data_handleERK6SchemaNSt6vectorIiEENSt6vectorIN4cudf9size_typeEEE"></span><span id="_CPPv2N3ral2io10csv_parser11parse_batchEN3ral2io11data_handleERK6SchemaNSt6vectorIiEENSt6vectorIN4cudf9size_typeEEE"></span><span id="ral::io::csv_parser::parse_batch__ral::io::data_handle.SchemaCR.std::vector:i:.std::vector:cudf::size_type:"></span><span class="target" id="classral_1_1io_1_1csv__parser_1aa5f2a8243cc1897ec38162f5955e1265"></span><em class="property">virtual</em> std::unique_ptr&lt;ral::frame::<a class="reference internal" href="classral_1_1frame_1_1BlazingTable.html#_CPPv4N3ral5frame12BlazingTableE" title="ral::frame::BlazingTable">BlazingTable</a>&gt; <code class="sig-name descname">parse_batch</code><span class="sig-paren">(</span>ral::io::<a class="reference internal" href="structral_1_1io_1_1data__handle.html#_CPPv4N3ral2io11data_handleE" title="ral::io::data_handle">data_handle</a> <em>handle</em>, <em class="property">const</em> <a class="reference internal" href="classral_1_1io_1_1Schema.html#_CPPv4N3ral2io6SchemaE" title="ral::io::Schema">Schema</a> &amp;<em>schema</em>, std::vector&lt;int&gt; <em>column_indices</em>, std::vector&lt;cudf::size_type&gt; <em>row_groups</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io10csv_parser11parse_batchEN3ral2io11data_handleERK6SchemaNSt6vectorIiEENSt6vectorIN4cudf9size_typeEEE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral2io10csv_parser12parse_schemaENSt10shared_ptrIN5arrow2io16RandomAccessFileEEERN3ral2io6SchemaE">
-<span id="_CPPv3N3ral2io10csv_parser12parse_schemaENSt10shared_ptrIN5arrow2io16RandomAccessFileEEERN3ral2io6SchemaE"></span><span id="_CPPv2N3ral2io10csv_parser12parse_schemaENSt10shared_ptrIN5arrow2io16RandomAccessFileEEERN3ral2io6SchemaE"></span><span id="ral::io::csv_parser::parse_schema__std::shared_ptr:arrow::io::RandomAccessFile:.ral::io::SchemaR"></span><span class="target" id="classral_1_1io_1_1csv__parser_1ae9d6249732a74e43c231257b7a84334b"></span><em class="property"><span class="pre">virtual</span></em> <span class="pre">void</span> <code class="sig-name descname"><span class="pre">parse_schema</span></code><span class="sig-paren">(</span><span class="pre">std</span><span class="pre">::</span><span class="pre">shared_ptr</span><span class="pre">&lt;</span><span class="pre">arrow</span><span class="pre">::</span><span class="pre">io</span><span class="pre">::</span><span class="pre">RandomAccessFile</span><span class="pre">&gt;</span> <em><span class="pre">file</span></em>, <span class="pre">ral</span><span class="pre">::</span><span class="pre">io</span><span class="pre">::</span><a class="reference internal" href="classral_1_1io_1_1Schema.html#_CPPv4N3ral2io6SchemaE" title="ral::io::Schema"><span class="pre">Schema</span></a> <span class="pre">&amp;</span><em><span class="pre">schema</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io10csv_parser12parse_schemaENSt10shared_ptrIN5arrow2io16RandomAccessFileEEERN3ral2io6SchemaE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral2io10csv_parser12parse_schemaENSt10shared_ptrIN5arrow2io16RandomAccessFileEEERN3ral2io6SchemaE"></span><span id="_CPPv2N3ral2io10csv_parser12parse_schemaENSt10shared_ptrIN5arrow2io16RandomAccessFileEEERN3ral2io6SchemaE"></span><span id="ral::io::csv_parser::parse_schema__std::shared_ptr:arrow::io::RandomAccessFile:.ral::io::SchemaR"></span><span class="target" id="classral_1_1io_1_1csv__parser_1ae9d6249732a74e43c231257b7a84334b"></span><em class="property">virtual</em> void <code class="sig-name descname">parse_schema</code><span class="sig-paren">(</span>std::shared_ptr&lt;arrow::io::RandomAccessFile&gt; <em>file</em>, ral::io::<a class="reference internal" href="classral_1_1io_1_1Schema.html#_CPPv4N3ral2io6SchemaE" title="ral::io::Schema">Schema</a> &amp;<em>schema</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io10csv_parser12parse_schemaENSt10shared_ptrIN5arrow2io16RandomAccessFileEEERN3ral2io6SchemaE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4NK3ral2io10csv_parser20max_bytes_chunk_sizeEv">
-<span id="_CPPv3NK3ral2io10csv_parser20max_bytes_chunk_sizeEv"></span><span id="_CPPv2NK3ral2io10csv_parser20max_bytes_chunk_sizeEv"></span><span id="ral::io::csv_parser::max_bytes_chunk_sizeC"></span><span class="target" id="classral_1_1io_1_1csv__parser_1af4f12c1bd8eada1c5ac6bfbc99ea0f6d"></span><span class="pre">size_t</span> <code class="sig-name descname"><span class="pre">max_bytes_chunk_size</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em><a class="headerlink" href="#_CPPv4NK3ral2io10csv_parser20max_bytes_chunk_sizeEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3NK3ral2io10csv_parser20max_bytes_chunk_sizeEv"></span><span id="_CPPv2NK3ral2io10csv_parser20max_bytes_chunk_sizeEv"></span><span id="ral::io::csv_parser::max_bytes_chunk_sizeC"></span><span class="target" id="classral_1_1io_1_1csv__parser_1af4f12c1bd8eada1c5ac6bfbc99ea0f6d"></span>size_t <code class="sig-name descname">max_bytes_chunk_size</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral2io10csv_parser20max_bytes_chunk_sizeEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4NK3ral2io10csv_parser4typeEv">
-<span id="_CPPv3NK3ral2io10csv_parser4typeEv"></span><span id="_CPPv2NK3ral2io10csv_parser4typeEv"></span><span id="ral::io::csv_parser::typeC"></span><span class="target" id="classral_1_1io_1_1csv__parser_1a037073b233a35609fb13a00e295c959c"></span><em class="property"><span class="pre">inline</span></em> <em class="property"><span class="pre">virtual</span></em> <a class="reference internal" href="enum_DataType_8h_1ac2f7802a3427e8ee0fff9ae6492f2c81.html#_CPPv4N3ral2io8DataTypeE" title="ral::io::DataType"><span class="pre">DataType</span></a> <code class="sig-name descname"><span class="pre">type</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em> <em class="property"><span class="pre">override</span></em><a class="headerlink" href="#_CPPv4NK3ral2io10csv_parser4typeEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3NK3ral2io10csv_parser4typeEv"></span><span id="_CPPv2NK3ral2io10csv_parser4typeEv"></span><span id="ral::io::csv_parser::typeC"></span><span class="target" id="classral_1_1io_1_1csv__parser_1a037073b233a35609fb13a00e295c959c"></span><em class="property">inline</em> <em class="property">virtual</em> <a class="reference internal" href="enum_DataType_8h_1ac2f7802a3427e8ee0fff9ae6492f2c81.html#_CPPv4N3ral2io8DataTypeE" title="ral::io::DataType">DataType</a> <code class="sig-name descname">type</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em> <em class="property">override</em><a class="headerlink" href="#_CPPv4NK3ral2io10csv_parser4typeEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 </div>
@@ -234,14 +236,14 @@
     </div>
 
     
-  <script src="../_static/js/index.d8bbf5861d671d414e1a.js"></script>
+  <script src="../_static/js/index.d3f166471bb80abb5163.js"></script>
 
 
     <footer class="footer mt-5 mt-md-0">
   <div class="container">
     <p>
           &copy; Copyright 2020, BlazingDB, Inc..<br/>
-        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.4.3.<br/>
     </p>
   </div>
 </footer>

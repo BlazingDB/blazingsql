@@ -7,8 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Class Schema &#8212; BlazingSQL v0.18 documentation</title>
     
-  <link href="../_static/css/theme.css" rel="stylesheet" />
-  <link href="../_static/css/index.101715efdecc9b59cb6e1ddfa685c31f.css" rel="stylesheet" />
+  <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
     
   <link rel="stylesheet"
@@ -20,17 +19,21 @@
 
     
       
+  <link rel="stylesheet"
+    href="../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../_static/vendor/lato_latin-ext/1.44.1/index.css">
 
     
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/getting_started.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     
-  <link rel="preload" as="script" href="../_static/js/index.d8bbf5861d671d414e1a.js">
+  <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
     <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
@@ -47,46 +50,43 @@
   </head>
   <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
     
-    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="container-xl">
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
 
-
+    <a class="navbar-brand" href="../index.html">
     
-      
-      <a class="navbar-brand" href="../index.html">
-        <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo">
-      </a>
-      
+      <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo" />
     
-
+    </a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
     </button>
 
-    
     <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
       <ul id="navbar-main-elements" class="navbar-nav mr-auto">
-        <li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../arch.html">
-  BlazingSQL Project Architecture
- </a>
-</li>
-
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../graph.html">
-  Execution Engine
- </a>
-</li>
-
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../api.html">
-  API Documentation
- </a>
-</li>
-
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../arch.html">BlazingSQL Project Architecture</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../graph.html">Execution Engine</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../api.html">API Documentation</a>
+        </li>
+        
         
       </ul>
 
-      <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+
+      
+
+      <ul class="navbar-nav">
+        
+        
       </ul>
     </div>
 </div>
@@ -96,19 +96,27 @@
     <div class="container-xl">
       <div class="row">
           
-            
-            <!-- Only show if we have sidebars configured, else just a small margin  -->
-            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
   <i class="icon fas fa-search"></i>
   <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
 </form>
 <nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
-  <div class="bd-toc-item active">
+
+    <div class="bd-toc-item active">
     
-  </div>
-</nav>
-            </div>
-            
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
           
 
           
@@ -119,14 +127,13 @@
 </div>
 
 <nav id="bd-toc-nav">
-    <ul class="visible nav section-nav flex-column">
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#class-documentation">
-   Class Documentation
-  </a>
- </li>
-</ul>
-
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#class-documentation" class="nav-link">Class Documentation</a>
+        </li>
+    
+    </ul>
 </nav>
 
 
@@ -142,9 +149,6 @@
           
 
           
-          
-            
-          
           <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
               
               <div>
@@ -158,152 +162,152 @@
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
 <dl class="cpp class">
 <dt id="_CPPv4N3ral2io6SchemaE">
-<span id="_CPPv3N3ral2io6SchemaE"></span><span id="_CPPv2N3ral2io6SchemaE"></span><span id="ral::io::Schema"></span><span class="target" id="classral_1_1io_1_1Schema"></span><em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ral</span><span class="pre">::</span><span class="pre">io</span><code class="sig-prename descclassname"><span class="pre">::</span></code></code><code class="sig-name descname"><span class="pre">Schema</span></code><a class="headerlink" href="#_CPPv4N3ral2io6SchemaE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral2io6SchemaE"></span><span id="_CPPv2N3ral2io6SchemaE"></span><span id="ral::io::Schema"></span><span class="target" id="classral_1_1io_1_1Schema"></span><em class="property">class </em><code class="sig-prename descclassname">ral::io<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">Schema</code><a class="headerlink" href="#_CPPv4N3ral2io6SchemaE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Public Functions</p>
 <dl class="cpp function">
 <dt id="_CPPv4N3ral2io6Schema6SchemaEv">
-<span id="_CPPv3N3ral2io6Schema6SchemaEv"></span><span id="_CPPv2N3ral2io6Schema6SchemaEv"></span><span id="ral::io::Schema::Schema"></span><span class="target" id="classral_1_1io_1_1Schema_1a8a8e64728738b391f4a712e32c882328"></span><code class="sig-name descname"><span class="pre">Schema</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io6Schema6SchemaEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral2io6Schema6SchemaEv"></span><span id="_CPPv2N3ral2io6Schema6SchemaEv"></span><span id="ral::io::Schema::Schema"></span><span class="target" id="classral_1_1io_1_1Schema_1a8a8e64728738b391f4a712e32c882328"></span><code class="sig-name descname">Schema</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io6Schema6SchemaEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral2io6Schema6SchemaENSt6vectorINSt6stringEEENSt6vectorI6size_tEENSt6vectorIN4cudf7type_idEEENSt6vectorINSt6vectorIiEEEE">
-<span id="_CPPv3N3ral2io6Schema6SchemaENSt6vectorINSt6stringEEENSt6vectorI6size_tEENSt6vectorIN4cudf7type_idEEENSt6vectorINSt6vectorIiEEEE"></span><span id="_CPPv2N3ral2io6Schema6SchemaENSt6vectorINSt6stringEEENSt6vectorI6size_tEENSt6vectorIN4cudf7type_idEEENSt6vectorINSt6vectorIiEEEE"></span><span id="ral::io::Schema::Schema__std::vector:ss:.std::vector:s:.std::vector:cudf::type_id:.std::vector:std::vector:i::"></span><span class="target" id="classral_1_1io_1_1Schema_1ad5677d1c413fdbb2b302d55158e8f9a9"></span><code class="sig-name descname"><span class="pre">Schema</span></code><span class="sig-paren">(</span><span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><span class="pre">std</span><span class="pre">::</span><span class="pre">string</span><span class="pre">&gt;</span> <em><span class="pre">names</span></em>, <span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><span class="pre">size_t</span><span class="pre">&gt;</span> <em><span class="pre">calcite_to_file_indices</span></em>, <span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><span class="pre">cudf</span><span class="pre">::</span><span class="pre">type_id</span><span class="pre">&gt;</span> <em><span class="pre">types</span></em>, <span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><span class="pre">int</span><span class="pre">&gt;</span><span class="pre">&gt;</span> <em><span class="pre">row_groups_ids</span></em> <span class="pre">=</span> <span class="pre">{</span><span class="pre">}</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io6Schema6SchemaENSt6vectorINSt6stringEEENSt6vectorI6size_tEENSt6vectorIN4cudf7type_idEEENSt6vectorINSt6vectorIiEEEE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral2io6Schema6SchemaENSt6vectorINSt6stringEEENSt6vectorI6size_tEENSt6vectorIN4cudf7type_idEEENSt6vectorINSt6vectorIiEEEE"></span><span id="_CPPv2N3ral2io6Schema6SchemaENSt6vectorINSt6stringEEENSt6vectorI6size_tEENSt6vectorIN4cudf7type_idEEENSt6vectorINSt6vectorIiEEEE"></span><span id="ral::io::Schema::Schema__std::vector:ss:.std::vector:s:.std::vector:cudf::type_id:.std::vector:std::vector:i::"></span><span class="target" id="classral_1_1io_1_1Schema_1ad5677d1c413fdbb2b302d55158e8f9a9"></span><code class="sig-name descname">Schema</code><span class="sig-paren">(</span>std::vector&lt;std::string&gt; <em>names</em>, std::vector&lt;size_t&gt; <em>calcite_to_file_indices</em>, std::vector&lt;cudf::type_id&gt; <em>types</em>, std::vector&lt;std::vector&lt;int&gt;&gt; <em>row_groups_ids</em> = {}<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io6Schema6SchemaENSt6vectorINSt6stringEEENSt6vectorI6size_tEENSt6vectorIN4cudf7type_idEEENSt6vectorINSt6vectorIiEEEE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral2io6Schema6SchemaENSt6vectorINSt6stringEEENSt6vectorI6size_tEENSt6vectorIN4cudf7type_idEEENSt6vectorIbEENSt6vectorINSt6vectorIiEEEE">
-<span id="_CPPv3N3ral2io6Schema6SchemaENSt6vectorINSt6stringEEENSt6vectorI6size_tEENSt6vectorIN4cudf7type_idEEENSt6vectorIbEENSt6vectorINSt6vectorIiEEEE"></span><span id="_CPPv2N3ral2io6Schema6SchemaENSt6vectorINSt6stringEEENSt6vectorI6size_tEENSt6vectorIN4cudf7type_idEEENSt6vectorIbEENSt6vectorINSt6vectorIiEEEE"></span><span id="ral::io::Schema::Schema__std::vector:ss:.std::vector:s:.std::vector:cudf::type_id:.std::vector:b:.std::vector:std::vector:i::"></span><span class="target" id="classral_1_1io_1_1Schema_1a72ab7081f47daa868987f0def1dc7324"></span><code class="sig-name descname"><span class="pre">Schema</span></code><span class="sig-paren">(</span><span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><span class="pre">std</span><span class="pre">::</span><span class="pre">string</span><span class="pre">&gt;</span> <em><span class="pre">names</span></em>, <span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><span class="pre">size_t</span><span class="pre">&gt;</span> <em><span class="pre">calcite_to_file_indices</span></em>, <span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><span class="pre">cudf</span><span class="pre">::</span><span class="pre">type_id</span><span class="pre">&gt;</span> <em><span class="pre">types</span></em>, <span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><span class="pre">bool</span><span class="pre">&gt;</span> <em><span class="pre">in_file</span></em>, <span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><span class="pre">int</span><span class="pre">&gt;</span><span class="pre">&gt;</span> <em><span class="pre">row_groups_ids</span></em> <span class="pre">=</span> <span class="pre">{</span><span class="pre">}</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io6Schema6SchemaENSt6vectorINSt6stringEEENSt6vectorI6size_tEENSt6vectorIN4cudf7type_idEEENSt6vectorIbEENSt6vectorINSt6vectorIiEEEE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral2io6Schema6SchemaENSt6vectorINSt6stringEEENSt6vectorI6size_tEENSt6vectorIN4cudf7type_idEEENSt6vectorIbEENSt6vectorINSt6vectorIiEEEE"></span><span id="_CPPv2N3ral2io6Schema6SchemaENSt6vectorINSt6stringEEENSt6vectorI6size_tEENSt6vectorIN4cudf7type_idEEENSt6vectorIbEENSt6vectorINSt6vectorIiEEEE"></span><span id="ral::io::Schema::Schema__std::vector:ss:.std::vector:s:.std::vector:cudf::type_id:.std::vector:b:.std::vector:std::vector:i::"></span><span class="target" id="classral_1_1io_1_1Schema_1a72ab7081f47daa868987f0def1dc7324"></span><code class="sig-name descname">Schema</code><span class="sig-paren">(</span>std::vector&lt;std::string&gt; <em>names</em>, std::vector&lt;size_t&gt; <em>calcite_to_file_indices</em>, std::vector&lt;cudf::type_id&gt; <em>types</em>, std::vector&lt;bool&gt; <em>in_file</em>, std::vector&lt;std::vector&lt;int&gt;&gt; <em>row_groups_ids</em> = {}<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io6Schema6SchemaENSt6vectorINSt6stringEEENSt6vectorI6size_tEENSt6vectorIN4cudf7type_idEEENSt6vectorIbEENSt6vectorINSt6vectorIiEEEE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral2io6Schema6SchemaENSt6vectorINSt6stringEEENSt6vectorIN4cudf7type_idEEE">
-<span id="_CPPv3N3ral2io6Schema6SchemaENSt6vectorINSt6stringEEENSt6vectorIN4cudf7type_idEEE"></span><span id="_CPPv2N3ral2io6Schema6SchemaENSt6vectorINSt6stringEEENSt6vectorIN4cudf7type_idEEE"></span><span id="ral::io::Schema::Schema__std::vector:ss:.std::vector:cudf::type_id:"></span><span class="target" id="classral_1_1io_1_1Schema_1a7127c5eaf8aff04d89e7cdea28ef3ce8"></span><code class="sig-name descname"><span class="pre">Schema</span></code><span class="sig-paren">(</span><span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><span class="pre">std</span><span class="pre">::</span><span class="pre">string</span><span class="pre">&gt;</span> <em><span class="pre">names</span></em>, <span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><span class="pre">cudf</span><span class="pre">::</span><span class="pre">type_id</span><span class="pre">&gt;</span> <em><span class="pre">types</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io6Schema6SchemaENSt6vectorINSt6stringEEENSt6vectorIN4cudf7type_idEEE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral2io6Schema6SchemaENSt6vectorINSt6stringEEENSt6vectorIN4cudf7type_idEEE"></span><span id="_CPPv2N3ral2io6Schema6SchemaENSt6vectorINSt6stringEEENSt6vectorIN4cudf7type_idEEE"></span><span id="ral::io::Schema::Schema__std::vector:ss:.std::vector:cudf::type_id:"></span><span class="target" id="classral_1_1io_1_1Schema_1a7127c5eaf8aff04d89e7cdea28ef3ce8"></span><code class="sig-name descname">Schema</code><span class="sig-paren">(</span>std::vector&lt;std::string&gt; <em>names</em>, std::vector&lt;cudf::type_id&gt; <em>types</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io6Schema6SchemaENSt6vectorINSt6stringEEENSt6vectorIN4cudf7type_idEEE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral2io6Schema6SchemaERK6Schema">
-<span id="_CPPv3N3ral2io6Schema6SchemaERK6Schema"></span><span id="_CPPv2N3ral2io6Schema6SchemaERK6Schema"></span><span id="ral::io::Schema::Schema__SchemaCR"></span><span class="target" id="classral_1_1io_1_1Schema_1a101d607e65e556dd91ebb9e86a133dc7"></span><code class="sig-name descname"><span class="pre">Schema</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <a class="reference internal" href="#_CPPv4N3ral2io6Schema6SchemaERK6Schema" title="ral::io::Schema::Schema"><span class="pre">Schema</span></a><span class="pre">&amp;</span><span class="sig-paren">)</span> <span class="pre">=</span> <span class="pre">default</span><a class="headerlink" href="#_CPPv4N3ral2io6Schema6SchemaERK6Schema" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral2io6Schema6SchemaERK6Schema"></span><span id="_CPPv2N3ral2io6Schema6SchemaERK6Schema"></span><span id="ral::io::Schema::Schema__SchemaCR"></span><span class="target" id="classral_1_1io_1_1Schema_1a101d607e65e556dd91ebb9e86a133dc7"></span><code class="sig-name descname">Schema</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4N3ral2io6Schema6SchemaERK6Schema" title="ral::io::Schema::Schema">Schema</a>&amp;<span class="sig-paren">)</span> = default<a class="headerlink" href="#_CPPv4N3ral2io6Schema6SchemaERK6Schema" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral2io6SchemaaSERK6Schema">
-<span id="_CPPv3N3ral2io6SchemaaSERK6Schema"></span><span id="_CPPv2N3ral2io6SchemaaSERK6Schema"></span><span id="ral::io::Schema::assign-operator__SchemaCR"></span><span class="target" id="classral_1_1io_1_1Schema_1ab07d34c02b98b34d80b4aa5fd18156a4"></span><a class="reference internal" href="#_CPPv4N3ral2io6SchemaE" title="ral::io::Schema"><span class="pre">Schema</span></a> <span class="pre">&amp;</span><code class="sig-name descname"><span class="pre">operator=</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <a class="reference internal" href="#_CPPv4N3ral2io6SchemaE" title="ral::io::Schema"><span class="pre">Schema</span></a><span class="pre">&amp;</span><span class="sig-paren">)</span> <span class="pre">=</span> <span class="pre">default</span><a class="headerlink" href="#_CPPv4N3ral2io6SchemaaSERK6Schema" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral2io6SchemaaSERK6Schema"></span><span id="_CPPv2N3ral2io6SchemaaSERK6Schema"></span><span id="ral::io::Schema::assign-operator__SchemaCR"></span><span class="target" id="classral_1_1io_1_1Schema_1ab07d34c02b98b34d80b4aa5fd18156a4"></span><a class="reference internal" href="#_CPPv4N3ral2io6SchemaE" title="ral::io::Schema">Schema</a> &amp;<code class="sig-name descname">operator=</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4N3ral2io6SchemaE" title="ral::io::Schema">Schema</a>&amp;<span class="sig-paren">)</span> = default<a class="headerlink" href="#_CPPv4N3ral2io6SchemaaSERK6Schema" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral2io6SchemaD0Ev">
-<span id="_CPPv3N3ral2io6SchemaD0Ev"></span><span id="_CPPv2N3ral2io6SchemaD0Ev"></span><span id="ral::io::Schema::~Schema"></span><span class="target" id="classral_1_1io_1_1Schema_1ac972581002961398bd4eb8e6160eeb6b"></span><em class="property"><span class="pre">virtual</span></em> <code class="sig-name descname"><span class="pre">~Schema</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io6SchemaD0Ev" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral2io6SchemaD0Ev"></span><span id="_CPPv2N3ral2io6SchemaD0Ev"></span><span id="ral::io::Schema::~Schema"></span><span class="target" id="classral_1_1io_1_1Schema_1ac972581002961398bd4eb8e6160eeb6b"></span><em class="property">virtual</em> <code class="sig-name descname">~Schema</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io6SchemaD0Ev" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4NK3ral2io6Schema9get_namesEv">
-<span id="_CPPv3NK3ral2io6Schema9get_namesEv"></span><span id="_CPPv2NK3ral2io6Schema9get_namesEv"></span><span id="ral::io::Schema::get_namesC"></span><span class="target" id="classral_1_1io_1_1Schema_1a1caf1be9e6f2661113fb65f79adf3804"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><span class="pre">std</span><span class="pre">::</span><span class="pre">string</span><span class="pre">&gt;</span> <code class="sig-name descname"><span class="pre">get_names</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em><a class="headerlink" href="#_CPPv4NK3ral2io6Schema9get_namesEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3NK3ral2io6Schema9get_namesEv"></span><span id="_CPPv2NK3ral2io6Schema9get_namesEv"></span><span id="ral::io::Schema::get_namesC"></span><span class="target" id="classral_1_1io_1_1Schema_1a1caf1be9e6f2661113fb65f79adf3804"></span>std::vector&lt;std::string&gt; <code class="sig-name descname">get_names</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral2io6Schema9get_namesEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral2io6Schema9set_namesERKNSt6vectorINSt6stringEEE">
-<span id="_CPPv3N3ral2io6Schema9set_namesERKNSt6vectorINSt6stringEEE"></span><span id="_CPPv2N3ral2io6Schema9set_namesERKNSt6vectorINSt6stringEEE"></span><span id="ral::io::Schema::set_names__std::vector:ss:CR"></span><span class="target" id="classral_1_1io_1_1Schema_1a62fec8bebabfaffd202cdafb8890b2c3"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">set_names</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><span class="pre">std</span><span class="pre">::</span><span class="pre">string</span><span class="pre">&gt;</span> <span class="pre">&amp;</span><em><span class="pre">names</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io6Schema9set_namesERKNSt6vectorINSt6stringEEE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral2io6Schema9set_namesERKNSt6vectorINSt6stringEEE"></span><span id="_CPPv2N3ral2io6Schema9set_namesERKNSt6vectorINSt6stringEEE"></span><span id="ral::io::Schema::set_names__std::vector:ss:CR"></span><span class="target" id="classral_1_1io_1_1Schema_1a62fec8bebabfaffd202cdafb8890b2c3"></span>void <code class="sig-name descname">set_names</code><span class="sig-paren">(</span><em class="property">const</em> std::vector&lt;std::string&gt; &amp;<em>names</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io6Schema9set_namesERKNSt6vectorINSt6stringEEE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4NK3ral2io6Schema9get_filesEv">
-<span id="_CPPv3NK3ral2io6Schema9get_filesEv"></span><span id="_CPPv2NK3ral2io6Schema9get_filesEv"></span><span id="ral::io::Schema::get_filesC"></span><span class="target" id="classral_1_1io_1_1Schema_1a7b3794e4d9fab810ecdeac9c50c5ab25"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><span class="pre">std</span><span class="pre">::</span><span class="pre">string</span><span class="pre">&gt;</span> <code class="sig-name descname"><span class="pre">get_files</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em><a class="headerlink" href="#_CPPv4NK3ral2io6Schema9get_filesEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3NK3ral2io6Schema9get_filesEv"></span><span id="_CPPv2NK3ral2io6Schema9get_filesEv"></span><span id="ral::io::Schema::get_filesC"></span><span class="target" id="classral_1_1io_1_1Schema_1a7b3794e4d9fab810ecdeac9c50c5ab25"></span>std::vector&lt;std::string&gt; <code class="sig-name descname">get_files</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral2io6Schema9get_filesEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4NK3ral2io6Schema11get_in_fileEv">
-<span id="_CPPv3NK3ral2io6Schema11get_in_fileEv"></span><span id="_CPPv2NK3ral2io6Schema11get_in_fileEv"></span><span id="ral::io::Schema::get_in_fileC"></span><span class="target" id="classral_1_1io_1_1Schema_1a600d2b8054199d240e7369201110d3ab"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><span class="pre">bool</span><span class="pre">&gt;</span> <code class="sig-name descname"><span class="pre">get_in_file</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em><a class="headerlink" href="#_CPPv4NK3ral2io6Schema11get_in_fileEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3NK3ral2io6Schema11get_in_fileEv"></span><span id="_CPPv2NK3ral2io6Schema11get_in_fileEv"></span><span id="ral::io::Schema::get_in_fileC"></span><span class="target" id="classral_1_1io_1_1Schema_1a600d2b8054199d240e7369201110d3ab"></span>std::vector&lt;bool&gt; <code class="sig-name descname">get_in_file</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral2io6Schema11get_in_fileEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4NK3ral2io6Schema11all_in_fileEv">
-<span id="_CPPv3NK3ral2io6Schema11all_in_fileEv"></span><span id="_CPPv2NK3ral2io6Schema11all_in_fileEv"></span><span id="ral::io::Schema::all_in_fileC"></span><span class="target" id="classral_1_1io_1_1Schema_1a608e6c054dd10d92ea4a96dd968fab5e"></span><span class="pre">bool</span> <code class="sig-name descname"><span class="pre">all_in_file</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em><a class="headerlink" href="#_CPPv4NK3ral2io6Schema11all_in_fileEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3NK3ral2io6Schema11all_in_fileEv"></span><span id="_CPPv2NK3ral2io6Schema11all_in_fileEv"></span><span id="ral::io::Schema::all_in_fileC"></span><span class="target" id="classral_1_1io_1_1Schema_1a608e6c054dd10d92ea4a96dd968fab5e"></span>bool <code class="sig-name descname">all_in_file</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral2io6Schema11all_in_fileEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4NK3ral2io6Schema10get_dtypesEv">
-<span id="_CPPv3NK3ral2io6Schema10get_dtypesEv"></span><span id="_CPPv2NK3ral2io6Schema10get_dtypesEv"></span><span id="ral::io::Schema::get_dtypesC"></span><span class="target" id="classral_1_1io_1_1Schema_1a17c135c4be793339b7cdd61d0ce8f511"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><span class="pre">cudf</span><span class="pre">::</span><span class="pre">type_id</span><span class="pre">&gt;</span> <code class="sig-name descname"><span class="pre">get_dtypes</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em><a class="headerlink" href="#_CPPv4NK3ral2io6Schema10get_dtypesEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3NK3ral2io6Schema10get_dtypesEv"></span><span id="_CPPv2NK3ral2io6Schema10get_dtypesEv"></span><span id="ral::io::Schema::get_dtypesC"></span><span class="target" id="classral_1_1io_1_1Schema_1a17c135c4be793339b7cdd61d0ce8f511"></span>std::vector&lt;cudf::type_id&gt; <code class="sig-name descname">get_dtypes</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral2io6Schema10get_dtypesEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4NK3ral2io6Schema14get_data_typesEv">
-<span id="_CPPv3NK3ral2io6Schema14get_data_typesEv"></span><span id="_CPPv2NK3ral2io6Schema14get_data_typesEv"></span><span id="ral::io::Schema::get_data_typesC"></span><span class="target" id="classral_1_1io_1_1Schema_1ab4a678f32499a8a758c80d04e7298342"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><span class="pre">cudf</span><span class="pre">::</span><span class="pre">data_type</span><span class="pre">&gt;</span> <code class="sig-name descname"><span class="pre">get_data_types</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em><a class="headerlink" href="#_CPPv4NK3ral2io6Schema14get_data_typesEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3NK3ral2io6Schema14get_data_typesEv"></span><span id="_CPPv2NK3ral2io6Schema14get_data_typesEv"></span><span id="ral::io::Schema::get_data_typesC"></span><span class="target" id="classral_1_1io_1_1Schema_1ab4a678f32499a8a758c80d04e7298342"></span>std::vector&lt;cudf::data_type&gt; <code class="sig-name descname">get_data_types</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral2io6Schema14get_data_typesEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4NK3ral2io6Schema9get_dtypeE6size_t">
-<span id="_CPPv3NK3ral2io6Schema9get_dtypeE6size_t"></span><span id="_CPPv2NK3ral2io6Schema9get_dtypeE6size_t"></span><span id="ral::io::Schema::get_dtype__sC"></span><span class="target" id="classral_1_1io_1_1Schema_1a17b9855455952df8a80748510322b4e7"></span><span class="pre">cudf</span><span class="pre">::</span><span class="pre">type_id</span> <code class="sig-name descname"><span class="pre">get_dtype</span></code><span class="sig-paren">(</span><span class="pre">size_t</span> <em><span class="pre">schema_index</span></em><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em><a class="headerlink" href="#_CPPv4NK3ral2io6Schema9get_dtypeE6size_t" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3NK3ral2io6Schema9get_dtypeE6size_t"></span><span id="_CPPv2NK3ral2io6Schema9get_dtypeE6size_t"></span><span id="ral::io::Schema::get_dtype__sC"></span><span class="target" id="classral_1_1io_1_1Schema_1a17b9855455952df8a80748510322b4e7"></span>cudf::type_id <code class="sig-name descname">get_dtype</code><span class="sig-paren">(</span>size_t <em>schema_index</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral2io6Schema9get_dtypeE6size_t" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4NK3ral2io6Schema8get_nameE6size_t">
-<span id="_CPPv3NK3ral2io6Schema8get_nameE6size_t"></span><span id="_CPPv2NK3ral2io6Schema8get_nameE6size_t"></span><span id="ral::io::Schema::get_name__sC"></span><span class="target" id="classral_1_1io_1_1Schema_1a3aa7f563ec5fdbe83de9926b4bfae19f"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">string</span> <code class="sig-name descname"><span class="pre">get_name</span></code><span class="sig-paren">(</span><span class="pre">size_t</span> <em><span class="pre">schema_index</span></em><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em><a class="headerlink" href="#_CPPv4NK3ral2io6Schema8get_nameE6size_t" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3NK3ral2io6Schema8get_nameE6size_t"></span><span id="_CPPv2NK3ral2io6Schema8get_nameE6size_t"></span><span id="ral::io::Schema::get_name__sC"></span><span class="target" id="classral_1_1io_1_1Schema_1a3aa7f563ec5fdbe83de9926b4bfae19f"></span>std::string <code class="sig-name descname">get_name</code><span class="sig-paren">(</span>size_t <em>schema_index</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral2io6Schema8get_nameE6size_t" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4NK3ral2io6Schema27get_calcite_to_file_indicesEv">
-<span id="_CPPv3NK3ral2io6Schema27get_calcite_to_file_indicesEv"></span><span id="_CPPv2NK3ral2io6Schema27get_calcite_to_file_indicesEv"></span><span id="ral::io::Schema::get_calcite_to_file_indicesC"></span><span class="target" id="classral_1_1io_1_1Schema_1a17514bd3d13a571e02d00cce6ba961f7"></span><em class="property"><span class="pre">inline</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><span class="pre">size_t</span><span class="pre">&gt;</span> <code class="sig-name descname"><span class="pre">get_calcite_to_file_indices</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em><a class="headerlink" href="#_CPPv4NK3ral2io6Schema27get_calcite_to_file_indicesEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3NK3ral2io6Schema27get_calcite_to_file_indicesEv"></span><span id="_CPPv2NK3ral2io6Schema27get_calcite_to_file_indicesEv"></span><span id="ral::io::Schema::get_calcite_to_file_indicesC"></span><span class="target" id="classral_1_1io_1_1Schema_1a17514bd3d13a571e02d00cce6ba961f7"></span><em class="property">inline</em> std::vector&lt;size_t&gt; <code class="sig-name descname">get_calcite_to_file_indices</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral2io6Schema27get_calcite_to_file_indicesEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4NK3ral2io6Schema10fileSchemaE6size_t">
-<span id="_CPPv3NK3ral2io6Schema10fileSchemaE6size_t"></span><span id="_CPPv2NK3ral2io6Schema10fileSchemaE6size_t"></span><span id="ral::io::Schema::fileSchema__sC"></span><span class="target" id="classral_1_1io_1_1Schema_1af5b0407feaf0afecd538693072a867b1"></span><a class="reference internal" href="#_CPPv4N3ral2io6SchemaE" title="ral::io::Schema"><span class="pre">Schema</span></a> <code class="sig-name descname"><span class="pre">fileSchema</span></code><span class="sig-paren">(</span><span class="pre">size_t</span> <em><span class="pre">current_file_index</span></em><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em><a class="headerlink" href="#_CPPv4NK3ral2io6Schema10fileSchemaE6size_t" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3NK3ral2io6Schema10fileSchemaE6size_t"></span><span id="_CPPv2NK3ral2io6Schema10fileSchemaE6size_t"></span><span id="ral::io::Schema::fileSchema__sC"></span><span class="target" id="classral_1_1io_1_1Schema_1af5b0407feaf0afecd538693072a867b1"></span><a class="reference internal" href="#_CPPv4N3ral2io6SchemaE" title="ral::io::Schema">Schema</a> <code class="sig-name descname">fileSchema</code><span class="sig-paren">(</span>size_t <em>current_file_index</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral2io6Schema10fileSchemaE6size_t" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4NK3ral2io6Schema15get_num_columnsEv">
-<span id="_CPPv3NK3ral2io6Schema15get_num_columnsEv"></span><span id="_CPPv2NK3ral2io6Schema15get_num_columnsEv"></span><span id="ral::io::Schema::get_num_columnsC"></span><span class="target" id="classral_1_1io_1_1Schema_1af3517c3b2f3f41cac7d9f3b287408f4d"></span><span class="pre">size_t</span> <code class="sig-name descname"><span class="pre">get_num_columns</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em><a class="headerlink" href="#_CPPv4NK3ral2io6Schema15get_num_columnsEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3NK3ral2io6Schema15get_num_columnsEv"></span><span id="_CPPv2NK3ral2io6Schema15get_num_columnsEv"></span><span id="ral::io::Schema::get_num_columnsC"></span><span class="target" id="classral_1_1io_1_1Schema_1af3517c3b2f3f41cac7d9f3b287408f4d"></span>size_t <code class="sig-name descname">get_num_columns</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral2io6Schema15get_num_columnsEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4NK3ral2io6Schema16get_rowgroup_idsE6size_t">
-<span id="_CPPv3NK3ral2io6Schema16get_rowgroup_idsE6size_t"></span><span id="_CPPv2NK3ral2io6Schema16get_rowgroup_idsE6size_t"></span><span id="ral::io::Schema::get_rowgroup_ids__sC"></span><span class="target" id="classral_1_1io_1_1Schema_1aac839b62501adda102c8b7257f9d5633"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><span class="pre">int</span><span class="pre">&gt;</span> <code class="sig-name descname"><span class="pre">get_rowgroup_ids</span></code><span class="sig-paren">(</span><span class="pre">size_t</span> <em><span class="pre">file_index</span></em><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em><a class="headerlink" href="#_CPPv4NK3ral2io6Schema16get_rowgroup_idsE6size_t" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3NK3ral2io6Schema16get_rowgroup_idsE6size_t"></span><span id="_CPPv2NK3ral2io6Schema16get_rowgroup_idsE6size_t"></span><span id="ral::io::Schema::get_rowgroup_ids__sC"></span><span class="target" id="classral_1_1io_1_1Schema_1aac839b62501adda102c8b7257f9d5633"></span>std::vector&lt;int&gt; <code class="sig-name descname">get_rowgroup_ids</code><span class="sig-paren">(</span>size_t <em>file_index</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral2io6Schema16get_rowgroup_idsE6size_t" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral2io6Schema13get_rowgroupsEv">
-<span id="_CPPv3N3ral2io6Schema13get_rowgroupsEv"></span><span id="_CPPv2N3ral2io6Schema13get_rowgroupsEv"></span><span id="ral::io::Schema::get_rowgroups"></span><span class="target" id="classral_1_1io_1_1Schema_1aaa7576bfb5d3458a5c4cfff78df78f1d"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><span class="pre">int</span><span class="pre">&gt;</span><span class="pre">&gt;</span> <code class="sig-name descname"><span class="pre">get_rowgroups</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io6Schema13get_rowgroupsEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral2io6Schema13get_rowgroupsEv"></span><span id="_CPPv2N3ral2io6Schema13get_rowgroupsEv"></span><span id="ral::io::Schema::get_rowgroups"></span><span class="target" id="classral_1_1io_1_1Schema_1aaa7576bfb5d3458a5c4cfff78df78f1d"></span>std::vector&lt;std::vector&lt;int&gt;&gt; <code class="sig-name descname">get_rowgroups</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io6Schema13get_rowgroupsEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral2io6Schema23get_total_num_rowgroupsEv">
-<span id="_CPPv3N3ral2io6Schema23get_total_num_rowgroupsEv"></span><span id="_CPPv2N3ral2io6Schema23get_total_num_rowgroupsEv"></span><span id="ral::io::Schema::get_total_num_rowgroups"></span><span class="target" id="classral_1_1io_1_1Schema_1a5248e9fa03b9d864959c96c8f82d99c7"></span><span class="pre">int</span> <code class="sig-name descname"><span class="pre">get_total_num_rowgroups</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io6Schema23get_total_num_rowgroupsEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral2io6Schema23get_total_num_rowgroupsEv"></span><span id="_CPPv2N3ral2io6Schema23get_total_num_rowgroupsEv"></span><span id="ral::io::Schema::get_total_num_rowgroups"></span><span class="target" id="classral_1_1io_1_1Schema_1a5248e9fa03b9d864959c96c8f82d99c7"></span>int <code class="sig-name descname">get_total_num_rowgroups</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io6Schema23get_total_num_rowgroupsEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4NK3ral2io6Schema18get_has_header_csvEv">
-<span id="_CPPv3NK3ral2io6Schema18get_has_header_csvEv"></span><span id="_CPPv2NK3ral2io6Schema18get_has_header_csvEv"></span><span id="ral::io::Schema::get_has_header_csvC"></span><span class="target" id="classral_1_1io_1_1Schema_1a2f130b5190211d97f912326944c6d63e"></span><span class="pre">bool</span> <code class="sig-name descname"><span class="pre">get_has_header_csv</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em><a class="headerlink" href="#_CPPv4NK3ral2io6Schema18get_has_header_csvEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3NK3ral2io6Schema18get_has_header_csvEv"></span><span id="_CPPv2NK3ral2io6Schema18get_has_header_csvEv"></span><span id="ral::io::Schema::get_has_header_csvC"></span><span class="target" id="classral_1_1io_1_1Schema_1a2f130b5190211d97f912326944c6d63e"></span>bool <code class="sig-name descname">get_has_header_csv</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral2io6Schema18get_has_header_csvEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral2io6Schema18set_has_header_csvEb">
-<span id="_CPPv3N3ral2io6Schema18set_has_header_csvEb"></span><span id="_CPPv2N3ral2io6Schema18set_has_header_csvEb"></span><span id="ral::io::Schema::set_has_header_csv__b"></span><span class="target" id="classral_1_1io_1_1Schema_1a4f6aaf2fd0c6182b96ab07eb592cf21c"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">set_has_header_csv</span></code><span class="sig-paren">(</span><span class="pre">bool</span> <em><span class="pre">has_header</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io6Schema18set_has_header_csvEb" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral2io6Schema18set_has_header_csvEb"></span><span id="_CPPv2N3ral2io6Schema18set_has_header_csvEb"></span><span id="ral::io::Schema::set_has_header_csv__b"></span><span class="target" id="classral_1_1io_1_1Schema_1a4f6aaf2fd0c6182b96ab07eb592cf21c"></span>void <code class="sig-name descname">set_has_header_csv</code><span class="sig-paren">(</span>bool <em>has_header</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io6Schema18set_has_header_csvEb" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral2io6Schema8add_fileENSt6stringE">
-<span id="_CPPv3N3ral2io6Schema8add_fileENSt6stringE"></span><span id="_CPPv2N3ral2io6Schema8add_fileENSt6stringE"></span><span id="ral::io::Schema::add_file__ss"></span><span class="target" id="classral_1_1io_1_1Schema_1a7cc826068d65da7e2cea7ff57614d6a2"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">add_file</span></code><span class="sig-paren">(</span><span class="pre">std</span><span class="pre">::</span><span class="pre">string</span> <em><span class="pre">file</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io6Schema8add_fileENSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral2io6Schema8add_fileENSt6stringE"></span><span id="_CPPv2N3ral2io6Schema8add_fileENSt6stringE"></span><span id="ral::io::Schema::add_file__ss"></span><span class="target" id="classral_1_1io_1_1Schema_1a7cc826068d65da7e2cea7ff57614d6a2"></span>void <code class="sig-name descname">add_file</code><span class="sig-paren">(</span>std::string <em>file</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io6Schema8add_fileENSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral2io6Schema10add_columnENSt6stringEN4cudf7type_idE6size_tb">
-<span id="_CPPv3N3ral2io6Schema10add_columnENSt6stringEN4cudf7type_idE6size_tb"></span><span id="_CPPv2N3ral2io6Schema10add_columnENSt6stringEN4cudf7type_idE6size_tb"></span><span id="ral::io::Schema::add_column__ss.cudf::type_id.s.b"></span><span class="target" id="classral_1_1io_1_1Schema_1a57b5cabad19de4a46507c734a9f6986a"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">add_column</span></code><span class="sig-paren">(</span><span class="pre">std</span><span class="pre">::</span><span class="pre">string</span> <em><span class="pre">name</span></em>, <span class="pre">cudf</span><span class="pre">::</span><span class="pre">type_id</span> <em><span class="pre">type</span></em>, <span class="pre">size_t</span> <em><span class="pre">file_index</span></em>, <span class="pre">bool</span> <em><span class="pre">is_in_file</span></em> <span class="pre">=</span> <span class="pre">true</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io6Schema10add_columnENSt6stringEN4cudf7type_idE6size_tb" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral2io6Schema10add_columnENSt6stringEN4cudf7type_idE6size_tb"></span><span id="_CPPv2N3ral2io6Schema10add_columnENSt6stringEN4cudf7type_idE6size_tb"></span><span id="ral::io::Schema::add_column__ss.cudf::type_id.s.b"></span><span class="target" id="classral_1_1io_1_1Schema_1a57b5cabad19de4a46507c734a9f6986a"></span>void <code class="sig-name descname">add_column</code><span class="sig-paren">(</span>std::string <em>name</em>, cudf::type_id <em>type</em>, size_t <em>file_index</em>, bool <em>is_in_file</em> = true<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io6Schema10add_columnENSt6stringEN4cudf7type_idE6size_tb" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4NK3ral2io6Schema21makeEmptyBlazingTableERKNSt6vectorIiEE">
-<span id="_CPPv3NK3ral2io6Schema21makeEmptyBlazingTableERKNSt6vectorIiEE"></span><span id="_CPPv2NK3ral2io6Schema21makeEmptyBlazingTableERKNSt6vectorIiEE"></span><span id="ral::io::Schema::makeEmptyBlazingTable__std::vector:i:CRC"></span><span class="target" id="classral_1_1io_1_1Schema_1a70957a4ea7b4ad480eb4b35539b5d395"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">unique_ptr</span><span class="pre">&lt;</span><span class="pre">ral</span><span class="pre">::</span><span class="pre">frame</span><span class="pre">::</span><a class="reference internal" href="classral_1_1frame_1_1BlazingTable.html#_CPPv4N3ral5frame12BlazingTableE" title="ral::frame::BlazingTable"><span class="pre">BlazingTable</span></a><span class="pre">&gt;</span> <code class="sig-name descname"><span class="pre">makeEmptyBlazingTable</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><span class="pre">int</span><span class="pre">&gt;</span> <span class="pre">&amp;</span><em><span class="pre">column_indices</span></em><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em><a class="headerlink" href="#_CPPv4NK3ral2io6Schema21makeEmptyBlazingTableERKNSt6vectorIiEE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3NK3ral2io6Schema21makeEmptyBlazingTableERKNSt6vectorIiEE"></span><span id="_CPPv2NK3ral2io6Schema21makeEmptyBlazingTableERKNSt6vectorIiEE"></span><span id="ral::io::Schema::makeEmptyBlazingTable__std::vector:i:CRC"></span><span class="target" id="classral_1_1io_1_1Schema_1a70957a4ea7b4ad480eb4b35539b5d395"></span>std::unique_ptr&lt;ral::frame::<a class="reference internal" href="classral_1_1frame_1_1BlazingTable.html#_CPPv4N3ral5frame12BlazingTableE" title="ral::frame::BlazingTable">BlazingTable</a>&gt; <code class="sig-name descname">makeEmptyBlazingTable</code><span class="sig-paren">(</span><em class="property">const</em> std::vector&lt;int&gt; &amp;<em>column_indices</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral2io6Schema21makeEmptyBlazingTableERKNSt6vectorIiEE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4NK3ral2io6SchemaeqERK6Schema">
-<span id="_CPPv3NK3ral2io6SchemaeqERK6Schema"></span><span id="_CPPv2NK3ral2io6SchemaeqERK6Schema"></span><span id="ral::io::Schema::eq-operator__SchemaCRC"></span><span class="target" id="classral_1_1io_1_1Schema_1afee4e891bb45e62cf51b68252f08e35f"></span><em class="property"><span class="pre">inline</span></em> <span class="pre">bool</span> <code class="sig-name descname"><span class="pre">operator==</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <a class="reference internal" href="#_CPPv4N3ral2io6SchemaE" title="ral::io::Schema"><span class="pre">Schema</span></a> <span class="pre">&amp;</span><em><span class="pre">rhs</span></em><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em><a class="headerlink" href="#_CPPv4NK3ral2io6SchemaeqERK6Schema" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3NK3ral2io6SchemaeqERK6Schema"></span><span id="_CPPv2NK3ral2io6SchemaeqERK6Schema"></span><span id="ral::io::Schema::eq-operator__SchemaCRC"></span><span class="target" id="classral_1_1io_1_1Schema_1afee4e891bb45e62cf51b68252f08e35f"></span><em class="property">inline</em> bool <code class="sig-name descname">operator==</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4N3ral2io6SchemaE" title="ral::io::Schema">Schema</a> &amp;<em>rhs</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral2io6SchemaeqERK6Schema" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral2io6SchemaneERK6Schema">
-<span id="_CPPv3N3ral2io6SchemaneERK6Schema"></span><span id="_CPPv2N3ral2io6SchemaneERK6Schema"></span><span id="ral::io::Schema::neq-operator__SchemaCR"></span><span class="target" id="classral_1_1io_1_1Schema_1a7918d0f7e65ce804258a59901c8911a3"></span><em class="property"><span class="pre">inline</span></em> <span class="pre">bool</span> <code class="sig-name descname"><span class="pre">operator!=</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <a class="reference internal" href="#_CPPv4N3ral2io6SchemaE" title="ral::io::Schema"><span class="pre">Schema</span></a> <span class="pre">&amp;</span><em><span class="pre">rhs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io6SchemaneERK6Schema" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral2io6SchemaneERK6Schema"></span><span id="_CPPv2N3ral2io6SchemaneERK6Schema"></span><span id="ral::io::Schema::neq-operator__SchemaCR"></span><span class="target" id="classral_1_1io_1_1Schema_1a7918d0f7e65ce804258a59901c8911a3"></span><em class="property">inline</em> bool <code class="sig-name descname">operator!=</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4N3ral2io6SchemaE" title="ral::io::Schema">Schema</a> &amp;<em>rhs</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral2io6SchemaneERK6Schema" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 </div>
@@ -328,14 +332,14 @@
     </div>
 
     
-  <script src="../_static/js/index.d8bbf5861d671d414e1a.js"></script>
+  <script src="../_static/js/index.d3f166471bb80abb5163.js"></script>
 
 
     <footer class="footer mt-5 mt-md-0">
   <div class="container">
     <p>
           &copy; Copyright 2020, BlazingDB, Inc..<br/>
-        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.4.3.<br/>
     </p>
   </div>
 </footer>

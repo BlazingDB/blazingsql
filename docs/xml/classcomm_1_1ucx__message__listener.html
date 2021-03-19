@@ -7,8 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Class ucx_message_listener &#8212; BlazingSQL v0.18 documentation</title>
     
-  <link href="../_static/css/theme.css" rel="stylesheet" />
-  <link href="../_static/css/index.101715efdecc9b59cb6e1ddfa685c31f.css" rel="stylesheet" />
+  <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
     
   <link rel="stylesheet"
@@ -20,17 +19,21 @@
 
     
       
+  <link rel="stylesheet"
+    href="../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../_static/vendor/lato_latin-ext/1.44.1/index.css">
 
     
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/getting_started.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     
-  <link rel="preload" as="script" href="../_static/js/index.d8bbf5861d671d414e1a.js">
+  <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
     <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
@@ -47,46 +50,43 @@
   </head>
   <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
     
-    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="container-xl">
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
 
-
+    <a class="navbar-brand" href="../index.html">
     
-      
-      <a class="navbar-brand" href="../index.html">
-        <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo">
-      </a>
-      
+      <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo" />
     
-
+    </a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
     </button>
 
-    
     <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
       <ul id="navbar-main-elements" class="navbar-nav mr-auto">
-        <li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../arch.html">
-  BlazingSQL Project Architecture
- </a>
-</li>
-
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../graph.html">
-  Execution Engine
- </a>
-</li>
-
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../api.html">
-  API Documentation
- </a>
-</li>
-
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../arch.html">BlazingSQL Project Architecture</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../graph.html">Execution Engine</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../api.html">API Documentation</a>
+        </li>
+        
         
       </ul>
 
-      <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+
+      
+
+      <ul class="navbar-nav">
+        
+        
       </ul>
     </div>
 </div>
@@ -96,19 +96,27 @@
     <div class="container-xl">
       <div class="row">
           
-            
-            <!-- Only show if we have sidebars configured, else just a small margin  -->
-            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
   <i class="icon fas fa-search"></i>
   <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
 </form>
 <nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
-  <div class="bd-toc-item active">
+
+    <div class="bd-toc-item active">
     
-  </div>
-</nav>
-            </div>
-            
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
           
 
           
@@ -119,26 +127,23 @@
 </div>
 
 <nav id="bd-toc-nav">
-    <ul class="visible nav section-nav flex-column">
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#inheritance-relationships">
-   Inheritance Relationships
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#base-type">
-     Base Type
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#class-documentation">
-   Class Documentation
-  </a>
- </li>
-</ul>
-
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#inheritance-relationships" class="nav-link">Inheritance Relationships</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#base-type" class="nav-link">Base Type</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#class-documentation" class="nav-link">Class Documentation</a>
+        </li>
+    
+    </ul>
 </nav>
 
 
@@ -153,9 +158,6 @@
           </div>
           
 
-          
-          
-            
           
           <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
               
@@ -179,37 +181,37 @@
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
 <dl class="cpp class">
 <dt id="_CPPv4N4comm20ucx_message_listenerE">
-<span id="_CPPv3N4comm20ucx_message_listenerE"></span><span id="_CPPv2N4comm20ucx_message_listenerE"></span><span id="comm::ucx_message_listener"></span><span class="target" id="classcomm_1_1ucx__message__listener"></span><em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">comm</span><code class="sig-prename descclassname"><span class="pre">::</span></code></code><code class="sig-name descname"><span class="pre">ucx_message_listener</span></code> <span class="pre">:</span> <em class="property"><span class="pre">public</span></em> <span class="pre">comm</span><span class="pre">::</span><a class="reference internal" href="classcomm_1_1message__listener.html#_CPPv4N4comm16message_listenerE" title="comm::message_listener"><span class="pre">message_listener</span></a><a class="headerlink" href="#_CPPv4N4comm20ucx_message_listenerE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N4comm20ucx_message_listenerE"></span><span id="_CPPv2N4comm20ucx_message_listenerE"></span><span id="comm::ucx_message_listener"></span><span class="target" id="classcomm_1_1ucx__message__listener"></span><em class="property">class </em><code class="sig-prename descclassname">comm<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">ucx_message_listener</code> : <em class="property">public</em> comm::<a class="reference internal" href="classcomm_1_1message__listener.html#_CPPv4N4comm16message_listenerE" title="comm::message_listener">message_listener</a><a class="headerlink" href="#_CPPv4N4comm20ucx_message_listenerE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Public Functions</p>
 <dl class="cpp function">
 <dt id="_CPPv4N4comm20ucx_message_listener22poll_begin_message_tagEb">
-<span id="_CPPv3N4comm20ucx_message_listener22poll_begin_message_tagEb"></span><span id="_CPPv2N4comm20ucx_message_listener22poll_begin_message_tagEb"></span><span id="comm::ucx_message_listener::poll_begin_message_tag__b"></span><span class="target" id="classcomm_1_1ucx__message__listener_1a09fcfb37e82ed351d3f164084b715593"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">poll_begin_message_tag</span></code><span class="sig-paren">(</span><span class="pre">bool</span> <em><span class="pre">running_from_unit_test</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm20ucx_message_listener22poll_begin_message_tagEb" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N4comm20ucx_message_listener22poll_begin_message_tagEb"></span><span id="_CPPv2N4comm20ucx_message_listener22poll_begin_message_tagEb"></span><span id="comm::ucx_message_listener::poll_begin_message_tag__b"></span><span class="target" id="classcomm_1_1ucx__message__listener_1a09fcfb37e82ed351d3f164084b715593"></span>void <code class="sig-name descname">poll_begin_message_tag</code><span class="sig-paren">(</span>bool <em>running_from_unit_test</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm20ucx_message_listener22poll_begin_message_tagEb" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N4comm20ucx_message_listener12add_receiverE9ucp_tag_tNSt10shared_ptrI16message_receiverEE">
-<span id="_CPPv3N4comm20ucx_message_listener12add_receiverE9ucp_tag_tNSt10shared_ptrI16message_receiverEE"></span><span id="_CPPv2N4comm20ucx_message_listener12add_receiverE9ucp_tag_tNSt10shared_ptrI16message_receiverEE"></span><span id="comm::ucx_message_listener::add_receiver__ucp_tag_t.std::shared_ptr:message_receiver:"></span><span class="target" id="classcomm_1_1ucx__message__listener_1a315a3053a11bb7415f5f300c5608a658"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">add_receiver</span></code><span class="sig-paren">(</span><span class="pre">ucp_tag_t</span> <em><span class="pre">tag</span></em>, <span class="pre">std</span><span class="pre">::</span><span class="pre">shared_ptr</span><span class="pre">&lt;</span><a class="reference internal" href="classcomm_1_1message__receiver.html#_CPPv4N4comm16message_receiverE" title="comm::message_receiver"><span class="pre">message_receiver</span></a><span class="pre">&gt;</span> <em><span class="pre">receiver</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm20ucx_message_listener12add_receiverE9ucp_tag_tNSt10shared_ptrI16message_receiverEE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N4comm20ucx_message_listener12add_receiverE9ucp_tag_tNSt10shared_ptrI16message_receiverEE"></span><span id="_CPPv2N4comm20ucx_message_listener12add_receiverE9ucp_tag_tNSt10shared_ptrI16message_receiverEE"></span><span id="comm::ucx_message_listener::add_receiver__ucp_tag_t.std::shared_ptr:message_receiver:"></span><span class="target" id="classcomm_1_1ucx__message__listener_1a315a3053a11bb7415f5f300c5608a658"></span>void <code class="sig-name descname">add_receiver</code><span class="sig-paren">(</span>ucp_tag_t <em>tag</em>, std::shared_ptr&lt;<a class="reference internal" href="classcomm_1_1message__receiver.html#_CPPv4N4comm16message_receiverE" title="comm::message_receiver">message_receiver</a>&gt; <em>receiver</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm20ucx_message_listener12add_receiverE9ucp_tag_tNSt10shared_ptrI16message_receiverEE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N4comm20ucx_message_listener12get_receiverE9ucp_tag_t">
-<span id="_CPPv3N4comm20ucx_message_listener12get_receiverE9ucp_tag_t"></span><span id="_CPPv2N4comm20ucx_message_listener12get_receiverE9ucp_tag_t"></span><span id="comm::ucx_message_listener::get_receiver__ucp_tag_t"></span><span class="target" id="classcomm_1_1ucx__message__listener_1a07a5f65b3759daa8b4d4dc14fad160ce"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">shared_ptr</span><span class="pre">&lt;</span><a class="reference internal" href="classcomm_1_1message__receiver.html#_CPPv4N4comm16message_receiverE" title="comm::message_receiver"><span class="pre">message_receiver</span></a><span class="pre">&gt;</span> <code class="sig-name descname"><span class="pre">get_receiver</span></code><span class="sig-paren">(</span><span class="pre">ucp_tag_t</span> <em><span class="pre">tag</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm20ucx_message_listener12get_receiverE9ucp_tag_t" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N4comm20ucx_message_listener12get_receiverE9ucp_tag_t"></span><span id="_CPPv2N4comm20ucx_message_listener12get_receiverE9ucp_tag_t"></span><span id="comm::ucx_message_listener::get_receiver__ucp_tag_t"></span><span class="target" id="classcomm_1_1ucx__message__listener_1a07a5f65b3759daa8b4d4dc14fad160ce"></span>std::shared_ptr&lt;<a class="reference internal" href="classcomm_1_1message__receiver.html#_CPPv4N4comm16message_receiverE" title="comm::message_receiver">message_receiver</a>&gt; <code class="sig-name descname">get_receiver</code><span class="sig-paren">(</span>ucp_tag_t <em>tag</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm20ucx_message_listener12get_receiverE9ucp_tag_t" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N4comm20ucx_message_listener15remove_receiverE9ucp_tag_t">
-<span id="_CPPv3N4comm20ucx_message_listener15remove_receiverE9ucp_tag_t"></span><span id="_CPPv2N4comm20ucx_message_listener15remove_receiverE9ucp_tag_t"></span><span id="comm::ucx_message_listener::remove_receiver__ucp_tag_t"></span><span class="target" id="classcomm_1_1ucx__message__listener_1a7b3206c978454f72e298cd0d1551adad"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">remove_receiver</span></code><span class="sig-paren">(</span><span class="pre">ucp_tag_t</span> <em><span class="pre">tag</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm20ucx_message_listener15remove_receiverE9ucp_tag_t" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N4comm20ucx_message_listener15remove_receiverE9ucp_tag_t"></span><span id="_CPPv2N4comm20ucx_message_listener15remove_receiverE9ucp_tag_t"></span><span id="comm::ucx_message_listener::remove_receiver__ucp_tag_t"></span><span class="target" id="classcomm_1_1ucx__message__listener_1a7b3206c978454f72e298cd0d1551adad"></span>void <code class="sig-name descname">remove_receiver</code><span class="sig-paren">(</span>ucp_tag_t <em>tag</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm20ucx_message_listener15remove_receiverE9ucp_tag_t" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N4comm20ucx_message_listener10get_workerEv">
-<span id="_CPPv3N4comm20ucx_message_listener10get_workerEv"></span><span id="_CPPv2N4comm20ucx_message_listener10get_workerEv"></span><span id="comm::ucx_message_listener::get_worker"></span><span class="target" id="classcomm_1_1ucx__message__listener_1a110d2273e5204f635d0ea4dd741ea9d5"></span><span class="pre">ucp_worker_h</span> <code class="sig-name descname"><span class="pre">get_worker</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm20ucx_message_listener10get_workerEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N4comm20ucx_message_listener10get_workerEv"></span><span id="_CPPv2N4comm20ucx_message_listener10get_workerEv"></span><span id="comm::ucx_message_listener::get_worker"></span><span class="target" id="classcomm_1_1ucx__message__listener_1a110d2273e5204f635d0ea4dd741ea9d5"></span>ucp_worker_h <code class="sig-name descname">get_worker</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm20ucx_message_listener10get_workerEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N4comm20ucx_message_listener13start_pollingEv">
-<span id="_CPPv3N4comm20ucx_message_listener13start_pollingEv"></span><span id="_CPPv2N4comm20ucx_message_listener13start_pollingEv"></span><span id="comm::ucx_message_listener::start_polling"></span><span class="target" id="classcomm_1_1ucx__message__listener_1af1a4505bc00a67076d7376543c88ce55"></span><em class="property"><span class="pre">virtual</span></em> <span class="pre">void</span> <code class="sig-name descname"><span class="pre">start_polling</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property"><span class="pre">override</span></em><a class="headerlink" href="#_CPPv4N4comm20ucx_message_listener13start_pollingEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N4comm20ucx_message_listener13start_pollingEv"></span><span id="_CPPv2N4comm20ucx_message_listener13start_pollingEv"></span><span id="comm::ucx_message_listener::start_polling"></span><span class="target" id="classcomm_1_1ucx__message__listener_1af1a4505bc00a67076d7376543c88ce55"></span><em class="property">virtual</em> void <code class="sig-name descname">start_polling</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N4comm20ucx_message_listener13start_pollingEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 </div>
@@ -217,12 +219,12 @@
 <p class="breathe-sectiondef-title rubric">Public Static Functions</p>
 <dl class="cpp function">
 <dt id="_CPPv4N4comm20ucx_message_listener27initialize_message_listenerE13ucp_context_h12ucp_worker_hRKNSt3mapINSt6stringEN4comm4nodeEEEiNSt10shared_ptrIN3ral5cache12CacheMachineEEE">
-<span id="_CPPv3N4comm20ucx_message_listener27initialize_message_listenerE13ucp_context_h12ucp_worker_hRKNSt3mapINSt6stringEN4comm4nodeEEEiNSt10shared_ptrIN3ral5cache12CacheMachineEEE"></span><span id="_CPPv2N4comm20ucx_message_listener27initialize_message_listenerE13ucp_context_h12ucp_worker_hRKNSt3mapINSt6stringEN4comm4nodeEEEiNSt10shared_ptrIN3ral5cache12CacheMachineEEE"></span><span id="comm::ucx_message_listener::initialize_message_listener__ucp_context_h.ucp_worker_h.std::map:ss.comm::node:CR.i.std::shared_ptr:ral::cache::CacheMachine:"></span><span class="target" id="classcomm_1_1ucx__message__listener_1a4e3a3be029f7adec46687eb7e21960d8"></span><em class="property"><span class="pre">static</span></em> <span class="pre">void</span> <code class="sig-name descname"><span class="pre">initialize_message_listener</span></code><span class="sig-paren">(</span><span class="pre">ucp_context_h</span> <em><span class="pre">context</span></em>, <span class="pre">ucp_worker_h</span> <em><span class="pre">worker</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">map</span><span class="pre">&lt;</span><span class="pre">std</span><span class="pre">::</span><span class="pre">string</span><span class="pre">,</span> <span class="pre">comm</span><span class="pre">::</span><a class="reference internal" href="classcomm_1_1node.html#_CPPv4N4comm4nodeE" title="comm::node"><span class="pre">node</span></a><span class="pre">&gt;</span> <span class="pre">&amp;</span><em><span class="pre">nodes</span></em>, <span class="pre">int</span> <em><span class="pre">num_threads</span></em>, <span class="pre">std</span><span class="pre">::</span><span class="pre">shared_ptr</span><span class="pre">&lt;</span><span class="pre">ral</span><span class="pre">::</span><span class="pre">cache</span><span class="pre">::</span><a class="reference internal" href="classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachineE" title="ral::cache::CacheMachine"><span class="pre">CacheMachine</span></a><span class="pre">&gt;</span> <em><span class="pre">input_cache</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm20ucx_message_listener27initialize_message_listenerE13ucp_context_h12ucp_worker_hRKNSt3mapINSt6stringEN4comm4nodeEEEiNSt10shared_ptrIN3ral5cache12CacheMachineEEE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N4comm20ucx_message_listener27initialize_message_listenerE13ucp_context_h12ucp_worker_hRKNSt3mapINSt6stringEN4comm4nodeEEEiNSt10shared_ptrIN3ral5cache12CacheMachineEEE"></span><span id="_CPPv2N4comm20ucx_message_listener27initialize_message_listenerE13ucp_context_h12ucp_worker_hRKNSt3mapINSt6stringEN4comm4nodeEEEiNSt10shared_ptrIN3ral5cache12CacheMachineEEE"></span><span id="comm::ucx_message_listener::initialize_message_listener__ucp_context_h.ucp_worker_h.std::map:ss.comm::node:CR.i.std::shared_ptr:ral::cache::CacheMachine:"></span><span class="target" id="classcomm_1_1ucx__message__listener_1a4e3a3be029f7adec46687eb7e21960d8"></span><em class="property">static</em> void <code class="sig-name descname">initialize_message_listener</code><span class="sig-paren">(</span>ucp_context_h <em>context</em>, ucp_worker_h <em>worker</em>, <em class="property">const</em> std::map&lt;std::string, comm::<a class="reference internal" href="classcomm_1_1node.html#_CPPv4N4comm4nodeE" title="comm::node">node</a>&gt; &amp;<em>nodes</em>, int <em>num_threads</em>, std::shared_ptr&lt;ral::cache::<a class="reference internal" href="classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachineE" title="ral::cache::CacheMachine">CacheMachine</a>&gt; <em>input_cache</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm20ucx_message_listener27initialize_message_listenerE13ucp_context_h12ucp_worker_hRKNSt3mapINSt6stringEN4comm4nodeEEEiNSt10shared_ptrIN3ral5cache12CacheMachineEEE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N4comm20ucx_message_listener12get_instanceEv">
-<span id="_CPPv3N4comm20ucx_message_listener12get_instanceEv"></span><span id="_CPPv2N4comm20ucx_message_listener12get_instanceEv"></span><span id="comm::ucx_message_listener::get_instance"></span><span class="target" id="classcomm_1_1ucx__message__listener_1acac26d88ea164d0836c3fa494842ed1b"></span><em class="property"><span class="pre">static</span></em> <a class="reference internal" href="#_CPPv4N4comm20ucx_message_listenerE" title="comm::ucx_message_listener"><span class="pre">ucx_message_listener</span></a> <span class="pre">*</span><code class="sig-name descname"><span class="pre">get_instance</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm20ucx_message_listener12get_instanceEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N4comm20ucx_message_listener12get_instanceEv"></span><span id="_CPPv2N4comm20ucx_message_listener12get_instanceEv"></span><span id="comm::ucx_message_listener::get_instance"></span><span class="target" id="classcomm_1_1ucx__message__listener_1acac26d88ea164d0836c3fa494842ed1b"></span><em class="property">static</em> <a class="reference internal" href="#_CPPv4N4comm20ucx_message_listenerE" title="comm::ucx_message_listener">ucx_message_listener</a> *<code class="sig-name descname">get_instance</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm20ucx_message_listener12get_instanceEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 </div>
@@ -247,14 +249,14 @@
     </div>
 
     
-  <script src="../_static/js/index.d8bbf5861d671d414e1a.js"></script>
+  <script src="../_static/js/index.d3f166471bb80abb5163.js"></script>
 
 
     <footer class="footer mt-5 mt-md-0">
   <div class="container">
     <p>
           &copy; Copyright 2020, BlazingDB, Inc..<br/>
-        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.4.3.<br/>
     </p>
   </div>
 </footer>

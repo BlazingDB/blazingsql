@@ -7,8 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Class graph &#8212; BlazingSQL v0.18 documentation</title>
     
-  <link href="../_static/css/theme.css" rel="stylesheet" />
-  <link href="../_static/css/index.101715efdecc9b59cb6e1ddfa685c31f.css" rel="stylesheet" />
+  <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
     
   <link rel="stylesheet"
@@ -20,17 +19,21 @@
 
     
       
+  <link rel="stylesheet"
+    href="../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../_static/vendor/lato_latin-ext/1.44.1/index.css">
 
     
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/getting_started.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     
-  <link rel="preload" as="script" href="../_static/js/index.d8bbf5861d671d414e1a.js">
+  <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
     <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
@@ -47,46 +50,43 @@
   </head>
   <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
     
-    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="container-xl">
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
 
-
+    <a class="navbar-brand" href="../index.html">
     
-      
-      <a class="navbar-brand" href="../index.html">
-        <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo">
-      </a>
-      
+      <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo" />
     
-
+    </a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
     </button>
 
-    
     <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
       <ul id="navbar-main-elements" class="navbar-nav mr-auto">
-        <li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../arch.html">
-  BlazingSQL Project Architecture
- </a>
-</li>
-
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../graph.html">
-  Execution Engine
- </a>
-</li>
-
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../api.html">
-  API Documentation
- </a>
-</li>
-
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../arch.html">BlazingSQL Project Architecture</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../graph.html">Execution Engine</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../api.html">API Documentation</a>
+        </li>
+        
         
       </ul>
 
-      <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+
+      
+
+      <ul class="navbar-nav">
+        
+        
       </ul>
     </div>
 </div>
@@ -96,19 +96,27 @@
     <div class="container-xl">
       <div class="row">
           
-            
-            <!-- Only show if we have sidebars configured, else just a small margin  -->
-            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
   <i class="icon fas fa-search"></i>
   <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
 </form>
 <nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
-  <div class="bd-toc-item active">
+
+    <div class="bd-toc-item active">
     
-  </div>
-</nav>
-            </div>
-            
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
           
 
           
@@ -119,26 +127,23 @@
 </div>
 
 <nav id="bd-toc-nav">
-    <ul class="visible nav section-nav flex-column">
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#nested-relationships">
-   Nested Relationships
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#nested-types">
-     Nested Types
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#class-documentation">
-   Class Documentation
-  </a>
- </li>
-</ul>
-
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#nested-relationships" class="nav-link">Nested Relationships</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#nested-types" class="nav-link">Nested Types</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#class-documentation" class="nav-link">Class Documentation</a>
+        </li>
+    
+    </ul>
 </nav>
 
 
@@ -153,9 +158,6 @@
           </div>
           
 
-          
-          
-            
           
           <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
               
@@ -179,194 +181,194 @@
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
 <dl class="cpp class">
 <dt id="_CPPv4N3ral5cache5graphE">
-<span id="_CPPv3N3ral5cache5graphE"></span><span id="_CPPv2N3ral5cache5graphE"></span><span id="ral::cache::graph"></span><span class="target" id="classral_1_1cache_1_1graph"></span><em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ral</span><span class="pre">::</span><span class="pre">cache</span><code class="sig-prename descclassname"><span class="pre">::</span></code></code><code class="sig-name descname"><span class="pre">graph</span></code><a class="headerlink" href="#_CPPv4N3ral5cache5graphE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache5graphE"></span><span id="_CPPv2N3ral5cache5graphE"></span><span id="ral::cache::graph"></span><span class="target" id="classral_1_1cache_1_1graph"></span><em class="property">class </em><code class="sig-prename descclassname">ral::cache<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">graph</code><a class="headerlink" href="#_CPPv4N3ral5cache5graphE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>A class that represents the execution graph in a taskflow scheme. The taskflow scheme is basically implemeted by the execution graph and the kernels associated to each node in the graph. </p>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Public Functions</p>
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5cache5graph5graphEv">
-<span id="_CPPv3N3ral5cache5graph5graphEv"></span><span id="_CPPv2N3ral5cache5graph5graphEv"></span><span id="ral::cache::graph::graph"></span><span class="target" id="classral_1_1cache_1_1graph_1a6f90fd77289051197065edfab09d7802"></span><em class="property"><span class="pre">inline</span></em> <code class="sig-name descname"><span class="pre">graph</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph5graphEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache5graph5graphEv"></span><span id="_CPPv2N3ral5cache5graph5graphEv"></span><span id="ral::cache::graph::graph"></span><span class="target" id="classral_1_1cache_1_1graph_1a6f90fd77289051197065edfab09d7802"></span><em class="property">inline</em> <code class="sig-name descname">graph</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph5graphEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5cache5graphD0Ev">
-<span id="_CPPv3N3ral5cache5graphD0Ev"></span><span id="_CPPv2N3ral5cache5graphD0Ev"></span><span id="ral::cache::graph::~graph"></span><span class="target" id="classral_1_1cache_1_1graph_1aa0dcc14e71cccbfdaede4f74bbdfaf0e"></span><em class="property"><span class="pre">inline</span></em> <code class="sig-name descname"><span class="pre">~graph</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graphD0Ev" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache5graphD0Ev"></span><span id="_CPPv2N3ral5cache5graphD0Ev"></span><span id="ral::cache::graph::~graph"></span><span class="target" id="classral_1_1cache_1_1graph_1aa0dcc14e71cccbfdaede4f74bbdfaf0e"></span><em class="property">inline</em> <code class="sig-name descname">~graph</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graphD0Ev" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5cache5graph5graphERK5graph">
-<span id="_CPPv3N3ral5cache5graph5graphERK5graph"></span><span id="_CPPv2N3ral5cache5graph5graphERK5graph"></span><span id="ral::cache::graph::graph__graphCR"></span><span class="target" id="classral_1_1cache_1_1graph_1ab6be70320b76d41744d939d4fc955b70"></span><code class="sig-name descname"><span class="pre">graph</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <a class="reference internal" href="#_CPPv4N3ral5cache5graph5graphERK5graph" title="ral::cache::graph::graph"><span class="pre">graph</span></a><span class="pre">&amp;</span><span class="sig-paren">)</span> <span class="pre">=</span> <span class="pre">default</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph5graphERK5graph" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache5graph5graphERK5graph"></span><span id="_CPPv2N3ral5cache5graph5graphERK5graph"></span><span id="ral::cache::graph::graph__graphCR"></span><span class="target" id="classral_1_1cache_1_1graph_1ab6be70320b76d41744d939d4fc955b70"></span><code class="sig-name descname">graph</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4N3ral5cache5graph5graphERK5graph" title="ral::cache::graph::graph">graph</a>&amp;<span class="sig-paren">)</span> = default<a class="headerlink" href="#_CPPv4N3ral5cache5graph5graphERK5graph" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5cache5graphaSERK5graph">
-<span id="_CPPv3N3ral5cache5graphaSERK5graph"></span><span id="_CPPv2N3ral5cache5graphaSERK5graph"></span><span id="ral::cache::graph::assign-operator__graphCR"></span><span class="target" id="classral_1_1cache_1_1graph_1a1f124c827cc8c5d50b24c40dfd3e3611"></span><a class="reference internal" href="#_CPPv4N3ral5cache5graphE" title="ral::cache::graph"><span class="pre">graph</span></a> <span class="pre">&amp;</span><code class="sig-name descname"><span class="pre">operator=</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <a class="reference internal" href="#_CPPv4N3ral5cache5graphE" title="ral::cache::graph"><span class="pre">graph</span></a><span class="pre">&amp;</span><span class="sig-paren">)</span> <span class="pre">=</span> <span class="pre">default</span><a class="headerlink" href="#_CPPv4N3ral5cache5graphaSERK5graph" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache5graphaSERK5graph"></span><span id="_CPPv2N3ral5cache5graphaSERK5graph"></span><span id="ral::cache::graph::assign-operator__graphCR"></span><span class="target" id="classral_1_1cache_1_1graph_1a1f124c827cc8c5d50b24c40dfd3e3611"></span><a class="reference internal" href="#_CPPv4N3ral5cache5graphE" title="ral::cache::graph">graph</a> &amp;<code class="sig-name descname">operator=</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4N3ral5cache5graphE" title="ral::cache::graph">graph</a>&amp;<span class="sig-paren">)</span> = default<a class="headerlink" href="#_CPPv4N3ral5cache5graphaSERK5graph" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5cache5graph17get_context_tokenEv">
-<span id="_CPPv3N3ral5cache5graph17get_context_tokenEv"></span><span id="_CPPv2N3ral5cache5graph17get_context_tokenEv"></span><span id="ral::cache::graph::get_context_token"></span><span class="target" id="classral_1_1cache_1_1graph_1af5a8fe84e3617de4122139f222488260"></span><span class="pre">int32_t</span> <code class="sig-name descname"><span class="pre">get_context_token</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph17get_context_tokenEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache5graph17get_context_tokenEv"></span><span id="_CPPv2N3ral5cache5graph17get_context_tokenEv"></span><span id="ral::cache::graph::get_context_token"></span><span class="target" id="classral_1_1cache_1_1graph_1af5a8fe84e3617de4122139f222488260"></span>int32_t <code class="sig-name descname">get_context_token</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph17get_context_tokenEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5cache5graph17set_context_tokenE7int32_t">
-<span id="_CPPv3N3ral5cache5graph17set_context_tokenE7int32_t"></span><span id="_CPPv2N3ral5cache5graph17set_context_tokenE7int32_t"></span><span id="ral::cache::graph::set_context_token__int32_t"></span><span class="target" id="classral_1_1cache_1_1graph_1a3554e9923c246c8a0330fdfe10ef0ceb"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">set_context_token</span></code><span class="sig-paren">(</span><span class="pre">int32_t</span> <em><span class="pre">token</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph17set_context_tokenE7int32_t" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache5graph17set_context_tokenE7int32_t"></span><span id="_CPPv2N3ral5cache5graph17set_context_tokenE7int32_t"></span><span id="ral::cache::graph::set_context_token__int32_t"></span><span class="target" id="classral_1_1cache_1_1graph_1a3554e9923c246c8a0330fdfe10ef0ceb"></span>void <code class="sig-name descname">set_context_token</code><span class="sig-paren">(</span>int32_t <em>token</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph17set_context_tokenE7int32_t" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5cache5graph7addPairE5kpair">
-<span id="_CPPv3N3ral5cache5graph7addPairE5kpair"></span><span id="_CPPv2N3ral5cache5graph7addPairE5kpair"></span><span id="ral::cache::graph::addPair__kpair"></span><span class="target" id="classral_1_1cache_1_1graph_1a74f4846af102d834d07c960c3891f7be"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">addPair</span></code><span class="sig-paren">(</span><a class="reference internal" href="classral_1_1cache_1_1kpair.html#_CPPv4N3ral5cache5kpairE" title="ral::cache::kpair"><span class="pre">kpair</span></a> <em><span class="pre">p</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph7addPairE5kpair" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache5graph7addPairE5kpair"></span><span id="_CPPv2N3ral5cache5graph7addPairE5kpair"></span><span id="ral::cache::graph::addPair__kpair"></span><span class="target" id="classral_1_1cache_1_1graph_1a74f4846af102d834d07c960c3891f7be"></span>void <code class="sig-name descname">addPair</code><span class="sig-paren">(</span><a class="reference internal" href="classral_1_1cache_1_1kpair.html#_CPPv4N3ral5cache5kpairE" title="ral::cache::kpair">kpair</a> <em>p</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph7addPairE5kpair" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5cache5graph28check_and_complete_work_flowEv">
-<span id="_CPPv3N3ral5cache5graph28check_and_complete_work_flowEv"></span><span id="_CPPv2N3ral5cache5graph28check_and_complete_work_flowEv"></span><span id="ral::cache::graph::check_and_complete_work_flow"></span><span class="target" id="classral_1_1cache_1_1graph_1a6b91e950dd1762ea10b7a5d5721a70b3"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">check_and_complete_work_flow</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph28check_and_complete_work_flowEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache5graph28check_and_complete_work_flowEv"></span><span id="_CPPv2N3ral5cache5graph28check_and_complete_work_flowEv"></span><span id="ral::cache::graph::check_and_complete_work_flow"></span><span class="target" id="classral_1_1cache_1_1graph_1a6b91e950dd1762ea10b7a5d5721a70b3"></span>void <code class="sig-name descname">check_and_complete_work_flow</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph28check_and_complete_work_flowEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5cache5graph13start_executeEKNSt6size_tE">
-<span id="_CPPv3N3ral5cache5graph13start_executeEKNSt6size_tE"></span><span id="_CPPv2N3ral5cache5graph13start_executeEKNSt6size_tE"></span><span id="ral::cache::graph::start_execute__std::sC"></span><span class="target" id="classral_1_1cache_1_1graph_1a53b2231d465b80e88e02195d6ce0d020"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">start_execute</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">size_t</span> <em><span class="pre">max_kernel_run_threads</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph13start_executeEKNSt6size_tE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache5graph13start_executeEKNSt6size_tE"></span><span id="_CPPv2N3ral5cache5graph13start_executeEKNSt6size_tE"></span><span id="ral::cache::graph::start_execute__std::sC"></span><span class="target" id="classral_1_1cache_1_1graph_1a53b2231d465b80e88e02195d6ce0d020"></span>void <code class="sig-name descname">start_execute</code><span class="sig-paren">(</span><em class="property">const</em> std::size_t <em>max_kernel_run_threads</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph13start_executeEKNSt6size_tE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5cache5graph14finish_executeEv">
-<span id="_CPPv3N3ral5cache5graph14finish_executeEv"></span><span id="_CPPv2N3ral5cache5graph14finish_executeEv"></span><span id="ral::cache::graph::finish_execute"></span><span class="target" id="classral_1_1cache_1_1graph_1aba33a58227389f24dc8f68b961c63a90"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">finish_execute</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph14finish_executeEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache5graph14finish_executeEv"></span><span id="_CPPv2N3ral5cache5graph14finish_executeEv"></span><span id="ral::cache::graph::finish_execute"></span><span class="target" id="classral_1_1cache_1_1graph_1aba33a58227389f24dc8f68b961c63a90"></span>void <code class="sig-name descname">finish_execute</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph14finish_executeEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5cache5graph4showEv">
-<span id="_CPPv3N3ral5cache5graph4showEv"></span><span id="_CPPv2N3ral5cache5graph4showEv"></span><span id="ral::cache::graph::show"></span><span class="target" id="classral_1_1cache_1_1graph_1a8e4d145cfcdc3a467214362c94cd90e5"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">show</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph4showEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache5graph4showEv"></span><span id="_CPPv2N3ral5cache5graph4showEv"></span><span id="ral::cache::graph::show"></span><span class="target" id="classral_1_1cache_1_1graph_1a8e4d145cfcdc3a467214362c94cd90e5"></span>void <code class="sig-name descname">show</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph4showEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5cache5graph16show_from_kernelE7int32_t">
-<span id="_CPPv3N3ral5cache5graph16show_from_kernelE7int32_t"></span><span id="_CPPv2N3ral5cache5graph16show_from_kernelE7int32_t"></span><span id="ral::cache::graph::show_from_kernel__int32_t"></span><span class="target" id="classral_1_1cache_1_1graph_1a8230c4d53a48789b0fb345c4728ee382"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">show_from_kernel</span></code><span class="sig-paren">(</span><span class="pre">int32_t</span> <em><span class="pre">id</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph16show_from_kernelE7int32_t" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache5graph16show_from_kernelE7int32_t"></span><span id="_CPPv2N3ral5cache5graph16show_from_kernelE7int32_t"></span><span id="ral::cache::graph::show_from_kernel__int32_t"></span><span class="target" id="classral_1_1cache_1_1graph_1a8230c4d53a48789b0fb345c4728ee382"></span>void <code class="sig-name descname">show_from_kernel</code><span class="sig-paren">(</span>int32_t <em>id</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph16show_from_kernelE7int32_t" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5cache5graph34get_estimated_input_rows_to_kernelE7int32_t">
-<span id="_CPPv3N3ral5cache5graph34get_estimated_input_rows_to_kernelE7int32_t"></span><span id="_CPPv2N3ral5cache5graph34get_estimated_input_rows_to_kernelE7int32_t"></span><span id="ral::cache::graph::get_estimated_input_rows_to_kernel__int32_t"></span><span class="target" id="classral_1_1cache_1_1graph_1a450979fa83451a685cd01a3ff1d84fd3"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">pair</span><span class="pre">&lt;</span><span class="pre">bool</span><span class="pre">,</span> <span class="pre">uint64_t</span><span class="pre">&gt;</span> <code class="sig-name descname"><span class="pre">get_estimated_input_rows_to_kernel</span></code><span class="sig-paren">(</span><span class="pre">int32_t</span> <em><span class="pre">id</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph34get_estimated_input_rows_to_kernelE7int32_t" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache5graph34get_estimated_input_rows_to_kernelE7int32_t"></span><span id="_CPPv2N3ral5cache5graph34get_estimated_input_rows_to_kernelE7int32_t"></span><span id="ral::cache::graph::get_estimated_input_rows_to_kernel__int32_t"></span><span class="target" id="classral_1_1cache_1_1graph_1a450979fa83451a685cd01a3ff1d84fd3"></span>std::pair&lt;bool, uint64_t&gt; <code class="sig-name descname">get_estimated_input_rows_to_kernel</code><span class="sig-paren">(</span>int32_t <em>id</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph34get_estimated_input_rows_to_kernelE7int32_t" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5cache5graph33get_estimated_input_rows_to_cacheE7int32_tRKNSt6stringE">
-<span id="_CPPv3N3ral5cache5graph33get_estimated_input_rows_to_cacheE7int32_tRKNSt6stringE"></span><span id="_CPPv2N3ral5cache5graph33get_estimated_input_rows_to_cacheE7int32_tRKNSt6stringE"></span><span id="ral::cache::graph::get_estimated_input_rows_to_cache__int32_t.ssCR"></span><span class="target" id="classral_1_1cache_1_1graph_1a0a37303c30fe7e1cff0d503c64b5b9ea"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">pair</span><span class="pre">&lt;</span><span class="pre">bool</span><span class="pre">,</span> <span class="pre">uint64_t</span><span class="pre">&gt;</span> <code class="sig-name descname"><span class="pre">get_estimated_input_rows_to_cache</span></code><span class="sig-paren">(</span><span class="pre">int32_t</span> <em><span class="pre">id</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">string</span> <span class="pre">&amp;</span><em><span class="pre">port_name</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph33get_estimated_input_rows_to_cacheE7int32_tRKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache5graph33get_estimated_input_rows_to_cacheE7int32_tRKNSt6stringE"></span><span id="_CPPv2N3ral5cache5graph33get_estimated_input_rows_to_cacheE7int32_tRKNSt6stringE"></span><span id="ral::cache::graph::get_estimated_input_rows_to_cache__int32_t.ssCR"></span><span class="target" id="classral_1_1cache_1_1graph_1a0a37303c30fe7e1cff0d503c64b5b9ea"></span>std::pair&lt;bool, uint64_t&gt; <code class="sig-name descname">get_estimated_input_rows_to_cache</code><span class="sig-paren">(</span>int32_t <em>id</em>, <em class="property">const</em> std::string &amp;<em>port_name</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph33get_estimated_input_rows_to_cacheE7int32_tRKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5cache5graph15get_last_kernelEv">
-<span id="_CPPv3N3ral5cache5graph15get_last_kernelEv"></span><span id="_CPPv2N3ral5cache5graph15get_last_kernelEv"></span><span id="ral::cache::graph::get_last_kernel"></span><span class="target" id="classral_1_1cache_1_1graph_1ad932b42a4b61f60a01f203e06d6a4db6"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">shared_ptr</span><span class="pre">&lt;</span><a class="reference internal" href="classral_1_1cache_1_1kernel.html#_CPPv4N3ral5cache6kernelE" title="ral::cache::kernel"><span class="pre">kernel</span></a><span class="pre">&gt;</span> <code class="sig-name descname"><span class="pre">get_last_kernel</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph15get_last_kernelEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache5graph15get_last_kernelEv"></span><span id="_CPPv2N3ral5cache5graph15get_last_kernelEv"></span><span id="ral::cache::graph::get_last_kernel"></span><span class="target" id="classral_1_1cache_1_1graph_1ad932b42a4b61f60a01f203e06d6a4db6"></span>std::shared_ptr&lt;<a class="reference internal" href="classral_1_1cache_1_1kernel.html#_CPPv4N3ral5cache6kernelE" title="ral::cache::kernel">kernel</a>&gt; <code class="sig-name descname">get_last_kernel</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph15get_last_kernelEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5cache5graph17query_is_completeEv">
-<span id="_CPPv3N3ral5cache5graph17query_is_completeEv"></span><span id="_CPPv2N3ral5cache5graph17query_is_completeEv"></span><span id="ral::cache::graph::query_is_complete"></span><span class="target" id="classral_1_1cache_1_1graph_1a1b34d12b497e9b5a13ee5803cbac2b9c"></span><span class="pre">bool</span> <code class="sig-name descname"><span class="pre">query_is_complete</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph17query_is_completeEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache5graph17query_is_completeEv"></span><span id="_CPPv2N3ral5cache5graph17query_is_completeEv"></span><span id="ral::cache::graph::query_is_complete"></span><span class="target" id="classral_1_1cache_1_1graph_1a1b34d12b497e9b5a13ee5803cbac2b9c"></span>bool <code class="sig-name descname">query_is_complete</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph17query_is_completeEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5cache5graph12get_progressEv">
-<span id="_CPPv3N3ral5cache5graph12get_progressEv"></span><span id="_CPPv2N3ral5cache5graph12get_progressEv"></span><span id="ral::cache::graph::get_progress"></span><span class="target" id="classral_1_1cache_1_1graph_1ae6203c9457f340bb57ef88fdde3919df"></span><a class="reference internal" href="structral_1_1cache_1_1graph__progress.html#_CPPv4N3ral5cache14graph_progressE" title="ral::cache::graph_progress"><span class="pre">graph_progress</span></a> <code class="sig-name descname"><span class="pre">get_progress</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph12get_progressEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache5graph12get_progressEv"></span><span id="_CPPv2N3ral5cache5graph12get_progressEv"></span><span id="ral::cache::graph::get_progress"></span><span class="target" id="classral_1_1cache_1_1graph_1ae6203c9457f340bb57ef88fdde3919df"></span><a class="reference internal" href="structral_1_1cache_1_1graph__progress.html#_CPPv4N3ral5cache14graph_progressE" title="ral::cache::graph_progress">graph_progress</a> <code class="sig-name descname">get_progress</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph12get_progressEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4NK3ral5cache5graph9num_nodesEv">
-<span id="_CPPv3NK3ral5cache5graph9num_nodesEv"></span><span id="_CPPv2NK3ral5cache5graph9num_nodesEv"></span><span id="ral::cache::graph::num_nodesC"></span><span class="target" id="classral_1_1cache_1_1graph_1a86b47f4e66c2933ec68808cedf1a7384"></span><span class="pre">size_t</span> <code class="sig-name descname"><span class="pre">num_nodes</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em><a class="headerlink" href="#_CPPv4NK3ral5cache5graph9num_nodesEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3NK3ral5cache5graph9num_nodesEv"></span><span id="_CPPv2NK3ral5cache5graph9num_nodesEv"></span><span id="ral::cache::graph::num_nodesC"></span><span class="target" id="classral_1_1cache_1_1graph_1a86b47f4e66c2933ec68808cedf1a7384"></span>size_t <code class="sig-name descname">num_nodes</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral5cache5graph9num_nodesEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5cache5graph8add_nodeENSt10shared_ptrI6kernelEE">
-<span id="_CPPv3N3ral5cache5graph8add_nodeENSt10shared_ptrI6kernelEE"></span><span id="_CPPv2N3ral5cache5graph8add_nodeENSt10shared_ptrI6kernelEE"></span><span id="ral::cache::graph::add_node__std::shared_ptr:kernel:"></span><span class="target" id="classral_1_1cache_1_1graph_1af295e159e82d778e8326303b9144c047"></span><span class="pre">size_t</span> <code class="sig-name descname"><span class="pre">add_node</span></code><span class="sig-paren">(</span><span class="pre">std</span><span class="pre">::</span><span class="pre">shared_ptr</span><span class="pre">&lt;</span><a class="reference internal" href="classral_1_1cache_1_1kernel.html#_CPPv4N3ral5cache6kernelE" title="ral::cache::kernel"><span class="pre">kernel</span></a><span class="pre">&gt;</span> <em><span class="pre">k</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph8add_nodeENSt10shared_ptrI6kernelEE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache5graph8add_nodeENSt10shared_ptrI6kernelEE"></span><span id="_CPPv2N3ral5cache5graph8add_nodeENSt10shared_ptrI6kernelEE"></span><span id="ral::cache::graph::add_node__std::shared_ptr:kernel:"></span><span class="target" id="classral_1_1cache_1_1graph_1af295e159e82d778e8326303b9144c047"></span>size_t <code class="sig-name descname">add_node</code><span class="sig-paren">(</span>std::shared_ptr&lt;<a class="reference internal" href="classral_1_1cache_1_1kernel.html#_CPPv4N3ral5cache6kernelE" title="ral::cache::kernel">kernel</a>&gt; <em>k</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph8add_nodeENSt10shared_ptrI6kernelEE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5cache5graph8add_edgeENSt10shared_ptrI6kernelEENSt10shared_ptrI6kernelEENSt6stringENSt6stringERK14cache_settings">
-<span id="_CPPv3N3ral5cache5graph8add_edgeENSt10shared_ptrI6kernelEENSt10shared_ptrI6kernelEENSt6stringENSt6stringERK14cache_settings"></span><span id="_CPPv2N3ral5cache5graph8add_edgeENSt10shared_ptrI6kernelEENSt10shared_ptrI6kernelEENSt6stringENSt6stringERK14cache_settings"></span><span id="ral::cache::graph::add_edge__std::shared_ptr:kernel:.std::shared_ptr:kernel:.ss.ss.cache_settingsCR"></span><span class="target" id="classral_1_1cache_1_1graph_1a28ebb545621a519d7deda12f6d1fb4d8"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">add_edge</span></code><span class="sig-paren">(</span><span class="pre">std</span><span class="pre">::</span><span class="pre">shared_ptr</span><span class="pre">&lt;</span><a class="reference internal" href="classral_1_1cache_1_1kernel.html#_CPPv4N3ral5cache6kernelE" title="ral::cache::kernel"><span class="pre">kernel</span></a><span class="pre">&gt;</span> <em><span class="pre">source</span></em>, <span class="pre">std</span><span class="pre">::</span><span class="pre">shared_ptr</span><span class="pre">&lt;</span><a class="reference internal" href="classral_1_1cache_1_1kernel.html#_CPPv4N3ral5cache6kernelE" title="ral::cache::kernel"><span class="pre">kernel</span></a><span class="pre">&gt;</span> <em><span class="pre">target</span></em>, <span class="pre">std</span><span class="pre">::</span><span class="pre">string</span> <em><span class="pre">source_port</span></em>, <span class="pre">std</span><span class="pre">::</span><span class="pre">string</span> <em><span class="pre">target_port</span></em>, <em class="property"><span class="pre">const</span></em> <a class="reference internal" href="structral_1_1cache_1_1cache__settings.html#_CPPv4N3ral5cache14cache_settingsE" title="ral::cache::cache_settings"><span class="pre">cache_settings</span></a> <span class="pre">&amp;</span><em><span class="pre">config</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph8add_edgeENSt10shared_ptrI6kernelEENSt10shared_ptrI6kernelEENSt6stringENSt6stringERK14cache_settings" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache5graph8add_edgeENSt10shared_ptrI6kernelEENSt10shared_ptrI6kernelEENSt6stringENSt6stringERK14cache_settings"></span><span id="_CPPv2N3ral5cache5graph8add_edgeENSt10shared_ptrI6kernelEENSt10shared_ptrI6kernelEENSt6stringENSt6stringERK14cache_settings"></span><span id="ral::cache::graph::add_edge__std::shared_ptr:kernel:.std::shared_ptr:kernel:.ss.ss.cache_settingsCR"></span><span class="target" id="classral_1_1cache_1_1graph_1a28ebb545621a519d7deda12f6d1fb4d8"></span>void <code class="sig-name descname">add_edge</code><span class="sig-paren">(</span>std::shared_ptr&lt;<a class="reference internal" href="classral_1_1cache_1_1kernel.html#_CPPv4N3ral5cache6kernelE" title="ral::cache::kernel">kernel</a>&gt; <em>source</em>, std::shared_ptr&lt;<a class="reference internal" href="classral_1_1cache_1_1kernel.html#_CPPv4N3ral5cache6kernelE" title="ral::cache::kernel">kernel</a>&gt; <em>target</em>, std::string <em>source_port</em>, std::string <em>target_port</em>, <em class="property">const</em> <a class="reference internal" href="structral_1_1cache_1_1cache__settings.html#_CPPv4N3ral5cache14cache_settingsE" title="ral::cache::cache_settings">cache_settings</a> &amp;<em>config</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph8add_edgeENSt10shared_ptrI6kernelEENSt10shared_ptrI6kernelEENSt6stringENSt6stringERK14cache_settings" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5cache5graph8get_nodeE6size_t">
-<span id="_CPPv3N3ral5cache5graph8get_nodeE6size_t"></span><span id="_CPPv2N3ral5cache5graph8get_nodeE6size_t"></span><span id="ral::cache::graph::get_node__s"></span><span class="target" id="classral_1_1cache_1_1graph_1aa8e30e721fd0bda87b95303ad4ee4f47"></span><a class="reference internal" href="classral_1_1cache_1_1kernel.html#_CPPv4N3ral5cache6kernelE" title="ral::cache::kernel"><span class="pre">kernel</span></a> <span class="pre">*</span><code class="sig-name descname"><span class="pre">get_node</span></code><span class="sig-paren">(</span><span class="pre">size_t</span> <em><span class="pre">id</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph8get_nodeE6size_t" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache5graph8get_nodeE6size_t"></span><span id="_CPPv2N3ral5cache5graph8get_nodeE6size_t"></span><span id="ral::cache::graph::get_node__s"></span><span class="target" id="classral_1_1cache_1_1graph_1aa8e30e721fd0bda87b95303ad4ee4f47"></span><a class="reference internal" href="classral_1_1cache_1_1kernel.html#_CPPv4N3ral5cache6kernelE" title="ral::cache::kernel">kernel</a> *<code class="sig-name descname">get_node</code><span class="sig-paren">(</span>size_t <em>id</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph8get_nodeE6size_t" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5cache5graph23get_kernel_output_cacheE6size_tNSt6stringE">
-<span id="_CPPv3N3ral5cache5graph23get_kernel_output_cacheE6size_tNSt6stringE"></span><span id="_CPPv2N3ral5cache5graph23get_kernel_output_cacheE6size_tNSt6stringE"></span><span id="ral::cache::graph::get_kernel_output_cache__s.ss"></span><span class="target" id="classral_1_1cache_1_1graph_1a2526f97e8c3eb0e0d58e98c47490dd92"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">shared_ptr</span><span class="pre">&lt;</span><span class="pre">ral</span><span class="pre">::</span><span class="pre">cache</span><span class="pre">::</span><a class="reference internal" href="classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachineE" title="ral::cache::CacheMachine"><span class="pre">CacheMachine</span></a><span class="pre">&gt;</span> <code class="sig-name descname"><span class="pre">get_kernel_output_cache</span></code><span class="sig-paren">(</span><span class="pre">size_t</span> <em><span class="pre">kernel_id</span></em>, <span class="pre">std</span><span class="pre">::</span><span class="pre">string</span> <em><span class="pre">cache_id</span></em> <span class="pre">=</span> <span class="pre">&quot;&quot;</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph23get_kernel_output_cacheE6size_tNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache5graph23get_kernel_output_cacheE6size_tNSt6stringE"></span><span id="_CPPv2N3ral5cache5graph23get_kernel_output_cacheE6size_tNSt6stringE"></span><span id="ral::cache::graph::get_kernel_output_cache__s.ss"></span><span class="target" id="classral_1_1cache_1_1graph_1a2526f97e8c3eb0e0d58e98c47490dd92"></span>std::shared_ptr&lt;ral::cache::<a class="reference internal" href="classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachineE" title="ral::cache::CacheMachine">CacheMachine</a>&gt; <code class="sig-name descname">get_kernel_output_cache</code><span class="sig-paren">(</span>size_t <em>kernel_id</em>, std::string <em>cache_id</em> = &quot;&quot;<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph23get_kernel_output_cacheE6size_tNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5cache5graph27set_input_and_output_cachesENSt10shared_ptrIN3ral5cache12CacheMachineEEENSt10shared_ptrIN3ral5cache12CacheMachineEEE">
-<span id="_CPPv3N3ral5cache5graph27set_input_and_output_cachesENSt10shared_ptrIN3ral5cache12CacheMachineEEENSt10shared_ptrIN3ral5cache12CacheMachineEEE"></span><span id="_CPPv2N3ral5cache5graph27set_input_and_output_cachesENSt10shared_ptrIN3ral5cache12CacheMachineEEENSt10shared_ptrIN3ral5cache12CacheMachineEEE"></span><span id="ral::cache::graph::set_input_and_output_caches__std::shared_ptr:ral::cache::CacheMachine:.std::shared_ptr:ral::cache::CacheMachine:"></span><span class="target" id="classral_1_1cache_1_1graph_1a6f9aa9b9a091151f76f22f55765e4615"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">set_input_and_output_caches</span></code><span class="sig-paren">(</span><span class="pre">std</span><span class="pre">::</span><span class="pre">shared_ptr</span><span class="pre">&lt;</span><span class="pre">ral</span><span class="pre">::</span><span class="pre">cache</span><span class="pre">::</span><a class="reference internal" href="classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachineE" title="ral::cache::CacheMachine"><span class="pre">CacheMachine</span></a><span class="pre">&gt;</span> <em><span class="pre">input_cache</span></em>, <span class="pre">std</span><span class="pre">::</span><span class="pre">shared_ptr</span><span class="pre">&lt;</span><span class="pre">ral</span><span class="pre">::</span><span class="pre">cache</span><span class="pre">::</span><a class="reference internal" href="classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachineE" title="ral::cache::CacheMachine"><span class="pre">CacheMachine</span></a><span class="pre">&gt;</span> <em><span class="pre">output_cache</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph27set_input_and_output_cachesENSt10shared_ptrIN3ral5cache12CacheMachineEEENSt10shared_ptrIN3ral5cache12CacheMachineEEE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache5graph27set_input_and_output_cachesENSt10shared_ptrIN3ral5cache12CacheMachineEEENSt10shared_ptrIN3ral5cache12CacheMachineEEE"></span><span id="_CPPv2N3ral5cache5graph27set_input_and_output_cachesENSt10shared_ptrIN3ral5cache12CacheMachineEEENSt10shared_ptrIN3ral5cache12CacheMachineEEE"></span><span id="ral::cache::graph::set_input_and_output_caches__std::shared_ptr:ral::cache::CacheMachine:.std::shared_ptr:ral::cache::CacheMachine:"></span><span class="target" id="classral_1_1cache_1_1graph_1a6f9aa9b9a091151f76f22f55765e4615"></span>void <code class="sig-name descname">set_input_and_output_caches</code><span class="sig-paren">(</span>std::shared_ptr&lt;ral::cache::<a class="reference internal" href="classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachineE" title="ral::cache::CacheMachine">CacheMachine</a>&gt; <em>input_cache</em>, std::shared_ptr&lt;ral::cache::<a class="reference internal" href="classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachineE" title="ral::cache::CacheMachine">CacheMachine</a>&gt; <em>output_cache</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph27set_input_and_output_cachesENSt10shared_ptrIN3ral5cache12CacheMachineEEENSt10shared_ptrIN3ral5cache12CacheMachineEEE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5cache5graph23get_input_message_cacheEv">
-<span id="_CPPv3N3ral5cache5graph23get_input_message_cacheEv"></span><span id="_CPPv2N3ral5cache5graph23get_input_message_cacheEv"></span><span id="ral::cache::graph::get_input_message_cache"></span><span class="target" id="classral_1_1cache_1_1graph_1afb9d57ee7844be046911f265337ad974"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">shared_ptr</span><span class="pre">&lt;</span><span class="pre">ral</span><span class="pre">::</span><span class="pre">cache</span><span class="pre">::</span><a class="reference internal" href="classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachineE" title="ral::cache::CacheMachine"><span class="pre">CacheMachine</span></a><span class="pre">&gt;</span> <code class="sig-name descname"><span class="pre">get_input_message_cache</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph23get_input_message_cacheEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache5graph23get_input_message_cacheEv"></span><span id="_CPPv2N3ral5cache5graph23get_input_message_cacheEv"></span><span id="ral::cache::graph::get_input_message_cache"></span><span class="target" id="classral_1_1cache_1_1graph_1afb9d57ee7844be046911f265337ad974"></span>std::shared_ptr&lt;ral::cache::<a class="reference internal" href="classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachineE" title="ral::cache::CacheMachine">CacheMachine</a>&gt; <code class="sig-name descname">get_input_message_cache</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph23get_input_message_cacheEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5cache5graph24get_output_message_cacheEv">
-<span id="_CPPv3N3ral5cache5graph24get_output_message_cacheEv"></span><span id="_CPPv2N3ral5cache5graph24get_output_message_cacheEv"></span><span id="ral::cache::graph::get_output_message_cache"></span><span class="target" id="classral_1_1cache_1_1graph_1ad694f6bf51aad0b9d8fae90a80dbaf06"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">shared_ptr</span><span class="pre">&lt;</span><span class="pre">ral</span><span class="pre">::</span><span class="pre">cache</span><span class="pre">::</span><a class="reference internal" href="classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachineE" title="ral::cache::CacheMachine"><span class="pre">CacheMachine</span></a><span class="pre">&gt;</span> <code class="sig-name descname"><span class="pre">get_output_message_cache</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph24get_output_message_cacheEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache5graph24get_output_message_cacheEv"></span><span id="_CPPv2N3ral5cache5graph24get_output_message_cacheEv"></span><span id="ral::cache::graph::get_output_message_cache"></span><span class="target" id="classral_1_1cache_1_1graph_1ad694f6bf51aad0b9d8fae90a80dbaf06"></span>std::shared_ptr&lt;ral::cache::<a class="reference internal" href="classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachineE" title="ral::cache::CacheMachine">CacheMachine</a>&gt; <code class="sig-name descname">get_output_message_cache</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph24get_output_message_cacheEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5cache5graph14get_neighboursEP6kernel">
-<span id="_CPPv3N3ral5cache5graph14get_neighboursEP6kernel"></span><span id="_CPPv2N3ral5cache5graph14get_neighboursEP6kernel"></span><span id="ral::cache::graph::get_neighbours__kernelP"></span><span class="target" id="classral_1_1cache_1_1graph_1a94c6704384bfadf33a0585de2615b843"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">set</span><span class="pre">&lt;</span><a class="reference internal" href="#_CPPv4N3ral5cache5graph4EdgeE" title="ral::cache::graph::Edge"><span class="pre">Edge</span></a><span class="pre">&gt;</span> <code class="sig-name descname"><span class="pre">get_neighbours</span></code><span class="sig-paren">(</span><a class="reference internal" href="classral_1_1cache_1_1kernel.html#_CPPv4N3ral5cache6kernelE" title="ral::cache::kernel"><span class="pre">kernel</span></a> <span class="pre">*</span><em><span class="pre">from</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph14get_neighboursEP6kernel" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache5graph14get_neighboursEP6kernel"></span><span id="_CPPv2N3ral5cache5graph14get_neighboursEP6kernel"></span><span id="ral::cache::graph::get_neighbours__kernelP"></span><span class="target" id="classral_1_1cache_1_1graph_1a94c6704384bfadf33a0585de2615b843"></span>std::set&lt;<a class="reference internal" href="#_CPPv4N3ral5cache5graph4EdgeE" title="ral::cache::graph::Edge">Edge</a>&gt; <code class="sig-name descname">get_neighbours</code><span class="sig-paren">(</span><a class="reference internal" href="classral_1_1cache_1_1kernel.html#_CPPv4N3ral5cache6kernelE" title="ral::cache::kernel">kernel</a> *<em>from</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph14get_neighboursEP6kernel" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5cache5graph14get_neighboursE7int32_t">
-<span id="_CPPv3N3ral5cache5graph14get_neighboursE7int32_t"></span><span id="_CPPv2N3ral5cache5graph14get_neighboursE7int32_t"></span><span id="ral::cache::graph::get_neighbours__int32_t"></span><span class="target" id="classral_1_1cache_1_1graph_1a1033a6785724eece7f7d9f6db1cec377"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">set</span><span class="pre">&lt;</span><a class="reference internal" href="#_CPPv4N3ral5cache5graph4EdgeE" title="ral::cache::graph::Edge"><span class="pre">Edge</span></a><span class="pre">&gt;</span> <code class="sig-name descname"><span class="pre">get_neighbours</span></code><span class="sig-paren">(</span><span class="pre">int32_t</span> <em><span class="pre">id</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph14get_neighboursE7int32_t" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache5graph14get_neighboursE7int32_t"></span><span id="_CPPv2N3ral5cache5graph14get_neighboursE7int32_t"></span><span id="ral::cache::graph::get_neighbours__int32_t"></span><span class="target" id="classral_1_1cache_1_1graph_1a1033a6785724eece7f7d9f6db1cec377"></span>std::set&lt;<a class="reference internal" href="#_CPPv4N3ral5cache5graph4EdgeE" title="ral::cache::graph::Edge">Edge</a>&gt; <code class="sig-name descname">get_neighbours</code><span class="sig-paren">(</span>int32_t <em>id</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph14get_neighboursE7int32_t" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5cache5graph22get_reverse_neighboursEP6kernel">
-<span id="_CPPv3N3ral5cache5graph22get_reverse_neighboursEP6kernel"></span><span id="_CPPv2N3ral5cache5graph22get_reverse_neighboursEP6kernel"></span><span id="ral::cache::graph::get_reverse_neighbours__kernelP"></span><span class="target" id="classral_1_1cache_1_1graph_1a2b51ef8a39906835c618f9fe2e886aac"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">set</span><span class="pre">&lt;</span><a class="reference internal" href="#_CPPv4N3ral5cache5graph4EdgeE" title="ral::cache::graph::Edge"><span class="pre">Edge</span></a><span class="pre">&gt;</span> <code class="sig-name descname"><span class="pre">get_reverse_neighbours</span></code><span class="sig-paren">(</span><a class="reference internal" href="classral_1_1cache_1_1kernel.html#_CPPv4N3ral5cache6kernelE" title="ral::cache::kernel"><span class="pre">kernel</span></a> <span class="pre">*</span><em><span class="pre">from</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph22get_reverse_neighboursEP6kernel" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache5graph22get_reverse_neighboursEP6kernel"></span><span id="_CPPv2N3ral5cache5graph22get_reverse_neighboursEP6kernel"></span><span id="ral::cache::graph::get_reverse_neighbours__kernelP"></span><span class="target" id="classral_1_1cache_1_1graph_1a2b51ef8a39906835c618f9fe2e886aac"></span>std::set&lt;<a class="reference internal" href="#_CPPv4N3ral5cache5graph4EdgeE" title="ral::cache::graph::Edge">Edge</a>&gt; <code class="sig-name descname">get_reverse_neighbours</code><span class="sig-paren">(</span><a class="reference internal" href="classral_1_1cache_1_1kernel.html#_CPPv4N3ral5cache6kernelE" title="ral::cache::kernel">kernel</a> *<em>from</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph22get_reverse_neighboursEP6kernel" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5cache5graph22get_reverse_neighboursE7int32_t">
-<span id="_CPPv3N3ral5cache5graph22get_reverse_neighboursE7int32_t"></span><span id="_CPPv2N3ral5cache5graph22get_reverse_neighboursE7int32_t"></span><span id="ral::cache::graph::get_reverse_neighbours__int32_t"></span><span class="target" id="classral_1_1cache_1_1graph_1a891d2dbc52adb2f357de241b813458b9"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">set</span><span class="pre">&lt;</span><a class="reference internal" href="#_CPPv4N3ral5cache5graph4EdgeE" title="ral::cache::graph::Edge"><span class="pre">Edge</span></a><span class="pre">&gt;</span> <code class="sig-name descname"><span class="pre">get_reverse_neighbours</span></code><span class="sig-paren">(</span><span class="pre">int32_t</span> <em><span class="pre">id</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph22get_reverse_neighboursE7int32_t" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache5graph22get_reverse_neighboursE7int32_t"></span><span id="_CPPv2N3ral5cache5graph22get_reverse_neighboursE7int32_t"></span><span id="ral::cache::graph::get_reverse_neighbours__int32_t"></span><span class="target" id="classral_1_1cache_1_1graph_1a891d2dbc52adb2f357de241b813458b9"></span>std::set&lt;<a class="reference internal" href="#_CPPv4N3ral5cache5graph4EdgeE" title="ral::cache::graph::Edge">Edge</a>&gt; <code class="sig-name descname">get_reverse_neighbours</code><span class="sig-paren">(</span>int32_t <em>id</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph22get_reverse_neighboursE7int32_t" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5cache5graph17set_kernels_orderEv">
-<span id="_CPPv3N3ral5cache5graph17set_kernels_orderEv"></span><span id="_CPPv2N3ral5cache5graph17set_kernels_orderEv"></span><span id="ral::cache::graph::set_kernels_order"></span><span class="target" id="classral_1_1cache_1_1graph_1ad798a6ffb25cf4be31d95ce853e19756"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">set_kernels_order</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph17set_kernels_orderEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache5graph17set_kernels_orderEv"></span><span id="_CPPv2N3ral5cache5graph17set_kernels_orderEv"></span><span id="ral::cache::graph::set_kernels_order"></span><span class="target" id="classral_1_1cache_1_1graph_1ad798a6ffb25cf4be31d95ce853e19756"></span>void <code class="sig-name descname">set_kernels_order</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph17set_kernels_orderEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5cache5graph38check_for_simple_scan_with_limit_queryEv">
-<span id="_CPPv3N3ral5cache5graph38check_for_simple_scan_with_limit_queryEv"></span><span id="_CPPv2N3ral5cache5graph38check_for_simple_scan_with_limit_queryEv"></span><span id="ral::cache::graph::check_for_simple_scan_with_limit_query"></span><span class="target" id="classral_1_1cache_1_1graph_1aea83249dae61539588a5bd280d8ee505"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">check_for_simple_scan_with_limit_query</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph38check_for_simple_scan_with_limit_queryEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache5graph38check_for_simple_scan_with_limit_queryEv"></span><span id="_CPPv2N3ral5cache5graph38check_for_simple_scan_with_limit_queryEv"></span><span id="ral::cache::graph::check_for_simple_scan_with_limit_query"></span><span class="target" id="classral_1_1cache_1_1graph_1aea83249dae61539588a5bd280d8ee505"></span>void <code class="sig-name descname">check_for_simple_scan_with_limit_query</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph38check_for_simple_scan_with_limit_queryEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5cache5graph18set_memory_monitorENSt10shared_ptrIN3ral13MemoryMonitorEEE">
-<span id="_CPPv3N3ral5cache5graph18set_memory_monitorENSt10shared_ptrIN3ral13MemoryMonitorEEE"></span><span id="_CPPv2N3ral5cache5graph18set_memory_monitorENSt10shared_ptrIN3ral13MemoryMonitorEEE"></span><span id="ral::cache::graph::set_memory_monitor__std::shared_ptr:ral::MemoryMonitor:"></span><span class="target" id="classral_1_1cache_1_1graph_1aed7ab03ff8896d49b235a7a781e3a9aa"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">set_memory_monitor</span></code><span class="sig-paren">(</span><span class="pre">std</span><span class="pre">::</span><span class="pre">shared_ptr</span><span class="pre">&lt;</span><span class="pre">ral</span><span class="pre">::</span><a class="reference internal" href="classral_1_1MemoryMonitor.html#_CPPv4N3ral13MemoryMonitorE" title="ral::MemoryMonitor"><span class="pre">MemoryMonitor</span></a><span class="pre">&gt;</span> <em><span class="pre">mem_monitor</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph18set_memory_monitorENSt10shared_ptrIN3ral13MemoryMonitorEEE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache5graph18set_memory_monitorENSt10shared_ptrIN3ral13MemoryMonitorEEE"></span><span id="_CPPv2N3ral5cache5graph18set_memory_monitorENSt10shared_ptrIN3ral13MemoryMonitorEEE"></span><span id="ral::cache::graph::set_memory_monitor__std::shared_ptr:ral::MemoryMonitor:"></span><span class="target" id="classral_1_1cache_1_1graph_1aed7ab03ff8896d49b235a7a781e3a9aa"></span>void <code class="sig-name descname">set_memory_monitor</code><span class="sig-paren">(</span>std::shared_ptr&lt;ral::<a class="reference internal" href="classral_1_1MemoryMonitor.html#_CPPv4N3ral13MemoryMonitorE" title="ral::MemoryMonitor">MemoryMonitor</a>&gt; <em>mem_monitor</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph18set_memory_monitorENSt10shared_ptrIN3ral13MemoryMonitorEEE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5cache5graph13clear_kernelsEv">
-<span id="_CPPv3N3ral5cache5graph13clear_kernelsEv"></span><span id="_CPPv2N3ral5cache5graph13clear_kernelsEv"></span><span id="ral::cache::graph::clear_kernels"></span><span class="target" id="classral_1_1cache_1_1graph_1a3920eaeea5e5f47cd3991cd5b23ad520"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">clear_kernels</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph13clear_kernelsEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache5graph13clear_kernelsEv"></span><span id="_CPPv2N3ral5cache5graph13clear_kernelsEv"></span><span id="ral::cache::graph::clear_kernels"></span><span class="target" id="classral_1_1cache_1_1graph_1a3920eaeea5e5f47cd3991cd5b23ad520"></span>void <code class="sig-name descname">clear_kernels</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache5graph13clear_kernelsEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 </div>
 <dl class="cpp struct">
 <dt id="_CPPv4N3ral5cache5graph4EdgeE">
-<span id="_CPPv3N3ral5cache5graph4EdgeE"></span><span id="_CPPv2N3ral5cache5graph4EdgeE"></span><span id="ral::cache::graph::Edge"></span><span class="target" id="structral_1_1cache_1_1graph_1_1Edge"></span><em class="property"><span class="pre">struct</span> </em><code class="sig-name descname"><span class="pre">Edge</span></code><a class="headerlink" href="#_CPPv4N3ral5cache5graph4EdgeE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache5graph4EdgeE"></span><span id="_CPPv2N3ral5cache5graph4EdgeE"></span><span id="ral::cache::graph::Edge"></span><span class="target" id="structral_1_1cache_1_1graph_1_1Edge"></span><em class="property">struct </em><code class="sig-name descname">Edge</code><a class="headerlink" href="#_CPPv4N3ral5cache5graph4EdgeE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Public Functions</p>
 <dl class="cpp function">
 <dt id="_CPPv4NK3ral5cache5graph4EdgeltERK4Edge">
-<span id="_CPPv3NK3ral5cache5graph4EdgeltERK4Edge"></span><span id="_CPPv2NK3ral5cache5graph4EdgeltERK4Edge"></span><span id="ral::cache::graph::Edge::lt-operator__EdgeCRC"></span><span class="target" id="structral_1_1cache_1_1graph_1_1Edge_1abdd097e719806177f684116ed62b6c32"></span><em class="property"><span class="pre">inline</span></em> <span class="pre">bool</span> <code class="sig-name descname"><span class="pre">operator&lt;</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <a class="reference internal" href="#_CPPv4N3ral5cache5graph4EdgeE" title="ral::cache::graph::Edge"><span class="pre">Edge</span></a> <span class="pre">&amp;</span><em><span class="pre">e</span></em><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em><a class="headerlink" href="#_CPPv4NK3ral5cache5graph4EdgeltERK4Edge" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3NK3ral5cache5graph4EdgeltERK4Edge"></span><span id="_CPPv2NK3ral5cache5graph4EdgeltERK4Edge"></span><span id="ral::cache::graph::Edge::lt-operator__EdgeCRC"></span><span class="target" id="structral_1_1cache_1_1graph_1_1Edge_1abdd097e719806177f684116ed62b6c32"></span><em class="property">inline</em> bool <code class="sig-name descname">operator&lt;</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4N3ral5cache5graph4EdgeE" title="ral::cache::graph::Edge">Edge</a> &amp;<em>e</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral5cache5graph4EdgeltERK4Edge" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4NK3ral5cache5graph4EdgeeqERK4Edge">
-<span id="_CPPv3NK3ral5cache5graph4EdgeeqERK4Edge"></span><span id="_CPPv2NK3ral5cache5graph4EdgeeqERK4Edge"></span><span id="ral::cache::graph::Edge::eq-operator__EdgeCRC"></span><span class="target" id="structral_1_1cache_1_1graph_1_1Edge_1a1f5da6f33f1791f7033f3339865bbdb9"></span><em class="property"><span class="pre">inline</span></em> <span class="pre">bool</span> <code class="sig-name descname"><span class="pre">operator==</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <a class="reference internal" href="#_CPPv4N3ral5cache5graph4EdgeE" title="ral::cache::graph::Edge"><span class="pre">Edge</span></a> <span class="pre">&amp;</span><em><span class="pre">e</span></em><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em><a class="headerlink" href="#_CPPv4NK3ral5cache5graph4EdgeeqERK4Edge" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3NK3ral5cache5graph4EdgeeqERK4Edge"></span><span id="_CPPv2NK3ral5cache5graph4EdgeeqERK4Edge"></span><span id="ral::cache::graph::Edge::eq-operator__EdgeCRC"></span><span class="target" id="structral_1_1cache_1_1graph_1_1Edge_1a1f5da6f33f1791f7033f3339865bbdb9"></span><em class="property">inline</em> bool <code class="sig-name descname">operator==</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv4N3ral5cache5graph4EdgeE" title="ral::cache::graph::Edge">Edge</a> &amp;<em>e</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral5cache5graph4EdgeeqERK4Edge" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4NK3ral5cache5graph4Edge5printEv">
-<span id="_CPPv3NK3ral5cache5graph4Edge5printEv"></span><span id="_CPPv2NK3ral5cache5graph4Edge5printEv"></span><span id="ral::cache::graph::Edge::printC"></span><span class="target" id="structral_1_1cache_1_1graph_1_1Edge_1a3106a87b778cb9673ebf1bd1db122d52"></span><em class="property"><span class="pre">inline</span></em> <span class="pre">void</span> <code class="sig-name descname"><span class="pre">print</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em><a class="headerlink" href="#_CPPv4NK3ral5cache5graph4Edge5printEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3NK3ral5cache5graph4Edge5printEv"></span><span id="_CPPv2NK3ral5cache5graph4Edge5printEv"></span><span id="ral::cache::graph::Edge::printC"></span><span class="target" id="structral_1_1cache_1_1graph_1_1Edge_1a3106a87b778cb9673ebf1bd1db122d52"></span><em class="property">inline</em> void <code class="sig-name descname">print</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral5cache5graph4Edge5printEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 </div>
@@ -374,22 +376,22 @@
 <p class="breathe-sectiondef-title rubric">Public Members</p>
 <dl class="cpp var">
 <dt id="_CPPv4N3ral5cache5graph4Edge6sourceE">
-<span id="_CPPv3N3ral5cache5graph4Edge6sourceE"></span><span id="_CPPv2N3ral5cache5graph4Edge6sourceE"></span><span id="ral::cache::graph::Edge::source__std::int32_t"></span><span class="target" id="structral_1_1cache_1_1graph_1_1Edge_1a8dc9ddc349aa516a43e79ca54b103280"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">int32_t</span> <code class="sig-name descname"><span class="pre">source</span></code><a class="headerlink" href="#_CPPv4N3ral5cache5graph4Edge6sourceE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache5graph4Edge6sourceE"></span><span id="_CPPv2N3ral5cache5graph4Edge6sourceE"></span><span id="ral::cache::graph::Edge::source__std::int32_t"></span><span class="target" id="structral_1_1cache_1_1graph_1_1Edge_1a8dc9ddc349aa516a43e79ca54b103280"></span>std::int32_t <code class="sig-name descname">source</code><a class="headerlink" href="#_CPPv4N3ral5cache5graph4Edge6sourceE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt id="_CPPv4N3ral5cache5graph4Edge6targetE">
-<span id="_CPPv3N3ral5cache5graph4Edge6targetE"></span><span id="_CPPv2N3ral5cache5graph4Edge6targetE"></span><span id="ral::cache::graph::Edge::target__std::int32_t"></span><span class="target" id="structral_1_1cache_1_1graph_1_1Edge_1a68ae521d03065a14e421f2051802e042"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">int32_t</span> <code class="sig-name descname"><span class="pre">target</span></code><a class="headerlink" href="#_CPPv4N3ral5cache5graph4Edge6targetE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache5graph4Edge6targetE"></span><span id="_CPPv2N3ral5cache5graph4Edge6targetE"></span><span id="ral::cache::graph::Edge::target__std::int32_t"></span><span class="target" id="structral_1_1cache_1_1graph_1_1Edge_1a68ae521d03065a14e421f2051802e042"></span>std::int32_t <code class="sig-name descname">target</code><a class="headerlink" href="#_CPPv4N3ral5cache5graph4Edge6targetE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt id="_CPPv4N3ral5cache5graph4Edge16source_port_nameE">
-<span id="_CPPv3N3ral5cache5graph4Edge16source_port_nameE"></span><span id="_CPPv2N3ral5cache5graph4Edge16source_port_nameE"></span><span id="ral::cache::graph::Edge::source_port_name__ss"></span><span class="target" id="structral_1_1cache_1_1graph_1_1Edge_1a35e5d15b7612e9622f1708b10a5d6cf4"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">string</span> <code class="sig-name descname"><span class="pre">source_port_name</span></code><a class="headerlink" href="#_CPPv4N3ral5cache5graph4Edge16source_port_nameE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache5graph4Edge16source_port_nameE"></span><span id="_CPPv2N3ral5cache5graph4Edge16source_port_nameE"></span><span id="ral::cache::graph::Edge::source_port_name__ss"></span><span class="target" id="structral_1_1cache_1_1graph_1_1Edge_1a35e5d15b7612e9622f1708b10a5d6cf4"></span>std::string <code class="sig-name descname">source_port_name</code><a class="headerlink" href="#_CPPv4N3ral5cache5graph4Edge16source_port_nameE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt id="_CPPv4N3ral5cache5graph4Edge16target_port_nameE">
-<span id="_CPPv3N3ral5cache5graph4Edge16target_port_nameE"></span><span id="_CPPv2N3ral5cache5graph4Edge16target_port_nameE"></span><span id="ral::cache::graph::Edge::target_port_name__ss"></span><span class="target" id="structral_1_1cache_1_1graph_1_1Edge_1acdf77070b3fec68b021b6ccc0962c060"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">string</span> <code class="sig-name descname"><span class="pre">target_port_name</span></code><a class="headerlink" href="#_CPPv4N3ral5cache5graph4Edge16target_port_nameE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache5graph4Edge16target_port_nameE"></span><span id="_CPPv2N3ral5cache5graph4Edge16target_port_nameE"></span><span id="ral::cache::graph::Edge::target_port_name__ss"></span><span class="target" id="structral_1_1cache_1_1graph_1_1Edge_1acdf77070b3fec68b021b6ccc0962c060"></span>std::string <code class="sig-name descname">target_port_name</code><a class="headerlink" href="#_CPPv4N3ral5cache5graph4Edge16target_port_nameE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 </div>
@@ -416,14 +418,14 @@
     </div>
 
     
-  <script src="../_static/js/index.d8bbf5861d671d414e1a.js"></script>
+  <script src="../_static/js/index.d3f166471bb80abb5163.js"></script>
 
 
     <footer class="footer mt-5 mt-md-0">
   <div class="container">
     <p>
           &copy; Copyright 2020, BlazingDB, Inc..<br/>
-        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.4.3.<br/>
     </p>
   </div>
 </footer>

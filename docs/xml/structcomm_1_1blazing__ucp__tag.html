@@ -7,8 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Struct blazing_ucp_tag &#8212; BlazingSQL v0.18 documentation</title>
     
-  <link href="../_static/css/theme.css" rel="stylesheet" />
-  <link href="../_static/css/index.101715efdecc9b59cb6e1ddfa685c31f.css" rel="stylesheet" />
+  <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
     
   <link rel="stylesheet"
@@ -20,17 +19,21 @@
 
     
       
+  <link rel="stylesheet"
+    href="../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../_static/vendor/lato_latin-ext/1.44.1/index.css">
 
     
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/getting_started.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     
-  <link rel="preload" as="script" href="../_static/js/index.d8bbf5861d671d414e1a.js">
+  <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
     <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
@@ -47,46 +50,43 @@
   </head>
   <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
     
-    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="container-xl">
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
 
-
+    <a class="navbar-brand" href="../index.html">
     
-      
-      <a class="navbar-brand" href="../index.html">
-        <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo">
-      </a>
-      
+      <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo" />
     
-
+    </a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
     </button>
 
-    
     <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
       <ul id="navbar-main-elements" class="navbar-nav mr-auto">
-        <li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../arch.html">
-  BlazingSQL Project Architecture
- </a>
-</li>
-
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../graph.html">
-  Execution Engine
- </a>
-</li>
-
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../api.html">
-  API Documentation
- </a>
-</li>
-
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../arch.html">BlazingSQL Project Architecture</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../graph.html">Execution Engine</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../api.html">API Documentation</a>
+        </li>
+        
         
       </ul>
 
-      <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+
+      
+
+      <ul class="navbar-nav">
+        
+        
       </ul>
     </div>
 </div>
@@ -96,19 +96,27 @@
     <div class="container-xl">
       <div class="row">
           
-            
-            <!-- Only show if we have sidebars configured, else just a small margin  -->
-            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
   <i class="icon fas fa-search"></i>
   <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
 </form>
 <nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
-  <div class="bd-toc-item active">
+
+    <div class="bd-toc-item active">
     
-  </div>
-</nav>
-            </div>
-            
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
           
 
           
@@ -119,14 +127,13 @@
 </div>
 
 <nav id="bd-toc-nav">
-    <ul class="visible nav section-nav flex-column">
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#struct-documentation">
-   Struct Documentation
-  </a>
- </li>
-</ul>
-
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#struct-documentation" class="nav-link">Struct Documentation</a>
+        </li>
+    
+    </ul>
 </nav>
 
 
@@ -142,9 +149,6 @@
           
 
           
-          
-            
-          
           <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
               
               <div>
@@ -158,25 +162,25 @@
 <h2>Struct Documentation<a class="headerlink" href="#struct-documentation" title="Permalink to this headline">¶</a></h2>
 <dl class="cpp struct">
 <dt id="_CPPv4N4comm15blazing_ucp_tagE">
-<span id="_CPPv3N4comm15blazing_ucp_tagE"></span><span id="_CPPv2N4comm15blazing_ucp_tagE"></span><span id="comm::blazing_ucp_tag"></span><span class="target" id="structcomm_1_1blazing__ucp__tag"></span><em class="property"><span class="pre">struct</span> </em><code class="sig-prename descclassname"><span class="pre">comm</span><code class="sig-prename descclassname"><span class="pre">::</span></code></code><code class="sig-name descname"><span class="pre">blazing_ucp_tag</span></code><a class="headerlink" href="#_CPPv4N4comm15blazing_ucp_tagE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N4comm15blazing_ucp_tagE"></span><span id="_CPPv2N4comm15blazing_ucp_tagE"></span><span id="comm::blazing_ucp_tag"></span><span class="target" id="structcomm_1_1blazing__ucp__tag"></span><em class="property">struct </em><code class="sig-prename descclassname">comm<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">blazing_ucp_tag</code><a class="headerlink" href="#_CPPv4N4comm15blazing_ucp_tagE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>A struct for managing the 64 bit tag that ucx uses This allow us to make a value that is stored in 8 bytes </p>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Public Members</p>
 <dl class="cpp var">
 <dt id="_CPPv4N4comm15blazing_ucp_tag10message_idE">
-<span id="_CPPv3N4comm15blazing_ucp_tag10message_idE"></span><span id="_CPPv2N4comm15blazing_ucp_tag10message_idE"></span><span id="comm::blazing_ucp_tag::message_id__i"></span><span class="target" id="structcomm_1_1blazing__ucp__tag_1a31f59e8f5c2a690df88ca3a4147ef942"></span><span class="pre">int</span> <code class="sig-name descname"><span class="pre">message_id</span></code><a class="headerlink" href="#_CPPv4N4comm15blazing_ucp_tag10message_idE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N4comm15blazing_ucp_tag10message_idE"></span><span id="_CPPv2N4comm15blazing_ucp_tag10message_idE"></span><span id="comm::blazing_ucp_tag::message_id__i"></span><span class="target" id="structcomm_1_1blazing__ucp__tag_1a31f59e8f5c2a690df88ca3a4147ef942"></span>int <code class="sig-name descname">message_id</code><a class="headerlink" href="#_CPPv4N4comm15blazing_ucp_tag10message_idE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>The message id which is generated by a global atomic </p>
 </dd></dl>
 
 <dl class="cpp var">
 <dt id="_CPPv4N4comm15blazing_ucp_tag16worker_origin_idE">
-<span id="_CPPv3N4comm15blazing_ucp_tag16worker_origin_idE"></span><span id="_CPPv2N4comm15blazing_ucp_tag16worker_origin_idE"></span><span id="comm::blazing_ucp_tag::worker_origin_id__uint16_t"></span><span class="target" id="structcomm_1_1blazing__ucp__tag_1ae34c2b757572ae3316c4c52b220e368b"></span><span class="pre">uint16_t</span> <code class="sig-name descname"><span class="pre">worker_origin_id</span></code><a class="headerlink" href="#_CPPv4N4comm15blazing_ucp_tag16worker_origin_idE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N4comm15blazing_ucp_tag16worker_origin_idE"></span><span id="_CPPv2N4comm15blazing_ucp_tag16worker_origin_idE"></span><span id="comm::blazing_ucp_tag::worker_origin_id__uint16_t"></span><span class="target" id="structcomm_1_1blazing__ucp__tag_1ae34c2b757572ae3316c4c52b220e368b"></span>uint16_t <code class="sig-name descname">worker_origin_id</code><a class="headerlink" href="#_CPPv4N4comm15blazing_ucp_tag16worker_origin_idE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>The id to make sure each tag is unique </p>
 </dd></dl>
 
 <dl class="cpp var">
 <dt id="_CPPv4N4comm15blazing_ucp_tag8frame_idE">
-<span id="_CPPv3N4comm15blazing_ucp_tag8frame_idE"></span><span id="_CPPv2N4comm15blazing_ucp_tag8frame_idE"></span><span id="comm::blazing_ucp_tag::frame_id__uint16_t"></span><span class="target" id="structcomm_1_1blazing__ucp__tag_1ae5f3239906e71a91821ae27d4ec17325"></span><span class="pre">uint16_t</span> <code class="sig-name descname"><span class="pre">frame_id</span></code><a class="headerlink" href="#_CPPv4N4comm15blazing_ucp_tag8frame_idE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N4comm15blazing_ucp_tag8frame_idE"></span><span id="_CPPv2N4comm15blazing_ucp_tag8frame_idE"></span><span id="comm::blazing_ucp_tag::frame_id__uint16_t"></span><span class="target" id="structcomm_1_1blazing__ucp__tag_1ae5f3239906e71a91821ae27d4ec17325"></span>uint16_t <code class="sig-name descname">frame_id</code><a class="headerlink" href="#_CPPv4N4comm15blazing_ucp_tag8frame_idE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>The id of the frame being sent. 0 for being_transmission </p>
 </dd></dl>
 
@@ -202,14 +206,14 @@
     </div>
 
     
-  <script src="../_static/js/index.d8bbf5861d671d414e1a.js"></script>
+  <script src="../_static/js/index.d3f166471bb80abb5163.js"></script>
 
 
     <footer class="footer mt-5 mt-md-0">
   <div class="container">
     <p>
           &copy; Copyright 2020, BlazingDB, Inc..<br/>
-        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.4.3.<br/>
     </p>
   </div>
 </footer>

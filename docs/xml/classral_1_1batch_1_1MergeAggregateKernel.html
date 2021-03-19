@@ -7,8 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Class MergeAggregateKernel &#8212; BlazingSQL v0.18 documentation</title>
     
-  <link href="../_static/css/theme.css" rel="stylesheet" />
-  <link href="../_static/css/index.101715efdecc9b59cb6e1ddfa685c31f.css" rel="stylesheet" />
+  <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
     
   <link rel="stylesheet"
@@ -20,17 +19,21 @@
 
     
       
+  <link rel="stylesheet"
+    href="../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../_static/vendor/lato_latin-ext/1.44.1/index.css">
 
     
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/getting_started.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     
-  <link rel="preload" as="script" href="../_static/js/index.d8bbf5861d671d414e1a.js">
+  <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
     <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
@@ -47,46 +50,43 @@
   </head>
   <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
     
-    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="container-xl">
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
 
-
+    <a class="navbar-brand" href="../index.html">
     
-      
-      <a class="navbar-brand" href="../index.html">
-        <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo">
-      </a>
-      
+      <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo" />
     
-
+    </a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
     </button>
 
-    
     <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
       <ul id="navbar-main-elements" class="navbar-nav mr-auto">
-        <li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../arch.html">
-  BlazingSQL Project Architecture
- </a>
-</li>
-
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../graph.html">
-  Execution Engine
- </a>
-</li>
-
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../api.html">
-  API Documentation
- </a>
-</li>
-
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../arch.html">BlazingSQL Project Architecture</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../graph.html">Execution Engine</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../api.html">API Documentation</a>
+        </li>
+        
         
       </ul>
 
-      <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+
+      
+
+      <ul class="navbar-nav">
+        
+        
       </ul>
     </div>
 </div>
@@ -96,19 +96,27 @@
     <div class="container-xl">
       <div class="row">
           
-            
-            <!-- Only show if we have sidebars configured, else just a small margin  -->
-            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
   <i class="icon fas fa-search"></i>
   <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
 </form>
 <nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
-  <div class="bd-toc-item active">
+
+    <div class="bd-toc-item active">
     
-  </div>
-</nav>
-            </div>
-            
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
           
 
           
@@ -119,26 +127,23 @@
 </div>
 
 <nav id="bd-toc-nav">
-    <ul class="visible nav section-nav flex-column">
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#inheritance-relationships">
-   Inheritance Relationships
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#base-type">
-     Base Type
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#class-documentation">
-   Class Documentation
-  </a>
- </li>
-</ul>
-
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#inheritance-relationships" class="nav-link">Inheritance Relationships</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#base-type" class="nav-link">Base Type</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#class-documentation" class="nav-link">Class Documentation</a>
+        </li>
+    
+    </ul>
 </nav>
 
 
@@ -153,9 +158,6 @@
           </div>
           
 
-          
-          
-            
           
           <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
               
@@ -179,27 +181,27 @@
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
 <dl class="cpp class">
 <dt id="_CPPv4N3ral5batch20MergeAggregateKernelE">
-<span id="_CPPv3N3ral5batch20MergeAggregateKernelE"></span><span id="_CPPv2N3ral5batch20MergeAggregateKernelE"></span><span id="ral::batch::MergeAggregateKernel"></span><span class="target" id="classral_1_1batch_1_1MergeAggregateKernel"></span><em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ral</span><span class="pre">::</span><span class="pre">batch</span><code class="sig-prename descclassname"><span class="pre">::</span></code></code><code class="sig-name descname"><span class="pre">MergeAggregateKernel</span></code> <span class="pre">:</span> <em class="property"><span class="pre">public</span></em> <span class="pre">ral</span><span class="pre">::</span><span class="pre">cache</span><span class="pre">::</span><a class="reference internal" href="classral_1_1cache_1_1kernel.html#_CPPv4N3ral5cache6kernelE" title="ral::cache::kernel"><span class="pre">kernel</span></a><a class="headerlink" href="#_CPPv4N3ral5batch20MergeAggregateKernelE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5batch20MergeAggregateKernelE"></span><span id="_CPPv2N3ral5batch20MergeAggregateKernelE"></span><span id="ral::batch::MergeAggregateKernel"></span><span class="target" id="classral_1_1batch_1_1MergeAggregateKernel"></span><em class="property">class </em><code class="sig-prename descclassname">ral::batch<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">MergeAggregateKernel</code> : <em class="property">public</em> ral::cache::<a class="reference internal" href="classral_1_1cache_1_1kernel.html#_CPPv4N3ral5cache6kernelE" title="ral::cache::kernel">kernel</a><a class="headerlink" href="#_CPPv4N3ral5batch20MergeAggregateKernelE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Public Functions</p>
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5batch20MergeAggregateKernel20MergeAggregateKernelENSt6size_tERKNSt6stringENSt10shared_ptrI7ContextEENSt10shared_ptrIN3ral5cache5graphEEE">
-<span id="_CPPv3N3ral5batch20MergeAggregateKernel20MergeAggregateKernelENSt6size_tERKNSt6stringENSt10shared_ptrI7ContextEENSt10shared_ptrIN3ral5cache5graphEEE"></span><span id="_CPPv2N3ral5batch20MergeAggregateKernel20MergeAggregateKernelENSt6size_tERKNSt6stringENSt10shared_ptrI7ContextEENSt10shared_ptrIN3ral5cache5graphEEE"></span><span id="ral::batch::MergeAggregateKernel::MergeAggregateKernel__std::s.ssCR.std::shared_ptr:Context:.std::shared_ptr:ral::cache::graph:"></span><span class="target" id="classral_1_1batch_1_1MergeAggregateKernel_1ae3571021cef498125a11acf4289aca29"></span><code class="sig-name descname"><span class="pre">MergeAggregateKernel</span></code><span class="sig-paren">(</span><span class="pre">std</span><span class="pre">::</span><span class="pre">size_t</span> <em><span class="pre">kernel_id</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">string</span> <span class="pre">&amp;</span><em><span class="pre">queryString</span></em>, <span class="pre">std</span><span class="pre">::</span><span class="pre">shared_ptr</span><span class="pre">&lt;</span><a class="reference internal" href="typedef_BatchJoinProcessing_8h_1afe86ae51878bc067a8c99c61f679f2a6.html#_CPPv4N3ral5batch7ContextE" title="ral::batch::Context"><span class="pre">Context</span></a><span class="pre">&gt;</span> <em><span class="pre">context</span></em>, <span class="pre">std</span><span class="pre">::</span><span class="pre">shared_ptr</span><span class="pre">&lt;</span><span class="pre">ral</span><span class="pre">::</span><span class="pre">cache</span><span class="pre">::</span><a class="reference internal" href="classral_1_1cache_1_1graph.html#_CPPv4N3ral5cache5graphE" title="ral::cache::graph"><span class="pre">graph</span></a><span class="pre">&gt;</span> <em><span class="pre">query_graph</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5batch20MergeAggregateKernel20MergeAggregateKernelENSt6size_tERKNSt6stringENSt10shared_ptrI7ContextEENSt10shared_ptrIN3ral5cache5graphEEE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5batch20MergeAggregateKernel20MergeAggregateKernelENSt6size_tERKNSt6stringENSt10shared_ptrI7ContextEENSt10shared_ptrIN3ral5cache5graphEEE"></span><span id="_CPPv2N3ral5batch20MergeAggregateKernel20MergeAggregateKernelENSt6size_tERKNSt6stringENSt10shared_ptrI7ContextEENSt10shared_ptrIN3ral5cache5graphEEE"></span><span id="ral::batch::MergeAggregateKernel::MergeAggregateKernel__std::s.ssCR.std::shared_ptr:Context:.std::shared_ptr:ral::cache::graph:"></span><span class="target" id="classral_1_1batch_1_1MergeAggregateKernel_1ae3571021cef498125a11acf4289aca29"></span><code class="sig-name descname">MergeAggregateKernel</code><span class="sig-paren">(</span>std::size_t <em>kernel_id</em>, <em class="property">const</em> std::string &amp;<em>queryString</em>, std::shared_ptr&lt;<a class="reference internal" href="typedef_BatchJoinProcessing_8h_1afe86ae51878bc067a8c99c61f679f2a6.html#_CPPv4N3ral5batch7ContextE" title="ral::batch::Context">Context</a>&gt; <em>context</em>, std::shared_ptr&lt;ral::cache::<a class="reference internal" href="classral_1_1cache_1_1graph.html#_CPPv4N3ral5cache5graphE" title="ral::cache::graph">graph</a>&gt; <em>query_graph</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5batch20MergeAggregateKernel20MergeAggregateKernelENSt6size_tERKNSt6stringENSt10shared_ptrI7ContextEENSt10shared_ptrIN3ral5cache5graphEEE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5batch20MergeAggregateKernel11kernel_nameEv">
-<span id="_CPPv3N3ral5batch20MergeAggregateKernel11kernel_nameEv"></span><span id="_CPPv2N3ral5batch20MergeAggregateKernel11kernel_nameEv"></span><span id="ral::batch::MergeAggregateKernel::kernel_name"></span><span class="target" id="classral_1_1batch_1_1MergeAggregateKernel_1a1a16defc6f19b70c72409c6eb7b039f2"></span><em class="property"><span class="pre">inline</span></em> <em class="property"><span class="pre">virtual</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">string</span> <code class="sig-name descname"><span class="pre">kernel_name</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5batch20MergeAggregateKernel11kernel_nameEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5batch20MergeAggregateKernel11kernel_nameEv"></span><span id="_CPPv2N3ral5batch20MergeAggregateKernel11kernel_nameEv"></span><span id="ral::batch::MergeAggregateKernel::kernel_name"></span><span class="target" id="classral_1_1batch_1_1MergeAggregateKernel_1a1a16defc6f19b70c72409c6eb7b039f2"></span><em class="property">inline</em> <em class="property">virtual</em> std::string <code class="sig-name descname">kernel_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5batch20MergeAggregateKernel11kernel_nameEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5batch20MergeAggregateKernel10do_processENSt6vectorINSt10unique_ptrIN3ral5frame12BlazingTableEEEEENSt10shared_ptrIN3ral5cache12CacheMachineEEE12cudaStream_tRKNSt3mapINSt6stringENSt6stringEEE">
-<span id="_CPPv3N3ral5batch20MergeAggregateKernel10do_processENSt6vectorINSt10unique_ptrIN3ral5frame12BlazingTableEEEEENSt10shared_ptrIN3ral5cache12CacheMachineEEE12cudaStream_tRKNSt3mapINSt6stringENSt6stringEEE"></span><span id="_CPPv2N3ral5batch20MergeAggregateKernel10do_processENSt6vectorINSt10unique_ptrIN3ral5frame12BlazingTableEEEEENSt10shared_ptrIN3ral5cache12CacheMachineEEE12cudaStream_tRKNSt3mapINSt6stringENSt6stringEEE"></span><span id="ral::batch::MergeAggregateKernel::do_process__std::vector:std::unique_ptr:ral::frame::BlazingTable::.std::shared_ptr:ral::cache::CacheMachine:.cudaStream_t.std::map:ss.ss:CR"></span><span class="target" id="classral_1_1batch_1_1MergeAggregateKernel_1a0a2e3be0baf71fc661e150495f989d73"></span><span class="pre">ral</span><span class="pre">::</span><span class="pre">execution</span><span class="pre">::</span><a class="reference internal" href="structral_1_1execution_1_1task__result.html#_CPPv4N3ral9execution11task_resultE" title="ral::execution::task_result"><span class="pre">task_result</span></a> <code class="sig-name descname"><span class="pre">do_process</span></code><span class="sig-paren">(</span><span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><span class="pre">std</span><span class="pre">::</span><span class="pre">unique_ptr</span><span class="pre">&lt;</span><span class="pre">ral</span><span class="pre">::</span><span class="pre">frame</span><span class="pre">::</span><a class="reference internal" href="classral_1_1frame_1_1BlazingTable.html#_CPPv4N3ral5frame12BlazingTableE" title="ral::frame::BlazingTable"><span class="pre">BlazingTable</span></a><span class="pre">&gt;</span><span class="pre">&gt;</span> <em><span class="pre">inputs</span></em>, <span class="pre">std</span><span class="pre">::</span><span class="pre">shared_ptr</span><span class="pre">&lt;</span><span class="pre">ral</span><span class="pre">::</span><span class="pre">cache</span><span class="pre">::</span><a class="reference internal" href="classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachineE" title="ral::cache::CacheMachine"><span class="pre">CacheMachine</span></a><span class="pre">&gt;</span> <em><span class="pre">output</span></em>, <a class="reference internal" href="typedef_BlazingMemoryResource_8h_1ae15d9c8b7a240312b533d6122558085a.html#_CPPv412cudaStream_t" title="cudaStream_t"><span class="pre">cudaStream_t</span></a> <em><span class="pre">stream</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">map</span><span class="pre">&lt;</span><span class="pre">std</span><span class="pre">::</span><span class="pre">string</span><span class="pre">,</span> <span class="pre">std</span><span class="pre">::</span><span class="pre">string</span><span class="pre">&gt;</span> <span class="pre">&amp;</span><em><span class="pre">args</span></em><span class="sig-paren">)</span> <em class="property"><span class="pre">override</span></em><a class="headerlink" href="#_CPPv4N3ral5batch20MergeAggregateKernel10do_processENSt6vectorINSt10unique_ptrIN3ral5frame12BlazingTableEEEEENSt10shared_ptrIN3ral5cache12CacheMachineEEE12cudaStream_tRKNSt3mapINSt6stringENSt6stringEEE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5batch20MergeAggregateKernel10do_processENSt6vectorINSt10unique_ptrIN3ral5frame12BlazingTableEEEEENSt10shared_ptrIN3ral5cache12CacheMachineEEE12cudaStream_tRKNSt3mapINSt6stringENSt6stringEEE"></span><span id="_CPPv2N3ral5batch20MergeAggregateKernel10do_processENSt6vectorINSt10unique_ptrIN3ral5frame12BlazingTableEEEEENSt10shared_ptrIN3ral5cache12CacheMachineEEE12cudaStream_tRKNSt3mapINSt6stringENSt6stringEEE"></span><span id="ral::batch::MergeAggregateKernel::do_process__std::vector:std::unique_ptr:ral::frame::BlazingTable::.std::shared_ptr:ral::cache::CacheMachine:.cudaStream_t.std::map:ss.ss:CR"></span><span class="target" id="classral_1_1batch_1_1MergeAggregateKernel_1a0a2e3be0baf71fc661e150495f989d73"></span>ral::execution::<a class="reference internal" href="structral_1_1execution_1_1task__result.html#_CPPv4N3ral9execution11task_resultE" title="ral::execution::task_result">task_result</a> <code class="sig-name descname">do_process</code><span class="sig-paren">(</span>std::vector&lt;std::unique_ptr&lt;ral::frame::<a class="reference internal" href="classral_1_1frame_1_1BlazingTable.html#_CPPv4N3ral5frame12BlazingTableE" title="ral::frame::BlazingTable">BlazingTable</a>&gt;&gt; <em>inputs</em>, std::shared_ptr&lt;ral::cache::<a class="reference internal" href="classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachineE" title="ral::cache::CacheMachine">CacheMachine</a>&gt; <em>output</em>, <a class="reference internal" href="typedef_BlazingMemoryResource_8h_1ae15d9c8b7a240312b533d6122558085a.html#_CPPv412cudaStream_t" title="cudaStream_t">cudaStream_t</a> <em>stream</em>, <em class="property">const</em> std::map&lt;std::string, std::string&gt; &amp;<em>args</em><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral5batch20MergeAggregateKernel10do_processENSt6vectorINSt10unique_ptrIN3ral5frame12BlazingTableEEEEENSt10shared_ptrIN3ral5cache12CacheMachineEEE12cudaStream_tRKNSt3mapINSt6stringENSt6stringEEE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5batch20MergeAggregateKernel3runEv">
-<span id="_CPPv3N3ral5batch20MergeAggregateKernel3runEv"></span><span id="_CPPv2N3ral5batch20MergeAggregateKernel3runEv"></span><span id="ral::batch::MergeAggregateKernel::run"></span><span class="target" id="classral_1_1batch_1_1MergeAggregateKernel_1aaab8112819acc0c2f17fc0e518cfe266"></span><em class="property"><span class="pre">virtual</span></em> <span class="pre">kstatus</span> <code class="sig-name descname"><span class="pre">run</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5batch20MergeAggregateKernel3runEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5batch20MergeAggregateKernel3runEv"></span><span id="_CPPv2N3ral5batch20MergeAggregateKernel3runEv"></span><span id="ral::batch::MergeAggregateKernel::run"></span><span class="target" id="classral_1_1batch_1_1MergeAggregateKernel_1aaab8112819acc0c2f17fc0e518cfe266"></span><em class="property">virtual</em> kstatus <code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5batch20MergeAggregateKernel3runEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Executes the batch processing. Loads the data from their input port, and after processing it, the results are stored in their output port. </p>
 <p><dl class="simple">
 <dt><strong>Return</strong></dt><dd><p>kstatus ‘stop’ to halt processing, or ‘proceed’ to continue processing. </p>
@@ -230,14 +232,14 @@
     </div>
 
     
-  <script src="../_static/js/index.d8bbf5861d671d414e1a.js"></script>
+  <script src="../_static/js/index.d3f166471bb80abb5163.js"></script>
 
 
     <footer class="footer mt-5 mt-md-0">
   <div class="container">
     <p>
           &copy; Copyright 2020, BlazingDB, Inc..<br/>
-        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.4.3.<br/>
     </p>
   </div>
 </footer>

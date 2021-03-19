@@ -7,8 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Class BlazingMemoryResource &#8212; BlazingSQL v0.18 documentation</title>
     
-  <link href="../_static/css/theme.css" rel="stylesheet" />
-  <link href="../_static/css/index.101715efdecc9b59cb6e1ddfa685c31f.css" rel="stylesheet" />
+  <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
     
   <link rel="stylesheet"
@@ -20,17 +19,21 @@
 
     
       
+  <link rel="stylesheet"
+    href="../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../_static/vendor/lato_latin-ext/1.44.1/index.css">
 
     
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/getting_started.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     
-  <link rel="preload" as="script" href="../_static/js/index.d8bbf5861d671d414e1a.js">
+  <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
     <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
@@ -47,46 +50,43 @@
   </head>
   <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
     
-    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="container-xl">
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
 
-
+    <a class="navbar-brand" href="../index.html">
     
-      
-      <a class="navbar-brand" href="../index.html">
-        <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo">
-      </a>
-      
+      <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo" />
     
-
+    </a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
     </button>
 
-    
     <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
       <ul id="navbar-main-elements" class="navbar-nav mr-auto">
-        <li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../arch.html">
-  BlazingSQL Project Architecture
- </a>
-</li>
-
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../graph.html">
-  Execution Engine
- </a>
-</li>
-
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../api.html">
-  API Documentation
- </a>
-</li>
-
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../arch.html">BlazingSQL Project Architecture</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../graph.html">Execution Engine</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../api.html">API Documentation</a>
+        </li>
+        
         
       </ul>
 
-      <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+
+      
+
+      <ul class="navbar-nav">
+        
+        
       </ul>
     </div>
 </div>
@@ -96,19 +96,27 @@
     <div class="container-xl">
       <div class="row">
           
-            
-            <!-- Only show if we have sidebars configured, else just a small margin  -->
-            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
   <i class="icon fas fa-search"></i>
   <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
 </form>
 <nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
-  <div class="bd-toc-item active">
+
+    <div class="bd-toc-item active">
     
-  </div>
-</nav>
-            </div>
-            
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
           
 
           
@@ -119,26 +127,23 @@
 </div>
 
 <nav id="bd-toc-nav">
-    <ul class="visible nav section-nav flex-column">
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#inheritance-relationships">
-   Inheritance Relationships
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#derived-types">
-     Derived Types
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#class-documentation">
-   Class Documentation
-  </a>
- </li>
-</ul>
-
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#inheritance-relationships" class="nav-link">Inheritance Relationships</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#derived-types" class="nav-link">Derived Types</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#class-documentation" class="nav-link">Class Documentation</a>
+        </li>
+    
+    </ul>
 </nav>
 
 
@@ -153,9 +158,6 @@
           </div>
           
 
-          
-          
-            
           
           <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
               
@@ -181,29 +183,29 @@
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
 <dl class="cpp class">
 <dt id="_CPPv421BlazingMemoryResource">
-<span id="_CPPv321BlazingMemoryResource"></span><span id="_CPPv221BlazingMemoryResource"></span><span id="BlazingMemoryResource"></span><span class="target" id="classBlazingMemoryResource"></span><em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">BlazingMemoryResource</span></code><a class="headerlink" href="#_CPPv421BlazingMemoryResource" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv321BlazingMemoryResource"></span><span id="_CPPv221BlazingMemoryResource"></span><span id="BlazingMemoryResource"></span><span class="target" id="classBlazingMemoryResource"></span><em class="property">class </em><code class="sig-name descname">BlazingMemoryResource</code><a class="headerlink" href="#_CPPv421BlazingMemoryResource" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>This interface represents a custom memory resource used in the cache system. The Cache Machines uses singleton references to device, host and disk memory resources. Each object of the CacheMachine class has knownlegde about the status of the memory resource by using <code class="docutils literal notranslate"><span class="pre">get_memory_limit</span></code> and <code class="docutils literal notranslate"><span class="pre">get_memory_used</span></code> methods. </p>
 <p>Subclassed by <a class="reference internal" href="classblazing__device__memory__resource.html#classblazing__device__memory__resource"><span class="std std-ref">blazing_device_memory_resource</span></a>, <a class="reference internal" href="classblazing__disk__memory__resource.html#classblazing__disk__memory__resource"><span class="std std-ref">blazing_disk_memory_resource</span></a>, <a class="reference internal" href="classblazing__host__memory__resource.html#classblazing__host__memory__resource"><span class="std std-ref">blazing_host_memory_resource</span></a></p>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Public Functions</p>
 <dl class="cpp function">
 <dt id="_CPPv4N21BlazingMemoryResource27get_from_driver_used_memoryEv">
-<span id="_CPPv3N21BlazingMemoryResource27get_from_driver_used_memoryEv"></span><span id="_CPPv2N21BlazingMemoryResource27get_from_driver_used_memoryEv"></span><span id="BlazingMemoryResource::get_from_driver_used_memory"></span><span class="target" id="classBlazingMemoryResource_1abd562a80dbab3fd1d174f8e6ec4547f0"></span><em class="property"><span class="pre">virtual</span></em> <span class="pre">size_t</span> <code class="sig-name descname"><span class="pre">get_from_driver_used_memory</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="pre">=</span> <span class="pre">0</span><a class="headerlink" href="#_CPPv4N21BlazingMemoryResource27get_from_driver_used_memoryEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N21BlazingMemoryResource27get_from_driver_used_memoryEv"></span><span id="_CPPv2N21BlazingMemoryResource27get_from_driver_used_memoryEv"></span><span id="BlazingMemoryResource::get_from_driver_used_memory"></span><span class="target" id="classBlazingMemoryResource_1abd562a80dbab3fd1d174f8e6ec4547f0"></span><em class="property">virtual</em> size_t <code class="sig-name descname">get_from_driver_used_memory</code><span class="sig-paren">(</span><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N21BlazingMemoryResource27get_from_driver_used_memoryEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N21BlazingMemoryResource16get_memory_limitEv">
-<span id="_CPPv3N21BlazingMemoryResource16get_memory_limitEv"></span><span id="_CPPv2N21BlazingMemoryResource16get_memory_limitEv"></span><span id="BlazingMemoryResource::get_memory_limit"></span><span class="target" id="classBlazingMemoryResource_1a1436e73e3554c721a5a972fcf21bc91f"></span><em class="property"><span class="pre">virtual</span></em> <span class="pre">size_t</span> <code class="sig-name descname"><span class="pre">get_memory_limit</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="pre">=</span> <span class="pre">0</span><a class="headerlink" href="#_CPPv4N21BlazingMemoryResource16get_memory_limitEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N21BlazingMemoryResource16get_memory_limitEv"></span><span id="_CPPv2N21BlazingMemoryResource16get_memory_limitEv"></span><span id="BlazingMemoryResource::get_memory_limit"></span><span class="target" id="classBlazingMemoryResource_1a1436e73e3554c721a5a972fcf21bc91f"></span><em class="property">virtual</em> size_t <code class="sig-name descname">get_memory_limit</code><span class="sig-paren">(</span><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N21BlazingMemoryResource16get_memory_limitEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N21BlazingMemoryResource15get_memory_usedEv">
-<span id="_CPPv3N21BlazingMemoryResource15get_memory_usedEv"></span><span id="_CPPv2N21BlazingMemoryResource15get_memory_usedEv"></span><span id="BlazingMemoryResource::get_memory_used"></span><span class="target" id="classBlazingMemoryResource_1a89e616e15446e4bfd013d55b714f1fc9"></span><em class="property"><span class="pre">virtual</span></em> <span class="pre">size_t</span> <code class="sig-name descname"><span class="pre">get_memory_used</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="pre">=</span> <span class="pre">0</span><a class="headerlink" href="#_CPPv4N21BlazingMemoryResource15get_memory_usedEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N21BlazingMemoryResource15get_memory_usedEv"></span><span id="_CPPv2N21BlazingMemoryResource15get_memory_usedEv"></span><span id="BlazingMemoryResource::get_memory_used"></span><span class="target" id="classBlazingMemoryResource_1a89e616e15446e4bfd013d55b714f1fc9"></span><em class="property">virtual</em> size_t <code class="sig-name descname">get_memory_used</code><span class="sig-paren">(</span><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N21BlazingMemoryResource15get_memory_usedEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N21BlazingMemoryResource16get_total_memoryEv">
-<span id="_CPPv3N21BlazingMemoryResource16get_total_memoryEv"></span><span id="_CPPv2N21BlazingMemoryResource16get_total_memoryEv"></span><span id="BlazingMemoryResource::get_total_memory"></span><span class="target" id="classBlazingMemoryResource_1a5e3c23ce2c2b065bed12f9b29a9976f6"></span><em class="property"><span class="pre">virtual</span></em> <span class="pre">size_t</span> <code class="sig-name descname"><span class="pre">get_total_memory</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="pre">=</span> <span class="pre">0</span><a class="headerlink" href="#_CPPv4N21BlazingMemoryResource16get_total_memoryEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N21BlazingMemoryResource16get_total_memoryEv"></span><span id="_CPPv2N21BlazingMemoryResource16get_total_memoryEv"></span><span id="BlazingMemoryResource::get_total_memory"></span><span class="target" id="classBlazingMemoryResource_1a5e3c23ce2c2b065bed12f9b29a9976f6"></span><em class="property">virtual</em> size_t <code class="sig-name descname">get_total_memory</code><span class="sig-paren">(</span><span class="sig-paren">)</span> = 0<a class="headerlink" href="#_CPPv4N21BlazingMemoryResource16get_total_memoryEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 </div>
@@ -228,14 +230,14 @@
     </div>
 
     
-  <script src="../_static/js/index.d8bbf5861d671d414e1a.js"></script>
+  <script src="../_static/js/index.d3f166471bb80abb5163.js"></script>
 
 
     <footer class="footer mt-5 mt-md-0">
   <div class="container">
     <p>
           &copy; Copyright 2020, BlazingDB, Inc..<br/>
-        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.4.3.<br/>
     </p>
   </div>
 </footer>

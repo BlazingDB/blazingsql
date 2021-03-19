@@ -7,8 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Class message_receiver &#8212; BlazingSQL v0.18 documentation</title>
     
-  <link href="../_static/css/theme.css" rel="stylesheet" />
-  <link href="../_static/css/index.101715efdecc9b59cb6e1ddfa685c31f.css" rel="stylesheet" />
+  <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
     
   <link rel="stylesheet"
@@ -20,17 +19,21 @@
 
     
       
+  <link rel="stylesheet"
+    href="../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../_static/vendor/lato_latin-ext/1.44.1/index.css">
 
     
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/getting_started.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     
-  <link rel="preload" as="script" href="../_static/js/index.d8bbf5861d671d414e1a.js">
+  <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
     <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
@@ -47,46 +50,43 @@
   </head>
   <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
     
-    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="container-xl">
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
 
-
+    <a class="navbar-brand" href="../index.html">
     
-      
-      <a class="navbar-brand" href="../index.html">
-        <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo">
-      </a>
-      
+      <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo" />
     
-
+    </a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
     </button>
 
-    
     <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
       <ul id="navbar-main-elements" class="navbar-nav mr-auto">
-        <li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../arch.html">
-  BlazingSQL Project Architecture
- </a>
-</li>
-
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../graph.html">
-  Execution Engine
- </a>
-</li>
-
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../api.html">
-  API Documentation
- </a>
-</li>
-
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../arch.html">BlazingSQL Project Architecture</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../graph.html">Execution Engine</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../api.html">API Documentation</a>
+        </li>
+        
         
       </ul>
 
-      <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+
+      
+
+      <ul class="navbar-nav">
+        
+        
       </ul>
     </div>
 </div>
@@ -96,19 +96,27 @@
     <div class="container-xl">
       <div class="row">
           
-            
-            <!-- Only show if we have sidebars configured, else just a small margin  -->
-            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
   <i class="icon fas fa-search"></i>
   <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
 </form>
 <nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
-  <div class="bd-toc-item active">
+
+    <div class="bd-toc-item active">
     
-  </div>
-</nav>
-            </div>
-            
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
           
 
           
@@ -119,14 +127,13 @@
 </div>
 
 <nav id="bd-toc-nav">
-    <ul class="visible nav section-nav flex-column">
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#class-documentation">
-   Class Documentation
-  </a>
- </li>
-</ul>
-
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#class-documentation" class="nav-link">Class Documentation</a>
+        </li>
+    
+    </ul>
 </nav>
 
 
@@ -142,9 +149,6 @@
           
 
           
-          
-            
-          
           <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
               
               <div>
@@ -158,13 +162,13 @@
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
 <dl class="cpp class">
 <dt id="_CPPv4N4comm16message_receiverE">
-<span id="_CPPv3N4comm16message_receiverE"></span><span id="_CPPv2N4comm16message_receiverE"></span><span id="comm::message_receiver"></span><span class="target" id="classcomm_1_1message__receiver"></span><em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">comm</span><code class="sig-prename descclassname"><span class="pre">::</span></code></code><code class="sig-name descname"><span class="pre">message_receiver</span></code><a class="headerlink" href="#_CPPv4N4comm16message_receiverE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N4comm16message_receiverE"></span><span id="_CPPv2N4comm16message_receiverE"></span><span id="comm::message_receiver"></span><span class="target" id="classcomm_1_1message__receiver"></span><em class="property">class </em><code class="sig-prename descclassname">comm<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">message_receiver</code><a class="headerlink" href="#_CPPv4N4comm16message_receiverE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>A Class used for the reconstruction of a BlazingTable from metadata and column data. </p>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Public Functions</p>
 <dl class="cpp function">
 <dt id="_CPPv4N4comm16message_receiver16message_receiverERKNSt3mapINSt6stringEN4comm4nodeEEERKNSt6vectorIcEENSt10shared_ptrIN3ral5cache12CacheMachineEEE">
-<span id="_CPPv3N4comm16message_receiver16message_receiverERKNSt3mapINSt6stringEN4comm4nodeEEERKNSt6vectorIcEENSt10shared_ptrIN3ral5cache12CacheMachineEEE"></span><span id="_CPPv2N4comm16message_receiver16message_receiverERKNSt3mapINSt6stringEN4comm4nodeEEERKNSt6vectorIcEENSt10shared_ptrIN3ral5cache12CacheMachineEEE"></span><span id="comm::message_receiver::message_receiver__std::map:ss.comm::node:CR.std::vector:c:CR.std::shared_ptr:ral::cache::CacheMachine:"></span><span class="target" id="classcomm_1_1message__receiver_1ab49d04074a12b8f9ad00dc26b84a43ca"></span><code class="sig-name descname"><span class="pre">message_receiver</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">map</span><span class="pre">&lt;</span><span class="pre">std</span><span class="pre">::</span><span class="pre">string</span><span class="pre">,</span> <span class="pre">comm</span><span class="pre">::</span><a class="reference internal" href="classcomm_1_1node.html#_CPPv4N4comm4nodeE" title="comm::node"><span class="pre">node</span></a><span class="pre">&gt;</span> <span class="pre">&amp;</span><em><span class="pre">nodes</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><span class="pre">char</span><span class="pre">&gt;</span> <span class="pre">&amp;</span><em><span class="pre">buffer</span></em>, <span class="pre">std</span><span class="pre">::</span><span class="pre">shared_ptr</span><span class="pre">&lt;</span><span class="pre">ral</span><span class="pre">::</span><span class="pre">cache</span><span class="pre">::</span><a class="reference internal" href="classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachineE" title="ral::cache::CacheMachine"><span class="pre">CacheMachine</span></a><span class="pre">&gt;</span> <em><span class="pre">input_cache</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm16message_receiver16message_receiverERKNSt3mapINSt6stringEN4comm4nodeEEERKNSt6vectorIcEENSt10shared_ptrIN3ral5cache12CacheMachineEEE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N4comm16message_receiver16message_receiverERKNSt3mapINSt6stringEN4comm4nodeEEERKNSt6vectorIcEENSt10shared_ptrIN3ral5cache12CacheMachineEEE"></span><span id="_CPPv2N4comm16message_receiver16message_receiverERKNSt3mapINSt6stringEN4comm4nodeEEERKNSt6vectorIcEENSt10shared_ptrIN3ral5cache12CacheMachineEEE"></span><span id="comm::message_receiver::message_receiver__std::map:ss.comm::node:CR.std::vector:c:CR.std::shared_ptr:ral::cache::CacheMachine:"></span><span class="target" id="classcomm_1_1message__receiver_1ab49d04074a12b8f9ad00dc26b84a43ca"></span><code class="sig-name descname">message_receiver</code><span class="sig-paren">(</span><em class="property">const</em> std::map&lt;std::string, comm::<a class="reference internal" href="classcomm_1_1node.html#_CPPv4N4comm4nodeE" title="comm::node">node</a>&gt; &amp;<em>nodes</em>, <em class="property">const</em> std::vector&lt;char&gt; &amp;<em>buffer</em>, std::shared_ptr&lt;ral::cache::<a class="reference internal" href="classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachineE" title="ral::cache::CacheMachine">CacheMachine</a>&gt; <em>input_cache</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm16message_receiver16message_receiverERKNSt3mapINSt6stringEN4comm4nodeEEERKNSt6vectorIcEENSt10shared_ptrIN3ral5cache12CacheMachineEEE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Constructs a <a class="reference internal" href="#classcomm_1_1message__receiver"><span class="std std-ref">message_receiver</span></a>. </p>
 <p>This is a place for a message to receive chunks. It calls the deserializer after the complete message has been assembled</p>
 <p><dl class="simple">
@@ -180,47 +184,47 @@
 
 <dl class="cpp function">
 <dt id="_CPPv4N4comm16message_receiverD0Ev">
-<span id="_CPPv3N4comm16message_receiverD0Ev"></span><span id="_CPPv2N4comm16message_receiverD0Ev"></span><span id="comm::message_receiver::~message_receiver"></span><span class="target" id="classcomm_1_1message__receiver_1a95eed3d851450d759b086c756a4e060c"></span><em class="property"><span class="pre">inline</span></em> <em class="property"><span class="pre">virtual</span></em> <code class="sig-name descname"><span class="pre">~message_receiver</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm16message_receiverD0Ev" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N4comm16message_receiverD0Ev"></span><span id="_CPPv2N4comm16message_receiverD0Ev"></span><span id="comm::message_receiver::~message_receiver"></span><span class="target" id="classcomm_1_1message__receiver_1a95eed3d851450d759b086c756a4e060c"></span><em class="property">inline</em> <em class="property">virtual</em> <code class="sig-name descname">~message_receiver</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm16message_receiverD0Ev" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N4comm16message_receiver11buffer_sizeE9u_int16_t">
-<span id="_CPPv3N4comm16message_receiver11buffer_sizeE9u_int16_t"></span><span id="_CPPv2N4comm16message_receiver11buffer_sizeE9u_int16_t"></span><span id="comm::message_receiver::buffer_size__u_int16_t"></span><span class="target" id="classcomm_1_1message__receiver_1a33eff32bfde13d8f0579089f297559f7"></span><span class="pre">size_t</span> <code class="sig-name descname"><span class="pre">buffer_size</span></code><span class="sig-paren">(</span><span class="pre">u_int16_t</span> <em><span class="pre">index</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm16message_receiver11buffer_sizeE9u_int16_t" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N4comm16message_receiver11buffer_sizeE9u_int16_t"></span><span id="_CPPv2N4comm16message_receiver11buffer_sizeE9u_int16_t"></span><span id="comm::message_receiver::buffer_size__u_int16_t"></span><span class="target" id="classcomm_1_1message__receiver_1a33eff32bfde13d8f0579089f297559f7"></span>size_t <code class="sig-name descname">buffer_size</code><span class="sig-paren">(</span>u_int16_t <em>index</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm16message_receiver11buffer_sizeE9u_int16_t" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N4comm16message_receiver15allocate_bufferE8uint16_t12cudaStream_t">
-<span id="_CPPv3N4comm16message_receiver15allocate_bufferE8uint16_t12cudaStream_t"></span><span id="_CPPv2N4comm16message_receiver15allocate_bufferE8uint16_t12cudaStream_t"></span><span id="comm::message_receiver::allocate_buffer__uint16_t.cudaStream_t"></span><span class="target" id="classcomm_1_1message__receiver_1ab45c4394a35fb0ca81f091606c0c6f9b"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">allocate_buffer</span></code><span class="sig-paren">(</span><span class="pre">uint16_t</span> <em><span class="pre">index</span></em>, <a class="reference internal" href="typedef_BlazingMemoryResource_8h_1ae15d9c8b7a240312b533d6122558085a.html#_CPPv412cudaStream_t" title="cudaStream_t"><span class="pre">cudaStream_t</span></a> <em><span class="pre">stream</span></em> <span class="pre">=</span> <span class="pre">0</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm16message_receiver15allocate_bufferE8uint16_t12cudaStream_t" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N4comm16message_receiver15allocate_bufferE8uint16_t12cudaStream_t"></span><span id="_CPPv2N4comm16message_receiver15allocate_bufferE8uint16_t12cudaStream_t"></span><span id="comm::message_receiver::allocate_buffer__uint16_t.cudaStream_t"></span><span class="target" id="classcomm_1_1message__receiver_1ab45c4394a35fb0ca81f091606c0c6f9b"></span>void <code class="sig-name descname">allocate_buffer</code><span class="sig-paren">(</span>uint16_t <em>index</em>, <a class="reference internal" href="typedef_BlazingMemoryResource_8h_1ae15d9c8b7a240312b533d6122558085a.html#_CPPv412cudaStream_t" title="cudaStream_t">cudaStream_t</a> <em>stream</em> = 0<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm16message_receiver15allocate_bufferE8uint16_t12cudaStream_t" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N4comm16message_receiver15get_sender_nodeEv">
-<span id="_CPPv3N4comm16message_receiver15get_sender_nodeEv"></span><span id="_CPPv2N4comm16message_receiver15get_sender_nodeEv"></span><span id="comm::message_receiver::get_sender_node"></span><span class="target" id="classcomm_1_1message__receiver_1a4527d37c56a04d2b6e82a469cbd14683"></span><a class="reference internal" href="classcomm_1_1node.html#_CPPv4N4comm4nodeE" title="comm::node"><span class="pre">node</span></a> <code class="sig-name descname"><span class="pre">get_sender_node</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm16message_receiver15get_sender_nodeEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N4comm16message_receiver15get_sender_nodeEv"></span><span id="_CPPv2N4comm16message_receiver15get_sender_nodeEv"></span><span id="comm::message_receiver::get_sender_node"></span><span class="target" id="classcomm_1_1message__receiver_1a4527d37c56a04d2b6e82a469cbd14683"></span><a class="reference internal" href="classcomm_1_1node.html#_CPPv4N4comm4nodeE" title="comm::node">node</a> <code class="sig-name descname">get_sender_node</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm16message_receiver15get_sender_nodeEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N4comm16message_receiver11num_buffersEv">
-<span id="_CPPv3N4comm16message_receiver11num_buffersEv"></span><span id="_CPPv2N4comm16message_receiver11num_buffersEv"></span><span id="comm::message_receiver::num_buffers"></span><span class="target" id="classcomm_1_1message__receiver_1a4423b1caa4472204e5491f84f1addc65"></span><span class="pre">size_t</span> <code class="sig-name descname"><span class="pre">num_buffers</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm16message_receiver11num_buffersEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N4comm16message_receiver11num_buffersEv"></span><span id="_CPPv2N4comm16message_receiver11num_buffersEv"></span><span id="comm::message_receiver::num_buffers"></span><span class="target" id="classcomm_1_1message__receiver_1a4423b1caa4472204e5491f84f1addc65"></span>size_t <code class="sig-name descname">num_buffers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm16message_receiver11num_buffersEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N4comm16message_receiver20confirm_transmissionEv">
-<span id="_CPPv3N4comm16message_receiver20confirm_transmissionEv"></span><span id="_CPPv2N4comm16message_receiver20confirm_transmissionEv"></span><span id="comm::message_receiver::confirm_transmission"></span><span class="target" id="classcomm_1_1message__receiver_1ab9c3bb7eb1f6b8123bbc8b2b4ef47b77"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">confirm_transmission</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm16message_receiver20confirm_transmissionEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N4comm16message_receiver20confirm_transmissionEv"></span><span id="_CPPv2N4comm16message_receiver20confirm_transmissionEv"></span><span id="comm::message_receiver::confirm_transmission"></span><span class="target" id="classcomm_1_1message__receiver_1ab9c3bb7eb1f6b8123bbc8b2b4ef47b77"></span>void <code class="sig-name descname">confirm_transmission</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm16message_receiver20confirm_transmissionEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N4comm16message_receiver10get_bufferE8uint16_t">
-<span id="_CPPv3N4comm16message_receiver10get_bufferE8uint16_t"></span><span id="_CPPv2N4comm16message_receiver10get_bufferE8uint16_t"></span><span id="comm::message_receiver::get_buffer__uint16_t"></span><span class="target" id="classcomm_1_1message__receiver_1aac2ed6c851ace8d403721b31a99f8845"></span><span class="pre">void</span> <span class="pre">*</span><code class="sig-name descname"><span class="pre">get_buffer</span></code><span class="sig-paren">(</span><span class="pre">uint16_t</span> <em><span class="pre">index</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm16message_receiver10get_bufferE8uint16_t" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N4comm16message_receiver10get_bufferE8uint16_t"></span><span id="_CPPv2N4comm16message_receiver10get_bufferE8uint16_t"></span><span id="comm::message_receiver::get_buffer__uint16_t"></span><span class="target" id="classcomm_1_1message__receiver_1aac2ed6c851ace8d403721b31a99f8845"></span>void *<code class="sig-name descname">get_buffer</code><span class="sig-paren">(</span>uint16_t <em>index</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm16message_receiver10get_bufferE8uint16_t" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N4comm16message_receiver11is_finishedEv">
-<span id="_CPPv3N4comm16message_receiver11is_finishedEv"></span><span id="_CPPv2N4comm16message_receiver11is_finishedEv"></span><span id="comm::message_receiver::is_finished"></span><span class="target" id="classcomm_1_1message__receiver_1a6940eb5eae53218e3c07cb1b22fb4ae5"></span><span class="pre">bool</span> <code class="sig-name descname"><span class="pre">is_finished</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm16message_receiver11is_finishedEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N4comm16message_receiver11is_finishedEv"></span><span id="_CPPv2N4comm16message_receiver11is_finishedEv"></span><span id="comm::message_receiver::is_finished"></span><span class="target" id="classcomm_1_1message__receiver_1a6940eb5eae53218e3c07cb1b22fb4ae5"></span>bool <code class="sig-name descname">is_finished</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm16message_receiver11is_finishedEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N4comm16message_receiver6finishE12cudaStream_t">
-<span id="_CPPv3N4comm16message_receiver6finishE12cudaStream_t"></span><span id="_CPPv2N4comm16message_receiver6finishE12cudaStream_t"></span><span id="comm::message_receiver::finish__cudaStream_t"></span><span class="target" id="classcomm_1_1message__receiver_1a593257af754fdef710dac5e2b408fe40"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">finish</span></code><span class="sig-paren">(</span><a class="reference internal" href="typedef_BlazingMemoryResource_8h_1ae15d9c8b7a240312b533d6122558085a.html#_CPPv412cudaStream_t" title="cudaStream_t"><span class="pre">cudaStream_t</span></a> <em><span class="pre">stream</span></em> <span class="pre">=</span> <span class="pre">0</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm16message_receiver6finishE12cudaStream_t" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N4comm16message_receiver6finishE12cudaStream_t"></span><span id="_CPPv2N4comm16message_receiver6finishE12cudaStream_t"></span><span id="comm::message_receiver::finish__cudaStream_t"></span><span class="target" id="classcomm_1_1message__receiver_1a593257af754fdef710dac5e2b408fe40"></span>void <code class="sig-name descname">finish</code><span class="sig-paren">(</span><a class="reference internal" href="typedef_BlazingMemoryResource_8h_1ae15d9c8b7a240312b533d6122558085a.html#_CPPv412cudaStream_t" title="cudaStream_t">cudaStream_t</a> <em>stream</em> = 0<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N4comm16message_receiver6finishE12cudaStream_t" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 </div>
@@ -245,14 +249,14 @@
     </div>
 
     
-  <script src="../_static/js/index.d8bbf5861d671d414e1a.js"></script>
+  <script src="../_static/js/index.d3f166471bb80abb5163.js"></script>
 
 
     <footer class="footer mt-5 mt-md-0">
   <div class="container">
     <p>
           &copy; Copyright 2020, BlazingDB, Inc..<br/>
-        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.4.3.<br/>
     </p>
   </div>
 </footer>

@@ -7,8 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Enum timestamp_units &#8212; BlazingSQL v0.18 documentation</title>
     
-  <link href="../_static/css/theme.css" rel="stylesheet" />
-  <link href="../_static/css/index.101715efdecc9b59cb6e1ddfa685c31f.css" rel="stylesheet" />
+  <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
     
   <link rel="stylesheet"
@@ -20,17 +19,21 @@
 
     
       
+  <link rel="stylesheet"
+    href="../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../_static/vendor/lato_latin-ext/1.44.1/index.css">
 
     
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/getting_started.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     
-  <link rel="preload" as="script" href="../_static/js/index.d8bbf5861d671d414e1a.js">
+  <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
     <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
@@ -47,46 +50,43 @@
   </head>
   <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
     
-    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="container-xl">
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
 
-
+    <a class="navbar-brand" href="../index.html">
     
-      
-      <a class="navbar-brand" href="../index.html">
-        <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo">
-      </a>
-      
+      <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo" />
     
-
+    </a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
     </button>
 
-    
     <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
       <ul id="navbar-main-elements" class="navbar-nav mr-auto">
-        <li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../arch.html">
-  BlazingSQL Project Architecture
- </a>
-</li>
-
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../graph.html">
-  Execution Engine
- </a>
-</li>
-
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../api.html">
-  API Documentation
- </a>
-</li>
-
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../arch.html">BlazingSQL Project Architecture</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../graph.html">Execution Engine</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../api.html">API Documentation</a>
+        </li>
+        
         
       </ul>
 
-      <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+
+      
+
+      <ul class="navbar-nav">
+        
+        
       </ul>
     </div>
 </div>
@@ -96,19 +96,27 @@
     <div class="container-xl">
       <div class="row">
           
-            
-            <!-- Only show if we have sidebars configured, else just a small margin  -->
-            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
   <i class="icon fas fa-search"></i>
   <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
 </form>
 <nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
-  <div class="bd-toc-item active">
+
+    <div class="bd-toc-item active">
     
-  </div>
-</nav>
-            </div>
-            
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
           
 
           
@@ -119,14 +127,13 @@
 </div>
 
 <nav id="bd-toc-nav">
-    <ul class="visible nav section-nav flex-column">
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#enum-documentation">
-   Enum Documentation
-  </a>
- </li>
-</ul>
-
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#enum-documentation" class="nav-link">Enum Documentation</a>
+        </li>
+    
+    </ul>
 </nav>
 
 
@@ -142,9 +149,6 @@
           
 
           
-          
-            
-          
           <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
               
               <div>
@@ -158,60 +162,60 @@
 <h2>Enum Documentation<a class="headerlink" href="#enum-documentation" title="Permalink to this headline">¶</a></h2>
 <dl class="cpp enum">
 <dt id="_CPPv4N7strings6detailUt3_14315timestamp_unitsE">
-<span id="_CPPv3N7strings6detailUt3_14315timestamp_unitsE"></span><span class="target" id="scalar__timestamp__parser_8cpp_1ad8df51004d045a3a61bd68680aadaa1a"></span><em class="property"><span class="pre">enum</span> </em><code class="sig-prename descclassname"><span class="pre">strings</span><span class="pre">::</span><span class="pre">detail</span><span class="pre">::</span><strong><span class="pre">[anonymous]</span></strong><code class="sig-prename descclassname"><span class="pre">::</span></code></code><code class="sig-name descname"><span class="pre">timestamp_units</span></code><a class="headerlink" href="#_CPPv4N7strings6detailUt3_14315timestamp_unitsE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N7strings6detailUt3_14315timestamp_unitsE"></span><span class="target" id="scalar__timestamp__parser_8cpp_1ad8df51004d045a3a61bd68680aadaa1a"></span><em class="property">enum </em><code class="sig-prename descclassname">strings::detail::<strong>[anonymous]</strong><code class="sig-prename descclassname">::</code></code><code class="sig-name descname">timestamp_units</code><a class="headerlink" href="#_CPPv4N7strings6detailUt3_14315timestamp_unitsE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Units for timestamp conversion. These are defined since there are more than what cudf supports. </p>
 <p><em>Values:</em></p>
 <dl class="cpp enumerator">
 <dt id="_CPPv4N7strings6detailUt3_14315timestamp_units5yearsE">
-<span id="_CPPv3N7strings6detailUt3_14315timestamp_units5yearsE"></span><span class="target" id="dummy_1ad8df51004d045a3a61bd68680aadaa1aa75aeb98e5241592ad6a6c2c4c78a16ef"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">years</span></code><a class="headerlink" href="#_CPPv4N7strings6detailUt3_14315timestamp_units5yearsE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N7strings6detailUt3_14315timestamp_units5yearsE"></span><span class="target" id="dummy_1ad8df51004d045a3a61bd68680aadaa1aa75aeb98e5241592ad6a6c2c4c78a16ef"></span><em class="property">enumerator </em><code class="sig-name descname">years</code><a class="headerlink" href="#_CPPv4N7strings6detailUt3_14315timestamp_units5yearsE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>precision is years </p>
 </dd></dl>
 
 <dl class="cpp enumerator">
 <dt id="_CPPv4N7strings6detailUt3_14315timestamp_units6monthsE">
-<span id="_CPPv3N7strings6detailUt3_14315timestamp_units6monthsE"></span><span class="target" id="dummy_1ad8df51004d045a3a61bd68680aadaa1aada36cfaf48b9e19896e23e1207040d1e"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">months</span></code><a class="headerlink" href="#_CPPv4N7strings6detailUt3_14315timestamp_units6monthsE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N7strings6detailUt3_14315timestamp_units6monthsE"></span><span class="target" id="dummy_1ad8df51004d045a3a61bd68680aadaa1aada36cfaf48b9e19896e23e1207040d1e"></span><em class="property">enumerator </em><code class="sig-name descname">months</code><a class="headerlink" href="#_CPPv4N7strings6detailUt3_14315timestamp_units6monthsE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>precision is months </p>
 </dd></dl>
 
 <dl class="cpp enumerator">
 <dt id="_CPPv4N7strings6detailUt3_14315timestamp_units4daysE">
-<span id="_CPPv3N7strings6detailUt3_14315timestamp_units4daysE"></span><span class="target" id="dummy_1ad8df51004d045a3a61bd68680aadaa1aa44fdec47036f482b68b748f9d786801b"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">days</span></code><a class="headerlink" href="#_CPPv4N7strings6detailUt3_14315timestamp_units4daysE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N7strings6detailUt3_14315timestamp_units4daysE"></span><span class="target" id="dummy_1ad8df51004d045a3a61bd68680aadaa1aa44fdec47036f482b68b748f9d786801b"></span><em class="property">enumerator </em><code class="sig-name descname">days</code><a class="headerlink" href="#_CPPv4N7strings6detailUt3_14315timestamp_units4daysE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>precision is days </p>
 </dd></dl>
 
 <dl class="cpp enumerator">
 <dt id="_CPPv4N7strings6detailUt3_14315timestamp_units5hoursE">
-<span id="_CPPv3N7strings6detailUt3_14315timestamp_units5hoursE"></span><span class="target" id="dummy_1ad8df51004d045a3a61bd68680aadaa1aa73cdddd7730abfc13a55efb9f5685a3b"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">hours</span></code><a class="headerlink" href="#_CPPv4N7strings6detailUt3_14315timestamp_units5hoursE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N7strings6detailUt3_14315timestamp_units5hoursE"></span><span class="target" id="dummy_1ad8df51004d045a3a61bd68680aadaa1aa73cdddd7730abfc13a55efb9f5685a3b"></span><em class="property">enumerator </em><code class="sig-name descname">hours</code><a class="headerlink" href="#_CPPv4N7strings6detailUt3_14315timestamp_units5hoursE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>precision is hours </p>
 </dd></dl>
 
 <dl class="cpp enumerator">
 <dt id="_CPPv4N7strings6detailUt3_14315timestamp_units7minutesE">
-<span id="_CPPv3N7strings6detailUt3_14315timestamp_units7minutesE"></span><span class="target" id="dummy_1ad8df51004d045a3a61bd68680aadaa1aa640fd0cc0ffa0316ae087652871f4486"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">minutes</span></code><a class="headerlink" href="#_CPPv4N7strings6detailUt3_14315timestamp_units7minutesE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N7strings6detailUt3_14315timestamp_units7minutesE"></span><span class="target" id="dummy_1ad8df51004d045a3a61bd68680aadaa1aa640fd0cc0ffa0316ae087652871f4486"></span><em class="property">enumerator </em><code class="sig-name descname">minutes</code><a class="headerlink" href="#_CPPv4N7strings6detailUt3_14315timestamp_units7minutesE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>precision is minutes </p>
 </dd></dl>
 
 <dl class="cpp enumerator">
 <dt id="_CPPv4N7strings6detailUt3_14315timestamp_units7secondsE">
-<span id="_CPPv3N7strings6detailUt3_14315timestamp_units7secondsE"></span><span class="target" id="dummy_1ad8df51004d045a3a61bd68680aadaa1aa783e8e29e6a8c3e22baa58a19420eb4f"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">seconds</span></code><a class="headerlink" href="#_CPPv4N7strings6detailUt3_14315timestamp_units7secondsE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N7strings6detailUt3_14315timestamp_units7secondsE"></span><span class="target" id="dummy_1ad8df51004d045a3a61bd68680aadaa1aa783e8e29e6a8c3e22baa58a19420eb4f"></span><em class="property">enumerator </em><code class="sig-name descname">seconds</code><a class="headerlink" href="#_CPPv4N7strings6detailUt3_14315timestamp_units7secondsE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>precision is seconds </p>
 </dd></dl>
 
 <dl class="cpp enumerator">
 <dt id="_CPPv4N7strings6detailUt3_14315timestamp_units2msE">
-<span id="_CPPv3N7strings6detailUt3_14315timestamp_units2msE"></span><span class="target" id="dummy_1ad8df51004d045a3a61bd68680aadaa1aaee33e909372d935d190f4fcb2a92d542"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">ms</span></code><a class="headerlink" href="#_CPPv4N7strings6detailUt3_14315timestamp_units2msE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N7strings6detailUt3_14315timestamp_units2msE"></span><span class="target" id="dummy_1ad8df51004d045a3a61bd68680aadaa1aaee33e909372d935d190f4fcb2a92d542"></span><em class="property">enumerator </em><code class="sig-name descname">ms</code><a class="headerlink" href="#_CPPv4N7strings6detailUt3_14315timestamp_units2msE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>precision is milliseconds </p>
 </dd></dl>
 
 <dl class="cpp enumerator">
 <dt id="_CPPv4N7strings6detailUt3_14315timestamp_units2usE">
-<span id="_CPPv3N7strings6detailUt3_14315timestamp_units2usE"></span><span class="target" id="dummy_1ad8df51004d045a3a61bd68680aadaa1aa0b3b97fa66886c5688ee4ae80ec0c3c2"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">us</span></code><a class="headerlink" href="#_CPPv4N7strings6detailUt3_14315timestamp_units2usE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N7strings6detailUt3_14315timestamp_units2usE"></span><span class="target" id="dummy_1ad8df51004d045a3a61bd68680aadaa1aa0b3b97fa66886c5688ee4ae80ec0c3c2"></span><em class="property">enumerator </em><code class="sig-name descname">us</code><a class="headerlink" href="#_CPPv4N7strings6detailUt3_14315timestamp_units2usE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>precision is microseconds </p>
 </dd></dl>
 
 <dl class="cpp enumerator">
 <dt id="_CPPv4N7strings6detailUt3_14315timestamp_units2nsE">
-<span id="_CPPv3N7strings6detailUt3_14315timestamp_units2nsE"></span><span class="target" id="dummy_1ad8df51004d045a3a61bd68680aadaa1aaf01a37d157918910f2035b2af81ea4e1"></span><em class="property"><span class="pre">enumerator</span> </em><code class="sig-name descname"><span class="pre">ns</span></code><a class="headerlink" href="#_CPPv4N7strings6detailUt3_14315timestamp_units2nsE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N7strings6detailUt3_14315timestamp_units2nsE"></span><span class="target" id="dummy_1ad8df51004d045a3a61bd68680aadaa1aaf01a37d157918910f2035b2af81ea4e1"></span><em class="property">enumerator </em><code class="sig-name descname">ns</code><a class="headerlink" href="#_CPPv4N7strings6detailUt3_14315timestamp_units2nsE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>precision is nanoseconds </p>
 </dd></dl>
 
@@ -236,14 +240,14 @@
     </div>
 
     
-  <script src="../_static/js/index.d8bbf5861d671d414e1a.js"></script>
+  <script src="../_static/js/index.d3f166471bb80abb5163.js"></script>
 
 
     <footer class="footer mt-5 mt-md-0">
   <div class="container">
     <p>
           &copy; Copyright 2020, BlazingDB, Inc..<br/>
-        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.4.3.<br/>
     </p>
   </div>
 </footer>

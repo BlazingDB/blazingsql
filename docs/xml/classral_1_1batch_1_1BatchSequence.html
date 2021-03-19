@@ -7,8 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Class BatchSequence &#8212; BlazingSQL v0.18 documentation</title>
     
-  <link href="../_static/css/theme.css" rel="stylesheet" />
-  <link href="../_static/css/index.101715efdecc9b59cb6e1ddfa685c31f.css" rel="stylesheet" />
+  <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
     
   <link rel="stylesheet"
@@ -20,17 +19,21 @@
 
     
       
+  <link rel="stylesheet"
+    href="../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../_static/vendor/lato_latin-ext/1.44.1/index.css">
 
     
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/getting_started.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     
-  <link rel="preload" as="script" href="../_static/js/index.d8bbf5861d671d414e1a.js">
+  <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
     <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
@@ -47,46 +50,43 @@
   </head>
   <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
     
-    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="container-xl">
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
 
-
+    <a class="navbar-brand" href="../index.html">
     
-      
-      <a class="navbar-brand" href="../index.html">
-        <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo">
-      </a>
-      
+      <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo" />
     
-
+    </a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
     </button>
 
-    
     <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
       <ul id="navbar-main-elements" class="navbar-nav mr-auto">
-        <li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../arch.html">
-  BlazingSQL Project Architecture
- </a>
-</li>
-
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../graph.html">
-  Execution Engine
- </a>
-</li>
-
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../api.html">
-  API Documentation
- </a>
-</li>
-
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../arch.html">BlazingSQL Project Architecture</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../graph.html">Execution Engine</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../api.html">API Documentation</a>
+        </li>
+        
         
       </ul>
 
-      <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+
+      
+
+      <ul class="navbar-nav">
+        
+        
       </ul>
     </div>
 </div>
@@ -96,19 +96,27 @@
     <div class="container-xl">
       <div class="row">
           
-            
-            <!-- Only show if we have sidebars configured, else just a small margin  -->
-            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
   <i class="icon fas fa-search"></i>
   <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
 </form>
 <nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
-  <div class="bd-toc-item active">
+
+    <div class="bd-toc-item active">
     
-  </div>
-</nav>
-            </div>
-            
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
           
 
           
@@ -119,14 +127,13 @@
 </div>
 
 <nav id="bd-toc-nav">
-    <ul class="visible nav section-nav flex-column">
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#class-documentation">
-   Class Documentation
-  </a>
- </li>
-</ul>
-
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#class-documentation" class="nav-link">Class Documentation</a>
+        </li>
+    
+    </ul>
 </nav>
 
 
@@ -142,9 +149,6 @@
           
 
           
-          
-            
-          
           <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
               
               <div>
@@ -158,13 +162,13 @@
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
 <dl class="cpp class">
 <dt id="_CPPv4N3ral5batch13BatchSequenceE">
-<span id="_CPPv3N3ral5batch13BatchSequenceE"></span><span id="_CPPv2N3ral5batch13BatchSequenceE"></span><span id="ral::batch::BatchSequence"></span><span class="target" id="classral_1_1batch_1_1BatchSequence"></span><em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ral</span><span class="pre">::</span><span class="pre">batch</span><code class="sig-prename descclassname"><span class="pre">::</span></code></code><code class="sig-name descname"><span class="pre">BatchSequence</span></code><a class="headerlink" href="#_CPPv4N3ral5batch13BatchSequenceE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5batch13BatchSequenceE"></span><span id="_CPPv2N3ral5batch13BatchSequenceE"></span><span id="ral::batch::BatchSequence"></span><span class="target" id="classral_1_1batch_1_1BatchSequence"></span><em class="property">class </em><code class="sig-prename descclassname">ral::batch<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">BatchSequence</code><a class="headerlink" href="#_CPPv4N3ral5batch13BatchSequenceE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>This is the standard data sequencer that just pulls data from an input cache one batch at a time. </p>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Public Functions</p>
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5batch13BatchSequence13BatchSequenceENSt10shared_ptrIN3ral5cache12CacheMachineEEEPKN3ral5cache6kernelEb">
-<span id="_CPPv3N3ral5batch13BatchSequence13BatchSequenceENSt10shared_ptrIN3ral5cache12CacheMachineEEEPKN3ral5cache6kernelEb"></span><span id="_CPPv2N3ral5batch13BatchSequence13BatchSequenceENSt10shared_ptrIN3ral5cache12CacheMachineEEEPKN3ral5cache6kernelEb"></span><span id="ral::batch::BatchSequence::BatchSequence__std::shared_ptr:ral::cache::CacheMachine:.ral::cache::kernelCP.b"></span><span class="target" id="classral_1_1batch_1_1BatchSequence_1a1012a9622924b621edd667400038b24d"></span><code class="sig-name descname"><span class="pre">BatchSequence</span></code><span class="sig-paren">(</span><span class="pre">std</span><span class="pre">::</span><span class="pre">shared_ptr</span><span class="pre">&lt;</span><span class="pre">ral</span><span class="pre">::</span><span class="pre">cache</span><span class="pre">::</span><a class="reference internal" href="classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachineE" title="ral::cache::CacheMachine"><span class="pre">CacheMachine</span></a><span class="pre">&gt;</span> <em><span class="pre">cache</span></em> <span class="pre">=</span> <span class="pre">nullptr</span>, <em class="property"><span class="pre">const</span></em> <span class="pre">ral</span><span class="pre">::</span><span class="pre">cache</span><span class="pre">::</span><a class="reference internal" href="classral_1_1cache_1_1kernel.html#_CPPv4N3ral5cache6kernelE" title="ral::cache::kernel"><span class="pre">kernel</span></a> <span class="pre">*</span><em><span class="pre">kernel</span></em> <span class="pre">=</span> <span class="pre">nullptr</span>, <span class="pre">bool</span> <em><span class="pre">ordered</span></em> <span class="pre">=</span> <span class="pre">true</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5batch13BatchSequence13BatchSequenceENSt10shared_ptrIN3ral5cache12CacheMachineEEEPKN3ral5cache6kernelEb" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5batch13BatchSequence13BatchSequenceENSt10shared_ptrIN3ral5cache12CacheMachineEEEPKN3ral5cache6kernelEb"></span><span id="_CPPv2N3ral5batch13BatchSequence13BatchSequenceENSt10shared_ptrIN3ral5cache12CacheMachineEEEPKN3ral5cache6kernelEb"></span><span id="ral::batch::BatchSequence::BatchSequence__std::shared_ptr:ral::cache::CacheMachine:.ral::cache::kernelCP.b"></span><span class="target" id="classral_1_1batch_1_1BatchSequence_1a1012a9622924b621edd667400038b24d"></span><code class="sig-name descname">BatchSequence</code><span class="sig-paren">(</span>std::shared_ptr&lt;ral::cache::<a class="reference internal" href="classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachineE" title="ral::cache::CacheMachine">CacheMachine</a>&gt; <em>cache</em> = nullptr, <em class="property">const</em> ral::cache::<a class="reference internal" href="classral_1_1cache_1_1kernel.html#_CPPv4N3ral5cache6kernelE" title="ral::cache::kernel">kernel</a> *<em>kernel</em> = nullptr, bool <em>ordered</em> = true<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5batch13BatchSequence13BatchSequenceENSt10shared_ptrIN3ral5cache12CacheMachineEEEPKN3ral5cache6kernelEb" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Constructor for the <a class="reference internal" href="#classral_1_1batch_1_1BatchSequence"><span class="std std-ref">BatchSequence</span></a> <dl class="simple">
 <dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">cache</span></code>: The input cache from where the data will be pulled. </p></li>
@@ -178,7 +182,7 @@
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5batch13BatchSequence10set_sourceENSt10shared_ptrIN3ral5cache12CacheMachineEEE">
-<span id="_CPPv3N3ral5batch13BatchSequence10set_sourceENSt10shared_ptrIN3ral5cache12CacheMachineEEE"></span><span id="_CPPv2N3ral5batch13BatchSequence10set_sourceENSt10shared_ptrIN3ral5cache12CacheMachineEEE"></span><span id="ral::batch::BatchSequence::set_source__std::shared_ptr:ral::cache::CacheMachine:"></span><span class="target" id="classral_1_1batch_1_1BatchSequence_1a92ce0d4e310caded265fceab3f4c266a"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">set_source</span></code><span class="sig-paren">(</span><span class="pre">std</span><span class="pre">::</span><span class="pre">shared_ptr</span><span class="pre">&lt;</span><span class="pre">ral</span><span class="pre">::</span><span class="pre">cache</span><span class="pre">::</span><a class="reference internal" href="classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachineE" title="ral::cache::CacheMachine"><span class="pre">CacheMachine</span></a><span class="pre">&gt;</span> <em><span class="pre">cache</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5batch13BatchSequence10set_sourceENSt10shared_ptrIN3ral5cache12CacheMachineEEE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5batch13BatchSequence10set_sourceENSt10shared_ptrIN3ral5cache12CacheMachineEEE"></span><span id="_CPPv2N3ral5batch13BatchSequence10set_sourceENSt10shared_ptrIN3ral5cache12CacheMachineEEE"></span><span id="ral::batch::BatchSequence::set_source__std::shared_ptr:ral::cache::CacheMachine:"></span><span class="target" id="classral_1_1batch_1_1BatchSequence_1a92ce0d4e310caded265fceab3f4c266a"></span>void <code class="sig-name descname">set_source</code><span class="sig-paren">(</span>std::shared_ptr&lt;ral::cache::<a class="reference internal" href="classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachineE" title="ral::cache::CacheMachine">CacheMachine</a>&gt; <em>cache</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5batch13BatchSequence10set_sourceENSt10shared_ptrIN3ral5cache12CacheMachineEEE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Updates the input cache machine. <dl class="simple">
 <dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">cache</span></code>: The pointer to the new input cache. </p></li>
@@ -190,7 +194,7 @@
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5batch13BatchSequence4nextEv">
-<span id="_CPPv3N3ral5batch13BatchSequence4nextEv"></span><span id="_CPPv2N3ral5batch13BatchSequence4nextEv"></span><span id="ral::batch::BatchSequence::next"></span><span class="target" id="classral_1_1batch_1_1BatchSequence_1a5fe181e6183df338739e61eb512c23a4"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">unique_ptr</span><span class="pre">&lt;</span><span class="pre">ral</span><span class="pre">::</span><span class="pre">frame</span><span class="pre">::</span><a class="reference internal" href="classral_1_1frame_1_1BlazingTable.html#_CPPv4N3ral5frame12BlazingTableE" title="ral::frame::BlazingTable"><span class="pre">BlazingTable</span></a><span class="pre">&gt;</span> <code class="sig-name descname"><span class="pre">next</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5batch13BatchSequence4nextEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5batch13BatchSequence4nextEv"></span><span id="_CPPv2N3ral5batch13BatchSequence4nextEv"></span><span id="ral::batch::BatchSequence::next"></span><span class="target" id="classral_1_1batch_1_1BatchSequence_1a5fe181e6183df338739e61eb512c23a4"></span>std::unique_ptr&lt;ral::frame::<a class="reference internal" href="classral_1_1frame_1_1BlazingTable.html#_CPPv4N3ral5frame12BlazingTableE" title="ral::frame::BlazingTable">BlazingTable</a>&gt; <code class="sig-name descname">next</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5batch13BatchSequence4nextEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Get the next message as a unique pointer to a BlazingTable. If there are no more messages on the queue we get a nullptr. <dl class="simple">
 <dt><strong>Return</strong></dt><dd><p>Unique pointer to a BlazingTable containing the next decached message. </p>
 </dd>
@@ -200,7 +204,7 @@
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5batch13BatchSequence13wait_for_nextEv">
-<span id="_CPPv3N3ral5batch13BatchSequence13wait_for_nextEv"></span><span id="_CPPv2N3ral5batch13BatchSequence13wait_for_nextEv"></span><span id="ral::batch::BatchSequence::wait_for_next"></span><span class="target" id="classral_1_1batch_1_1BatchSequence_1af62f1f620ac02a018737af8a89eb4881"></span><span class="pre">bool</span> <code class="sig-name descname"><span class="pre">wait_for_next</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5batch13BatchSequence13wait_for_nextEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5batch13BatchSequence13wait_for_nextEv"></span><span id="_CPPv2N3ral5batch13BatchSequence13wait_for_nextEv"></span><span id="ral::batch::BatchSequence::wait_for_next"></span><span class="target" id="classral_1_1batch_1_1BatchSequence_1af62f1f620ac02a018737af8a89eb4881"></span>bool <code class="sig-name descname">wait_for_next</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5batch13BatchSequence13wait_for_nextEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Blocks executing thread until a new message is ready or when the message queue is empty. <dl class="simple">
 <dt><strong>Return</strong></dt><dd><p>true A new message is ready. </p>
 </dd>
@@ -212,7 +216,7 @@
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5batch13BatchSequence12has_next_nowEv">
-<span id="_CPPv3N3ral5batch13BatchSequence12has_next_nowEv"></span><span id="_CPPv2N3ral5batch13BatchSequence12has_next_nowEv"></span><span id="ral::batch::BatchSequence::has_next_now"></span><span class="target" id="classral_1_1batch_1_1BatchSequence_1a0ed0531f11f65b4e7391da23c2a2de12"></span><span class="pre">bool</span> <code class="sig-name descname"><span class="pre">has_next_now</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5batch13BatchSequence12has_next_nowEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5batch13BatchSequence12has_next_nowEv"></span><span id="_CPPv2N3ral5batch13BatchSequence12has_next_nowEv"></span><span id="ral::batch::BatchSequence::has_next_now"></span><span class="target" id="classral_1_1batch_1_1BatchSequence_1a0ed0531f11f65b4e7391da23c2a2de12"></span>bool <code class="sig-name descname">has_next_now</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5batch13BatchSequence12has_next_nowEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Indicates if the message queue is not empty at this point on time. <dl class="simple">
 <dt><strong>Return</strong></dt><dd><p>true There is at least one message in the queue. </p>
 </dd>
@@ -244,14 +248,14 @@
     </div>
 
     
-  <script src="../_static/js/index.d8bbf5861d671d414e1a.js"></script>
+  <script src="../_static/js/index.d3f166471bb80abb5163.js"></script>
 
 
     <footer class="footer mt-5 mt-md-0">
   <div class="container">
     <p>
           &copy; Copyright 2020, BlazingDB, Inc..<br/>
-        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.4.3.<br/>
     </p>
   </div>
 </footer>

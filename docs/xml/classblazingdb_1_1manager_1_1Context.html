@@ -7,8 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Class Context &#8212; BlazingSQL v0.18 documentation</title>
     
-  <link href="../_static/css/theme.css" rel="stylesheet" />
-  <link href="../_static/css/index.101715efdecc9b59cb6e1ddfa685c31f.css" rel="stylesheet" />
+  <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
     
   <link rel="stylesheet"
@@ -20,17 +19,21 @@
 
     
       
+  <link rel="stylesheet"
+    href="../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../_static/vendor/lato_latin-ext/1.44.1/index.css">
 
     
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/getting_started.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     
-  <link rel="preload" as="script" href="../_static/js/index.d8bbf5861d671d414e1a.js">
+  <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
     <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
@@ -47,46 +50,43 @@
   </head>
   <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
     
-    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="container-xl">
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
 
-
+    <a class="navbar-brand" href="../index.html">
     
-      
-      <a class="navbar-brand" href="../index.html">
-        <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo">
-      </a>
-      
+      <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo" />
     
-
+    </a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
     </button>
 
-    
     <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
       <ul id="navbar-main-elements" class="navbar-nav mr-auto">
-        <li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../arch.html">
-  BlazingSQL Project Architecture
- </a>
-</li>
-
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../graph.html">
-  Execution Engine
- </a>
-</li>
-
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../api.html">
-  API Documentation
- </a>
-</li>
-
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../arch.html">BlazingSQL Project Architecture</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../graph.html">Execution Engine</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../api.html">API Documentation</a>
+        </li>
+        
         
       </ul>
 
-      <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+
+      
+
+      <ul class="navbar-nav">
+        
+        
       </ul>
     </div>
 </div>
@@ -96,19 +96,27 @@
     <div class="container-xl">
       <div class="row">
           
-            
-            <!-- Only show if we have sidebars configured, else just a small margin  -->
-            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
   <i class="icon fas fa-search"></i>
   <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
 </form>
 <nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
-  <div class="bd-toc-item active">
+
+    <div class="bd-toc-item active">
     
-  </div>
-</nav>
-            </div>
-            
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
           
 
           
@@ -119,14 +127,13 @@
 </div>
 
 <nav id="bd-toc-nav">
-    <ul class="visible nav section-nav flex-column">
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#class-documentation">
-   Class Documentation
-  </a>
- </li>
-</ul>
-
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#class-documentation" class="nav-link">Class Documentation</a>
+        </li>
+    
+    </ul>
 </nav>
 
 
@@ -142,9 +149,6 @@
           
 
           
-          
-            
-          
           <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
               
               <div>
@@ -158,64 +162,64 @@
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
 <dl class="cpp class">
 <dt id="_CPPv4N9blazingdb7manager7ContextE">
-<span id="_CPPv3N9blazingdb7manager7ContextE"></span><span id="_CPPv2N9blazingdb7manager7ContextE"></span><span id="blazingdb::manager::Context"></span><span class="target" id="classblazingdb_1_1manager_1_1Context"></span><em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">blazingdb</span><span class="pre">::</span><span class="pre">manager</span><code class="sig-prename descclassname"><span class="pre">::</span></code></code><code class="sig-name descname"><span class="pre">Context</span></code><a class="headerlink" href="#_CPPv4N9blazingdb7manager7ContextE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N9blazingdb7manager7ContextE"></span><span id="_CPPv2N9blazingdb7manager7ContextE"></span><span id="blazingdb::manager::Context"></span><span class="target" id="classblazingdb_1_1manager_1_1Context"></span><em class="property">class </em><code class="sig-prename descclassname">blazingdb::manager<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">Context</code><a class="headerlink" href="#_CPPv4N9blazingdb7manager7ContextE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>This is the main component of the transport library. </p>
 <p>Manage and group the Node ‘s (task nodes) to be used by an specific query. </p>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Public Functions</p>
 <dl class="cpp function">
 <dt id="_CPPv4N9blazingdb7manager7Context7ContextEK8uint32_tRKNSt6vectorI4NodeEERK4NodeRKNSt6stringERKNSt3mapINSt6stringENSt6stringEEE">
-<span id="_CPPv3N9blazingdb7manager7Context7ContextEK8uint32_tRKNSt6vectorI4NodeEERK4NodeRKNSt6stringERKNSt3mapINSt6stringENSt6stringEEE"></span><span id="_CPPv2N9blazingdb7manager7Context7ContextEK8uint32_tRKNSt6vectorI4NodeEERK4NodeRKNSt6stringERKNSt3mapINSt6stringENSt6stringEEE"></span><span id="blazingdb::manager::Context::Context__uint32_tC.std::vector:Node:CR.NodeCR.ssCR.std::map:ss.ss:CR"></span><span class="target" id="classblazingdb_1_1manager_1_1Context_1a06497a0c2a975edaefeb70077bed281c"></span><em class="property"><span class="pre">explicit</span></em> <code class="sig-name descname"><span class="pre">Context</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <span class="pre">uint32_t</span> <em><span class="pre">token</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><a class="reference internal" href="typedef_Context_8h_1a0c8036136636f111b5b5eb7decd63b70.html#_CPPv4N9blazingdb7manager4NodeE" title="blazingdb::manager::Node"><span class="pre">Node</span></a><span class="pre">&gt;</span> <span class="pre">&amp;</span><em><span class="pre">taskNodes</span></em>, <em class="property"><span class="pre">const</span></em> <a class="reference internal" href="typedef_Context_8h_1a0c8036136636f111b5b5eb7decd63b70.html#_CPPv4N9blazingdb7manager4NodeE" title="blazingdb::manager::Node"><span class="pre">Node</span></a> <span class="pre">&amp;</span><em><span class="pre">masterNode</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">string</span> <span class="pre">&amp;</span><em><span class="pre">logicalPlan</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">map</span><span class="pre">&lt;</span><span class="pre">std</span><span class="pre">::</span><span class="pre">string</span><span class="pre">,</span> <span class="pre">std</span><span class="pre">::</span><span class="pre">string</span><span class="pre">&gt;</span> <span class="pre">&amp;</span><em><span class="pre">config_options</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9blazingdb7manager7Context7ContextEK8uint32_tRKNSt6vectorI4NodeEERK4NodeRKNSt6stringERKNSt3mapINSt6stringENSt6stringEEE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N9blazingdb7manager7Context7ContextEK8uint32_tRKNSt6vectorI4NodeEERK4NodeRKNSt6stringERKNSt3mapINSt6stringENSt6stringEEE"></span><span id="_CPPv2N9blazingdb7manager7Context7ContextEK8uint32_tRKNSt6vectorI4NodeEERK4NodeRKNSt6stringERKNSt3mapINSt6stringENSt6stringEEE"></span><span id="blazingdb::manager::Context::Context__uint32_tC.std::vector:Node:CR.NodeCR.ssCR.std::map:ss.ss:CR"></span><span class="target" id="classblazingdb_1_1manager_1_1Context_1a06497a0c2a975edaefeb70077bed281c"></span><em class="property">explicit</em> <code class="sig-name descname">Context</code><span class="sig-paren">(</span><em class="property">const</em> uint32_t <em>token</em>, <em class="property">const</em> std::vector&lt;<a class="reference internal" href="typedef_Context_8h_1a0c8036136636f111b5b5eb7decd63b70.html#_CPPv4N9blazingdb7manager4NodeE" title="blazingdb::manager::Node">Node</a>&gt; &amp;<em>taskNodes</em>, <em class="property">const</em> <a class="reference internal" href="typedef_Context_8h_1a0c8036136636f111b5b5eb7decd63b70.html#_CPPv4N9blazingdb7manager4NodeE" title="blazingdb::manager::Node">Node</a> &amp;<em>masterNode</em>, <em class="property">const</em> std::string &amp;<em>logicalPlan</em>, <em class="property">const</em> std::map&lt;std::string, std::string&gt; &amp;<em>config_options</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9blazingdb7manager7Context7ContextEK8uint32_tRKNSt6vectorI4NodeEERK4NodeRKNSt6stringERKNSt3mapINSt6stringENSt6stringEEE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N9blazingdb7manager7Context5cloneEv">
-<span id="_CPPv3N9blazingdb7manager7Context5cloneEv"></span><span id="_CPPv2N9blazingdb7manager7Context5cloneEv"></span><span id="blazingdb::manager::Context::clone"></span><span class="target" id="classblazingdb_1_1manager_1_1Context_1a2e7dc296d717126eb032ab3f55742531"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">shared_ptr</span><span class="pre">&lt;</span><a class="reference internal" href="#_CPPv4N9blazingdb7manager7ContextE" title="blazingdb::manager::Context"><span class="pre">Context</span></a><span class="pre">&gt;</span> <code class="sig-name descname"><span class="pre">clone</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9blazingdb7manager7Context5cloneEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N9blazingdb7manager7Context5cloneEv"></span><span id="_CPPv2N9blazingdb7manager7Context5cloneEv"></span><span id="blazingdb::manager::Context::clone"></span><span class="target" id="classblazingdb_1_1manager_1_1Context_1a2e7dc296d717126eb032ab3f55742531"></span>std::shared_ptr&lt;<a class="reference internal" href="#_CPPv4N9blazingdb7manager7ContextE" title="blazingdb::manager::Context">Context</a>&gt; <code class="sig-name descname">clone</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9blazingdb7manager7Context5cloneEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4NK9blazingdb7manager7Context13getTotalNodesEv">
-<span id="_CPPv3NK9blazingdb7manager7Context13getTotalNodesEv"></span><span id="_CPPv2NK9blazingdb7manager7Context13getTotalNodesEv"></span><span id="blazingdb::manager::Context::getTotalNodesC"></span><span class="target" id="classblazingdb_1_1manager_1_1Context_1a19e76e2eec88f05dbbb4dc54600c2ea4"></span><span class="pre">int</span> <code class="sig-name descname"><span class="pre">getTotalNodes</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em><a class="headerlink" href="#_CPPv4NK9blazingdb7manager7Context13getTotalNodesEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3NK9blazingdb7manager7Context13getTotalNodesEv"></span><span id="_CPPv2NK9blazingdb7manager7Context13getTotalNodesEv"></span><span id="blazingdb::manager::Context::getTotalNodesC"></span><span class="target" id="classblazingdb_1_1manager_1_1Context_1a19e76e2eec88f05dbbb4dc54600c2ea4"></span>int <code class="sig-name descname">getTotalNodes</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK9blazingdb7manager7Context13getTotalNodesEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4NK9blazingdb7manager7Context11getAllNodesEv">
-<span id="_CPPv3NK9blazingdb7manager7Context11getAllNodesEv"></span><span id="_CPPv2NK9blazingdb7manager7Context11getAllNodesEv"></span><span id="blazingdb::manager::Context::getAllNodesC"></span><span class="target" id="classblazingdb_1_1manager_1_1Context_1a1107a1de655b5904b4bff8f4db648fa6"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><a class="reference internal" href="typedef_Context_8h_1a0c8036136636f111b5b5eb7decd63b70.html#_CPPv4N9blazingdb7manager4NodeE" title="blazingdb::manager::Node"><span class="pre">Node</span></a><span class="pre">&gt;</span> <code class="sig-name descname"><span class="pre">getAllNodes</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em><a class="headerlink" href="#_CPPv4NK9blazingdb7manager7Context11getAllNodesEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3NK9blazingdb7manager7Context11getAllNodesEv"></span><span id="_CPPv2NK9blazingdb7manager7Context11getAllNodesEv"></span><span id="blazingdb::manager::Context::getAllNodesC"></span><span class="target" id="classblazingdb_1_1manager_1_1Context_1a1107a1de655b5904b4bff8f4db648fa6"></span>std::vector&lt;<a class="reference internal" href="typedef_Context_8h_1a0c8036136636f111b5b5eb7decd63b70.html#_CPPv4N9blazingdb7manager4NodeE" title="blazingdb::manager::Node">Node</a>&gt; <code class="sig-name descname">getAllNodes</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK9blazingdb7manager7Context11getAllNodesEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4NK9blazingdb7manager7Context16getAllOtherNodesEi">
-<span id="_CPPv3NK9blazingdb7manager7Context16getAllOtherNodesEi"></span><span id="_CPPv2NK9blazingdb7manager7Context16getAllOtherNodesEi"></span><span id="blazingdb::manager::Context::getAllOtherNodes__iC"></span><span class="target" id="classblazingdb_1_1manager_1_1Context_1a8145e32076548759fa9163dd1fe13ccf"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><a class="reference internal" href="typedef_Context_8h_1a0c8036136636f111b5b5eb7decd63b70.html#_CPPv4N9blazingdb7manager4NodeE" title="blazingdb::manager::Node"><span class="pre">Node</span></a><span class="pre">&gt;</span> <code class="sig-name descname"><span class="pre">getAllOtherNodes</span></code><span class="sig-paren">(</span><span class="pre">int</span> <em><span class="pre">selfNodeIndex</span></em><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em><a class="headerlink" href="#_CPPv4NK9blazingdb7manager7Context16getAllOtherNodesEi" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3NK9blazingdb7manager7Context16getAllOtherNodesEi"></span><span id="_CPPv2NK9blazingdb7manager7Context16getAllOtherNodesEi"></span><span id="blazingdb::manager::Context::getAllOtherNodes__iC"></span><span class="target" id="classblazingdb_1_1manager_1_1Context_1a8145e32076548759fa9163dd1fe13ccf"></span>std::vector&lt;<a class="reference internal" href="typedef_Context_8h_1a0c8036136636f111b5b5eb7decd63b70.html#_CPPv4N9blazingdb7manager4NodeE" title="blazingdb::manager::Node">Node</a>&gt; <code class="sig-name descname">getAllOtherNodes</code><span class="sig-paren">(</span>int <em>selfNodeIndex</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK9blazingdb7manager7Context16getAllOtherNodesEi" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4NK9blazingdb7manager7Context14getWorkerNodesEv">
-<span id="_CPPv3NK9blazingdb7manager7Context14getWorkerNodesEv"></span><span id="_CPPv2NK9blazingdb7manager7Context14getWorkerNodesEv"></span><span id="blazingdb::manager::Context::getWorkerNodesC"></span><span class="target" id="classblazingdb_1_1manager_1_1Context_1a4aa25b97a3c3e96e10947f519d171b35"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><a class="reference internal" href="typedef_Context_8h_1a0c8036136636f111b5b5eb7decd63b70.html#_CPPv4N9blazingdb7manager4NodeE" title="blazingdb::manager::Node"><span class="pre">Node</span></a><span class="pre">&gt;</span> <code class="sig-name descname"><span class="pre">getWorkerNodes</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em><a class="headerlink" href="#_CPPv4NK9blazingdb7manager7Context14getWorkerNodesEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3NK9blazingdb7manager7Context14getWorkerNodesEv"></span><span id="_CPPv2NK9blazingdb7manager7Context14getWorkerNodesEv"></span><span id="blazingdb::manager::Context::getWorkerNodesC"></span><span class="target" id="classblazingdb_1_1manager_1_1Context_1a4aa25b97a3c3e96e10947f519d171b35"></span>std::vector&lt;<a class="reference internal" href="typedef_Context_8h_1a0c8036136636f111b5b5eb7decd63b70.html#_CPPv4N9blazingdb7manager4NodeE" title="blazingdb::manager::Node">Node</a>&gt; <code class="sig-name descname">getWorkerNodes</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK9blazingdb7manager7Context14getWorkerNodesEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>RAL instances that will run the query. </p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4NK9blazingdb7manager7Context7getNodeEi">
-<span id="_CPPv3NK9blazingdb7manager7Context7getNodeEi"></span><span id="_CPPv2NK9blazingdb7manager7Context7getNodeEi"></span><span id="blazingdb::manager::Context::getNode__iC"></span><span class="target" id="classblazingdb_1_1manager_1_1Context_1af31d1d36d220e0d84f30280f18c0dab1"></span><a class="reference internal" href="typedef_Context_8h_1a0c8036136636f111b5b5eb7decd63b70.html#_CPPv4N9blazingdb7manager4NodeE" title="blazingdb::manager::Node"><span class="pre">Node</span></a> <code class="sig-name descname"><span class="pre">getNode</span></code><span class="sig-paren">(</span><span class="pre">int</span> <em><span class="pre">node_index</span></em><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em><a class="headerlink" href="#_CPPv4NK9blazingdb7manager7Context7getNodeEi" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3NK9blazingdb7manager7Context7getNodeEi"></span><span id="_CPPv2NK9blazingdb7manager7Context7getNodeEi"></span><span id="blazingdb::manager::Context::getNode__iC"></span><span class="target" id="classblazingdb_1_1manager_1_1Context_1af31d1d36d220e0d84f30280f18c0dab1"></span><a class="reference internal" href="typedef_Context_8h_1a0c8036136636f111b5b5eb7decd63b70.html#_CPPv4N9blazingdb7manager4NodeE" title="blazingdb::manager::Node">Node</a> <code class="sig-name descname">getNode</code><span class="sig-paren">(</span>int <em>node_index</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK9blazingdb7manager7Context7getNodeEi" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4NK9blazingdb7manager7Context7getNodeERKNSt6stringE">
-<span id="_CPPv3NK9blazingdb7manager7Context7getNodeERKNSt6stringE"></span><span id="_CPPv2NK9blazingdb7manager7Context7getNodeERKNSt6stringE"></span><span id="blazingdb::manager::Context::getNode__ssCRC"></span><span class="target" id="classblazingdb_1_1manager_1_1Context_1a825bc87492256cd9c0edad4ee8b1928a"></span><a class="reference internal" href="typedef_Context_8h_1a0c8036136636f111b5b5eb7decd63b70.html#_CPPv4N9blazingdb7manager4NodeE" title="blazingdb::manager::Node"><span class="pre">Node</span></a> <code class="sig-name descname"><span class="pre">getNode</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">string</span> <span class="pre">&amp;</span><em><span class="pre">id</span></em><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em><a class="headerlink" href="#_CPPv4NK9blazingdb7manager7Context7getNodeERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3NK9blazingdb7manager7Context7getNodeERKNSt6stringE"></span><span id="_CPPv2NK9blazingdb7manager7Context7getNodeERKNSt6stringE"></span><span id="blazingdb::manager::Context::getNode__ssCRC"></span><span class="target" id="classblazingdb_1_1manager_1_1Context_1a825bc87492256cd9c0edad4ee8b1928a"></span><a class="reference internal" href="typedef_Context_8h_1a0c8036136636f111b5b5eb7decd63b70.html#_CPPv4N9blazingdb7manager4NodeE" title="blazingdb::manager::Node">Node</a> <code class="sig-name descname">getNode</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>id</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK9blazingdb7manager7Context7getNodeERKNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4NK9blazingdb7manager7Context13getMasterNodeEv">
-<span id="_CPPv3NK9blazingdb7manager7Context13getMasterNodeEv"></span><span id="_CPPv2NK9blazingdb7manager7Context13getMasterNodeEv"></span><span id="blazingdb::manager::Context::getMasterNodeC"></span><span class="target" id="classblazingdb_1_1manager_1_1Context_1ad1faee75fb1b10af373d6481ae621dfd"></span><em class="property"><span class="pre">const</span></em> <a class="reference internal" href="typedef_Context_8h_1a0c8036136636f111b5b5eb7decd63b70.html#_CPPv4N9blazingdb7manager4NodeE" title="blazingdb::manager::Node"><span class="pre">Node</span></a> <span class="pre">&amp;</span><code class="sig-name descname"><span class="pre">getMasterNode</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em><a class="headerlink" href="#_CPPv4NK9blazingdb7manager7Context13getMasterNodeEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3NK9blazingdb7manager7Context13getMasterNodeEv"></span><span id="_CPPv2NK9blazingdb7manager7Context13getMasterNodeEv"></span><span id="blazingdb::manager::Context::getMasterNodeC"></span><span class="target" id="classblazingdb_1_1manager_1_1Context_1ad1faee75fb1b10af373d6481ae621dfd"></span><em class="property">const</em> <a class="reference internal" href="typedef_Context_8h_1a0c8036136636f111b5b5eb7decd63b70.html#_CPPv4N9blazingdb7manager4NodeE" title="blazingdb::manager::Node">Node</a> &amp;<code class="sig-name descname">getMasterNode</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK9blazingdb7manager7Context13getMasterNodeEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>A single unique RAL instance that helps to the messages transmition and processesing between worker RAL’s e.g.: see SampleToNodeMasterMessage </p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4NK9blazingdb7manager7Context14getLogicalPlanEv">
-<span id="_CPPv3NK9blazingdb7manager7Context14getLogicalPlanEv"></span><span id="_CPPv2NK9blazingdb7manager7Context14getLogicalPlanEv"></span><span id="blazingdb::manager::Context::getLogicalPlanC"></span><span class="target" id="classblazingdb_1_1manager_1_1Context_1ae0093ffa619c372c6130af7e3c77c372"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">string</span> <code class="sig-name descname"><span class="pre">getLogicalPlan</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em><a class="headerlink" href="#_CPPv4NK9blazingdb7manager7Context14getLogicalPlanEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3NK9blazingdb7manager7Context14getLogicalPlanEv"></span><span id="_CPPv2NK9blazingdb7manager7Context14getLogicalPlanEv"></span><span id="blazingdb::manager::Context::getLogicalPlanC"></span><span class="target" id="classblazingdb_1_1manager_1_1Context_1ae0093ffa619c372c6130af7e3c77c372"></span>std::string <code class="sig-name descname">getLogicalPlan</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK9blazingdb7manager7Context14getLogicalPlanEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p><dl class="xrefsect">
 <dt>
-<em><span class="pre">Deprecated:</span></em></dt>
+<em>Deprecated:</em></dt>
 <dd><p>: not used anymore </p>
 </dd></dl>
 
@@ -224,57 +228,57 @@
 
 <dl class="cpp function">
 <dt id="_CPPv4NK9blazingdb7manager7Context15getContextTokenEv">
-<span id="_CPPv3NK9blazingdb7manager7Context15getContextTokenEv"></span><span id="_CPPv2NK9blazingdb7manager7Context15getContextTokenEv"></span><span id="blazingdb::manager::Context::getContextTokenC"></span><span class="target" id="classblazingdb_1_1manager_1_1Context_1a8e4398b9941b94007cae1b5c53a35008"></span><span class="pre">uint32_t</span> <code class="sig-name descname"><span class="pre">getContextToken</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em><a class="headerlink" href="#_CPPv4NK9blazingdb7manager7Context15getContextTokenEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3NK9blazingdb7manager7Context15getContextTokenEv"></span><span id="_CPPv2NK9blazingdb7manager7Context15getContextTokenEv"></span><span id="blazingdb::manager::Context::getContextTokenC"></span><span class="target" id="classblazingdb_1_1manager_1_1Context_1a8e4398b9941b94007cae1b5c53a35008"></span>uint32_t <code class="sig-name descname">getContextToken</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK9blazingdb7manager7Context15getContextTokenEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4NK9blazingdb7manager7Context28getContextCommunicationTokenEv">
-<span id="_CPPv3NK9blazingdb7manager7Context28getContextCommunicationTokenEv"></span><span id="_CPPv2NK9blazingdb7manager7Context28getContextCommunicationTokenEv"></span><span id="blazingdb::manager::Context::getContextCommunicationTokenC"></span><span class="target" id="classblazingdb_1_1manager_1_1Context_1aea67cc180a62a0ae6772ecdbe67e941a"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">string</span> <code class="sig-name descname"><span class="pre">getContextCommunicationToken</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em><a class="headerlink" href="#_CPPv4NK9blazingdb7manager7Context28getContextCommunicationTokenEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3NK9blazingdb7manager7Context28getContextCommunicationTokenEv"></span><span id="_CPPv2NK9blazingdb7manager7Context28getContextCommunicationTokenEv"></span><span id="blazingdb::manager::Context::getContextCommunicationTokenC"></span><span class="target" id="classblazingdb_1_1manager_1_1Context_1aea67cc180a62a0ae6772ecdbe67e941a"></span>std::string <code class="sig-name descname">getContextCommunicationToken</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK9blazingdb7manager7Context28getContextCommunicationTokenEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N9blazingdb7manager7Context18incrementQueryStepEv">
-<span id="_CPPv3N9blazingdb7manager7Context18incrementQueryStepEv"></span><span id="_CPPv2N9blazingdb7manager7Context18incrementQueryStepEv"></span><span id="blazingdb::manager::Context::incrementQueryStep"></span><span class="target" id="classblazingdb_1_1manager_1_1Context_1a96fe3bf29e74bb9ed00f0062eda99676"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">incrementQueryStep</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9blazingdb7manager7Context18incrementQueryStepEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N9blazingdb7manager7Context18incrementQueryStepEv"></span><span id="_CPPv2N9blazingdb7manager7Context18incrementQueryStepEv"></span><span id="blazingdb::manager::Context::incrementQueryStep"></span><span class="target" id="classblazingdb_1_1manager_1_1Context_1a96fe3bf29e74bb9ed00f0062eda99676"></span>void <code class="sig-name descname">incrementQueryStep</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9blazingdb7manager7Context18incrementQueryStepEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N9blazingdb7manager7Context21incrementQuerySubstepEv">
-<span id="_CPPv3N9blazingdb7manager7Context21incrementQuerySubstepEv"></span><span id="_CPPv2N9blazingdb7manager7Context21incrementQuerySubstepEv"></span><span id="blazingdb::manager::Context::incrementQuerySubstep"></span><span class="target" id="classblazingdb_1_1manager_1_1Context_1aad6b4624ca3925ed5395159b330f4f9f"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">incrementQuerySubstep</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9blazingdb7manager7Context21incrementQuerySubstepEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N9blazingdb7manager7Context21incrementQuerySubstepEv"></span><span id="_CPPv2N9blazingdb7manager7Context21incrementQuerySubstepEv"></span><span id="blazingdb::manager::Context::incrementQuerySubstep"></span><span class="target" id="classblazingdb_1_1manager_1_1Context_1aad6b4624ca3925ed5395159b330f4f9f"></span>void <code class="sig-name descname">incrementQuerySubstep</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9blazingdb7manager7Context21incrementQuerySubstepEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4NK9blazingdb7manager7Context12getQueryStepEv">
-<span id="_CPPv3NK9blazingdb7manager7Context12getQueryStepEv"></span><span id="_CPPv2NK9blazingdb7manager7Context12getQueryStepEv"></span><span id="blazingdb::manager::Context::getQueryStepC"></span><span class="target" id="classblazingdb_1_1manager_1_1Context_1a99a062320c7d2d3acdaa876635a96f1b"></span><em class="property"><span class="pre">inline</span></em> <span class="pre">uint32_t</span> <code class="sig-name descname"><span class="pre">getQueryStep</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em><a class="headerlink" href="#_CPPv4NK9blazingdb7manager7Context12getQueryStepEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3NK9blazingdb7manager7Context12getQueryStepEv"></span><span id="_CPPv2NK9blazingdb7manager7Context12getQueryStepEv"></span><span id="blazingdb::manager::Context::getQueryStepC"></span><span class="target" id="classblazingdb_1_1manager_1_1Context_1a99a062320c7d2d3acdaa876635a96f1b"></span><em class="property">inline</em> uint32_t <code class="sig-name descname">getQueryStep</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK9blazingdb7manager7Context12getQueryStepEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4NK9blazingdb7manager7Context15getQuerySubstepEv">
-<span id="_CPPv3NK9blazingdb7manager7Context15getQuerySubstepEv"></span><span id="_CPPv2NK9blazingdb7manager7Context15getQuerySubstepEv"></span><span id="blazingdb::manager::Context::getQuerySubstepC"></span><span class="target" id="classblazingdb_1_1manager_1_1Context_1ab8982de5aaebf8f29c0f1d86cf4c84d6"></span><em class="property"><span class="pre">inline</span></em> <span class="pre">uint32_t</span> <code class="sig-name descname"><span class="pre">getQuerySubstep</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em><a class="headerlink" href="#_CPPv4NK9blazingdb7manager7Context15getQuerySubstepEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3NK9blazingdb7manager7Context15getQuerySubstepEv"></span><span id="_CPPv2NK9blazingdb7manager7Context15getQuerySubstepEv"></span><span id="blazingdb::manager::Context::getQuerySubstepC"></span><span class="target" id="classblazingdb_1_1manager_1_1Context_1ab8982de5aaebf8f29c0f1d86cf4c84d6"></span><em class="property">inline</em> uint32_t <code class="sig-name descname">getQuerySubstep</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK9blazingdb7manager7Context15getQuerySubstepEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4NK9blazingdb7manager7Context12getNodeIndexERK4Node">
-<span id="_CPPv3NK9blazingdb7manager7Context12getNodeIndexERK4Node"></span><span id="_CPPv2NK9blazingdb7manager7Context12getNodeIndexERK4Node"></span><span id="blazingdb::manager::Context::getNodeIndex__NodeCRC"></span><span class="target" id="classblazingdb_1_1manager_1_1Context_1a087b4b0ced49313fbc9c3b3994aa870e"></span><span class="pre">int</span> <code class="sig-name descname"><span class="pre">getNodeIndex</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <a class="reference internal" href="typedef_Context_8h_1a0c8036136636f111b5b5eb7decd63b70.html#_CPPv4N9blazingdb7manager4NodeE" title="blazingdb::manager::Node"><span class="pre">Node</span></a> <span class="pre">&amp;</span><em><span class="pre">node</span></em><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em><a class="headerlink" href="#_CPPv4NK9blazingdb7manager7Context12getNodeIndexERK4Node" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3NK9blazingdb7manager7Context12getNodeIndexERK4Node"></span><span id="_CPPv2NK9blazingdb7manager7Context12getNodeIndexERK4Node"></span><span id="blazingdb::manager::Context::getNodeIndex__NodeCRC"></span><span class="target" id="classblazingdb_1_1manager_1_1Context_1a087b4b0ced49313fbc9c3b3994aa870e"></span>int <code class="sig-name descname">getNodeIndex</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="typedef_Context_8h_1a0c8036136636f111b5b5eb7decd63b70.html#_CPPv4N9blazingdb7manager4NodeE" title="blazingdb::manager::Node">Node</a> &amp;<em>node</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK9blazingdb7manager7Context12getNodeIndexERK4Node" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4NK9blazingdb7manager7Context12isMasterNodeERK4Node">
-<span id="_CPPv3NK9blazingdb7manager7Context12isMasterNodeERK4Node"></span><span id="_CPPv2NK9blazingdb7manager7Context12isMasterNodeERK4Node"></span><span id="blazingdb::manager::Context::isMasterNode__NodeCRC"></span><span class="target" id="classblazingdb_1_1manager_1_1Context_1ae7a8106947af5b4500760fb761a86788"></span><span class="pre">bool</span> <code class="sig-name descname"><span class="pre">isMasterNode</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <a class="reference internal" href="typedef_Context_8h_1a0c8036136636f111b5b5eb7decd63b70.html#_CPPv4N9blazingdb7manager4NodeE" title="blazingdb::manager::Node"><span class="pre">Node</span></a> <span class="pre">&amp;</span><em><span class="pre">node</span></em><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em><a class="headerlink" href="#_CPPv4NK9blazingdb7manager7Context12isMasterNodeERK4Node" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3NK9blazingdb7manager7Context12isMasterNodeERK4Node"></span><span id="_CPPv2NK9blazingdb7manager7Context12isMasterNodeERK4Node"></span><span id="blazingdb::manager::Context::isMasterNode__NodeCRC"></span><span class="target" id="classblazingdb_1_1manager_1_1Context_1ae7a8106947af5b4500760fb761a86788"></span>bool <code class="sig-name descname">isMasterNode</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="typedef_Context_8h_1a0c8036136636f111b5b5eb7decd63b70.html#_CPPv4N9blazingdb7manager4NodeE" title="blazingdb::manager::Node">Node</a> &amp;<em>node</em><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK9blazingdb7manager7Context12isMasterNodeERK4Node" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N9blazingdb7manager7Context11setKernelIdE8uint32_t">
-<span id="_CPPv3N9blazingdb7manager7Context11setKernelIdE8uint32_t"></span><span id="_CPPv2N9blazingdb7manager7Context11setKernelIdE8uint32_t"></span><span id="blazingdb::manager::Context::setKernelId__uint32_t"></span><span class="target" id="classblazingdb_1_1manager_1_1Context_1a428622bfe697d0d6f4ace3c0c6cef9fd"></span><em class="property"><span class="pre">inline</span></em> <span class="pre">void</span> <code class="sig-name descname"><span class="pre">setKernelId</span></code><span class="sig-paren">(</span><span class="pre">uint32_t</span> <em><span class="pre">kernel_id</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9blazingdb7manager7Context11setKernelIdE8uint32_t" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N9blazingdb7manager7Context11setKernelIdE8uint32_t"></span><span id="_CPPv2N9blazingdb7manager7Context11setKernelIdE8uint32_t"></span><span id="blazingdb::manager::Context::setKernelId__uint32_t"></span><span class="target" id="classblazingdb_1_1manager_1_1Context_1a428622bfe697d0d6f4ace3c0c6cef9fd"></span><em class="property">inline</em> void <code class="sig-name descname">setKernelId</code><span class="sig-paren">(</span>uint32_t <em>kernel_id</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9blazingdb7manager7Context11setKernelIdE8uint32_t" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4NK9blazingdb7manager7Context11getKernelIdEv">
-<span id="_CPPv3NK9blazingdb7manager7Context11getKernelIdEv"></span><span id="_CPPv2NK9blazingdb7manager7Context11getKernelIdEv"></span><span id="blazingdb::manager::Context::getKernelIdC"></span><span class="target" id="classblazingdb_1_1manager_1_1Context_1a7fa93aeb80ef105da3c812b9da732e5d"></span><em class="property"><span class="pre">inline</span></em> <span class="pre">uint32_t</span> <code class="sig-name descname"><span class="pre">getKernelId</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em><a class="headerlink" href="#_CPPv4NK9blazingdb7manager7Context11getKernelIdEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3NK9blazingdb7manager7Context11getKernelIdEv"></span><span id="_CPPv2NK9blazingdb7manager7Context11getKernelIdEv"></span><span id="blazingdb::manager::Context::getKernelIdC"></span><span class="target" id="classblazingdb_1_1manager_1_1Context_1a7fa93aeb80ef105da3c812b9da732e5d"></span><em class="property">inline</em> uint32_t <code class="sig-name descname">getKernelId</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK9blazingdb7manager7Context11getKernelIdEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4NK9blazingdb7manager7Context16getConfigOptionsEv">
-<span id="_CPPv3NK9blazingdb7manager7Context16getConfigOptionsEv"></span><span id="_CPPv2NK9blazingdb7manager7Context16getConfigOptionsEv"></span><span id="blazingdb::manager::Context::getConfigOptionsC"></span><span class="target" id="classblazingdb_1_1manager_1_1Context_1a7ea6b41e017024e6ab010998ccc40b06"></span><em class="property"><span class="pre">inline</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">map</span><span class="pre">&lt;</span><span class="pre">std</span><span class="pre">::</span><span class="pre">string</span><span class="pre">,</span> <span class="pre">std</span><span class="pre">::</span><span class="pre">string</span><span class="pre">&gt;</span> <code class="sig-name descname"><span class="pre">getConfigOptions</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em><a class="headerlink" href="#_CPPv4NK9blazingdb7manager7Context16getConfigOptionsEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3NK9blazingdb7manager7Context16getConfigOptionsEv"></span><span id="_CPPv2NK9blazingdb7manager7Context16getConfigOptionsEv"></span><span id="blazingdb::manager::Context::getConfigOptionsC"></span><span class="target" id="classblazingdb_1_1manager_1_1Context_1a7ea6b41e017024e6ab010998ccc40b06"></span><em class="property">inline</em> std::map&lt;std::string, std::string&gt; <code class="sig-name descname">getConfigOptions</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK9blazingdb7manager7Context16getConfigOptionsEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 </div>
@@ -299,14 +303,14 @@
     </div>
 
     
-  <script src="../_static/js/index.d8bbf5861d671d414e1a.js"></script>
+  <script src="../_static/js/index.d3f166471bb80abb5163.js"></script>
 
 
     <footer class="footer mt-5 mt-md-0">
   <div class="container">
     <p>
           &copy; Copyright 2020, BlazingDB, Inc..<br/>
-        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.4.3.<br/>
     </p>
   </div>
 </footer>

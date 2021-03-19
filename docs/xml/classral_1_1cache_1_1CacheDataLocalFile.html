@@ -7,8 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Class CacheDataLocalFile &#8212; BlazingSQL v0.18 documentation</title>
     
-  <link href="../_static/css/theme.css" rel="stylesheet" />
-  <link href="../_static/css/index.101715efdecc9b59cb6e1ddfa685c31f.css" rel="stylesheet" />
+  <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
     
   <link rel="stylesheet"
@@ -20,17 +19,21 @@
 
     
       
+  <link rel="stylesheet"
+    href="../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../_static/vendor/lato_latin-ext/1.44.1/index.css">
 
     
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/getting_started.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     
-  <link rel="preload" as="script" href="../_static/js/index.d8bbf5861d671d414e1a.js">
+  <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
     <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
@@ -47,46 +50,43 @@
   </head>
   <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
     
-    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="container-xl">
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
 
-
+    <a class="navbar-brand" href="../index.html">
     
-      
-      <a class="navbar-brand" href="../index.html">
-        <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo">
-      </a>
-      
+      <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo" />
     
-
+    </a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
     </button>
 
-    
     <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
       <ul id="navbar-main-elements" class="navbar-nav mr-auto">
-        <li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../arch.html">
-  BlazingSQL Project Architecture
- </a>
-</li>
-
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../graph.html">
-  Execution Engine
- </a>
-</li>
-
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../api.html">
-  API Documentation
- </a>
-</li>
-
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../arch.html">BlazingSQL Project Architecture</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../graph.html">Execution Engine</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../api.html">API Documentation</a>
+        </li>
+        
         
       </ul>
 
-      <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+
+      
+
+      <ul class="navbar-nav">
+        
+        
       </ul>
     </div>
 </div>
@@ -96,19 +96,27 @@
     <div class="container-xl">
       <div class="row">
           
-            
-            <!-- Only show if we have sidebars configured, else just a small margin  -->
-            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
   <i class="icon fas fa-search"></i>
   <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
 </form>
 <nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
-  <div class="bd-toc-item active">
+
+    <div class="bd-toc-item active">
     
-  </div>
-</nav>
-            </div>
-            
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
           
 
           
@@ -119,26 +127,23 @@
 </div>
 
 <nav id="bd-toc-nav">
-    <ul class="visible nav section-nav flex-column">
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#inheritance-relationships">
-   Inheritance Relationships
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#base-type">
-     Base Type
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#class-documentation">
-   Class Documentation
-  </a>
- </li>
-</ul>
-
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#inheritance-relationships" class="nav-link">Inheritance Relationships</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#base-type" class="nav-link">Base Type</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#class-documentation" class="nav-link">Class Documentation</a>
+        </li>
+    
+    </ul>
 </nav>
 
 
@@ -153,9 +158,6 @@
           </div>
           
 
-          
-          
-            
           
           <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
               
@@ -179,13 +181,13 @@
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
 <dl class="cpp class">
 <dt id="_CPPv4N3ral5cache18CacheDataLocalFileE">
-<span id="_CPPv3N3ral5cache18CacheDataLocalFileE"></span><span id="_CPPv2N3ral5cache18CacheDataLocalFileE"></span><span id="ral::cache::CacheDataLocalFile"></span><span class="target" id="classral_1_1cache_1_1CacheDataLocalFile"></span><em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ral</span><span class="pre">::</span><span class="pre">cache</span><code class="sig-prename descclassname"><span class="pre">::</span></code></code><code class="sig-name descname"><span class="pre">CacheDataLocalFile</span></code> <span class="pre">:</span> <em class="property"><span class="pre">public</span></em> <span class="pre">ral</span><span class="pre">::</span><span class="pre">cache</span><span class="pre">::</span><a class="reference internal" href="classral_1_1cache_1_1CacheData.html#_CPPv4N3ral5cache9CacheDataE" title="ral::cache::CacheData"><span class="pre">CacheData</span></a><a class="headerlink" href="#_CPPv4N3ral5cache18CacheDataLocalFileE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache18CacheDataLocalFileE"></span><span id="_CPPv2N3ral5cache18CacheDataLocalFileE"></span><span id="ral::cache::CacheDataLocalFile"></span><span class="target" id="classral_1_1cache_1_1CacheDataLocalFile"></span><em class="property">class </em><code class="sig-prename descclassname">ral::cache<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">CacheDataLocalFile</code> : <em class="property">public</em> ral::cache::<a class="reference internal" href="classral_1_1cache_1_1CacheData.html#_CPPv4N3ral5cache9CacheDataE" title="ral::cache::CacheData">CacheData</a><a class="headerlink" href="#_CPPv4N3ral5cache18CacheDataLocalFileE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>A <a class="reference internal" href="classral_1_1cache_1_1CacheData.html#classral_1_1cache_1_1CacheData"><span class="std std-ref">CacheData</span></a> that stores is data in an ORC file. This allows us to cache onto filesystems to allow larger queries to run on limited resources. This is the least performant cache in most instances. </p>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Public Functions</p>
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5cache18CacheDataLocalFile18CacheDataLocalFileENSt10unique_ptrIN3ral5frame12BlazingTableEEENSt6stringENSt6stringE">
-<span id="_CPPv3N3ral5cache18CacheDataLocalFile18CacheDataLocalFileENSt10unique_ptrIN3ral5frame12BlazingTableEEENSt6stringENSt6stringE"></span><span id="_CPPv2N3ral5cache18CacheDataLocalFile18CacheDataLocalFileENSt10unique_ptrIN3ral5frame12BlazingTableEEENSt6stringENSt6stringE"></span><span id="ral::cache::CacheDataLocalFile::CacheDataLocalFile__std::unique_ptr:ral::frame::BlazingTable:.ss.ss"></span><span class="target" id="classral_1_1cache_1_1CacheDataLocalFile_1aa8f42a81e963c076ebdf7bc6bc53a323"></span><code class="sig-name descname"><span class="pre">CacheDataLocalFile</span></code><span class="sig-paren">(</span><span class="pre">std</span><span class="pre">::</span><span class="pre">unique_ptr</span><span class="pre">&lt;</span><span class="pre">ral</span><span class="pre">::</span><span class="pre">frame</span><span class="pre">::</span><a class="reference internal" href="classral_1_1frame_1_1BlazingTable.html#_CPPv4N3ral5frame12BlazingTableE" title="ral::frame::BlazingTable"><span class="pre">BlazingTable</span></a><span class="pre">&gt;</span> <em><span class="pre">table</span></em>, <span class="pre">std</span><span class="pre">::</span><span class="pre">string</span> <em><span class="pre">orc_files_path</span></em>, <span class="pre">std</span><span class="pre">::</span><span class="pre">string</span> <em><span class="pre">ctx_token</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache18CacheDataLocalFile18CacheDataLocalFileENSt10unique_ptrIN3ral5frame12BlazingTableEEENSt6stringENSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache18CacheDataLocalFile18CacheDataLocalFileENSt10unique_ptrIN3ral5frame12BlazingTableEEENSt6stringENSt6stringE"></span><span id="_CPPv2N3ral5cache18CacheDataLocalFile18CacheDataLocalFileENSt10unique_ptrIN3ral5frame12BlazingTableEEENSt6stringENSt6stringE"></span><span id="ral::cache::CacheDataLocalFile::CacheDataLocalFile__std::unique_ptr:ral::frame::BlazingTable:.ss.ss"></span><span class="target" id="classral_1_1cache_1_1CacheDataLocalFile_1aa8f42a81e963c076ebdf7bc6bc53a323"></span><code class="sig-name descname">CacheDataLocalFile</code><span class="sig-paren">(</span>std::unique_ptr&lt;ral::frame::<a class="reference internal" href="classral_1_1frame_1_1BlazingTable.html#_CPPv4N3ral5frame12BlazingTableE" title="ral::frame::BlazingTable">BlazingTable</a>&gt; <em>table</em>, std::string <em>orc_files_path</em>, std::string <em>ctx_token</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache18CacheDataLocalFile18CacheDataLocalFileENSt10unique_ptrIN3ral5frame12BlazingTableEEENSt6stringENSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Constructor <dl class="simple">
 <dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">table</span></code>: The BlazingTable that is converted into an ORC file and stored on disk. &#64; param orc_files_path The path where the file should be stored. &#64; param ctx_id The context token to identify the query that generated the file. </p></li>
@@ -197,7 +199,7 @@
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5cache18CacheDataLocalFile7decacheEv">
-<span id="_CPPv3N3ral5cache18CacheDataLocalFile7decacheEv"></span><span id="_CPPv2N3ral5cache18CacheDataLocalFile7decacheEv"></span><span id="ral::cache::CacheDataLocalFile::decache"></span><span class="target" id="classral_1_1cache_1_1CacheDataLocalFile_1a1d34227fbbf671e47119846ee2f2a0af"></span><em class="property"><span class="pre">virtual</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">unique_ptr</span><span class="pre">&lt;</span><span class="pre">ral</span><span class="pre">::</span><span class="pre">frame</span><span class="pre">::</span><a class="reference internal" href="classral_1_1frame_1_1BlazingTable.html#_CPPv4N3ral5frame12BlazingTableE" title="ral::frame::BlazingTable"><span class="pre">BlazingTable</span></a><span class="pre">&gt;</span> <code class="sig-name descname"><span class="pre">decache</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property"><span class="pre">override</span></em><a class="headerlink" href="#_CPPv4N3ral5cache18CacheDataLocalFile7decacheEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache18CacheDataLocalFile7decacheEv"></span><span id="_CPPv2N3ral5cache18CacheDataLocalFile7decacheEv"></span><span id="ral::cache::CacheDataLocalFile::decache"></span><span class="target" id="classral_1_1cache_1_1CacheDataLocalFile_1a1d34227fbbf671e47119846ee2f2a0af"></span><em class="property">virtual</em> std::unique_ptr&lt;ral::frame::<a class="reference internal" href="classral_1_1frame_1_1BlazingTable.html#_CPPv4N3ral5frame12BlazingTableE" title="ral::frame::BlazingTable">BlazingTable</a>&gt; <code class="sig-name descname">decache</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral5cache18CacheDataLocalFile7decacheEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Constructor <dl class="simple">
 <dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">table</span></code>: The BlazingTable that is converted into an ORC file and stored on disk. &#64; param orc_files_path The path where the file should be stored. </p></li>
@@ -209,7 +211,7 @@
 
 <dl class="cpp function">
 <dt id="_CPPv4NK3ral5cache18CacheDataLocalFile11sizeInBytesEv">
-<span id="_CPPv3NK3ral5cache18CacheDataLocalFile11sizeInBytesEv"></span><span id="_CPPv2NK3ral5cache18CacheDataLocalFile11sizeInBytesEv"></span><span id="ral::cache::CacheDataLocalFile::sizeInBytesC"></span><span class="target" id="classral_1_1cache_1_1CacheDataLocalFile_1ab0853eca16df1149f4ac0efbf3faa556"></span><em class="property"><span class="pre">virtual</span></em> <span class="pre">size_t</span> <code class="sig-name descname"><span class="pre">sizeInBytes</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em> <em class="property"><span class="pre">override</span></em><a class="headerlink" href="#_CPPv4NK3ral5cache18CacheDataLocalFile11sizeInBytesEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3NK3ral5cache18CacheDataLocalFile11sizeInBytesEv"></span><span id="_CPPv2NK3ral5cache18CacheDataLocalFile11sizeInBytesEv"></span><span id="ral::cache::CacheDataLocalFile::sizeInBytesC"></span><span class="target" id="classral_1_1cache_1_1CacheDataLocalFile_1ab0853eca16df1149f4ac0efbf3faa556"></span><em class="property">virtual</em> size_t <code class="sig-name descname">sizeInBytes</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em> <em class="property">override</em><a class="headerlink" href="#_CPPv4NK3ral5cache18CacheDataLocalFile11sizeInBytesEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Get the amount of GPU memory that the decached BlazingTable WOULD consume. Having this function allows us to have one api for seeing how much GPU memory is necessary to decache the file from disk. <dl class="simple">
 <dt><strong>Return</strong></dt><dd><p>The number of bytes needed for the BlazingTable decache would generate. </p>
 </dd>
@@ -219,7 +221,7 @@
 
 <dl class="cpp function">
 <dt id="_CPPv4NK3ral5cache18CacheDataLocalFile15fileSizeInBytesEv">
-<span id="_CPPv3NK3ral5cache18CacheDataLocalFile15fileSizeInBytesEv"></span><span id="_CPPv2NK3ral5cache18CacheDataLocalFile15fileSizeInBytesEv"></span><span id="ral::cache::CacheDataLocalFile::fileSizeInBytesC"></span><span class="target" id="classral_1_1cache_1_1CacheDataLocalFile_1abc8a4d9edc7ffa21f15010c60a71189b"></span><span class="pre">size_t</span> <code class="sig-name descname"><span class="pre">fileSizeInBytes</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em><a class="headerlink" href="#_CPPv4NK3ral5cache18CacheDataLocalFile15fileSizeInBytesEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3NK3ral5cache18CacheDataLocalFile15fileSizeInBytesEv"></span><span id="_CPPv2NK3ral5cache18CacheDataLocalFile15fileSizeInBytesEv"></span><span id="ral::cache::CacheDataLocalFile::fileSizeInBytesC"></span><span class="target" id="classral_1_1cache_1_1CacheDataLocalFile_1abc8a4d9edc7ffa21f15010c60a71189b"></span>size_t <code class="sig-name descname">fileSizeInBytes</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral5cache18CacheDataLocalFile15fileSizeInBytesEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Get the amount of disk space consumed by this <a class="reference internal" href="classral_1_1cache_1_1CacheData.html#classral_1_1cache_1_1CacheData"><span class="std std-ref">CacheData</span></a> Having this function allows us to have one api for seeing the consumption of all the <a class="reference internal" href="classral_1_1cache_1_1CacheData.html#classral_1_1cache_1_1CacheData"><span class="std std-ref">CacheData</span></a> objects that are currently in Caches. <dl class="simple">
 <dt><strong>Return</strong></dt><dd><p>The number of bytes the ORC file consumes. </p>
 </dd>
@@ -229,7 +231,7 @@
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5cache18CacheDataLocalFile9set_namesERKNSt6vectorINSt6stringEEE">
-<span id="_CPPv3N3ral5cache18CacheDataLocalFile9set_namesERKNSt6vectorINSt6stringEEE"></span><span id="_CPPv2N3ral5cache18CacheDataLocalFile9set_namesERKNSt6vectorINSt6stringEEE"></span><span id="ral::cache::CacheDataLocalFile::set_names__std::vector:ss:CR"></span><span class="target" id="classral_1_1cache_1_1CacheDataLocalFile_1a49c8d137ef2d0a30ee59025f91725567"></span><em class="property"><span class="pre">inline</span></em> <em class="property"><span class="pre">virtual</span></em> <span class="pre">void</span> <code class="sig-name descname"><span class="pre">set_names</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">vector</span><span class="pre">&lt;</span><span class="pre">std</span><span class="pre">::</span><span class="pre">string</span><span class="pre">&gt;</span> <span class="pre">&amp;</span><em><span class="pre">names</span></em><span class="sig-paren">)</span> <em class="property"><span class="pre">override</span></em><a class="headerlink" href="#_CPPv4N3ral5cache18CacheDataLocalFile9set_namesERKNSt6vectorINSt6stringEEE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache18CacheDataLocalFile9set_namesERKNSt6vectorINSt6stringEEE"></span><span id="_CPPv2N3ral5cache18CacheDataLocalFile9set_namesERKNSt6vectorINSt6stringEEE"></span><span id="ral::cache::CacheDataLocalFile::set_names__std::vector:ss:CR"></span><span class="target" id="classral_1_1cache_1_1CacheDataLocalFile_1a49c8d137ef2d0a30ee59025f91725567"></span><em class="property">inline</em> <em class="property">virtual</em> void <code class="sig-name descname">set_names</code><span class="sig-paren">(</span><em class="property">const</em> std::vector&lt;std::string&gt; &amp;<em>names</em><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral5cache18CacheDataLocalFile9set_namesERKNSt6vectorINSt6stringEEE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Set the names of the columns to pass when decache if needed. <dl class="simple">
 <dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">names</span></code>: a vector of the column names. </p></li>
@@ -241,13 +243,13 @@
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5cache18CacheDataLocalFileD0Ev">
-<span id="_CPPv3N3ral5cache18CacheDataLocalFileD0Ev"></span><span id="_CPPv2N3ral5cache18CacheDataLocalFileD0Ev"></span><span id="ral::cache::CacheDataLocalFile::~CacheDataLocalFile"></span><span class="target" id="classral_1_1cache_1_1CacheDataLocalFile_1a47567f8650eae4b66e44df7e06f3def9"></span><em class="property"><span class="pre">inline</span></em> <em class="property"><span class="pre">virtual</span></em> <code class="sig-name descname"><span class="pre">~CacheDataLocalFile</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache18CacheDataLocalFileD0Ev" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache18CacheDataLocalFileD0Ev"></span><span id="_CPPv2N3ral5cache18CacheDataLocalFileD0Ev"></span><span id="ral::cache::CacheDataLocalFile::~CacheDataLocalFile"></span><span class="target" id="classral_1_1cache_1_1CacheDataLocalFile_1a47567f8650eae4b66e44df7e06f3def9"></span><em class="property">inline</em> <em class="property">virtual</em> <code class="sig-name descname">~CacheDataLocalFile</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache18CacheDataLocalFileD0Ev" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Destructor </p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4NK3ral5cache18CacheDataLocalFile8filePathEv">
-<span id="_CPPv3NK3ral5cache18CacheDataLocalFile8filePathEv"></span><span id="_CPPv2NK3ral5cache18CacheDataLocalFile8filePathEv"></span><span id="ral::cache::CacheDataLocalFile::filePathC"></span><span class="target" id="classral_1_1cache_1_1CacheDataLocalFile_1a21803499ee4d3ad088c2b5b81b91a042"></span><em class="property"><span class="pre">inline</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">string</span> <code class="sig-name descname"><span class="pre">filePath</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em><a class="headerlink" href="#_CPPv4NK3ral5cache18CacheDataLocalFile8filePathEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3NK3ral5cache18CacheDataLocalFile8filePathEv"></span><span id="_CPPv2NK3ral5cache18CacheDataLocalFile8filePathEv"></span><span id="ral::cache::CacheDataLocalFile::filePathC"></span><span class="target" id="classral_1_1cache_1_1CacheDataLocalFile_1a21803499ee4d3ad088c2b5b81b91a042"></span><em class="property">inline</em> std::string <code class="sig-name descname">filePath</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK3ral5cache18CacheDataLocalFile8filePathEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Get the file path of the ORC file. <dl class="simple">
 <dt><strong>Return</strong></dt><dd><p>The path to the ORC file. </p>
 </dd>
@@ -277,14 +279,14 @@
     </div>
 
     
-  <script src="../_static/js/index.d8bbf5861d671d414e1a.js"></script>
+  <script src="../_static/js/index.d3f166471bb80abb5163.js"></script>
 
 
     <footer class="footer mt-5 mt-md-0">
   <div class="container">
     <p>
           &copy; Copyright 2020, BlazingDB, Inc..<br/>
-        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.4.3.<br/>
     </p>
   </div>
 </footer>

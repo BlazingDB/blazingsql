@@ -7,8 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Class CodeTimer &#8212; BlazingSQL v0.18 documentation</title>
     
-  <link href="../_static/css/theme.css" rel="stylesheet" />
-  <link href="../_static/css/index.101715efdecc9b59cb6e1ddfa685c31f.css" rel="stylesheet" />
+  <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
     
   <link rel="stylesheet"
@@ -20,17 +19,21 @@
 
     
       
+  <link rel="stylesheet"
+    href="../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../_static/vendor/lato_latin-ext/1.44.1/index.css">
 
     
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/getting_started.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     
-  <link rel="preload" as="script" href="../_static/js/index.d8bbf5861d671d414e1a.js">
+  <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
     <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
@@ -47,46 +50,43 @@
   </head>
   <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
     
-    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="container-xl">
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
 
-
+    <a class="navbar-brand" href="../index.html">
     
-      
-      <a class="navbar-brand" href="../index.html">
-        <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo">
-      </a>
-      
+      <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo" />
     
-
+    </a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
     </button>
 
-    
     <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
       <ul id="navbar-main-elements" class="navbar-nav mr-auto">
-        <li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../arch.html">
-  BlazingSQL Project Architecture
- </a>
-</li>
-
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../graph.html">
-  Execution Engine
- </a>
-</li>
-
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../api.html">
-  API Documentation
- </a>
-</li>
-
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../arch.html">BlazingSQL Project Architecture</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../graph.html">Execution Engine</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../api.html">API Documentation</a>
+        </li>
+        
         
       </ul>
 
-      <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+
+      
+
+      <ul class="navbar-nav">
+        
+        
       </ul>
     </div>
 </div>
@@ -96,19 +96,27 @@
     <div class="container-xl">
       <div class="row">
           
-            
-            <!-- Only show if we have sidebars configured, else just a small margin  -->
-            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
   <i class="icon fas fa-search"></i>
   <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
 </form>
 <nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
-  <div class="bd-toc-item active">
+
+    <div class="bd-toc-item active">
     
-  </div>
-</nav>
-            </div>
-            
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
           
 
           
@@ -119,14 +127,13 @@
 </div>
 
 <nav id="bd-toc-nav">
-    <ul class="visible nav section-nav flex-column">
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#class-documentation">
-   Class Documentation
-  </a>
- </li>
-</ul>
-
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#class-documentation" class="nav-link">Class Documentation</a>
+        </li>
+    
+    </ul>
 </nav>
 
 
@@ -142,9 +149,6 @@
           
 
           
-          
-            
-          
           <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
               
               <div>
@@ -158,47 +162,47 @@
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
 <dl class="cpp class">
 <dt id="_CPPv49CodeTimer">
-<span id="_CPPv39CodeTimer"></span><span id="_CPPv29CodeTimer"></span><span id="CodeTimer"></span><span class="target" id="classCodeTimer"></span><em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">CodeTimer</span></code><a class="headerlink" href="#_CPPv49CodeTimer" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv39CodeTimer"></span><span id="_CPPv29CodeTimer"></span><span id="CodeTimer"></span><span class="target" id="classCodeTimer"></span><em class="property">class </em><code class="sig-name descname">CodeTimer</code><a class="headerlink" href="#_CPPv49CodeTimer" title="Permalink to this definition">¶</a><br /></dt>
 <dd><div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Public Functions</p>
 <dl class="cpp function">
 <dt id="_CPPv4N9CodeTimer9CodeTimerEb">
-<span id="_CPPv3N9CodeTimer9CodeTimerEb"></span><span id="_CPPv2N9CodeTimer9CodeTimerEb"></span><span id="CodeTimer::CodeTimer__b"></span><span class="target" id="classCodeTimer_1ac0fa5e40ff23c9546cc0e09726958f71"></span><em class="property"><span class="pre">inline</span></em> <code class="sig-name descname"><span class="pre">CodeTimer</span></code><span class="sig-paren">(</span><span class="pre">bool</span> <em><span class="pre">start</span></em> <span class="pre">=</span> <span class="pre">true</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9CodeTimer9CodeTimerEb" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N9CodeTimer9CodeTimerEb"></span><span id="_CPPv2N9CodeTimer9CodeTimerEb"></span><span id="CodeTimer::CodeTimer__b"></span><span class="target" id="classCodeTimer_1ac0fa5e40ff23c9546cc0e09726958f71"></span><em class="property">inline</em> <code class="sig-name descname">CodeTimer</code><span class="sig-paren">(</span>bool <em>start</em> = true<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9CodeTimer9CodeTimerEb" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N9CodeTimerD0Ev">
-<span id="_CPPv3N9CodeTimerD0Ev"></span><span id="_CPPv2N9CodeTimerD0Ev"></span><span id="CodeTimer::~CodeTimer"></span><span class="target" id="classCodeTimer_1a22afd78958412a93ccc2f63248a6bd42"></span><code class="sig-name descname"><span class="pre">~CodeTimer</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="pre">=</span> <span class="pre">default</span><a class="headerlink" href="#_CPPv4N9CodeTimerD0Ev" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N9CodeTimerD0Ev"></span><span id="_CPPv2N9CodeTimerD0Ev"></span><span id="CodeTimer::~CodeTimer"></span><span class="target" id="classCodeTimer_1a22afd78958412a93ccc2f63248a6bd42"></span><code class="sig-name descname">~CodeTimer</code><span class="sig-paren">(</span><span class="sig-paren">)</span> = default<a class="headerlink" href="#_CPPv4N9CodeTimerD0Ev" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N9CodeTimer5startEv">
-<span id="_CPPv3N9CodeTimer5startEv"></span><span id="_CPPv2N9CodeTimer5startEv"></span><span id="CodeTimer::start"></span><span class="target" id="classCodeTimer_1af0737b8b16127370eaf3da619b71e037"></span><em class="property"><span class="pre">inline</span></em> <span class="pre">void</span> <code class="sig-name descname"><span class="pre">start</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9CodeTimer5startEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N9CodeTimer5startEv"></span><span id="_CPPv2N9CodeTimer5startEv"></span><span id="CodeTimer::start"></span><span class="target" id="classCodeTimer_1af0737b8b16127370eaf3da619b71e037"></span><em class="property">inline</em> void <code class="sig-name descname">start</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9CodeTimer5startEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N9CodeTimer4stopEv">
-<span id="_CPPv3N9CodeTimer4stopEv"></span><span id="_CPPv2N9CodeTimer4stopEv"></span><span id="CodeTimer::stop"></span><span class="target" id="classCodeTimer_1a8575aaa3fcc732f681634ba6335800ad"></span><em class="property"><span class="pre">inline</span></em> <span class="pre">void</span> <code class="sig-name descname"><span class="pre">stop</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9CodeTimer4stopEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N9CodeTimer4stopEv"></span><span id="_CPPv2N9CodeTimer4stopEv"></span><span id="CodeTimer::stop"></span><span class="target" id="classCodeTimer_1a8575aaa3fcc732f681634ba6335800ad"></span><em class="property">inline</em> void <code class="sig-name descname">stop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9CodeTimer4stopEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N9CodeTimer5resetEv">
-<span id="_CPPv3N9CodeTimer5resetEv"></span><span id="_CPPv2N9CodeTimer5resetEv"></span><span id="CodeTimer::reset"></span><span class="target" id="classCodeTimer_1a9bdeff16d0890d913125404ca1aca114"></span><em class="property"><span class="pre">inline</span></em> <span class="pre">void</span> <code class="sig-name descname"><span class="pre">reset</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9CodeTimer5resetEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N9CodeTimer5resetEv"></span><span id="_CPPv2N9CodeTimer5resetEv"></span><span id="CodeTimer::reset"></span><span class="target" id="classCodeTimer_1a9bdeff16d0890d913125404ca1aca114"></span><em class="property">inline</em> void <code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9CodeTimer5resetEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4I0EN9CodeTimer10start_timeEN5Units3repEv">
-<span id="_CPPv3I0EN9CodeTimer10start_timeEv"></span><span id="_CPPv2I0EN9CodeTimer10start_timeEv"></span><span class="pre">template&lt;</span><span class="pre">typename</span> <code class="sig-name descname"><span class="pre">Units</span></code> <span class="pre">=</span> <span class="pre">std</span><span class="pre">::</span><span class="pre">chrono</span><span class="pre">::</span><span class="pre">milliseconds</span><span class="pre">&gt;</span><br /><span class="target" id="classCodeTimer_1af9bd67af986ca80d5054b7cc9a994a65"></span><em class="property"><span class="pre">inline</span></em> <a class="reference internal" href="#_CPPv4I0EN9CodeTimer10start_timeEN5Units3repEv" title="CodeTimer::start_time::Units"><span class="pre">Units</span></a><span class="pre">::</span><span class="pre">rep</span> <code class="sig-name descname"><span class="pre">start_time</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I0EN9CodeTimer10start_timeEN5Units3repEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3I0EN9CodeTimer10start_timeEv"></span><span id="_CPPv2I0EN9CodeTimer10start_timeEv"></span>template&lt;typename <code class="sig-name descname">Units</code> = std::chrono::milliseconds&gt;<br /><span class="target" id="classCodeTimer_1af9bd67af986ca80d5054b7cc9a994a65"></span><em class="property">inline</em> <a class="reference internal" href="#_CPPv4I0EN9CodeTimer10start_timeEN5Units3repEv" title="CodeTimer::start_time::Units">Units</a>::rep <code class="sig-name descname">start_time</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I0EN9CodeTimer10start_timeEN5Units3repEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4I0EN9CodeTimer8end_timeEN5Units3repEv">
-<span id="_CPPv3I0EN9CodeTimer8end_timeEv"></span><span id="_CPPv2I0EN9CodeTimer8end_timeEv"></span><span class="pre">template&lt;</span><span class="pre">typename</span> <code class="sig-name descname"><span class="pre">Units</span></code> <span class="pre">=</span> <span class="pre">std</span><span class="pre">::</span><span class="pre">chrono</span><span class="pre">::</span><span class="pre">milliseconds</span><span class="pre">&gt;</span><br /><span class="target" id="classCodeTimer_1abd480704f5bb9bda45f326e32062cda6"></span><em class="property"><span class="pre">inline</span></em> <a class="reference internal" href="#_CPPv4I0EN9CodeTimer8end_timeEN5Units3repEv" title="CodeTimer::end_time::Units"><span class="pre">Units</span></a><span class="pre">::</span><span class="pre">rep</span> <code class="sig-name descname"><span class="pre">end_time</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I0EN9CodeTimer8end_timeEN5Units3repEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3I0EN9CodeTimer8end_timeEv"></span><span id="_CPPv2I0EN9CodeTimer8end_timeEv"></span>template&lt;typename <code class="sig-name descname">Units</code> = std::chrono::milliseconds&gt;<br /><span class="target" id="classCodeTimer_1abd480704f5bb9bda45f326e32062cda6"></span><em class="property">inline</em> <a class="reference internal" href="#_CPPv4I0EN9CodeTimer8end_timeEN5Units3repEv" title="CodeTimer::end_time::Units">Units</a>::rep <code class="sig-name descname">end_time</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I0EN9CodeTimer8end_timeEN5Units3repEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4I0EN9CodeTimer12elapsed_timeEN5Units3repEv">
-<span id="_CPPv3I0EN9CodeTimer12elapsed_timeEv"></span><span id="_CPPv2I0EN9CodeTimer12elapsed_timeEv"></span><span class="pre">template&lt;</span><span class="pre">typename</span> <code class="sig-name descname"><span class="pre">Units</span></code> <span class="pre">=</span> <span class="pre">std</span><span class="pre">::</span><span class="pre">chrono</span><span class="pre">::</span><span class="pre">milliseconds</span><span class="pre">&gt;</span><br /><span class="target" id="classCodeTimer_1a768a3829e64ffcee0836375ce7b92b73"></span><em class="property"><span class="pre">inline</span></em> <a class="reference internal" href="#_CPPv4I0EN9CodeTimer12elapsed_timeEN5Units3repEv" title="CodeTimer::elapsed_time::Units"><span class="pre">Units</span></a><span class="pre">::</span><span class="pre">rep</span> <code class="sig-name descname"><span class="pre">elapsed_time</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I0EN9CodeTimer12elapsed_timeEN5Units3repEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3I0EN9CodeTimer12elapsed_timeEv"></span><span id="_CPPv2I0EN9CodeTimer12elapsed_timeEv"></span>template&lt;typename <code class="sig-name descname">Units</code> = std::chrono::milliseconds&gt;<br /><span class="target" id="classCodeTimer_1a768a3829e64ffcee0836375ce7b92b73"></span><em class="property">inline</em> <a class="reference internal" href="#_CPPv4I0EN9CodeTimer12elapsed_timeEN5Units3repEv" title="CodeTimer::elapsed_time::Units">Units</a>::rep <code class="sig-name descname">elapsed_time</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I0EN9CodeTimer12elapsed_timeEN5Units3repEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 </div>
@@ -223,14 +227,14 @@
     </div>
 
     
-  <script src="../_static/js/index.d8bbf5861d671d414e1a.js"></script>
+  <script src="../_static/js/index.d3f166471bb80abb5163.js"></script>
 
 
     <footer class="footer mt-5 mt-md-0">
   <div class="container">
     <p>
           &copy; Copyright 2020, BlazingDB, Inc..<br/>
-        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.4.3.<br/>
     </p>
   </div>
 </footer>

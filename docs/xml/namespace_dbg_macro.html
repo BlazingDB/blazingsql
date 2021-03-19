@@ -7,8 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Namespace dbg_macro &#8212; BlazingSQL v0.18 documentation</title>
     
-  <link href="../_static/css/theme.css" rel="stylesheet" />
-  <link href="../_static/css/index.101715efdecc9b59cb6e1ddfa685c31f.css" rel="stylesheet" />
+  <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
     
   <link rel="stylesheet"
@@ -20,17 +19,21 @@
 
     
       
+  <link rel="stylesheet"
+    href="../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../_static/vendor/lato_latin-ext/1.44.1/index.css">
 
     
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/getting_started.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     
-  <link rel="preload" as="script" href="../_static/js/index.d8bbf5861d671d414e1a.js">
+  <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
     <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
@@ -47,46 +50,43 @@
   </head>
   <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
     
-    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="container-xl">
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
 
-
+    <a class="navbar-brand" href="../index.html">
     
-      
-      <a class="navbar-brand" href="../index.html">
-        <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo">
-      </a>
-      
+      <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo" />
     
-
+    </a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
     </button>
 
-    
     <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
       <ul id="navbar-main-elements" class="navbar-nav mr-auto">
-        <li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../arch.html">
-  BlazingSQL Project Architecture
- </a>
-</li>
-
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../graph.html">
-  Execution Engine
- </a>
-</li>
-
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../api.html">
-  API Documentation
- </a>
-</li>
-
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../arch.html">BlazingSQL Project Architecture</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../graph.html">Execution Engine</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../api.html">API Documentation</a>
+        </li>
+        
         
       </ul>
 
-      <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+
+      
+
+      <ul class="navbar-nav">
+        
+        
       </ul>
     </div>
 </div>
@@ -96,19 +96,27 @@
     <div class="container-xl">
       <div class="row">
           
-            
-            <!-- Only show if we have sidebars configured, else just a small margin  -->
-            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
   <i class="icon fas fa-search"></i>
   <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
 </form>
 <nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
-  <div class="bd-toc-item active">
+
+    <div class="bd-toc-item active">
     
-  </div>
-</nav>
-            </div>
-            
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
           
 
           
@@ -119,29 +127,25 @@
 </div>
 
 <nav id="bd-toc-nav">
-    <ul class="visible nav section-nav flex-column">
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#namespaces">
-   Namespaces
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#classes">
-   Classes
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#functions">
-   Functions
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#typedefs">
-   Typedefs
-  </a>
- </li>
-</ul>
-
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#namespaces" class="nav-link">Namespaces</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#classes" class="nav-link">Classes</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#functions" class="nav-link">Functions</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#typedefs" class="nav-link">Typedefs</a>
+        </li>
+    
+    </ul>
 </nav>
 
 
@@ -156,9 +160,6 @@
           </div>
           
 
-          
-          
-            
           
           <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
               
@@ -191,14 +192,14 @@
 <div class="section" id="functions">
 <h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li><p><a class="reference internal" href="function_dbg_8hpp_1a4f8125f57f1a6411a815ff14b0585d25.html#exhale-function-dbg-8hpp-1a4f8125f57f1a6411a815ff14b0585d25"><span class="std std-ref">Template Function dbg_macro::prettyPrint(std::ostream&amp;, P *const&amp;)</span></a></p></li>
-<li><p><a class="reference internal" href="function_dbg_8hpp_1aead8b7b31ac4e59314cb6dd0559cc199.html#exhale-function-dbg-8hpp-1aead8b7b31ac4e59314cb6dd0559cc199"><span class="std std-ref">Template Function dbg_macro::prettyPrint(std::ostream&amp;, const char(&amp;))</span></a></p></li>
 <li><p><a class="reference internal" href="function_dbg_8hpp_1aa9fdf7314d3ed417ce417e2d54d94b3e.html#exhale-function-dbg-8hpp-1aa9fdf7314d3ed417ce417e2d54d94b3e"><span class="std std-ref">Function dbg_macro::prettyPrint(std::ostream&amp;, const char *const&amp;)</span></a></p></li>
 <li><p><a class="reference internal" href="function_dbg_8hpp_1a47085a02f3d4771e8a32b62147566d1c.html#exhale-function-dbg-8hpp-1a47085a02f3d4771e8a32b62147566d1c"><span class="std std-ref">Template Function dbg_macro::prettyPrint(std::ostream&amp;, Container const&amp;)</span></a></p></li>
 <li><p><a class="reference internal" href="function_dbg_8hpp_1a6fdcf2651bcb47e3d703dccd86e14ad7.html#exhale-function-dbg-8hpp-1a6fdcf2651bcb47e3d703dccd86e14ad7"><span class="std std-ref">Function dbg_macro::prettyPrint(std::ostream&amp;, const std::string&amp;)</span></a></p></li>
-<li><p><a class="reference internal" href="function_dbg_8hpp_1a7d2713ea440a6f885567be1f4b983e98.html#exhale-function-dbg-8hpp-1a7d2713ea440a6f885567be1f4b983e98"><span class="std std-ref">Function dbg_macro::prettyPrint(std::ostream&amp;, const char&amp;)</span></a></p></li>
 <li><p><a class="reference internal" href="function_dbg_8hpp_1a8cd9706dcf99965377842446769f3527.html#exhale-function-dbg-8hpp-1a8cd9706dcf99965377842446769f3527"><span class="std std-ref">Template Function dbg_macro::prettyPrint(std::ostream&amp;, const T&amp;)</span></a></p></li>
 <li><p><a class="reference internal" href="function_dbg_8hpp_1ae827cdc8b6fe9b66cc015cdcb17f89ac.html#exhale-function-dbg-8hpp-1ae827cdc8b6fe9b66cc015cdcb17f89ac"><span class="std std-ref">Function dbg_macro::prettyPrint(std::ostream&amp;, const bool&amp;)</span></a></p></li>
+<li><p><a class="reference internal" href="function_dbg_8hpp_1a7d2713ea440a6f885567be1f4b983e98.html#exhale-function-dbg-8hpp-1a7d2713ea440a6f885567be1f4b983e98"><span class="std std-ref">Function dbg_macro::prettyPrint(std::ostream&amp;, const char&amp;)</span></a></p></li>
+<li><p><a class="reference internal" href="function_dbg_8hpp_1a4f8125f57f1a6411a815ff14b0585d25.html#exhale-function-dbg-8hpp-1a4f8125f57f1a6411a815ff14b0585d25"><span class="std std-ref">Template Function dbg_macro::prettyPrint(std::ostream&amp;, P *const&amp;)</span></a></p></li>
+<li><p><a class="reference internal" href="function_dbg_8hpp_1aead8b7b31ac4e59314cb6dd0559cc199.html#exhale-function-dbg-8hpp-1aead8b7b31ac4e59314cb6dd0559cc199"><span class="std std-ref">Template Function dbg_macro::prettyPrint(std::ostream&amp;, const char(&amp;))</span></a></p></li>
 <li><p><a class="reference internal" href="function_dbg_8hpp_1a829df0c4b81fd3769d3712023397964e.html#exhale-function-dbg-8hpp-1a829df0c4b81fd3769d3712023397964e"><span class="std std-ref">Template Function dbg_macro::type_name</span></a></p></li>
 <li><p><a class="reference internal" href="function_dbg_8hpp_1a655d7497da1e6d375b19ac6e1a5e8293.html#exhale-function-dbg-8hpp-1a655d7497da1e6d375b19ac6e1a5e8293"><span class="std std-ref">Function dbg_macro::type_name&lt; std::string &gt;</span></a></p></li>
 <li><p><a class="reference internal" href="function_dbg_8hpp_1a4166480f854c53ec062cf61c871087fb.html#exhale-function-dbg-8hpp-1a4166480f854c53ec062cf61c871087fb"><span class="std std-ref">Template Function dbg_macro::type_name_impl</span></a></p></li>
@@ -231,14 +232,14 @@
     </div>
 
     
-  <script src="../_static/js/index.d8bbf5861d671d414e1a.js"></script>
+  <script src="../_static/js/index.d3f166471bb80abb5163.js"></script>
 
 
     <footer class="footer mt-5 mt-md-0">
   <div class="container">
     <p>
           &copy; Copyright 2020, BlazingDB, Inc..<br/>
-        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.4.3.<br/>
     </p>
   </div>
 </footer>

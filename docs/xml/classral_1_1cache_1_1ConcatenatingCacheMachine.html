@@ -7,8 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Class ConcatenatingCacheMachine &#8212; BlazingSQL v0.18 documentation</title>
     
-  <link href="../_static/css/theme.css" rel="stylesheet" />
-  <link href="../_static/css/index.101715efdecc9b59cb6e1ddfa685c31f.css" rel="stylesheet" />
+  <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
 
     
   <link rel="stylesheet"
@@ -20,17 +19,21 @@
 
     
       
+  <link rel="stylesheet"
+    href="../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../_static/vendor/lato_latin-ext/1.44.1/index.css">
 
     
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/getting_started.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/blazingsql.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/pandas.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/collapsible-lists/css/tree_view.css" />
     
-  <link rel="preload" as="script" href="../_static/js/index.d8bbf5861d671d414e1a.js">
+  <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
 
     <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
@@ -47,46 +50,43 @@
   </head>
   <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
     
-    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="container-xl">
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
 
-
+    <a class="navbar-brand" href="../index.html">
     
-      
-      <a class="navbar-brand" href="../index.html">
-        <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo">
-      </a>
-      
+      <img src="../_static/blazingNotebooks_logo.png" class="logo" alt="logo" />
     
-
+    </a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
     </button>
 
-    
     <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
       <ul id="navbar-main-elements" class="navbar-nav mr-auto">
-        <li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../arch.html">
-  BlazingSQL Project Architecture
- </a>
-</li>
-
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../graph.html">
-  Execution Engine
- </a>
-</li>
-
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../api.html">
-  API Documentation
- </a>
-</li>
-
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../arch.html">BlazingSQL Project Architecture</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../graph.html">Execution Engine</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../api.html">API Documentation</a>
+        </li>
+        
         
       </ul>
 
-      <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+
+      
+
+      <ul class="navbar-nav">
+        
+        
       </ul>
     </div>
 </div>
@@ -96,19 +96,27 @@
     <div class="container-xl">
       <div class="row">
           
-            
-            <!-- Only show if we have sidebars configured, else just a small margin  -->
-            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
   <i class="icon fas fa-search"></i>
   <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
 </form>
 <nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
-  <div class="bd-toc-item active">
+
+    <div class="bd-toc-item active">
     
-  </div>
-</nav>
-            </div>
-            
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
           
 
           
@@ -119,26 +127,23 @@
 </div>
 
 <nav id="bd-toc-nav">
-    <ul class="visible nav section-nav flex-column">
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#inheritance-relationships">
-   Inheritance Relationships
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#base-type">
-     Base Type
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#class-documentation">
-   Class Documentation
-  </a>
- </li>
-</ul>
-
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#inheritance-relationships" class="nav-link">Inheritance Relationships</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#base-type" class="nav-link">Base Type</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#class-documentation" class="nav-link">Class Documentation</a>
+        </li>
+    
+    </ul>
 </nav>
 
 
@@ -153,9 +158,6 @@
           </div>
           
 
-          
-          
-            
           
           <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
               
@@ -179,44 +181,44 @@
 <h2>Class Documentation<a class="headerlink" href="#class-documentation" title="Permalink to this headline">¶</a></h2>
 <dl class="cpp class">
 <dt id="_CPPv4N3ral5cache25ConcatenatingCacheMachineE">
-<span id="_CPPv3N3ral5cache25ConcatenatingCacheMachineE"></span><span id="_CPPv2N3ral5cache25ConcatenatingCacheMachineE"></span><span id="ral::cache::ConcatenatingCacheMachine"></span><span class="target" id="classral_1_1cache_1_1ConcatenatingCacheMachine"></span><em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ral</span><span class="pre">::</span><span class="pre">cache</span><code class="sig-prename descclassname"><span class="pre">::</span></code></code><code class="sig-name descname"><span class="pre">ConcatenatingCacheMachine</span></code> <span class="pre">:</span> <em class="property"><span class="pre">public</span></em> <span class="pre">ral</span><span class="pre">::</span><span class="pre">cache</span><span class="pre">::</span><a class="reference internal" href="classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachineE" title="ral::cache::CacheMachine"><span class="pre">CacheMachine</span></a><a class="headerlink" href="#_CPPv4N3ral5cache25ConcatenatingCacheMachineE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache25ConcatenatingCacheMachineE"></span><span id="_CPPv2N3ral5cache25ConcatenatingCacheMachineE"></span><span id="ral::cache::ConcatenatingCacheMachine"></span><span class="target" id="classral_1_1cache_1_1ConcatenatingCacheMachine"></span><em class="property">class </em><code class="sig-prename descclassname">ral::cache<code class="sig-prename descclassname">::</code></code><code class="sig-name descname">ConcatenatingCacheMachine</code> : <em class="property">public</em> ral::cache::<a class="reference internal" href="classral_1_1cache_1_1CacheMachine.html#_CPPv4N3ral5cache12CacheMachineE" title="ral::cache::CacheMachine">CacheMachine</a><a class="headerlink" href="#_CPPv4N3ral5cache25ConcatenatingCacheMachineE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>A class that represents a Cache Machine on a multi-tier cache system. Moreover, it only returns a single BlazingTable by concatenating all batches. This Cache Machine is used in the last Kernel (OutputKernel) in the ExecutionGraph. </p>
 <p>This ConcatenatingCacheMachine::pullFromCache method does not guarantee the relative order of the messages to be preserved </p>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Public Functions</p>
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5cache25ConcatenatingCacheMachine25ConcatenatingCacheMachineENSt10shared_ptrI7ContextEENSt6stringE">
-<span id="_CPPv3N3ral5cache25ConcatenatingCacheMachine25ConcatenatingCacheMachineENSt10shared_ptrI7ContextEENSt6stringE"></span><span id="_CPPv2N3ral5cache25ConcatenatingCacheMachine25ConcatenatingCacheMachineENSt10shared_ptrI7ContextEENSt6stringE"></span><span id="ral::cache::ConcatenatingCacheMachine::ConcatenatingCacheMachine__std::shared_ptr:Context:.ss"></span><span class="target" id="classral_1_1cache_1_1ConcatenatingCacheMachine_1ac63a832595832d436951d12acfb11971"></span><code class="sig-name descname"><span class="pre">ConcatenatingCacheMachine</span></code><span class="sig-paren">(</span><span class="pre">std</span><span class="pre">::</span><span class="pre">shared_ptr</span><span class="pre">&lt;</span><a class="reference internal" href="typedef_CacheData_8h_1a3a88b3fd71f54285784f75f0eefe340e.html#_CPPv4N3ral5cache7ContextE" title="ral::cache::Context"><span class="pre">Context</span></a><span class="pre">&gt;</span> <em><span class="pre">context</span></em>, <span class="pre">std</span><span class="pre">::</span><span class="pre">string</span> <em><span class="pre">cache_machine_name</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache25ConcatenatingCacheMachine25ConcatenatingCacheMachineENSt10shared_ptrI7ContextEENSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache25ConcatenatingCacheMachine25ConcatenatingCacheMachineENSt10shared_ptrI7ContextEENSt6stringE"></span><span id="_CPPv2N3ral5cache25ConcatenatingCacheMachine25ConcatenatingCacheMachineENSt10shared_ptrI7ContextEENSt6stringE"></span><span id="ral::cache::ConcatenatingCacheMachine::ConcatenatingCacheMachine__std::shared_ptr:Context:.ss"></span><span class="target" id="classral_1_1cache_1_1ConcatenatingCacheMachine_1ac63a832595832d436951d12acfb11971"></span><code class="sig-name descname">ConcatenatingCacheMachine</code><span class="sig-paren">(</span>std::shared_ptr&lt;<a class="reference internal" href="typedef_CacheData_8h_1a3a88b3fd71f54285784f75f0eefe340e.html#_CPPv4N3ral5cache7ContextE" title="ral::cache::Context">Context</a>&gt; <em>context</em>, std::string <em>cache_machine_name</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache25ConcatenatingCacheMachine25ConcatenatingCacheMachineENSt10shared_ptrI7ContextEENSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5cache25ConcatenatingCacheMachine25ConcatenatingCacheMachineENSt10shared_ptrI7ContextEENSt6size_tEbNSt6stringE">
-<span id="_CPPv3N3ral5cache25ConcatenatingCacheMachine25ConcatenatingCacheMachineENSt10shared_ptrI7ContextEENSt6size_tEbNSt6stringE"></span><span id="_CPPv2N3ral5cache25ConcatenatingCacheMachine25ConcatenatingCacheMachineENSt10shared_ptrI7ContextEENSt6size_tEbNSt6stringE"></span><span id="ral::cache::ConcatenatingCacheMachine::ConcatenatingCacheMachine__std::shared_ptr:Context:.std::s.b.ss"></span><span class="target" id="classral_1_1cache_1_1ConcatenatingCacheMachine_1a965ed85fea8f3dfec4792fbac8001391"></span><code class="sig-name descname"><span class="pre">ConcatenatingCacheMachine</span></code><span class="sig-paren">(</span><span class="pre">std</span><span class="pre">::</span><span class="pre">shared_ptr</span><span class="pre">&lt;</span><a class="reference internal" href="typedef_CacheData_8h_1a3a88b3fd71f54285784f75f0eefe340e.html#_CPPv4N3ral5cache7ContextE" title="ral::cache::Context"><span class="pre">Context</span></a><span class="pre">&gt;</span> <em><span class="pre">context</span></em>, <span class="pre">std</span><span class="pre">::</span><span class="pre">size_t</span> <em><span class="pre">concat_cache_num_bytes</span></em>, <span class="pre">bool</span> <em><span class="pre">concat_all</span></em>, <span class="pre">std</span><span class="pre">::</span><span class="pre">string</span> <em><span class="pre">cache_machine_name</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache25ConcatenatingCacheMachine25ConcatenatingCacheMachineENSt10shared_ptrI7ContextEENSt6size_tEbNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache25ConcatenatingCacheMachine25ConcatenatingCacheMachineENSt10shared_ptrI7ContextEENSt6size_tEbNSt6stringE"></span><span id="_CPPv2N3ral5cache25ConcatenatingCacheMachine25ConcatenatingCacheMachineENSt10shared_ptrI7ContextEENSt6size_tEbNSt6stringE"></span><span id="ral::cache::ConcatenatingCacheMachine::ConcatenatingCacheMachine__std::shared_ptr:Context:.std::s.b.ss"></span><span class="target" id="classral_1_1cache_1_1ConcatenatingCacheMachine_1a965ed85fea8f3dfec4792fbac8001391"></span><code class="sig-name descname">ConcatenatingCacheMachine</code><span class="sig-paren">(</span>std::shared_ptr&lt;<a class="reference internal" href="typedef_CacheData_8h_1a3a88b3fd71f54285784f75f0eefe340e.html#_CPPv4N3ral5cache7ContextE" title="ral::cache::Context">Context</a>&gt; <em>context</em>, std::size_t <em>concat_cache_num_bytes</em>, bool <em>concat_all</em>, std::string <em>cache_machine_name</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3ral5cache25ConcatenatingCacheMachine25ConcatenatingCacheMachineENSt10shared_ptrI7ContextEENSt6size_tEbNSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5cache25ConcatenatingCacheMachineD0Ev">
-<span id="_CPPv3N3ral5cache25ConcatenatingCacheMachineD0Ev"></span><span id="_CPPv2N3ral5cache25ConcatenatingCacheMachineD0Ev"></span><span id="ral::cache::ConcatenatingCacheMachine::~ConcatenatingCacheMachine"></span><span class="target" id="classral_1_1cache_1_1ConcatenatingCacheMachine_1a4c56cf2ad749df430c0200f490e49b24"></span><code class="sig-name descname"><span class="pre">~ConcatenatingCacheMachine</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="pre">=</span> <span class="pre">default</span><a class="headerlink" href="#_CPPv4N3ral5cache25ConcatenatingCacheMachineD0Ev" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache25ConcatenatingCacheMachineD0Ev"></span><span id="_CPPv2N3ral5cache25ConcatenatingCacheMachineD0Ev"></span><span id="ral::cache::ConcatenatingCacheMachine::~ConcatenatingCacheMachine"></span><span class="target" id="classral_1_1cache_1_1ConcatenatingCacheMachine_1a4c56cf2ad749df430c0200f490e49b24"></span><code class="sig-name descname">~ConcatenatingCacheMachine</code><span class="sig-paren">(</span><span class="sig-paren">)</span> = default<a class="headerlink" href="#_CPPv4N3ral5cache25ConcatenatingCacheMachineD0Ev" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5cache25ConcatenatingCacheMachine13pullFromCacheEv">
-<span id="_CPPv3N3ral5cache25ConcatenatingCacheMachine13pullFromCacheEv"></span><span id="_CPPv2N3ral5cache25ConcatenatingCacheMachine13pullFromCacheEv"></span><span id="ral::cache::ConcatenatingCacheMachine::pullFromCache"></span><span class="target" id="classral_1_1cache_1_1ConcatenatingCacheMachine_1a0dc01ef4e13b5f832d52f2d07d1f1f69"></span><em class="property"><span class="pre">virtual</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">unique_ptr</span><span class="pre">&lt;</span><span class="pre">ral</span><span class="pre">::</span><span class="pre">frame</span><span class="pre">::</span><a class="reference internal" href="classral_1_1frame_1_1BlazingTable.html#_CPPv4N3ral5frame12BlazingTableE" title="ral::frame::BlazingTable"><span class="pre">BlazingTable</span></a><span class="pre">&gt;</span> <code class="sig-name descname"><span class="pre">pullFromCache</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property"><span class="pre">override</span></em><a class="headerlink" href="#_CPPv4N3ral5cache25ConcatenatingCacheMachine13pullFromCacheEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache25ConcatenatingCacheMachine13pullFromCacheEv"></span><span id="_CPPv2N3ral5cache25ConcatenatingCacheMachine13pullFromCacheEv"></span><span id="ral::cache::ConcatenatingCacheMachine::pullFromCache"></span><span class="target" id="classral_1_1cache_1_1ConcatenatingCacheMachine_1a0dc01ef4e13b5f832d52f2d07d1f1f69"></span><em class="property">virtual</em> std::unique_ptr&lt;ral::frame::<a class="reference internal" href="classral_1_1frame_1_1BlazingTable.html#_CPPv4N3ral5frame12BlazingTableE" title="ral::frame::BlazingTable">BlazingTable</a>&gt; <code class="sig-name descname">pullFromCache</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral5cache25ConcatenatingCacheMachine13pullFromCacheEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5cache25ConcatenatingCacheMachine22pullUnorderedFromCacheEv">
-<span id="_CPPv3N3ral5cache25ConcatenatingCacheMachine22pullUnorderedFromCacheEv"></span><span id="_CPPv2N3ral5cache25ConcatenatingCacheMachine22pullUnorderedFromCacheEv"></span><span id="ral::cache::ConcatenatingCacheMachine::pullUnorderedFromCache"></span><span class="target" id="classral_1_1cache_1_1ConcatenatingCacheMachine_1a9c8db51d9971f78ff74134db114bb69a"></span><em class="property"><span class="pre">inline</span></em> <em class="property"><span class="pre">virtual</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">unique_ptr</span><span class="pre">&lt;</span><span class="pre">ral</span><span class="pre">::</span><span class="pre">frame</span><span class="pre">::</span><a class="reference internal" href="classral_1_1frame_1_1BlazingTable.html#_CPPv4N3ral5frame12BlazingTableE" title="ral::frame::BlazingTable"><span class="pre">BlazingTable</span></a><span class="pre">&gt;</span> <code class="sig-name descname"><span class="pre">pullUnorderedFromCache</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property"><span class="pre">override</span></em><a class="headerlink" href="#_CPPv4N3ral5cache25ConcatenatingCacheMachine22pullUnorderedFromCacheEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache25ConcatenatingCacheMachine22pullUnorderedFromCacheEv"></span><span id="_CPPv2N3ral5cache25ConcatenatingCacheMachine22pullUnorderedFromCacheEv"></span><span id="ral::cache::ConcatenatingCacheMachine::pullUnorderedFromCache"></span><span class="target" id="classral_1_1cache_1_1ConcatenatingCacheMachine_1a9c8db51d9971f78ff74134db114bb69a"></span><em class="property">inline</em> <em class="property">virtual</em> std::unique_ptr&lt;ral::frame::<a class="reference internal" href="classral_1_1frame_1_1BlazingTable.html#_CPPv4N3ral5frame12BlazingTableE" title="ral::frame::BlazingTable">BlazingTable</a>&gt; <code class="sig-name descname">pullUnorderedFromCache</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral5cache25ConcatenatingCacheMachine22pullUnorderedFromCacheEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5cache25ConcatenatingCacheMachine13pullCacheDataEv">
-<span id="_CPPv3N3ral5cache25ConcatenatingCacheMachine13pullCacheDataEv"></span><span id="_CPPv2N3ral5cache25ConcatenatingCacheMachine13pullCacheDataEv"></span><span id="ral::cache::ConcatenatingCacheMachine::pullCacheData"></span><span class="target" id="classral_1_1cache_1_1ConcatenatingCacheMachine_1af02b87583c465b8d90b451288e16cdc5"></span><em class="property"><span class="pre">virtual</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">unique_ptr</span><span class="pre">&lt;</span><span class="pre">ral</span><span class="pre">::</span><span class="pre">cache</span><span class="pre">::</span><a class="reference internal" href="classral_1_1cache_1_1CacheData.html#_CPPv4N3ral5cache9CacheDataE" title="ral::cache::CacheData"><span class="pre">CacheData</span></a><span class="pre">&gt;</span> <code class="sig-name descname"><span class="pre">pullCacheData</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property"><span class="pre">override</span></em><a class="headerlink" href="#_CPPv4N3ral5cache25ConcatenatingCacheMachine13pullCacheDataEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache25ConcatenatingCacheMachine13pullCacheDataEv"></span><span id="_CPPv2N3ral5cache25ConcatenatingCacheMachine13pullCacheDataEv"></span><span id="ral::cache::ConcatenatingCacheMachine::pullCacheData"></span><span class="target" id="classral_1_1cache_1_1ConcatenatingCacheMachine_1af02b87583c465b8d90b451288e16cdc5"></span><em class="property">virtual</em> std::unique_ptr&lt;ral::cache::<a class="reference internal" href="classral_1_1cache_1_1CacheData.html#_CPPv4N3ral5cache9CacheDataE" title="ral::cache::CacheData">CacheData</a>&gt; <code class="sig-name descname">pullCacheData</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral5cache25ConcatenatingCacheMachine13pullCacheDataEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N3ral5cache25ConcatenatingCacheMachine18downgradeCacheDataEv">
-<span id="_CPPv3N3ral5cache25ConcatenatingCacheMachine18downgradeCacheDataEv"></span><span id="_CPPv2N3ral5cache25ConcatenatingCacheMachine18downgradeCacheDataEv"></span><span id="ral::cache::ConcatenatingCacheMachine::downgradeCacheData"></span><span class="target" id="classral_1_1cache_1_1ConcatenatingCacheMachine_1a04db0538230cd10cf7ae4ebc1cd62167"></span><em class="property"><span class="pre">inline</span></em> <em class="property"><span class="pre">virtual</span></em> <span class="pre">size_t</span> <code class="sig-name descname"><span class="pre">downgradeCacheData</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property"><span class="pre">override</span></em><a class="headerlink" href="#_CPPv4N3ral5cache25ConcatenatingCacheMachine18downgradeCacheDataEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N3ral5cache25ConcatenatingCacheMachine18downgradeCacheDataEv"></span><span id="_CPPv2N3ral5cache25ConcatenatingCacheMachine18downgradeCacheDataEv"></span><span id="ral::cache::ConcatenatingCacheMachine::downgradeCacheData"></span><span class="target" id="classral_1_1cache_1_1ConcatenatingCacheMachine_1a04db0538230cd10cf7ae4ebc1cd62167"></span><em class="property">inline</em> <em class="property">virtual</em> size_t <code class="sig-name descname">downgradeCacheData</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">override</em><a class="headerlink" href="#_CPPv4N3ral5cache25ConcatenatingCacheMachine18downgradeCacheDataEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 </div>
@@ -241,14 +243,14 @@
     </div>
 
     
-  <script src="../_static/js/index.d8bbf5861d671d414e1a.js"></script>
+  <script src="../_static/js/index.d3f166471bb80abb5163.js"></script>
 
 
     <footer class="footer mt-5 mt-md-0">
   <div class="container">
     <p>
           &copy; Copyright 2020, BlazingDB, Inc..<br/>
-        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.2.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.4.3.<br/>
     </p>
   </div>
 </footer>
