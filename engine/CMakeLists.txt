@@ -306,7 +306,7 @@ set(SRC_FILES ${PROJECT_SOURCE_DIR}/src/execution_graph/logic_controllers/Blazin
               ${PROJECT_SOURCE_DIR}/src/communication/CommunicationInterface/protocols.cpp
               ${PROJECT_SOURCE_DIR}/src/communication/CommunicationInterface/messageSender.cpp
 
-              ${PROJECT_SOURCE_DIR}/src/transport/Node.cpp              
+              ${PROJECT_SOURCE_DIR}/src/transport/Node.cpp
         )
 
 link_directories(${BSQL_BLD_PREFIX}/lib)
@@ -359,11 +359,12 @@ target_link_libraries(blazingsql-engine
 
     # Library needed for blazing communication repository (debug)
     gcov
-    
+
     # TODO percy use cmake::find
     # sql deps
     libmysqlcppconn-static.a
     libsqlite3.so
+    libpq.a
 )
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo" OR "$ENV{CONDA_BUILD}" STREQUAL "1")
