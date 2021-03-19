@@ -41,8 +41,6 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
 
             # TODO: RANK() and DENSE_RANK(): cudf aggs no supported currently
 
-            # TODO: FIRST_VALUE() and LAST_VALUE(): cudf aggs no supported currently
-
             # TODO: BOUNDED/UNBOUNDED, ROW/RANGE: Calcite issue when get optimized plan
 
             # ------------------- ORDER BY ------------------------
@@ -988,6 +986,124 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 fileSchemaType,
             )
 
+            # using the same column `c_nationkey` to partition
+            # and first_value()
+            queryId = "TEST_38"
+            query = """select first_value(c_nationkey) over 
+                            (
+                                partition by c_nationkey
+                                order by c_custkey desc
+                            ) row_num,
+                            c_phone, UPPER(SUBSTRING(c_name, 1, 7))
+                        from customer
+                        where c_acctbal < 125.0
+                        order by c_custkey, row_num"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            # using the same column `c_nationkey` to partition
+            # and last_value()
+            queryId = "TEST_39"
+            query = """select last_value(c_nationkey) over 
+                            (
+                                partition by c_nationkey
+                                order by c_custkey desc
+                            ) row_num,
+                            c_phone, UPPER(SUBSTRING(c_name, 1, 7))
+                        from customer
+                        where c_acctbal < 125.0
+                        order by c_custkey, row_num"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_40"
+            query = """select 
+                            max(n.n_nationkey) over 
+                            (
+                                partition by l.l_partkey
+                                order by l.l_extendedprice
+                            ) max_keys,
+                            lead(n.n_nationkey, 2) over 
+                            (
+                                partition by l.l_partkey
+                                order by l.l_extendedprice
+                            ) lead_keys,
+                            first_value(n.n_nationkey) over
+                            (
+                                partition by l.l_partkey
+                                order by l.l_extendedprice
+                            ) first_keys,
+                            last_value(n.n_nationkey) over
+                            (
+                                partition by l.l_partkey
+                                order by l.l_extendedprice
+                            ) last_keys,
+                            n.n_nationkey, l.l_extendedprice, l.l_comment
+                        from nation as n
+                        inner join lineitem as l
+                        on n.n_nationkey = l.l_partkey 
+                        order by l.l_extendedprice, l_comment
+                        limit 10"""
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_41"
+            query = """select (o_orderkey + o_custkey) as key_priority,
+                            o_custkey + o_totalprice, 
+                            first_value(o_totalprice) over
+                            (
+                                partition by o_orderpriority
+                                order by o_totalprice, o_custkey
+                            ) o_first_prices,
+                            o_custkey - o_totalprice + 6
+                        from orders
+                        where o_orderstatus not in ('O', 'F')
+                        and o_totalprice < 55000
+                        and o_orderpriority <> '2-HIGH'
+                        order by key_priority, o_first_prices"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
             # ------------ ROWS bounding ----------------
 
             queryId = "TEST_50"
@@ -1112,6 +1228,53 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                     use_percentage,
                     fileSchemaType,
                 )
+
+            # using diffs columns to partition and first_value()
+            queryId = "TEST_54"
+            query = """select first_value(c_custkey) over 
+                            (
+                                partition by c_nationkey
+                                order by c_name desc
+                            ) row_num,
+                            c_phone, UPPER(SUBSTRING(c_name, 1, 7))
+                        from customer
+                        where c_acctbal < 225.0
+                        order by c_custkey, row_num"""
+            runTest.run_query(
+                bc,
+                drill,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
+
+            queryId = "TEST_55"
+            query = """select last_value(c_custkey) over 
+                            (
+                                partition by c_nationkey
+                                order by c_name
+                            ) last_key,
+                            c_phone, c_nationkey, UPPER(SUBSTRING(c_name, 1, 7))
+                        from customer
+                        where c_acctbal < 225.0
+                        order by last_key, c_nationkey, c_phone"""  
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
 
             if Settings.execution_mode == ExecutionMode.GENERATOR:
                 print("==============================")

@@ -498,9 +498,25 @@ bool is_window_function(std::string query_part) { return (query_part.find("OVER"
 
 bool is_window_compute(std::string query_part) { return (query_part.find(LOGICAL_COMPUTE_WINDOW_TEXT) != std::string::npos); }
 
-bool window_expression_contains_partition(std::string query_part) { return (query_part.find("PARTITION") != std::string::npos); }
+bool window_expression_contains_partition_by(std::string query_part) { return (query_part.find("PARTITION") != std::string::npos); }
 
-bool window_expression_contains_order(std::string query_part) { return (query_part.find("ORDER") != std::string::npos); }
+bool window_expression_contains_order_by(std::string query_part) { return (query_part.find("ORDER BY") != std::string::npos); }
+
+bool window_expression_contains_bounds(std::string query_part) { return (query_part.find("BETWEEN") != std::string::npos); }
+
+bool window_expression_contains_bounds_by_range(std::string query_part) { return (query_part.find("RANGE") != std::string::npos); }
+
+bool is_lag_or_lead_aggregation(std::string expression) {
+	return (expression == "LAG" || expression == "LEAD");
+}
+
+bool is_first_value_window(std::string expression) {
+	return (expression == "FIRST_VALUE");
+}
+
+bool is_last_value_window(std::string expression) {
+	return (expression == "LAST_VALUE");
+}
 
 // input: LogicalProject(min_keys=[MIN($0) OVER (PARTITION BY $2 ORDER BY $1)],
 //                       max_keys=[MAX($0) OVER (PARTITION BY $2 ORDER BY $0)])
