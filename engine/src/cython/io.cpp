@@ -6,6 +6,9 @@
 #include "../io/data_parser/OrcParser.h"
 #include "../io/data_parser/ParquetParser.h"
 #include "../io/data_parser/sql/MySQLParser.h"
+#include "../io/data_provider/sql/MySQLDataProvider.h"
+#include "../io/data_parser/sql/SQLiteParser.h"
+#include "../io/data_provider/sql/SQLiteDataProvider.h"
 #include "../io/data_provider/UriDataProvider.h"
 
 #include "utilities/CommonOperations.h"
@@ -39,7 +42,16 @@ TableSchema parseSchema(std::vector<std::string> files,
 	TableSchema tableSchema;
 	tableSchema.data_type = fileType;
 
+	std::vector<Uri> uris;
+	for(auto file_path : files) {
+		uris.push_back(Uri{file_path});
+	}
+
 	std::shared_ptr<ral::io::data_parser> parser;
+  std::shared_ptr<ral::io::data_provider> provider = nullptr;
+
+  bool isUriProvider = true;
+
 	if(fileType == ral::io::DataType::PARQUET) {
 		parser = std::make_shared<ral::io::parquet_parser>();
 	} else if(fileType == ral::io::DataType::ORC) {
@@ -50,13 +62,14 @@ TableSchema parseSchema(std::vector<std::string> files,
 		parser = std::make_shared<ral::io::csv_parser>(args_map);
 	} else if(fileType == ral::io::DataType::MYSQL) {
 		parser = std::make_shared<ral::io::mysql_parser>();
+    std::make_shared<ral::io::mysql_data_provider>();
+    isUriProvider = false;
   }
 
-	std::vector<Uri> uris;
-	for(auto file_path : files) {
-		uris.push_back(Uri{file_path});
-	}
-	auto provider = std::make_shared<ral::io::uri_data_provider>(uris, ignore_missing_paths);
+  if (isUriProvider) {
+      std::make_shared<ral::io::uri_data_provider>(uris, ignore_missing_paths);
+  }
+
 	auto loader = std::make_shared<ral::io::data_loader>(parser, provider);
 
 	ral::io::Schema schema;
