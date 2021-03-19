@@ -27,39 +27,29 @@ namespace io {
 
 namespace cudf_io = cudf::io;
 
+
+
 // TODO percy this is too naive ... improve this later
-//String Data Types
-//Data type	Description
-//CHAR(size)	A FIXED length string (can contain letters, numbers, and special characters). The size parameter specifies the column length in characters - can be from 0 to 255. Default is 1
-//VARCHAR(size)	A VARIABLE length string (can contain letters, numbers, and special characters). The size parameter specifies the maximum column length in characters - can be from 0 to 65535
-//BINARY(size)	Equal to CHAR(), but stores binary byte strings. The size parameter specifies the column length in bytes. Default is 1
-//VARBINARY(size)	Equal to VARCHAR(), but stores binary byte strings. The size parameter specifies the maximum column length in bytes.
-//TINYBLOB	For BLOBs (Binary Large OBjects). Max length: 255 bytes
-//TINYTEXT	Holds a string with a maximum length of 255 characters
-//TEXT(size)	Holds a string with a maximum length of 65,535 bytes
-//BLOB(size)	For BLOBs (Binary Large OBjects). Holds up to 65,535 bytes of data
-//MEDIUMTEXT	Holds a string with a maximum length of 16,777,215 characters
-//MEDIUMBLOB	For BLOBs (Binary Large OBjects). Holds up to 16,777,215 bytes of data
-//LONGTEXT	Holds a string with a maximum length of 4,294,967,295 characters
-//LONGBLOB	For BLOBs (Binary Large OBjects). Holds up to 4,294,967,295 bytes of data
-//ENUM(val1, val2, val3, ...)	A string object that can have only one value, chosen from a list of possible values. You can list up to 65535 values in an ENUM list. If a value is inserted that is not in the list, a blank value will be inserted. The values are sorted in the order you enter them
-//SET(val1, val2, val3, ...)
+//TEXT types:
+// - CHARACTER(20)
+// - VARCHAR(255)
+// - VARYING CHARACTER(255)
+// - NCHAR(55)
+// - NATIVE CHARACTER(70)
+// - NVARCHAR(100)
+// - TEXT
+// - CLOB
 bool sqlite_is_cudf_string(const std::string &t) {
   std::vector<std::string> mysql_string_types_hints = {
-    "CHAR",
+    "CHARACTER",
     "VARCHAR",
-    "BINARY",
-    "VARBINARY",
-    "TINYBLOB",
-    "TINYTEXT",
+    "VARYING CHARACTER",
+    "NCHAR",
+    "NATIVE CHARACTER",
+    "NVARCHAR",
     "TEXT",
-    "BLOB",
-    "MEDIUMTEXT",
-    "MEDIUMBLOB",
-    "LONGTEXT",
-    "LONGBLOB",
-    "ENUM",
-    "SET"
+    "CLOB",
+    "STRING" // TODO percy ???
   };
 
   for (auto hint : mysql_string_types_hints) {
@@ -81,6 +71,7 @@ cudf::type_id parse_sqlite_column_type(const std::string t) {
   if (StringUtil::beginsWith(t, "FLOAT")) return cudf::type_id::FLOAT32;
   if (StringUtil::beginsWith(t, "DOUBLE")) return cudf::type_id::FLOAT64;
   // test date/datetime data types ...
+  if (StringUtil::beginsWith(t, "DATE")) return cudf::type_id::TIMESTAMP_DAYS;
   // TODO percy ...
 }
 
@@ -92,9 +83,9 @@ std::vector<cudf::type_id> parse_sqlite_column_types(const std::vector<std::stri
   return ret;
 }
 
-cudf::io::table_with_metadata read_mysql(std::shared_ptr<sql::ResultSet> res,
+cudf::io::table_with_metadata read_mysql(sqlite3_stmt *stmt,
                                          const std::vector<std::string> types) {
-  int total_rows = 9; // TODO percy add this logic to the provider
+  int total_rows = 17; // TODO percy add this logic to the provider
   cudf::io::table_with_metadata ret;
   std::vector<cudf::type_id> cudf_types = parse_sqlite_column_types(types);
   std::vector<std::vector<char*>> host_cols(types.size());
@@ -108,12 +99,13 @@ cudf::io::table_with_metadata read_mysql(std::shared_ptr<sql::ResultSet> res,
     host_valids[col].resize(total_rows);
   }
 
-  std::cout << "RESULTSET DATA -->>> read_mysql -->> " << res->rowsCount() << "\n";
+  //std::cout << "RESULTSET DATA -->>> read_mysql -->> " << res->rowsCount() << "\n";
   
   int row = 0;
-  while (res->next()) {
+  int rc = 0;
+  while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
     for (int col = 0; col < cudf_types.size(); ++col) {
-      int mysql_col = col + 1; // mysql jdbc getString start counting from 1 (not from 0)
+      int mysql_col = col;
       char *value = nullptr;
       size_t data_size = 0;
       cudf::type_id cudf_type_id = cudf_types[col];
@@ -127,7 +119,8 @@ cudf::io::table_with_metadata read_mysql(std::shared_ptr<sql::ResultSet> res,
           
         } break;
         case cudf::type_id::INT32: {
-          value = (char*)res->getInt(mysql_col);
+          int32_t type = sqlite3_column_int(stmt, mysql_col);
+          value = (char*)type;
           data_size = sizeof(int32_t);
         } break;
         case cudf::type_id::INT64: {
@@ -143,7 +136,9 @@ cudf::io::table_with_metadata read_mysql(std::shared_ptr<sql::ResultSet> res,
           
         } break;
         case cudf::type_id::UINT64: {
-          
+          int64_t type = sqlite3_column_int64(stmt, mysql_col);
+          value = (char*)type;
+          data_size = sizeof(int64_t);
         } break;
         case cudf::type_id::FLOAT32: {
           
@@ -188,8 +183,8 @@ cudf::io::table_with_metadata read_mysql(std::shared_ptr<sql::ResultSet> res,
           
         } break;
         case cudf::type_id::STRING: {
-          auto bb = res->getString(mysql_col);
-          std::string tmpstr = bb.asStdString();
+          const unsigned char *name = sqlite3_column_text(stmt, mysql_col);
+          std::string tmpstr((char*)name);
           data_size = tmpstr.size() + 1; // +1 for null terminating char
           value = (char*)malloc(data_size);
           //value = (char*)tmpstr.c_str();
@@ -260,7 +255,14 @@ cudf::io::table_with_metadata read_mysql(std::shared_ptr<sql::ResultSet> res,
         
       } break;
       case cudf::type_id::TIMESTAMP_DAYS: {
-        
+        // TODO percy
+//        int32_t *cols_buff = (int32_t*)host_cols[col].data();
+//        uint32_t *valids_buff = (uint32_t*)host_valids[col].data();
+//        std::vector<int32_t> cols(cols_buff, cols_buff + total_rows);
+//        std::vector<uint32_t> valids(valids_buff, valids_buff + total_rows);
+//        cudf::test::fixed_width_column_wrapper<int32_t> vals(cols.begin(), cols.end(), valids.begin());
+//        cudf::test::
+//        cudf_cols[col] = std::move(vals.release());
       } break;
       case cudf::type_id::TIMESTAMP_SECONDS: {
         
@@ -352,12 +354,12 @@ std::unique_ptr<ral::frame::BlazingTable> sqlite_parser::parse_batch(
 	std::vector<int> column_indices,
 	std::vector<cudf::size_type> row_groups) 
 {
-  auto res = handle.sql_handle.mysql_resultset;
-	if(res == nullptr) {
+  auto stmt = handle.sql_handle.sqlite_statement;
+	if(stmt == nullptr) {
 		return schema.makeEmptyBlazingTable(column_indices);
 	}
 
-  std::cout << "RESULTSET DATA -->>> parse_batch -->> " << res->rowsCount() << "\n";
+  //std::cout << "RESULTSET DATA -->>> parse_batch -->> " << res->rowsCount() << "\n";
 
 	if(column_indices.size() > 0) {
 		std::vector<std::string> col_names(column_indices.size());
@@ -366,7 +368,7 @@ std::unique_ptr<ral::frame::BlazingTable> sqlite_parser::parse_batch(
 			col_names[column_i] = schema.get_name(column_indices[column_i]);
 		}
 
-		auto result = read_mysql(res, handle.sql_handle.column_types);
+		auto result = read_mysql(stmt.get(), handle.sql_handle.column_types);
     result.metadata.column_names = col_names;
 
 		auto result_table = std::move(result.tbl);
@@ -384,11 +386,11 @@ std::unique_ptr<ral::frame::BlazingTable> sqlite_parser::parse_batch(
 
 void sqlite_parser::parse_schema(ral::io::data_handle handle, ral::io::Schema & schema) {
 	for(int i = 0; i < handle.sql_handle.column_names.size(); i++) {
-//		cudf::type_id type = parse_column_type(handle.sql_handle.column_types.at(i));
-//		size_t file_index = i;
-//		bool is_in_file = true;
-//		std::string name = handle.sql_handle.column_names.at(i);
-//		schema.add_column(name, type, file_index, is_in_file);
+		cudf::type_id type = parse_sqlite_column_type(handle.sql_handle.column_types.at(i));
+		size_t file_index = i;
+		bool is_in_file = true;
+		std::string name = handle.sql_handle.column_names.at(i);
+		schema.add_column(name, type, file_index, is_in_file);
 	}
 }
 
