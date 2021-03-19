@@ -4,7 +4,7 @@
 namespace ral {
 namespace io {
 
-typedef enum { UNDEFINED = 999, PARQUET = 0, ORC = 1, CSV = 2, JSON = 3, CUDF = 4, DASK_CUDF = 5, ARROW = 6 } DataType;
+typedef enum { UNDEFINED = 999, PARQUET = 0, ORC = 1, CSV = 2, JSON = 3, CUDF = 4, DASK_CUDF = 5, ARROW = 6, MYSQL = 7 } DataType;
 
 } /* namespace io */
 } /* namespace ral */

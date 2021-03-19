@@ -5,6 +5,7 @@
 #include "../io/data_parser/JSONParser.h"
 #include "../io/data_parser/OrcParser.h"
 #include "../io/data_parser/ParquetParser.h"
+#include "../io/data_parser/sql/MySQLParser.h"
 #include "../io/data_provider/UriDataProvider.h"
 
 #include "utilities/CommonOperations.h"
@@ -47,7 +48,9 @@ TableSchema parseSchema(std::vector<std::string> files,
 		parser = std::make_shared<ral::io::json_parser>(args_map);
 	} else if(fileType == ral::io::DataType::CSV) {
 		parser = std::make_shared<ral::io::csv_parser>(args_map);
-	}
+	} else if(fileType == ral::io::DataType::MYSQL) {
+		parser = std::make_shared<ral::io::mysql_parser>();
+  }
 
 	std::vector<Uri> uris;
 	for(auto file_path : files) {

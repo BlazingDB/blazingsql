@@ -23,6 +23,8 @@ DataType inferDataType(std::string file_format_hint) {
 		return DataType::CSV;
 	if(file_format_hint == "txt")
 		return DataType::CSV;
+	if(file_format_hint == "mysql")
+		return DataType::MYSQL;
 	// NOTE if you need more options the user can pass file_format in the create table
 
 	return DataType::UNDEFINED;
@@ -242,6 +244,7 @@ std::string getDataTypeName(DataType dataType) {
 	case DataType::JSON: return "json"; break;
 	case DataType::CUDF: return "cudf"; break;
 	case DataType::DASK_CUDF: return "dask_cudf"; break;
+	case DataType::MYSQL: return "mysql"; break;
 	default: break;
 	}
 

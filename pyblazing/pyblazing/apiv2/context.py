@@ -916,6 +916,13 @@ def kwargs_validation(kwargs, bc_api_str):
             "max_bytes_chunk_read",  # Used for reading CSV files in chunks
             "local_files",
             "get_metadata",
+            "from_sql_engine",
+            "database",
+            "username",
+            "password",
+            "host",
+            "port",
+            "database_table",
         ]
         params_info = "https://docs.blazingdb.com/docs/create_table"
 
@@ -2452,6 +2459,12 @@ class BlazingContext(object):
 
           sqlEngineArgs = GetSQLEngineArgs(kwargs)
 
+          parsedSchema, _ = self._parseSchema(input, sqlEngineName, kwargs, [], False, [])
+
+          print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
+          print(parsedSchema)
+
+          # TODO: merge parsed schema info about columns and types into tables
           table = BlazingTable(table_name,
                                None,
                                sqlEngineDataType,
