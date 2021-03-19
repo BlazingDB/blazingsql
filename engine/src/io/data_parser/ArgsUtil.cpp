@@ -4,7 +4,6 @@
 #include <blazingdb/io/Util/StringUtil.h>
 
 #include "../data_provider/UriDataProvider.h"
-#include "../data_provider/sql/AbstractSQLDataProvider.h"
 
 namespace ral {
 namespace io {
@@ -262,12 +261,9 @@ std::string getDataTypeName(DataType dataType) {
 sql_connection getSqlConnection(std::map<std::string, std::string> &args_map) {
   // TODO(percy, cristhian): add exception for key error and const
   // TODO(percy, cristhian): for sqlite, add contionals to avoid unncessary fields
-  std::size_t port;
-  std::istream stream(args_map["port"].data());
-  stream >> port;
   sql_connection connection;
   connection.host = args_map["host"];
-  connection.port = port;
+  connection.port = static_cast<std::size_t>(std::atoll(args_map["port"].data()));
   connection.user = args_map["user"];
   connection.password = args_map["password"];
   connection.schema = args_map["database"];

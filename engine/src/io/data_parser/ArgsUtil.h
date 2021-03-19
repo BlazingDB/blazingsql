@@ -6,6 +6,7 @@
 #include <cudf/io/orc.hpp>
 #include <cudf/io/csv.hpp>
 #include <cudf/io/datasource.hpp>
+#include "../data_provider/sql/AbstractSQLDataProvider.h"
 
 namespace ral {
 namespace io {
