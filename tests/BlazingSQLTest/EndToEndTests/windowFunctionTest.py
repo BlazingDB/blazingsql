@@ -925,12 +925,12 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             query = """select sum(o_custkey) over 
                             (
                                 partition by o_orderstatus, o_orderpriority
-                                order by o_orderkey
+                                order by o_totalprice, o_custkey
                             ) sum_keys,
                             lead(o_custkey, 3) over 
                             (
                                 partition by o_orderstatus, o_orderpriority
-                                order by o_orderkey
+                                order by o_totalprice, o_custkey
                             ) lead_keys,
                             cast(o_shippriority as double) as o_ship_double,
                             o_orderpriority
@@ -939,22 +939,18 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                         and o_totalprice <= 6000
                         and o_orderpriority in ('2-HIGH', '1-URGENT')
                         order by o_orderpriority"""
-
-            # TODO: Failed test with nulls
-            testsWithNulls = Settings.data["RunSettings"]["testsWithNulls"]
-            if testsWithNulls != "true":
-                runTest.run_query(
-                    bc,
-                    spark,
-                    query,
-                    queryId,
-                    queryType,
-                    worder,
-                    "",
-                    acceptable_difference,
-                    use_percentage,
-                    fileSchemaType,
-                )
+            runTest.run_query(
+                bc,
+                spark,
+                query,
+                queryId,
+                queryType,
+                worder,
+                "",
+                acceptable_difference,
+                use_percentage,
+                fileSchemaType,
+            )
 
             queryId = "TEST_37"
             query = """select 
