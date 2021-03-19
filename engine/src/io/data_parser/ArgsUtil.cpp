@@ -4,6 +4,7 @@
 #include <blazingdb/io/Util/StringUtil.h>
 
 #include "../data_provider/UriDataProvider.h"
+#include "../data_provider/sql/AbstractSQLDataProvider.h"
 
 namespace ral {
 namespace io {
@@ -25,6 +26,10 @@ DataType inferDataType(std::string file_format_hint) {
 		return DataType::CSV;
 	if(file_format_hint == "mysql")
 		return DataType::MYSQL;
+	if(file_format_hint == "postgresql")
+		return DataType::POSTGRESQL;
+	if(file_format_hint == "sqlite")
+		return DataType::SQLITE;
 	// NOTE if you need more options the user can pass file_format in the create table
 
 	return DataType::UNDEFINED;
@@ -32,7 +37,8 @@ DataType inferDataType(std::string file_format_hint) {
 
 DataType inferFileType(std::vector<std::string> files, DataType data_type_hint, bool ignore_missing_paths) {
 	if(data_type_hint == DataType::PARQUET || data_type_hint == DataType::CSV || data_type_hint == DataType::JSON ||
-		data_type_hint == DataType::ORC || data_type_hint == DataType::MYSQL) {
+		data_type_hint == DataType::ORC || data_type_hint == DataType::MYSQL ||
+    data_type_hint == DataType::POSTGRESQL || data_type_hint == DataType::SQLITE) {
 		return data_type_hint;
 	}
 
@@ -245,10 +251,27 @@ std::string getDataTypeName(DataType dataType) {
 	case DataType::CUDF: return "cudf"; break;
 	case DataType::DASK_CUDF: return "dask_cudf"; break;
 	case DataType::MYSQL: return "mysql"; break;
+	case DataType::POSTGRESQL: return "postgresql"; break;
+	case DataType::SQLITE: return "sqlite"; break;
 	default: break;
 	}
 
 	return "undefined";
+}
+
+sql_connection getSqlConnection(std::map<std::string, std::string> &args_map) {
+  // TODO(percy, cristhian): add exception for key error and const
+  // TODO(percy, cristhian): for sqlite, add contionals to avoid unncessary fields
+  std::size_t port;
+  std::istream stream(args_map["port"].data());
+  stream >> port;
+  sql_connection connection;
+  connection.host = args_map["host"];
+  connection.port = port;
+  connection.user = args_map["user"];
+  connection.password = args_map["password"];
+  connection.schema = args_map["database"];
+  return connection;
 }
 
 } /* namespace io */

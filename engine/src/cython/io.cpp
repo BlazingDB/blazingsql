@@ -62,7 +62,16 @@ TableSchema parseSchema(std::vector<std::string> files,
 		parser = std::make_shared<ral::io::csv_parser>(args_map);
 	} else if(fileType == ral::io::DataType::MYSQL) {
 		parser = std::make_shared<ral::io::mysql_parser>();
-    std::make_shared<ral::io::mysql_data_provider>();
+    auto connection = getSqlConnection(args_map);
+    std::make_shared<ral::io::mysql_data_provider>(
+        connection, args_map("database_table"));
+    isUriProvider = false;
+  } else if(fileType == ral::io::DataType::SQLITE) {
+		parser = std::make_shared<ral::io::sqlite_parser>();
+    // TODO(percy, cristhian): update getSqlConnection to support sqlite
+    // auto connection = getSqlConnection(args_map);
+    //std::make_shared<ral::io::sqlite_data_provider>(
+        //connection, args_map("database_table"));
     isUriProvider = false;
   }
 

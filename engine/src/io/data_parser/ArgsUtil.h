@@ -34,6 +34,8 @@ std::map<std::string, std::string> to_map(std::vector<std::string> arg_keys, std
 
 std::string getDataTypeName(DataType dataType);
 
+sql_connection getSqlConnection(std::map<std::string, std::string> &args_map);
+
 } /* namespace io */
 } /* namespace ral */
 
