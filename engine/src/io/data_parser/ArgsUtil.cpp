@@ -32,7 +32,7 @@ DataType inferDataType(std::string file_format_hint) {
 
 DataType inferFileType(std::vector<std::string> files, DataType data_type_hint, bool ignore_missing_paths) {
 	if(data_type_hint == DataType::PARQUET || data_type_hint == DataType::CSV || data_type_hint == DataType::JSON ||
-		data_type_hint == DataType::ORC) {
+		data_type_hint == DataType::ORC || data_type_hint == DataType::MYSQL) {
 		return data_type_hint;
 	}
 
