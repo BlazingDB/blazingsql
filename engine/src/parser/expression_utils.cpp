@@ -969,3 +969,16 @@ std::tuple< bool, bool, std::vector<std::string> > bypassingProject(std::string 
 
 	return std::make_tuple(by_passing_project, by_passing_project_with_aliases, aliases);
 }
+
+// input: -($3)
+// output: -(0, $3)
+std::string fill_minus_op_with_zero(std::string expression) {
+	std::size_t total_vars = StringUtil::findAndCountAllMatches(expression, "$");
+	if (expression.at(0) == '-' && total_vars == 1 && expression.find(",") == expression.npos) {
+		std::string left_expr = expression.substr(0, 2);
+		std::string right_expr = expression.substr(2, expression.size() - left_expr.size());
+		expression = left_expr + "0, " + right_expr;
+	}
+
+	return expression;
+}

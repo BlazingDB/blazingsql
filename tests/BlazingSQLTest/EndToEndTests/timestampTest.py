@@ -38,6 +38,10 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             query = """select * from orders
                     where o_orderdate > TIMESTAMP '1997-09-05 19:00:00'
                     order by o_orderkey limit 10"""
+            query_spark = """select * from orders
+                    where o_orderdate > TIMESTAMP '1997-09-05 19:00:00'
+                    order by o_orderkey nulls last limit 10"""
+
             runTest.run_query(
                 bc,
                 spark,
@@ -49,6 +53,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
+                query_spark = query_spark,
             )
 
             queryId = "TEST_02"
@@ -72,6 +77,10 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
             query = """select o_orderkey, o_orderdate from orders
                     where o_orderdate >= TIMESTAMP '1997-09-05 19:00:00'
                     order by o_orderkey limit 20"""
+            query_spark = """select o_orderkey, o_orderdate from orders
+                    where o_orderdate >= TIMESTAMP '1997-09-05 19:00:00'
+                    order by o_orderkey nulls last limit 20"""
+
             runTest.run_query(
                 bc,
                 spark,
@@ -83,6 +92,7 @@ def main(dask_client, drill, spark, dir_data_file, bc, nRals):
                 acceptable_difference,
                 use_percentage,
                 fileSchemaType,
+                query_spark = query_spark,
             )
 
             queryId = "TEST_04"
