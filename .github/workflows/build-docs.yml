@@ -23,7 +23,7 @@ jobs:
       # Runs a single command using the runners shell
       - uses: ammaraskar/sphinx-action@master
         with:
-          pre-build-command: "apt -y install doxygen && pip install -U sphinx && pip install pydata-sphinx-theme recommonmark breathe exhale"
+          pre-build-command: "apt -y install doxygen"
           build-command: "make html -e"
           docs-folder: "docsrc/"
       - name: Commit documentation changes
