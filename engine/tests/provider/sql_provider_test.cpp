@@ -13,24 +13,37 @@
 struct SQLProviderTest : public BlazingUnitTest {};
 
 TEST_F(SQLProviderTest, mysql_select_all) {
-  std::cout << "TEST\n";
+	ral::io::sql_info sql;
+  sql.host = "localhost";
+  sql.port = 3306;
+  sql.user = "lucho";
+  sql.password = "admin";
+  sql.schema = "employees";
+  sql.table = "departments";
+  sql.table_filter = "";
+  sql.table_batch_size = 22;
+  sql.use_table_partitions = false;
 
-	ral::io::sql_connection sql_conn = {
-		.host = "localhost",
-		.port = 33060,
-		.user = "lucho",
-		.password = "admin",
-		.schema = "employees"};
-
-  auto mysql_provider = std::make_shared<ral::io::mysql_data_provider>(sql_conn, "departments", 22);
+  auto mysql_provider = std::make_shared<ral::io::mysql_data_provider>(sql);
 
   int rows = mysql_provider->get_num_handles();
+
+  
+  
+//  std::vector<int> column_indices(2);
+//  for (int i = 0; i < column_indices.size(); ++i) {
+//    column_indices[i] = i;
+//  }
+
+  std::vector<int> column_indices = {1};
+  mysql_provider->set_column_indices(column_indices);
 
   std::cout << "\trows: " << rows << "\n";
   auto handle = mysql_provider->get_next();
   auto res = handle.sql_handle.mysql_resultset;
 
   std::cout << "RESULTSET DATA -->>> TEST INICIOOOOOOOO -->> " << res->rowsCount() << "\n";  
+
 
   bool has_next = mysql_provider->has_next();
   std::cout << "\tNEXT?: " << (has_next?"TRUE":"FALSE") << "\n";
@@ -57,21 +70,7 @@ TEST_F(SQLProviderTest, mysql_select_all) {
   }
 
   std::cout << "\n\nCUDFFFFFFFFFFFFFFFFFFFFFF\n";
-  
-  std::vector<int32_t> dat = {5, 4, 3, 5, 8, 5, 6, 5};
-  std::vector<uint32_t> valy = {1, 1, 1, 1, 1, 1, 1, 1};
-  cudf::test::fixed_width_column_wrapper<int32_t> vals(dat.begin(), dat.end(), valy.begin());
-  std::unique_ptr<cudf::column> cudf_col = std::move(vals.release());
 
-  auto col_string = cudf::test::to_string(cudf_col->view(), "|");
-  
-  std::cout << col_string << "\n";
-
-  
-  std::vector<int> column_indices(cols.size());
-  for (int i = 0; i < column_indices.size(); ++i) {
-    column_indices[i] = i;
-  }
 
 	std::vector<cudf::size_type> row_groups;
 
@@ -79,49 +78,19 @@ TEST_F(SQLProviderTest, mysql_select_all) {
 
   std::unique_ptr<ral::frame::BlazingTable> bztbl = parser.parse_batch(handle, schema, column_indices, row_groups);
   ral::utilities::print_blazing_table_view(bztbl->toBlazingTableView(), "holis");
-
-//  if(mysql_provider->has_next()){
-//      ral::io::data_handle new_handle;
-//      try{
-//          std::cout << "mysql_provider->get_next" << "\n";
-//          new_handle = mysql_provider->get_next();
-//          std::cout << "mysql_provider->get_next (DONE)" << "\n";
-//      }
-//      catch(...){
-//          std::cout << "mysql_provider->get_next (FAIL)" << "\n";
-//          FAIL();
-//      }
-//      try{
-//          bool is_valid = new_handle.is_valid();
-//          std::cout << "ral::io::data_handle.valid (DONE) " << is_valid << "\n";
-          
-//          bool empty_uri = new_handle.uri.isEmpty();
-//          std::cout << "ral::io::data_handle.uri.isEmpty (DONE) " << empty_uri << "\n";
-          
-//          bool valid_uri = new_handle.uri.isValid();
-//          std::cout << "ral::io::data_handle.uri.isValid (DONE) " << valid_uri << "\n";
-
-//          bool null_filehandle = (new_handle.file_handle == nullptr);
-//          std::cout << "ral::io::data_handle.uri.file_handle is null (DONE) " << null_filehandle << "\n";
-          
-//          bool empty_column_values = new_handle.column_values.empty();
-//          std::cout << "ral::io::data_handle.column_values.empty (DONE) " << empty_column_values << "\n";
-//      }
-//      catch(...){
-//          std::cout << "ral::io::data_handle ops (FAIL)" << "\n";
-//          FAIL();
-//      }
-//  }
 }
+
+
 
 TEST_F(SQLProviderTest, sqlite_select_all) {
   std::cout << "TEST\n";
 
-	ral::io::sql_connection sql_conn;
-  sql_conn.schema = "/home/percy/workspace/madona19/aucahuasi/bsql_Debug/feature_create-tables-from-rdbms/car_company_database/Car_Database.db";
+	ral::io::sql_info sql;
+  sql.schema = "/home/percy/workspace/madona19/aucahuasi/bsql_Debug/feature_create-tables-from-rdbms/car_company_database/Car_Database.db";
+  sql.table = "Models";
+  sql.table_batch_size = 212;
 
-  
-  auto mysql_provider = std::make_shared<ral::io::sqlite_data_provider>(sql_conn, "Models", 212);
+  auto mysql_provider = std::make_shared<ral::io::sqlite_data_provider>(sql);
 
   int rows = mysql_provider->get_num_handles();
 
@@ -178,25 +147,6 @@ TEST_F(SQLProviderTest, sqlite_select_all) {
 
   std::unique_ptr<ral::frame::BlazingTable> bztbl = parser.parse_batch(handle, schema, column_indices, row_groups);
   ral::utilities::print_blazing_table_view(bztbl->toBlazingTableView(), "holis");
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   
   
   

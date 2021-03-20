@@ -93,31 +93,35 @@ std::vector<cudf::type_id> parse_mysql_column_types(const std::vector<std::strin
 }
 
 cudf::io::table_with_metadata read_mysql(std::shared_ptr<sql::ResultSet> res,
-                                         const std::vector<std::string> types,
+                                         const std::vector<int> &column_indices,
+                                         const std::vector<cudf::type_id> &cudf_types,
+                                         const std::vector<size_t> &column_bytes,
                                          size_t total_rows) {
   cudf::io::table_with_metadata ret;
-  std::vector<cudf::type_id> cudf_types = parse_mysql_column_types(types); // usar from schema directly
-  std::vector<std::vector<char*>> host_cols(types.size());
-  std::vector<std::vector<uint32_t>> host_valids(host_cols.size());
+  std::vector<char*> host_cols(column_indices.size());
+  std::vector<std::vector<uint8_t>> host_valids(host_cols.size());
 
   for (int col = 0; col < host_cols.size(); ++col) {
-    host_cols[col].resize(total_rows);
+    size_t len = total_rows*column_bytes[column_indices[col]];
+    host_cols[col] = (char*)malloc(len);
+    //memset(host_cols[col], 0, len);
   }
 
   for (int col = 0; col < host_valids.size(); ++col) {
     host_valids[col].resize(total_rows);
+    //memset(host_valids[col], 0, total_rows);
   }
 
-  std::cout << "RESULTSET DATA -->>> read_mysql -->> " << res->rowsCount() << "\n";
-  
   int row = 0;
   while (res->next()) {
-    for (int col = 0; col < cudf_types.size(); ++col) {
+    for (int col = 0; col < column_indices.size(); ++col) {
       int mysql_col = col + 1; // mysql jdbc getString start counting from 1 (not from 0)
       char *value = nullptr;
+      size_t offset = row*column_bytes[column_indices[col]];
+      uint8_t valid = 1; // 1: not null 0: null
       size_t data_size = 0;
       cudf::type_id cudf_type_id = cudf_types[col];
-      switch (cudf_type_id) {
+      switch (cudf_types[column_indices[col]]) {
         case cudf::type_id::EMPTY: {
         } break;
         case cudf::type_id::INT8: {
@@ -127,8 +131,8 @@ cudf::io::table_with_metadata read_mysql(std::shared_ptr<sql::ResultSet> res,
           
         } break;
         case cudf::type_id::INT32: {
-          value = (char*)res->getInt(mysql_col);
-          data_size = sizeof(int32_t);
+          //value = (char*)res->getInt(mysql_col);
+          //data_size = sizeof(int32_t);
         } break;
         case cudf::type_id::INT64: {
           
@@ -189,11 +193,16 @@ cudf::io::table_with_metadata read_mysql(std::shared_ptr<sql::ResultSet> res,
         } break;
         case cudf::type_id::STRING: {
           auto bb = res->getString(mysql_col);
-          std::string tmpstr = bb.asStdString();
-          data_size = tmpstr.size() + 1; // +1 for null terminating char
-          value = (char*)malloc(data_size);
-          //value = (char*)tmpstr.c_str();
-          strncpy(value, tmpstr.c_str(), data_size);
+          if (res->wasNull()) {
+            valid = 0;
+          } else {
+            std::string tmpstr = bb.asStdString();
+            data_size = tmpstr.size() + 1; // +1 for null terminating char
+            //value = (char*)malloc(data_size);
+            //strncpy(value, tmpstr.c_str(), data_size);
+            
+            strncpy(host_cols[col] + offset, tmpstr.c_str(), data_size);
+          }
         } break;
         case cudf::type_id::LIST: {
           
@@ -208,17 +217,17 @@ cudf::io::table_with_metadata read_mysql(std::shared_ptr<sql::ResultSet> res,
           
         } break;
       }
-      host_cols[col][row] = value;
-      host_valids[col][row] = (value == nullptr || value == NULL)? 0 : 1;
-      //std::cout << "\t\t" << res->getString("dept_no") << "\n";
+
+      host_valids[col][row] = valid;
     }
     ++row;
   }
 
-  std::vector<std::unique_ptr<cudf::column>> cudf_cols(cudf_types.size());
+  std::vector<std::unique_ptr<cudf::column>> cudf_cols(host_cols.size());
 
-  for (int col = 0; col < cudf_cols.size(); ++col) {
-    switch (cudf_types[col]) {
+  for (int col = 0; col < column_indices.size(); ++col) {
+    size_t max_bytes = column_bytes[column_indices[col]];
+    switch (cudf_types[column_indices[col]]) {
       case cudf::type_id::EMPTY: {
       } break;
       case cudf::type_id::INT8: {
@@ -228,12 +237,12 @@ cudf::io::table_with_metadata read_mysql(std::shared_ptr<sql::ResultSet> res,
         
       } break;
       case cudf::type_id::INT32: {
-        int32_t *cols_buff = (int32_t*)host_cols[col].data();
-        uint32_t *valids_buff = (uint32_t*)host_valids[col].data();
-        std::vector<int32_t> cols(cols_buff, cols_buff + total_rows);
-        std::vector<uint32_t> valids(valids_buff, valids_buff + total_rows);
-        cudf::test::fixed_width_column_wrapper<int32_t> vals(cols.begin(), cols.end(), valids.begin());
-        cudf_cols[col] = std::move(vals.release());
+//        int32_t *cols_buff = (int32_t*)host_cols[col];
+//        uint8_t *valids_buff = host_valids[col].data();
+//        std::vector<uint32_t> cols(cols_buff, cols_buff + total_rows);
+//        std::vector<uint32_t> valids(valids_buff, valids_buff + total_rows);
+//        cudf::test::fixed_width_column_wrapper<int32_t> vals(cols.begin(), cols.end(), valids.begin());
+//        cudf_cols[col] = std::move(vals.release());
       } break;
       case cudf::type_id::INT64: {
         
@@ -293,22 +302,29 @@ cudf::io::table_with_metadata read_mysql(std::shared_ptr<sql::ResultSet> res,
         
       } break;
       case cudf::type_id::STRING: {
-        std::vector<std::string> cols(total_rows);
-        for (int row_index = 0; row_index < host_cols[col].size(); ++row_index) {
-          void *dat = host_cols[col][row_index];
-          char *strdat = (char*)dat;
-          std::string v(strdat);
-          free(strdat);
-          cols[row_index] = v;
+//        std::vector<std::string> cols(total_rows);
+//        for (int row_index = 0; row_index < host_cols[col].size(); ++row_index) {
+//          void *dat = host_cols[col][row_index];
+//          char *strdat = (char*)dat;
+//          std::string v(strdat);
+//          free(strdat);
+//          cols[row_index] = v;
+//        }
+
+        char *buff[total_rows];
+        for (int i = 0; i < total_rows; ++i) {
+            buff[i] = host_cols[col] + i*max_bytes;
         }
 
-        //char **cols_buff = (char**)host_cols[col].data();
+        //printf("YAAAAAAAAAAAAAAAAA: %s\n", host_cols[col]);
+        //char **cols_buff = (char**)(host_cols[col]+80);
         //std::vector<std::string> cols(cols_buff, cols_buff + total_rows);
 
-        uint32_t *valids_buff = (uint32_t*)host_valids[col].data();
-        std::vector<uint32_t> valids(valids_buff, valids_buff + total_rows);
+        uint8_t *valids_buff = host_valids[col].data();
+        std::vector<uint8_t> valids(valids_buff, valids_buff + total_rows);
 
-        cudf::test::strings_column_wrapper vals(cols.begin(), cols.end(), valids.begin());
+        //cudf::test::strings_column_wrapper vals(cols.begin(), cols.end(), valids.begin());
+        cudf::test::strings_column_wrapper vals(buff, buff+total_rows, valids.begin());
         cudf_cols[col] = std::move(vals.release());
       } break;
       case cudf::type_id::LIST: {
@@ -324,19 +340,8 @@ cudf::io::table_with_metadata read_mysql(std::shared_ptr<sql::ResultSet> res,
         
       } break;
     }
-    //cudf::strings::
-    //rmm::device_buffer values(static_cast<void *>(host_cols[col].data()), total_rows);
-    //rmm::device_buffer null_mask(static_cast<void *>(host_valids[col].data()), total_rows);
-    //cudf::column(cudf_types[col], total_rows, values.data(), null_mask.data());
   }
 
-  //std::unique_ptr<cudf::column> col = cudf::make_empty_column(numeric_column(cudf::data_type(cudf::type_id::INT32), 20);
-  // using DecimalTypes = cudf::test::Types<int8_t, int16_t, int32_t, int64_t>;
-
-  //std::vector<int32_t> dat = {5, 4, 3, 5, 8, 5, 6, 5};
-  //std::vector<uint32_t> valy = {1, 1, 1, 1, 1, 1, 1, 1};
-  //cudf::test::fixed_width_column_wrapper<int32_t> vals(dat.begin(), dat.end(), valy.begin());
-  
   ret.tbl = std::make_unique<cudf::table>(std::move(cudf_cols));
   return ret;
 }
@@ -358,8 +363,6 @@ std::unique_ptr<ral::frame::BlazingTable> mysql_parser::parse_batch(
 		return schema.makeEmptyBlazingTable(column_indices);
 	}
 
-  std::cout << "RESULTSET DATA -->>> parse_batch -->> " << res->rowsCount() << "\n";
-
 	if(column_indices.size() > 0) {
 		std::vector<std::string> col_names(column_indices.size());
 
@@ -367,8 +370,7 @@ std::unique_ptr<ral::frame::BlazingTable> mysql_parser::parse_batch(
 			col_names[column_i] = schema.get_name(column_indices[column_i]);
 		}
 
-    // TODO percy add column_indices to the read_mysql
-		auto result = read_mysql(res, handle.sql_handle.column_types, schema.get_files().size());
+		auto result = read_mysql(res, column_indices, schema.get_dtypes(), handle.sql_handle.column_bytes, handle.sql_handle.row_count);
     result.metadata.column_names = col_names;
 
 		auto result_table = std::move(result.tbl);

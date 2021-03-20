@@ -258,16 +258,20 @@ std::string getDataTypeName(DataType dataType) {
 	return "undefined";
 }
 
-sql_connection getSqlConnection(std::map<std::string, std::string> &args_map) {
+sql_info getSqlInfo(std::map<std::string, std::string> &args_map) {
+  //bool use_partitions = false
+  //DETAULT_BATCH_SIZE = 100
   // TODO(percy, cristhian): add exception for key error and const
   // TODO(percy, cristhian): for sqlite, add contionals to avoid unncessary fields
-  sql_connection connection;
-  connection.host = args_map["host"];
-  connection.port = static_cast<std::size_t>(std::atoll(args_map["port"].data()));
-  connection.user = args_map["user"];
-  connection.password = args_map["password"];
-  connection.schema = args_map["database"];
-  return connection;
+  sql_info sql;
+  sql.host = args_map["host"];
+  sql.port = static_cast<std::size_t>(std::atoll(args_map["port"].data()));
+  sql.user = args_map["user"];
+  sql.password = args_map["password"];
+  sql.schema = args_map["database"];
+  sql.table = args_map["database_table"];
+  //sql.table_filter = args_map["table_filter"];
+  return sql;
 }
 
 } /* namespace io */

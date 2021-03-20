@@ -9,6 +9,7 @@
 #include <src/utilities/DebuggingUtils.h>
 #include <src/execution_graph/logic_controllers/LogicalFilter.h>
 #include "execution_graph/logic_controllers/LogicalProject.h"
+#include "io/data_provider/sql/AbstractSQLDataProvider.h"
 
 namespace ral {
 namespace batch {
@@ -122,6 +123,11 @@ kstatus TableScan::run() {
 
     std::vector<int> projections(schema.get_num_columns());
     std::iota(projections.begin(), projections.end(), 0);
+
+    if (provider->is_sql()) {
+      auto sql_provider = std::dynamic_pointer_cast<ral::io::abstractsql_data_provider>(provider);
+      sql_provider->set_column_indices(projections);
+    }
 
     //if its empty we can just add it to the cache without scheduling
     if (!provider->has_next()) {
@@ -238,6 +244,11 @@ kstatus BindableTableScan::run() {
     if(projections.size() == 0){
         projections.resize(schema.get_num_columns());
         std::iota(projections.begin(), projections.end(), 0);
+    }
+
+    if (provider->is_sql()) {
+      auto sql_provider = std::dynamic_pointer_cast<ral::io::abstractsql_data_provider>(provider);
+      sql_provider->set_column_indices(projections);
     }
 
     //if its empty we can just add it to the cache without scheduling

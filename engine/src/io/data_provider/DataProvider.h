@@ -42,6 +42,8 @@ struct sql_datasource {
   std::string query;
   std::vector<std::string> column_names;
   std::vector<std::string> column_types; // always uppercase
+  std::vector<size_t> column_bytes;
+  size_t row_count;
   std::shared_ptr<sql::ResultSet> mysql_resultset;
   std::shared_ptr<sqlite3_stmt> sqlite_statement;
   // TODO percy add postgre and other backends here
@@ -106,7 +108,10 @@ public:
 	 */ 
 	virtual size_t get_num_handles() = 0;
 
-
+  /**
+	 * returns true for sql providers, else false
+	 */ 
+  virtual bool is_sql() const { return false; }
 };
 
 } /* namespace io */
