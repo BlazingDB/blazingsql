@@ -4,6 +4,7 @@ import math
 import filecmp
 import shutil
 from itertools import combinations
+import pandas
 
 __all__ = ["create_hive_partition_data", "test_hive_partition_data"]
 
@@ -241,6 +242,8 @@ def _concatenate_partitions_with_values(data_partition_array_dict):
 			for i in temp:
 				if type(temp[i]) == str:
 					res.append(item_array + "='" + temp[i] + "'")
+				elif type(temp[i]) == pandas.Timestamp:
+					res.append(item_array + "='" + str(temp[i]) + "'")
 				else:
 					res.append(item_array + "=" + str(temp[i]))
 
