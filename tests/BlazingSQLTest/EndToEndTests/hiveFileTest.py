@@ -6,11 +6,12 @@ from pynvml import nvmlInit
 from Runner import runTest
 from Utils import Execution, gpuMemory, init_context, skip_test, utilityHive
 import shutil
+import pandas
 
 queryType = "Hive File"
 
 tables = ["orders", "customer", "lineitem", "nation", "part", "supplier"]
-data_types = [DataType.CSV, DataType.PARQUET, DataType.ORC]
+data_types = [DataType.CSV, DataType.PARQUET]
 tmpPath = '/tmp/BlazingSQL/partitions/'
 
 def executionTestAuto(dask_client, spark, dir_data_file, bc, nRals):
@@ -43,7 +44,7 @@ def executionTestAuto(dask_client, spark, dir_data_file, bc, nRals):
         print("==============================")
 
         queryId = "TEST_01"
-        query = "select o_totalprice from orders where o_orderstatus = 'F' order by o_orderkey"
+        query = "select o_totalprice from orders where o_orderstatus = 'F' and o_orderdate <= '1992-01-31' order by o_orderkey"
         runTest.run_query(
             bc,
             spark,
@@ -79,7 +80,8 @@ def executionTestAuto(dask_client, spark, dir_data_file, bc, nRals):
         query = """ select l.l_orderkey, l.l_linenumber from lineitem as l
                     inner join orders as o on l.l_orderkey = o.o_orderkey
                     and l.l_commitdate < o.o_orderdate
-                    and l.l_receiptdate > o.o_orderdate"""
+                    and l.l_receiptdate > o.o_orderdate
+                    where o.o_orderdate <= '1992-01-31'"""
         runTest.run_query(
             bc,
             spark,
@@ -197,7 +199,8 @@ def executionTestAuto(dask_client, spark, dir_data_file, bc, nRals):
                     inner join nation as n2 on c.c_nationkey = n2.n_nationkey
                     where n1.n_nationkey = 1
                     and n2.n_nationkey = 2
-                    and o.o_orderkey < 20"""
+                    and o.o_orderkey < 20
+                    and o.o_orderdate <= '1992-01-31'"""
         runTest.run_query(
             bc,
             spark,
@@ -252,9 +255,41 @@ def executionTestWithPartitions(dask_client, spark, dir_data_file, bc, nRals):
                                              'o_orderpriority': ['1-URGENT', '2-HIGH', '3-MEDIUM',
                                                                  '4-NOT SPECIFIED',
                                                                  '5-LOW'],
-                                             'o_orderstatus': ['F', 'O', 'P']},
+                                             'o_orderstatus': ['F', 'O', 'P'],
+                                             'o_orderdate': [pandas.Timestamp('1992-01-01 00:00:00'),
+                                                             pandas.Timestamp('1992-01-02 00:00:00'),
+                                                             pandas.Timestamp('1992-01-03 00:00:00'),
+                                                             pandas.Timestamp('1992-01-04 00:00:00'),
+                                                             pandas.Timestamp('1992-01-05 00:00:00'),
+                                                             pandas.Timestamp('1992-01-06 00:00:00'),
+                                                             pandas.Timestamp('1992-01-07 00:00:00'),
+                                                             pandas.Timestamp('1992-01-08 00:00:00'),
+                                                             pandas.Timestamp('1992-01-09 00:00:00'),
+                                                             pandas.Timestamp('1992-01-10 00:00:00'),
+                                                             pandas.Timestamp('1992-01-11 00:00:00'),
+                                                             pandas.Timestamp('1992-01-12 00:00:00'),
+                                                             pandas.Timestamp('1992-01-13 00:00:00'),
+                                                             pandas.Timestamp('1992-01-14 00:00:00'),
+                                                             pandas.Timestamp('1992-01-15 00:00:00'),
+                                                             pandas.Timestamp('1992-01-16 00:00:00'),
+                                                             pandas.Timestamp('1992-01-17 00:00:00'),
+                                                             pandas.Timestamp('1992-01-18 00:00:00'),
+                                                             pandas.Timestamp('1992-01-19 00:00:00'),
+                                                             pandas.Timestamp('1992-01-20 00:00:00'),
+                                                             pandas.Timestamp('1992-01-21 00:00:00'),
+                                                             pandas.Timestamp('1992-01-22 00:00:00'),
+                                                             pandas.Timestamp('1992-01-23 00:00:00'),
+                                                             pandas.Timestamp('1992-01-24 00:00:00'),
+                                                             pandas.Timestamp('1992-01-25 00:00:00'),
+                                                             pandas.Timestamp('1992-01-26 00:00:00'),
+                                                             pandas.Timestamp('1992-01-27 00:00:00'),
+                                                             pandas.Timestamp('1992-01-28 00:00:00'),
+                                                             pandas.Timestamp('1992-01-29 00:00:00'),
+                                                             pandas.Timestamp('1992-01-30 00:00:00'),
+                                                             pandas.Timestamp('1992-01-31 00:00:00')]},
                                          partitions_schema=[('o_orderpriority', 'str'),
-                                                            ('o_orderstatus', 'str')],
+                                                            ('o_orderstatus', 'str'),
+                                                            ('o_orderdate', 'timestamp')],
                                          tables=['orders'])
 
         cs.create_hive_partitions_tables(bc=bc,
@@ -334,7 +369,7 @@ def executionTestWithPartitions(dask_client, spark, dir_data_file, bc, nRals):
         print("==============================")
 
         queryId = "TEST_01"
-        query = "select o_totalprice from orders where o_orderstatus = 'F' order by o_orderkey"
+        query = "select o_totalprice from orders where o_orderstatus = 'F' and o_orderdate <= '1992-01-31' order by o_orderkey"
         runTest.run_query(
             bc,
             spark,
@@ -370,7 +405,8 @@ def executionTestWithPartitions(dask_client, spark, dir_data_file, bc, nRals):
         query = """ select l.l_orderkey, l.l_linenumber from lineitem as l
                             inner join orders as o on l.l_orderkey = o.o_orderkey
                             and l.l_commitdate < o.o_orderdate
-                            and l.l_receiptdate > o.o_orderdate"""
+                            and l.l_receiptdate > o.o_orderdate
+                            where o.o_orderdate <= '1992-01-31'"""
         runTest.run_query(
             bc,
             spark,
@@ -488,7 +524,8 @@ def executionTestWithPartitions(dask_client, spark, dir_data_file, bc, nRals):
                             inner join nation as n2 on c.c_nationkey = n2.n_nationkey
                             where n1.n_nationkey = 1
                             and n2.n_nationkey = 2
-                            and o.o_orderkey < 20"""
+                            and o.o_orderkey < 20
+                            and o.o_orderdate <= '1992-01-31'"""
         runTest.run_query(
             bc,
             spark,
@@ -543,9 +580,25 @@ def executionTestWithSomePartitions(dask_client, spark, dir_data_file, bc, nRals
                                              'o_orderpriority': ['1-URGENT', '3-MEDIUM',
                                                                  '4-NOT SPECIFIED',
                                                                  '5-LOW'],
-                                             'o_orderstatus': ['F', 'O']},
+                                             'o_orderstatus': ['F', 'O'],
+                                             'o_orderdate': [pandas.Timestamp('1992-01-01 00:00:00'),
+                                                             pandas.Timestamp('1992-01-02 00:00:00'),
+                                                             pandas.Timestamp('1992-01-03 00:00:00'),
+                                                             pandas.Timestamp('1992-01-04 00:00:00'),
+                                                             pandas.Timestamp('1992-01-05 00:00:00'),
+                                                             pandas.Timestamp('1992-01-06 00:00:00'),
+                                                             pandas.Timestamp('1992-01-07 00:00:00'),
+                                                             pandas.Timestamp('1992-01-08 00:00:00'),
+                                                             pandas.Timestamp('1992-01-09 00:00:00'),
+                                                             pandas.Timestamp('1992-01-10 00:00:00'),
+                                                             pandas.Timestamp('1992-01-11 00:00:00'),
+                                                             pandas.Timestamp('1992-01-12 00:00:00'),
+                                                             pandas.Timestamp('1992-01-13 00:00:00'),
+                                                             pandas.Timestamp('1992-01-14 00:00:00'),
+                                                             pandas.Timestamp('1992-01-15 00:00:00')]},
                                          partitions_schema=[('o_orderpriority', 'str'),
-                                                            ('o_orderstatus', 'str')],
+                                                            ('o_orderstatus', 'str'),
+                                                            ('o_orderdate', 'timestamp')],
                                          tables=['orders'])
 
         cs.create_hive_partitions_tables(bc=bc,
@@ -624,7 +677,8 @@ def executionTestWithSomePartitions(dask_client, spark, dir_data_file, bc, nRals
         query = "select o_totalprice from orders where o_orderstatus = 'F' order by o_orderkey"
         query_spark = """   select o_totalprice 
                             from orders 
-                            where o_orderstatus = 'F' and o_orderpriority <> '2-HIGH' and o_orderstatus <> 'P' 
+                            where o_orderstatus = 'F' and o_orderpriority <> '2-HIGH' 
+                            and o_orderstatus <> 'P' and o_orderdate <= '1992-01-15' 
                             order by o_orderkey"""
         runTest.run_query(
             bc,
@@ -652,7 +706,8 @@ def executionTestWithSomePartitions(dask_client, spark, dir_data_file, bc, nRals
                             where l.l_linestatus not in ('O')
                             and l.l_shipmode not in ('MAIL', 'RAIL')
                             and o.o_orderpriority <> '2-HIGH'
-                            and o.o_orderstatus <> 'P'"""
+                            and o.o_orderstatus <> 'P'
+                            and o.o_orderdate <= '1992-01-15'"""
         runTest.run_query(
             bc,
             spark,
@@ -802,12 +857,11 @@ def executionTestWithSomePartitions(dask_client, spark, dir_data_file, bc, nRals
                             and n2.n_nationkey = 2
                             and o.o_orderkey < 20
                             and o.o_orderstatus = 'F' and o.o_orderpriority <> '2-HIGH' and o.o_orderstatus <> 'P'
+                            and o.o_orderdate <= '1992-01-15'
                             and c.c_nationkey > 10 and c.c_mktsegment <> 'FURNITURE'
                             and l.l_linestatus not in ('O') and l.l_shipmode not in ('MAIL', 'RAIL')
                             and n1.n_regionkey not in (0, 1) and n2.n_regionkey not in (0, 1)
                             and s_nationkey not in (10, 11, 12, 13, 14, 15)
-
-
                             """
         runTest.run_query(
             bc,
@@ -873,16 +927,49 @@ def createPartitions(fileSchemaType, dir_data_file):
 
     # orders table
     utilityHive.test_hive_partition_data(input=("%s/%s_[0-9]*.%s") % (dir_data, "orders", ext),
-                                           file_format=ext,
-                                           table_name="orders",
-                                           partitions={
-                                               'o_orderpriority': ['1-URGENT', '2-HIGH', '3-MEDIUM', '4-NOT SPECIFIED',
-                                                                   '5-LOW'],
-                                               'o_orderstatus': ['F', 'O', 'P']},
-                                           partitions_schema=[('o_orderpriority', 'str'),
-                                                              ('o_orderstatus', 'str')],
-                                           output= tmpPath + ext + '/orders/',
-                                           num_files=4)
+                                         file_format=ext,
+                                         table_name="orders",
+                                         partitions={
+                                             'o_orderpriority': ['1-URGENT', '2-HIGH', '3-MEDIUM',
+                                                                 '4-NOT SPECIFIED',
+                                                                 '5-LOW'],
+                                             'o_orderstatus': ['F', 'O', 'P'],
+                                             'o_orderdate': [pandas.Timestamp('1992-01-01 00:00:00'),
+                                                             pandas.Timestamp('1992-01-02 00:00:00'),
+                                                             pandas.Timestamp('1992-01-03 00:00:00'),
+                                                             pandas.Timestamp('1992-01-04 00:00:00'),
+                                                             pandas.Timestamp('1992-01-05 00:00:00'),
+                                                             pandas.Timestamp('1992-01-06 00:00:00'),
+                                                             pandas.Timestamp('1992-01-07 00:00:00'),
+                                                             pandas.Timestamp('1992-01-08 00:00:00'),
+                                                             pandas.Timestamp('1992-01-09 00:00:00'),
+                                                             pandas.Timestamp('1992-01-10 00:00:00'),
+                                                             pandas.Timestamp('1992-01-11 00:00:00'),
+                                                             pandas.Timestamp('1992-01-12 00:00:00'),
+                                                             pandas.Timestamp('1992-01-13 00:00:00'),
+                                                             pandas.Timestamp('1992-01-14 00:00:00'),
+                                                             pandas.Timestamp('1992-01-15 00:00:00'),
+                                                             pandas.Timestamp('1992-01-16 00:00:00'),
+                                                             pandas.Timestamp('1992-01-17 00:00:00'),
+                                                             pandas.Timestamp('1992-01-18 00:00:00'),
+                                                             pandas.Timestamp('1992-01-19 00:00:00'),
+                                                             pandas.Timestamp('1992-01-20 00:00:00'),
+                                                             pandas.Timestamp('1992-01-21 00:00:00'),
+                                                             pandas.Timestamp('1992-01-22 00:00:00'),
+                                                             pandas.Timestamp('1992-01-23 00:00:00'),
+                                                             pandas.Timestamp('1992-01-24 00:00:00'),
+                                                             pandas.Timestamp('1992-01-25 00:00:00'),
+                                                             pandas.Timestamp('1992-01-26 00:00:00'),
+                                                             pandas.Timestamp('1992-01-27 00:00:00'),
+                                                             pandas.Timestamp('1992-01-28 00:00:00'),
+                                                             pandas.Timestamp('1992-01-29 00:00:00'),
+                                                             pandas.Timestamp('1992-01-30 00:00:00'),
+                                                             pandas.Timestamp('1992-01-31 00:00:00')]},
+                                         partitions_schema=[('o_orderpriority', 'str'),
+                                                            ('o_orderstatus', 'str'),
+                                                            ('o_orderdate', 'timestamp')],
+                                         output=tmpPath + ext + '/orders/',
+                                         num_files=4)
 
     # customer table
     utilityHive.test_hive_partition_data(input=("%s/%s_[0-9]*.%s") % (dir_data, "customer", ext),
@@ -948,43 +1035,6 @@ def createPartitions(fileSchemaType, dir_data_file):
                                            partitions_schema=[('s_nationkey', 'int32')],
                                            output= tmpPath + ext + '/supplier/',
                                            num_files=4)
-
-    # order table with datetime
-    # utilityHive.test_hive_partition_data(input=("%s/%s_[0-9]*.%s") % (dir_data, "orders", ext),
-    #                                      table_name="orders",
-    #                                      partitions={
-    #                                          'o_orderdate': [694224000000, 694310400000, 694396800000, 694483200000, 694569600000,
-    #                                                          694656000000, 694742400000, 694828800000, 694915200000, 695001600000]},
-    #                                      partitions_schema=[('o_orderdate', 'timestamp')],
-    #                                      output= tmpPath + ext + '/ordersDatetime/',
-    #                                      num_files=4)
-
-    # '1992-01-01 00:00:00', '1992-01-02 00:00:00',
-    # '1992-01-03 00:00:00', '1992-01-04 00:00:00',
-    # '1992-01-05 00:00:00', '1992-01-06 00:00:00',
-    # '1992-01-07 00:00:00', '1992-01-08 00:00:00',
-    # '1992-01-09 00:00:00', '1992-01-10 00:00:00',
-    # '1992-01-11 00:00:00', '1992-01-12 00:00:00',
-    # '1992-01-13 00:00:00', '1992-01-14 00:00:00',
-    # '1992-01-15 00:00:00', '1992-01-16 00:00:00',
-    # '1992-01-17 00:00:00', '1992-01-18 00:00:00',
-    # '1992-01-19 00:00:00', '1992-01-20 00:00:00',
-    # '1992-01-21 00:00:00', '1992-01-22 00:00:00',
-    # '1992-01-23 00:00:00', '1992-01-24 00:00:00',
-    # '1992-01-25 00:00:00', '1992-01-26 00:00:00',
-    # '1992-01-27 00:00:00', '1992-01-28 00:00:00',
-    # '1992-01-29 00:00:00', '1992-01-30 00:00:00',
-    # '1992-01-31 00:00:00'
-# 694224000, 694310400, 694396800, 694483200, 694569600, 694656000, 694742400, 694828800, 694915200, 695001600
-    # supplier table with Boolean
-    # utilityHive.test_hive_partition_data(input=("%s/%s_[0-9]*.%s") % (dir_data, "supplier", ext),
-    #                                      table_name="supplier",
-    #                                      partitions={
-    #                                          's_nationkey': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
-    #                                                          17, 18, 19, 20, 21, 22, 23, 24]},
-    #                                      partitions_schema=[('s_nationkey', 'int32')],
-    #                                      output= tmpPath + ext + '/supplier/',
-    #                                      num_files=4)
 
 if __name__ == "__main__":
 
