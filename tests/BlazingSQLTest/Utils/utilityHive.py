@@ -359,8 +359,6 @@ def testing_load_hive_table(table_name, file_format, location, partitions, parti
 def test_hive_partition_data(input, file_format, table_name, partitions, partitions_schema, output, num_files=1):
 	create_hive_partition_data(input, file_format, table_name, partitions, output, num_files)
 	testing_load_hive_table(table_name, file_format, output, partitions, partitions_schema)
-	os.remove(output + "/origin.csv")
-	os.remove(output + "/dest.csv")
 
 def main():
 	condaPath = os.environ['CONDA_PREFIX']
