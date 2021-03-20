@@ -26,6 +26,8 @@ class SQLEngineArgs(TypedDict):
     host: str
     port: str
     database_table: str
+    batch_size: int
+    use_partitions: bool
 
 
 def GetSQLEngineArgs(kwargs: Dict[AnyStr, Any]) -> SQLEngineArgs:
