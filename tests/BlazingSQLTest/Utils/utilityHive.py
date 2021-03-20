@@ -312,10 +312,6 @@ def create_hive_partition_data(input, file_format, table_name, partitions, outpu
 	else:
 		bc.create_table(table_name, input)
 
-	res = bc.sql(
-		'select o_orderkey, o_custkey, o_orderstatus, o_totalprice, o_orderdate, o_orderpriority, o_clerk, o_shippriority, o_comment from orders order by o_orderkey')
-	res.to_pandas().to_csv(output + "/origin.csv", index=False)
-
 	columns = bc.describe_table(table_name)
 	data_partition_array_dict = []
 	for partition in partitions:
@@ -346,15 +342,6 @@ def testing_load_hive_table(table_name, file_format, location, partitions, parti
 						names=col_names)
 	else:
 		bc2.create_table(table_name, location, file_format=file_format)
-
-	res = bc2.sql(
-		'select o_orderkey, o_custkey, o_orderstatus, o_totalprice, o_orderdate, o_orderpriority, o_clerk, o_shippriority, o_comment from orders order by o_orderkey')
-	res.to_pandas().to_csv(location + "/dest.csv", index=False)
-
-	print("Same results: ")
-	print(filecmp.cmp(location + "/origin.csv",
-            location + "/dest.csv",
-            shallow=False))
 
 def test_hive_partition_data(input, file_format, table_name, partitions, partitions_schema, output, num_files=1):
 	create_hive_partition_data(input, file_format, table_name, partitions, output, num_files)
