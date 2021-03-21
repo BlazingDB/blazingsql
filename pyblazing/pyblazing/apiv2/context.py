@@ -1127,7 +1127,13 @@ class BlazingTable(object):
         nodeFilesList = []
         if self.files is None:
             for i in range(0, numSlices):
-                nodeFilesList.append(BlazingTable(self.name, self.input, self.fileType))
+                bt = BlazingTable(self.name,
+                                  self.input,
+                                  self.fileType,
+                                  args=self.args)
+                bt.column_names = self.column_names
+                bt.column_types = self.column_types
+                nodeFilesList.append(bt)
             return nodeFilesList
         remaining = len(self.files)
         startIndex = 0
@@ -2264,7 +2270,7 @@ class BlazingContext(object):
                 )
             else:
                 table = BlazingTable(table_name, input, DataType.CUDF)
-        elif isinstance(input, list):
+        elif isinstance(input, list) and not 'from_sql_engine' in kwargs:
             input = resolve_relative_path(input)
 
             # if we are using user defined partitions without hive,
@@ -2456,23 +2462,26 @@ class BlazingContext(object):
           sqlEngineName = kwargs['from_sql_engine']
 
           try:
-              sqlEngineDataType = SQLEngineDataTypeMap[sqlEngineName]
+            sqlEngineDataType = SQLEngineDataTypeMap[sqlEngineName]
           except KeyError as error:
             raise UnsupportedSQLEngineError(sqlEngineName) from error
 
-          sqlEngineArgs = GetSQLEngineArgs(kwargs)
+          sqlEngineArgs = GetSQLEngineArgs(kwargs, input[0])
 
-          parsedSchema, _ = self._parseSchema([], sqlEngineName, kwargs, [], False, [])
+          parsedSchema, _ = self._parseSchema(input, sqlEngineName, kwargs, [], False, [])
 
           print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
           print(parsedSchema)
 
           # TODO: merge parsed schema info about columns and types into tables
           table = BlazingTable(table_name,
-                               None,
+                               input,
                                sqlEngineDataType,
                                args=sqlEngineArgs,
                                client=self.dask_client)
+          table.column_names = parsedSchema["names"]
+          table.column_types = parsedSchema["types"]
+
 
         if table is not None:
             self.add_remove_table(table_name, True, table)
@@ -3076,6 +3085,26 @@ class BlazingContext(object):
                     if not isinstance(query_table.input, list):
                         query_table.input = [query_table.input]
                     currentTableNodes.append(query_table)
+
+            elif (
+                query_table.fileType == DataType.MYSQL
+                #or query_table.fileType == DataType.
+            ):
+                if query_table.has_metadata():
+                    currentTableNodes = self._optimize_skip_data_getSlices(
+                        query_table, table_scans[table_idx]
+                    )
+                else:
+                    # If all files are accessible by all nodes,
+                    # it is better to distribute them in the old way
+                    # otherwise, each node is responsible for the files
+                    # it has access to.
+                    if query_table.local_files is False:
+                        currentTableNodes = query_table.getSlices(len(self.nodes))
+                    else:
+                        currentTableNodes = query_table.getSlicesByWorker(
+                            len(self.nodes)
+                        )
 
             for j, nodeList in enumerate(nodeTableList):
                 nodeList.append(currentTableNodes[j])

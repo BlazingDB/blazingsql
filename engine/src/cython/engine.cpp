@@ -7,8 +7,12 @@
 #include "../io/data_parser/OrcParser.h"
 #include "../io/data_parser/ArrowParser.h"
 #include "../io/data_parser/ParquetParser.h"
+#include "../io/data_parser/sql/MySQLParser.h"
+#include "../io/data_parser/sql/SQLiteParser.h"
 #include "../io/data_provider/GDFDataProvider.h"
 #include "../io/data_provider/UriDataProvider.h"
+#include "../io/data_provider/sql/MySQLDataProvider.h"
+#include "../io/data_provider/sql/SQLiteDataProvider.h"
 #include "../skip_data/SkipDataProcessor.h"
 #include "../execution_graph/logic_controllers/LogicalFilter.h"
 
@@ -52,6 +56,9 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 			tableSchema.in_file,
 			tableSchema.row_groups_ids);
 
+    bool isSqlProvider = false;
+    std::shared_ptr<ral::io::data_provider> provider;
+    
 		std::shared_ptr<ral::io::data_parser> parser;
 		if(fileType == ral::io::DataType::PARQUET) {
 			parser = std::make_shared<ral::io::parquet_parser>();
@@ -65,22 +72,35 @@ std::pair<std::vector<ral::io::data_loader>, std::vector<ral::io::Schema>> get_l
 			parser = std::make_shared<ral::io::csv_parser>(args_map);
 		} else if(fileType == ral::io::DataType::ARROW){
 	     	parser = std::make_shared<ral::io::arrow_parser>(tableSchema.arrow_table);
-		}
+		} else if(fileType == ral::io::DataType::MYSQL) {
+      parser = std::make_shared<ral::io::mysql_parser>();
+      auto sql = ral::io::getSqlInfo(args_map);
+      provider = std::make_shared<ral::io::mysql_data_provider>(sql);
+      isSqlProvider = true;
+    } else if(fileType == ral::io::DataType::SQLITE) {
+  //		parser = std::make_shared<ral::io::sqlite_parser>();
+  //    auto sql = ral::io::getSqlInfo(args_map);
+  //    provider = std::make_shared<ral::io::sqlite_data_provider>(sql.schema,
+  //                                                               sql.table,
+  //                                                               sql.table_filter,                                                          sql.table_batch_size);
+  //    isSqlProvider = true;
+    }
 
-		std::shared_ptr<ral::io::data_provider> provider;
 		std::vector<Uri> uris;
 		for(size_t fileIndex = 0; fileIndex < filesAll[i].size(); fileIndex++) {
 			uris.push_back(Uri{filesAll[i][fileIndex]});
 			schema.add_file(filesAll[i][fileIndex]);
 		}
 
-		if(fileType == ral::io::DataType::CUDF || fileType == ral::io::DataType::DASK_CUDF) {
-			// is gdf
-			provider = std::make_shared<ral::io::gdf_data_provider>(tableSchema.blazingTableViews, uri_values[i]);
-		} else {
-			// is file (this includes the case where fileType is UNDEFINED too)
-			provider = std::make_shared<ral::io::uri_data_provider>(uris, uri_values[i]);
-		}
+    if (!isSqlProvider) {
+      if(fileType == ral::io::DataType::CUDF || fileType == ral::io::DataType::DASK_CUDF) {
+        // is gdf
+        provider = std::make_shared<ral::io::gdf_data_provider>(tableSchema.blazingTableViews, uri_values[i]);
+      } else {
+        // is file (this includes the case where fileType is UNDEFINED too)
+        provider = std::make_shared<ral::io::uri_data_provider>(uris, uri_values[i]);
+      }
+    }
 		ral::io::data_loader loader(parser, provider);
 		input_loaders.push_back(loader);
 		schemas.push_back(schema);

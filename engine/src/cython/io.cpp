@@ -107,12 +107,14 @@ TableSchema parseSchema(std::vector<std::string> files,
 		}
 
 		bool open_file = false;
-		while (provider->has_next()){
-			std::vector<ral::io::data_handle> handles = provider->get_some(64, open_file);
-			for(auto handle : handles) {
-				schema.add_file(handle.uri.toString(true));
-			}
-		}
+    if (!isSqlProvider) {
+      while (provider->has_next()){
+        std::vector<ral::io::data_handle> handles = provider->get_some(64, open_file);
+        for(auto handle : handles) {
+          schema.add_file(handle.uri.toString(true));
+        }
+      }
+    }
 
 		for(auto extra_column : extra_columns) {
 			schema.add_column(extra_column.first, extra_column.second, 0, false);

@@ -193,7 +193,7 @@ std::shared_ptr<data_provider> mysql_data_provider::clone() {
 }
 
 bool mysql_data_provider::has_next() {
-  return this->current_row_count < row_count;
+  return (this->current_row_count < row_count);
 }
 
 void mysql_data_provider::reset() {

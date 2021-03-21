@@ -30,9 +30,10 @@ class SQLEngineArgs(TypedDict):
     use_partitions: bool
 
 
-def GetSQLEngineArgs(kwargs: Dict[AnyStr, Any]) -> SQLEngineArgs:
+def GetSQLEngineArgs(kwargs: Dict[AnyStr, Any], database_table) -> SQLEngineArgs:
     hintsDict = get_type_hints(SQLEngineArgs)
     argsNames = hintsDict.keys()
+    kwargs["database_table"] = database_table
 
     try:
         sqlKwArgs = {name: kwargs[name] for name in argsNames}

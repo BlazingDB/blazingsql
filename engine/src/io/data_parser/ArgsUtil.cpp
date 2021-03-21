@@ -266,10 +266,12 @@ sql_info getSqlInfo(std::map<std::string, std::string> &args_map) {
   sql_info sql;
   sql.host = args_map["host"];
   sql.port = static_cast<std::size_t>(std::atoll(args_map["port"].data()));
-  sql.user = args_map["user"];
+  sql.user = args_map["username"];
   sql.password = args_map["password"];
   sql.schema = args_map["database"];
   sql.table = args_map["database_table"];
+  sql.table_batch_size = static_cast<std::size_t>(std::atoll(args_map["batch_size"].data()));
+  sql.use_table_partitions = static_cast<std::size_t>(std::atoll(args_map["use_partitions"].data()));
   //sql.table_filter = args_map["table_filter"];
   return sql;
 }
