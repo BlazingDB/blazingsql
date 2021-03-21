@@ -19,7 +19,8 @@ TEST_F(SQLProviderTest, mysql_select_all) {
   sql.user = "lucho";
   sql.password = "admin";
   sql.schema = "employees";
-  sql.table = "departments";
+  //sql.table = "departments";
+  sql.table = "employees";
   sql.table_filter = "";
   sql.table_batch_size = 22;
   sql.use_table_partitions = false;
@@ -35,8 +36,10 @@ TEST_F(SQLProviderTest, mysql_select_all) {
 //    column_indices[i] = i;
 //  }
 
-  std::vector<int> column_indices = {1};
-  mysql_provider->set_column_indices(column_indices);
+
+  //std::vector<int> column_indices = {1};
+  std::vector<int> column_indices;
+  //mysql_provider->set_column_indices(column_indices);
 
   std::cout << "\trows: " << rows << "\n";
   auto handle = mysql_provider->get_next();
@@ -76,6 +79,11 @@ TEST_F(SQLProviderTest, mysql_select_all) {
 
   std::cout << "RESULTSET DATA -->>> TEST antes de parse batch -->> " << res->rowsCount() << "\n";
 
+  if (column_indices.empty()) {
+    size_t num_cols = schema.get_num_columns();
+    column_indices.resize(num_cols);
+    std::iota(column_indices.begin(), column_indices.end(), 0);
+  }
   std::unique_ptr<ral::frame::BlazingTable> bztbl = parser.parse_batch(handle, schema, column_indices, row_groups);
   ral::utilities::print_blazing_table_view(bztbl->toBlazingTableView(), "holis");
 }
