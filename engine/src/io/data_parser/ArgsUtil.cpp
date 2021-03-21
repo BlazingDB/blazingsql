@@ -259,20 +259,41 @@ std::string getDataTypeName(DataType dataType) {
 }
 
 sql_info getSqlInfo(std::map<std::string, std::string> &args_map) {
-  //bool use_partitions = false
-  //DETAULT_BATCH_SIZE = 100
+  // TODO percy william maybe we can move this constant as a bc.BlazingContext config opt
+  const size_t DETAULT_TABLE_BATCH_SIZE = 1000;
   // TODO(percy, cristhian): add exception for key error and const
   // TODO(percy, cristhian): for sqlite, add contionals to avoid unncessary fields
   sql_info sql;
-  sql.host = args_map["host"];
-  sql.port = static_cast<std::size_t>(std::atoll(args_map["port"].data()));
-  sql.user = args_map["username"];
-  sql.password = args_map["password"];
-  sql.schema = args_map["database"];
-  sql.table = args_map["database_table"];
-  sql.table_batch_size = static_cast<std::size_t>(std::atoll(args_map["batch_size"].data()));
-  sql.use_table_partitions = static_cast<std::size_t>(std::atoll(args_map["use_partitions"].data()));
-  //sql.table_filter = args_map["table_filter"];
+  if (args_map.find("sql_hostname") != args_map.end()) {
+    sql.host = args_map.at("sql_hostname");
+  }
+  if (args_map.find("sql_port") != args_map.end()) {
+    sql.port = static_cast<std::size_t>(std::atoll(args_map["sql_port"].data()));
+  }
+  if (args_map.find("sql_username") != args_map.end()) {
+    sql.user = args_map.at("sql_username");
+  }
+  if (args_map.find("sql_password") != args_map.end()) {
+    sql.password = args_map.at("sql_password");
+  }
+  if (args_map.find("sql_schema") != args_map.end()) {
+    sql.schema = args_map.at("sql_schema");
+  }
+  if (args_map.find("sql_table") != args_map.end()) {
+    sql.table = args_map.at("sql_table");
+  }
+  if (args_map.find("sql_table_filter") != args_map.end()) {
+    sql.table_filter = args_map.at("sql_table_filter");
+  }
+  if (args_map.find("sql_table_batch_size") != args_map.end()) {
+    if (args_map.at("sql_table_batch_size").empty()) {
+      sql.table_batch_size = DETAULT_TABLE_BATCH_SIZE;
+    } else {
+      sql.table_batch_size = static_cast<std::size_t>(std::atoll(args_map.at("sql_table_batch_size").data())); 
+    }
+  } else {
+    sql.table_batch_size = DETAULT_TABLE_BATCH_SIZE;
+  }
   return sql;
 }
 

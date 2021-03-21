@@ -181,13 +181,8 @@ void sqlite_data_provider::reset() {
 data_handle sqlite_data_provider::get_next(bool) {
   std::string query;
 
-  if (this->sql.use_table_partitions) {
-    // TODO percy if part size less than batch full part fetch else apply limit offset over the partition to fetch
-    query = "SELECT * FROM " + this->sql.table + " partition(" + this->partitions[this->batch_position++] + ")";
-  } else {
-    query = "SELECT * FROM " + this->sql.table + " LIMIT " + std::to_string(this->batch_position) + " OFFSET " + std::to_string(this->batch_position);
-    this->batch_position += this->sql.table_batch_size;
-  }
+  query = "SELECT * FROM " + this->sql.table + " LIMIT " + std::to_string(this->batch_position) + " OFFSET " + std::to_string(this->batch_position);
+  this->batch_position += this->sql.table_batch_size;
 
   std::cout << "query: " << query << "\n";
   auto stmt = execute_sqlite_query(this->sqlite_connection, query);

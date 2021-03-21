@@ -916,16 +916,15 @@ def kwargs_validation(kwargs, bc_api_str):
             "max_bytes_chunk_read",  # Used for reading CSV files in chunks
             "local_files",
             "get_metadata",
-            "from_sql_engine",
             # SQL Engines arguments
-            "database",
-            "username",
-            "password",
-            "host",
-            "port",
-            "database_table",
-            "batch_size",
-            "use_partitions"
+            "from_sql",
+            "sql_hostname",
+            "sql_port",
+            "sql_username",
+            "sql_password",
+            "sql_schema",
+            "sql_table_filter",
+            "sql_table_batch_size"
         ]
         params_info = "https://docs.blazingdb.com/docs/create_table"
 
@@ -2270,7 +2269,7 @@ class BlazingContext(object):
                 )
             else:
                 table = BlazingTable(table_name, input, DataType.CUDF)
-        elif isinstance(input, list) and not 'from_sql_engine' in kwargs:
+        elif isinstance(input, list) and not 'from_sql' in kwargs:
             input = resolve_relative_path(input)
 
             # if we are using user defined partitions without hive,
@@ -2458,8 +2457,8 @@ class BlazingContext(object):
                 table_name, input, DataType.DASK_CUDF, client=self.dask_client
             )
 
-        if 'from_sql_engine' in kwargs:
-          sqlEngineName = kwargs['from_sql_engine']
+        if 'from_sql' in kwargs:
+          sqlEngineName = kwargs['from_sql']
 
           try:
             sqlEngineDataType = SQLEngineDataTypeMap[sqlEngineName]
@@ -2469,9 +2468,6 @@ class BlazingContext(object):
           sqlEngineArgs = GetSQLEngineArgs(kwargs, input[0])
 
           parsedSchema, _ = self._parseSchema(input, sqlEngineName, kwargs, [], False, [])
-
-          print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
-          print(parsedSchema)
 
           # TODO: merge parsed schema info about columns and types into tables
           table = BlazingTable(table_name,

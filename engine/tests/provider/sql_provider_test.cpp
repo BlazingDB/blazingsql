@@ -23,13 +23,11 @@ TEST_F(SQLProviderTest, mysql_select_all) {
   sql.table = "employees";
   sql.table_filter = "";
   sql.table_batch_size = 22;
-  sql.use_table_partitions = false;
 
   auto mysql_provider = std::make_shared<ral::io::mysql_data_provider>(sql);
 
   int rows = mysql_provider->get_num_handles();
 
-  
   
 //  std::vector<int> column_indices(2);
 //  for (int i = 0; i < column_indices.size(); ++i) {

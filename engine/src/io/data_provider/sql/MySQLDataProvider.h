@@ -44,19 +44,15 @@ public:
 	data_handle get_next(bool open_file = true) override;
 
 	/**
-	 * Get the number of data_handles that will be provided. 
+	 * Get the number of data_handles that will be provided.
 	 */ 
-  // in case the table has not partitions will return row count / batch_size_hint else
-  // will return the number of partitions
-
 	size_t get_num_handles() override;
 
 private:
   std::unique_ptr<sql::Connection> mysql_connection;
-  std::vector<std::string> partitions;
-  size_t row_count;
+  size_t estimated_table_row_count;
   size_t batch_position;
-  size_t current_row_count;
+  bool table_fetch_completed;
 };
 
 } /* namespace io */

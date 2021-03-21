@@ -23,8 +23,10 @@ namespace ral {
 namespace io {
 
 struct mysql_table_info {
-  std::vector<std::string> partitions;
-  size_t rows;
+  // mysql doest have exact info about partition size ... so for now we dont 
+  // need to rely on partition info
+  //std::vector<std::string> partitions;
+  size_t estimated_table_row_count;
 };
 
 struct mysql_columns_info {
@@ -98,11 +100,11 @@ mysql_table_info get_mysql_table_info(sql::Connection *con, const std::string &t
     auto res = execute_mysql_query(con, query);
 
     while (res->next()) {
-      std::string parts = res->getString("partitions").asStdString();
-      if (!parts.empty()) {
-        ret.partitions = StringUtil::split(parts, ',');
-      }
-      ret.rows = res->getInt("rows");
+      //std::string parts = res->getString("partitions").asStdString();
+      //if (!parts.empty()) {
+      //  ret.partitions = StringUtil::split(parts, ',');
+      //}
+      ret.estimated_table_row_count = res->getInt("rows");
       break; // we should not have more than 1 row here
     }
   } catch (sql::SQLException &e) {
@@ -164,8 +166,8 @@ mysql_columns_info get_mysql_columns_info(sql::Connection *con,
 
 mysql_data_provider::mysql_data_provider(const sql_info &sql)
 	: abstractsql_data_provider(sql)
-  , mysql_connection(nullptr), batch_position(0)
-  , current_row_count(0)
+  , mysql_connection(nullptr), estimated_table_row_count(0)
+  , batch_position(0), table_fetch_completed(false)
 {
   sql::Driver *driver = sql::mysql::get_driver_instance();
   sql::ConnectOptionsMap options = build_jdbc_mysql_connection(this->sql.host,
@@ -176,8 +178,7 @@ mysql_data_provider::mysql_data_provider(const sql_info &sql)
   this->mysql_connection = std::unique_ptr<sql::Connection>(driver->connect(options));
   mysql_table_info tbl_info = get_mysql_table_info(this->mysql_connection.get(),
                                                    this->sql.table);
-  this->partitions = std::move(tbl_info.partitions);
-  this->row_count = tbl_info.rows;
+  this->estimated_table_row_count = tbl_info.estimated_table_row_count;
   mysql_columns_info cols_info = get_mysql_columns_info(this->mysql_connection.get(),
                                                         this->sql.table);
   this->column_names = cols_info.columns;
@@ -193,11 +194,12 @@ std::shared_ptr<data_provider> mysql_data_provider::clone() {
 }
 
 bool mysql_data_provider::has_next() {
-  return (this->current_row_count < row_count);
+  return (this->table_fetch_completed == false);
 }
 
 void mysql_data_provider::reset() {
-	this->batch_position = 0;
+  this->table_fetch_completed = true;
+  this->batch_position = 0;
 }
 
 data_handle mysql_data_provider::get_next(bool open_file) {
@@ -210,20 +212,17 @@ data_handle mysql_data_provider::get_next(bool open_file) {
     return ret;
   }
 
-  std::string query;
-
   std::string select_from = this->build_select_from();
-  if (this->sql.use_table_partitions) {
-    // TODO percy if part size less than batch full part fetch else apply limit offset over the partition to fetch
-    query = select_from + " partition(" + this->partitions[this->batch_position++] + ")";
-  } else {
-    query = select_from + this->build_limit_offset(this->batch_position);
-    this->batch_position += this->sql.table_batch_size;
+  std::string query = select_from + this->sql.table_filter + this->build_limit_offset(this->batch_position);
+  // DEBUG
+  //std::cout << "MYSQL QUERY: " << query << "\n";
+  this->batch_position += this->sql.table_batch_size;
+  auto res = execute_mysql_query(this->mysql_connection.get(), query);
+
+  if (res->rowsCount() == 0) {
+    this->table_fetch_completed = true;
   }
 
-  std::cout << "query: " << query << "\n";
-  auto res = execute_mysql_query(this->mysql_connection.get(), query);
-  this->current_row_count += res->rowsCount();
   ret.sql_handle.table = this->sql.table;
   ret.sql_handle.column_names = this->column_names;
   ret.sql_handle.column_types = this->column_types;
@@ -232,18 +231,12 @@ data_handle mysql_data_provider::get_next(bool open_file) {
   ret.sql_handle.row_count = res->rowsCount();
   // TODO percy add columns to uri.query
   ret.uri = Uri("mysql", "", this->sql.schema + "/" + this->sql.table, "", "");
-  std::cout << "get_next TOTAL rows: " << this->row_count << "\n";
-  std::cout << "get_next current_row_count: " << this->current_row_count << "\n";
   return ret;
 }
 
 size_t mysql_data_provider::get_num_handles() {
-  if (this->partitions.empty()) {
-    size_t ret = this->row_count / this->sql.table_batch_size;
-    return ret == 0? 1 : ret;
-  }
-
-  return this->partitions.size();
+  size_t ret = this->estimated_table_row_count / this->sql.table_batch_size;
+  return ret == 0? 1 : ret;
 }
 
 } /* namespace io */

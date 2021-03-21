@@ -20,7 +20,6 @@ struct sql_info {
   std::string table;
   std::string table_filter;
   size_t table_batch_size;
-  bool use_table_partitions;
 };
 
 /**

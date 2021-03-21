@@ -384,7 +384,8 @@ std::unique_ptr<ral::frame::BlazingTable> mysql_parser::parse_batch(
 	std::vector<int> column_indices,
 	std::vector<cudf::size_type> row_groups) 
 {
-  std::cout << "PARSING BATCH: " << handle.sql_handle.row_count << "\n";
+  // DEBUG
+  //std::cout << "PARSING BATCH: " << handle.sql_handle.row_count << "\n";
   auto res = handle.sql_handle.mysql_resultset;
 	if(res == nullptr) {
 		return schema.makeEmptyBlazingTable(column_indices);
@@ -423,6 +424,7 @@ void mysql_parser::parse_schema(ral::io::data_handle handle, ral::io::Schema & s
 	}
 }
 
+// TODO percy
 std::unique_ptr<ral::frame::BlazingTable> mysql_parser::get_metadata(
 	std::vector<ral::io::data_handle> handles, int offset){
 //	std::vector<size_t> num_row_groups(files.size());
@@ -449,6 +451,7 @@ std::unique_ptr<ral::frame::BlazingTable> mysql_parser::get_metadata(
 //		reader->Close();
 //	}
 //	return minmax_metadata_table;
+  return nullptr;
 }
 
 } /* namespace io */
