@@ -87,9 +87,18 @@ sql::ConnectOptionsMap build_jdbc_mysql_connection(const std::string host,
 std::shared_ptr<sql::ResultSet> execute_mysql_query(sql::Connection *con,
                                                     const std::string &query)
 {
-  std::unique_ptr<sql::Statement> stmt(con->createStatement());
-  std::shared_ptr<sql::ResultSet> res(stmt->executeQuery(query));
-  return res;
+  auto stmt_deleter = [](sql::Statement *pointer) {
+    pointer->close();
+    delete pointer;
+  };
+
+  auto resultset_deleter = [](sql::ResultSet *pointer) {
+    pointer->close();
+    delete pointer;
+  };
+
+  std::shared_ptr<sql::Statement> stmt(con->createStatement(), stmt_deleter);
+  return std::shared_ptr<sql::ResultSet>(stmt->executeQuery(query), resultset_deleter);
 }
 
 mysql_table_info get_mysql_table_info(sql::Connection *con, const std::string &table) {
