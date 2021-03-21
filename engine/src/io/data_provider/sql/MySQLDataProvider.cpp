@@ -213,7 +213,8 @@ data_handle mysql_data_provider::get_next(bool open_file) {
   }
 
   std::string select_from = this->build_select_from();
-  std::string query = select_from + this->sql.table_filter + this->build_limit_offset(this->batch_position);
+  std::string where = this->sql.table_filter.empty()? "" : " where ";
+  std::string query = select_from + where + this->sql.table_filter + this->build_limit_offset(this->batch_position);
   // DEBUG
   //std::cout << "MYSQL QUERY: " << query << "\n";
   this->batch_position += this->sql.table_batch_size;
