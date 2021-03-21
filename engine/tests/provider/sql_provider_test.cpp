@@ -16,53 +16,41 @@ TEST_F(SQLProviderTest, mysql_select_all) {
 	ral::io::sql_info sql;
   sql.host = "localhost";
   sql.port = 3306;
-  sql.user = "lucho";
+  sql.user = "blazing";
   sql.password = "admin";
-  sql.schema = "employees";
+  sql.schema = "bz3";
   //sql.table = "departments";
-  sql.table = "employees";
+  sql.table = "DATABASECHANGELOG";
   sql.table_filter = "";
-  sql.table_batch_size = 22;
+  sql.table_batch_size = 100;
 
   auto mysql_provider = std::make_shared<ral::io::mysql_data_provider>(sql);
 
   int rows = mysql_provider->get_num_handles();
 
-  
-//  std::vector<int> column_indices(2);
-//  for (int i = 0; i < column_indices.size(); ++i) {
-//    column_indices[i] = i;
-//  }
+  ral::io::mysql_parser parser;
+  ral::io::Schema schema;
+  auto handle = mysql_provider->get_next(false); // false so we make sure dont go to the db and get the schema info only
+  parser.parse_schema(handle, schema);
 
-
-  //std::vector<int> column_indices = {1};
-  std::vector<int> column_indices;
-  //mysql_provider->set_column_indices(column_indices);
+  std::vector<int> column_indices = {3};
+  //std::vector<int> column_indices;
+  if (column_indices.empty()) {
+    size_t num_cols = schema.get_num_columns();
+    column_indices.resize(num_cols);
+    std::iota(column_indices.begin(), column_indices.end(), 0);
+  }
+  mysql_provider->set_column_indices(column_indices);
 
   std::cout << "\trows: " << rows << "\n";
-  auto handle = mysql_provider->get_next();
+  handle = mysql_provider->get_next();
   auto res = handle.sql_handle.mysql_resultset;
-
-  std::cout << "RESULTSET DATA -->>> TEST INICIOOOOOOOO -->> " << res->rowsCount() << "\n";  
-
 
   bool has_next = mysql_provider->has_next();
   std::cout << "\tNEXT?: " << (has_next?"TRUE":"FALSE") << "\n";
   
   
   std::cout << "\tTABLE\n";
-//  while (res->next()) {
-//    std::cout << "\t\t" << res->getString("dept_no") << "\n";
-//  }
-
-  std::cout << "PARSERRRRRRRRRRRRRRRRRRRRRRR\n";
-  
-  ral::io::mysql_parser parser;
-  ral::io::Schema schema;
-
-  std::cout << "RESULTSET DATA -->>> TEST antes de parse_schema -->> " << res->rowsCount() << "\n";  
-  parser.parse_schema(handle, schema);
-  
   auto cols = schema.get_names();
   std::cout << "total cols: " << cols.size() << "\n";
   for (int i = 0; i < cols.size(); ++i) {
@@ -72,16 +60,8 @@ TEST_F(SQLProviderTest, mysql_select_all) {
 
   std::cout << "\n\nCUDFFFFFFFFFFFFFFFFFFFFFF\n";
 
-
 	std::vector<cudf::size_type> row_groups;
 
-  std::cout << "RESULTSET DATA -->>> TEST antes de parse batch -->> " << res->rowsCount() << "\n";
-
-  if (column_indices.empty()) {
-    size_t num_cols = schema.get_num_columns();
-    column_indices.resize(num_cols);
-    std::iota(column_indices.begin(), column_indices.end(), 0);
-  }
   std::unique_ptr<ral::frame::BlazingTable> bztbl = parser.parse_batch(handle, schema, column_indices, row_groups);
   ral::utilities::print_blazing_table_view(bztbl->toBlazingTableView(), "holis");
 }
@@ -104,8 +84,6 @@ TEST_F(SQLProviderTest, sqlite_select_all) {
   auto handle = mysql_provider->get_next();
   auto res = handle.sql_handle.sqlite_statement;
 
-  //std::cout << "RESULTSET DATA -->>> TEST INICIOOOOOOOO -->> " << res->rowsCount() << "\n";  
-
   bool has_next = mysql_provider->has_next();
   std::cout << "\tNEXT?: " << (has_next?"TRUE":"FALSE") << "\n";
   
@@ -120,7 +98,6 @@ TEST_F(SQLProviderTest, sqlite_select_all) {
   ral::io::sqlite_parser parser;
   ral::io::Schema schema;
 
-  //std::cout << "RESULTSET DATA -->>> TEST antes de parse_schema -->> " << res->rowsCount() << "\n";  
   parser.parse_schema(handle, schema);
   
   auto cols = schema.get_names();
@@ -148,8 +125,6 @@ TEST_F(SQLProviderTest, sqlite_select_all) {
   }
 
 	std::vector<cudf::size_type> row_groups;
-
-  //std::cout << "RESULTSET DATA -->>> TEST antes de parse batch -->> " << res->rowsCount() << "\n";
 
   std::unique_ptr<ral::frame::BlazingTable> bztbl = parser.parse_batch(handle, schema, column_indices, row_groups);
   ral::utilities::print_blazing_table_view(bztbl->toBlazingTableView(), "holis");

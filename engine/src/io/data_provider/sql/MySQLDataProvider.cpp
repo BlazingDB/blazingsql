@@ -160,6 +160,9 @@ mysql_columns_info get_mysql_columns_info(sql::Connection *con,
 
       if (is_string_test(col_type)) {
         max_bytes = res->getUInt64("CHARACTER_MAXIMUM_LENGTH");
+      } else if (col_type == "DATETIME" || col_type == "TIMESTAMP") {
+        // NOTE mysql jdbc represents mysql date/datetime types as strings so is better to reserve a good amount here
+        max_bytes = 48;
       }
 
       ret.columns.push_back(col_name);

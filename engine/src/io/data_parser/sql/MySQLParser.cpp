@@ -119,6 +119,8 @@ std::unique_ptr<cudf::column> build_str_cudf_col(size_t total_rows,
   char *buff[total_rows];
   for (int i = 0; i < total_rows; ++i) {
       buff[i] = host_col + i*data_size;
+      // DEBUG
+      //std::cout << std::string(buff[i]) << "\n";
   }
   cudf::test::strings_column_wrapper vals(buff, buff+total_rows, valids.begin());
   return std::move(vals.release());
